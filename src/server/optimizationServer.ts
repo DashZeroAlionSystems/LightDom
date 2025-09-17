@@ -12,9 +12,11 @@ import { optimizationAPI } from '../api/optimizationApi';
 import { advancedNodeAPI } from '../api/advancedNodeApi';
 import { metaverseMiningAPI } from '../api/metaverseMiningApi';
 import { blockchainModelStorageAPI } from '../api/blockchainModelStorageApi';
+import { chatNodeAPI } from '../api/chatNodeApi';
 import { spaceOptimizationEngine } from '../core/SpaceOptimizationEngine';
 import { userWorkflowSimulator } from '../core/UserWorkflowSimulator';
 import { integrationTests } from '../tests/IntegrationTests';
+import { initializeChatWebSocketServer } from '../services/ChatWebSocketServer';
 
 export class OptimizationServer {
   private app: express.Application;
@@ -195,6 +197,51 @@ export class OptimizationServer {
 
     this.app.get('/api/metaverse/biomes', (req, res) => {
       metaverseMiningAPI.getBiomes(req, res);
+    });
+
+    // Chat Node routes
+    this.app.post('/api/chat/nodes', (req, res) => {
+      chatNodeAPI.createChatNode(req, res);
+    });
+
+    this.app.post('/api/chat/nodes/:nodeId/join', (req, res) => {
+      chatNodeAPI.joinChatNode(req, res);
+    });
+
+    this.app.post('/api/chat/nodes/:nodeId/messages', (req, res) => {
+      chatNodeAPI.sendMessage(req, res);
+    });
+
+    this.app.get('/api/chat/nodes/:nodeId', (req, res) => {
+      chatNodeAPI.getChatNode(req, res);
+    });
+
+    this.app.get('/api/chat/nodes/:nodeId/messages', (req, res) => {
+      chatNodeAPI.getMessages(req, res);
+    });
+
+    this.app.get('/api/chat/items/:itemId/nodes', (req, res) => {
+      chatNodeAPI.getChatNodesForItem(req, res);
+    });
+
+    this.app.get('/api/chat/nodes', (req, res) => {
+      chatNodeAPI.getAllChatNodes(req, res);
+    });
+
+    this.app.post('/api/chat/nodes/:nodeId/typing', (req, res) => {
+      chatNodeAPI.setTypingIndicator(req, res);
+    });
+
+    this.app.delete('/api/chat/nodes/:nodeId/typing', (req, res) => {
+      chatNodeAPI.clearTypingIndicator(req, res);
+    });
+
+    this.app.delete('/api/chat/nodes/:nodeId', (req, res) => {
+      chatNodeAPI.deleteChatNode(req, res);
+    });
+
+    this.app.get('/api/chat/nodes/:nodeId/statistics', (req, res) => {
+      chatNodeAPI.getChatNodeStatistics(req, res);
     });
 
     this.app.get('/api/metaverse/stats', (req, res) => {
@@ -448,6 +495,9 @@ export class OptimizationServer {
   }
 
   private setupWebSocket(): void {
+    // Initialize chat WebSocket server
+    initializeChatWebSocketServer(this.server);
+    
     this.io.on('connection', (socket) => {
       console.log('Client connected:', socket.id);
 
@@ -471,6 +521,12 @@ export class OptimizationServer {
       const optimizations = spaceOptimizationEngine.getOptimizations();
       if (optimizations.length > 0) {
         const latest = optimizations[0];
+        this.io.to('optimization_feed').emit('optimization_update', latest);
+      }
+    }, 5000);
+
+    console.log('✅ WebSocket server initialized with chat support');
+  }
         this.io.to('optimization_feed').emit('optimization', {
           type: 'optimization',
           optimization: latest
