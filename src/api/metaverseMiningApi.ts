@@ -5,6 +5,7 @@
 
 import { Request, Response } from 'express';
 import { metaverseMiningEngine } from '../core/MetaverseMiningEngine';
+import { spaceMiningEngine } from '../core/SpaceMiningEngine';
 
 export class MetaverseMiningAPI {
   
@@ -461,6 +462,91 @@ export class MetaverseMiningAPI {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  }
+
+  /**
+   * Get bridge details for metaverse routing
+   * GET /api/metaverse/bridge/:bridgeId
+   */
+  async getBridgeDetails(req: Request, res: Response): Promise<void> {
+    try {
+      const { bridgeId } = req.params;
+      const bridges = spaceMiningEngine.getMetaverseBridges();
+      const bridge = bridges.find(b => b.id === bridgeId);
+
+      if (!bridge) {
+        res.status(404).json({
+          error: 'Bridge not found',
+          message: `Bridge with ID ${bridgeId} does not exist`
+        });
+        return;
+      }
+
+      // Add metaverse-specific bridge information
+      const bridgeDetails = {
+        ...bridge,
+        is_operational: bridge.status === 'active',
+        source_chain: bridge.sourceChain,
+        target_chain: bridge.targetChain
+      };
+
+      res.json(bridgeDetails);
+
+    } catch (error) {
+      console.error('Error fetching bridge details:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
+   * Get bridge chat history
+   * GET /api/metaverse/bridge/:bridgeId/chat
+   */
+  async getBridgeChat(req: Request, res: Response): Promise<void> {
+    try {
+      const { bridgeId } = req.params;
+      const bridges = spaceMiningEngine.getMetaverseBridges();
+      const bridge = bridges.find(b => b.id === bridgeId);
+
+      if (!bridge) {
+        res.json([]);
+        return;
+      }
+
+      // Mock chat history
+      const chatHistory = [
+        {
+          id: 'msg1',
+          user: 'LightDOM_Miner',
+          message: `Bridge ${bridge.sourceChain} → ${bridge.targetChain} established`,
+          timestamp: Date.now() - 300000,
+          type: 'system'
+        },
+        {
+          id: 'msg2',
+          user: 'MetaverseBot',
+          message: `Welcome to the ${bridge.targetChain} bridge! Performance: ${bridge.performance.throughput} TPS`,
+          timestamp: Date.now() - 240000,
+          type: 'bot'
+        },
+        {
+          id: 'msg3',
+          user: 'SpaceMiner_001',
+          message: 'Bridge connection stable. Ready for DOM transfers.',
+          timestamp: Date.now() - 180000,
+          type: 'user'
+        }
+      ];
+
+      res.json(chatHistory);
+
+    } catch (error) {
+      console.error('Error fetching bridge chat:', error);
+      res.json([]);
     }
   }
 }

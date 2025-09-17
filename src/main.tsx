@@ -8,6 +8,7 @@ import ReactDOM from 'react-dom/client';
 import DiscordStyleDashboard from './components/DiscordStyleDashboard';
 import SpaceOptimizationDashboardMD3 from './components/SpaceOptimizationDashboardMD3';
 import MetaverseMiningDashboard from './components/MetaverseMiningDashboard';
+import SpaceMiningDashboard from './components/SpaceMiningDashboard';
 import AdvancedNodeDashboardMD3 from './components/AdvancedNodeDashboardMD3';
 import BlockchainModelStorageDashboard from './components/BlockchainModelStorageDashboard';
 import WorkflowSimulationDashboard from './components/WorkflowSimulationDashboard';
@@ -15,7 +16,7 @@ import TestingDashboard from './components/TestingDashboard';
 import WalletDashboard from './components/dashboard/WalletDashboard';
 import BridgeChatPage from './BridgeChatPage';
 import RealWebCrawlerDashboard from '../dom-space-harvester';
-import './index.css';
+import './simple.css';
 
 // Simple routing based on URL path
 const App = () => {
@@ -24,6 +25,8 @@ const App = () => {
   if (path.startsWith('/bridge/')) {
     const bridgeId = path.split('/bridge/')[1] || '';
     return <BridgeChatPage bridgeId={bridgeId} />;
+  } else if (path === '/space-mining') {
+    return <SpaceMiningDashboard />;
   } else if (path === '/harvester') {
     return <RealWebCrawlerDashboard />;
   } else if (path === '/wallet') {

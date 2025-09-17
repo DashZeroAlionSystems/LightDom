@@ -7,6 +7,8 @@ import { Router } from 'express';
 import { optimizationAPI } from './optimizationApi';
 import { blockchainModelStorageAPI } from './blockchainModelStorageApi';
 import { lightDomStorageAPI } from './LightDomStorageApi';
+import { spaceMiningAPI } from './spaceMiningApi';
+import { metaverseMiningAPI } from './metaverseMiningApi';
 import { startupScript } from '../scripts/StartupScript';
 import { browserRefreshHandler } from '../scripts/BrowserRefreshHandler';
 import { persistentBlockchainStorage } from '../core/PersistentBlockchainStorage';
@@ -47,6 +49,24 @@ router.get('/storage/files', lightDomStorageAPI.getUploadedFiles.bind(lightDomSt
 router.delete('/storage/files/:fileId', lightDomStorageAPI.deleteUploadedFile.bind(lightDomStorageAPI));
 router.get('/storage/stats', lightDomStorageAPI.getStorageStats.bind(lightDomStorageAPI));
 router.get('/storage/limits', lightDomStorageAPI.getFileUploadLimits.bind(lightDomStorageAPI));
+
+// Space Mining API routes
+router.post('/space-mining/mine', spaceMiningAPI.mineSpace.bind(spaceMiningAPI));
+router.post('/space-mining/queue', spaceMiningAPI.addToMiningQueue.bind(spaceMiningAPI));
+router.get('/space-mining/bridges', spaceMiningAPI.getMetaverseBridges.bind(spaceMiningAPI));
+router.get('/space-mining/bridge/:bridgeId', spaceMiningAPI.getBridgeDetails.bind(spaceMiningAPI));
+router.get('/space-mining/bridge/:bridgeId/url', spaceMiningAPI.getBridgeURL.bind(spaceMiningAPI));
+router.get('/space-mining/isolated-doms', spaceMiningAPI.getIsolatedDOMs.bind(spaceMiningAPI));
+router.get('/space-mining/isolated-dom/:domId', spaceMiningAPI.getIsolatedDOM.bind(spaceMiningAPI));
+router.get('/space-mining/spatial-structures', spaceMiningAPI.getSpatialStructures.bind(spaceMiningAPI));
+router.get('/space-mining/stats', spaceMiningAPI.getMiningStats.bind(spaceMiningAPI));
+router.post('/space-mining/start-continuous', spaceMiningAPI.startContinuousMining.bind(spaceMiningAPI));
+router.post('/space-mining/generate-routes', spaceMiningAPI.generateBridgeRoutes.bind(spaceMiningAPI));
+router.post('/space-mining/test-bridge/:bridgeId', spaceMiningAPI.testBridgeConnectivity.bind(spaceMiningAPI));
+
+// Metaverse Bridge API routes
+router.get('/metaverse/bridge/:bridgeId', metaverseMiningAPI.getBridgeDetails.bind(metaverseMiningAPI));
+router.get('/metaverse/bridge/:bridgeId/chat', metaverseMiningAPI.getBridgeChat.bind(metaverseMiningAPI));
 
 // Startup and Refresh Handler routes
 router.get('/startup/status', (req, res) => {
