@@ -313,6 +313,42 @@
       "command": "npm run db:test:start",
       "timeout": 120000,
       "retries": 2
+    },
+    {
+      "name": "detectMergeConflicts",
+      "description": "Detect merge conflicts in the repository",
+      "command": "node scripts/agent-runner.js merge-conflicts detect",
+      "timeout": 60000,
+      "retries": 1
+    },
+    {
+      "name": "analyzeMergeConflicts",
+      "description": "Analyze merge conflict patterns and suggest resolutions",
+      "command": "node scripts/agent-runner.js merge-conflicts analyze",
+      "timeout": 120000,
+      "retries": 1
+    },
+    {
+      "name": "resolveMergeConflicts",
+      "description": "Automatically resolve merge conflicts where possible",
+      "command": "node scripts/agent-runner.js merge-conflicts resolve",
+      "timeout": 300000,
+      "retries": 1
+    },
+    {
+      "name": "validateResolution",
+      "description": "Validate that merge conflict resolutions are correct",
+      "command": "npm run test:unit && npm run lint",
+      "timeout": 180000,
+      "retries": 1,
+      "dependencies": ["resolveMergeConflicts"]
+    },
+    {
+      "name": "generateConflictReport",
+      "description": "Generate a detailed report of merge conflicts and resolutions",
+      "command": "node scripts/agent-runner.js merge-conflicts report",
+      "timeout": 60000,
+      "retries": 1
     }
   ]
 }

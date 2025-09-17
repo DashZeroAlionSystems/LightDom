@@ -260,6 +260,52 @@
           "memoryUsage": "> 85%"
         }
       }
+    },
+    {
+      "name": "Merge Conflict Agent",
+      "description": "Automatically detects and resolves merge conflicts using AI-assisted strategies",
+      "triggers": [
+        "onMergeConflict",
+        "onPullRequest",
+        "onManualTrigger"
+      ],
+      "tasks": [
+        "detectMergeConflicts",
+        "analyzeMergeConflicts",
+        "resolveMergeConflicts",
+        "validateResolution",
+        "generateConflictReport"
+      ],
+      "config": {
+        "autoResolve": {
+          "enabled": true,
+          "confidenceThreshold": 0.7,
+          "maxFilesAutoResolve": 10
+        },
+        "conflictTypes": {
+          "import_conflicts": {
+            "strategy": "merge_imports",
+            "autoResolve": true
+          },
+          "function_conflicts": {
+            "strategy": "intelligent_merge",
+            "autoResolve": true
+          },
+          "variable_conflicts": {
+            "strategy": "rename_and_merge",
+            "autoResolve": false
+          },
+          "content_modifications": {
+            "strategy": "manual_review",
+            "autoResolve": false
+          }
+        },
+        "notifications": {
+          "onDetection": true,
+          "onResolution": true,
+          "onManualReviewRequired": true
+        }
+      }
     }
   ],
   "globalConfig": {
