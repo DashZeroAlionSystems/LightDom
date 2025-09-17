@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightDom Metaverse Chat Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        .chat-message { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .typing-indicator { animation: pulse 1.5s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen">
+    <div class="container mx-auto p-6">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-4">
+                🌌 LightDom Metaverse Chat System
+            </h1>
+            <p class="text-slate-400 text-lg">
+                Revolutionary chat nodes for every metaverse item mined from web optimizations
+            </p>
+        </div>
+
+        <!-- Demo Controls -->
+        <div class="bg-slate-800/50 rounded-xl p-6 mb-8 border border-slate-700">
+            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                ⚡ Demo Controls
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="startSpaceMining()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors">
+                    🛸 Start Space Mining
+                </button>
+                <button onclick="createChatNodes()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                    💬 Create Chat Nodes
+                </button>
+                <button onclick="demonstrateChat()" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors">
+                    🎭 Demo Chat Features
+                </button>
+            </div>
+        </div>
+
+        <!-- System Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                <div class="text-center">
+                    <div class="text-3xl mb-2">🌍</div>
+                    <h3 class="font-semibold mb-1">Virtual Land</h3>
+                    <p class="text-2xl font-bold text-green-400" id="virtualLandCount">0</p>
+                    <p class="text-xs text-slate-400">Parcels Created</p>
+                </div>
+            </div>
+            
+            <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                <div class="text-center">
+                    <div class="text-3xl mb-2">🤖</div>
+                    <h3 class="font-semibold mb-1">AI Nodes</h3>
+                    <p class="text-2xl font-bold text-blue-400" id="aiNodeCount">0</p>
+                    <p class="text-xs text-slate-400">Consensus Nodes</p>
+                </div>
+            </div>
+            
+            <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                <div class="text-center">
+                    <div class="text-3xl mb-2">💾</div>
+                    <h3 class="font-semibold mb-1">Storage Shards</h3>
+                    <p class="text-2xl font-bold text-purple-400" id="storageShardCount">0</p>
+                    <p class="text-xs text-slate-400">Data Shards</p>
+                </div>
+            </div>
+            
+            <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                <div class="text-center">
+                    <div class="text-3xl mb-2">🌉</div>
+                    <h3 class="font-semibold mb-1">Bridges</h3>
+                    <p class="text-2xl font-bold text-orange-400" id="bridgeCount">0</p>
+                    <p class="text-xs text-slate-400">Cross-Chain</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Demo Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Chat Nodes List -->
+            <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    💬 Active Chat Nodes
+                </h3>
+                <div id="chatNodesList" class="space-y-2 max-h-64 overflow-auto">
+                    <div class="text-slate-400 text-sm text-center py-4">
+                        No chat nodes yet. Start space mining to create them!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Window -->
+            <div class="lg:col-span-2 bg-slate-800/50 rounded-xl border border-slate-700 flex flex-col" style="height: 500px;">
+                <div class="p-4 border-b border-slate-700">
+                    <h3 class="font-semibold" id="activeChatTitle">Select a Chat Node</h3>
+                    <p class="text-sm text-slate-400" id="activeChatDescription">Choose a chat node from the left to start chatting</p>
+                </div>
+                
+                <div class="flex-1 p-4 overflow-auto" id="chatMessages">
+                    <div class="text-center text-slate-400 py-8">
+                        Welcome to the LightDom Metaverse Chat System!<br>
+                        Each web optimization creates unique virtual assets with dedicated chat rooms.
+                    </div>
+                </div>
+                
+                <div class="p-4 border-t border-slate-700">
+                    <div class="flex gap-2">
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            placeholder="Type your message..."
+                            class="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm"
+                            onkeypress="handleKeyPress(event)"
+                        >
+                        <button onclick="sendMessage()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded">
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Log -->
+        <div class="mt-8 bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                📋 System Log
+            </h3>
+            <div id="systemLog" class="font-mono text-sm text-slate-300 space-y-1 max-h-40 overflow-auto">
+                <div class="text-slate-500">[INFO] LightDom Metaverse Chat System initialized</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Demo data and state
+        let chatNodes = [];
+        let activeChatNode = null;
+        let demoUsers = [
+            { id: '0x1111...', name: 'Alice', avatar: '👩' },
+            { id: '0x2222...', name: 'Bob', avatar: '👨' },
+            { id: '0x3333...', name: 'Charlie', avatar: '🧑' },
+            { id: '0x4444...', name: 'Diana', avatar: '👱‍♀️' }
+        ];
+        let currentUser = demoUsers[0];
+
+        // Utility functions
+        function log(message) {
+            const logElement = document.getElementById('systemLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span class="text-slate-500">[${timestamp}]</span> ${message}`;
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function updateCounters() {
+            const virtualLand = chatNodes.filter(n => n.itemType === 'virtual_land').length;
+            const aiNodes = chatNodes.filter(n => n.itemType === 'ai_node').length;
+            const storageShards = chatNodes.filter(n => n.itemType === 'storage_shard').length;
+            const bridges = chatNodes.filter(n => n.itemType === 'bridge').length;
+
+            document.getElementById('virtualLandCount').textContent = virtualLand;
+            document.getElementById('aiNodeCount').textContent = aiNodes;
+            document.getElementById('storageShardCount').textContent = storageShards;
+            document.getElementById('bridgeCount').textContent = bridges;
+        }
+
+        // Demo functions
+        async function startSpaceMining() {
+            log('🛸 Starting space mining simulation...');
+            
+            const urls = ['example.com', 'github.com', 'stackoverflow.com'];
+            
+            for (const url of urls) {
+                log(`⛏️ Mining space from ${url}...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Simulate mining results
+                const structureCount = Math.floor(Math.random() * 4) + 2;
+                log(`✅ Extracted ${structureCount} spatial structures from ${url}`);
+            }
+            
+            log('🎉 Space mining complete! Ready to create chat nodes.');
+        }
+
+        async function createChatNodes() {
+            log('💬 Creating chat nodes for mined metaverse items...');
+            
+            const itemTypes = ['virtual_land', 'ai_node', 'storage_shard', 'bridge', 'reality_anchor'];
+            const biomes = ['digital', 'commercial', 'knowledge', 'entertainment', 'social'];
+            const chatTypes = ['public', 'governance', 'technical', 'bridge_coordination'];
+            const securityLevels = ['open', 'restricted', 'encrypted', 'token_gated'];
+            
+            // Create random chat nodes
+            const nodeCount = Math.floor(Math.random() * 8) + 5;
+            
+            for (let i = 0; i < nodeCount; i++) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                const itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+                const biome = biomes[Math.floor(Math.random() * biomes.length)];
+                const chatType = chatTypes[Math.floor(Math.random() * chatTypes.length)];
+                const securityLevel = securityLevels[Math.floor(Math.random() * securityLevels.length)];
+                
+                const node = {
+                    id: `node_${Date.now()}_${i}`,
+                    itemId: `item_${i}`,
+                    itemType: itemType,
+                    name: `${itemType.replace('_', ' ')} • ${biome}`,
+                    description: `Chat node for ${itemType} in ${biome} biome`,
+                    chatType: chatType,
+                    securityLevel: securityLevel,
+                    participantCount: Math.floor(Math.random() * 50) + 1,
+                    messageCount: Math.floor(Math.random() * 100),
+                    messages: []
+                };
+                
+                chatNodes.push(node);
+                log(`💬 Created chat node: ${node.name} (${node.chatType})`);
+            }
+            
+            updateChatNodesList();
+            updateCounters();
+            log(`🎉 Created ${nodeCount} chat nodes successfully!`);
+        }
+
+        function updateChatNodesList() {
+            const listElement = document.getElementById('chatNodesList');
+            
+            if (chatNodes.length === 0) {
+                listElement.innerHTML = `
+                    <div class="text-slate-400 text-sm text-center py-4">
+                        No chat nodes yet. Start space mining to create them!
+                    </div>
+                `;
+                return;
+            }
+            
+            listElement.innerHTML = '';
+            
+            chatNodes.forEach(node => {
+                const nodeElement = document.createElement('div');
+                nodeElement.className = `p-3 bg-slate-700/50 rounded border border-slate-600/50 hover:bg-slate-600/50 cursor-pointer transition-colors ${activeChatNode?.id === node.id ? 'ring-2 ring-purple-400' : ''}`;
+                nodeElement.onclick = () => selectChatNode(node);
+                
+                const typeEmojis = {
+                    virtual_land: '🌍',
+                    ai_node: '🤖',
+                    storage_shard: '💾',
+                    bridge: '🌉',
+                    reality_anchor: '⚓'
+                };
+                
+                const securityEmojis = {
+                    open: '🔓',
+                    restricted: '🔒',
+                    encrypted: '🛡️',
+                    token_gated: '👑'
+                };
+                
+                nodeElement.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <span>${typeEmojis[node.itemType] || '📦'}</span>
+                            <span class="font-medium text-sm">${node.name}</span>
+                        </div>
+                        <span class="text-xs">${securityEmojis[node.securityLevel] || '🔓'}</span>
+                    </div>
+                    <div class="text-xs text-slate-400 mb-2">${node.description}</div>
+                    <div class="flex justify-between text-xs text-slate-500">
+                        <span>👥 ${node.participantCount}</span>
+                        <span>💬 ${node.messageCount}</span>
+                        <span class="px-2 py-0.5 bg-slate-600 rounded">${node.chatType}</span>
+                    </div>
+                `;
+                
+                listElement.appendChild(nodeElement);
+            });
+        }
+
+        function selectChatNode(node) {
+            activeChatNode = node;
+            
+            document.getElementById('activeChatTitle').textContent = node.name;
+            document.getElementById('activeChatDescription').textContent = node.description;
+            
+            updateChatMessages();
+            updateChatNodesList(); // Update to show selection
+            
+            log(`💬 Joined chat node: ${node.name}`);
+        }
+
+        function updateChatMessages() {
+            const messagesElement = document.getElementById('chatMessages');
+            
+            if (!activeChatNode || activeChatNode.messages.length === 0) {
+                messagesElement.innerHTML = `
+                    <div class="text-center text-slate-400 py-8">
+                        Welcome to ${activeChatNode?.name || 'the chat'}!<br>
+                        Start a conversation about this metaverse item.
+                    </div>
+                `;
+                return;
+            }
+            
+            messagesElement.innerHTML = '';
+            
+            activeChatNode.messages.forEach(message => {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'chat-message flex gap-3 mb-4';
+                
+                messageElement.innerHTML = `
+                    <div class="w-8 h-8 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full flex items-center justify-center text-sm">
+                        ${message.user.avatar}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-medium text-sm">${message.user.name}</span>
+                            <span class="text-xs text-slate-500">${message.timestamp}</span>
+                        </div>
+                        <div class="text-sm">${message.content}</div>
+                    </div>
+                `;
+                
+                messagesElement.appendChild(messageElement);
+            });
+            
+            messagesElement.scrollTop = messagesElement.scrollHeight;
+        }
+
+        async function demonstrateChat() {
+            if (!activeChatNode) {
+                log('⚠️ Please select a chat node first');
+                return;
+            }
+            
+            log('🎭 Demonstrating chat features...');
+            
+            const demoMessages = [
+                { user: demoUsers[1], content: 'Welcome to this metaverse item! This virtual space was created from real web optimizations.' },
+                { user: demoUsers[2], content: 'Amazing! Each DOM element optimization creates a new chat-enabled virtual asset.' },
+                { user: demoUsers[3], content: 'I love the cross-chain bridge functionality. We can communicate across different blockchains! 🌉' },
+                { user: demoUsers[1], content: 'The security features are impressive too - encrypted messages, token gating, and governance voting.' },
+                { user: demoUsers[2], content: 'This is the future of the metaverse - utility-driven virtual worlds! #metaverse #innovation' }
+            ];
+            
+            for (const msg of demoMessages) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                const message = {
+                    ...msg,
+                    timestamp: new Date().toLocaleTimeString(),
+                    id: Date.now()
+                };
+                
+                activeChatNode.messages.push(message);
+                activeChatNode.messageCount++;
+                updateChatMessages();
+                updateChatNodesList();
+                
+                log(`💬 ${msg.user.name}: ${msg.content.substring(0, 50)}...`);
+            }
+            
+            log('🎉 Chat demonstration complete!');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            
+            if (!content || !activeChatNode) return;
+            
+            const message = {
+                user: currentUser,
+                content: content,
+                timestamp: new Date().toLocaleTimeString(),
+                id: Date.now()
+            };
+            
+            activeChatNode.messages.push(message);
+            activeChatNode.messageCount++;
+            updateChatMessages();
+            updateChatNodesList();
+            
+            input.value = '';
+            
+            log(`💬 You: ${content}`);
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Initialize demo
+        log('🌌 Welcome to the LightDom Metaverse Chat System Demo!');
+        log('📚 This demo showcases how web optimizations create virtual chat-enabled assets.');
+        log('🚀 Start by clicking "Start Space Mining" to begin the demonstration.');
+    </script>
+</body>
+</html>
