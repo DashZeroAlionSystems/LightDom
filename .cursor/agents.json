@@ -3,11 +3,7 @@
     {
       "name": "Code Quality Agent",
       "description": "Automatically enforces code quality standards and runs quality checks",
-      "triggers": [
-        "onFileSave",
-        "onPreCommit",
-        "onPullRequest"
-      ],
+      "triggers": ["onFileSave", "onPreCommit", "onPullRequest"],
       "tasks": [
         "runLinting",
         "runTypeChecking",
@@ -40,12 +36,7 @@
     {
       "name": "Test Automation Agent",
       "description": "Automatically runs tests and ensures test coverage requirements",
-      "triggers": [
-        "onFileChange",
-        "onPreCommit",
-        "onPullRequest",
-        "onSchedule"
-      ],
+      "triggers": ["onFileChange", "onPreCommit", "onPullRequest", "onSchedule"],
       "tasks": [
         "runUnitTests",
         "runIntegrationTests",
@@ -74,19 +65,8 @@
     {
       "name": "Security Agent",
       "description": "Continuously monitors and enforces security best practices",
-      "triggers": [
-        "onFileChange",
-        "onPreCommit",
-        "onPullRequest",
-        "onSchedule"
-      ],
-      "tasks": [
-        "scanDependencies",
-        "checkSecrets",
-        "runSAST",
-        "runDAST",
-        "checkCompliance"
-      ],
+      "triggers": ["onFileChange", "onPreCommit", "onPullRequest", "onSchedule"],
+      "tasks": ["scanDependencies", "checkSecrets", "runSAST", "runDAST", "checkCompliance"],
       "config": {
         "dependencyScan": {
           "enabled": true,
@@ -94,13 +74,7 @@
         },
         "secretScan": {
           "enabled": true,
-          "patterns": [
-            "api[_-]?key",
-            "secret[_-]?key",
-            "password",
-            "token",
-            "private[_-]?key"
-          ]
+          "patterns": ["api[_-]?key", "secret[_-]?key", "password", "token", "private[_-]?key"]
         },
         "sast": {
           "enabled": true,
@@ -111,11 +85,7 @@
     {
       "name": "Documentation Agent",
       "description": "Automatically generates and maintains documentation",
-      "triggers": [
-        "onFileChange",
-        "onPullRequest",
-        "onSchedule"
-      ],
+      "triggers": ["onFileChange", "onPullRequest", "onSchedule"],
       "tasks": [
         "generateAPIDocs",
         "updateREADME",
@@ -142,11 +112,7 @@
     {
       "name": "Performance Agent",
       "description": "Monitors and optimizes application performance",
-      "triggers": [
-        "onDeployment",
-        "onSchedule",
-        "onPerformanceRegression"
-      ],
+      "triggers": ["onDeployment", "onSchedule", "onPerformanceRegression"],
       "tasks": [
         "runPerformanceTests",
         "analyzeBundleSize",
@@ -173,11 +139,7 @@
     {
       "name": "Deployment Agent",
       "description": "Handles automated deployments and rollbacks",
-      "triggers": [
-        "onMergeToMain",
-        "onReleaseTag",
-        "onManualTrigger"
-      ],
+      "triggers": ["onMergeToMain", "onReleaseTag", "onManualTrigger"],
       "tasks": [
         "buildApplication",
         "runQualityGates",
@@ -207,10 +169,7 @@
     {
       "name": "Code Review Agent",
       "description": "Automatically reviews code and provides feedback",
-      "triggers": [
-        "onPullRequest",
-        "onCodeChange"
-      ],
+      "triggers": ["onPullRequest", "onCodeChange"],
       "tasks": [
         "analyzeCodeQuality",
         "checkSecurityIssues",
@@ -237,10 +196,7 @@
     {
       "name": "Monitoring Agent",
       "description": "Continuously monitors application health and performance",
-      "triggers": [
-        "continuous",
-        "onAlert"
-      ],
+      "triggers": ["continuous", "onAlert"],
       "tasks": [
         "monitorHealthChecks",
         "trackErrorRates",

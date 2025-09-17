@@ -42,19 +42,11 @@
       "phases": [
         {
           "name": "Planning",
-          "tasks": [
-            "validateArchitecture",
-            "checkCompliance"
-          ]
+          "tasks": ["validateArchitecture", "checkCompliance"]
         },
         {
           "name": "Development",
-          "tasks": [
-            "runCodeFormatting",
-            "runLinting",
-            "runTypeChecking",
-            "runUnitTests"
-          ],
+          "tasks": ["runCodeFormatting", "runLinting", "runTypeChecking", "runUnitTests"],
           "continuous": true
         },
         {
@@ -68,11 +60,7 @@
         },
         {
           "name": "Review",
-          "tasks": [
-            "analyzeCodeQuality",
-            "checkSecurityIssues",
-            "suggestImprovements"
-          ]
+          "tasks": ["analyzeCodeQuality", "checkSecurityIssues", "suggestImprovements"]
         }
       ],
       "timeout": 3600000
@@ -81,13 +69,7 @@
       "name": "SecurityWorkflow",
       "description": "Comprehensive security scanning workflow",
       "triggers": ["security-scan", "schedule"],
-      "tasks": [
-        "scanDependencies",
-        "checkSecrets",
-        "runSAST",
-        "runDAST",
-        "checkCompliance"
-      ],
+      "tasks": ["scanDependencies", "checkSecrets", "runSAST", "runDAST", "checkCompliance"],
       "parallel": true,
       "failFast": false,
       "timeout": 1800000
@@ -108,18 +90,11 @@
         },
         {
           "name": "StagingDeployment",
-          "tasks": [
-            "deployToStaging",
-            "runSmokeTests",
-            "runE2ETests"
-          ]
+          "tasks": ["deployToStaging", "runSmokeTests", "runE2ETests"]
         },
         {
           "name": "ProductionDeployment",
-          "tasks": [
-            "deployToProduction",
-            "monitorDeployment"
-          ]
+          "tasks": ["deployToProduction", "monitorDeployment"]
         }
       ],
       "timeout": 3600000
@@ -196,11 +171,7 @@
       "phases": [
         {
           "name": "Preparation",
-          "tasks": [
-            "generateChangelog",
-            "updateREADME",
-            "runQualityGates"
-          ]
+          "tasks": ["generateChangelog", "updateREADME", "runQualityGates"]
         },
         {
           "name": "Testing",
@@ -224,11 +195,7 @@
         },
         {
           "name": "PostRelease",
-          "tasks": [
-            "generateAPIDocs",
-            "updateArchitectureDocs",
-            "monitorHealthChecks"
-          ]
+          "tasks": ["generateAPIDocs", "updateArchitectureDocs", "monitorHealthChecks"]
         }
       ],
       "timeout": 7200000

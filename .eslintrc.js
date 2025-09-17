@@ -20,18 +20,16 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  plugins: [
-    'react',
-    'react-hooks',
-    '@typescript-eslint',
-    'security',
-  ],
+  plugins: ['react', 'react-hooks', '@typescript-eslint', 'security'],
   rules: {
     // TypeScript specific rules
-    '@typescript-eslint/no-unused-vars': ['error', { 
-      argsIgnorePattern: '^_',
-      varsIgnorePattern: '^_',
-    }],
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      },
+    ],
     '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/explicit-function-return-type': 'warn',
     '@typescript-eslint/no-non-null-assertion': 'error',
@@ -69,23 +67,26 @@ module.exports = {
     'security/detect-pseudoRandomBytes': 'error',
 
     // Code quality rules
-    'complexity': ['warn', 10],
+    complexity: ['warn', 10],
     'max-depth': ['warn', 4],
     'max-lines': ['warn', 300],
     'max-params': ['warn', 4],
     'max-statements': ['warn', 20],
-    'no-magic-numbers': ['warn', { 
-      ignore: [0, 1, -1], 
-      ignoreArrayIndexes: true,
-      enforceConst: true,
-    }],
+    'no-magic-numbers': [
+      'warn',
+      {
+        ignore: [0, 1, -1],
+        ignoreArrayIndexes: true,
+        enforceConst: true,
+      },
+    ],
     'no-multiple-empty-lines': ['error', { max: 2 }],
     'no-trailing-spaces': 'error',
     'eol-last': 'error',
     'comma-dangle': ['error', 'always-multiline'],
-    'semi': ['error', 'always'],
-    'quotes': ['error', 'single', { avoidEscape: true }],
-    'indent': ['error', 2, { SwitchCase: 1 }],
+    semi: ['error', 'always'],
+    quotes: ['error', 'single', { avoidEscape: true }],
+    indent: ['error', 2, { SwitchCase: 1 }],
   },
   settings: {
     react: {
