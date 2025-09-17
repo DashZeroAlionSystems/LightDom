@@ -232,6 +232,51 @@
         }
       ],
       "timeout": 7200000
+    },
+    {
+      "name": "MergeConflictWorkflow",
+      "description": "Automated workflow to detect and resolve merge conflicts",
+      "triggers": ["merge-conflict", "pull-request-conflict"],
+      "phases": [
+        {
+          "name": "Detection",
+          "tasks": [
+            "detectMergeConflicts"
+          ]
+        },
+        {
+          "name": "Analysis",
+          "tasks": [
+            "analyzeMergeConflicts"
+          ]
+        },
+        {
+          "name": "Resolution", 
+          "tasks": [
+            "resolveMergeConflicts"
+          ]
+        },
+        {
+          "name": "Validation",
+          "tasks": [
+            "validateResolution",
+            "runUnitTests",
+            "runLinting"
+          ]
+        },
+        {
+          "name": "Reporting",
+          "tasks": [
+            "generateConflictReport"
+          ]
+        }
+      ],
+      "timeout": 1800000,
+      "failFast": false,
+      "retryPolicy": {
+        "maxRetries": 2,
+        "backoffMultiplier": 1.5
+      }
     }
   ],
   "globalConfig": {

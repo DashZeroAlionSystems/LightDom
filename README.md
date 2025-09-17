@@ -13,6 +13,7 @@ A comprehensive blockchain-based DOM optimization platform with AI-powered codin
 
 ### AI & Automation
 - **Cursor Background Agent**: AI-powered coding assistance with code generation, refactoring, and debugging
+- **Merge Conflict Resolution**: Intelligent automatic detection and resolution of git merge conflicts
 - **Metaverse Mining Engine**: Continuous discovery of optimization algorithms and data mining
 - **Blockchain Integration**: Smart contract deployment and token management
 - **Advanced Node Management**: Creation, scaling, and merging of optimization nodes
@@ -274,6 +275,33 @@ npm run test:coverage
 1. Navigate to `/testing`
 2. Click "Run All Tests"
 3. View results and export reports
+
+## 🔀 Merge Conflict Resolution
+
+The platform includes intelligent merge conflict detection and resolution capabilities:
+
+### Quick Commands
+```bash
+# Detect merge conflicts
+node scripts/agent-runner.js merge-conflicts detect
+
+# Automatically resolve conflicts
+node scripts/agent-runner.js merge-conflicts resolve
+
+# Analyze specific file conflicts
+node scripts/agent-runner.js merge-conflicts analyze path/to/file.js
+
+# Generate detailed report
+node scripts/agent-runner.js merge-conflicts report
+```
+
+### Automated Workflow
+```bash
+# Run complete merge conflict resolution workflow
+node scripts/agent-runner.js workflow MergeConflictWorkflow
+```
+
+**📖 For detailed documentation, see [MERGE_CONFLICT_GUIDE.md](MERGE_CONFLICT_GUIDE.md)**
 
 ## 🔒 Security
 
