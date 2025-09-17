@@ -1,1 +1,98 @@
+# Dependencies
 node_modules
+.npm-cache/
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE files
+.vscode/settings.json
+.cursor/
+.idx/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Cache files
+.cache/
+.yarn/cache/
+
+# Temporary files
+tmp/
+temp/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# TypeScript cache
+*.tsbuildinfo
+
+# ESLint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+
+# parcel-bundler cache (https://parceljs.org/)
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor backup files
+*~
+*.bak
+*.tmp
+
+# Database files
+*.db
+*.sqlite
+
+# Docker files
+.dockerignore
+
+# Ethereum development
+cache/
+artifacts/
+
+# Hardhat files
+cache
+artifacts

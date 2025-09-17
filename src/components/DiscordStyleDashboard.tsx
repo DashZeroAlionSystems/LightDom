@@ -285,6 +285,11 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
             onClick={() => setCurrentView('metaverse')}
           />
           <SidebarItem 
+            icon={<Star size={20} />} 
+            label="Space Mining" 
+            onClick={() => window.location.href = '/space-mining'}
+          />
+          <SidebarItem 
             icon={<BarChart3 size={20} />} 
             label="Analytics" 
             onClick={() => setCurrentView('analytics')}
@@ -436,6 +441,49 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
                     >
                       <RotateCcw size={16} />
                       Reset
+                    </DiscordButton>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="discord-card discord-mb-lg">
+                <div className="discord-card-header">
+                  <h3 className="discord-card-title">Quick Actions</h3>
+                </div>
+                <div className="discord-p-md">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--discord-spacing-md)' }}>
+                    <DiscordButton
+                      variant="primary"
+                      onClick={() => window.location.href = '/space-mining'}
+                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--discord-spacing-sm)', justifyContent: 'flex-start' }}
+                    >
+                      <Star size={16} />
+                      Space Mining Dashboard
+                    </DiscordButton>
+                    <DiscordButton
+                      variant="secondary"
+                      onClick={() => window.location.href = '/metaverse-mining'}
+                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--discord-spacing-sm)', justifyContent: 'flex-start' }}
+                    >
+                      <Map size={16} />
+                      Metaverse Mining
+                    </DiscordButton>
+                    <DiscordButton
+                      variant="secondary"
+                      onClick={() => window.location.href = '/optimization'}
+                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--discord-spacing-sm)', justifyContent: 'flex-start' }}
+                    >
+                      <TrendingUp size={16} />
+                      Space Optimization
+                    </DiscordButton>
+                    <DiscordButton
+                      variant="secondary"
+                      onClick={() => window.location.href = '/wallet'}
+                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--discord-spacing-sm)', justifyContent: 'flex-start' }}
+                    >
+                      <Coins size={16} />
+                      Wallet Dashboard
                     </DiscordButton>
                   </div>
                 </div>
