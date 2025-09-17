@@ -5,6 +5,7 @@
 
 import { EventEmitter } from 'events';
 import { metaverseMiningEngine } from './MetaverseMiningEngine';
+import { chatNodeManager, MetaverseItemType } from './ChatNodeManager';
 
 export interface SpatialDOMStructure {
   id: string;
@@ -187,6 +188,9 @@ export class SpaceMiningEngine extends EventEmitter {
       
       // Generate metaverse bridges for isolated components
       const generatedBridges = await this.generateMetaverseBridges(isolatedComponents);
+      
+      // Create chat nodes for each metaverse item
+      await this.createChatNodesForMetaverseItems(isolatedComponents, domStructures);
       
       // Calculate metrics
       const metrics = this.calculateMiningMetrics(domStructures, isolatedComponents, generatedBridges);
@@ -392,6 +396,162 @@ export class SpaceMiningEngine extends EventEmitter {
     }
 
     return newBridges;
+  }
+
+  /**
+   * Create chat nodes for metaverse items
+   */
+  private async createChatNodesForMetaverseItems(
+    isolatedDOMs: IsolatedLightDOM[],
+    spatialStructures: SpatialDOMStructure[]
+  ): Promise<void> {
+    try {
+      for (const isolatedDOM of isolatedDOMs) {
+        const sourceStructure = this.spatialStructures.get(isolatedDOM.sourceStructure);
+        if (!sourceStructure) continue;
+
+        // Determine the metaverse item type based on the DOM structure
+        const itemType = this.mapDOMToMetaverseItemType(sourceStructure);
+        
+        // Create chat node for the isolated DOM component
+        await chatNodeManager.createChatNode({
+          itemId: isolatedDOM.id,
+          itemType: itemType,
+          itemData: {
+            spatialData: sourceStructure.spatialData,
+            domMetadata: sourceStructure.domMetadata,
+            optimization: sourceStructure.optimization,
+            metaverseMapping: sourceStructure.metaverseMapping,
+            isolationMetadata: isolatedDOM.metadata,
+            bridgeInfo: isolatedDOM.metaverseBridge
+          },
+          creatorAddress: 'system',
+          name: `${sourceStructure.domMetadata.elementType} • ${sourceStructure.metaverseMapping.biomeType}`,
+          description: `Chat node for ${itemType} created from ${sourceStructure.domMetadata.tagName} element on ${sourceStructure.url}`,
+          chatType: this.determineChatType(itemType, sourceStructure),
+          securityLevel: this.determineSecurityLevel(sourceStructure),
+          settings: {
+            maxParticipants: this.getMaxParticipantsByItemType(itemType),
+            allowBridgeMessages: sourceStructure.metaverseMapping.bridgeCompatible,
+            rateLimitPerMinute: this.getRateLimitByBiome(sourceStructure.metaverseMapping.biomeType)
+          }
+        });
+
+        console.log(`💬 Created chat node for ${itemType}: ${isolatedDOM.id}`);
+      }
+
+      // Also create bridge coordination chat nodes
+      for (const bridge of this.metaverseBridges.values()) {
+        if (bridge.capabilities.chatEnabled) {
+          await chatNodeManager.createChatNode({
+            itemId: bridge.id,
+            itemType: 'bridge',
+            itemData: {
+              bridgeInfo: bridge,
+              connectedDOMs: bridge.connectedDOMs,
+              performance: bridge.performance,
+              capabilities: bridge.capabilities
+            },
+            creatorAddress: 'system',
+            name: `Bridge: ${bridge.sourceChain} → ${bridge.targetChain}`,
+            description: `Cross-chain bridge coordination and communication hub`,
+            chatType: 'bridge_coordination',
+            securityLevel: 'restricted',
+            settings: {
+              maxParticipants: 200,
+              allowBridgeMessages: true,
+              rateLimitPerMinute: 60,
+              requireModeration: true
+            }
+          });
+
+          console.log(`🌉 Created bridge chat node: ${bridge.id}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error creating chat nodes for metaverse items:', error);
+      // Don't throw error to prevent breaking the mining process
+    }
+  }
+
+  /**
+   * Map DOM structure to metaverse item type
+   */
+  private mapDOMToMetaverseItemType(structure: SpatialDOMStructure): MetaverseItemType {
+    const { elementType, tagName } = structure.domMetadata;
+    const { biomeType } = structure.metaverseMapping;
+    const { isolationScore } = structure.optimization;
+
+    // AI nodes for high-complexity, well-isolated structures
+    if (isolationScore > 85 && structure.spatialData.complexity > 80) {
+      return 'ai_node';
+    }
+
+    // Storage shards for data-heavy structures
+    if (['main', 'article', 'section'].includes(tagName) && structure.optimization.potentialSavings > 30000) {
+      return 'storage_shard';
+    }
+
+    // Reality anchors for navigation and critical UI elements
+    if (['nav', 'header', 'footer'].includes(tagName)) {
+      return 'reality_anchor';
+    }
+
+    // Default to virtual land for most structures
+    return 'virtual_land';
+  }
+
+  /**
+   * Determine chat type based on item type and structure
+   */
+  private determineChatType(itemType: MetaverseItemType, structure: SpatialDOMStructure): any {
+    if (itemType === 'ai_node') return 'technical';
+    if (itemType === 'bridge') return 'bridge_coordination';
+    if (structure.metaverseMapping.biomeType === 'professional') return 'governance';
+    return 'public';
+  }
+
+  /**
+   * Determine security level based on structure properties
+   */
+  private determineSecurityLevel(structure: SpatialDOMStructure): any {
+    const { biomeType } = structure.metaverseMapping;
+    const { isolationScore } = structure.optimization;
+
+    if (biomeType === 'professional' || isolationScore > 90) return 'restricted';
+    if (biomeType === 'commercial') return 'token_gated';
+    return 'open';
+  }
+
+  /**
+   * Get max participants by item type
+   */
+  private getMaxParticipantsByItemType(itemType: MetaverseItemType): number {
+    const limits = {
+      'virtual_land': 100,
+      'ai_node': 50,
+      'storage_shard': 25,
+      'bridge': 200,
+      'reality_anchor': 150
+    };
+    return limits[itemType] || 50;
+  }
+
+  /**
+   * Get rate limit by biome type
+   */
+  private getRateLimitByBiome(biomeType: string): number {
+    const limits: Record<string, number> = {
+      'digital': 30,
+      'commercial': 20,
+      'knowledge': 40,
+      'entertainment': 50,
+      'social': 60,
+      'community': 45,
+      'professional': 15,
+      'production': 25
+    };
+    return limits[biomeType] || 30;
   }
 
   /**
