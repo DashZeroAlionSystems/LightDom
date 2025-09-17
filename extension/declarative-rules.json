@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": 1,
+      "priority": 1,
+      "action": {
+        "type": "block"
+      },
+      "condition": {
+        "urlFilter": "||ads.*",
+        "resourceTypes": ["script", "stylesheet", "image"],
+        "excludedInitiatorDomains": ["localhost", "127.0.0.1"]
+      }
+    },
+    {
+      "id": 2,
+      "priority": 1,
+      "action": {
+        "type": "block"
+      },
+      "condition": {
+        "urlFilter": "||tracking.*",
+        "resourceTypes": ["script", "xmlhttprequest"]
+      }
+    },
+    {
+      "id": 3,
+      "priority": 2,
+      "action": {
+        "type": "redirect",
+        "redirect": {
+          "extensionPath": "/blocked-resource.html"
+        }
+      },
+      "condition": {
+        "urlFilter": "||analytics.*",
+        "resourceTypes": ["script"]
+      }
+    },
+    {
+      "id": 4,
+      "priority": 3,
+      "action": {
+        "type": "modifyHeaders",
+        "requestHeaders": [
+          {
+            "header": "User-Agent",
+            "operation": "set",
+            "value": "LightDom-Optimizer/2.0"
+          }
+        ]
+      },
+      "condition": {
+        "urlFilter": "*",
+        "resourceTypes": ["main_frame"]
+      }
+    },
+    {
+      "id": 5,
+      "priority": 1,
+      "action": {
+        "type": "block"
+      },
+      "condition": {
+        "urlFilter": "||social-media-widgets.*",
+        "resourceTypes": ["script", "stylesheet"]
+      }
+    },
+    {
+      "id": 6,
+      "priority": 2,
+      "action": {
+        "type": "block"
+      },
+      "condition": {
+        "urlFilter": "||popup.*",
+        "resourceTypes": ["script"]
+      }
+    },
+    {
+      "id": 7,
+      "priority": 1,
+      "action": {
+        "type": "block"
+      },
+      "condition": {
+        "urlFilter": "||banner.*",
+        "resourceTypes": ["image", "script", "stylesheet"]
+      }
+    },
+    {
+      "id": 8,
+      "priority": 3,
+      "action": {
+        "type": "modifyHeaders",
+        "responseHeaders": [
+          {
+            "header": "Cache-Control",
+            "operation": "set",
+            "value": "max-age=3600"
+          }
+        ]
+      },
+      "condition": {
+        "urlFilter": "*.css",
+        "resourceTypes": ["stylesheet"]
+      }
+    },
+    {
+      "id": 9,
+      "priority": 3,
+      "action": {
+        "type": "modifyHeaders",
+        "responseHeaders": [
+          {
+            "header": "Cache-Control",
+            "operation": "set",
+            "value": "max-age=86400"
+          }
+        ]
+      },
+      "condition": {
+        "urlFilter": "*.js",
+        "resourceTypes": ["script"]
+      }
+    },
+    {
+      "id": 10,
+      "priority": 1,
+      "action": {
+        "type": "block"
+      },
+      "condition": {
+        "urlFilter": "||chat-widget.*",
+        "resourceTypes": ["script", "stylesheet"]
+      }
+    }
+  ]
+}

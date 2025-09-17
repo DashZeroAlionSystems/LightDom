@@ -1,0 +1,121 @@
+[
+  {
+    "inputs": [
+      {"internalType": "uint64", "name": "_challengeWindowSeconds", "type": "uint64"}
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "bytes32", "name": "crawlId", "type": "bytes32"},
+      {"indexed": true, "internalType": "address", "name": "submitter", "type": "address"},
+      {"indexed": false, "internalType": "bytes32", "name": "merkleRoot", "type": "bytes32"},
+      {"indexed": false, "internalType": "uint256", "name": "bytesSaved", "type": "uint256"},
+      {"indexed": false, "internalType": "uint256", "name": "backlinksCount", "type": "uint256"},
+      {"indexed": false, "internalType": "string", "name": "artifactCID", "type": "string"},
+      {"indexed": false, "internalType": "uint64", "name": "challengeWindowEnds", "type": "uint64"}
+    ],
+    "name": "ProofSubmitted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "bytes32", "name": "crawlId", "type": "bytes32"},
+      {"indexed": true, "internalType": "address", "name": "challenger", "type": "address"},
+      {"indexed": false, "internalType": "string", "name": "reason", "type": "string"}
+    ],
+    "name": "Challenged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "bytes32", "name": "crawlId", "type": "bytes32"}
+    ],
+    "name": "Finalized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "bytes32", "name": "crawlId", "type": "bytes32"},
+      {"indexed": true, "internalType": "address", "name": "submitter", "type": "address"},
+      {"indexed": false, "internalType": "string", "name": "reason", "type": "string"}
+    ],
+    "name": "Slashed",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {"internalType": "bytes32", "name": "crawlId", "type": "bytes32"},
+      {"internalType": "string", "name": "reason", "type": "string"}
+    ],
+    "name": "challenge",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "defaultChallengeWindow",
+    "outputs": [{"internalType": "uint64", "name": "", "type": "uint64"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "bytes32", "name": "crawlId", "type": "bytes32"}
+    ],
+    "name": "finalize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "bytes32", "name": "crawlId", "type": "bytes32"},
+      {"internalType": "string", "name": "reason", "type": "string"}
+    ],
+    "name": "ownerSlash",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "bytes32", "name": "crawlId", "type": "bytes32"}
+    ],
+    "name": "proofs",
+    "outputs": [
+      {"internalType": "address", "name": "submitter", "type": "address"},
+      {"internalType": "bytes32", "name": "merkleRoot", "type": "bytes32"},
+      {"internalType": "uint256", "name": "bytesSaved", "type": "uint256"},
+      {"internalType": "uint256", "name": "backlinksCount", "type": "uint256"},
+      {"internalType": "string", "name": "artifactCID", "type": "string"},
+      {"internalType": "uint64", "name": "submittedAt", "type": "uint64"},
+      {"internalType": "uint64", "name": "challengeWindowEnds", "type": "uint64"},
+      {"internalType": "bool", "name": "finalized", "type": "bool"},
+      {"internalType": "bool", "name": "slashed", "type": "bool"}
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "bytes32", "name": "crawlId", "type": "bytes32"},
+      {"internalType": "bytes32", "name": "merkleRoot", "type": "bytes32"},
+      {"internalType": "uint256", "name": "bytesSaved", "type": "uint256"},
+      {"internalType": "uint256", "name": "backlinksCount", "type": "uint256"},
+      {"internalType": "string", "name": "artifactCID", "type": "string"}
+    ],
+    "name": "submitProof",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
+
+

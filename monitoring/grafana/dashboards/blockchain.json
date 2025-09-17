@@ -1,0 +1,102 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Blockchain Metrics",
+    "tags": [
+      "lightdom",
+      "automation"
+    ],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Transaction Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "blockchain_transactions_per_second",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 100,
+            "color": "yellow"
+          },
+          {
+            "value": 200,
+            "color": "red"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Gas Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "blockchain_gas_used",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 1000000,
+            "color": "yellow"
+          },
+          {
+            "value": 2000000,
+            "color": "red"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Block Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "blockchain_block_time_seconds",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 15,
+            "color": "yellow"
+          },
+          {
+            "value": 30,
+            "color": "red"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Node Health",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "blockchain_node_health",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 0.8,
+            "color": "yellow"
+          },
+          {
+            "value": 0.6,
+            "color": "red"
+          }
+        ]
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

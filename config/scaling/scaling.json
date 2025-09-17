@@ -1,0 +1,53 @@
+{
+  "autoScaling": {
+    "enabled": true,
+    "minNodes": 1,
+    "maxNodes": 10,
+    "scaleUpThreshold": 80,
+    "scaleDownThreshold": 30,
+    "cooldownPeriod": 300
+  },
+  "resourceLimits": {
+    "cpu": {
+      "min": 1,
+      "max": 16,
+      "scaleUpStep": 2,
+      "scaleDownStep": 1
+    },
+    "memory": {
+      "min": 2048,
+      "max": 32768,
+      "scaleUpStep": 4096,
+      "scaleDownStep": 2048
+    },
+    "storage": {
+      "min": 100,
+      "max": 1000,
+      "scaleUpStep": 100,
+      "scaleDownStep": 50
+    }
+  },
+  "scalingPolicies": [
+    {
+      "name": "CPU Scaling",
+      "metric": "cpu_usage_percent",
+      "threshold": 80,
+      "action": "scale_up",
+      "cooldown": 300
+    },
+    {
+      "name": "Memory Scaling",
+      "metric": "memory_usage_percent",
+      "threshold": 85,
+      "action": "scale_up",
+      "cooldown": 300
+    },
+    {
+      "name": "Low Utilization",
+      "metric": "cpu_usage_percent",
+      "threshold": 30,
+      "action": "scale_down",
+      "cooldown": 600
+    }
+  ]
+}

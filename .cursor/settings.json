@@ -1,0 +1,205 @@
+{
+  "cursor": {
+    "agents": {
+      "enabled": true,
+      "autoStart": true,
+      "maxConcurrentAgents": 5,
+      "logLevel": "info",
+      "retryAttempts": 3,
+      "defaultTimeout": 300000
+    },
+    "workflows": {
+      "enabled": true,
+      "autoTrigger": true,
+      "maxConcurrentWorkflows": 3,
+      "defaultTimeout": 1800000
+    },
+    "notifications": {
+      "enabled": true,
+      "channels": {
+        "slack": {
+          "enabled": true,
+          "webhookUrl": "${SLACK_WEBHOOK_URL}",
+          "channel": "#lightdom-dev"
+        },
+        "email": {
+          "enabled": true,
+          "smtp": {
+            "host": "${SMTP_HOST}",
+            "port": 587,
+            "secure": false,
+            "auth": {
+              "user": "${SMTP_USER}",
+              "pass": "${SMTP_PASS}"
+            }
+          },
+          "to": ["dev-team@lightdom.com"],
+          "from": "noreply@lightdom.com"
+        }
+      }
+    },
+    "qualityGates": {
+      "enabled": true,
+      "preCommit": {
+        "codeFormatting": true,
+        "linting": true,
+        "typeChecking": true,
+        "unitTests": true,
+        "securityScan": true
+      },
+      "preMerge": {
+        "fullTestSuite": true,
+        "coverageThreshold": 80,
+        "securityVulnerabilityScan": true,
+        "performanceTest": true,
+        "codeReview": true,
+        "architectureCompliance": true
+      },
+      "preDeployment": {
+        "integrationTest": true,
+        "e2eTest": true,
+        "securityAudit": true,
+        "performanceValidation": true,
+        "loadTest": true,
+        "accessibilityTest": true
+      }
+    },
+    "security": {
+      "enabled": true,
+      "scanOnSave": true,
+      "scanOnCommit": true,
+      "scanOnPush": true,
+      "tools": {
+        "eslint": {
+          "enabled": true,
+          "config": ".eslintrc.js",
+          "rules": "security"
+        },
+        "semgrep": {
+          "enabled": true,
+          "config": "auto"
+        },
+        "npmAudit": {
+          "enabled": true,
+          "level": "moderate"
+        },
+        "snyk": {
+          "enabled": true,
+          "token": "${SNYK_TOKEN}"
+        }
+      }
+    },
+    "testing": {
+      "enabled": true,
+      "coverageThreshold": 80,
+      "parallel": true,
+      "watchMode": true,
+      "tools": {
+        "jest": {
+          "enabled": true,
+          "config": "jest.config.js"
+        },
+        "playwright": {
+          "enabled": true,
+          "config": "playwright.config.ts"
+        },
+        "lighthouse": {
+          "enabled": true,
+          "thresholds": {
+            "performance": 90,
+            "accessibility": 90,
+            "best-practices": 90,
+            "seo": 90
+          }
+        }
+      }
+    },
+    "deployment": {
+      "enabled": true,
+      "environments": {
+        "development": {
+          "autoDeploy": true,
+          "qualityGates": ["preCommit"]
+        },
+        "staging": {
+          "autoDeploy": true,
+          "qualityGates": ["preCommit", "preMerge"]
+        },
+        "production": {
+          "autoDeploy": false,
+          "qualityGates": ["preCommit", "preMerge", "preDeployment"],
+          "requiresApproval": true
+        }
+      }
+    },
+    "monitoring": {
+      "enabled": true,
+      "healthChecks": {
+        "interval": 30000,
+        "timeout": 10000
+      },
+      "alerts": {
+        "errorRate": "> 1%",
+        "responseTime": "> 2s",
+        "cpuUsage": "> 80%",
+        "memoryUsage": "> 85%"
+      },
+      "tools": {
+        "sentry": {
+          "enabled": true,
+          "dsn": "${SENTRY_DSN}"
+        },
+        "datadog": {
+          "enabled": true,
+          "apiKey": "${DATADOG_API_KEY}"
+        }
+      }
+    },
+    "documentation": {
+      "enabled": true,
+      "autoGenerate": true,
+      "tools": {
+        "typedoc": {
+          "enabled": true,
+          "config": "typedoc.json"
+        },
+        "swagger": {
+          "enabled": true,
+          "config": "swagger.config.js"
+        }
+      }
+    }
+  },
+  "rules": {
+    "enforceEnterpriseStandards": true,
+    "requireCodeReview": true,
+    "requireTests": true,
+    "requireDocumentation": true,
+    "enforceSecurity": true,
+    "enforcePerformance": true,
+    "enforceAccessibility": true
+  },
+  "integrations": {
+    "github": {
+      "enabled": true,
+      "token": "${GITHUB_TOKEN}",
+      "repository": "lightdom/LightDom",
+      "branchProtection": true
+    },
+    "jira": {
+      "enabled": true,
+      "url": "${JIRA_URL}",
+      "username": "${JIRA_USERNAME}",
+      "token": "${JIRA_TOKEN}"
+    },
+    "slack": {
+      "enabled": true,
+      "token": "${SLACK_BOT_TOKEN}",
+      "channels": {
+        "dev": "#lightdom-dev",
+        "alerts": "#lightdom-alerts",
+        "deployments": "#lightdom-deployments"
+      }
+    }
+  }
+}

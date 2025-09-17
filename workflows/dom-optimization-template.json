@@ -1,0 +1,276 @@
+{
+  "name": "DOM Optimization Pipeline",
+  "description": "LightDom workflow for automated DOM optimization and blockchain recording",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "optimize-dom",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "parameters": {
+        "functionCode": "// Validate input data\nconst input = items[0].json;\n\nif (!input.url) {\n  throw new Error('URL is required');\n}\n\nif (!input.url.startsWith('http')) {\n  throw new Error('URL must be a valid HTTP/HTTPS URL');\n}\n\nreturn [{\n  json: {\n    url: input.url,\n    optimizationLevel: input.optimizationLevel || 'medium',\n    includeImages: input.includeImages !== false,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      }
+    },
+    {
+      "id": "crawl-url",
+      "name": "Crawl URL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "method": "GET",
+        "options": {
+          "timeout": 30000,
+          "headers": {
+            "User-Agent": "LightDom-Optimizer/1.0"
+          }
+        }
+      }
+    },
+    {
+      "id": "extract-dom-data",
+      "name": "Extract DOM Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "parameters": {
+        "functionCode": "// Extract DOM metrics and data\nconst html = items[0].json.data;\nconst url = items[0].json.url;\n\n// Basic DOM analysis\nconst domMetrics = {\n  originalSize: html.length,\n  nodeCount: (html.match(/<[^>]+>/g) || []).length,\n  scriptTags: (html.match(/<script[^>]*>/gi) || []).length,\n  styleTags: (html.match(/<style[^>]*>/gi) || []).length,\n  imageTags: (html.match(/<img[^>]*>/gi) || []).length,\n  linkTags: (html.match(/<link[^>]*>/gi) || []).length\n};\n\n// Calculate optimization potential\nconst optimizationPotential = {\n  scriptsToInline: domMetrics.scriptTags,\n  stylesToOptimize: domMetrics.styleTags,\n  imagesToOptimize: domMetrics.imageTags,\n  estimatedSavings: Math.floor(domMetrics.originalSize * 0.15) // 15% estimated savings\n};\n\nreturn [{\n  json: {\n    url: url,\n    originalHTML: html,\n    domMetrics: domMetrics,\n    optimizationPotential: optimizationPotential,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      }
+    },
+    {
+      "id": "optimize-dom",
+      "name": "Optimize DOM",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1120, 300],
+      "parameters": {
+        "functionCode": "// DOM optimization logic\nconst input = items[0].json;\nconst html = input.originalHTML;\nconst optimizationLevel = input.optimizationLevel || 'medium';\n\n// Apply optimization based on level\nlet optimizedHTML = html;\n\nif (optimizationLevel === 'high') {\n  // High optimization: aggressive minification\n  optimizedHTML = html\n    .replace(/\\s+/g, ' ') // Collapse whitespace\n    .replace(/>\\s+</g, '><') // Remove spaces between tags\n    .replace(/<!--[\\s\\S]*?-->/g, '') // Remove comments\n    .replace(/\\s*=\\s*/g, '=') // Remove spaces around attributes\n    .trim();\n} else if (optimizationLevel === 'medium') {\n  // Medium optimization: moderate minification\n  optimizedHTML = html\n    .replace(/\\s+/g, ' ') // Collapse whitespace\n    .replace(/>\\s+</g, '><') // Remove spaces between tags\n    .trim();\n}\n// Low optimization: minimal changes\n\n// Calculate actual savings\nconst originalSize = input.domMetrics.originalSize;\nconst optimizedSize = optimizedHTML.length;\nconst actualSavings = originalSize - optimizedSize;\nconst savingsPercentage = Math.round((actualSavings / originalSize) * 100);\n\nreturn [{\n  json: {\n    ...input,\n    optimizedHTML: optimizedHTML,\n    optimizationResults: {\n      originalSize: originalSize,\n      optimizedSize: optimizedSize,\n      bytesSaved: actualSavings,\n      savingsPercentage: savingsPercentage,\n      optimizationLevel: optimizationLevel\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "generate-proof",
+      "name": "Generate Optimization Proof",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1340, 300],
+      "parameters": {
+        "functionCode": "// Generate cryptographic proof of optimization\nconst input = items[0].json;\nconst crypto = require('crypto');\n\n// Create hash of original and optimized content\nconst originalHash = crypto.createHash('sha256').update(input.originalHTML).digest('hex');\nconst optimizedHash = crypto.createHash('sha256').update(input.optimizedHTML).digest('hex');\n\n// Generate merkle root for the optimization proof\nconst proofData = {\n  url: input.url,\n  timestamp: input.timestamp,\n  originalHash: originalHash,\n  optimizedHash: optimizedHash,\n  optimizationResults: input.optimizationResults,\n  domMetrics: input.domMetrics\n};\n\nconst merkleRoot = crypto.createHash('sha256')\n  .update(JSON.stringify(proofData))\n  .digest('hex');\n\nreturn [{\n  json: {\n    ...input,\n    optimizationProof: {\n      merkleRoot: merkleRoot,\n      originalHash: originalHash,\n      optimizedHash: optimizedHash,\n      proofData: proofData,\n      generatedAt: new Date().toISOString()\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "save-to-blockchain",
+      "name": "Save to Blockchain",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1560, 300],
+      "parameters": {
+        "url": "http://localhost:3000/api/blockchain/record-optimization",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer {{ $credentials.blockchain.token }}"
+        },
+        "body": {
+          "url": "={{ $json.url }}",
+          "optimizationProof": "={{ $json.optimizationProof }}",
+          "optimizationResults": "={{ $json.optimizationResults }}",
+          "domMetrics": "={{ $json.domMetrics }}",
+          "timestamp": "={{ $json.timestamp }}"
+        }
+      }
+    },
+    {
+      "id": "save-to-database",
+      "name": "Save to Database",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1780, 300],
+      "parameters": {
+        "url": "http://localhost:3000/api/optimizations",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "url": "={{ $json.url }}",
+          "originalSize": "={{ $json.optimizationResults.originalSize }}",
+          "optimizedSize": "={{ $json.optimizationResults.optimizedSize }}",
+          "bytesSaved": "={{ $json.optimizationResults.bytesSaved }}",
+          "savingsPercentage": "={{ $json.optimizationResults.savingsPercentage }}",
+          "optimizationLevel": "={{ $json.optimizationResults.optimizationLevel }}",
+          "merkleRoot": "={{ $json.optimizationProof.merkleRoot }}",
+          "timestamp": "={{ $json.timestamp }}",
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "id": "send-notification",
+      "name": "Send Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [2000, 300],
+      "parameters": {
+        "url": "http://localhost:3000/api/notifications/optimization-complete",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "url": "={{ $json.url }}",
+          "savingsPercentage": "={{ $json.optimizationResults.savingsPercentage }}",
+          "bytesSaved": "={{ $json.optimizationResults.bytesSaved }}",
+          "merkleRoot": "={{ $json.optimizationProof.merkleRoot }}",
+          "timestamp": "={{ $json.timestamp }}"
+        }
+      }
+    },
+    {
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2220, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": {
+          "success": true,
+          "url": "={{ $json.url }}",
+          "optimizationResults": "={{ $json.optimizationResults }}",
+          "merkleRoot": "={{ $json.optimizationProof.merkleRoot }}",
+          "timestamp": "={{ $json.timestamp }}",
+          "message": "DOM optimization completed successfully"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "validate-input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate-input": {
+      "main": [
+        [
+          {
+            "node": "crawl-url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "crawl-url": {
+      "main": [
+        [
+          {
+            "node": "extract-dom-data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract-dom-data": {
+      "main": [
+        [
+          {
+            "node": "optimize-dom",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "optimize-dom": {
+      "main": [
+        [
+          {
+            "node": "generate-proof",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate-proof": {
+      "main": [
+        [
+          {
+            "node": "save-to-blockchain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save-to-blockchain": {
+      "main": [
+        [
+          {
+            "node": "save-to-database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save-to-database": {
+      "main": [
+        [
+          {
+            "node": "send-notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send-notification": {
+      "main": [
+        [
+          {
+            "node": "webhook-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "executionTimeout": 300
+  },
+  "tags": ["lightdom", "dom-optimization", "blockchain", "automation"],
+  "active": false,
+  "createdAt": "2024-12-19T00:00:00.000Z",
+  "updatedAt": "2024-12-19T00:00:00.000Z"
+}

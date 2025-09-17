@@ -1,0 +1,102 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Automation Metrics",
+    "tags": [
+      "lightdom",
+      "automation"
+    ],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Workflow Success Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "automation_workflow_success_rate",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 0.9,
+            "color": "yellow"
+          },
+          {
+            "value": 0.8,
+            "color": "red"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Active Workflows",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "automation_active_workflows",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 50,
+            "color": "yellow"
+          },
+          {
+            "value": 100,
+            "color": "red"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "automation_error_rate",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 0.05,
+            "color": "yellow"
+          },
+          {
+            "value": 0.1,
+            "color": "red"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Execution Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "automation_execution_time_seconds",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 300,
+            "color": "yellow"
+          },
+          {
+            "value": 600,
+            "color": "red"
+          }
+        ]
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

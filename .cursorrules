@@ -1,0 +1,703 @@
+# LightDom Enterprise Coding Rules - Enhanced Edition
+
+## Project Overview
+This is a blockchain-based DOM optimization platform that includes:
+- React/TypeScript frontend with Vite
+- Solidity smart contracts for tokenization and optimization proof
+- Express.js API server
+- Web crawler and optimization engine
+- PostgreSQL database integration
+
+## Code Quality Standards
+
+### TypeScript/JavaScript
+- Use TypeScript for all new code with strict type checking enabled
+- Prefer `const` over `let`, avoid `var` completely
+- Use meaningful variable and function names (descriptive, not abbreviated)
+- Implement proper error handling with try-catch blocks and custom error types
+- Use async/await over promises where possible, handle promise rejections properly
+- Follow ESLint and Prettier configurations (create if missing)
+- Write self-documenting code with JSDoc comments for complex functions
+- Use proper TypeScript interfaces and types, avoid `any` type
+- Implement proper null/undefined checking with optional chaining and nullish coalescing
+
+### React/UI Development
+- Use functional components with hooks exclusively
+- Implement proper prop types and interfaces with strict typing
+- Use CSS modules or styled-components for styling (avoid inline styles)
+- Follow accessibility guidelines (WCAG 2.1 AA compliance)
+- Implement responsive design principles (mobile-first approach)
+- Use proper state management (Context API or Redux when needed)
+- Avoid prop drilling - use composition patterns and custom hooks
+- Implement proper error boundaries for component error handling
+- Use React.memo and useMemo/useCallback for performance optimization
+- Follow React 18+ patterns (concurrent features, Suspense, etc.)
+
+### Solidity Smart Contracts
+- Follow OpenZeppelin standards and best practices
+- Implement proper access control with modifiers and role-based access
+- Use events for important state changes (indexed parameters for efficiency)
+- Implement reentrancy guards where necessary (nonReentrant modifier)
+- Use Solidity 0.8+ built-in overflow protection (no SafeMath needed)
+- Write comprehensive NatSpec documentation for all public functions
+- Implement proper error handling with custom errors (Solidity 0.8.4+)
+- Use proper gas optimization patterns (packed structs, efficient loops)
+- Implement proper upgrade patterns (proxy contracts) for critical contracts
+- Never use `tx.origin` for authorization, use `msg.sender`
+
+### API Development
+- Use RESTful API design principles with proper HTTP methods
+- Implement proper HTTP status codes (200, 201, 400, 401, 403, 404, 500)
+- Use middleware for authentication, validation, and error handling
+- Implement rate limiting and CORS properly with configurable origins
+- Use environment variables for all configuration (no hardcoded values)
+- Implement proper logging and error handling with structured logging
+- Follow OpenAPI/Swagger documentation standards
+- Use proper request/response validation with schema validation
+- Implement proper API versioning strategy
+- Use proper authentication mechanisms (JWT, API keys, OAuth)
+
+## Security Requirements
+
+### General Security
+- Never commit secrets, API keys, or private keys to version control
+- Use environment variables for all sensitive configuration
+- Implement proper input validation and sanitization (XSS, injection prevention)
+- Use parameterized queries to prevent SQL injection
+- Implement proper authentication and authorization (RBAC)
+- Follow OWASP security guidelines and top 10 vulnerabilities
+- Regular security audits and dependency updates
+- Implement proper CORS configuration (not wildcard in production)
+- Use HTTPS in production with proper SSL/TLS configuration
+- Implement proper session management and CSRF protection
+
+### Blockchain Security
+- Use established libraries like OpenZeppelin for security patterns
+- Implement proper access controls and multi-signature requirements
+- Test all smart contracts thoroughly before deployment
+- Use formal verification where possible for critical contracts
+- Implement proper upgrade patterns (proxy contracts) for critical functionality
+- Never use `tx.origin` for authorization, always use `msg.sender`
+- Be aware of reentrancy vulnerabilities and use proper guards
+- Implement proper gas optimization to prevent DoS attacks
+- Use proper random number generation (Chainlink VRF for production)
+- Implement proper event emission for off-chain monitoring
+
+### Database Security
+- Use connection pooling and prepared statements
+- Implement proper database access controls and user permissions
+- Encrypt sensitive data at rest and in transit
+- Use proper backup and recovery procedures with encryption
+- Implement database monitoring and logging
+- Use proper database indexing for performance and security
+- Implement proper data retention policies
+- Use proper database migration strategies with rollback plans
+
+## Performance Standards
+
+### Frontend Performance
+- Implement code splitting and lazy loading for routes and components
+- Optimize bundle size and use tree shaking effectively
+- Use proper caching strategies (browser cache, CDN, service workers)
+- Optimize images and assets (WebP, lazy loading, responsive images)
+- Implement proper loading states and error boundaries
+- Monitor Core Web Vitals (LCP, FID, CLS) and maintain good scores
+- Use proper state management to avoid unnecessary re-renders
+- Implement proper memory management and cleanup in useEffect
+- Use proper virtualization for large lists and data sets
+
+### Backend Performance
+- Implement proper caching (Redis/Memcached) for frequently accessed data
+- Use database indexing appropriately and monitor query performance
+- Implement connection pooling for database connections
+- Use async processing for heavy operations (queues, workers)
+- Monitor and profile application performance regularly
+- Implement proper rate limiting to prevent abuse
+- Use proper compression (gzip, brotli) for responses
+- Implement proper database query optimization and monitoring
+- Use proper load balancing and horizontal scaling
+
+### Blockchain Performance
+- Optimize gas usage in smart contracts (efficient data structures)
+- Use events instead of storage for non-critical data
+- Implement proper batch operations to reduce transaction costs
+- Consider layer 2 solutions for high-frequency operations
+- Use proper gas estimation and limit handling
+- Implement proper transaction batching and queuing
+- Monitor blockchain performance and gas costs
+- Use proper contract optimization techniques
+
+## Testing Requirements
+
+### Unit Testing
+- Maintain minimum 80% code coverage (branches, functions, lines, statements)
+- Write tests for all business logic and utility functions
+- Use proper mocking and stubbing for external dependencies
+- Test edge cases and error conditions thoroughly
+- Use Jest for JavaScript/TypeScript testing with proper configuration
+- Use Hardhat for Solidity testing with comprehensive test coverage
+- Implement proper test data management and cleanup
+- Use proper test naming conventions and organization
+- Implement proper test isolation and parallel execution
+
+### Integration Testing
+- Test API endpoints thoroughly with various scenarios
+- Test database interactions and data integrity
+- Test smart contract interactions and state changes
+- Use proper test data management and cleanup
+- Implement end-to-end testing for critical user flows
+- Test error handling and edge cases in integration scenarios
+- Use proper test environment setup and teardown
+- Implement proper test data seeding and cleanup
+
+### Smart Contract Testing
+- Test all functions and edge cases with comprehensive scenarios
+- Test access control and permissions thoroughly
+- Test reentrancy and other security vulnerabilities
+- Use fuzzing and property-based testing for critical functions
+- Test upgrade scenarios and migration paths
+- Test gas optimization and cost scenarios
+- Test error conditions and exception handling
+- Implement proper test coverage for all contract functions
+
+## Documentation Standards
+
+### Code Documentation
+- Write comprehensive README files with setup and usage instructions
+- Document all public APIs and interfaces with examples
+- Use JSDoc for JavaScript/TypeScript functions with proper annotations
+- Use NatSpec for Solidity contracts with comprehensive documentation
+- Document deployment procedures and configuration requirements
+- Maintain changelog and release notes with proper versioning
+- Document environment variables and configuration options
+- Document API endpoints with request/response examples
+
+### Architecture Documentation
+- Document system architecture and design decisions
+- Create sequence diagrams for complex flows and interactions
+- Document database schema and relationships
+- Document smart contract architecture and interactions
+- Maintain API documentation with OpenAPI/Swagger
+- Document deployment architecture and infrastructure
+- Document monitoring and observability setup
+- Document security architecture and measures
+
+## Enterprise Workflow Rules
+
+### Development Workflow
+- Follow GitFlow branching strategy with main, develop, feature, release, and hotfix branches
+- All development must happen on feature branches, never directly on main/develop
+- Use feature flags for gradual rollouts and A/B testing
+- Implement trunk-based development for high-velocity teams
+- Use short-lived branches (max 2-3 days) to reduce merge conflicts
+- Implement automated branch protection rules
+- Require linear history for main branch (no merge commits)
+- Use proper commit message conventions (conventional commits)
+
+### Code Review Workflow
+- All code must be reviewed by at least 2 senior developers
+- Use automated code review tools (SonarQube, CodeClimate, etc.)
+- Implement review assignment rotation to prevent bottlenecks
+- Require approval from code owners for critical files
+- Use review templates with mandatory checklists
+- Implement review time limits (max 24 hours for normal changes)
+- Escalate reviews that exceed time limits
+- Track review metrics and team performance
+
+### Pull Request Workflow
+- Use descriptive PR titles following conventional commit format
+- Include comprehensive PR descriptions with:
+  - What changes were made and why
+  - Testing instructions and test coverage
+  - Screenshots/videos for UI changes
+  - Breaking changes documentation
+  - Performance impact analysis
+  - Security considerations
+- Link PRs to relevant issues/tickets
+- Use PR templates for consistency
+- Implement automated PR validation
+- Require all CI checks to pass before merge
+- Use draft PRs for work-in-progress features
+
+### Testing Workflow
+- Implement Test-Driven Development (TDD) for critical business logic
+- Use Behavior-Driven Development (BDD) for user-facing features
+- Run tests in parallel across multiple environments
+- Implement test data management and cleanup
+- Use contract testing for microservices
+- Implement visual regression testing for UI changes
+- Use mutation testing to verify test quality
+- Implement test result reporting and analytics
+
+### Deployment Workflow
+- Use blue-green or canary deployment strategies
+- Implement automated rollback capabilities
+- Use feature toggles for safe deployments
+- Implement database migration strategies
+- Use infrastructure as code for environment consistency
+- Implement deployment approval workflows for production
+- Use deployment pipelines with multiple stages
+- Implement deployment monitoring and alerting
+
+### Release Management
+- Use semantic versioning (SemVer) for all releases
+- Implement automated changelog generation
+- Use release branches for version management
+- Implement release notes automation
+- Use release gates and quality checkpoints
+- Implement rollback procedures for failed releases
+- Use release calendars and communication plans
+- Implement post-release monitoring and validation
+
+### Quality Assurance Workflow
+- Implement continuous integration with automated builds
+- Use automated code quality gates
+- Implement security scanning in CI/CD pipeline
+- Use performance testing in staging environments
+- Implement accessibility testing automation
+- Use cross-browser and cross-device testing
+- Implement load testing for critical paths
+- Use chaos engineering for resilience testing
+
+### Monitoring and Observability Workflow
+- Implement comprehensive logging strategy with structured logging
+- Use proper log levels and log aggregation
+- Implement distributed tracing across services
+- Use metrics collection and dashboards
+- Implement alerting with proper escalation
+- Use error tracking and crash reporting
+- Implement user analytics and behavior tracking
+- Use performance monitoring and optimization
+
+### Security Workflow
+- Implement security scanning in CI/CD pipeline
+- Use dependency vulnerability scanning
+- Implement secret scanning and detection
+- Use static application security testing (SAST)
+- Implement dynamic application security testing (DAST)
+- Use interactive application security testing (IAST)
+- Implement security code review checklists
+- Use threat modeling for new features
+
+### Documentation Workflow
+- Use documentation as code approach
+- Implement automated documentation generation
+- Use version-controlled documentation
+- Implement documentation review process
+- Use living documentation that stays current
+- Implement API documentation automation
+- Use architectural decision records (ADRs)
+- Implement knowledge sharing sessions
+
+### Incident Response Workflow
+- Implement incident response playbooks
+- Use incident management tools (PagerDuty, etc.)
+- Implement escalation procedures
+- Use post-incident review process
+- Implement incident communication plans
+- Use incident metrics and reporting
+- Implement preventive measures tracking
+- Use incident simulation and training
+
+### Change Management Workflow
+- Implement change request process
+- Use change advisory board (CAB) for major changes
+- Implement change impact analysis
+- Use change approval workflows
+- Implement change communication plans
+- Use change rollback procedures
+- Implement change metrics and reporting
+- Use change risk assessment
+
+## Git and Version Control
+
+### Commit Standards
+- Use conventional commit format: `type(scope): description`
+- Write clear and descriptive commit messages
+- Keep commits atomic and focused on single changes
+- Use proper branching strategy (feature/develop/main)
+- Require pull request reviews for all changes
+- Use commit message templates
+- Implement commit message validation
+- Use commit signing for security
+
+### Branch Naming
+- `feature/description` for new features
+- `bugfix/description` for bug fixes
+- `hotfix/description` for critical fixes
+- `refactor/description` for code refactoring
+- `chore/description` for maintenance tasks
+- `docs/description` for documentation changes
+- `test/description` for test-related changes
+- `perf/description` for performance improvements
+
+### Branch Protection Rules
+- Require pull request reviews before merging
+- Require status checks to pass before merging
+- Require branches to be up to date before merging
+- Restrict pushes to main branch
+- Require linear history
+- Require signed commits
+- Require conversation resolution before merging
+- Implement branch naming conventions enforcement
+
+## Deployment and DevOps
+
+### Environment Management
+- Use separate environments (dev/staging/prod)
+- Implement proper environment variable management
+- Use infrastructure as code (Docker, Kubernetes)
+- Implement proper CI/CD pipelines
+- Use proper secret management (AWS Secrets Manager, etc.)
+
+### Monitoring and Logging
+- Implement comprehensive logging with structured format
+- Use proper log levels (DEBUG, INFO, WARN, ERROR, FATAL)
+- Implement proper error tracking and alerting
+- Monitor application performance and resource usage
+- Set up alerts for critical issues and thresholds
+- Use proper log aggregation and analysis tools
+
+## Blockchain-Specific Guidelines
+
+### Smart Contract Development
+- Use established patterns and libraries (OpenZeppelin)
+- Implement proper upgrade mechanisms (proxy patterns)
+- Use events for off-chain integration and monitoring
+- Implement proper gas optimization techniques
+- Follow security best practices and audit requirements
+- Use proper testing frameworks (Hardhat, Foundry)
+- Implement proper deployment scripts and verification
+
+### Token Standards
+- Follow ERC-20/ERC-721/ERC-1155 standards strictly
+- Implement proper transfer restrictions and compliance
+- Use established token libraries and patterns
+- Implement proper metadata standards
+- Follow regulatory requirements for token implementations
+- Implement proper token economics and distribution
+
+### Testing and Deployment
+- Use testnets for development and testing
+- Implement proper deployment scripts with verification
+- Use multi-signature wallets for production deployments
+- Implement proper verification processes for contracts
+- Use proper gas estimation and optimization
+- Implement proper monitoring and alerting for contracts
+
+## Code Review Guidelines
+
+### Review Checklist
+- Security vulnerabilities and best practices
+- Performance implications and optimizations
+- Code quality and maintainability
+- Test coverage and quality
+- Documentation completeness and accuracy
+- Architecture compliance and patterns
+- Error handling and edge cases
+- Accessibility and usability considerations
+
+### Review Process
+- All code must be reviewed before merging
+- Use automated tools for code quality checks
+- Focus on security and performance implications
+- Provide constructive feedback and suggestions
+- Document review decisions and rationale
+- Follow consistent review processes and standards
+
+## Error Handling
+
+### General Error Handling
+- Use proper error types and messages
+- Implement proper error logging and tracking
+- Provide meaningful error messages to users
+- Implement proper error recovery mechanisms
+- Use proper HTTP status codes
+- Implement proper error monitoring and alerting
+- Use proper error boundaries and fallbacks
+
+### Blockchain Error Handling
+- Handle transaction failures gracefully
+- Implement proper retry mechanisms with exponential backoff
+- Use proper error events and logging
+- Handle network issues and timeouts
+- Implement proper gas estimation and handling
+- Use proper error recovery and rollback mechanisms
+
+## Performance Monitoring
+
+### Key Metrics
+- Response times and throughput
+- Error rates and availability
+- Database performance and query times
+- Smart contract gas usage and costs
+- Frontend performance metrics (Core Web Vitals)
+- Resource usage and scaling metrics
+- User experience metrics
+
+### Monitoring Tools
+- Application performance monitoring (APM)
+- Database monitoring and query analysis
+- Blockchain monitoring tools and gas tracking
+- Frontend performance monitoring
+- Error tracking and logging
+- Infrastructure monitoring and alerting
+
+## Compliance and Governance
+
+### Data Protection
+- Follow GDPR and CCPA requirements
+- Implement proper data retention policies
+- Use proper data encryption and protection
+- Implement proper access controls and audit trails
+- Regular compliance audits and assessments
+- Implement proper data privacy and consent management
+
+### Audit Requirements
+- Maintain comprehensive audit trails
+- Implement proper logging and monitoring
+- Regular security assessments and penetration testing
+- Code quality audits and reviews
+- Performance audits and optimization
+- Compliance audits and regulatory requirements
+
+## Emergency Procedures
+
+### Incident Response
+- Follow proper incident response procedures
+- Implement proper escalation paths and communication
+- Maintain incident documentation and post-mortems
+- Conduct post-incident reviews and improvements
+- Implement proper rollback procedures
+- Maintain emergency contact lists and procedures
+
+### Security Incidents
+- Follow security incident response procedures
+- Implement proper containment measures
+- Notify appropriate stakeholders and authorities
+- Document security incidents and lessons learned
+- Conduct security post-mortems and improvements
+- Implement preventive measures and monitoring
+
+## Continuous Improvement
+
+### Regular Reviews
+- Conduct regular code reviews and quality assessments
+- Implement continuous integration and delivery
+- Regular performance reviews and optimization
+- Security assessment updates and improvements
+- Technology stack updates and modernization
+- Process improvement and optimization
+
+### Learning and Development
+- Stay updated with latest technologies and best practices
+- Participate in code reviews and knowledge sharing
+- Share knowledge and best practices across teams
+- Attend relevant conferences and training
+- Contribute to open source projects and communities
+- Implement continuous learning and development programs
+
+## Project-Specific Guidelines
+
+### LightDom Platform
+- Focus on DOM optimization algorithms and efficiency
+- Implement efficient web crawling and data extraction
+- Use proper data structures for optimization results
+- Implement proper caching for optimization results
+- Monitor optimization performance metrics
+- Implement proper DOM analysis and optimization techniques
+
+### Token Economics
+- Implement proper token distribution mechanisms
+- Use proper economic models and incentives
+- Implement proper governance mechanisms
+- Monitor token metrics and usage patterns
+- Implement proper token utility and value propositions
+- Use proper token economics modeling and analysis
+
+### Integration Points
+- Ensure proper API integration and error handling
+- Implement proper data synchronization and consistency
+- Use proper event handling and messaging
+- Implement proper error handling across systems
+- Use proper monitoring and observability across integrations
+- Implement proper testing and validation for integrations
+
+## Tools and Technologies
+
+### Required Tools
+- TypeScript/JavaScript (ES6+) with strict configuration
+- React 18+ with hooks and modern patterns
+- Vite for build tooling and development
+- Solidity 0.8+ with OpenZeppelin libraries
+- Hardhat for smart contract development and testing
+- Express.js for API development
+- PostgreSQL for database operations
+- Docker for containerization and deployment
+
+### Recommended Tools
+- ESLint and Prettier for code formatting and linting
+- Jest and Vitest for testing
+- Storybook for component development
+- Sentry for error tracking and monitoring
+- Grafana for monitoring and visualization
+- Redis for caching and session management
+- Nginx for load balancing and reverse proxy
+- Kubernetes for orchestration and scaling
+
+## Quality Gates
+
+### Pre-commit
+- Code formatting and linting (ESLint, Prettier)
+- Unit test execution with coverage requirements
+- Security scanning and vulnerability checks
+- Type checking and validation
+- Pre-commit hooks validation
+- Dependency vulnerability checks
+- Code complexity analysis
+
+### Pre-merge
+- Full test suite execution with coverage requirements
+- Code coverage requirements (minimum 80%)
+- Security vulnerability scanning and assessment
+- Performance testing and optimization
+- Code review approval (minimum 2 reviewers)
+- Architecture compliance check
+- Documentation completeness check
+
+### Pre-deployment
+- Integration testing and validation
+- End-to-end testing for critical flows
+- Security audit and penetration testing
+- Performance validation and optimization
+- Documentation review and updates
+- Load testing and capacity planning
+- Accessibility testing and compliance
+- Cross-browser compatibility testing
+
+### Post-deployment
+- Health check validation and monitoring
+- Performance monitoring and optimization
+- Error rate monitoring and alerting
+- User acceptance testing and feedback
+- Rollback capability verification
+- Monitoring and alerting validation
+- Post-deployment validation and testing
+
+## Enterprise Metrics and KPIs
+
+### Development Metrics
+- Code coverage percentage and quality
+- Test execution time and success rate
+- Build success rate and deployment frequency
+- Lead time for changes and feature delivery
+- Mean time to recovery (MTTR) and incident response
+- Change failure rate and rollback frequency
+- Code review coverage and quality
+- Technical debt ratio and management
+
+### Quality Metrics
+- Defect density and bug escape rate
+- Test automation percentage and coverage
+- Code complexity metrics and maintainability
+- Security vulnerability count and severity
+- Performance benchmark compliance
+- Accessibility compliance score
+- User satisfaction and experience metrics
+- Documentation completeness and accuracy
+
+### Process Metrics
+- Cycle time and throughput
+- Work in progress (WIP) and queue time
+- Process efficiency and optimization
+- Resource utilization and capacity
+- Team velocity and productivity
+- Sprint completion rate and quality
+- Release frequency and stability
+- Customer satisfaction and feedback
+
+### Business Metrics
+- Feature delivery time and quality
+- Customer satisfaction and adoption
+- User engagement and retention
+- Performance impact on business metrics
+- Cost per deployment and development
+- ROI on development efforts and investments
+- Time to market and competitive advantage
+- Innovation index and technology adoption
+
+## Enterprise Governance
+
+### Decision Making Framework
+- Use RACI matrix for decision roles and responsibilities
+- Implement decision logs and documentation
+- Use consensus-based decisions for architecture
+- Implement escalation procedures and approval workflows
+- Use data-driven decision making and analysis
+- Document decision rationale and context
+- Implement decision review process and validation
+- Use decision templates and checklists
+
+### Risk Management
+- Implement risk assessment procedures and analysis
+- Use risk registers and tracking systems
+- Implement mitigation strategies and controls
+- Use risk monitoring and reporting
+- Implement contingency planning and response
+- Use risk communication protocols and procedures
+- Implement risk review processes and updates
+- Use risk metrics and dashboards
+
+### Compliance Management
+- Implement compliance monitoring and reporting
+- Use compliance dashboards and metrics
+- Implement audit procedures and assessments
+- Use compliance reporting and documentation
+- Implement training programs and certification
+- Use compliance metrics and KPIs
+- Implement corrective actions and improvements
+- Use compliance reviews and assessments
+
+### Knowledge Management
+- Implement knowledge sharing sessions and programs
+- Use documentation repositories and systems
+- Implement code review learning and best practices
+- Use post-mortem analysis and lessons learned
+- Implement best practice sharing and adoption
+- Use knowledge metrics and tracking
+- Implement training programs and development
+- Use knowledge retention strategies and systems
+
+## Rule Validation and Compliance
+
+### Automated Validation
+- Implement automated rule compliance checking
+- Use linting rules that enforce coding standards
+- Implement automated security scanning and checks
+- Use automated testing to validate rule compliance
+- Implement automated documentation validation
+- Use automated performance monitoring and alerts
+- Implement automated accessibility testing
+- Use automated code quality gates and checks
+
+### Manual Validation
+- Implement regular code review processes
+- Use manual security assessments and audits
+- Implement manual performance reviews and optimization
+- Use manual accessibility testing and compliance
+- Implement manual documentation reviews
+- Use manual architecture reviews and assessments
+- Implement manual compliance audits and checks
+- Use manual quality assurance and testing
+
+### Continuous Improvement
+- Implement regular rule review and updates
+- Use feedback from development teams and processes
+- Implement rule effectiveness monitoring and metrics
+- Use industry best practices and standards updates
+- Implement rule automation and tooling improvements
+- Use rule compliance reporting and analysis
+- Implement rule training and education programs
+- Use rule evolution and adaptation processes
+
+Remember: These rules are living documents that should be updated as the project evolves and new best practices emerge. All team members should be familiar with these rules and follow them consistently. Regular review and updates of these workflows ensure they remain relevant and effective for enterprise-level development.

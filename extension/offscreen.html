@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LightDom Offscreen Analysis</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .status {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .analysis-results {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .metric:last-child {
+      border-bottom: none;
+    }
+    
+    .metric-label {
+      font-weight: 600;
+    }
+    
+    .metric-value {
+      color: #667eea;
+      font-weight: 700;
+    }
+    
+    .optimization-item {
+      background: #f8f9fa;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 10px 0;
+      border-left: 4px solid #667eea;
+    }
+    
+    .optimization-type {
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+    
+    .optimization-details {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #eee;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚀 LightDom DOM Analysis Engine</h1>
+      <p>Advanced offscreen DOM optimization analysis</p>
+    </div>
+    
+    <div class="status">
+      <h3>Analysis Status</h3>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div id="statusText">Initializing analysis engine...</div>
+    </div>
+    
+    <div class="analysis-results" id="analysisResults" style="display: none;">
+      <h3>Analysis Results</h3>
+      <div id="resultsContent"></div>
+    </div>
+  </div>
+
+  <script src="offscreen-analyzer.js"></script>
+</body>
+</html>

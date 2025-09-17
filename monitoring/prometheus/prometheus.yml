@@ -1,0 +1,58 @@
+{
+  "global": {
+    "scrape_interval": "30s",
+    "evaluation_interval": "30s"
+  },
+  "rule_files": [
+    "monitoring/prometheus/rules/*.yml"
+  ],
+  "alerting": {
+    "alertmanagers": [
+      {
+        "static_configs": [
+          {
+            "targets": [
+              "localhost:9093"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "scrape_configs": [
+    {
+      "job_name": "lightdom-automation",
+      "static_configs": [
+        {
+          "targets": [
+            "localhost:3000"
+          ]
+        }
+      ],
+      "metrics_path": "/metrics",
+      "scrape_interval": "30s"
+    },
+    {
+      "job_name": "blockchain-nodes",
+      "static_configs": [
+        {
+          "targets": [
+            "localhost:8545"
+          ]
+        }
+      ],
+      "scrape_interval": "30s"
+    },
+    {
+      "job_name": "system-metrics",
+      "static_configs": [
+        {
+          "targets": [
+            "localhost:9100"
+          ]
+        }
+      ],
+      "scrape_interval": "30s"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "project": {
+    "name": "LightDom Blockchain Automation",
+    "version": "1.0.0",
+    "description": "Enterprise blockchain automation system"
+  },
+  "services": {
+    "api": {
+      "port": 3000,
+      "host": "localhost"
+    },
+    "database": {
+      "url": "postgresql://postgres:password@localhost:5432/lightdom"
+    },
+    "redis": {
+      "url": "redis://localhost:6379"
+    }
+  },
+  "automation": {
+    "enabled": false,
+    "maxConcurrency": 10,
+    "retryAttempts": 3
+  },
+  "monitoring": {
+    "enabled": false,
+    "interval": 30000
+  }
+}

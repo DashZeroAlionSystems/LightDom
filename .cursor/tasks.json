@@ -1,0 +1,318 @@
+{
+  "tasks": [
+    {
+      "name": "runLinting",
+      "description": "Run ESLint and fix auto-fixable issues",
+      "command": "npm run lint:fix",
+      "timeout": 60000,
+      "retries": 2,
+      "dependencies": ["installDependencies"]
+    },
+    {
+      "name": "runTypeChecking",
+      "description": "Run TypeScript type checking",
+      "command": "npm run type-check",
+      "timeout": 120000,
+      "retries": 1,
+      "dependencies": ["installDependencies"]
+    },
+    {
+      "name": "runSecurityScanning",
+      "description": "Run security vulnerability scans",
+      "command": "npm run security:scan",
+      "timeout": 180000,
+      "retries": 1,
+      "dependencies": ["installDependencies"]
+    },
+    {
+      "name": "runCodeFormatting",
+      "description": "Format code using Prettier",
+      "command": "npm run format",
+      "timeout": 30000,
+      "retries": 1
+    },
+    {
+      "name": "runComplexityAnalysis",
+      "description": "Analyze code complexity and maintainability",
+      "command": "npm run complexity:analyze",
+      "timeout": 120000,
+      "retries": 1
+    },
+    {
+      "name": "runUnitTests",
+      "description": "Run unit tests with coverage",
+      "command": "npm run test:unit:coverage",
+      "timeout": 300000,
+      "retries": 2,
+      "dependencies": ["installDependencies"]
+    },
+    {
+      "name": "runIntegrationTests",
+      "description": "Run integration tests",
+      "command": "npm run test:integration",
+      "timeout": 600000,
+      "retries": 1,
+      "dependencies": ["installDependencies", "startTestDatabase"]
+    },
+    {
+      "name": "runE2ETests",
+      "description": "Run end-to-end tests",
+      "command": "npm run test:e2e",
+      "timeout": 900000,
+      "retries": 1,
+      "dependencies": ["installDependencies", "buildApplication"]
+    },
+    {
+      "name": "checkTestCoverage",
+      "description": "Check if test coverage meets requirements",
+      "command": "npm run test:coverage:check",
+      "timeout": 60000,
+      "retries": 1,
+      "dependencies": ["runUnitTests"]
+    },
+    {
+      "name": "runPerformanceTests",
+      "description": "Run performance and load tests",
+      "command": "npm run test:performance",
+      "timeout": 1200000,
+      "retries": 1,
+      "dependencies": ["buildApplication"]
+    },
+    {
+      "name": "scanDependencies",
+      "description": "Scan dependencies for vulnerabilities",
+      "command": "npm audit --audit-level=moderate",
+      "timeout": 120000,
+      "retries": 1
+    },
+    {
+      "name": "checkSecrets",
+      "description": "Check for accidentally committed secrets",
+      "command": "npx detect-secrets scan",
+      "timeout": 60000,
+      "retries": 1
+    },
+    {
+      "name": "runSAST",
+      "description": "Run Static Application Security Testing",
+      "command": "npx semgrep --config=auto .",
+      "timeout": 300000,
+      "retries": 1
+    },
+    {
+      "name": "runDAST",
+      "description": "Run Dynamic Application Security Testing",
+      "command": "npm run security:dast",
+      "timeout": 600000,
+      "retries": 1,
+      "dependencies": ["buildApplication"]
+    },
+    {
+      "name": "checkCompliance",
+      "description": "Check compliance with enterprise rules",
+      "command": "npm run compliance:check",
+      "timeout": 120000,
+      "retries": 1
+    },
+    {
+      "name": "generateAPIDocs",
+      "description": "Generate API documentation",
+      "command": "npm run docs:api:generate",
+      "timeout": 180000,
+      "retries": 1,
+      "dependencies": ["buildApplication"]
+    },
+    {
+      "name": "updateREADME",
+      "description": "Update README with latest information",
+      "command": "npm run docs:readme:update",
+      "timeout": 60000,
+      "retries": 1
+    },
+    {
+      "name": "generateChangelog",
+      "description": "Generate changelog from git commits",
+      "command": "npm run changelog:generate",
+      "timeout": 60000,
+      "retries": 1
+    },
+    {
+      "name": "updateArchitectureDocs",
+      "description": "Update architecture documentation",
+      "command": "npm run docs:architecture:update",
+      "timeout": 120000,
+      "retries": 1
+    },
+    {
+      "name": "validateDocumentation",
+      "description": "Validate documentation completeness",
+      "command": "npm run docs:validate",
+      "timeout": 60000,
+      "retries": 1
+    },
+    {
+      "name": "runPerformanceTests",
+      "description": "Run Lighthouse and performance tests",
+      "command": "npm run test:lighthouse",
+      "timeout": 300000,
+      "retries": 1,
+      "dependencies": ["buildApplication"]
+    },
+    {
+      "name": "analyzeBundleSize",
+      "description": "Analyze and report bundle size",
+      "command": "npm run analyze:bundle",
+      "timeout": 180000,
+      "retries": 1,
+      "dependencies": ["buildApplication"]
+    },
+    {
+      "name": "checkCoreWebVitals",
+      "description": "Check Core Web Vitals metrics",
+      "command": "npm run test:web-vitals",
+      "timeout": 300000,
+      "retries": 1,
+      "dependencies": ["buildApplication"]
+    },
+    {
+      "name": "optimizeImages",
+      "description": "Optimize images for web",
+      "command": "npm run optimize:images",
+      "timeout": 300000,
+      "retries": 1
+    },
+    {
+      "name": "analyzeMemoryUsage",
+      "description": "Analyze memory usage and leaks",
+      "command": "npm run analyze:memory",
+      "timeout": 300000,
+      "retries": 1,
+      "dependencies": ["buildApplication"]
+    },
+    {
+      "name": "buildApplication",
+      "description": "Build the application for production",
+      "command": "npm run build",
+      "timeout": 600000,
+      "retries": 2,
+      "dependencies": ["installDependencies", "runTypeChecking"]
+    },
+    {
+      "name": "runQualityGates",
+      "description": "Run all quality gates before deployment",
+      "command": "npm run quality:gates",
+      "timeout": 900000,
+      "retries": 1,
+      "dependencies": ["runUnitTests", "runIntegrationTests", "runSecurityScanning"]
+    },
+    {
+      "name": "deployToStaging",
+      "description": "Deploy to staging environment",
+      "command": "npm run deploy:staging",
+      "timeout": 1200000,
+      "retries": 2,
+      "dependencies": ["buildApplication", "runQualityGates"]
+    },
+    {
+      "name": "runSmokeTests",
+      "description": "Run smoke tests after deployment",
+      "command": "npm run test:smoke",
+      "timeout": 300000,
+      "retries": 2,
+      "dependencies": ["deployToStaging"]
+    },
+    {
+      "name": "deployToProduction",
+      "description": "Deploy to production environment",
+      "command": "npm run deploy:production",
+      "timeout": 1800000,
+      "retries": 1,
+      "dependencies": ["runSmokeTests"]
+    },
+    {
+      "name": "monitorDeployment",
+      "description": "Monitor deployment health",
+      "command": "npm run monitor:deployment",
+      "timeout": 600000,
+      "retries": 1,
+      "dependencies": ["deployToProduction"]
+    },
+    {
+      "name": "analyzeCodeQuality",
+      "description": "Analyze code quality metrics",
+      "command": "npm run analyze:quality",
+      "timeout": 180000,
+      "retries": 1
+    },
+    {
+      "name": "checkSecurityIssues",
+      "description": "Check for security issues in code",
+      "command": "npm run security:check",
+      "timeout": 300000,
+      "retries": 1
+    },
+    {
+      "name": "validateArchitecture",
+      "description": "Validate architecture compliance",
+      "command": "npm run architecture:validate",
+      "timeout": 120000,
+      "retries": 1
+    },
+    {
+      "name": "suggestImprovements",
+      "description": "Suggest code improvements using AI",
+      "command": "npm run ai:suggest",
+      "timeout": 300000,
+      "retries": 1
+    },
+    {
+      "name": "monitorHealthChecks",
+      "description": "Monitor application health checks",
+      "command": "npm run monitor:health",
+      "timeout": 30000,
+      "retries": 3
+    },
+    {
+      "name": "trackErrorRates",
+      "description": "Track and alert on error rates",
+      "command": "npm run monitor:errors",
+      "timeout": 60000,
+      "retries": 2
+    },
+    {
+      "name": "monitorPerformance",
+      "description": "Monitor application performance metrics",
+      "command": "npm run monitor:performance",
+      "timeout": 120000,
+      "retries": 2
+    },
+    {
+      "name": "checkResourceUsage",
+      "description": "Check system resource usage",
+      "command": "npm run monitor:resources",
+      "timeout": 60000,
+      "retries": 2
+    },
+    {
+      "name": "alertOnIssues",
+      "description": "Send alerts when issues are detected",
+      "command": "npm run alert:send",
+      "timeout": 30000,
+      "retries": 3
+    },
+    {
+      "name": "installDependencies",
+      "description": "Install project dependencies",
+      "command": "npm ci",
+      "timeout": 300000,
+      "retries": 2
+    },
+    {
+      "name": "startTestDatabase",
+      "description": "Start test database for integration tests",
+      "command": "npm run db:test:start",
+      "timeout": 120000,
+      "retries": 2
+    }
+  ]
+}

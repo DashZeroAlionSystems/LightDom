@@ -1,0 +1,102 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "System Overview",
+    "tags": [
+      "lightdom",
+      "automation"
+    ],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "CPU Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "cpu_usage_percent",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 70,
+            "color": "yellow"
+          },
+          {
+            "value": 90,
+            "color": "red"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "memory_usage_percent",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 80,
+            "color": "yellow"
+          },
+          {
+            "value": 95,
+            "color": "red"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Disk Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "disk_usage_percent",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 80,
+            "color": "yellow"
+          },
+          {
+            "value": 95,
+            "color": "red"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Network I/O",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "network_io_bytes",
+            "refId": "A"
+          }
+        ],
+        "thresholds": [
+          {
+            "value": 1000000000,
+            "color": "yellow"
+          },
+          {
+            "value": 2000000000,
+            "color": "red"
+          }
+        ]
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "browserbase": {
+    "apiKey": "${BROWSERBASE_API_KEY}",
+    "projectId": "${BROWSERBASE_PROJECT_ID}",
+    "modelApiKey": "${GEMINI_API_KEY}",
+    "modelName": "google/gemini-2.0-flash",
+    "proxies": true,
+    "advancedStealth": true,
+    "keepAlive": true,
+    "defaultViewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "defaultTimeout": 30000,
+    "sessionManagement": {
+      "maxSessions": 10,
+      "sessionTimeout": 1800000,
+      "cleanupInterval": 300000,
+      "persistentSessions": true
+    },
+    "aiOptimization": {
+      "enabled": true,
+      "confidenceThreshold": 70,
+      "maxSuggestions": 10,
+      "enableRealTimeAnalysis": true
+    },
+    "security": {
+      "enableProxy": true,
+      "enableStealth": true,
+      "userAgentRotation": true,
+      "fingerprintMasking": true
+    },
+    "monitoring": {
+      "enableMetrics": true,
+      "logLevel": "info",
+      "performanceTracking": true,
+      "errorTracking": true
+    }
+  },
+  "mcpServers": {
+    "browserbase": {
+      "command": "npx",
+      "args": [
+        "@browserbasehq/mcp-server-browserbase",
+        "--proxies",
+        "--advancedStealth",
+        "--keepAlive",
+        "--browserWidth",
+        "1920",
+        "--browserHeight",
+        "1080",
+        "--modelName",
+        "google/gemini-2.0-flash"
+      ],
+      "env": {
+        "BROWSERBASE_API_KEY": "${BROWSERBASE_API_KEY}",
+        "BROWSERBASE_PROJECT_ID": "${BROWSERBASE_PROJECT_ID}",
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+      }
+    }
+  }
+}

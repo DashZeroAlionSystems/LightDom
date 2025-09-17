@@ -1,0 +1,272 @@
+{
+  "agents": [
+    {
+      "name": "Code Quality Agent",
+      "description": "Automatically enforces code quality standards and runs quality checks",
+      "triggers": [
+        "onFileSave",
+        "onPreCommit",
+        "onPullRequest"
+      ],
+      "tasks": [
+        "runLinting",
+        "runTypeChecking",
+        "runSecurityScanning",
+        "runCodeFormatting",
+        "runComplexityAnalysis"
+      ],
+      "config": {
+        "eslint": {
+          "enabled": true,
+          "config": ".eslintrc.js",
+          "fixOnSave": true
+        },
+        "prettier": {
+          "enabled": true,
+          "config": ".prettierrc",
+          "formatOnSave": true
+        },
+        "typescript": {
+          "enabled": true,
+          "strict": true,
+          "noImplicitAny": true
+        },
+        "security": {
+          "enabled": true,
+          "tools": ["npm audit", "snyk", "semgrep"]
+        }
+      }
+    },
+    {
+      "name": "Test Automation Agent",
+      "description": "Automatically runs tests and ensures test coverage requirements",
+      "triggers": [
+        "onFileChange",
+        "onPreCommit",
+        "onPullRequest",
+        "onSchedule"
+      ],
+      "tasks": [
+        "runUnitTests",
+        "runIntegrationTests",
+        "runE2ETests",
+        "checkTestCoverage",
+        "runPerformanceTests"
+      ],
+      "config": {
+        "jest": {
+          "enabled": true,
+          "config": "jest.config.js",
+          "coverageThreshold": 80
+        },
+        "playwright": {
+          "enabled": true,
+          "config": "playwright.config.ts"
+        },
+        "coverage": {
+          "minimum": 80,
+          "branches": 80,
+          "functions": 80,
+          "lines": 80
+        }
+      }
+    },
+    {
+      "name": "Security Agent",
+      "description": "Continuously monitors and enforces security best practices",
+      "triggers": [
+        "onFileChange",
+        "onPreCommit",
+        "onPullRequest",
+        "onSchedule"
+      ],
+      "tasks": [
+        "scanDependencies",
+        "checkSecrets",
+        "runSAST",
+        "runDAST",
+        "checkCompliance"
+      ],
+      "config": {
+        "dependencyScan": {
+          "enabled": true,
+          "tools": ["npm audit", "yarn audit", "snyk"]
+        },
+        "secretScan": {
+          "enabled": true,
+          "patterns": [
+            "api[_-]?key",
+            "secret[_-]?key",
+            "password",
+            "token",
+            "private[_-]?key"
+          ]
+        },
+        "sast": {
+          "enabled": true,
+          "tools": ["semgrep", "codeql"]
+        }
+      }
+    },
+    {
+      "name": "Documentation Agent",
+      "description": "Automatically generates and maintains documentation",
+      "triggers": [
+        "onFileChange",
+        "onPullRequest",
+        "onSchedule"
+      ],
+      "tasks": [
+        "generateAPIDocs",
+        "updateREADME",
+        "generateChangelog",
+        "updateArchitectureDocs",
+        "validateDocumentation"
+      ],
+      "config": {
+        "apiDocs": {
+          "enabled": true,
+          "format": "openapi",
+          "output": "docs/api"
+        },
+        "readme": {
+          "enabled": true,
+          "template": "templates/README.md"
+        },
+        "changelog": {
+          "enabled": true,
+          "format": "keepachangelog"
+        }
+      }
+    },
+    {
+      "name": "Performance Agent",
+      "description": "Monitors and optimizes application performance",
+      "triggers": [
+        "onDeployment",
+        "onSchedule",
+        "onPerformanceRegression"
+      ],
+      "tasks": [
+        "runPerformanceTests",
+        "analyzeBundleSize",
+        "checkCoreWebVitals",
+        "optimizeImages",
+        "analyzeMemoryUsage"
+      ],
+      "config": {
+        "lighthouse": {
+          "enabled": true,
+          "thresholds": {
+            "performance": 90,
+            "accessibility": 90,
+            "best-practices": 90,
+            "seo": 90
+          }
+        },
+        "bundleAnalysis": {
+          "enabled": true,
+          "threshold": "500KB"
+        }
+      }
+    },
+    {
+      "name": "Deployment Agent",
+      "description": "Handles automated deployments and rollbacks",
+      "triggers": [
+        "onMergeToMain",
+        "onReleaseTag",
+        "onManualTrigger"
+      ],
+      "tasks": [
+        "buildApplication",
+        "runQualityGates",
+        "deployToStaging",
+        "runSmokeTests",
+        "deployToProduction",
+        "monitorDeployment"
+      ],
+      "config": {
+        "environments": {
+          "staging": {
+            "url": "https://staging.lightdom.com",
+            "autoDeploy": true
+          },
+          "production": {
+            "url": "https://lightdom.com",
+            "autoDeploy": false,
+            "requiresApproval": true
+          }
+        },
+        "rollback": {
+          "enabled": true,
+          "threshold": "5% error rate"
+        }
+      }
+    },
+    {
+      "name": "Code Review Agent",
+      "description": "Automatically reviews code and provides feedback",
+      "triggers": [
+        "onPullRequest",
+        "onCodeChange"
+      ],
+      "tasks": [
+        "analyzeCodeQuality",
+        "checkSecurityIssues",
+        "validateArchitecture",
+        "suggestImprovements",
+        "checkCompliance"
+      ],
+      "config": {
+        "reviewRules": {
+          "minReviewers": 2,
+          "requiredChecks": [
+            "tests-pass",
+            "coverage-threshold",
+            "security-scan",
+            "performance-check"
+          ]
+        },
+        "aiReview": {
+          "enabled": true,
+          "focus": ["security", "performance", "maintainability"]
+        }
+      }
+    },
+    {
+      "name": "Monitoring Agent",
+      "description": "Continuously monitors application health and performance",
+      "triggers": [
+        "continuous",
+        "onAlert"
+      ],
+      "tasks": [
+        "monitorHealthChecks",
+        "trackErrorRates",
+        "monitorPerformance",
+        "checkResourceUsage",
+        "alertOnIssues"
+      ],
+      "config": {
+        "healthChecks": {
+          "interval": "30s",
+          "timeout": "10s"
+        },
+        "alerts": {
+          "errorRate": "> 1%",
+          "responseTime": "> 2s",
+          "cpuUsage": "> 80%",
+          "memoryUsage": "> 85%"
+        }
+      }
+    }
+  ],
+  "globalConfig": {
+    "enabled": true,
+    "logLevel": "info",
+    "maxConcurrentAgents": 5,
+    "retryAttempts": 3,
+    "timeout": 300000
+  }
+}

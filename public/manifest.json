@@ -1,0 +1,209 @@
+{
+  "name": "LightDom - Web Optimization Platform",
+  "short_name": "LightDom",
+  "description": "Advanced web optimization platform with blockchain integration for DOM optimization and performance enhancement",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#4285f4",
+  "background_color": "#ffffff",
+  "lang": "en",
+  "dir": "ltr",
+  "scope": "/",
+  "id": "com.lightdom.app",
+  "categories": ["productivity", "utilities", "business"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your optimization dashboard",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icons/shortcut-dashboard.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Optimize Website",
+      "short_name": "Optimize",
+      "description": "Start optimizing a website",
+      "url": "/optimize",
+      "icons": [
+        {
+          "src": "/icons/shortcut-optimize.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Wallet",
+      "short_name": "Wallet",
+      "description": "Manage your tokens and wallet",
+      "url": "/wallet",
+      "icons": [
+        {
+          "src": "/icons/shortcut-wallet.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings",
+      "description": "Manage your account settings",
+      "url": "/settings",
+      "icons": [
+        {
+          "src": "/icons/shortcut-settings.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "LightDom Dashboard on Desktop"
+    },
+    {
+      "src": "/screenshots/mobile-dashboard.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "LightDom Dashboard on Mobile"
+    },
+    {
+      "src": "/screenshots/optimization-results.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Website Optimization Results"
+    },
+    {
+      "src": "/screenshots/wallet-interface.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Token Wallet Interface"
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "related_applications": [
+    {
+      "platform": "web",
+      "url": "https://lightdom.com",
+      "id": "com.lightdom.web"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+lightdom",
+      "url": "/handle?protocol=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/handle-file",
+      "accept": {
+        "text/html": [".html", ".htm"],
+        "text/css": [".css"],
+        "application/javascript": [".js"]
+      }
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "file",
+          "accept": ["text/html", "text/css", "application/javascript"]
+        }
+      ]
+    }
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "capture_links": "new-client"
+}

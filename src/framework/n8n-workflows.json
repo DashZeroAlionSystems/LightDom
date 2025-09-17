@@ -1,0 +1,675 @@
+{
+  "workflows": [
+    {
+      "id": "lightdom-auto-optimization",
+      "name": "LightDom Auto Optimization",
+      "description": "Automatically optimizes LightDom app based on performance metrics",
+      "active": true,
+      "nodes": [
+        {
+          "id": "trigger-schedule",
+          "name": "Schedule Trigger",
+          "type": "n8n-nodes-base.scheduleTrigger",
+          "typeVersion": 1,
+          "position": [240, 300],
+          "parameters": {
+            "rule": {
+              "interval": [
+                {
+                  "field": "minutes",
+                  "value": 5
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "get-metrics",
+          "name": "Get LightDom Metrics",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4,
+          "position": [460, 300],
+          "parameters": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/v1/metrics",
+            "options": {
+              "timeout": 10000
+            }
+          }
+        },
+        {
+          "id": "check-performance",
+          "name": "Check Performance",
+          "type": "n8n-nodes-base.function",
+          "typeVersion": 1,
+          "position": [680, 300],
+          "parameters": {
+            "functionCode": "// Check if performance metrics meet optimization criteria\nconst metrics = $input.first().json;\n\nconst performanceThreshold = 1000; // 1 second\nconst errorRateThreshold = 5; // 5%\nconst storageThreshold = 80; // 80%\n\nconst needsOptimization = {\n  performance: metrics.performance?.averageProcessingTime > performanceThreshold,\n  errorRate: metrics.performance?.errorRate > errorRateThreshold,\n  storage: metrics.storage?.utilizationRate > storageThreshold\n};\n\nconst shouldOptimize = Object.values(needsOptimization).some(Boolean);\n\nreturn {\n  json: {\n    shouldOptimize,\n    needsOptimization,\n    metrics,\n    timestamp: new Date().toISOString()\n  }\n};"
+          }
+        },
+        {
+          "id": "optimize-if-needed",
+          "name": "Optimize If Needed",
+          "type": "n8n-nodes-base.if",
+          "typeVersion": 1,
+          "position": [900, 300],
+          "parameters": {
+            "conditions": {
+              "string": [
+                {
+                  "value1": "={{ $json.shouldOptimize }}",
+                  "operation": "equal",
+                  "value2": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "run-optimization",
+          "name": "Run Optimization",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4,
+          "position": [1120, 200],
+          "parameters": {
+            "method": "POST",
+            "url": "http://localhost:3000/api/v1/optimize",
+            "body": {
+              "type": "performance",
+              "targets": "={{ $json.needsOptimization }}"
+            }
+          }
+        },
+        {
+          "id": "send-notification",
+          "name": "Send Notification",
+          "type": "n8n-nodes-base.slack",
+          "typeVersion": 1,
+          "position": [1120, 400],
+          "parameters": {
+            "operation": "postMessage",
+            "channel": "#lightdom-alerts",
+            "text": "LightDom optimization completed",
+            "attachments": [
+              {
+                "color": "good",
+                "fields": [
+                  {
+                    "title": "Optimization Results",
+                    "value": "{{ $json.metrics }}",
+                    "short": false
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "connections": {
+        "trigger-schedule": {
+          "main": [
+            [
+              {
+                "node": "get-metrics",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "get-metrics": {
+          "main": [
+            [
+              {
+                "node": "check-performance",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "check-performance": {
+          "main": [
+            [
+              {
+                "node": "optimize-if-needed",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "optimize-if-needed": {
+          "main": [
+            [
+              {
+                "node": "run-optimization",
+                "type": "main",
+                "index": 0
+              }
+            ],
+            [
+              {
+                "node": "send-notification",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "lightdom-storage-management",
+      "name": "LightDom Storage Management",
+      "description": "Manages storage nodes and optimizes storage usage",
+      "active": true,
+      "nodes": [
+        {
+          "id": "trigger-webhook",
+          "name": "Storage Webhook",
+          "type": "n8n-nodes-base.webhook",
+          "typeVersion": 1,
+          "position": [240, 300],
+          "parameters": {
+            "httpMethod": "POST",
+            "path": "storage-management",
+            "options": {}
+          }
+        },
+        {
+          "id": "get-storage-metrics",
+          "name": "Get Storage Metrics",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4,
+          "position": [460, 300],
+          "parameters": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/v1/storage/metrics"
+          }
+        },
+        {
+          "id": "check-storage-usage",
+          "name": "Check Storage Usage",
+          "type": "n8n-nodes-base.function",
+          "typeVersion": 1,
+          "position": [680, 300],
+          "parameters": {
+            "functionCode": "// Check storage usage and determine actions needed\nconst metrics = $input.first().json;\n\nconst cleanupThreshold = 75;\nconst compressionThreshold = 60;\nconst archivalThreshold = 85;\n\nconst actions = [];\n\nif (metrics.utilizationRate > archivalThreshold) {\n  actions.push('archival');\n} else if (metrics.utilizationRate > compressionThreshold) {\n  actions.push('compression');\n} else if (metrics.utilizationRate > cleanupThreshold) {\n  actions.push('cleanup');\n}\n\nreturn {\n  json: {\n    metrics,\n    actions,\n    utilizationRate: metrics.utilizationRate,\n    needsAction: actions.length > 0\n  }\n};"
+          }
+        },
+        {
+          "id": "execute-storage-action",
+          "name": "Execute Storage Action",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4,
+          "position": [900, 300],
+          "parameters": {
+            "method": "POST",
+            "url": "http://localhost:3000/api/v1/storage/optimize",
+            "body": {
+              "actions": "={{ $json.actions }}",
+              "nodeId": "all"
+            }
+          }
+        },
+        {
+          "id": "log-storage-action",
+          "name": "Log Storage Action",
+          "type": "n8n-nodes-base.function",
+          "typeVersion": 1,
+          "position": [1120, 300],
+          "parameters": {
+            "functionCode": "// Log storage optimization action\nconst data = $input.first().json;\n\nconsole.log(`Storage optimization completed:`);\nconsole.log(`- Actions: ${data.actions.join(', ')}`);\nconsole.log(`- Utilization Rate: ${data.utilizationRate}%`);\n\nreturn {\n  json: {\n    message: `Storage optimization completed: ${data.actions.join(', ')}`,\n    timestamp: new Date().toISOString(),\n    ...data\n  }\n};"
+          }
+        }
+      ],
+      "connections": {
+        "trigger-webhook": {
+          "main": [
+            [
+              {
+                "node": "get-storage-metrics",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "get-storage-metrics": {
+          "main": [
+            [
+              {
+                "node": "check-storage-usage",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "check-storage-usage": {
+          "main": [
+            [
+              {
+                "node": "execute-storage-action",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "execute-storage-action": {
+          "main": [
+            [
+              {
+                "node": "log-storage-action",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "lightdom-mining-automation",
+      "name": "LightDom Mining Automation",
+      "description": "Automates web address mining and optimization",
+      "active": true,
+      "nodes": [
+        {
+          "id": "trigger-cron",
+          "name": "Cron Trigger",
+          "type": "n8n-nodes-base.cron",
+          "typeVersion": 1,
+          "position": [240, 300],
+          "parameters": {
+            "rule": {
+              "interval": [
+                {
+                  "field": "hours",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "get-mining-queue",
+          "name": "Get Mining Queue",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4,
+          "position": [460, 300],
+          "parameters": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/v1/mining/queue"
+          }
+        },
+        {
+          "id": "process-mining-batch",
+          "name": "Process Mining Batch",
+          "type": "n8n-nodes-base.function",
+          "typeVersion": 1,
+          "position": [680, 300],
+          "parameters": {
+            "functionCode": "// Process mining queue and start mining jobs\nconst queue = $input.first().json;\n\n// Filter pending jobs\nconst pendingJobs = queue.filter(job => job.status === 'pending');\n\n// Process in batches of 5\nconst batchSize = 5;\nconst batches = [];\nfor (let i = 0; i < pendingJobs.length; i += batchSize) {\n  batches.push(pendingJobs.slice(i, i + batchSize));\n}\n\nreturn batches.map(batch => ({\n  json: {\n    batch,\n    batchSize: batch.length,\n    totalJobs: pendingJobs.length\n  }\n}));"
+          }
+        },
+        {
+          "id": "start-mining-jobs",
+          "name": "Start Mining Jobs",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4,
+          "position": [900, 300],
+          "parameters": {
+            "method": "POST",
+            "url": "http://localhost:3000/api/v1/mining/start",
+            "body": {
+              "jobs": "={{ $json.batch }}"
+            }
+          }
+        },
+        {
+          "id": "monitor-mining-progress",
+          "name": "Monitor Mining Progress",
+          "type": "n8n-nodes-base.function",
+          "typeVersion": 1,
+          "position": [1120, 300],
+          "parameters": {
+            "functionCode": "// Monitor mining progress and log results\nconst result = $input.first().json;\n\nconsole.log(`Mining batch started:`);\nconsole.log(`- Jobs: ${result.batchSize}`);\nconsole.log(`- Total Pending: ${result.totalJobs}`);\n\nreturn {\n  json: {\n    message: `Mining batch started with ${result.batchSize} jobs`,\n    timestamp: new Date().toISOString(),\n    ...result\n  }\n};"
+          }
+        }
+      ],
+      "connections": {
+        "trigger-cron": {
+          "main": [
+            [
+              {
+                "node": "get-mining-queue",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "get-mining-queue": {
+          "main": [
+            [
+              {
+                "node": "process-mining-batch",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "process-mining-batch": {
+          "main": [
+            [
+              {
+                "node": "start-mining-jobs",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "start-mining-jobs": {
+          "main": [
+            [
+              {
+                "node": "monitor-mining-progress",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "lightdom-deployment-automation",
+      "name": "LightDom Deployment Automation",
+      "description": "Automates deployment and scaling of LightDom services",
+      "active": true,
+      "nodes": [
+        {
+          "id": "trigger-git-webhook",
+          "name": "Git Webhook",
+          "type": "n8n-nodes-base.webhook",
+          "typeVersion": 1,
+          "position": [240, 300],
+          "parameters": {
+            "httpMethod": "POST",
+            "path": "git-webhook",
+            "options": {}
+          }
+        },
+        {
+          "id": "check-git-changes",
+          "name": "Check Git Changes",
+          "type": "n8n-nodes-base.function",
+          "typeVersion": 1,
+          "position": [460, 300],
+          "parameters": {
+            "functionCode": "// Check if git changes require deployment\nconst webhook = $input.first().json;\n\nconst isMainBranch = webhook.ref === 'refs/heads/main';\nconst hasChanges = webhook.commits && webhook.commits.length > 0;\nconst requiresDeployment = isMainBranch && hasChanges;\n\nconst changedFiles = webhook.commits?.flatMap(commit => commit.modified || []) || [];\nconst frameworkChanges = changedFiles.some(file => file.startsWith('src/framework/'));\nconst contractChanges = changedFiles.some(file => file.startsWith('contracts/'));\n\nreturn {\n  json: {\n    requiresDeployment,\n    isMainBranch,\n    hasChanges,\n    changedFiles,\n    frameworkChanges,\n    contractChanges,\n    webhook\n  }\n};"
+          }
+        },
+        {
+          "id": "build-and-test",
+          "name": "Build and Test",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4,
+          "position": [680, 200],
+          "parameters": {
+            "method": "POST",
+            "url": "http://localhost:3000/api/v1/deploy/build",
+            "body": {
+              "type": "framework",
+              "changes": "={{ $json.changedFiles }}"
+            }
+          }
+        },
+        {
+          "id": "deploy-services",
+          "name": "Deploy Services",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4,
+          "position": [900, 200],
+          "parameters": {
+            "method": "POST",
+            "url": "http://localhost:3000/api/v1/deploy/services",
+            "body": {
+              "services": ["framework", "api", "mining", "storage"],
+              "strategy": "rolling"
+            }
+          }
+        },
+        {
+          "id": "run-health-checks",
+          "name": "Run Health Checks",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4,
+          "position": [1120, 200],
+          "parameters": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/v1/health"
+          }
+        },
+        {
+          "id": "notify-deployment",
+          "name": "Notify Deployment",
+          "type": "n8n-nodes-base.slack",
+          "typeVersion": 1,
+          "position": [1340, 200],
+          "parameters": {
+            "operation": "postMessage",
+            "channel": "#lightdom-deployments",
+            "text": "LightDom deployment completed",
+            "attachments": [
+              {
+                "color": "good",
+                "fields": [
+                  {
+                    "title": "Deployment Status",
+                    "value": "Successfully deployed to production",
+                    "short": false
+                  },
+                  {
+                    "title": "Changes",
+                    "value": "{{ $json.changedFiles.join(', ') }}",
+                    "short": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "skip-deployment",
+          "name": "Skip Deployment",
+          "type": "n8n-nodes-base.function",
+          "typeVersion": 1,
+          "position": [680, 400],
+          "parameters": {
+            "functionCode": "// Skip deployment if not required\nreturn {\n  json: {\n    message: 'Deployment skipped - no changes require deployment',\n    timestamp: new Date().toISOString()\n  }\n};"
+          }
+        }
+      ],
+      "connections": {
+        "trigger-git-webhook": {
+          "main": [
+            [
+              {
+                "node": "check-git-changes",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "check-git-changes": {
+          "main": [
+            [
+              {
+                "node": "build-and-test",
+                "type": "main",
+                "index": 0
+              }
+            ],
+            [
+              {
+                "node": "skip-deployment",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "build-and-test": {
+          "main": [
+            [
+              {
+                "node": "deploy-services",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "deploy-services": {
+          "main": [
+            [
+              {
+                "node": "run-health-checks",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "run-health-checks": {
+          "main": [
+            [
+              {
+                "node": "notify-deployment",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "lightdom-monitoring-alerts",
+      "name": "LightDom Monitoring Alerts",
+      "description": "Monitors system health and sends alerts for issues",
+      "active": true,
+      "nodes": [
+        {
+          "id": "trigger-schedule",
+          "name": "Monitoring Schedule",
+          "type": "n8n-nodes-base.scheduleTrigger",
+          "typeVersion": 1,
+          "position": [240, 300],
+          "parameters": {
+            "rule": {
+              "interval": [
+                {
+                  "field": "minutes",
+                  "value": 2
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "get-system-health",
+          "name": "Get System Health",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4,
+          "position": [460, 300],
+          "parameters": {
+            "method": "GET",
+            "url": "http://localhost:3000/api/v1/health"
+          }
+        },
+        {
+          "id": "check-alerts",
+          "name": "Check Alerts",
+          "type": "n8n-nodes-base.function",
+          "typeVersion": 1,
+          "position": [680, 300],
+          "parameters": {
+            "functionCode": "// Check system health and determine if alerts are needed\nconst health = $input.first().json;\n\nconst alerts = [];\nconst thresholds = {\n  cpu: 80,\n  memory: 85,\n  disk: 90,\n  errorRate: 10,\n  responseTime: 5000\n};\n\n// Check CPU usage\nif (health.cpu > thresholds.cpu) {\n  alerts.push({\n    type: 'cpu',\n    level: 'warning',\n    message: `High CPU usage: ${health.cpu}%`,\n    value: health.cpu,\n    threshold: thresholds.cpu\n  });\n}\n\n// Check memory usage\nif (health.memory > thresholds.memory) {\n  alerts.push({\n    type: 'memory',\n    level: 'warning',\n    message: `High memory usage: ${health.memory}%`,\n    value: health.memory,\n    threshold: thresholds.memory\n  });\n}\n\n// Check disk usage\nif (health.disk > thresholds.disk) {\n  alerts.push({\n    type: 'disk',\n    level: 'critical',\n    message: `Critical disk usage: ${health.disk}%`,\n    value: health.disk,\n    threshold: thresholds.disk\n  });\n}\n\n// Check error rate\nif (health.errorRate > thresholds.errorRate) {\n  alerts.push({\n    type: 'errorRate',\n    level: 'warning',\n    message: `High error rate: ${health.errorRate}%`,\n    value: health.errorRate,\n    threshold: thresholds.errorRate\n  });\n}\n\n// Check response time\nif (health.responseTime > thresholds.responseTime) {\n  alerts.push({\n    type: 'responseTime',\n    level: 'warning',\n    message: `Slow response time: ${health.responseTime}ms`,\n    value: health.responseTime,\n    threshold: thresholds.responseTime\n  });\n}\n\nreturn {\n  json: {\n    health,\n    alerts,\n    hasAlerts: alerts.length > 0,\n    criticalAlerts: alerts.filter(a => a.level === 'critical'),\n    warningAlerts: alerts.filter(a => a.level === 'warning')\n  }\n};"
+          }
+        },
+        {
+          "id": "send-alerts",
+          "name": "Send Alerts",
+          "type": "n8n-nodes-base.slack",
+          "typeVersion": 1,
+          "position": [900, 300],
+          "parameters": {
+            "operation": "postMessage",
+            "channel": "#lightdom-alerts",
+            "text": "LightDom System Alert",
+            "attachments": [
+              {
+                "color": "={{ $json.criticalAlerts.length > 0 ? 'danger' : 'warning' }}",
+                "fields": [
+                  {
+                    "title": "System Health",
+                    "value": "{{ $json.health }}",
+                    "short": false
+                  },
+                  {
+                    "title": "Alerts",
+                    "value": "{{ $json.alerts.map(a => `${a.level.toUpperCase()}: ${a.message}`).join('\\n') }}",
+                    "short": false
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "connections": {
+        "trigger-schedule": {
+          "main": [
+            [
+              {
+                "node": "get-system-health",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "get-system-health": {
+          "main": [
+            [
+              {
+                "node": "check-alerts",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        },
+        "check-alerts": {
+          "main": [
+            [
+              {
+                "node": "send-alerts",
+                "type": "main",
+                "index": 0
+              }
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

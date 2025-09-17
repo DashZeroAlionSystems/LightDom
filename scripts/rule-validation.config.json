@@ -1,0 +1,74 @@
+{
+  "ruleValidation": {
+    "enabled": true,
+    "schedule": "0 */6 * * *",
+    "thresholds": {
+      "minSuccessRate": 85,
+      "maxWarnings": 10,
+      "maxFailures": 0
+    },
+    "checks": {
+      "typescript": {
+        "enabled": true,
+        "strictMode": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCases": true
+      },
+      "eslint": {
+        "enabled": true,
+        "required": true,
+        "configFile": ".eslintrc.js"
+      },
+      "prettier": {
+        "enabled": true,
+        "required": true,
+        "configFile": ".prettierrc"
+      },
+      "testing": {
+        "enabled": true,
+        "minCoverage": 80,
+        "requiredScripts": ["test", "test:coverage"],
+        "requiredDeps": ["jest", "vitest", "mocha"]
+      },
+      "security": {
+        "enabled": true,
+        "requiredDeps": ["helmet", "cors", "express-rate-limit"],
+        "checkSecrets": true,
+        "checkEnvFiles": true
+      },
+      "codeQuality": {
+        "enabled": true,
+        "maxTodos": 5,
+        "noConsoleLogs": true,
+        "noAnyTypes": true,
+        "functionalComponents": true
+      },
+      "smartContracts": {
+        "enabled": true,
+        "requireOpenZeppelin": true,
+        "requireReentrancyGuards": true,
+        "requireEvents": true
+      },
+      "documentation": {
+        "enabled": true,
+        "requireReadme": true,
+        "requireApiDocs": true,
+        "requireArchitectureDocs": true
+      }
+    },
+    "reporting": {
+      "format": "console",
+      "saveToFile": true,
+      "outputFile": "logs/rule-validation-report.json",
+      "includeTimestamp": true,
+      "includeDetails": true
+    },
+    "notifications": {
+      "enabled": false,
+      "webhook": null,
+      "email": null,
+      "slack": null
+    }
+  }
+}

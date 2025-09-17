@@ -1,0 +1,556 @@
+# Docker Compose - Complete DOM Space Harvester System
+# Run with: docker-compose up -d
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: dom-space-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dom_space_harvester
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: harvester2024!
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - dom-space-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dom_space_harvester"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: dom-space-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - dom-space-network
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # API Server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: dom-space-api
+    restart: unless-stopped
+    environment:
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dom_space_harvester
+      DB_USER: postgres
+      DB_PASSWORD: harvester2024!
+      
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      
+      # API Configuration
+      NODE_ENV: production
+      PORT: 3001
+      FRONTEND_URL: http://localhost:3000
+      
+      # Crawler Configuration
+      MAX_CONCURRENCY: 8
+      REQUEST_DELAY: 1500
+      MAX_DEPTH: 3
+      RESPECT_ROBOTS: "true"
+      
+      # Blockchain Configuration (set your own)
+      BLOCKCHAIN_RPC_URL: https://eth-mainnet.alchemyapi.io/v2/your-api-key
+      CONTRACT_ADDRESS: "0x1234567890abcdef1234567890abcdef12345678"
+      PRIVATE_KEY: your-private-key
+      
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    networks:
+      - dom-space-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # React Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: dom-space-frontend
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_URL: http://localhost:3001
+      REACT_APP_WS_URL: ws://localhost:3001
+      REACT_APP_ENV: production
+    ports:
+      - "3000:3000"
+    networks:
+      - dom-space-network
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Crawler Workers (Scaled service)
+  crawler-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.crawler
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dom_space_harvester
+      DB_USER: postgres
+      DB_PASSWORD: harvester2024!
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      WORKER_ID: ${WORKER_ID:-worker}
+      MAX_CONCURRENT_PAGES: 3
+      REQUEST_DELAY: 2000
+    volumes:
+      - ./logs:/app/logs
+      - crawler_cache:/app/cache
+    networks:
+      - dom-space-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      replicas: 3
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('OK')"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy & Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: dom-space-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites:/etc/nginx/conf.d:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - dom-space-network
+    depends_on:
+      - api
+      - frontend
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: dom-space-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - dom-space-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: dom-space-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3002:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - dom-space-network
+    depends_on:
+      - prometheus
+
+  # Background Job Processor
+  job-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.jobs
+    container_name: dom-space-jobs
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dom_space_harvester
+      DB_USER: postgres
+      DB_PASSWORD: harvester2024!
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      NODE_ENV: production
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - dom-space-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # PgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: dom-space-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@domspace.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - dom-space-network
+    depends_on:
+      - postgres
+
+# Named volumes for persistent data
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  crawler_cache:
+    driver: local
+  nginx_logs:
+    driver: local
+
+# Custom network
+networks:
+  dom-space-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+---
+# Additional docker-compose.override.yml for development
+# Create this file for development-specific overrides
+
+# docker-compose.override.yml
+version: '3.8'
+
+services:
+  api:
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./src:/app/src:ro
+      - ./package.json:/app/package.json:ro
+    command: npm run dev
+
+  frontend:
+    environment:
+      REACT_APP_ENV: development
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - ./frontend/package.json:/app/package.json:ro
+    command: npm start
+
+  crawler-worker:
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./crawler:/app/crawler:ro
+    deploy:
+      replicas: 1
+
+---
+# docker-compose.prod.yml for production deployment
+version: '3.8'
+
+services:
+  # Production-specific configurations
+  postgres:
+    volumes:
+      - /data/dom-space/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+
+  api:
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+      BLOCKCHAIN_PRIVATE_KEY: ${BLOCKCHAIN_PRIVATE_KEY}
+      NODE_ENV: production
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  crawler-worker:
+    deploy:
+      replicas: 5
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  nginx:
+    volumes:
+      - /etc/letsencrypt:/etc/nginx/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+
+---
+# .env file template
+# Copy this to .env and customize for your environment
+
+# Database Configuration
+DB_PASSWORD=your-secure-password-here
+DB_NAME=dom_space_harvester
+DB_USER=postgres
+
+# API Configuration  
+NODE_ENV=production
+API_SECRET_KEY=your-secret-api-key
+FRONTEND_URL=https://yourdomain.com
+
+# Blockchain Configuration
+BLOCKCHAIN_RPC_URL=https://mainnet.infura.io/v3/your-project-id
+CONTRACT_ADDRESS=0x1234567890abcdef1234567890abcdef12345678
+BLOCKCHAIN_PRIVATE_KEY=your-private-key-here
+BLOCKCHAIN_NETWORK=mainnet
+
+# Crawler Configuration
+MAX_CONCURRENCY=10
+REQUEST_DELAY=1000
+MAX_DEPTH=3
+RESPECT_ROBOTS=true
+USER_AGENT=DOM-Space-Harvester/1.0
+
+# Monitoring
+GRAFANA_ADMIN_PASSWORD=your-grafana-password
+PGADMIN_PASSWORD=your-pgadmin-password
+
+# SSL Configuration (for production)
+SSL_CERT_PATH=/etc/letsencrypt/live/yourdomain.com/fullchain.pem
+SSL_KEY_PATH=/etc/letsencrypt/live/yourdomain.com/privkey.pem
+
+# External Services
+WEBHOOK_URL=https://yourdomain.com/webhooks
+NOTIFICATION_EMAIL=admin@yourdomain.com
+
+# Performance Tuning
+POSTGRES_MAX_CONNECTIONS=200
+POSTGRES_SHARED_BUFFERS=512MB
+REDIS_MAX_MEMORY=2gb
+
+---
+# Makefile for easy management
+# Run with: make start, make stop, make logs, etc.
+
+.PHONY: help build start stop restart logs clean
+
+help: ## Show this help message
+	@echo 'Usage: make [target]'
+	@echo ''
+	@echo 'Targets:'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-20s %s\n", $$1, $$2}'
+
+build: ## Build all Docker images
+	docker-compose build --parallel
+
+start: ## Start all services
+	docker-compose up -d
+
+stop: ## Stop all services  
+	docker-compose down
+
+restart: ## Restart all services
+	docker-compose restart
+
+logs: ## View logs from all services
+	docker-compose logs -f
+
+logs-api: ## View API logs
+	docker-compose logs -f api
+
+logs-crawler: ## View crawler logs  
+	docker-compose logs -f crawler-worker
+
+logs-db: ## View database logs
+	docker-compose logs -f postgres
+
+ps: ## Show running containers
+	docker-compose ps
+
+clean: ## Remove all containers and volumes
+	docker-compose down -v --remove-orphans
+	docker system prune -f
+
+reset-db: ## Reset database (WARNING: deletes all data)
+	docker-compose stop postgres
+	docker volume rm dom-space-harvester_postgres_data
+	docker-compose up -d postgres
+
+backup-db: ## Backup database
+	@echo "Creating database backup..."
+	docker-compose exec postgres pg_dump -U postgres dom_space_harvester > backup_$(shell date +%Y%m%d_%H%M%S).sql
+	@echo "Backup created: backup_$(shell date +%Y%m%d_%H%M%S).sql"
+
+restore-db: ## Restore database from backup (usage: make restore-db FILE=backup.sql)
+	@echo "Restoring database from $(FILE)..."
+	docker-compose exec -T postgres psql -U postgres dom_space_harvester < $(FILE)
+	@echo "Database restored successfully"
+
+dev: ## Start in development mode
+	docker-compose -f docker-compose.yml -f docker-compose.override.yml up -d
+
+prod: ## Start in production mode  
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+scale-crawlers: ## Scale crawler workers (usage: make scale-crawlers N=5)
+	docker-compose up -d --scale crawler-worker=$(N)
+
+stats: ## Show container resource usage
+	docker stats
+
+health: ## Check health of all services
+	@echo "Checking service health..."
+	@docker-compose ps
+	@echo ""
+	@curl -s http://localhost:3001/api/health | jq .
+	@echo ""
+	@curl -s http://localhost:3000 > /dev/null && echo "Frontend: OK" || echo "Frontend: Error"
+
+monitor: ## Open monitoring dashboards
+	@echo "Opening monitoring dashboards..."
+	@echo "Grafana: http://localhost:3002 (admin/admin123)"
+	@echo "Prometheus: http://localhost:9090"
+	@echo "PgAdmin: http://localhost:5050 (admin@domspace.com/admin123)"
+
+install: ## Install and setup everything
+	@echo "🚀 Setting up DOM Space Harvester..."
+	@cp .env.example .env
+	@echo "📝 Please edit .env file with your configuration"
+	@echo "📦 Building Docker images..."
+	@make build
+	@echo "🏁 Starting services..."
+	@make start
+	@echo ""
+	@echo "✅ Setup complete! Services starting..."
+	@echo "📊 Dashboard: http://localhost:3000"
+	@echo "🔧 API: http://localhost:3001"
+	@echo "📈 Monitoring: http://localhost:3002"
+	@echo ""
+	@echo "Run 'make logs' to see startup logs"
+	@echo "Run 'make health' to check service status"
+
+---
+# Quick Start Guide
+
+# 1. Clone and setup
+git clone <repository>
+cd dom-space-harvester
+cp .env.example .env
+
+# 2. Edit .env file with your settings
+nano .env
+
+# 3. Start everything
+make install
+
+# 4. Check status
+make health
+
+# 5. View logs  
+make logs
+
+# 6. Access services
+# Frontend: http://localhost:3000
+# API: http://localhost:3001
+# Grafana: http://localhost:3002
+# PgAdmin: http://localhost:5050
+
+# 7. Scale crawlers for more performance
+make scale-crawlers N=8
+
+# 8. Monitor performance
+make monitor
+
+# Production deployment:
+make prod
+
+# Development mode:
+make dev
