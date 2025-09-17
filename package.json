@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node start-complete-system.js",
     "start:blockchain": "node start-blockchain.js",
+    "start:desktop": "node start-desktop.js",
     "api": "node api-server-express.js",
     "dev": "vite",
     "build": "vite build",
