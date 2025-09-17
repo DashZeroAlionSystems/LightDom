@@ -46,9 +46,9 @@ import {
   ExclamationCircleOutlined
 } from '@ant-design/icons';
 import { useWallet } from '../../hooks/useWallet';
-import { useBlockchain } from '@/hooks/useBlockchain';
+import { useBlockchain } from '../../hooks/useBlockchain';
 import { useAuth } from '../../hooks/useAuth';
-import './WalletDashboard.css';
+// import './WalletDashboard.css'; // Commented out - CSS file not found
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
