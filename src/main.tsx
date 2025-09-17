@@ -1,6 +1,6 @@
 /**
  * Main Application Entry Point
- * LightDom Space Optimization System
+ * LightDom Space Optimization System with Light DOM Slot Support
  */
 
 import React from 'react';
@@ -14,6 +14,7 @@ import BlockchainModelStorageDashboard from './components/BlockchainModelStorage
 import WorkflowSimulationDashboard from './components/WorkflowSimulationDashboard';
 import TestingDashboard from './components/TestingDashboard';
 import WalletDashboard from './components/dashboard/WalletDashboard';
+import { LightDomSlotDashboard } from './components/LightDomSlotDashboard';
 import BridgeChatPage from './BridgeChatPage';
 import RealWebCrawlerDashboard from '../dom-space-harvester';
 import './simple.css';
@@ -43,6 +44,8 @@ const App = () => {
     return <WorkflowSimulationDashboard />;
   } else if (path === '/testing') {
     return <TestingDashboard />;
+  } else if (path === '/lightdom-slots') {
+    return <LightDomSlotDashboard />;
   } else {
     return <DiscordStyleDashboard />;
   }
