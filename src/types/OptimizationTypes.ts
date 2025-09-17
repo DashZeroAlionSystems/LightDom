@@ -366,18 +366,23 @@ export interface OptimizationServiceStatus {
 
 // Event types
 export interface OptimizationEvents {
-  'optimizationStarted': (optimizationId: string, url: string) => void;
-  'optimizationCompleted': (optimizationId: string, result: OptimizationResult) => void;
-  'optimizationFailed': (optimizationId: string, error: OptimizationError) => void;
-  'optimizationProgress': (optimizationId: string, progress: number, step: string) => void;
-  'ruleApplied': (optimizationId: string, rule: AppliedOptimization) => void;
-  'error': (error: OptimizationError) => void;
+  optimizationStarted: (optimizationId: string, url: string) => void;
+  optimizationCompleted: (optimizationId: string, result: OptimizationResult) => void;
+  optimizationFailed: (optimizationId: string, error: OptimizationError) => void;
+  optimizationProgress: (optimizationId: string, progress: number, step: string) => void;
+  ruleApplied: (optimizationId: string, rule: AppliedOptimization) => void;
+  error: (error: OptimizationError) => void;
 }
 
 // Utility types
 export type OptimizationEventType = keyof OptimizationEvents;
 export type OptimizationStatusType = 'queued' | 'analyzing' | 'optimizing' | 'completed' | 'failed';
 export type OptimizationLevelType = 'basic' | 'standard' | 'aggressive';
-export type OptimizationCategoryType = 'performance' | 'seo' | 'accessibility' | 'security' | 'best-practices';
+export type OptimizationCategoryType =
+  | 'performance'
+  | 'seo'
+  | 'accessibility'
+  | 'security'
+  | 'best-practices';
 export type OptimizationPriorityType = 'low' | 'medium' | 'high' | 'critical';
 export type OptimizationEffortType = 'low' | 'medium' | 'high';

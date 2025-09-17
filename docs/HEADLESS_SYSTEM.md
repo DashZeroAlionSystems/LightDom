@@ -31,9 +31,11 @@ The LightDom Headless Chrome and Puppeteer system is a comprehensive solution fo
 ## Core Services
 
 ### 1. HeadlessChromeService
+
 Manages Puppeteer browser instances and page operations.
 
 **Features:**
+
 - Browser lifecycle management
 - Page creation and navigation
 - Screenshot capture
@@ -42,6 +44,7 @@ Manages Puppeteer browser instances and page operations.
 - Performance metrics collection
 
 **Key Methods:**
+
 ```typescript
 // Initialize service
 await headlessService.initialize();
@@ -66,9 +69,11 @@ await headlessService.closePage('page-id');
 ```
 
 ### 2. WebCrawlerService
+
 Handles website crawling and data extraction.
 
 **Features:**
+
 - Multi-page website crawling
 - Data extraction (images, links, scripts, CSS)
 - Performance analysis
@@ -77,6 +82,7 @@ Handles website crawling and data extraction.
 - Screenshot and PDF generation
 
 **Key Methods:**
+
 ```typescript
 // Start crawling
 const crawlId = await crawlerService.crawlWebsite(url, options);
@@ -89,9 +95,11 @@ const result = await crawlerService.getCrawlResult(crawlId);
 ```
 
 ### 3. OptimizationEngine
+
 Provides website optimization recommendations and implementations.
 
 **Features:**
+
 - Image optimization
 - CSS optimization
 - JavaScript optimization
@@ -101,6 +109,7 @@ Provides website optimization recommendations and implementations.
 - Accessibility optimization
 
 **Key Methods:**
+
 ```typescript
 // Start optimization
 const optimizationId = await optimizationEngine.optimizeWebsite(url, options);
@@ -113,9 +122,11 @@ const result = await optimizationEngine.getOptimizationResult(optimizationId);
 ```
 
 ### 4. BackgroundWorkerService
+
 Manages background processing and job queues.
 
 **Features:**
+
 - Job queue management
 - Background processing
 - Cron job scheduling
@@ -123,6 +134,7 @@ Manages background processing and job queues.
 - Resource cleanup
 
 **Key Methods:**
+
 ```typescript
 // Add job to queue
 const job = await backgroundWorker.addJob(queueName, jobType, data, options);
@@ -132,9 +144,11 @@ const status = await backgroundWorker.getQueueStatus(queueName);
 ```
 
 ### 5. MonitoringService
+
 Provides comprehensive monitoring and alerting.
 
 **Features:**
+
 - System metrics collection
 - Service health monitoring
 - Alert management
@@ -142,6 +156,7 @@ Provides comprehensive monitoring and alerting.
 - Error reporting
 
 **Key Methods:**
+
 ```typescript
 // Collect metrics
 const metrics = await monitoringService.collectMetrics();
@@ -154,9 +169,11 @@ await monitoringService.resolveAlert(alertId);
 ```
 
 ### 6. DOMAnalyzer
+
 Analyzes DOM structure and identifies optimization opportunities.
 
 **Features:**
+
 - DOM structure analysis
 - Image analysis
 - Script analysis
@@ -165,6 +182,7 @@ Analyzes DOM structure and identifies optimization opportunities.
 - Optimization opportunity detection
 
 **Key Methods:**
+
 ```typescript
 // Analyze DOM
 const analysis = await domAnalyzer.analyzeDOM(page);
@@ -176,12 +194,14 @@ const opportunities = await domAnalyzer.findOptimizationOpportunities(page, anal
 ## API Endpoints
 
 ### Health & Status
+
 - `GET /health` - Health check
 - `GET /api/status` - Service status
 - `GET /api/headless/status` - Headless services status
 - `GET /api/headless/health` - Headless services health
 
 ### Page Management
+
 - `POST /api/headless/page/create` - Create a new page
 - `POST /api/headless/page/navigate` - Navigate to URL
 - `POST /api/headless/page/analyze` - Analyze DOM
@@ -191,20 +211,24 @@ const opportunities = await domAnalyzer.findOptimizationOpportunities(page, anal
 - `DELETE /api/headless/page/:pageId` - Close page
 
 ### Web Crawling
+
 - `POST /api/headless/crawl` - Start crawling
 - `GET /api/headless/crawl/:crawlId/status` - Get crawl status
 - `GET /api/headless/crawl/:crawlId/result` - Get crawl result
 
 ### Website Optimization
+
 - `POST /api/headless/optimize` - Start optimization
 - `GET /api/headless/optimize/:optimizationId/status` - Get optimization status
 - `GET /api/headless/optimize/:optimizationId/result` - Get optimization result
 
 ### Background Workers
+
 - `POST /api/headless/worker/job` - Add job to queue
 - `GET /api/headless/worker/queue/:queueName/status` - Get queue status
 
 ### Cleanup
+
 - `POST /api/headless/cleanup` - Cleanup all resources
 
 ## Configuration
@@ -293,7 +317,7 @@ await headlessService.cleanup();
 const crawlId = await crawler.crawlWebsite('https://example.com', {
   generatePDF: true,
   takeScreenshot: true,
-  waitForSelector: '.content'
+  waitForSelector: '.content',
 });
 
 // Wait for completion
@@ -313,7 +337,7 @@ console.log('Crawl completed:', result.websiteData.title);
 const optimizationId = await optimizer.optimizeWebsite('https://example.com', {
   optimizationLevel: 'aggressive',
   generateReport: true,
-  takeScreenshots: true
+  takeScreenshots: true,
 });
 
 // Wait for completion
@@ -331,6 +355,7 @@ console.log('Optimization completed:', result.appliedOptimizations.length, 'opti
 The system includes comprehensive error handling with categorized error types:
 
 ### Error Types
+
 - `HeadlessChromeError` - Browser/page related errors
 - `CrawlError` - Web crawling errors
 - `OptimizationError` - Optimization process errors
@@ -352,9 +377,9 @@ try {
     service: 'HeadlessChromeService',
     operation: 'navigateToPage',
     requestId: 'req-123',
-    metadata: { url: 'invalid-url' }
+    metadata: { url: 'invalid-url' },
   });
-  
+
   console.log('Error reported:', errorReport.id);
 }
 ```
@@ -362,6 +387,7 @@ try {
 ## Monitoring & Alerting
 
 ### Metrics Collection
+
 - System metrics (memory, CPU, uptime)
 - Service health status
 - Queue statistics
@@ -369,6 +395,7 @@ try {
 - Error rates
 
 ### Alert Types
+
 - **Critical**: Service failures, out of memory
 - **High**: High error rates, queue backlogs
 - **Medium**: Performance issues, resource usage
@@ -384,7 +411,7 @@ const alert = await monitoringService.createAlert({
   title: 'High Memory Usage',
   message: 'Memory usage is 85% (threshold: 80%)',
   service: 'system',
-  metadata: { memoryUsage: 85 }
+  metadata: { memoryUsage: 85 },
 });
 
 // Resolve alert
@@ -396,6 +423,7 @@ await monitoringService.resolveAlert(alert.id);
 The system includes comprehensive test coverage:
 
 ### Test Categories
+
 - Unit tests for individual services
 - Integration tests for service interactions
 - End-to-end tests for complete workflows
@@ -421,18 +449,21 @@ npm run test:performance
 ## Performance Considerations
 
 ### Resource Management
+
 - Configurable page limits
 - Automatic cleanup of unused resources
 - Memory usage monitoring
 - CPU usage optimization
 
 ### Scalability
+
 - Horizontal scaling with multiple instances
 - Queue-based processing
 - Background worker distribution
 - Redis-based state management
 
 ### Optimization
+
 - Lazy loading of resources
 - Connection pooling
 - Caching strategies
@@ -441,6 +472,7 @@ npm run test:performance
 ## Security
 
 ### Security Features
+
 - Input validation and sanitization
 - Rate limiting
 - CORS protection
@@ -448,6 +480,7 @@ npm run test:performance
 - Error message sanitization
 
 ### Best Practices
+
 - Environment variable configuration
 - Secure credential management
 - Regular security updates
@@ -456,6 +489,7 @@ npm run test:performance
 ## Deployment
 
 ### Docker Support
+
 ```dockerfile
 FROM node:18-alpine
 
@@ -471,6 +505,7 @@ CMD ["npm", "start"]
 ```
 
 ### Environment Setup
+
 ```bash
 # Install dependencies
 npm install
@@ -522,6 +557,7 @@ DEBUG=* npm start
 ## Contributing
 
 ### Development Setup
+
 1. Fork the repository
 2. Create a feature branch
 3. Install dependencies: `npm install`
@@ -530,6 +566,7 @@ DEBUG=* npm start
 6. Submit a pull request
 
 ### Code Standards
+
 - TypeScript for type safety
 - ESLint for code quality
 - Prettier for formatting
@@ -543,6 +580,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Support
 
 For support and questions:
+
 - Create an issue on GitHub
 - Check the documentation
 - Review the troubleshooting guide

@@ -43,7 +43,7 @@ export class BrowserRefreshHandler {
     });
 
     // Handle beforeunload (browser refresh/close)
-    window.addEventListener('beforeunload', (event) => {
+    window.addEventListener('beforeunload', event => {
       this.handleBeforeUnload(event);
     });
 
@@ -62,7 +62,7 @@ export class BrowserRefreshHandler {
     });
 
     // Handle storage events (for cross-tab synchronization)
-    window.addEventListener('storage', (event) => {
+    window.addEventListener('storage', event => {
       this.handleStorageEvent(event);
     });
   }
@@ -92,7 +92,7 @@ export class BrowserRefreshHandler {
   private handleBeforeUnload(event: BeforeUnloadEvent): void {
     // Save data synchronously (limited time)
     this.saveAllDataSync();
-    
+
     // Show confirmation dialog if there's unsaved data
     const hasUnsavedData = this.checkForUnsavedData();
     if (hasUnsavedData) {
@@ -107,7 +107,7 @@ export class BrowserRefreshHandler {
    */
   private async handlePageLoad(): Promise<void> {
     console.log('📱 Page loaded, restoring data...');
-    
+
     try {
       await this.restoreAllData();
       console.log('✅ Data restored successfully on page load');
@@ -121,7 +121,7 @@ export class BrowserRefreshHandler {
    */
   private async handleOnlineStatus(): Promise<void> {
     console.log('🌐 Online status detected, syncing data...');
-    
+
     try {
       await persistentBlockchainStorage.forceSync();
       console.log('✅ Data synced successfully');
@@ -160,19 +160,19 @@ export class BrowserRefreshHandler {
       blockchainUpgrades: metaverseMiningEngine.getBlockchainUpgrades(),
       walletData: this.getWalletData(),
       userSettings: this.getUserSettings(),
-      syncStatus: 'pending'
+      syncStatus: 'pending',
     };
 
     try {
       // Save to persistent storage
       await persistentBlockchainStorage.saveCurrentState();
-      
+
       // Save to localStorage for cross-tab sync
       localStorage.setItem('lightdom_sync', JSON.stringify(refreshData));
-      
+
       // Sync to blockchain and PostgreSQL
       await persistentBlockchainStorage.syncToBlockchain();
-      
+
       refreshData.syncStatus = 'success';
       console.log('✅ All data saved and synced successfully');
     } catch (error) {
@@ -196,7 +196,7 @@ export class BrowserRefreshHandler {
         blockchainUpgrades: metaverseMiningEngine.getBlockchainUpgrades(),
         walletData: this.getWalletData(),
         userSettings: this.getUserSettings(),
-        syncStatus: 'pending'
+        syncStatus: 'pending',
       };
 
       // Save to localStorage synchronously
@@ -214,14 +214,14 @@ export class BrowserRefreshHandler {
     try {
       // Load from persistent storage
       await persistentBlockchainStorage.loadPersistentData();
-      
+
       // Load from localStorage for cross-tab sync
       const syncData = localStorage.getItem('lightdom_sync');
       if (syncData) {
         const refreshData: RefreshData = JSON.parse(syncData);
         this.restoreApplicationState(refreshData);
       }
-      
+
       console.log('✅ All data restored successfully');
     } catch (error) {
       console.error('❌ Error restoring data:', error);
@@ -267,7 +267,7 @@ export class BrowserRefreshHandler {
       balance: 0,
       totalValue: 0,
       pendingRewards: 0,
-      totalEarned: 0
+      totalEarned: 0,
     };
   }
 
@@ -288,7 +288,7 @@ export class BrowserRefreshHandler {
       maxFileUploadSize: persistentBlockchainStorage.getChromeUploadLimits().maxFileSize,
       autoSave: true,
       syncInterval: 30000,
-      preferredBiome: 'digital'
+      preferredBiome: 'digital',
     };
   }
 
@@ -340,7 +340,7 @@ export class BrowserRefreshHandler {
       lastRefresh: syncData ? JSON.parse(syncData).timestamp : 0,
       syncStatus: syncStatus.status,
       dataSize: storageStats.totalSize,
-      error: syncStatus.error
+      error: syncStatus.error,
     };
   }
 

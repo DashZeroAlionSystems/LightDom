@@ -19,10 +19,10 @@ class MerkleTree {
 
   buildTree() {
     if (this.leaves.length === 0) return [];
-    
+
     let currentLevel = [...this.leaves];
     const tree = [currentLevel];
-    
+
     while (currentLevel.length > 1) {
       const nextLevel = [];
       for (let i = 0; i < currentLevel.length; i += 2) {
@@ -33,7 +33,7 @@ class MerkleTree {
       tree.push(nextLevel);
       currentLevel = nextLevel;
     }
-    
+
     return tree;
   }
 
@@ -48,28 +48,28 @@ class MerkleTree {
 
     const proof = [];
     let currentIndex = index;
-    
+
     for (let level = 0; level < this.tree.length - 1; level++) {
       const levelNodes = this.tree[level];
       const isLeft = currentIndex % 2 === 0;
       const siblingIndex = isLeft ? currentIndex + 1 : currentIndex - 1;
-      
+
       if (siblingIndex < levelNodes.length) {
         proof.push({
           data: levelNodes[siblingIndex],
-          left: isLeft
+          left: isLeft,
         });
       }
-      
+
       currentIndex = Math.floor(currentIndex / 2);
     }
-    
+
     return proof;
   }
 
   verifyProof(leaf, proof, root) {
     let hash = this.hash(leaf);
-    
+
     for (const proofElement of proof) {
       if (proofElement.left) {
         hash = this.hash(hash + proofElement.data);
@@ -77,7 +77,7 @@ class MerkleTree {
         hash = this.hash(proofElement.data + hash);
       }
     }
-    
+
     return hash === root;
   }
 

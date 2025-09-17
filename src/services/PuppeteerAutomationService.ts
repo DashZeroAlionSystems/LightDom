@@ -85,15 +85,16 @@ export class PuppeteerAutomationService extends EventEmitter {
     super();
     this.headlessChromeService = headlessChromeService;
     this.logger = new Logger('PuppeteerAutomationService');
-    
+
     this.config = {
       headless: true,
       viewport: { width: 1920, height: 1080, deviceScaleFactor: 1 },
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       timeout: 30000,
       waitForSelectorTimeout: 10000,
       slowMo: 0,
-      ...config
+      ...config,
     };
   }
 
@@ -103,12 +104,12 @@ export class PuppeteerAutomationService extends EventEmitter {
   async initialize(): Promise<void> {
     try {
       this.logger.info('Initializing Puppeteer automation service...');
-      
+
       // Use the existing headless Chrome service
       await this.headlessChromeService.initialize();
       this.browser = await puppeteer.connect({
         browserWSEndpoint: await this.getBrowserWSEndpoint(),
-        defaultViewport: this.config.viewport
+        defaultViewport: this.config.viewport,
       });
 
       this.logger.info('Puppeteer automation service initialized successfully');
@@ -131,25 +132,28 @@ export class PuppeteerAutomationService extends EventEmitter {
   /**
    * Create a new automation session
    */
-  async createSession(sessionId: string, options?: {
-    url?: string;
-    viewport?: { width: number; height: number };
-    userAgent?: string;
-  }): Promise<Page> {
+  async createSession(
+    sessionId: string,
+    options?: {
+      url?: string;
+      viewport?: { width: number; height: number };
+      userAgent?: string;
+    }
+  ): Promise<Page> {
     if (!this.browser) {
       throw new Error('Browser not initialized');
     }
 
     try {
       const page = await this.browser.newPage();
-      
+
       // Configure page
       await page.setViewport(options?.viewport || this.config.viewport);
       await page.setUserAgent(options?.userAgent || this.config.userAgent);
-      
+
       // Set up request interception for performance optimization
       await page.setRequestInterception(true);
-      page.on('request', (request) => {
+      page.on('request', request => {
         this.handleRequestInterception(request);
       });
 
@@ -160,7 +164,7 @@ export class PuppeteerAutomationService extends EventEmitter {
           startTime: Date.now(),
           navigationStart: performance.timing.navigationStart,
           requests: [],
-          resources: []
+          resources: [],
         };
       });
 
@@ -182,10 +186,14 @@ export class PuppeteerAutomationService extends EventEmitter {
   /**
    * Navigate to a URL with intelligent waiting
    */
-  async navigateToUrl(sessionId: string, url: string, options?: {
-    waitUntil?: 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2';
-    timeout?: number;
-  }): Promise<void> {
+  async navigateToUrl(
+    sessionId: string,
+    url: string,
+    options?: {
+      waitUntil?: 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2';
+      timeout?: number;
+    }
+  ): Promise<void> {
     const page = this.pages.get(sessionId);
     if (!page) {
       throw new Error(`Session ${sessionId} not found`);
@@ -193,10 +201,10 @@ export class PuppeteerAutomationService extends EventEmitter {
 
     try {
       this.logger.info(`Navigating to: ${url}`);
-      
+
       const response = await page.goto(url, {
         waitUntil: options?.waitUntil || 'networkidle2',
-        timeout: options?.timeout || this.config.timeout
+        timeout: options?.timeout || this.config.timeout,
       });
 
       if (!response?.ok()) {
@@ -205,7 +213,7 @@ export class PuppeteerAutomationService extends EventEmitter {
 
       // Wait for additional content to load
       await this.waitForPageStability(page);
-      
+
       this.logger.info(`Successfully navigated to: ${url}`);
       this.emit('navigationComplete', { sessionId, url, status: response.status() });
     } catch (error) {
@@ -217,16 +225,19 @@ export class PuppeteerAutomationService extends EventEmitter {
   /**
    * Intelligent element detection and interaction
    */
-  async findAndInteract(sessionId: string, criteria: {
-    text?: string;
-    selector?: string;
-    role?: string;
-    placeholder?: string;
-    type?: string;
-    action: 'click' | 'type' | 'select' | 'hover' | 'scroll' | 'screenshot';
-    value?: string;
-    options?: string[];
-  }): Promise<InteractionResult> {
+  async findAndInteract(
+    sessionId: string,
+    criteria: {
+      text?: string;
+      selector?: string;
+      role?: string;
+      placeholder?: string;
+      type?: string;
+      action: 'click' | 'type' | 'select' | 'hover' | 'scroll' | 'screenshot';
+      value?: string;
+      options?: string[];
+    }
+  ): Promise<InteractionResult> {
     const page = this.pages.get(sessionId);
     if (!page) {
       throw new Error(`Session ${sessionId} not found`);
@@ -235,17 +246,17 @@ export class PuppeteerAutomationService extends EventEmitter {
     try {
       // Find the element using intelligent detection
       const element = await this.findElement(page, criteria);
-      
+
       if (!element) {
         throw new Error(`Element not found with criteria: ${JSON.stringify(criteria)}`);
       }
 
       // Perform the action
       const result = await this.performAction(page, element, criteria);
-      
+
       this.logger.info(`Successfully performed ${criteria.action} on element`);
       this.emit('interactionComplete', { sessionId, criteria, result });
-      
+
       return result;
     } catch (error) {
       this.logger.error(`Interaction failed:`, error);
@@ -265,7 +276,7 @@ export class PuppeteerAutomationService extends EventEmitter {
       () => this.findByType(page, criteria.type),
       () => this.findByAriaLabel(page, criteria.text),
       () => this.findByDataAttribute(page, criteria.text),
-      () => this.findByClass(page, criteria.text)
+      () => this.findByClass(page, criteria.text),
     ];
 
     for (const strategy of strategies) {
@@ -420,67 +431,74 @@ export class PuppeteerAutomationService extends EventEmitter {
    * Get comprehensive element information
    */
   private async getElementInfo(element: ElementHandle, selector: string): Promise<ElementInfo> {
-    const info = await element.evaluate((el) => {
+    const info = await element.evaluate(el => {
       const rect = el.getBoundingClientRect();
       const styles = window.getComputedStyle(el);
-      
+
       return {
         tagName: el.tagName.toLowerCase(),
         text: el.textContent?.trim() || '',
-        attributes: Array.from(el.attributes).reduce((acc, attr) => {
-          acc[attr.name] = attr.value;
-          return acc;
-        }, {} as Record<string, string>),
+        attributes: Array.from(el.attributes).reduce(
+          (acc, attr) => {
+            acc[attr.name] = attr.value;
+            return acc;
+          },
+          {} as Record<string, string>
+        ),
         boundingBox: {
           x: rect.x,
           y: rect.y,
           width: rect.width,
-          height: rect.height
+          height: rect.height,
         },
         isVisible: rect.width > 0 && rect.height > 0 && styles.display !== 'none',
-        isEnabled: !el.hasAttribute('disabled')
+        isEnabled: !el.hasAttribute('disabled'),
       };
     });
 
     return {
       selector,
       confidence: 0.9,
-      ...info
+      ...info,
     };
   }
 
   /**
    * Perform action on element
    */
-  private async performAction(page: Page, element: ElementInfo, criteria: any): Promise<InteractionResult> {
+  private async performAction(
+    page: Page,
+    element: ElementInfo,
+    criteria: any
+  ): Promise<InteractionResult> {
     const startTime = Date.now();
-    
+
     try {
       let actionResult: any = null;
-      
+
       switch (criteria.action) {
         case 'click':
           await page.click(element.selector);
           actionResult = 'clicked';
           break;
-          
+
         case 'type':
           await page.type(element.selector, criteria.value || '');
           actionResult = 'typed';
           break;
-          
+
         case 'select':
           await page.select(element.selector, ...(criteria.options || []));
           actionResult = 'selected';
           break;
-          
+
         case 'hover':
           await page.hover(element.selector);
           actionResult = 'hovered';
           break;
-          
+
         case 'scroll':
-          await page.evaluate((selector) => {
+          await page.evaluate(selector => {
             const element = document.querySelector(selector);
             if (element) {
               element.scrollIntoView({ behavior: 'smooth' });
@@ -488,11 +506,11 @@ export class PuppeteerAutomationService extends EventEmitter {
           }, element.selector);
           actionResult = 'scrolled';
           break;
-          
+
         case 'screenshot':
-          const screenshot = await page.screenshot({ 
+          const screenshot = await page.screenshot({
             clip: element.boundingBox,
-            type: 'png'
+            type: 'png',
           });
           actionResult = 'screenshot_taken';
           break;
@@ -506,7 +524,7 @@ export class PuppeteerAutomationService extends EventEmitter {
         element,
         action: criteria.action,
         timestamp: new Date(),
-        screenshot: screenshot as Buffer
+        screenshot: screenshot as Buffer,
       };
     } catch (error) {
       return {
@@ -514,7 +532,7 @@ export class PuppeteerAutomationService extends EventEmitter {
         element,
         action: criteria.action,
         timestamp: new Date(),
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -525,17 +543,17 @@ export class PuppeteerAutomationService extends EventEmitter {
   private async waitForPageStability(page: Page, timeout: number = 5000): Promise<void> {
     let lastHeight = 0;
     let stableCount = 0;
-    
+
     while (stableCount < 3) {
       const currentHeight = await page.evaluate(() => document.body.scrollHeight);
-      
+
       if (currentHeight === lastHeight) {
         stableCount++;
       } else {
         stableCount = 0;
         lastHeight = currentHeight;
       }
-      
+
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
@@ -553,11 +571,11 @@ export class PuppeteerAutomationService extends EventEmitter {
       'google-analytics.com',
       'googletagmanager.com',
       'facebook.com/tr',
-      'doubleclick.net'
+      'doubleclick.net',
     ];
 
-    const shouldBlock = blockedTypes.includes(resourceType) || 
-                       blockedDomains.some(domain => url.includes(domain));
+    const shouldBlock =
+      blockedTypes.includes(resourceType) || blockedDomains.some(domain => url.includes(domain));
 
     if (shouldBlock) {
       request.abort();
@@ -577,7 +595,9 @@ export class PuppeteerAutomationService extends EventEmitter {
 
     try {
       const metrics = await page.evaluate(() => {
-        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        const navigation = performance.getEntriesByType(
+          'navigation'
+        )[0] as PerformanceNavigationTiming;
         const paint = performance.getEntriesByType('paint');
         const lcp = performance.getEntriesByType('largest-contentful-paint');
         const cls = performance.getEntriesByType('layout-shift');
@@ -588,19 +608,30 @@ export class PuppeteerAutomationService extends EventEmitter {
           pageLoadTime: navigation.loadEventEnd - navigation.navigationStart,
           domContentLoadedTime: navigation.domContentLoadedEventEnd - navigation.navigationStart,
           firstPaint: paint.find(p => p.name === 'first-paint')?.startTime || 0,
-          firstContentfulPaint: paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0,
+          firstContentfulPaint:
+            paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0,
           largestContentfulPaint: lcp[0]?.startTime || 0,
           cumulativeLayoutShift: cls.reduce((sum, entry) => sum + entry.value, 0),
           totalBlockingTime: longTasks.reduce((sum, entry) => sum + entry.duration, 0),
           memoryUsage: (performance as any).memory?.usedJSHeapSize || 0,
           networkRequests: resources.length,
           resourceSizes: {
-            html: resources.filter(r => r.name.includes('.html')).reduce((sum, r) => sum + (r.transferSize || 0), 0),
-            css: resources.filter(r => r.name.includes('.css')).reduce((sum, r) => sum + (r.transferSize || 0), 0),
-            js: resources.filter(r => r.name.includes('.js')).reduce((sum, r) => sum + (r.transferSize || 0), 0),
-            images: resources.filter(r => r.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)).reduce((sum, r) => sum + (r.transferSize || 0), 0),
-            fonts: resources.filter(r => r.name.match(/\.(woff|woff2|ttf|eot)$/i)).reduce((sum, r) => sum + (r.transferSize || 0), 0)
-          }
+            html: resources
+              .filter(r => r.name.includes('.html'))
+              .reduce((sum, r) => sum + (r.transferSize || 0), 0),
+            css: resources
+              .filter(r => r.name.includes('.css'))
+              .reduce((sum, r) => sum + (r.transferSize || 0), 0),
+            js: resources
+              .filter(r => r.name.includes('.js'))
+              .reduce((sum, r) => sum + (r.transferSize || 0), 0),
+            images: resources
+              .filter(r => r.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+              .reduce((sum, r) => sum + (r.transferSize || 0), 0),
+            fonts: resources
+              .filter(r => r.name.match(/\.(woff|woff2|ttf|eot)$/i))
+              .reduce((sum, r) => sum + (r.transferSize || 0), 0),
+          },
         };
       });
 
@@ -633,8 +664,9 @@ export class PuppeteerAutomationService extends EventEmitter {
           title: 'Optimize Largest Contentful Paint',
           description: 'LCP is above the recommended 2.5s threshold',
           impact: 'Improves user experience and Core Web Vitals score',
-          implementation: 'Optimize images, reduce server response time, eliminate render-blocking resources',
-          estimatedSavings: { time: performance.largestContentfulPaint - 2500 }
+          implementation:
+            'Optimize images, reduce server response time, eliminate render-blocking resources',
+          estimatedSavings: { time: performance.largestContentfulPaint - 2500 },
         });
       }
 
@@ -646,7 +678,7 @@ export class PuppeteerAutomationService extends EventEmitter {
           description: 'CLS score indicates layout instability',
           impact: 'Improves visual stability and user experience',
           implementation: 'Add size attributes to images, reserve space for dynamic content',
-          estimatedSavings: { score: performance.cumulativeLayoutShift }
+          estimatedSavings: { score: performance.cumulativeLayoutShift },
         });
       }
 
@@ -658,14 +690,14 @@ export class PuppeteerAutomationService extends EventEmitter {
           description: 'Images are taking up significant bandwidth',
           impact: 'Reduces page load time and bandwidth usage',
           implementation: 'Use WebP format, implement lazy loading, compress images',
-          estimatedSavings: { size: performance.resourceSizes.images * 0.3 }
+          estimatedSavings: { size: performance.resourceSizes.images * 0.3 },
         });
       }
 
       // Accessibility suggestions
       const accessibilityIssues = await page.evaluate(() => {
         const issues = [];
-        
+
         // Check for missing alt text
         const imagesWithoutAlt = document.querySelectorAll('img:not([alt])');
         if (imagesWithoutAlt.length > 0) {
@@ -675,12 +707,14 @@ export class PuppeteerAutomationService extends EventEmitter {
             title: 'Add Alt Text to Images',
             description: `${imagesWithoutAlt.length} images are missing alt text`,
             impact: 'Improves accessibility for screen readers',
-            implementation: 'Add descriptive alt attributes to all images'
+            implementation: 'Add descriptive alt attributes to all images',
           });
         }
 
         // Check for missing form labels
-        const inputsWithoutLabels = document.querySelectorAll('input:not([aria-label]):not([aria-labelledby])');
+        const inputsWithoutLabels = document.querySelectorAll(
+          'input:not([aria-label]):not([aria-labelledby])'
+        );
         const unlabeledInputs = Array.from(inputsWithoutLabels).filter(input => {
           const label = document.querySelector(`label[for="${input.id}"]`);
           return !label;
@@ -693,7 +727,7 @@ export class PuppeteerAutomationService extends EventEmitter {
             title: 'Add Labels to Form Inputs',
             description: `${unlabeledInputs.length} form inputs are missing labels`,
             impact: 'Improves form accessibility and usability',
-            implementation: 'Add proper label elements or aria-label attributes'
+            implementation: 'Add proper label elements or aria-label attributes',
           });
         }
 
@@ -713,7 +747,10 @@ export class PuppeteerAutomationService extends EventEmitter {
   /**
    * Create visual regression test
    */
-  async createVisualRegressionTest(sessionId: string, testName: string): Promise<{
+  async createVisualRegressionTest(
+    sessionId: string,
+    testName: string
+  ): Promise<{
     screenshot: Buffer;
     baseline?: Buffer;
     diff?: Buffer;
@@ -727,10 +764,10 @@ export class PuppeteerAutomationService extends EventEmitter {
 
     try {
       // Take screenshot
-      const screenshot = await page.screenshot({ 
-        fullPage: true, 
-        type: 'png' 
-      }) as Buffer;
+      const screenshot = (await page.screenshot({
+        fullPage: true,
+        type: 'png',
+      })) as Buffer;
 
       // In a real implementation, you would:
       // 1. Load baseline image
@@ -742,7 +779,7 @@ export class PuppeteerAutomationService extends EventEmitter {
       return {
         screenshot,
         passed: true,
-        similarity: 1.0
+        similarity: 1.0,
       };
     } catch (error) {
       this.logger.error('Visual regression test failed:', error);
@@ -753,7 +790,10 @@ export class PuppeteerAutomationService extends EventEmitter {
   /**
    * Automated form filling
    */
-  async fillForm(sessionId: string, formData: Record<string, any>): Promise<{
+  async fillForm(
+    sessionId: string,
+    formData: Record<string, any>
+  ): Promise<{
     filled: string[];
     errors: string[];
     success: boolean;
@@ -771,7 +811,7 @@ export class PuppeteerAutomationService extends EventEmitter {
         try {
           // Try multiple strategies to find the field
           const field = await this.findFormField(page, fieldName);
-          
+
           if (field) {
             await page.type(field.selector, String(value));
             filled.push(fieldName);
@@ -780,14 +820,16 @@ export class PuppeteerAutomationService extends EventEmitter {
             errors.push(`Field not found: ${fieldName}`);
           }
         } catch (error) {
-          errors.push(`Error filling ${fieldName}: ${error instanceof Error ? error.message : String(error)}`);
+          errors.push(
+            `Error filling ${fieldName}: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
 
       return {
         filled,
         errors,
-        success: errors.length === 0
+        success: errors.length === 0,
       };
     } catch (error) {
       this.logger.error('Form filling failed:', error);
@@ -806,7 +848,7 @@ export class PuppeteerAutomationService extends EventEmitter {
       `textarea[name="${fieldName}"]`,
       `select[name="${fieldName}"]`,
       `input[aria-label*="${fieldName}"]`,
-      `input[data-testid="${fieldName}"]`
+      `input[data-testid="${fieldName}"]`,
     ];
 
     for (const selector of strategies) {
@@ -837,7 +879,7 @@ export class PuppeteerAutomationService extends EventEmitter {
       url: page.url(),
       title: page.title(),
       isActive: true,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
   }
 
@@ -858,7 +900,7 @@ export class PuppeteerAutomationService extends EventEmitter {
    */
   async cleanup(): Promise<void> {
     this.logger.info('Cleaning up automation service...');
-    
+
     // Close all pages
     for (const [sessionId, page] of this.pages) {
       try {

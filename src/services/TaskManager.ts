@@ -73,31 +73,34 @@ export class TaskManager extends EventEmitter {
       id: uuidv4(),
       status: 'pending',
       createdAt: new Date(),
-      ...taskData
+      ...taskData,
     };
 
     this.tasks.set(task.id, task);
     this.taskQueue.push(task);
-    
+
     // Sort by priority (higher number = higher priority)
     this.taskQueue.sort((a, b) => b.priority - a.priority);
 
     this.logger.info(`Task created: ${task.id} (${task.type})`);
     this.emit('taskCreated', task);
-    
+
     return task.id;
   }
 
   /**
    * Create a JavaScript execution task
    */
-  createJavaScriptTask(script: string, options: {
-    args?: any[];
-    pageId?: string;
-    url?: string;
-    timeout?: number;
-    priority?: number;
-  } = {}): string {
+  createJavaScriptTask(
+    script: string,
+    options: {
+      args?: any[];
+      pageId?: string;
+      url?: string;
+      timeout?: number;
+      priority?: number;
+    } = {}
+  ): string {
     const task: JavaScriptTask = {
       id: uuidv4(),
       type: 'custom_js',
@@ -109,8 +112,8 @@ export class TaskManager extends EventEmitter {
         args: options.args || [],
         pageId: options.pageId,
         url: options.url,
-        timeout: options.timeout || 30000
-      }
+        timeout: options.timeout || 30000,
+      },
     };
 
     this.tasks.set(task.id, task);
@@ -119,19 +122,22 @@ export class TaskManager extends EventEmitter {
 
     this.logger.info(`JavaScript task created: ${task.id}`);
     this.emit('taskCreated', task);
-    
+
     return task.id;
   }
 
   /**
    * Create an n8n workflow task
    */
-  createN8nWorkflowTask(workflowId: string, options: {
-    inputData?: any;
-    webhookUrl?: string;
-    timeout?: number;
-    priority?: number;
-  } = {}): string {
+  createN8nWorkflowTask(
+    workflowId: string,
+    options: {
+      inputData?: any;
+      webhookUrl?: string;
+      timeout?: number;
+      priority?: number;
+    } = {}
+  ): string {
     const task: N8nWorkflowTask = {
       id: uuidv4(),
       type: 'n8n_workflow',
@@ -142,8 +148,8 @@ export class TaskManager extends EventEmitter {
         workflowId,
         inputData: options.inputData || {},
         webhookUrl: options.webhookUrl,
-        timeout: options.timeout || 60000
-      }
+        timeout: options.timeout || 60000,
+      },
     };
 
     this.tasks.set(task.id, task);
@@ -152,18 +158,21 @@ export class TaskManager extends EventEmitter {
 
     this.logger.info(`N8n workflow task created: ${task.id}`);
     this.emit('taskCreated', task);
-    
+
     return task.id;
   }
 
   /**
    * Create a DOM analysis task
    */
-  createDOMAnalysisTask(url: string, options: {
-    pageId?: string;
-    analysisType?: 'full' | 'performance' | 'structure' | 'resources';
-    priority?: number;
-  } = {}): string {
+  createDOMAnalysisTask(
+    url: string,
+    options: {
+      pageId?: string;
+      analysisType?: 'full' | 'performance' | 'structure' | 'resources';
+      priority?: number;
+    } = {}
+  ): string {
     const task: DOMAnalysisTask = {
       id: uuidv4(),
       type: 'dom_analysis',
@@ -174,8 +183,8 @@ export class TaskManager extends EventEmitter {
         url,
         pageId: options.pageId,
         analysisType: options.analysisType || 'full',
-        options: {}
-      }
+        options: {},
+      },
     };
 
     this.tasks.set(task.id, task);
@@ -184,7 +193,7 @@ export class TaskManager extends EventEmitter {
 
     this.logger.info(`DOM analysis task created: ${task.id}`);
     this.emit('taskCreated', task);
-    
+
     return task.id;
   }
 
@@ -198,11 +207,7 @@ export class TaskManager extends EventEmitter {
   /**
    * Get all tasks with optional filtering
    */
-  getTasks(filter?: {
-    status?: Task['status'];
-    type?: Task['type'];
-    limit?: number;
-  }): Task[] {
+  getTasks(filter?: { status?: Task['status']; type?: Task['type']; limit?: number }): Task[] {
     let tasks = Array.from(this.tasks.values());
 
     if (filter?.status) {
@@ -240,10 +245,10 @@ export class TaskManager extends EventEmitter {
 
     task.status = 'cancelled';
     task.completedAt = new Date();
-    
+
     this.logger.info(`Task cancelled: ${taskId}`);
     this.emit('taskCancelled', task);
-    
+
     return true;
   }
 
@@ -331,7 +336,6 @@ export class TaskManager extends EventEmitter {
 
       this.logger.info(`Task completed: ${task.id}`);
       this.emit('taskCompleted', task);
-
     } catch (error) {
       // Task failed
       task.status = 'failed';
@@ -368,9 +372,9 @@ export class TaskManager extends EventEmitter {
       // Execute the script with timeout
       const result = await Promise.race([
         this.headlessChromeService.executeScript(targetPageId, script, ...args),
-        new Promise((_, reject) => 
+        new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Script execution timeout')), timeout)
-        )
+        ),
       ]);
 
       // Clean up page if we created it
@@ -401,7 +405,7 @@ export class TaskManager extends EventEmitter {
     // For now, we'll simulate n8n workflow execution
     // In a real implementation, this would integrate with n8n's API
     this.logger.info(`Executing n8n workflow: ${workflowId}`);
-    
+
     // Simulate workflow execution time
     await this.sleep(Math.random() * 5000 + 1000);
 
@@ -413,8 +417,8 @@ export class TaskManager extends EventEmitter {
       result: {
         message: 'Workflow executed successfully',
         timestamp: new Date().toISOString(),
-        outputData: inputData
-      }
+        outputData: inputData,
+      },
     };
   }
 
@@ -466,7 +470,7 @@ export class TaskManager extends EventEmitter {
       // Mark as cancelled and clean up resources
       task.status = 'cancelled';
       task.completedAt = new Date();
-      
+
       // Clean up any resources (pages, etc.)
       if (task.type === 'custom_js' || task.type === 'dom_analysis') {
         const pageId = `task_${taskId}`;
@@ -484,7 +488,7 @@ export class TaskManager extends EventEmitter {
    */
   getStats(): any {
     const tasks = Array.from(this.tasks.values());
-    
+
     return {
       total: tasks.length,
       pending: tasks.filter(t => t.status === 'pending').length,
@@ -494,7 +498,7 @@ export class TaskManager extends EventEmitter {
       cancelled: tasks.filter(t => t.status === 'cancelled').length,
       queueLength: this.taskQueue.length,
       maxConcurrent: this.maxConcurrentTasks,
-      activeTasks: this.runningTasks.size
+      activeTasks: this.runningTasks.size,
     };
   }
 
@@ -506,8 +510,10 @@ export class TaskManager extends EventEmitter {
     const toDelete: string[] = [];
 
     for (const [id, task] of this.tasks) {
-      if (task.createdAt < cutoff && 
-          (task.status === 'completed' || task.status === 'failed' || task.status === 'cancelled')) {
+      if (
+        task.createdAt < cutoff &&
+        (task.status === 'completed' || task.status === 'failed' || task.status === 'cancelled')
+      ) {
         toDelete.push(id);
       }
     }
@@ -531,19 +537,19 @@ export class TaskManager extends EventEmitter {
    */
   async shutdown(): Promise<void> {
     this.logger.info('Shutting down task manager...');
-    
+
     this.stopTaskProcessor();
-    
+
     // Cancel all running tasks
     for (const taskId of this.runningTasks) {
       await this.cancelTask(taskId);
     }
-    
+
     // Clear all tasks
     this.tasks.clear();
     this.taskQueue = [];
     this.runningTasks.clear();
-    
+
     this.logger.info('Task manager shutdown complete');
   }
 }

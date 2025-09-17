@@ -43,7 +43,7 @@ export class TwoFactorAuthService {
       digits: 6,
       period: 30,
       window: 1,
-      ...config
+      ...config,
     };
     this.webOTPService = new WebOTPService();
   }
@@ -92,26 +92,26 @@ export class TwoFactorAuthService {
           type: 'totp',
           name: 'Authenticator App',
           enabled: false,
-          lastUsed: null
+          lastUsed: null,
         },
         {
           type: 'sms',
           name: 'SMS',
           enabled: false,
-          lastUsed: null
+          lastUsed: null,
         },
         {
           type: 'email',
           name: 'Email',
           enabled: false,
-          lastUsed: null
+          lastUsed: null,
         },
         {
           type: 'backup',
           name: 'Backup Codes',
           enabled: false,
-          lastUsed: null
-        }
+          lastUsed: null,
+        },
       ];
 
       // Load from storage
@@ -133,17 +133,17 @@ export class TwoFactorAuthService {
 
       // Generate random secret
       const secret = this.generateRandomSecret();
-      
+
       // Generate QR code
       const qrCode = this.generateQRCode(userId, secret);
-      
+
       // Generate backup codes
       const backupCodes = this.generateBackupCodes();
 
       const totpSecret: TOTPSecret = {
         secret,
         qrCode,
-        backupCodes
+        backupCodes,
       };
 
       this.logger.info('TOTP secret generated successfully');
@@ -177,7 +177,7 @@ export class TwoFactorAuthService {
     const period = this.config.period;
 
     const otpauth = `otpauth://totp/${issuer}:${account}?secret=${secret}&issuer=${issuer}&algorithm=${algorithm}&digits=${digits}&period=${period}`;
-    
+
     // In a real implementation, you would generate an actual QR code
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(otpauth)}`;
   }
@@ -202,14 +202,14 @@ export class TwoFactorAuthService {
       // In a real implementation, you would use a proper TOTP library
       // For now, we'll simulate verification
       const isValid = code.length === this.config.digits && /^\d+$/.test(code);
-      
+
       if (isValid) {
         this.logger.info('TOTP code verified successfully');
         this.updateMethodLastUsed('totp');
       } else {
         this.logger.warn('TOTP code verification failed');
       }
-      
+
       return isValid;
     } catch (error) {
       this.logger.error('Failed to verify TOTP code:', error);
@@ -226,11 +226,11 @@ export class TwoFactorAuthService {
 
       // Use WebOTP service
       const success = await this.webOTPService.sendOTPRequest(phoneNumber);
-      
+
       if (success) {
         this.updateMethodLastUsed('sms');
       }
-      
+
       return success;
     } catch (error) {
       this.logger.error('Failed to send SMS code:', error);
@@ -244,11 +244,11 @@ export class TwoFactorAuthService {
   async verifySMSCode(phoneNumber: string, code: string): Promise<boolean> {
     try {
       const isValid = await this.webOTPService.verifyOTP(code, phoneNumber);
-      
+
       if (isValid) {
         this.updateMethodLastUsed('sms');
       }
-      
+
       return isValid;
     } catch (error) {
       this.logger.error('Failed to verify SMS code:', error);
@@ -265,7 +265,7 @@ export class TwoFactorAuthService {
 
       // In a real implementation, this would send an actual email
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       this.updateMethodLastUsed('email');
       return true;
     } catch (error) {
@@ -281,11 +281,11 @@ export class TwoFactorAuthService {
     try {
       // In a real implementation, this would verify against the server
       const isValid = code.length === 6 && /^\d+$/.test(code);
-      
+
       if (isValid) {
         this.updateMethodLastUsed('email');
       }
-      
+
       return isValid;
     } catch (error) {
       this.logger.error('Failed to verify email code:', error);
@@ -304,16 +304,16 @@ export class TwoFactorAuthService {
 
       const backupCodes = JSON.parse(storedCodes);
       const index = backupCodes.indexOf(code.toUpperCase());
-      
+
       if (index !== -1) {
         // Remove used backup code
         backupCodes.splice(index, 1);
         localStorage.setItem('2fa-backup-codes', JSON.stringify(backupCodes));
-        
+
         this.updateMethodLastUsed('backup');
         return true;
       }
-      
+
       return false;
     } catch (error) {
       this.logger.error('Failed to verify backup code:', error);
@@ -338,9 +338,9 @@ export class TwoFactorAuthService {
       // Save to storage
       localStorage.setItem('2fa-methods', JSON.stringify(this.methods));
       localStorage.setItem('2fa-enabled', 'true');
-      
+
       this.isEnabled = true;
-      
+
       this.logger.info('2FA enabled successfully');
       return true;
     } catch (error) {
@@ -364,9 +364,9 @@ export class TwoFactorAuthService {
       // Save to storage
       localStorage.setItem('2fa-methods', JSON.stringify(this.methods));
       localStorage.setItem('2fa-enabled', 'false');
-      
+
       this.isEnabled = false;
-      
+
       this.logger.info('2FA disabled successfully');
       return true;
     } catch (error) {
@@ -393,12 +393,15 @@ export class TwoFactorAuthService {
     return {
       isEnabled: this.isEnabled,
       hasBackupCodes: this.methods.some(m => m.type === 'backup' && m.enabled),
-      lastUsed: this.methods.reduce((latest, method) => {
-        if (!method.lastUsed) return latest;
-        if (!latest) return method.lastUsed;
-        return method.lastUsed > latest ? method.lastUsed : latest;
-      }, null as Date | null),
-      methods: this.methods.filter(m => m.enabled).map(m => m.type)
+      lastUsed: this.methods.reduce(
+        (latest, method) => {
+          if (!method.lastUsed) return latest;
+          if (!latest) return method.lastUsed;
+          return method.lastUsed > latest ? method.lastUsed : latest;
+        },
+        null as Date | null
+      ),
+      methods: this.methods.filter(m => m.enabled).map(m => m.type),
     };
   }
 

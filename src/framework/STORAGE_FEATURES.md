@@ -14,17 +14,19 @@ The LightDom Framework now includes comprehensive storage features for creating 
 ### 1. Storage Node Management
 
 #### Create Storage Nodes
+
 ```typescript
 // Create a new mining node
 const node = await lightDomFramework.createStorageNode({
   name: 'US East Mining Node',
   capacity: 10000, // 10GB storage capacity
   location: 'us-east-1',
-  priority: 'high'
+  priority: 'high',
 });
 ```
 
 #### Node Configuration
+
 - **Capacity**: Storage capacity in MB
 - **Location**: Geographic or logical location
 - **Priority**: High, medium, or low priority
@@ -35,6 +37,7 @@ const node = await lightDomFramework.createStorageNode({
 ### 2. Web Address Mining
 
 #### Add URLs to Mining Queue
+
 ```typescript
 // Add single URL
 const jobId = await lightDomFramework.addMiningJob(
@@ -46,11 +49,12 @@ const jobId = await lightDomFramework.addMiningJob(
 const jobIds = await lightDomFramework.addMiningJobs([
   { url: 'https://github.com', priority: 'high' },
   { url: 'https://stackoverflow.com', priority: 'medium' },
-  { url: 'https://dev.to', priority: 'low' }
+  { url: 'https://dev.to', priority: 'low' },
 ]);
 ```
 
 #### Mining Process
+
 1. **URL Analysis**: Analyze URL for optimization potential
 2. **Technology Detection**: Detect frameworks and technologies
 3. **DOM Analysis**: Analyze DOM structure and size
@@ -61,6 +65,7 @@ const jobIds = await lightDomFramework.addMiningJobs([
 ### 3. Storage Optimization
 
 #### Automatic Optimization
+
 - **Cleanup**: Remove old completed mining targets
 - **Compression**: Compress stored data
 - **Deduplication**: Remove duplicate entries
@@ -68,6 +73,7 @@ const jobIds = await lightDomFramework.addMiningJobs([
 - **Migration**: Move data to more efficient storage
 
 #### Storage Policies
+
 ```typescript
 // Update storage policy
 lightDomFramework.updateStoragePolicy({
@@ -79,13 +85,14 @@ lightDomFramework.updateStoragePolicy({
   enableCompression: true,
   enableDeduplication: true,
   enableArchival: true,
-  compressionLevel: 6 // 1-9 compression level
+  compressionLevel: 6, // 1-9 compression level
 });
 ```
 
 ## 📊 Monitoring and Metrics
 
 ### Storage Metrics
+
 ```typescript
 const metrics = lightDomFramework.getStorageMetrics();
 console.log(`Total Capacity: ${metrics.totalCapacity}MB`);
@@ -96,6 +103,7 @@ console.log(`Nodes Optimized: ${metrics.nodesOptimized}`);
 ```
 
 ### Mining Statistics
+
 ```typescript
 const stats = lightDomFramework.getMiningStats();
 console.log(`Total Jobs: ${stats.totalJobs}`);
@@ -106,16 +114,22 @@ console.log(`Total Tokens Earned: ${stats.totalTokensEarned}`);
 ```
 
 ### Comprehensive Status
+
 ```typescript
 const status = lightDomFramework.getMiningStatus();
-console.log(`Storage Nodes: ${status.storageNodes.total} total, ${status.storageNodes.active} active`);
-console.log(`Mining Jobs: ${status.miningJobs.total} total, ${status.miningJobs.completed} completed`);
+console.log(
+  `Storage Nodes: ${status.storageNodes.total} total, ${status.storageNodes.active} active`
+);
+console.log(
+  `Mining Jobs: ${status.miningJobs.total} total, ${status.miningJobs.completed} completed`
+);
 console.log(`Storage Optimizations: ${status.storageOptimizations.total} total`);
 ```
 
 ## 🔧 API Endpoints
 
 ### Storage Node Management
+
 - `POST /api/v1/storage/nodes` - Create storage node
 - `GET /api/v1/storage/nodes` - Get all storage nodes
 - `GET /api/v1/storage/nodes/:id` - Get storage node by ID
@@ -123,12 +137,14 @@ console.log(`Storage Optimizations: ${status.storageOptimizations.total} total`)
 - `DELETE /api/v1/storage/nodes/:id` - Delete storage node
 
 ### Web Address Mining
+
 - `POST /api/v1/mining/jobs` - Add mining job
 - `GET /api/v1/mining/jobs` - Get all mining jobs
 - `GET /api/v1/mining/jobs/:id` - Get mining job by ID
 - `GET /api/v1/mining/stats` - Get mining statistics
 
 ### Storage Optimization
+
 - `POST /api/v1/storage/optimize/:nodeId` - Optimize storage node
 - `GET /api/v1/storage/optimizations` - Get all optimizations
 - `GET /api/v1/storage/metrics` - Get storage metrics
@@ -137,6 +153,7 @@ console.log(`Storage Optimizations: ${status.storageOptimizations.total} total`)
 ## 🎯 Usage Examples
 
 ### Basic Setup
+
 ```typescript
 import { lightDomFramework } from './src/framework';
 
@@ -151,13 +168,13 @@ const node1 = await lightDomFramework.createStorageNode({
   name: 'Primary Mining Node',
   capacity: 10000,
   location: 'us-east-1',
-  priority: 'high'
+  priority: 'high',
 });
 
 // Add URLs to mining queue
 const jobIds = await lightDomFramework.addMiningJobs([
   { url: 'https://example.com', priority: 'high' },
-  { url: 'https://github.com', priority: 'medium' }
+  { url: 'https://github.com', priority: 'medium' },
 ]);
 
 // Monitor progress
@@ -166,6 +183,7 @@ console.log(`Active jobs: ${jobs.filter(j => j.status === 'mining').length}`);
 ```
 
 ### Advanced Configuration
+
 ```typescript
 // Update storage policy for aggressive optimization
 lightDomFramework.updateStoragePolicy({
@@ -177,7 +195,7 @@ lightDomFramework.updateStoragePolicy({
   enableCompression: true,
   enableDeduplication: true,
   enableArchival: true,
-  compressionLevel: 8
+  compressionLevel: 8,
 });
 
 // Optimize specific node
@@ -190,17 +208,18 @@ console.log('Mining Status:', status);
 ```
 
 ### Monitoring and Alerts
+
 ```typescript
 // Set up event listeners
 lightDomFramework.on('miningWorkflowStarted', () => {
   console.log('Mining workflow started');
 });
 
-lightDomFramework.on('nodeCreated', (node) => {
+lightDomFramework.on('nodeCreated', node => {
   console.log(`Node created: ${node.name}`);
 });
 
-lightDomFramework.on('miningCompleted', (job) => {
+lightDomFramework.on('miningCompleted', job => {
   console.log(`Mining completed: ${job.url}`);
 });
 
@@ -216,6 +235,7 @@ setInterval(() => {
 ## 🚀 Quick Start
 
 ### 1. Start the Framework
+
 ```bash
 # Start all services including storage
 npm start
@@ -225,12 +245,14 @@ npm run start:dev
 ```
 
 ### 2. Run Storage Demo
+
 ```bash
 # Run comprehensive storage features demo
 npm run demo:storage
 ```
 
 ### 3. Create Storage Nodes
+
 ```typescript
 // Create multiple storage nodes
 const nodes = await Promise.all([
@@ -238,24 +260,25 @@ const nodes = await Promise.all([
     name: 'US East Node',
     capacity: 5000,
     location: 'us-east-1',
-    priority: 'high'
+    priority: 'high',
   }),
   lightDomFramework.createStorageNode({
     name: 'EU West Node',
     capacity: 8000,
     location: 'eu-west-1',
-    priority: 'medium'
+    priority: 'medium',
   }),
   lightDomFramework.createStorageNode({
     name: 'Asia Pacific Node',
     capacity: 3000,
     location: 'ap-southeast-1',
-    priority: 'low'
-  })
+    priority: 'low',
+  }),
 ]);
 ```
 
 ### 4. Start Mining
+
 ```typescript
 // Add URLs to mining queue
 const urls = [
@@ -263,7 +286,7 @@ const urls = [
   'https://github.com',
   'https://stackoverflow.com',
   'https://medium.com',
-  'https://dev.to'
+  'https://dev.to',
 ];
 
 const jobIds = await lightDomFramework.addMiningJobs(
@@ -293,6 +316,7 @@ console.log(`Added ${jobIds.length} URLs to mining queue`);
    - Ensure optimization services are running
 
 ### Debug Commands
+
 ```bash
 # Check framework status
 npx lightdom status
@@ -334,6 +358,7 @@ npx lightdom storage metrics
 ## 🔮 Future Enhancements
 
 ### Planned Features
+
 - **Distributed Storage**: Multi-region storage distribution
 - **AI-Powered Optimization**: Machine learning for optimization suggestions
 - **Real-time Analytics**: Live dashboard with real-time metrics
@@ -342,6 +367,7 @@ npx lightdom storage metrics
 - **Data Deduplication**: Cross-node deduplication
 
 ### Research Areas
+
 - **Storage Efficiency**: Better storage utilization algorithms
 - **Mining Algorithms**: Improved URL analysis and optimization
 - **Performance Optimization**: Faster processing and analysis
@@ -354,6 +380,7 @@ npx lightdom storage metrics
 The LightDom Storage Features provide a comprehensive solution for mining web addresses and optimizing DOM space. With automatic storage management, intelligent optimization, and real-time monitoring, the framework can efficiently process large numbers of URLs while maintaining optimal storage utilization.
 
 **Key Benefits:**
+
 - ✅ **Automated Mining**: Hands-free web address processing
 - ✅ **Intelligent Storage**: Smart optimization and cleanup
 - ✅ **Real-time Monitoring**: Live metrics and health checks

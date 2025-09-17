@@ -20,7 +20,7 @@ import './index.css';
 // Simple routing based on URL path
 const App = () => {
   const path = window.location.pathname;
-  
+
   if (path.startsWith('/bridge/')) {
     const bridgeId = path.split('/bridge/')[1] || '';
     return <BridgeChatPage bridgeId={bridgeId} />;
@@ -45,9 +45,7 @@ const App = () => {
   }
 };
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 
 root.render(
   <React.StrictMode>

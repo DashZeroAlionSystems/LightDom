@@ -367,7 +367,8 @@
   padding: var(--md-sys-spacing-4) var(--md-sys-spacing-6);
   min-height: 56px;
   cursor: pointer;
-  transition: background-color var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+  transition: background-color var(--md-sys-motion-duration-short2)
+    var(--md-sys-motion-easing-standard);
   position: relative;
   overflow: hidden;
 }
@@ -461,7 +462,8 @@
   stroke: var(--md-sys-color-primary);
   stroke-width: 4;
   stroke-linecap: round;
-  transition: stroke-dasharray var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
+  transition: stroke-dasharray var(--md-sys-motion-duration-medium2)
+    var(--md-sys-motion-easing-standard);
 }
 
 /* Material Design 3 Badge Styles */
@@ -581,7 +583,10 @@
   background-color: currentColor;
   opacity: 0.3;
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s, opacity 0.6s;
+  transition:
+    width 0.6s,
+    height 0.6s,
+    opacity 0.6s;
   pointer-events: none;
 }
 

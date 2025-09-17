@@ -86,21 +86,20 @@ export class BlockchainNodeManager extends EventEmitter {
    */
   async initialize(): Promise<void> {
     console.log('🔧 Initializing Blockchain Node Manager...');
-    
+
     try {
       // Setup browser for node management
       await this.setupBrowser();
-      
+
       // Initialize monitoring
       this.startMonitoring();
-      
+
       // Load existing nodes
       await this.loadNodes();
-      
+
       this.isInitialized = true;
       console.log('✅ Blockchain Node Manager initialized');
       this.emit('initialized');
-      
     } catch (error) {
       console.error('❌ Failed to initialize Blockchain Node Manager:', error);
       this.emit('error', error);
@@ -113,7 +112,7 @@ export class BlockchainNodeManager extends EventEmitter {
    */
   private async setupBrowser(): Promise<void> {
     console.log('🌐 Setting up browser for node management...');
-    
+
     try {
       const platform = detectBrowserPlatform();
       if (!platform) {
@@ -125,16 +124,15 @@ export class BlockchainNodeManager extends EventEmitter {
         browser: BrowserType.CHROME,
         platform: platform as BrowserPlatform,
         buildId: 'stable',
-        cacheDir: './.puppeteer-cache'
+        cacheDir: './.puppeteer-cache',
       });
 
       // Launch browser using Puppeteer
       this.browser = await puppeteerLaunch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
       console.log('✅ Browser setup completed');
-      
     } catch (error) {
       console.error('❌ Browser setup failed:', error);
       throw error;
@@ -157,14 +155,14 @@ export class BlockchainNodeManager extends EventEmitter {
           rpcUrl: process.env.BLOCKCHAIN_RPC_URL || 'http://localhost:8545',
           privateKey: process.env.BLOCKCHAIN_PRIVATE_KEY || '',
           gasPrice: '20000000000',
-          gasLimit: 500000
+          gasLimit: 500000,
         },
         automation: {
           enabled: true,
           maxConcurrency: 5,
           retryAttempts: 3,
-          timeout: 30000
-        }
+          timeout: 30000,
+        },
       },
       {
         nodeId: 'validation-node-1',
@@ -176,15 +174,15 @@ export class BlockchainNodeManager extends EventEmitter {
           rpcUrl: process.env.BLOCKCHAIN_RPC_URL || 'http://localhost:8545',
           privateKey: process.env.BLOCKCHAIN_PRIVATE_KEY || '',
           gasPrice: '20000000000',
-          gasLimit: 300000
+          gasLimit: 300000,
         },
         automation: {
           enabled: true,
           maxConcurrency: 3,
           retryAttempts: 2,
-          timeout: 20000
-        }
-      }
+          timeout: 20000,
+        },
+      },
     ];
 
     for (const node of defaultNodes) {
@@ -197,18 +195,18 @@ export class BlockchainNodeManager extends EventEmitter {
    */
   async addNode(nodeConfig: BlockchainNodeConfig): Promise<void> {
     console.log(`➕ Adding node: ${nodeConfig.nodeId}`);
-    
+
     try {
       // Validate node configuration
       this.validateNodeConfig(nodeConfig);
-      
+
       // Create node page for management
       if (this.browser) {
         const page = await this.browser.newPage();
         await this.setupNodePage(page, nodeConfig);
         this.nodePages.set(nodeConfig.nodeId, page);
       }
-      
+
       // Initialize node health
       const health: NodeHealth = {
         nodeId: nodeConfig.nodeId,
@@ -225,17 +223,16 @@ export class BlockchainNodeManager extends EventEmitter {
           throughput: 0,
           gasUsed: 0,
           transactionsProcessed: 0,
-          blocksMined: 0
+          blocksMined: 0,
         },
-        issues: []
+        issues: [],
       };
-      
+
       this.nodes.set(nodeConfig.nodeId, nodeConfig);
       this.nodeHealth.set(nodeConfig.nodeId, health);
-      
+
       console.log(`✅ Node ${nodeConfig.nodeId} added successfully`);
       this.emit('nodeAdded', nodeConfig);
-      
     } catch (error) {
       console.error(`❌ Failed to add node ${nodeConfig.nodeId}:`, error);
       this.emit('error', error);
@@ -248,7 +245,7 @@ export class BlockchainNodeManager extends EventEmitter {
    */
   async removeNode(nodeId: string): Promise<void> {
     console.log(`➖ Removing node: ${nodeId}`);
-    
+
     try {
       // Close node page
       const page = this.nodePages.get(nodeId);
@@ -256,16 +253,15 @@ export class BlockchainNodeManager extends EventEmitter {
         await page.close();
         this.nodePages.delete(nodeId);
       }
-      
+
       // Remove from collections
       this.nodes.delete(nodeId);
       this.nodeHealth.delete(nodeId);
       this.scalingDecisions.delete(nodeId);
       this.performanceHistory.delete(nodeId);
-      
+
       console.log(`✅ Node ${nodeId} removed successfully`);
       this.emit('nodeRemoved', nodeId);
-      
     } catch (error) {
       console.error(`❌ Failed to remove node ${nodeId}:`, error);
       this.emit('error', error);
@@ -279,12 +275,12 @@ export class BlockchainNodeManager extends EventEmitter {
   private async setupNodePage(page: Page, nodeConfig: BlockchainNodeConfig): Promise<void> {
     await page.setViewport({ width: 1920, height: 1080 });
     await page.setUserAgent('LightDom-NodeManager/1.0');
-    
+
     // Navigate to blockchain dashboard or management interface
     try {
-      await page.goto(nodeConfig.blockchain.rpcUrl, { 
+      await page.goto(nodeConfig.blockchain.rpcUrl, {
         waitUntil: 'networkidle2',
-        timeout: 10000
+        timeout: 10000,
       });
     } catch (error) {
       console.warn(`⚠️ Could not connect to RPC URL for node ${nodeConfig.nodeId}:`, error);
@@ -298,15 +294,15 @@ export class BlockchainNodeManager extends EventEmitter {
     if (!nodeConfig.nodeId) {
       throw new Error('Node ID is required');
     }
-    
+
     if (!nodeConfig.blockchain.rpcUrl) {
       throw new Error('RPC URL is required');
     }
-    
+
     if (nodeConfig.resources.cpu <= 0) {
       throw new Error('CPU resources must be greater than 0');
     }
-    
+
     if (nodeConfig.resources.memory <= 0) {
       throw new Error('Memory resources must be greater than 0');
     }
@@ -317,7 +313,7 @@ export class BlockchainNodeManager extends EventEmitter {
    */
   private startMonitoring(): void {
     console.log('📊 Starting node monitoring...');
-    
+
     this.monitoringInterval = setInterval(async () => {
       await this.monitorAllNodes();
     }, 30000); // Monitor every 30 seconds
@@ -327,10 +323,10 @@ export class BlockchainNodeManager extends EventEmitter {
    * Monitor all nodes
    */
   private async monitorAllNodes(): Promise<void> {
-    const monitoringPromises = Array.from(this.nodes.keys()).map(nodeId => 
+    const monitoringPromises = Array.from(this.nodes.keys()).map(nodeId =>
       this.monitorNode(nodeId)
     );
-    
+
     await Promise.allSettled(monitoringPromises);
   }
 
@@ -340,7 +336,7 @@ export class BlockchainNodeManager extends EventEmitter {
   async monitorNode(nodeId: string): Promise<void> {
     const node = this.nodes.get(nodeId);
     const health = this.nodeHealth.get(nodeId);
-    
+
     if (!node || !health) {
       console.warn(`⚠️ Node ${nodeId} not found for monitoring`);
       return;
@@ -348,25 +344,24 @@ export class BlockchainNodeManager extends EventEmitter {
 
     try {
       console.log(`🔍 Monitoring node: ${nodeId}`);
-      
+
       // Collect metrics
       const metrics = await this.collectNodeMetrics(nodeId, node);
-      
+
       // Update health status
       const newHealth = this.updateNodeHealth(nodeId, health, metrics);
       this.nodeHealth.set(nodeId, newHealth);
-      
+
       // Check for issues
       await this.checkNodeIssues(nodeId, newHealth);
-      
+
       // Analyze performance
       await this.analyzeNodePerformance(nodeId, metrics);
-      
+
       // Make scaling decisions
       await this.makeScalingDecision(nodeId, newHealth, metrics);
-      
+
       this.emit('nodeMonitored', { nodeId, health: newHealth, metrics });
-      
     } catch (error) {
       console.error(`❌ Failed to monitor node ${nodeId}:`, error);
       this.emit('monitoringError', { nodeId, error });
@@ -376,9 +371,12 @@ export class BlockchainNodeManager extends EventEmitter {
   /**
    * Collect node metrics
    */
-  private async collectNodeMetrics(nodeId: string, node: BlockchainNodeConfig): Promise<NodeMetrics> {
+  private async collectNodeMetrics(
+    nodeId: string,
+    node: BlockchainNodeConfig
+  ): Promise<NodeMetrics> {
     const page = this.nodePages.get(nodeId);
-    
+
     if (!page) {
       // Return mock metrics if page not available
       return {
@@ -391,7 +389,7 @@ export class BlockchainNodeManager extends EventEmitter {
         throughput: Math.random() * 1000,
         gasUsed: Math.floor(Math.random() * 100000),
         transactionsProcessed: Math.floor(Math.random() * 100),
-        blocksMined: Math.floor(Math.random() * 10)
+        blocksMined: Math.floor(Math.random() * 10),
       };
     }
 
@@ -409,7 +407,7 @@ export class BlockchainNodeManager extends EventEmitter {
           throughput: Math.random() * 1000,
           gasUsed: Math.floor(Math.random() * 100000),
           transactionsProcessed: Math.floor(Math.random() * 100),
-          blocksMined: Math.floor(Math.random() * 10)
+          blocksMined: Math.floor(Math.random() * 10),
         };
       });
 
@@ -426,7 +424,7 @@ export class BlockchainNodeManager extends EventEmitter {
         throughput: 0,
         gasUsed: 0,
         transactionsProcessed: 0,
-        blocksMined: 0
+        blocksMined: 0,
       };
     }
   }
@@ -434,11 +432,15 @@ export class BlockchainNodeManager extends EventEmitter {
   /**
    * Update node health based on metrics
    */
-  private updateNodeHealth(nodeId: string, currentHealth: NodeHealth, metrics: NodeMetrics): NodeHealth {
+  private updateNodeHealth(
+    nodeId: string,
+    currentHealth: NodeHealth,
+    metrics: NodeMetrics
+  ): NodeHealth {
     const newHealth = { ...currentHealth };
     newHealth.metrics = metrics;
     newHealth.lastCheck = new Date();
-    
+
     // Determine health status based on metrics
     if (metrics.cpu > 90 || metrics.memory > 90 || metrics.errorRate > 10) {
       newHealth.status = 'unhealthy';
@@ -449,12 +451,12 @@ export class BlockchainNodeManager extends EventEmitter {
     } else {
       newHealth.status = 'healthy';
     }
-    
+
     // Update uptime
     if (newHealth.status === 'healthy' || newHealth.status === 'degraded') {
       newHealth.uptime += 30; // Add 30 seconds
     }
-    
+
     return newHealth;
   }
 
@@ -463,7 +465,7 @@ export class BlockchainNodeManager extends EventEmitter {
    */
   private async checkNodeIssues(nodeId: string, health: NodeHealth): Promise<void> {
     const issues: NodeIssue[] = [];
-    
+
     // Check CPU issues
     if (health.metrics.cpu > 90) {
       issues.push({
@@ -471,10 +473,10 @@ export class BlockchainNodeManager extends EventEmitter {
         type: 'performance',
         severity: 'high',
         description: `High CPU usage: ${health.metrics.cpu.toFixed(1)}%`,
-        detectedAt: new Date()
+        detectedAt: new Date(),
       });
     }
-    
+
     // Check memory issues
     if (health.metrics.memory > 90) {
       issues.push({
@@ -482,10 +484,10 @@ export class BlockchainNodeManager extends EventEmitter {
         type: 'resource',
         severity: 'high',
         description: `High memory usage: ${health.metrics.memory.toFixed(1)}%`,
-        detectedAt: new Date()
+        detectedAt: new Date(),
       });
     }
-    
+
     // Check error rate issues
     if (health.metrics.errorRate > 10) {
       issues.push({
@@ -493,10 +495,10 @@ export class BlockchainNodeManager extends EventEmitter {
         type: 'performance',
         severity: 'critical',
         description: `High error rate: ${health.metrics.errorRate.toFixed(1)}%`,
-        detectedAt: new Date()
+        detectedAt: new Date(),
       });
     }
-    
+
     // Check connectivity issues
     if (health.metrics.networkLatency > 1000) {
       issues.push({
@@ -504,13 +506,13 @@ export class BlockchainNodeManager extends EventEmitter {
         type: 'connectivity',
         severity: 'medium',
         description: `High network latency: ${health.metrics.networkLatency.toFixed(0)}ms`,
-        detectedAt: new Date()
+        detectedAt: new Date(),
       });
     }
-    
+
     // Update health with new issues
     health.issues = [...health.issues, ...issues];
-    
+
     if (issues.length > 0) {
       this.emit('nodeIssues', { nodeId, issues });
     }
@@ -528,20 +530,20 @@ export class BlockchainNodeManager extends EventEmitter {
       latency: metrics.responseTime,
       errorRate: metrics.errorRate,
       costPerTransaction: this.calculateCostPerTransaction(metrics),
-      roi: this.calculateROI(metrics)
+      roi: this.calculateROI(metrics),
     };
-    
+
     // Store performance history
     const history = this.performanceHistory.get(nodeId) || [];
     history.push(performance);
-    
+
     // Keep only last 100 performance records
     if (history.length > 100) {
       history.splice(0, history.length - 100);
     }
-    
+
     this.performanceHistory.set(nodeId, history);
-    
+
     this.emit('performanceAnalyzed', { nodeId, performance });
   }
 
@@ -551,9 +553,9 @@ export class BlockchainNodeManager extends EventEmitter {
   private calculateEfficiency(metrics: NodeMetrics): number {
     const throughput = metrics.throughput;
     const resourceUsage = (metrics.cpu + metrics.memory) / 2;
-    
+
     if (resourceUsage === 0) return 0;
-    
+
     return Math.min(1, throughput / (resourceUsage * 10));
   }
 
@@ -562,7 +564,7 @@ export class BlockchainNodeManager extends EventEmitter {
    */
   private calculateCostPerTransaction(metrics: NodeMetrics): number {
     if (metrics.transactionsProcessed === 0) return 0;
-    
+
     const gasCost = metrics.gasUsed * 0.00000002; // Assuming 20 gwei gas price
     return gasCost / metrics.transactionsProcessed;
   }
@@ -573,21 +575,25 @@ export class BlockchainNodeManager extends EventEmitter {
   private calculateROI(metrics: NodeMetrics): number {
     const revenue = metrics.transactionsProcessed * 0.01; // Assuming $0.01 per transaction
     const cost = metrics.gasUsed * 0.00000002;
-    
+
     if (cost === 0) return 0;
-    
+
     return ((revenue - cost) / cost) * 100;
   }
 
   /**
    * Make scaling decision for a node
    */
-  private async makeScalingDecision(nodeId: string, health: NodeHealth, metrics: NodeMetrics): Promise<void> {
+  private async makeScalingDecision(
+    nodeId: string,
+    health: NodeHealth,
+    metrics: NodeMetrics
+  ): Promise<void> {
     const node = this.nodes.get(nodeId);
     if (!node) return;
-    
+
     let decision: ScalingDecision | null = null;
-    
+
     // Check if scaling is needed
     if (health.status === 'unhealthy' && metrics.cpu > 90) {
       decision = {
@@ -598,7 +604,7 @@ export class BlockchainNodeManager extends EventEmitter {
         estimatedImpact: 'Improved performance and stability',
         cost: 1000,
         timeline: '1-2 hours',
-        resources: { cpu: node.resources.cpu * 1.5 }
+        resources: { cpu: node.resources.cpu * 1.5 },
       };
     } else if (health.status === 'healthy' && metrics.cpu < 30 && metrics.memory < 30) {
       decision = {
@@ -609,7 +615,7 @@ export class BlockchainNodeManager extends EventEmitter {
         estimatedImpact: 'Cost reduction with maintained performance',
         cost: -500,
         timeline: '2-4 hours',
-        resources: { cpu: node.resources.cpu * 0.7 }
+        resources: { cpu: node.resources.cpu * 0.7 },
       };
     } else if (health.status === 'offline') {
       decision = {
@@ -619,10 +625,10 @@ export class BlockchainNodeManager extends EventEmitter {
         priority: 'critical',
         estimatedImpact: 'Restore service availability',
         cost: 2000,
-        timeline: '30 minutes'
+        timeline: '30 minutes',
       };
     }
-    
+
     if (decision) {
       this.scalingDecisions.set(nodeId, decision);
       this.emit('scalingDecision', decision);
@@ -669,13 +675,13 @@ export class BlockchainNodeManager extends EventEmitter {
    */
   async shutdown(): Promise<void> {
     console.log('🛑 Shutting down Blockchain Node Manager...');
-    
+
     try {
       // Stop monitoring
       if (this.monitoringInterval) {
         clearInterval(this.monitoringInterval);
       }
-      
+
       // Close all node pages
       for (const [nodeId, page] of this.nodePages) {
         try {
@@ -684,16 +690,15 @@ export class BlockchainNodeManager extends EventEmitter {
           console.warn(`⚠️ Error closing page for node ${nodeId}:`, error);
         }
       }
-      
+
       // Close browser
       if (this.browser) {
         await this.browser.close();
       }
-      
+
       this.isInitialized = false;
       console.log('✅ Blockchain Node Manager shutdown complete');
       this.emit('shutdown');
-      
     } catch (error) {
       console.error('❌ Error during shutdown:', error);
       throw error;

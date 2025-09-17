@@ -1,6 +1,10 @@
 import { EventEmitter } from 'events';
 import { Logger } from '../utils/Logger';
-import { PuppeteerAutomationService, PerformanceMetrics, OptimizationSuggestion } from './PuppeteerAutomationService';
+import {
+  PuppeteerAutomationService,
+  PerformanceMetrics,
+  OptimizationSuggestion,
+} from './PuppeteerAutomationService';
 import { VisualTestingService, VisualTestResult } from './VisualTestingService';
 
 export interface OptimizationRule {
@@ -115,7 +119,7 @@ export class AIPerformanceOptimizer extends EventEmitter {
     this.automationService = automationService;
     this.visualTestingService = visualTestingService;
     this.logger = new Logger('AIPerformanceOptimizer');
-    
+
     this.initializeOptimizationRules();
   }
 
@@ -134,8 +138,8 @@ export class AIPerformanceOptimizer extends EventEmitter {
           {
             metric: 'largestContentfulPaint',
             threshold: 2500,
-            operator: 'gt'
-          }
+            operator: 'gt',
+          },
         ],
         suggestions: [
           {
@@ -144,10 +148,10 @@ export class AIPerformanceOptimizer extends EventEmitter {
             implementation: 'Convert to WebP format, implement lazy loading, add preload hints',
             estimatedImpact: {
               performance: 0.3,
-              userExperience: 0.4
+              userExperience: 0.4,
             },
             complexity: 'medium',
-            effort: 'medium'
+            effort: 'medium',
           },
           {
             title: 'Reduce Server Response Time',
@@ -155,12 +159,12 @@ export class AIPerformanceOptimizer extends EventEmitter {
             implementation: 'Implement caching, optimize database queries, use CDN',
             estimatedImpact: {
               performance: 0.4,
-              userExperience: 0.3
+              userExperience: 0.3,
             },
             complexity: 'high',
-            effort: 'high'
-          }
-        ]
+            effort: 'high',
+          },
+        ],
       },
       {
         id: 'cls-optimization',
@@ -172,8 +176,8 @@ export class AIPerformanceOptimizer extends EventEmitter {
           {
             metric: 'cumulativeLayoutShift',
             threshold: 0.1,
-            operator: 'gt'
-          }
+            operator: 'gt',
+          },
         ],
         suggestions: [
           {
@@ -182,10 +186,10 @@ export class AIPerformanceOptimizer extends EventEmitter {
             implementation: 'Add width and height attributes to all img elements',
             estimatedImpact: {
               performance: 0.2,
-              userExperience: 0.5
+              userExperience: 0.5,
             },
             complexity: 'low',
-            effort: 'low'
+            effort: 'low',
           },
           {
             title: 'Reserve Space for Dynamic Content',
@@ -193,12 +197,12 @@ export class AIPerformanceOptimizer extends EventEmitter {
             implementation: 'Use skeleton loaders, reserve space for ads, optimize font loading',
             estimatedImpact: {
               performance: 0.3,
-              userExperience: 0.4
+              userExperience: 0.4,
             },
             complexity: 'medium',
-            effort: 'medium'
-          }
-        ]
+            effort: 'medium',
+          },
+        ],
       },
       {
         id: 'accessibility-optimization',
@@ -209,8 +213,8 @@ export class AIPerformanceOptimizer extends EventEmitter {
         conditions: [
           {
             selector: 'img:not([alt])',
-            pattern: 'exists'
-          }
+            pattern: 'exists',
+          },
         ],
         suggestions: [
           {
@@ -219,10 +223,10 @@ export class AIPerformanceOptimizer extends EventEmitter {
             implementation: 'Add descriptive alt attributes to img elements',
             estimatedImpact: {
               accessibility: 0.6,
-              userExperience: 0.3
+              userExperience: 0.3,
             },
             complexity: 'low',
-            effort: 'low'
+            effort: 'low',
           },
           {
             title: 'Improve Form Labels',
@@ -230,12 +234,12 @@ export class AIPerformanceOptimizer extends EventEmitter {
             implementation: 'Add label elements or aria-label attributes',
             estimatedImpact: {
               accessibility: 0.5,
-              userExperience: 0.4
+              userExperience: 0.4,
             },
             complexity: 'low',
-            effort: 'low'
-          }
-        ]
+            effort: 'low',
+          },
+        ],
       },
       {
         id: 'seo-optimization',
@@ -246,8 +250,8 @@ export class AIPerformanceOptimizer extends EventEmitter {
         conditions: [
           {
             selector: 'meta[name="description"]',
-            pattern: 'missing'
-          }
+            pattern: 'missing',
+          },
         ],
         suggestions: [
           {
@@ -256,10 +260,10 @@ export class AIPerformanceOptimizer extends EventEmitter {
             implementation: 'Add meta description tag with 150-160 characters',
             estimatedImpact: {
               seo: 0.4,
-              userExperience: 0.2
+              userExperience: 0.2,
             },
             complexity: 'low',
-            effort: 'low'
+            effort: 'low',
           },
           {
             title: 'Optimize Heading Structure',
@@ -267,12 +271,12 @@ export class AIPerformanceOptimizer extends EventEmitter {
             implementation: 'Ensure H1-H6 tags are used in logical order',
             estimatedImpact: {
               seo: 0.3,
-              accessibility: 0.3
+              accessibility: 0.3,
             },
             complexity: 'medium',
-            effort: 'medium'
-          }
-        ]
+            effort: 'medium',
+          },
+        ],
       },
       {
         id: 'resource-optimization',
@@ -284,8 +288,8 @@ export class AIPerformanceOptimizer extends EventEmitter {
           {
             metric: 'pageLoadTime',
             threshold: 3000,
-            operator: 'gt'
-          }
+            operator: 'gt',
+          },
         ],
         suggestions: [
           {
@@ -294,10 +298,10 @@ export class AIPerformanceOptimizer extends EventEmitter {
             implementation: 'Add link rel="preload" for critical CSS and fonts',
             estimatedImpact: {
               performance: 0.3,
-              userExperience: 0.3
+              userExperience: 0.3,
             },
             complexity: 'low',
-            effort: 'low'
+            effort: 'low',
           },
           {
             title: 'Optimize Critical CSS',
@@ -305,13 +309,13 @@ export class AIPerformanceOptimizer extends EventEmitter {
             implementation: 'Extract and inline above-the-fold CSS',
             estimatedImpact: {
               performance: 0.4,
-              userExperience: 0.2
+              userExperience: 0.2,
             },
             complexity: 'high',
-            effort: 'high'
-          }
-        ]
-      }
+            effort: 'high',
+          },
+        ],
+      },
     ];
 
     rules.forEach(rule => {
@@ -324,24 +328,27 @@ export class AIPerformanceOptimizer extends EventEmitter {
   /**
    * Analyze page and generate optimization suggestions
    */
-  async analyzePage(url: string, options?: {
-    includeVisualTests?: boolean;
-    testSuiteName?: string;
-  }): Promise<OptimizationAnalysis> {
+  async analyzePage(
+    url: string,
+    options?: {
+      includeVisualTests?: boolean;
+      testSuiteName?: string;
+    }
+  ): Promise<OptimizationAnalysis> {
     const sessionId = `analysis_${Date.now()}`;
-    
+
     try {
       this.logger.info(`Analyzing page: ${url}`);
 
       // Create automation session
       await this.automationService.createSession(sessionId, { url });
-      
+
       // Get performance metrics
       const performance = await this.automationService.analyzePerformance(sessionId);
-      
+
       // Generate optimization suggestions
       const suggestions = await this.automationService.generateOptimizationSuggestions(sessionId);
-      
+
       // Apply AI rules to generate additional suggestions
       const aiSuggestions = await this.applyOptimizationRules(sessionId, performance);
       suggestions.push(...aiSuggestions);
@@ -355,10 +362,10 @@ export class AIPerformanceOptimizer extends EventEmitter {
 
       // Calculate overall scores
       const scores = this.calculateScores(performance, suggestions);
-      
+
       // Categorize suggestions by priority
       const priorities = this.categorizeSuggestions(suggestions);
-      
+
       // Estimate impact
       const estimatedImpact = this.estimateImpact(suggestions);
 
@@ -369,17 +376,16 @@ export class AIPerformanceOptimizer extends EventEmitter {
         suggestions,
         score: scores,
         priorities,
-        estimatedImpact
+        estimatedImpact,
       };
 
       // Store analysis
       this.analysisHistory.push(analysis);
-      
+
       this.logger.info(`Page analysis completed: ${url}`);
       this.emit('analysisCompleted', analysis);
-      
-      return analysis;
 
+      return analysis;
     } catch (error) {
       this.logger.error(`Page analysis failed: ${url}`, error);
       throw error;
@@ -391,7 +397,10 @@ export class AIPerformanceOptimizer extends EventEmitter {
   /**
    * Apply optimization rules to generate AI-powered suggestions
    */
-  private async applyOptimizationRules(sessionId: string, performance: PerformanceMetrics): Promise<OptimizationSuggestion[]> {
+  private async applyOptimizationRules(
+    sessionId: string,
+    performance: PerformanceMetrics
+  ): Promise<OptimizationSuggestion[]> {
     const suggestions: OptimizationSuggestion[] = [];
 
     for (const [ruleId, rule] of this.optimizationRules) {
@@ -405,8 +414,8 @@ export class AIPerformanceOptimizer extends EventEmitter {
             impact: `Estimated impact: ${this.formatImpact(suggestion.estimatedImpact)}`,
             implementation: suggestion.implementation,
             estimatedSavings: {
-              score: suggestion.estimatedImpact.performance * 100
-            }
+              score: suggestion.estimatedImpact.performance * 100,
+            },
           });
         }
       }
@@ -418,7 +427,11 @@ export class AIPerformanceOptimizer extends EventEmitter {
   /**
    * Evaluate rule conditions
    */
-  private async evaluateRuleConditions(sessionId: string, rule: OptimizationRule, performance: PerformanceMetrics): Promise<boolean> {
+  private async evaluateRuleConditions(
+    sessionId: string,
+    rule: OptimizationRule,
+    performance: PerformanceMetrics
+  ): Promise<boolean> {
     for (const condition of rule.conditions) {
       if (condition.metric && condition.threshold && condition.operator) {
         const value = performance[condition.metric];
@@ -448,9 +461,9 @@ export class AIPerformanceOptimizer extends EventEmitter {
         try {
           const element = await this.automationService.findAndInteract(sessionId, {
             selector: condition.selector,
-            action: 'screenshot' // Dummy action to check existence
+            action: 'screenshot', // Dummy action to check existence
           });
-          
+
           if (condition.pattern === 'exists' && !element.success) {
             return false;
           }
@@ -479,7 +492,7 @@ export class AIPerformanceOptimizer extends EventEmitter {
           title: 'Visual Regression Detected',
           description: `Visual changes detected in test: ${result.testName}`,
           impact: 'May affect user experience and brand consistency',
-          implementation: 'Review visual changes and update baselines if intentional'
+          implementation: 'Review visual changes and update baselines if intentional',
         });
       }
 
@@ -491,7 +504,7 @@ export class AIPerformanceOptimizer extends EventEmitter {
           title: 'Optimize Visual Content Loading',
           description: 'Large visual content is affecting page load performance',
           impact: 'Improves Core Web Vitals and user experience',
-          implementation: 'Optimize images, implement lazy loading, use modern formats'
+          implementation: 'Optimize images, implement lazy loading, use modern formats',
         });
       }
     }
@@ -502,64 +515,71 @@ export class AIPerformanceOptimizer extends EventEmitter {
   /**
    * Calculate performance scores
    */
-  private calculateScores(performance: PerformanceMetrics, suggestions: OptimizationSuggestion[]): OptimizationAnalysis['score'] {
+  private calculateScores(
+    performance: PerformanceMetrics,
+    suggestions: OptimizationSuggestion[]
+  ): OptimizationAnalysis['score'] {
     // Calculate performance score (0-100)
-    const performanceScore = Math.max(0, 100 - (
-      (performance.largestContentfulPaint - 2500) / 100 +
-      (performance.cumulativeLayoutShift * 100) +
-      (performance.totalBlockingTime / 10)
-    ));
+    const performanceScore = Math.max(
+      0,
+      100 -
+        ((performance.largestContentfulPaint - 2500) / 100 +
+          performance.cumulativeLayoutShift * 100 +
+          performance.totalBlockingTime / 10)
+    );
 
     // Calculate accessibility score based on suggestions
     const accessibilitySuggestions = suggestions.filter(s => s.type === 'accessibility');
-    const accessibilityScore = Math.max(0, 100 - (accessibilitySuggestions.length * 10));
+    const accessibilityScore = Math.max(0, 100 - accessibilitySuggestions.length * 10);
 
     // Calculate SEO score based on suggestions
     const seoSuggestions = suggestions.filter(s => s.type === 'seo');
-    const seoScore = Math.max(0, 100 - (seoSuggestions.length * 15));
+    const seoScore = Math.max(0, 100 - seoSuggestions.length * 15);
 
     // Calculate best practices score
-    const bestPracticesScore = Math.max(0, 100 - (suggestions.length * 2));
+    const bestPracticesScore = Math.max(0, 100 - suggestions.length * 2);
 
     // Calculate overall score
-    const overallScore = (
-      performanceScore * 0.4 +
-      accessibilityScore * 0.3 +
-      seoScore * 0.2 +
-      bestPracticesScore * 0.1
-    );
+    const overallScore =
+      performanceScore * 0.4 + accessibilityScore * 0.3 + seoScore * 0.2 + bestPracticesScore * 0.1;
 
     return {
       overall: Math.round(overallScore),
       performance: Math.round(performanceScore),
       accessibility: Math.round(accessibilityScore),
       seo: Math.round(seoScore),
-      bestPractices: Math.round(bestPracticesScore)
+      bestPractices: Math.round(bestPracticesScore),
     };
   }
 
   /**
    * Categorize suggestions by priority
    */
-  private categorizeSuggestions(suggestions: OptimizationSuggestion[]): OptimizationAnalysis['priorities'] {
+  private categorizeSuggestions(
+    suggestions: OptimizationSuggestion[]
+  ): OptimizationAnalysis['priorities'] {
     return {
       critical: suggestions.filter(s => s.priority === 'critical'),
       high: suggestions.filter(s => s.priority === 'high'),
       medium: suggestions.filter(s => s.priority === 'medium'),
-      low: suggestions.filter(s => s.priority === 'low')
+      low: suggestions.filter(s => s.priority === 'low'),
     };
   }
 
   /**
    * Estimate optimization impact
    */
-  private estimateImpact(suggestions: OptimizationSuggestion[]): OptimizationAnalysis['estimatedImpact'] {
-    const highPrioritySuggestions = suggestions.filter(s => s.priority === 'high' || s.priority === 'critical');
-    
+  private estimateImpact(
+    suggestions: OptimizationSuggestion[]
+  ): OptimizationAnalysis['estimatedImpact'] {
+    const highPrioritySuggestions = suggestions.filter(
+      s => s.priority === 'high' || s.priority === 'critical'
+    );
+
     return {
       loadTimeImprovement: highPrioritySuggestions.length * 15, // 15% per high priority suggestion
       scoreImprovement: highPrioritySuggestions.length * 20, // 20 points per high priority suggestion
-      userExperienceGain: highPrioritySuggestions.length * 25 // 25% UX improvement
+      userExperienceGain: highPrioritySuggestions.length * 25, // 25% UX improvement
     };
   }
 
@@ -569,19 +589,24 @@ export class AIPerformanceOptimizer extends EventEmitter {
   private formatImpact(impact: any): string {
     const parts = [];
     if (impact.performance) parts.push(`${Math.round(impact.performance * 100)}% performance`);
-    if (impact.accessibility) parts.push(`${Math.round(impact.accessibility * 100)}% accessibility`);
+    if (impact.accessibility)
+      parts.push(`${Math.round(impact.accessibility * 100)}% accessibility`);
     if (impact.seo) parts.push(`${Math.round(impact.seo * 100)}% SEO`);
     if (impact.userExperience) parts.push(`${Math.round(impact.userExperience * 100)}% UX`);
-    
+
     return parts.join(', ');
   }
 
   /**
    * Create optimization plan
    */
-  async createOptimizationPlan(url: string, name: string, description: string): Promise<OptimizationPlan> {
+  async createOptimizationPlan(
+    url: string,
+    name: string,
+    description: string
+  ): Promise<OptimizationPlan> {
     const analysis = await this.analyzePage(url);
-    
+
     const plan: OptimizationPlan = {
       id: `plan_${Date.now()}`,
       name,
@@ -593,18 +618,18 @@ export class AIPerformanceOptimizer extends EventEmitter {
       metrics: {
         baseline: analysis.performance,
         current: analysis.performance,
-        target: this.generateTargetMetrics(analysis.performance)
+        target: this.generateTargetMetrics(analysis.performance),
       },
       timeline: {
         estimatedDuration: this.estimatePlanDuration(analysis.suggestions),
-        milestones: this.createMilestones(analysis.suggestions)
-      }
+        milestones: this.createMilestones(analysis.suggestions),
+      },
     };
 
     this.optimizationPlans.set(plan.id, plan);
     this.logger.info(`Created optimization plan: ${plan.name}`);
     this.emit('optimizationPlanCreated', plan);
-    
+
     return plan;
   }
 
@@ -613,7 +638,7 @@ export class AIPerformanceOptimizer extends EventEmitter {
    */
   private createOptimizationPhases(analysis: OptimizationAnalysis): OptimizationPhase[] {
     const phases: OptimizationPhase[] = [];
-    
+
     // Critical phase
     if (analysis.priorities.critical.length > 0) {
       phases.push({
@@ -623,7 +648,7 @@ export class AIPerformanceOptimizer extends EventEmitter {
         priority: 1,
         estimatedEffort: analysis.priorities.critical.length * 4,
         suggestions: analysis.priorities.critical,
-        status: 'pending'
+        status: 'pending',
       });
     }
 
@@ -636,7 +661,7 @@ export class AIPerformanceOptimizer extends EventEmitter {
         priority: 2,
         estimatedEffort: analysis.priorities.high.length * 2,
         suggestions: analysis.priorities.high,
-        status: 'pending'
+        status: 'pending',
       });
     }
 
@@ -649,7 +674,7 @@ export class AIPerformanceOptimizer extends EventEmitter {
         priority: 3,
         estimatedEffort: analysis.priorities.medium.length * 1,
         suggestions: analysis.priorities.medium,
-        status: 'pending'
+        status: 'pending',
       });
     }
 
@@ -665,7 +690,7 @@ export class AIPerformanceOptimizer extends EventEmitter {
       pageLoadTime: Math.max(baseline.pageLoadTime * 0.7, 1000), // 30% improvement, min 1s
       largestContentfulPaint: Math.max(baseline.largestContentfulPaint * 0.6, 1200), // 40% improvement, min 1.2s
       cumulativeLayoutShift: Math.max(baseline.cumulativeLayoutShift * 0.3, 0.05), // 70% improvement, max 0.05
-      totalBlockingTime: Math.max(baseline.totalBlockingTime * 0.5, 100) // 50% improvement, min 100ms
+      totalBlockingTime: Math.max(baseline.totalBlockingTime * 0.5, 100), // 50% improvement, min 100ms
     };
   }
 
@@ -674,9 +699,14 @@ export class AIPerformanceOptimizer extends EventEmitter {
    */
   private estimatePlanDuration(suggestions: OptimizationSuggestion[]): number {
     return suggestions.reduce((total, suggestion) => {
-      const effort = suggestion.priority === 'critical' ? 4 : 
-                    suggestion.priority === 'high' ? 2 : 
-                    suggestion.priority === 'medium' ? 1 : 0.5;
+      const effort =
+        suggestion.priority === 'critical'
+          ? 4
+          : suggestion.priority === 'high'
+            ? 2
+            : suggestion.priority === 'medium'
+              ? 1
+              : 0.5;
       return total + effort;
     }, 0);
   }
@@ -684,33 +714,39 @@ export class AIPerformanceOptimizer extends EventEmitter {
   /**
    * Create milestones
    */
-  private createMilestones(suggestions: OptimizationSuggestion[]): OptimizationPlan['timeline']['milestones'] {
+  private createMilestones(
+    suggestions: OptimizationSuggestion[]
+  ): OptimizationPlan['timeline']['milestones'] {
     const milestones = [];
     const criticalCount = suggestions.filter(s => s.priority === 'critical').length;
     const highCount = suggestions.filter(s => s.priority === 'high').length;
-    
+
     if (criticalCount > 0) {
       milestones.push({
         name: 'Critical Issues Resolved',
         targetDate: new Date(Date.now() + criticalCount * 4 * 24 * 60 * 60 * 1000), // 4 days per critical issue
-        status: 'pending' as const
+        status: 'pending' as const,
       });
     }
-    
+
     if (highCount > 0) {
       milestones.push({
         name: 'High Priority Optimizations',
-        targetDate: new Date(Date.now() + (criticalCount * 4 + highCount * 2) * 24 * 60 * 60 * 1000),
-        status: 'pending' as const
+        targetDate: new Date(
+          Date.now() + (criticalCount * 4 + highCount * 2) * 24 * 60 * 60 * 1000
+        ),
+        status: 'pending' as const,
       });
     }
-    
+
     milestones.push({
       name: 'All Optimizations Complete',
-      targetDate: new Date(Date.now() + this.estimatePlanDuration(suggestions) * 24 * 60 * 60 * 1000),
-      status: 'pending' as const
+      targetDate: new Date(
+        Date.now() + this.estimatePlanDuration(suggestions) * 24 * 60 * 60 * 1000
+      ),
+      status: 'pending' as const,
     });
-    
+
     return milestones;
   }
 
@@ -743,7 +779,8 @@ export class AIPerformanceOptimizer extends EventEmitter {
       optimizationRules: this.optimizationRules.size,
       optimizationPlans: this.optimizationPlans.size,
       analysisHistory: this.analysisHistory.length,
-      activePlans: Array.from(this.optimizationPlans.values()).filter(p => p.status === 'active').length
+      activePlans: Array.from(this.optimizationPlans.values()).filter(p => p.status === 'active')
+        .length,
     };
   }
 }

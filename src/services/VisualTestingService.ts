@@ -1,6 +1,10 @@
 import { EventEmitter } from 'events';
 import { Logger } from '../utils/Logger';
-import { PuppeteerAutomationService, PerformanceMetrics, OptimizationSuggestion } from './PuppeteerAutomationService';
+import {
+  PuppeteerAutomationService,
+  PerformanceMetrics,
+  OptimizationSuggestion,
+} from './PuppeteerAutomationService';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
@@ -74,17 +78,20 @@ export class VisualTestingService extends EventEmitter {
   private baselinePath: string;
   private resultsPath: string;
 
-  constructor(automationService: PuppeteerAutomationService, config?: {
-    baselinePath?: string;
-    resultsPath?: string;
-  }) {
+  constructor(
+    automationService: PuppeteerAutomationService,
+    config?: {
+      baselinePath?: string;
+      resultsPath?: string;
+    }
+  ) {
     super();
     this.automationService = automationService;
     this.logger = new Logger('VisualTestingService');
-    
+
     this.baselinePath = config?.baselinePath || './test-baselines';
     this.resultsPath = config?.resultsPath || './test-results';
-    
+
     this.ensureDirectories();
   }
 
@@ -113,11 +120,14 @@ export class VisualTestingService extends EventEmitter {
   /**
    * Run a visual test suite
    */
-  async runTestSuite(suiteName: string, options?: {
-    updateBaselines?: boolean;
-    parallel?: boolean;
-    maxConcurrency?: number;
-  }): Promise<VisualTestResult[]> {
+  async runTestSuite(
+    suiteName: string,
+    options?: {
+      updateBaselines?: boolean;
+      parallel?: boolean;
+      maxConcurrency?: number;
+    }
+  ): Promise<VisualTestResult[]> {
     const suite = this.testSuites.get(suiteName);
     if (!suite) {
       throw new Error(`Test suite not found: ${suiteName}`);
@@ -130,7 +140,7 @@ export class VisualTestingService extends EventEmitter {
       // Run tests in parallel with limited concurrency
       const concurrency = options.maxConcurrency || 3;
       const chunks = this.chunkArray(suite.tests, concurrency);
-      
+
       for (const chunk of chunks) {
         const chunkResults = await Promise.all(
           chunk.map(test => this.runVisualTest(test, suite.config, options))
@@ -147,31 +157,35 @@ export class VisualTestingService extends EventEmitter {
 
     // Store results
     this.results.set(suiteName, results);
-    
+
     // Generate report
     await this.generateTestReport(suiteName, results);
-    
+
     this.logger.info(`Test suite completed: ${suiteName}`);
     this.emit('testSuiteCompleted', { suiteName, results });
-    
+
     return results;
   }
 
   /**
    * Run a single visual test
    */
-  async runVisualTest(test: VisualTest, config: VisualTestConfig, options?: {
-    updateBaselines?: boolean;
-  }): Promise<VisualTestResult> {
+  async runVisualTest(
+    test: VisualTest,
+    config: VisualTestConfig,
+    options?: {
+      updateBaselines?: boolean;
+    }
+  ): Promise<VisualTestResult> {
     const sessionId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     try {
       this.logger.info(`Running visual test: ${test.name}`);
-      
+
       // Create automation session
       await this.automationService.createSession(sessionId, {
         url: test.url,
-        viewport: test.viewport || { width: 1920, height: 1080 }
+        viewport: test.viewport || { width: 1920, height: 1080 },
       });
 
       // Perform pre-screenshot actions
@@ -185,7 +199,7 @@ export class VisualTestingService extends EventEmitter {
       if (test.waitForSelector) {
         await this.automationService.findAndInteract(sessionId, {
           selector: test.waitForSelector,
-          action: 'click' // Dummy action, just to wait for element
+          action: 'click', // Dummy action, just to wait for element
         });
       }
 
@@ -196,19 +210,21 @@ export class VisualTestingService extends EventEmitter {
       // Take screenshot
       const screenshot = await this.automationService.findAndInteract(sessionId, {
         selector: test.selector || 'body',
-        action: 'screenshot'
+        action: 'screenshot',
       });
 
       // Get performance metrics
       const performance = await this.automationService.analyzePerformance(sessionId);
-      
+
       // Generate optimization suggestions
       const suggestions = await this.automationService.generateOptimizationSuggestions(sessionId);
 
       // Compare with baseline
       const baseline = await this.loadBaseline(test.name);
-      const diff = baseline ? await this.compareImages(screenshot.screenshot!, baseline, config) : null;
-      
+      const diff = baseline
+        ? await this.compareImages(screenshot.screenshot!, baseline, config)
+        : null;
+
       const similarity = baseline ? this.calculateSimilarity(diff, config) : 1.0;
       const passed = similarity >= config.threshold;
 
@@ -224,9 +240,9 @@ export class VisualTestingService extends EventEmitter {
           url: test.url,
           viewport: test.viewport || { width: 1920, height: 1080 },
           userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          performance
+          performance,
         },
-        suggestions
+        suggestions,
       };
 
       // Update baseline if requested
@@ -242,7 +258,6 @@ export class VisualTestingService extends EventEmitter {
       this.emit('visualTestCompleted', result);
 
       return result;
-
     } catch (error) {
       this.logger.error(`Visual test failed: ${test.name}`, error);
       throw error;
@@ -260,31 +275,31 @@ export class VisualTestingService extends EventEmitter {
       case 'click':
         await this.automationService.findAndInteract(sessionId, {
           selector: action.selector,
-          action: 'click'
+          action: 'click',
         });
         break;
-        
+
       case 'type':
         await this.automationService.findAndInteract(sessionId, {
           selector: action.selector,
           action: 'type',
-          value: action.value
+          value: action.value,
         });
         break;
-        
+
       case 'hover':
         await this.automationService.findAndInteract(sessionId, {
           selector: action.selector,
-          action: 'hover'
+          action: 'hover',
         });
         break;
-        
+
       case 'scroll':
         await this.automationService.findAndInteract(sessionId, {
-          action: 'scroll'
+          action: 'scroll',
         });
         break;
-        
+
       case 'wait':
         await new Promise(resolve => setTimeout(resolve, action.timeout || 1000));
         break;
@@ -294,19 +309,23 @@ export class VisualTestingService extends EventEmitter {
   /**
    * Compare two images and generate diff
    */
-  private async compareImages(current: Buffer, baseline: Buffer, config: VisualTestConfig): Promise<Buffer | null> {
+  private async compareImages(
+    current: Buffer,
+    baseline: Buffer,
+    config: VisualTestConfig
+  ): Promise<Buffer | null> {
     // In a real implementation, you would use a library like pixelmatch or resemble.js
     // For now, we'll simulate the comparison
-    
+
     try {
       // Simple hash comparison for demonstration
       const currentHash = crypto.createHash('md5').update(current).digest('hex');
       const baselineHash = crypto.createHash('md5').update(baseline).digest('hex');
-      
+
       if (currentHash === baselineHash) {
         return null; // No differences
       }
-      
+
       // Generate a simple diff visualization
       // In reality, you would use proper image comparison algorithms
       return this.generateDiffVisualization(current, baseline);
@@ -332,7 +351,7 @@ export class VisualTestingService extends EventEmitter {
     if (!diff) {
       return 1.0; // Perfect match
     }
-    
+
     // Simplified similarity calculation
     // In reality, you would analyze the diff image pixel by pixel
     return 0.95; // Example similarity score
@@ -386,20 +405,20 @@ export class VisualTestingService extends EventEmitter {
           total: results.length,
           passed: results.filter(r => r.passed).length,
           failed: results.filter(r => !r.passed).length,
-          averageSimilarity: results.reduce((sum, r) => sum + r.similarity, 0) / results.length
+          averageSimilarity: results.reduce((sum, r) => sum + r.similarity, 0) / results.length,
         },
         results: results.map(r => ({
           testName: r.testName,
           passed: r.passed,
           similarity: r.similarity,
           performance: r.metadata.performance,
-          suggestions: r.suggestions
-        }))
+          suggestions: r.suggestions,
+        })),
       };
 
       const reportFile = path.join(this.resultsPath, `${suiteName}_report_${Date.now()}.json`);
       await fs.writeFile(reportFile, JSON.stringify(report, null, 2));
-      
+
       this.logger.info(`Test report generated: ${reportFile}`);
     } catch (error) {
       this.logger.error('Failed to generate test report:', error);
@@ -451,9 +470,12 @@ export class VisualTestingService extends EventEmitter {
   getStatus(): any {
     return {
       testSuites: this.testSuites.size,
-      totalResults: Array.from(this.results.values()).reduce((sum, results) => sum + results.length, 0),
+      totalResults: Array.from(this.results.values()).reduce(
+        (sum, results) => sum + results.length,
+        0
+      ),
       baselinePath: this.baselinePath,
-      resultsPath: this.resultsPath
+      resultsPath: this.resultsPath,
     };
   }
 }

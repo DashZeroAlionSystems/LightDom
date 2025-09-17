@@ -21,7 +21,7 @@ export class HeadlessAPIServer {
     this.errorHandler = new ErrorHandler();
     this.headlessService = new HeadlessService();
     this.app = express();
-    
+
     this.setupMiddleware();
     this.setupRoutes();
     this.setupErrorHandling();
@@ -32,31 +32,37 @@ export class HeadlessAPIServer {
    */
   private setupMiddleware(): void {
     // Security middleware
-    this.app.use(helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'"],
-          imgSrc: ["'self'", "data:", "https:"],
+    this.app.use(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", 'data:', 'https:'],
+          },
         },
-      },
-    }));
+      })
+    );
 
     // CORS middleware
-    this.app.use(cors({
-      origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-    }));
+    this.app.use(
+      cors({
+        origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      })
+    );
 
     // Logging middleware
-    this.app.use(morgan('combined', {
-      stream: {
-        write: (message: string) => this.logger.info(message.trim())
-      }
-    }));
+    this.app.use(
+      morgan('combined', {
+        stream: {
+          write: (message: string) => this.logger.info(message.trim()),
+        },
+      })
+    );
 
     // Body parsing middleware
     this.app.use(express.json({ limit: '10mb' }));
@@ -81,7 +87,7 @@ export class HeadlessAPIServer {
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        version: process.env.npm_package_version || '1.0.0'
+        version: process.env.npm_package_version || '1.0.0',
       });
     });
 
@@ -91,13 +97,13 @@ export class HeadlessAPIServer {
         const status = this.headlessService.getStatus();
         res.json({
           success: true,
-          data: status
+          data: status,
         });
       } catch (error) {
         this.logger.error('Failed to get status:', error);
         res.status(500).json({
           success: false,
-          error: 'Failed to get status'
+          error: 'Failed to get status',
         });
       }
     });
@@ -110,7 +116,7 @@ export class HeadlessAPIServer {
       res.status(404).json({
         success: false,
         error: 'Endpoint not found',
-        path: req.originalUrl
+        path: req.originalUrl,
       });
     });
   }
@@ -131,8 +137,8 @@ export class HeadlessAPIServer {
           body: req.body,
           query: req.query,
           params: req.params,
-          headers: req.headers
-        }
+          headers: req.headers,
+        },
       });
 
       this.logger.error('API Error:', {
@@ -140,14 +146,14 @@ export class HeadlessAPIServer {
         method: req.method,
         path: req.path,
         statusCode: error.statusCode || 500,
-        message: error.message
+        message: error.message,
       });
 
       res.status(error.statusCode || 500).json({
         success: false,
         error: error.message || 'Internal server error',
         errorId: errorReport.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     });
   }
@@ -170,7 +176,6 @@ export class HeadlessAPIServer {
       // Handle graceful shutdown
       process.on('SIGTERM', () => this.shutdown());
       process.on('SIGINT', () => this.shutdown());
-
     } catch (error) {
       this.logger.error('Failed to start server:', error);
       throw error;
@@ -186,7 +191,7 @@ export class HeadlessAPIServer {
 
       // Close HTTP server
       if (this.server) {
-        await new Promise<void>((resolve) => {
+        await new Promise<void>(resolve => {
           this.server.close(() => {
             this.logger.info('HTTP server closed');
             resolve();
@@ -209,7 +214,7 @@ export class HeadlessAPIServer {
    */
   private async shutdown(): Promise<void> {
     this.logger.info('Received shutdown signal, starting graceful shutdown...');
-    
+
     try {
       await this.stop();
       process.exit(0);
@@ -238,8 +243,8 @@ export class HeadlessAPIServer {
 if (require.main === module) {
   const port = parseInt(process.env.PORT || '3001');
   const server = new HeadlessAPIServer(port);
-  
-  server.start().catch((error) => {
+
+  server.start().catch(error => {
     console.error('Failed to start server:', error);
     process.exit(1);
   });

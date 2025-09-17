@@ -4,7 +4,12 @@
  * Enhanced with advanced node management and storage utilization
  */
 
-import { advancedNodeManager, NodeConfig, StorageAllocation, OptimizationTask } from './AdvancedNodeManager';
+import {
+  advancedNodeManager,
+  NodeConfig,
+  StorageAllocation,
+  OptimizationTask,
+} from './AdvancedNodeManager';
 
 export interface OptimizationResult {
   url: string;
@@ -50,25 +55,25 @@ export class SpaceOptimizationEngine {
   private optimizations: Map<string, OptimizationResult> = new Map();
   private harvesters: Map<string, HarvesterStats> = new Map();
   private metaverseAssets: Map<string, MetaverseAsset> = new Map();
-  
+
   // Token economics constants
   private readonly BASE_SPACE_RATE = 1000; // 1 KB = 0.001 DSH base
   private readonly SPACE_MULTIPLIER = 100; // Can be adjusted
   private readonly MIN_OPTIMIZATION_KB = 1; // Minimum 1KB to qualify
-  
+
   // Metaverse generation thresholds
   private readonly LAND_THRESHOLD_KB = 100; // 1 land parcel per 100KB
   private readonly AI_NODE_THRESHOLD_KB = 1000; // 1 AI node per 1000KB
   private readonly STORAGE_SHARD_THRESHOLD_KB = 500; // 1 shard per 500KB
   private readonly BRIDGE_THRESHOLD_KB = 2000; // 1 bridge per 2000KB
-  
+
   // Reputation multipliers
   private readonly REPUTATION_MULTIPLIERS = {
     10000: 5.0, // 5x for top harvesters
-    5000: 3.0,  // 3x multiplier
-    1000: 2.0,  // 2x multiplier
-    100: 1.5,   // 1.5x multiplier
-    0: 1.0      // 1x base multiplier
+    5000: 3.0, // 3x multiplier
+    1000: 2.0, // 2x multiplier
+    100: 1.5, // 1.5x multiplier
+    0: 1.0, // 1x base multiplier
   };
 
   constructor() {
@@ -78,31 +83,38 @@ export class SpaceOptimizationEngine {
   /**
    * Process a space optimization and generate all associated rewards
    */
-  async processOptimization(optimization: Partial<OptimizationResult>): Promise<OptimizationResult> {
+  async processOptimization(
+    optimization: Partial<OptimizationResult>
+  ): Promise<OptimizationResult> {
     // Validate optimization
     if (!optimization.url || !optimization.spaceSavedBytes || optimization.spaceSavedBytes < 1024) {
       throw new Error('Invalid optimization: must save at least 1KB');
     }
 
     const spaceKB = Math.floor(optimization.spaceSavedBytes / 1024);
-    const harvesterAddress = optimization.harvesterAddress || '0x0000000000000000000000000000000000000000';
-    
+    const harvesterAddress =
+      optimization.harvesterAddress || '0x0000000000000000000000000000000000000000';
+
     // Get or create harvester stats
     const harvesterStats = this.getOrCreateHarvester(harvesterAddress);
-    
+
     // Calculate quality score (0-100)
     const qualityScore = this.calculateQualityScore(optimization);
-    
+
     // Calculate reputation multiplier
     const reputationMultiplier = this.getReputationMultiplier(harvesterStats.reputation);
-    
+
     // Calculate token reward
     const baseTokens = (spaceKB * this.SPACE_MULTIPLIER) / this.BASE_SPACE_RATE;
     const tokenReward = baseTokens * reputationMultiplier * (qualityScore / 100);
-    
+
     // Generate metaverse assets
-    const metaverseAssets = this.generateMetaverseAssets(spaceKB, optimization.biomeType || 'digital', optimization.url);
-    
+    const metaverseAssets = this.generateMetaverseAssets(
+      spaceKB,
+      optimization.biomeType || 'digital',
+      optimization.url
+    );
+
     // Create complete optimization result
     const result: OptimizationResult = {
       url: optimization.url,
@@ -118,15 +130,15 @@ export class SpaceOptimizationEngine {
       qualityScore,
       reputationMultiplier,
       tokenReward,
-      metaverseAssets
+      metaverseAssets,
     };
 
     // Store optimization
     this.optimizations.set(result.proofHash, result);
-    
+
     // Update harvester stats
     this.updateHarvesterStats(harvesterAddress, result);
-    
+
     // Store metaverse assets
     metaverseAssets.forEach(asset => {
       this.metaverseAssets.set(asset.id, asset);
@@ -140,26 +152,26 @@ export class SpaceOptimizationEngine {
    */
   private calculateQualityScore(optimization: Partial<OptimizationResult>): number {
     let score = 50; // Base score
-    
+
     // Size bonus (larger optimizations get higher scores)
     const spaceKB = Math.floor((optimization.spaceSavedBytes || 0) / 1024);
     if (spaceKB >= 100) score += 20;
     else if (spaceKB >= 50) score += 15;
     else if (spaceKB >= 10) score += 10;
     else if (spaceKB >= 5) score += 5;
-    
+
     // Optimization type bonus
     const type = optimization.optimizationType || '';
     if (type.includes('ai')) score += 15;
     if (type.includes('critical')) score += 10;
     if (type.includes('lazy')) score += 5;
-    
+
     // Biome type bonus
     const biome = optimization.biomeType || '';
     if (biome === 'professional') score += 10;
     if (biome === 'commercial') score += 8;
     if (biome === 'knowledge') score += 6;
-    
+
     return Math.min(100, Math.max(0, score));
   }
 
@@ -167,7 +179,9 @@ export class SpaceOptimizationEngine {
    * Get reputation multiplier for harvester
    */
   private getReputationMultiplier(reputation: number): number {
-    for (const [threshold, multiplier] of Object.entries(this.REPUTATION_MULTIPLIERS).sort((a, b) => Number(b[0]) - Number(a[0]))) {
+    for (const [threshold, multiplier] of Object.entries(this.REPUTATION_MULTIPLIERS).sort(
+      (a, b) => Number(b[0]) - Number(a[0])
+    )) {
       if (reputation >= Number(threshold)) {
         return multiplier;
       }
@@ -178,9 +192,13 @@ export class SpaceOptimizationEngine {
   /**
    * Generate metaverse assets based on space saved
    */
-  private generateMetaverseAssets(spaceKB: number, biomeType: string, sourceUrl: string): MetaverseAsset[] {
+  private generateMetaverseAssets(
+    spaceKB: number,
+    biomeType: string,
+    sourceUrl: string
+  ): MetaverseAsset[] {
     const assets: MetaverseAsset[] = [];
-    
+
     // Generate land parcels (1 per 100KB)
     const landParcels = Math.floor(spaceKB / this.LAND_THRESHOLD_KB);
     for (let i = 0; i < landParcels; i++) {
@@ -191,10 +209,10 @@ export class SpaceOptimizationEngine {
         size: 100, // 100 square meters per parcel
         stakingRewards: this.getBiomeStakingRate(biomeType),
         developmentLevel: 1,
-        sourceUrl
+        sourceUrl,
       });
     }
-    
+
     // Generate AI nodes (1 per 1000KB)
     const aiNodes = Math.floor(spaceKB / this.AI_NODE_THRESHOLD_KB);
     for (let i = 0; i < aiNodes; i++) {
@@ -205,10 +223,10 @@ export class SpaceOptimizationEngine {
         size: spaceKB,
         stakingRewards: spaceKB * 0.1, // 0.1 DSH per KB per day
         developmentLevel: 1,
-        sourceUrl
+        sourceUrl,
       });
     }
-    
+
     // Generate storage shards (1 per 500KB)
     const storageShards = Math.floor(spaceKB / this.STORAGE_SHARD_THRESHOLD_KB);
     for (let i = 0; i < storageShards; i++) {
@@ -219,10 +237,10 @@ export class SpaceOptimizationEngine {
         size: spaceKB,
         stakingRewards: spaceKB * 0.05, // 0.05 DSH per KB per day
         developmentLevel: 1,
-        sourceUrl
+        sourceUrl,
       });
     }
-    
+
     // Generate bridges (1 per 2000KB)
     const bridges = Math.floor(spaceKB / this.BRIDGE_THRESHOLD_KB);
     for (let i = 0; i < bridges; i++) {
@@ -233,10 +251,10 @@ export class SpaceOptimizationEngine {
         size: spaceKB,
         stakingRewards: spaceKB * 0.02, // 0.02 DSH per KB per day
         developmentLevel: 1,
-        sourceUrl
+        sourceUrl,
       });
     }
-    
+
     return assets;
   }
 
@@ -245,14 +263,14 @@ export class SpaceOptimizationEngine {
    */
   private getBiomeStakingRate(biomeType: string): number {
     const rates: { [key: string]: number } = {
-      'production': 3.0,
-      'professional': 2.5,
-      'commercial': 2.0,
-      'social': 1.8,
-      'knowledge': 1.5,
-      'community': 1.3,
-      'entertainment': 1.2,
-      'digital': 1.0
+      production: 3.0,
+      professional: 2.5,
+      commercial: 2.0,
+      social: 1.8,
+      knowledge: 1.5,
+      community: 1.3,
+      entertainment: 1.2,
+      digital: 1.0,
     };
     return rates[biomeType] || 1.0;
   }
@@ -272,7 +290,7 @@ export class SpaceOptimizationEngine {
     let hash = 0;
     for (let i = 0; i < data.length; i++) {
       const char = data.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(16);
@@ -293,7 +311,7 @@ export class SpaceOptimizationEngine {
         aiNodes: 0,
         storageShards: 0,
         bridges: 0,
-        stakingRewards: 0
+        stakingRewards: 0,
       });
     }
     return this.harvesters.get(address)!;
@@ -304,12 +322,12 @@ export class SpaceOptimizationEngine {
    */
   private updateHarvesterStats(address: string, result: OptimizationResult): void {
     const stats = this.harvesters.get(address)!;
-    
+
     stats.totalSpaceHarvested += result.spaceSavedBytes;
     stats.totalTokensEarned += result.tokenReward;
     stats.optimizationCount++;
     stats.reputation += result.spaceSavedKB; // 1 reputation point per KB
-    
+
     // Count metaverse assets
     result.metaverseAssets.forEach(asset => {
       switch (asset.type) {
@@ -336,9 +354,9 @@ export class SpaceOptimizationEngine {
     const defaultHarvesters = [
       '0x1234567890123456789012345678901234567890',
       '0x2345678901234567890123456789012345678901',
-      '0x3456789012345678901234567890123456789012'
+      '0x3456789012345678901234567890123456789012',
     ];
-    
+
     defaultHarvesters.forEach(address => {
       this.getOrCreateHarvester(address);
     });
@@ -383,16 +401,20 @@ export class SpaceOptimizationEngine {
    * Calculate total space harvested
    */
   getTotalSpaceHarvested(): number {
-    return Array.from(this.optimizations.values())
-      .reduce((total, opt) => total + opt.spaceSavedBytes, 0);
+    return Array.from(this.optimizations.values()).reduce(
+      (total, opt) => total + opt.spaceSavedBytes,
+      0
+    );
   }
 
   /**
    * Calculate total tokens distributed
    */
   getTotalTokensDistributed(): number {
-    return Array.from(this.optimizations.values())
-      .reduce((total, opt) => total + opt.tokenReward, 0);
+    return Array.from(this.optimizations.values()).reduce(
+      (total, opt) => total + opt.tokenReward,
+      0
+    );
   }
 
   /**
@@ -411,7 +433,7 @@ export class SpaceOptimizationEngine {
       totalAINodes: assets.filter(a => a.type === 'ai_node').length,
       totalStorageShards: assets.filter(a => a.type === 'storage_shard').length,
       totalBridges: assets.filter(a => a.type === 'bridge').length,
-      totalStakingRewards: assets.reduce((total, asset) => total + asset.stakingRewards, 0)
+      totalStakingRewards: assets.reduce((total, asset) => total + asset.stakingRewards, 0),
     };
   }
 
@@ -426,7 +448,12 @@ export class SpaceOptimizationEngine {
   createOptimizationNode(
     spaceKB: number,
     biomeType: string,
-    nodeType: 'ai_consensus' | 'storage_shard' | 'bridge' | 'optimization' | 'mining' = 'optimization',
+    nodeType:
+      | 'ai_consensus'
+      | 'storage_shard'
+      | 'bridge'
+      | 'optimization'
+      | 'mining' = 'optimization',
     sourceOptimizations: string[] = []
   ): NodeConfig {
     return advancedNodeManager.createNode(nodeType, spaceKB, biomeType, sourceOptimizations);
@@ -442,13 +469,7 @@ export class SpaceOptimizationEngine {
     purpose: 'caching' | 'processing' | 'backup' | 'replication' | 'optimization' = 'optimization',
     priority: 'high' | 'medium' | 'low' = 'medium'
   ): StorageAllocation {
-    return advancedNodeManager.allocateStorage(
-      nodeId,
-      optimizationId,
-      spaceKB,
-      purpose,
-      priority
-    );
+    return advancedNodeManager.allocateStorage(nodeId, optimizationId, spaceKB, purpose, priority);
   }
 
   /**
@@ -456,7 +477,12 @@ export class SpaceOptimizationEngine {
    */
   createOptimizationTask(
     nodeId: string,
-    taskType: 'dom_analysis' | 'css_optimization' | 'js_minification' | 'image_compression' | 'bundle_optimization',
+    taskType:
+      | 'dom_analysis'
+      | 'css_optimization'
+      | 'js_minification'
+      | 'image_compression'
+      | 'bundle_optimization',
     targetUrl: string
   ): OptimizationTask {
     return advancedNodeManager.createOptimizationTask(nodeId, taskType, targetUrl);
@@ -467,7 +493,7 @@ export class SpaceOptimizationEngine {
    */
   async processOptimizationTasks(taskIds: string[]): Promise<OptimizationTask[]> {
     const results: OptimizationTask[] = [];
-    
+
     for (const taskId of taskIds) {
       try {
         const result = await advancedNodeManager.processOptimizationTask(taskId);
@@ -476,7 +502,7 @@ export class SpaceOptimizationEngine {
         console.error(`Error processing task ${taskId}:`, error);
       }
     }
-    
+
     return results;
   }
 
@@ -490,7 +516,15 @@ export class SpaceOptimizationEngine {
   /**
    * Merge multiple nodes into a more powerful node
    */
-  mergeNodes(nodeIds: string[], newType: 'ai_consensus' | 'storage_shard' | 'bridge' | 'optimization' | 'mining' = 'optimization'): NodeConfig | null {
+  mergeNodes(
+    nodeIds: string[],
+    newType:
+      | 'ai_consensus'
+      | 'storage_shard'
+      | 'bridge'
+      | 'optimization'
+      | 'mining' = 'optimization'
+  ): NodeConfig | null {
     return advancedNodeManager.mergeNodes(nodeIds, newType);
   }
 
@@ -504,7 +538,9 @@ export class SpaceOptimizationEngine {
   /**
    * Get nodes by type
    */
-  getNodesByType(type: 'ai_consensus' | 'storage_shard' | 'bridge' | 'optimization' | 'mining'): NodeConfig[] {
+  getNodesByType(
+    type: 'ai_consensus' | 'storage_shard' | 'bridge' | 'optimization' | 'mining'
+  ): NodeConfig[] {
     return advancedNodeManager.getNodesByType(type);
   }
 
@@ -553,7 +589,10 @@ export class SpaceOptimizationEngine {
   /**
    * Create a distributed optimization network
    */
-  createDistributedOptimizationNetwork(spaceKB: number, biomeType: string): {
+  createDistributedOptimizationNetwork(
+    spaceKB: number,
+    biomeType: string
+  ): {
     nodes: NodeConfig[];
     totalStorage: number;
     totalComputePower: number;
@@ -600,7 +639,7 @@ export class SpaceOptimizationEngine {
       nodes,
       totalStorage,
       totalComputePower,
-      estimatedDailyRewards
+      estimatedDailyRewards,
     };
   }
 
@@ -610,7 +649,12 @@ export class SpaceOptimizationEngine {
   async runContinuousOptimization(
     nodeId: string,
     targetUrls: string[],
-    taskType: 'dom_analysis' | 'css_optimization' | 'js_minification' | 'image_compression' | 'bundle_optimization' = 'dom_analysis'
+    taskType:
+      | 'dom_analysis'
+      | 'css_optimization'
+      | 'js_minification'
+      | 'image_compression'
+      | 'bundle_optimization' = 'dom_analysis'
   ): Promise<OptimizationTask[]> {
     const tasks: OptimizationTask[] = [];
     const results: OptimizationTask[] = [];
@@ -631,7 +675,7 @@ export class SpaceOptimizationEngine {
       const batch = tasks.slice(i, i + batchSize);
       const batchResults = await this.processOptimizationTasks(batch.map(task => task.id));
       results.push(...batchResults);
-      
+
       // Small delay between batches
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
@@ -643,7 +687,12 @@ export class SpaceOptimizationEngine {
    * Get optimization recommendations based on available storage
    */
   getOptimizationRecommendations(availableSpaceKB: number): {
-    recommendedNodes: Array<{type: string, storage: number, computePower: number, dailyRewards: number}>;
+    recommendedNodes: Array<{
+      type: string;
+      storage: number;
+      computePower: number;
+      dailyRewards: number;
+    }>;
     totalEstimatedRewards: number;
     efficiency: number;
   } {
@@ -658,7 +707,7 @@ export class SpaceOptimizationEngine {
         type: 'AI Consensus Node',
         storage: 1000,
         computePower: aiNode.computePower,
-        dailyRewards: (1000 * aiNode.rewardRate) / 1000
+        dailyRewards: (1000 * aiNode.rewardRate) / 1000,
       });
       totalRewards += (1000 * aiNode.rewardRate) / 1000;
       remainingSpace -= 1000;
@@ -671,7 +720,7 @@ export class SpaceOptimizationEngine {
         type: 'Storage Shard',
         storage: 500,
         computePower: storageNode.computePower,
-        dailyRewards: (500 * storageNode.rewardRate) / 1000
+        dailyRewards: (500 * storageNode.rewardRate) / 1000,
       });
       totalRewards += (500 * storageNode.rewardRate) / 1000;
       remainingSpace -= 500;
@@ -684,7 +733,7 @@ export class SpaceOptimizationEngine {
         type: 'Optimization Node',
         storage: 100,
         computePower: optNode.computePower,
-        dailyRewards: (100 * optNode.rewardRate) / 1000
+        dailyRewards: (100 * optNode.rewardRate) / 1000,
       });
       totalRewards += (100 * optNode.rewardRate) / 1000;
       remainingSpace -= 100;
@@ -695,7 +744,7 @@ export class SpaceOptimizationEngine {
     return {
       recommendedNodes: recommendations,
       totalEstimatedRewards: totalRewards,
-      efficiency
+      efficiency,
     };
   }
 }

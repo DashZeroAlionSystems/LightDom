@@ -39,18 +39,18 @@ router.get('/status', async (req: Request, res: Response) => {
       crawler: crawlerService.getStatus(),
       optimization: optimizationEngine.getStatus(),
       backgroundWorker: backgroundWorker.getStatus(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     res.json({
       success: true,
-      data: status
+      data: status,
     });
   } catch (error) {
     logger.error('Failed to get status:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get status'
+      error: 'Failed to get status',
     });
   }
 });
@@ -66,7 +66,7 @@ router.post('/page/create', async (req: Request, res: Response) => {
     if (!pageId) {
       return res.status(400).json({
         success: false,
-        error: 'Page ID is required'
+        error: 'Page ID is required',
       });
     }
 
@@ -76,14 +76,14 @@ router.post('/page/create', async (req: Request, res: Response) => {
       success: true,
       data: {
         pageId,
-        status: 'created'
-      }
+        status: 'created',
+      },
     });
   } catch (error) {
     logger.error('Failed to create page:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to create page'
+      error: 'Failed to create page',
     });
   }
 });
@@ -99,7 +99,7 @@ router.post('/page/navigate', async (req: Request, res: Response) => {
     if (!pageId || !url) {
       return res.status(400).json({
         success: false,
-        error: 'Page ID and URL are required'
+        error: 'Page ID and URL are required',
       });
     }
 
@@ -110,14 +110,14 @@ router.post('/page/navigate', async (req: Request, res: Response) => {
       data: {
         pageId,
         url,
-        status: 'navigated'
-      }
+        status: 'navigated',
+      },
     });
   } catch (error) {
     logger.error('Failed to navigate page:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to navigate page'
+      error: 'Failed to navigate page',
     });
   }
 });
@@ -133,7 +133,7 @@ router.post('/page/analyze', async (req: Request, res: Response) => {
     if (!pageId) {
       return res.status(400).json({
         success: false,
-        error: 'Page ID is required'
+        error: 'Page ID is required',
       });
     }
 
@@ -141,13 +141,13 @@ router.post('/page/analyze', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: analysis
+      data: analysis,
     });
   } catch (error) {
     logger.error('Failed to analyze page:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to analyze page'
+      error: 'Failed to analyze page',
     });
   }
 });
@@ -163,7 +163,7 @@ router.post('/page/screenshot', async (req: Request, res: Response) => {
     if (!pageId) {
       return res.status(400).json({
         success: false,
-        error: 'Page ID is required'
+        error: 'Page ID is required',
       });
     }
 
@@ -171,7 +171,7 @@ router.post('/page/screenshot', async (req: Request, res: Response) => {
 
     res.set({
       'Content-Type': 'image/png',
-      'Content-Length': screenshot.length
+      'Content-Length': screenshot.length,
     });
 
     res.send(screenshot);
@@ -179,7 +179,7 @@ router.post('/page/screenshot', async (req: Request, res: Response) => {
     logger.error('Failed to take screenshot:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to take screenshot'
+      error: 'Failed to take screenshot',
     });
   }
 });
@@ -195,7 +195,7 @@ router.post('/page/pdf', async (req: Request, res: Response) => {
     if (!pageId) {
       return res.status(400).json({
         success: false,
-        error: 'Page ID is required'
+        error: 'Page ID is required',
       });
     }
 
@@ -204,7 +204,7 @@ router.post('/page/pdf', async (req: Request, res: Response) => {
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Length': pdf.length,
-      'Content-Disposition': 'attachment; filename="page.pdf"'
+      'Content-Disposition': 'attachment; filename="page.pdf"',
     });
 
     res.send(pdf);
@@ -212,7 +212,7 @@ router.post('/page/pdf', async (req: Request, res: Response) => {
     logger.error('Failed to generate PDF:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to generate PDF'
+      error: 'Failed to generate PDF',
     });
   }
 });
@@ -228,7 +228,7 @@ router.post('/page/execute', async (req: Request, res: Response) => {
     if (!pageId || !script) {
       return res.status(400).json({
         success: false,
-        error: 'Page ID and script are required'
+        error: 'Page ID and script are required',
       });
     }
 
@@ -236,13 +236,13 @@ router.post('/page/execute', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     logger.error('Failed to execute script:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to execute script'
+      error: 'Failed to execute script',
     });
   }
 });
@@ -261,14 +261,14 @@ router.delete('/page/:pageId', async (req: Request, res: Response) => {
       success: true,
       data: {
         pageId,
-        status: 'closed'
-      }
+        status: 'closed',
+      },
     });
   } catch (error) {
     logger.error('Failed to close page:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to close page'
+      error: 'Failed to close page',
     });
   }
 });
@@ -284,7 +284,7 @@ router.post('/crawl', async (req: Request, res: Response) => {
     if (!url) {
       return res.status(400).json({
         success: false,
-        error: 'URL is required'
+        error: 'URL is required',
       });
     }
 
@@ -295,14 +295,14 @@ router.post('/crawl', async (req: Request, res: Response) => {
       data: {
         crawlId,
         url,
-        status: 'queued'
-      }
+        status: 'queued',
+      },
     });
   } catch (error) {
     logger.error('Failed to start crawl:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to start crawl'
+      error: 'Failed to start crawl',
     });
   }
 });
@@ -319,13 +319,13 @@ router.get('/crawl/:crawlId/status', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: status
+      data: status,
     });
   } catch (error) {
     logger.error('Failed to get crawl status:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get crawl status'
+      error: 'Failed to get crawl status',
     });
   }
 });
@@ -343,19 +343,19 @@ router.get('/crawl/:crawlId/result', async (req: Request, res: Response) => {
     if (!result) {
       return res.status(404).json({
         success: false,
-        error: 'Crawl result not found'
+        error: 'Crawl result not found',
       });
     }
 
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     logger.error('Failed to get crawl result:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get crawl result'
+      error: 'Failed to get crawl result',
     });
   }
 });
@@ -371,7 +371,7 @@ router.post('/optimize', async (req: Request, res: Response) => {
     if (!url) {
       return res.status(400).json({
         success: false,
-        error: 'URL is required'
+        error: 'URL is required',
       });
     }
 
@@ -382,14 +382,14 @@ router.post('/optimize', async (req: Request, res: Response) => {
       data: {
         optimizationId,
         url,
-        status: 'queued'
-      }
+        status: 'queued',
+      },
     });
   } catch (error) {
     logger.error('Failed to start optimization:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to start optimization'
+      error: 'Failed to start optimization',
     });
   }
 });
@@ -406,13 +406,13 @@ router.get('/optimize/:optimizationId/status', async (req: Request, res: Respons
 
     res.json({
       success: true,
-      data: status
+      data: status,
     });
   } catch (error) {
     logger.error('Failed to get optimization status:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get optimization status'
+      error: 'Failed to get optimization status',
     });
   }
 });
@@ -430,19 +430,19 @@ router.get('/optimize/:optimizationId/result', async (req: Request, res: Respons
     if (!result) {
       return res.status(404).json({
         success: false,
-        error: 'Optimization result not found'
+        error: 'Optimization result not found',
       });
     }
 
     res.json({
       success: true,
-      data: result
+      data: result,
     });
   } catch (error) {
     logger.error('Failed to get optimization result:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get optimization result'
+      error: 'Failed to get optimization result',
     });
   }
 });
@@ -458,7 +458,7 @@ router.post('/worker/job', async (req: Request, res: Response) => {
     if (!queueName || !jobType) {
       return res.status(400).json({
         success: false,
-        error: 'Queue name and job type are required'
+        error: 'Queue name and job type are required',
       });
     }
 
@@ -470,14 +470,14 @@ router.post('/worker/job', async (req: Request, res: Response) => {
         jobId: job.id,
         queueName,
         jobType,
-        status: 'queued'
-      }
+        status: 'queued',
+      },
     });
   } catch (error) {
     logger.error('Failed to add job:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to add job'
+      error: 'Failed to add job',
     });
   }
 });
@@ -494,13 +494,13 @@ router.get('/worker/queue/:queueName/status', async (req: Request, res: Response
 
     res.json({
       success: true,
-      data: status
+      data: status,
     });
   } catch (error) {
     logger.error('Failed to get queue status:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get queue status'
+      error: 'Failed to get queue status',
     });
   }
 });
@@ -518,14 +518,14 @@ router.get('/health', async (req: Request, res: Response) => {
         headless: headlessService.getStatus(),
         crawler: crawlerService.getStatus(),
         optimization: optimizationEngine.getStatus(),
-        backgroundWorker: backgroundWorker.getStatus()
-      }
+        backgroundWorker: backgroundWorker.getStatus(),
+      },
     };
 
     // Check if any service is unhealthy
     const services = Object.values(healthStatus.services);
-    const unhealthyServices = services.filter(service => 
-      !service.isInitialized || !service.browserConnected
+    const unhealthyServices = services.filter(
+      service => !service.isInitialized || !service.browserConnected
     );
 
     if (unhealthyServices.length > 0) {
@@ -537,7 +537,7 @@ router.get('/health', async (req: Request, res: Response) => {
     logger.error('Failed to get health status:', error);
     res.status(500).json({
       status: 'unhealthy',
-      error: 'Failed to get health status'
+      error: 'Failed to get health status',
     });
   }
 });
@@ -555,13 +555,13 @@ router.post('/cleanup', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      message: 'All resources cleaned up'
+      message: 'All resources cleaned up',
     });
   } catch (error) {
     logger.error('Failed to cleanup resources:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to cleanup resources'
+      error: 'Failed to cleanup resources',
     });
   }
 });

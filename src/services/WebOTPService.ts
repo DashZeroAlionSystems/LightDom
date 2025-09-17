@@ -28,7 +28,7 @@ export class WebOTPService {
       timeout: 30000,
       retryAttempts: 3,
       retryDelay: 1000,
-      ...config
+      ...config,
     };
     this.checkSupport();
   }
@@ -62,11 +62,11 @@ export class WebOTPService {
       this.logger.info('Requesting OTP from SMS');
 
       this.abortController = new AbortController();
-      
-      const otpCredential = await navigator.credentials.get({
+
+      const otpCredential = (await navigator.credentials.get({
         otp: { transport: ['sms'] },
         signal: this.abortController.signal,
-      }) as OTPCredential;
+      })) as OTPCredential;
 
       if (!otpCredential || !otpCredential.code) {
         throw new Error('No OTP received');
@@ -74,13 +74,12 @@ export class WebOTPService {
 
       this.logger.info('OTP received from SMS');
       return otpCredential.code;
-
     } catch (error) {
       if (error.name === 'AbortError') {
         this.logger.info('OTP request aborted');
         return null;
       }
-      
+
       this.logger.error('Failed to get OTP from SMS:', error);
       throw error;
     }
@@ -110,17 +109,17 @@ export class WebOTPService {
       }
 
       // Set up OTP credential request
-      const otpCredential = await navigator.credentials.get({
+      const otpCredential = (await navigator.credentials.get({
         otp: { transport: ['sms'] },
         signal: this.abortController?.signal,
-      }) as OTPCredential;
+      })) as OTPCredential;
 
       if (otpCredential && otpCredential.code) {
         otpInput.value = otpCredential.code;
-        
+
         // Trigger input event
         otpInput.dispatchEvent(new Event('input', { bubbles: true }));
-        
+
         // Trigger change event
         otpInput.dispatchEvent(new Event('change', { bubbles: true }));
 
@@ -129,7 +128,6 @@ export class WebOTPService {
       }
 
       return false;
-
     } catch (error) {
       this.logger.error('Failed to auto-fill OTP:', error);
       return false;
@@ -153,7 +151,7 @@ export class WebOTPService {
 
       // Find or create OTP input
       let otpInput = form.querySelector('input[autocomplete="one-time-code"]') as OTPFormElement;
-      
+
       if (!otpInput) {
         otpInput = document.createElement('input') as OTPFormElement;
         otpInput.type = 'text';
@@ -162,7 +160,7 @@ export class WebOTPService {
         otpInput.maxLength = 6;
         otpInput.pattern = '[0-9]{6}';
         otpInput.required = true;
-        
+
         form.appendChild(otpInput);
       }
 
@@ -178,7 +176,6 @@ export class WebOTPService {
       otpInput.style.padding = '8px';
 
       this.logger.info('OTP form setup completed');
-
     } catch (error) {
       this.logger.error('Failed to setup OTP form:', error);
     }
@@ -197,7 +194,6 @@ export class WebOTPService {
 
       this.logger.info('OTP request sent successfully');
       return true;
-
     } catch (error) {
       this.logger.error('Failed to send OTP request:', error);
       return false;
@@ -217,7 +213,7 @@ export class WebOTPService {
 
       // Mock verification - in real implementation, check against server
       const isValid = code.length === 6 && /^\d{6}$/.test(code);
-      
+
       if (isValid) {
         this.logger.info('OTP verification successful');
       } else {
@@ -225,7 +221,6 @@ export class WebOTPService {
       }
 
       return isValid;
-
     } catch (error) {
       this.logger.error('Failed to verify OTP:', error);
       return false;
@@ -339,11 +334,11 @@ export class WebOTPService {
     }
 
     if (verifyButton && otpInput) {
-      verifyButton.addEventListener('click', async (e) => {
+      verifyButton.addEventListener('click', async e => {
         e.preventDefault();
         const phoneNumber = phoneInput.value;
         const code = otpInput.value;
-        
+
         if (phoneNumber && code) {
           const isValid = await this.verifyOTP(code, phoneNumber);
           if (isValid) {

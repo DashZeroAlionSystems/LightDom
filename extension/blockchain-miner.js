@@ -11,9 +11,9 @@ class LightDomBlockchainMiner {
       optimizationsSubmitted: 0,
       totalSpaceSaved: 0,
       blocksMined: 0,
-      lastOptimization: 0
+      lastOptimization: 0,
     };
-    
+
     this.init();
   }
 
@@ -22,11 +22,11 @@ class LightDomBlockchainMiner {
     const result = await chrome.storage.local.get(['isMining', 'userAddress']);
     this.isMining = result.isMining || false;
     this.userAddress = result.userAddress;
-    
+
     if (this.isMining) {
       this.startMining();
     }
-    
+
     // Listen for mining status changes
     chrome.storage.onChanged.addListener((changes, namespace) => {
       if (changes.isMining) {
@@ -42,16 +42,16 @@ class LightDomBlockchainMiner {
 
   startMining() {
     if (this.isMining) return;
-    
+
     this.isMining = true;
     console.log('LightDom blockchain mining started');
-    
+
     // Start advanced DOM monitoring
     this.startAdvancedDOMMonitoring();
-    
+
     // Start periodic optimization
     this.startPeriodicOptimization();
-    
+
     // Inject blockchain UI
     this.injectBlockchainUI();
   }
@@ -59,7 +59,7 @@ class LightDomBlockchainMiner {
   stopMining() {
     this.isMining = false;
     console.log('LightDom blockchain mining stopped');
-    
+
     // Clean up monitoring
     this.stopAdvancedDOMMonitoring();
     this.stopPeriodicOptimization();
@@ -68,16 +68,16 @@ class LightDomBlockchainMiner {
 
   startAdvancedDOMMonitoring() {
     // Monitor for specific optimization opportunities
-    this.observer = new MutationObserver((mutations) => {
+    this.observer = new MutationObserver(mutations => {
       this.handleAdvancedDOMChanges(mutations);
     });
-    
+
     this.observer.observe(document.body, {
       childList: true,
       subtree: true,
       attributes: true,
       attributeOldValue: true,
-      characterData: true
+      characterData: true,
     });
   }
 
@@ -90,12 +90,12 @@ class LightDomBlockchainMiner {
 
   handleAdvancedDOMChanges(mutations) {
     if (!this.isMining) return;
-    
+
     // Analyze mutations for optimization opportunities
     const significantChanges = mutations.filter(mutation => {
       return this.isSignificantChange(mutation);
     });
-    
+
     if (significantChanges.length > 0) {
       setTimeout(() => this.performAdvancedOptimization(), 500);
     }
@@ -106,20 +106,20 @@ class LightDomBlockchainMiner {
     if (mutation.type === 'childList') {
       return mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0;
     }
-    
+
     if (mutation.type === 'attributes') {
       return ['class', 'style', 'id'].includes(mutation.attributeName);
     }
-    
+
     return false;
   }
 
   async performAdvancedOptimization() {
     if (!this.isMining) return;
-    
+
     try {
       const optimization = await this.analyzeAdvancedDOM();
-      
+
       if (optimization.potentialSavings > 0) {
         await this.submitOptimization(optimization);
         this.miningStats.optimizationsSubmitted++;
@@ -137,17 +137,17 @@ class LightDomBlockchainMiner {
       timestamp: Date.now(),
       potentialSavings: 0,
       optimizations: [],
-      domMetrics: {}
+      domMetrics: {},
     };
-    
+
     // Analyze DOM structure
     analysis.domMetrics = this.getDOMMetrics();
-    
+
     // Find optimization opportunities
     const opportunities = await this.findOptimizationOpportunities();
     analysis.optimizations = opportunities;
     analysis.potentialSavings = opportunities.reduce((total, opt) => total + opt.savings, 0);
-    
+
     return analysis;
   }
 
@@ -159,25 +159,20 @@ class LightDomBlockchainMiner {
       totalStyles: this.countStyles(),
       domDepth: this.calculateDOMDepth(),
       scriptCount: document.querySelectorAll('script').length,
-      styleCount: document.querySelectorAll('style, link[rel="stylesheet"]').length
+      styleCount: document.querySelectorAll('style, link[rel="stylesheet"]').length,
     };
   }
 
   countTextNodes() {
     let count = 0;
-    const walker = document.createTreeWalker(
-      document.body,
-      NodeFilter.SHOW_TEXT,
-      null,
-      false
-    );
-    
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+
     while (walker.nextNode()) {
       if (walker.currentNode.textContent.trim()) {
         count++;
       }
     }
-    
+
     return count;
   }
 
@@ -203,21 +198,21 @@ class LightDomBlockchainMiner {
 
   calculateDOMDepth() {
     let maxDepth = 0;
-    
+
     function getDepth(node, currentDepth = 0) {
       maxDepth = Math.max(maxDepth, currentDepth);
       for (let child of node.children) {
         getDepth(child, currentDepth + 1);
       }
     }
-    
+
     getDepth(document.body);
     return maxDepth;
   }
 
   async findOptimizationOpportunities() {
     const opportunities = [];
-    
+
     // Find unused CSS
     const unusedCSS = await this.findUnusedCSS();
     if (unusedCSS.length > 0) {
@@ -225,10 +220,10 @@ class LightDomBlockchainMiner {
         type: 'unused_css',
         description: 'Unused CSS rules found',
         savings: unusedCSS.reduce((total, rule) => total + rule.length, 0),
-        details: unusedCSS
+        details: unusedCSS,
       });
     }
-    
+
     // Find duplicate elements
     const duplicates = this.findDuplicateElements();
     if (duplicates.length > 0) {
@@ -236,10 +231,10 @@ class LightDomBlockchainMiner {
         type: 'duplicate_elements',
         description: 'Duplicate elements found',
         savings: duplicates.reduce((total, dup) => total + dup.size, 0),
-        details: duplicates
+        details: duplicates,
       });
     }
-    
+
     // Find redundant attributes
     const redundantAttrs = this.findRedundantAttributes();
     if (redundantAttrs.length > 0) {
@@ -247,10 +242,10 @@ class LightDomBlockchainMiner {
         type: 'redundant_attributes',
         description: 'Redundant attributes found',
         savings: redundantAttrs.length * 10, // Estimate
-        details: redundantAttrs
+        details: redundantAttrs,
       });
     }
-    
+
     // Find large images that could be optimized
     const largeImages = this.findLargeImages();
     if (largeImages.length > 0) {
@@ -258,17 +253,17 @@ class LightDomBlockchainMiner {
         type: 'large_images',
         description: 'Large images that could be optimized',
         savings: largeImages.reduce((total, img) => total + img.estimatedSavings, 0),
-        details: largeImages
+        details: largeImages,
       });
     }
-    
+
     return opportunities;
   }
 
   async findUnusedCSS() {
     const unusedRules = [];
     const styles = document.querySelectorAll('style, link[rel="stylesheet"]');
-    
+
     for (let style of styles) {
       if (style.textContent) {
         const rules = this.parseCSSRules(style.textContent);
@@ -279,7 +274,7 @@ class LightDomBlockchainMiner {
         }
       }
     }
-    
+
     return unusedRules;
   }
 
@@ -288,16 +283,16 @@ class LightDomBlockchainMiner {
     const rules = [];
     const ruleRegex = /([^{}]+)\{([^{}]*)\}/g;
     let match;
-    
+
     while ((match = ruleRegex.exec(css)) !== null) {
       rules.push({
         selector: match[1].trim(),
         declarations: match[2].trim(),
         full: match[0],
-        length: match[0].length
+        length: match[0].length,
       });
     }
-    
+
     return rules;
   }
 
@@ -313,7 +308,7 @@ class LightDomBlockchainMiner {
   findDuplicateElements() {
     const elementMap = new Map();
     const duplicates = [];
-    
+
     const elements = document.querySelectorAll('*');
     elements.forEach(element => {
       const key = this.getElementKey(element);
@@ -322,14 +317,14 @@ class LightDomBlockchainMiner {
           tagName: element.tagName,
           className: element.className,
           size: this.estimateElementSize(element),
-          count: elementMap.get(key) + 1
+          count: elementMap.get(key) + 1,
         });
         elementMap.set(key, elementMap.get(key) + 1);
       } else {
         elementMap.set(key, 1);
       }
     });
-    
+
     return duplicates;
   }
 
@@ -344,7 +339,7 @@ class LightDomBlockchainMiner {
   findRedundantAttributes() {
     const redundant = [];
     const elements = document.querySelectorAll('*');
-    
+
     elements.forEach(element => {
       const attrs = Array.from(element.attributes);
       attrs.forEach(attr => {
@@ -352,12 +347,12 @@ class LightDomBlockchainMiner {
           redundant.push({
             element: element.tagName,
             attribute: attr.name,
-            value: attr.value
+            value: attr.value,
           });
         }
       });
     });
-    
+
     return redundant;
   }
 
@@ -366,33 +361,34 @@ class LightDomBlockchainMiner {
     if (attr.name === 'class' && !attr.value.trim()) return true;
     if (attr.name === 'id' && !attr.value.trim()) return true;
     if (attr.name === 'style' && !attr.value.trim()) return true;
-    
+
     // Check for default values
     if (attr.name === 'type' && attr.value === 'text') return true;
     if (attr.name === 'method' && attr.value === 'get') return true;
-    
+
     return false;
   }
 
   findLargeImages() {
     const largeImages = [];
     const images = document.querySelectorAll('img');
-    
+
     images.forEach(img => {
       const rect = img.getBoundingClientRect();
       const area = rect.width * rect.height;
-      
-      if (area > 100000) { // Large image threshold
+
+      if (area > 100000) {
+        // Large image threshold
         largeImages.push({
           src: img.src,
           width: rect.width,
           height: rect.height,
           area: area,
-          estimatedSavings: Math.floor(area / 1000) // Rough estimate
+          estimatedSavings: Math.floor(area / 1000), // Rough estimate
         });
       }
     });
-    
+
     return largeImages;
   }
 
@@ -402,13 +398,13 @@ class LightDomBlockchainMiner {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-LightDom-User': this.userAddress
+          'X-LightDom-User': this.userAddress,
         },
-        body: JSON.stringify(optimization)
+        body: JSON.stringify(optimization),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         this.showMiningNotification(optimization);
         this.updateMiningStats();
@@ -437,7 +433,7 @@ class LightDomBlockchainMiner {
       animation: slideInLeft 0.4s ease-out;
       border: 1px solid rgba(255,255,255,0.1);
     `;
-    
+
     notification.innerHTML = `
       <div style="display: flex; align-items: center; margin-bottom: 8px;">
         <div style="width: 8px; height: 8px; background: #00ff88; border-radius: 50%; margin-right: 8px; animation: pulse 2s infinite;"></div>
@@ -449,7 +445,7 @@ class LightDomBlockchainMiner {
         <span style="color: #00ff88;">Mining reward: +${Math.floor(optimization.potentialSavings / 100)} DSH</span>
       </div>
     `;
-    
+
     // Add animations
     const style = document.createElement('style');
     style.textContent = `
@@ -463,9 +459,9 @@ class LightDomBlockchainMiner {
       }
     `;
     document.head.appendChild(style);
-    
+
     document.body.appendChild(notification);
-    
+
     // Remove after 4 seconds
     setTimeout(() => {
       notification.style.animation = 'slideInLeft 0.4s ease-out reverse';
@@ -522,7 +518,7 @@ class LightDomBlockchainMiner {
       border: 1px solid #333;
       backdrop-filter: blur(10px);
     `;
-    
+
     ui.innerHTML = `
       <div style="color: #00ff88; font-weight: bold; margin-bottom: 8px;">LightDom Mining</div>
       <div id="lightdom-mining-stats">
@@ -531,7 +527,7 @@ class LightDomBlockchainMiner {
         <div>Blocks Mined: ${this.miningStats.blocksMined}</div>
       </div>
     `;
-    
+
     document.body.appendChild(ui);
   }
 

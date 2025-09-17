@@ -22,12 +22,12 @@ async function demonstrateStorageFeatures(): Promise<void> {
 
     // Create storage nodes
     console.log('\n2. Creating Storage Nodes...');
-    
+
     const node1 = await lightDomFramework.createStorageNode({
       name: 'US East Mining Node',
       capacity: 5000, // 5GB
       location: 'us-east-1',
-      priority: 'high'
+      priority: 'high',
     });
     console.log(`✅ Created node: ${node1.name} (${node1.id})`);
 
@@ -35,7 +35,7 @@ async function demonstrateStorageFeatures(): Promise<void> {
       name: 'EU West Mining Node',
       capacity: 8000, // 8GB
       location: 'eu-west-1',
-      priority: 'medium'
+      priority: 'medium',
     });
     console.log(`✅ Created node: ${node2.name} (${node2.id})`);
 
@@ -43,13 +43,13 @@ async function demonstrateStorageFeatures(): Promise<void> {
       name: 'Asia Pacific Mining Node',
       capacity: 3000, // 3GB
       location: 'ap-southeast-1',
-      priority: 'low'
+      priority: 'low',
     });
     console.log(`✅ Created node: ${node3.name} (${node3.id})`);
 
     // Add web addresses to mining queue
     console.log('\n3. Adding Web Addresses to Mining Queue...');
-    
+
     const urls = [
       { url: 'https://example.com', priority: 'high' as const },
       { url: 'https://github.com', priority: 'high' as const },
@@ -58,7 +58,7 @@ async function demonstrateStorageFeatures(): Promise<void> {
       { url: 'https://dev.to', priority: 'low' as const },
       { url: 'https://css-tricks.com', priority: 'low' as const },
       { url: 'https://smashingmagazine.com', priority: 'medium' as const },
-      { url: 'https://web.dev', priority: 'high' as const }
+      { url: 'https://web.dev', priority: 'high' as const },
     ];
 
     const jobIds = await lightDomFramework.addMiningJobs(urls);
@@ -66,18 +66,22 @@ async function demonstrateStorageFeatures(): Promise<void> {
 
     // Monitor mining progress
     console.log('\n4. Monitoring Mining Progress...');
-    
+
     let completedJobs = 0;
     const totalJobs = jobIds.length;
-    
+
     const progressInterval = setInterval(() => {
       const jobs = lightDomFramework.getAllMiningJobs();
       const completed = jobs.filter(job => job.status === 'completed').length;
       const failed = jobs.filter(job => job.status === 'failed').length;
-      const active = jobs.filter(job => ['mining', 'analyzing', 'optimizing'].includes(job.status)).length;
-      
-      console.log(`📊 Mining Progress: ${completed}/${totalJobs} completed, ${failed} failed, ${active} active`);
-      
+      const active = jobs.filter(job =>
+        ['mining', 'analyzing', 'optimizing'].includes(job.status)
+      ).length;
+
+      console.log(
+        `📊 Mining Progress: ${completed}/${totalJobs} completed, ${failed} failed, ${active} active`
+      );
+
       if (completed + failed >= totalJobs) {
         clearInterval(progressInterval);
         completedJobs = completed;
@@ -110,13 +114,13 @@ async function demonstrateStorageFeatures(): Promise<void> {
 
     // Demonstrate storage optimization
     console.log('\n7. Storage Optimization...');
-    
+
     // Update storage policy for more aggressive optimization
     lightDomFramework.updateStoragePolicy({
       cleanupThreshold: 50, // Start cleanup at 50% usage
       compressionThreshold: 40, // Start compression at 40% usage
       archivalThreshold: 70, // Start archival at 70% usage
-      retentionPeriod: 7 // Keep data for 7 days
+      retentionPeriod: 7, // Keep data for 7 days
     });
     console.log('✅ Updated storage policy for aggressive optimization');
 
@@ -133,11 +137,13 @@ async function demonstrateStorageFeatures(): Promise<void> {
     const finalMetrics = lightDomFramework.getStorageMetrics();
     console.log(`💾 Total Space Saved: ${finalMetrics.spaceSaved}MB`);
     console.log(`🔧 Nodes Optimized: ${finalMetrics.nodesOptimized}`);
-    console.log(`📊 Average Optimization Time: ${finalMetrics.averageOptimizationTime.toFixed(2)} minutes`);
+    console.log(
+      `📊 Average Optimization Time: ${finalMetrics.averageOptimizationTime.toFixed(2)} minutes`
+    );
 
     // Demonstrate node management
     console.log('\n9. Node Management...');
-    
+
     // Get node details
     for (const node of nodes) {
       const nodeDetails = lightDomFramework.getStorageNode(node.id);
@@ -159,8 +165,9 @@ async function demonstrateStorageFeatures(): Promise<void> {
     console.log('\n10. Mining Job Details...');
     const allJobs = lightDomFramework.getAllMiningJobs();
     const completedJobs = allJobs.filter(job => job.status === 'completed');
-    
-    for (const job of completedJobs.slice(0, 3)) { // Show first 3 completed jobs
+
+    for (const job of completedJobs.slice(0, 3)) {
+      // Show first 3 completed jobs
       console.log(`\n⛏️ Job: ${job.url}`);
       console.log(`   Status: ${job.status}`);
       console.log(`   Priority: ${job.priority}`);
@@ -177,13 +184,18 @@ async function demonstrateStorageFeatures(): Promise<void> {
     // Get comprehensive mining status
     console.log('\n11. Comprehensive Mining Status...');
     const miningStatus = lightDomFramework.getMiningStatus();
-    console.log(`📦 Storage Nodes: ${miningStatus.storageNodes.total} total, ${miningStatus.storageNodes.active} active`);
-    console.log(`⛏️ Mining Jobs: ${miningStatus.miningJobs.total} total, ${miningStatus.miningJobs.completed} completed`);
-    console.log(`🔧 Storage Optimizations: ${miningStatus.storageOptimizations.total} total, ${miningStatus.storageOptimizations.completed} completed`);
+    console.log(
+      `📦 Storage Nodes: ${miningStatus.storageNodes.total} total, ${miningStatus.storageNodes.active} active`
+    );
+    console.log(
+      `⛏️ Mining Jobs: ${miningStatus.miningJobs.total} total, ${miningStatus.miningJobs.completed} completed`
+    );
+    console.log(
+      `🔧 Storage Optimizations: ${miningStatus.storageOptimizations.total} total, ${miningStatus.storageOptimizations.completed} completed`
+    );
 
     console.log('\n✅ Storage Features Demonstration Completed!');
     console.log('🎉 All storage features are working correctly!');
-
   } catch (error) {
     console.error('❌ Demonstration failed:', error);
   } finally {

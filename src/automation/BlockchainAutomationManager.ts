@@ -95,7 +95,7 @@ export class BlockchainAutomationManager extends EventEmitter {
   private workflows: Map<string, AutomationWorkflow> = new Map();
   private runningWorkflows: Map<string, Promise<void>> = new Map();
   private metrics: BlockchainAutomationMetrics;
-  
+
   // Services
   private webCrawlerService: WebCrawlerService;
   private headlessChromeService: HeadlessChromeService;
@@ -106,7 +106,7 @@ export class BlockchainAutomationManager extends EventEmitter {
 
   constructor(config: any = {}) {
     super();
-    
+
     this.metrics = {
       totalNodes: 0,
       activeNodes: 0,
@@ -122,8 +122,8 @@ export class BlockchainAutomationManager extends EventEmitter {
         blocksMined: 0,
         optimizationsSubmitted: 0,
         gasUsed: 0,
-        errorRate: 0
-      }
+        errorRate: 0,
+      },
     };
 
     // Initialize services
@@ -142,23 +142,22 @@ export class BlockchainAutomationManager extends EventEmitter {
    */
   async initialize(): Promise<void> {
     console.log('🚀 Initializing Blockchain Automation Manager...');
-    
+
     try {
       // Install and launch browser
       await this.setupBrowser();
-      
+
       // Initialize services
       await this.initializeServices();
-      
+
       // Load existing configurations
       await this.loadConfigurations();
-      
+
       // Start monitoring
       await this.startMonitoring();
-      
+
       console.log('✅ Blockchain Automation Manager initialized successfully');
       this.emit('initialized');
-      
     } catch (error) {
       console.error('❌ Failed to initialize Blockchain Automation Manager:', error);
       this.emit('error', error);
@@ -171,7 +170,7 @@ export class BlockchainAutomationManager extends EventEmitter {
    */
   private async setupBrowser(): Promise<void> {
     console.log('🌐 Setting up browser with @puppeteer/browsers...');
-    
+
     try {
       // Detect platform
       const platform = detectBrowserPlatform();
@@ -185,17 +184,16 @@ export class BlockchainAutomationManager extends EventEmitter {
         browser: BrowserType.CHROME,
         platform: platform as BrowserPlatform,
         buildId: 'stable',
-        cacheDir: './.puppeteer-cache'
+        cacheDir: './.puppeteer-cache',
       });
 
       // Launch browser using Puppeteer
       console.log('🚀 Launching browser...');
       this.browser = await puppeteerLaunch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
       console.log('✅ Browser setup completed');
-      
     } catch (error) {
       console.error('❌ Browser setup failed:', error);
       throw error;
@@ -207,14 +205,14 @@ export class BlockchainAutomationManager extends EventEmitter {
    */
   private async initializeServices(): Promise<void> {
     console.log('🔧 Initializing services...');
-    
+
     const servicePromises = [
       this.webCrawlerService.initialize(),
       this.headlessChromeService.initialize(),
       this.apiService.initialize(),
       this.metricsCollector.initialize(),
       this.crawlerSupervisor.initialize(),
-      this.systemMetricsCollector.initialize()
+      this.systemMetricsCollector.initialize(),
     ];
 
     await Promise.all(servicePromises);
@@ -226,13 +224,13 @@ export class BlockchainAutomationManager extends EventEmitter {
    */
   private async loadConfigurations(): Promise<void> {
     console.log('📋 Loading configurations...');
-    
+
     // Load blockchain nodes
     await this.loadBlockchainNodes();
-    
+
     // Load automation workflows
     await this.loadAutomationWorkflows();
-    
+
     console.log('✅ Configurations loaded');
   }
 
@@ -252,14 +250,14 @@ export class BlockchainAutomationManager extends EventEmitter {
           rpcUrl: process.env.BLOCKCHAIN_RPC_URL || 'http://localhost:8545',
           privateKey: process.env.BLOCKCHAIN_PRIVATE_KEY || '',
           gasPrice: '20000000000',
-          gasLimit: 500000
+          gasLimit: 500000,
         },
         automation: {
           enabled: true,
           maxConcurrency: 5,
           retryAttempts: 3,
-          timeout: 30000
-        }
+          timeout: 30000,
+        },
       },
       {
         nodeId: 'validation-node-1',
@@ -271,15 +269,15 @@ export class BlockchainAutomationManager extends EventEmitter {
           rpcUrl: process.env.BLOCKCHAIN_RPC_URL || 'http://localhost:8545',
           privateKey: process.env.BLOCKCHAIN_PRIVATE_KEY || '',
           gasPrice: '20000000000',
-          gasLimit: 300000
+          gasLimit: 300000,
         },
         automation: {
           enabled: true,
           maxConcurrency: 3,
           retryAttempts: 2,
-          timeout: 20000
-        }
-      }
+          timeout: 20000,
+        },
+      },
     ];
 
     for (const node of defaultNodes) {
@@ -304,7 +302,7 @@ export class BlockchainAutomationManager extends EventEmitter {
             config: { maxDepth: 3, respectRobots: true },
             dependencies: [],
             timeout: 60000,
-            retryAttempts: 3
+            retryAttempts: 3,
           },
           {
             id: 'optimize-dom',
@@ -312,7 +310,7 @@ export class BlockchainAutomationManager extends EventEmitter {
             config: { minSpaceSaved: 10000 },
             dependencies: ['crawl-website'],
             timeout: 30000,
-            retryAttempts: 2
+            retryAttempts: 2,
           },
           {
             id: 'submit-to-blockchain',
@@ -320,17 +318,17 @@ export class BlockchainAutomationManager extends EventEmitter {
             config: { gasPrice: '20000000000' },
             dependencies: ['optimize-dom'],
             timeout: 45000,
-            retryAttempts: 3
-          }
+            retryAttempts: 3,
+          },
         ],
         triggers: [
           {
             type: 'schedule',
-            config: { cron: '0 */6 * * *' } // Every 6 hours
-          }
+            config: { cron: '0 */6 * * *' }, // Every 6 hours
+          },
         ],
         enabled: true,
-        priority: 1
+        priority: 1,
       },
       {
         id: 'monitoring-workflow',
@@ -343,7 +341,7 @@ export class BlockchainAutomationManager extends EventEmitter {
             config: { interval: 30000 },
             dependencies: [],
             timeout: 10000,
-            retryAttempts: 1
+            retryAttempts: 1,
           },
           {
             id: 'check-health',
@@ -351,18 +349,18 @@ export class BlockchainAutomationManager extends EventEmitter {
             config: { checks: ['blockchain', 'database', 'api'] },
             dependencies: ['collect-metrics'],
             timeout: 15000,
-            retryAttempts: 2
-          }
+            retryAttempts: 2,
+          },
         ],
         triggers: [
           {
             type: 'schedule',
-            config: { cron: '*/5 * * * *' } // Every 5 minutes
-          }
+            config: { cron: '*/5 * * * *' }, // Every 5 minutes
+          },
         ],
         enabled: true,
-        priority: 2
-      }
+        priority: 2,
+      },
     ];
 
     for (const workflow of defaultWorkflows) {
@@ -376,7 +374,7 @@ export class BlockchainAutomationManager extends EventEmitter {
    */
   private async startMonitoring(): Promise<void> {
     console.log('📊 Starting monitoring system...');
-    
+
     // Start metrics collection
     setInterval(() => {
       this.collectMetrics();
@@ -384,7 +382,7 @@ export class BlockchainAutomationManager extends EventEmitter {
 
     // Start workflow scheduler
     this.startWorkflowScheduler();
-    
+
     console.log('✅ Monitoring system started');
   }
 
@@ -403,7 +401,7 @@ export class BlockchainAutomationManager extends EventEmitter {
   private async processScheduledWorkflows(): Promise<void> {
     for (const [workflowId, workflow] of this.workflows) {
       if (!workflow.enabled) continue;
-      
+
       for (const trigger of workflow.triggers) {
         if (trigger.type === 'schedule') {
           // Check if workflow should run based on schedule
@@ -422,13 +420,13 @@ export class BlockchainAutomationManager extends EventEmitter {
     // Simple cron-like scheduling (in production, use a proper cron library)
     const now = new Date();
     const cron = trigger.config.cron;
-    
+
     if (cron === '*/5 * * * *') {
       return now.getMinutes() % 5 === 0;
     } else if (cron === '0 */6 * * *') {
       return now.getHours() % 6 === 0 && now.getMinutes() === 0;
     }
-    
+
     return false;
   }
 
@@ -448,7 +446,7 @@ export class BlockchainAutomationManager extends EventEmitter {
 
     console.log(`🚀 Executing workflow: ${workflow.name}`);
     this.metrics.runningWorkflows++;
-    
+
     const executionPromise = this.runWorkflowSteps(workflow);
     this.runningWorkflows.set(workflowId, executionPromise);
 
@@ -473,10 +471,10 @@ export class BlockchainAutomationManager extends EventEmitter {
    */
   private async runWorkflowSteps(workflow: AutomationWorkflow): Promise<void> {
     const stepResults = new Map<string, any>();
-    
+
     for (const step of workflow.steps) {
       console.log(`🔄 Executing step: ${step.id}`);
-      
+
       try {
         const result = await this.executeStep(step, stepResults);
         stepResults.set(step.id, result);
@@ -520,22 +518,25 @@ export class BlockchainAutomationManager extends EventEmitter {
   /**
    * Execute browser step
    */
-  private async executeBrowserStep(step: AutomationStep, stepResults: Map<string, any>): Promise<any> {
+  private async executeBrowserStep(
+    step: AutomationStep,
+    stepResults: Map<string, any>
+  ): Promise<any> {
     if (!this.browser) {
       throw new Error('Browser not initialized');
     }
 
     const context = await this.browser.createIncognitoBrowserContext();
     const page = await context.newPage();
-    
+
     try {
       // Configure page
       await page.setViewport({ width: 1920, height: 1080 });
       await page.setUserAgent('LightDom-Automation/1.0');
-      
+
       // Execute browser actions based on step config
       const result = await this.performBrowserActions(page, step.config);
-      
+
       return result;
     } finally {
       await context.close();
@@ -547,112 +548,127 @@ export class BlockchainAutomationManager extends EventEmitter {
    */
   private async performBrowserActions(page: Page, config: any): Promise<any> {
     const actions = [];
-    
+
     if (config.navigate) {
       actions.push(async () => {
-        await page.goto(config.navigate.url, { 
+        await page.goto(config.navigate.url, {
           waitUntil: 'networkidle2',
-          timeout: config.navigate.timeout || 30000
+          timeout: config.navigate.timeout || 30000,
         });
       });
     }
-    
+
     if (config.click) {
       actions.push(async () => {
         await page.click(config.click.selector);
       });
     }
-    
+
     if (config.fill) {
       actions.push(async () => {
         await page.type(config.fill.selector, config.fill.value);
       });
     }
-    
+
     if (config.screenshot) {
       actions.push(async () => {
         return await page.screenshot(config.screenshot);
       });
     }
-    
+
     // Execute actions
     for (const action of actions) {
       await action();
     }
-    
+
     return { success: true, timestamp: new Date() };
   }
 
   /**
    * Execute blockchain step
    */
-  private async executeBlockchainStep(step: AutomationStep, stepResults: Map<string, any>): Promise<any> {
+  private async executeBlockchainStep(
+    step: AutomationStep,
+    stepResults: Map<string, any>
+  ): Promise<any> {
     // This would integrate with your existing blockchain services
     console.log('🔗 Executing blockchain step...');
-    
+
     // Simulate blockchain operation
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     return {
       success: true,
       transactionHash: '0x' + Math.random().toString(16).substr(2, 64),
       gasUsed: Math.floor(Math.random() * 100000),
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
   /**
    * Execute crawl step
    */
-  private async executeCrawlStep(step: AutomationStep, stepResults: Map<string, any>): Promise<any> {
+  private async executeCrawlStep(
+    step: AutomationStep,
+    stepResults: Map<string, any>
+  ): Promise<any> {
     console.log('🕷️ Executing crawl step...');
-    
+
     // Use existing web crawler service
     const crawlResult = await this.webCrawlerService.crawlWebsite(
       step.config.url || 'https://example.com',
       step.config
     );
-    
+
     return crawlResult;
   }
 
   /**
    * Execute optimize step
    */
-  private async executeOptimizeStep(step: AutomationStep, stepResults: Map<string, any>): Promise<any> {
+  private async executeOptimizeStep(
+    step: AutomationStep,
+    stepResults: Map<string, any>
+  ): Promise<any> {
     console.log('⚡ Executing optimization step...');
-    
+
     // Use existing optimization services
     const optimizationResult = await this.headlessChromeService.analyzeDOM('optimize-step');
-    
+
     return optimizationResult;
   }
 
   /**
    * Execute monitor step
    */
-  private async executeMonitorStep(step: AutomationStep, stepResults: Map<string, any>): Promise<any> {
+  private async executeMonitorStep(
+    step: AutomationStep,
+    stepResults: Map<string, any>
+  ): Promise<any> {
     console.log('📊 Executing monitoring step...');
-    
+
     // Collect system metrics
     const metrics = await this.systemMetricsCollector.collectMetrics();
-    
+
     return metrics;
   }
 
   /**
    * Execute notify step
    */
-  private async executeNotifyStep(step: AutomationStep, stepResults: Map<string, any>): Promise<any> {
+  private async executeNotifyStep(
+    step: AutomationStep,
+    stepResults: Map<string, any>
+  ): Promise<any> {
     console.log('📢 Executing notification step...');
-    
+
     // Send notifications based on step config
     this.emit('notification', {
       type: step.config.type || 'info',
       message: step.config.message || 'Workflow step completed',
-      data: stepResults
+      data: stepResults,
     });
-    
+
     return { success: true, timestamp: new Date() };
   }
 
@@ -663,19 +679,19 @@ export class BlockchainAutomationManager extends EventEmitter {
     try {
       // Update node metrics
       this.metrics.activeNodes = this.nodes.size;
-      
+
       // Collect resource utilization
       const systemMetrics = await this.systemMetricsCollector.collectMetrics();
       this.metrics.resourceUtilization = {
         cpu: systemMetrics.cpu || 0,
         memory: systemMetrics.memory || 0,
-        storage: systemMetrics.storage || 0
+        storage: systemMetrics.storage || 0,
       };
-      
+
       // Calculate success rate
       const total = this.metrics.completedWorkflows + this.metrics.failedWorkflows;
       this.metrics.successRate = total > 0 ? (this.metrics.completedWorkflows / total) * 100 : 0;
-      
+
       this.emit('metricsUpdated', this.metrics);
     } catch (error) {
       console.error('❌ Failed to collect metrics:', error);
@@ -731,15 +747,15 @@ export class BlockchainAutomationManager extends EventEmitter {
    * Setup event handlers
    */
   private setupEventHandlers(): void {
-    this.on('error', (error) => {
+    this.on('error', error => {
       console.error('🚨 Automation Manager Error:', error);
     });
 
-    this.on('workflowCompleted', (data) => {
+    this.on('workflowCompleted', data => {
       console.log(`✅ Workflow completed: ${data.workflowId}`);
     });
 
-    this.on('workflowFailed', (data) => {
+    this.on('workflowFailed', data => {
       console.error(`❌ Workflow failed: ${data.workflowId}`, data.error);
     });
   }
@@ -749,28 +765,27 @@ export class BlockchainAutomationManager extends EventEmitter {
    */
   async shutdown(): Promise<void> {
     console.log('🛑 Shutting down Blockchain Automation Manager...');
-    
+
     try {
       // Stop all running workflows
       for (const [workflowId, promise] of this.runningWorkflows) {
         console.log(`⏹️ Stopping workflow: ${workflowId}`);
         // Note: In production, you'd want to implement proper cancellation
       }
-      
+
       // Close browser
       if (this.browser) {
         await this.browser.close();
       }
-      
+
       // Shutdown services
       // Note: These services don't have shutdown methods in the current implementation
       // await this.webCrawlerService.shutdown();
       // await this.headlessChromeService.shutdown();
       // await this.apiService.shutdown();
-      
+
       console.log('✅ Blockchain Automation Manager shutdown complete');
       this.emit('shutdown');
-      
     } catch (error) {
       console.error('❌ Error during shutdown:', error);
       throw error;

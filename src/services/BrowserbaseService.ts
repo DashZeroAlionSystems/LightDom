@@ -1,16 +1,16 @@
 /**
  * BrowserbaseService - AI-Powered Web Automation Service
- * 
+ *
  * Integrates Browserbase MCP server for advanced web crawling capabilities
  * including natural language automation, session management, and stealth operations.
  */
 
 import { EventEmitter } from 'events';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { 
-  CallToolRequestSchema, 
+import {
+  CallToolRequestSchema,
   ListToolsRequestSchema,
-  ReadResourceRequestSchema 
+  ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
 export interface BrowserSession {
@@ -104,13 +104,13 @@ export class BrowserbaseService extends EventEmitter {
     this.mcpClient = new Client(
       {
         name: 'lightdom-browserbase-client',
-        version: '1.0.0'
+        version: '1.0.0',
       },
       {
         capabilities: {
           tools: {},
-          resources: {}
-        }
+          resources: {},
+        },
       }
     );
   }
@@ -121,7 +121,7 @@ export class BrowserbaseService extends EventEmitter {
   async initialize(): Promise<void> {
     try {
       console.log('🚀 Initializing Browserbase MCP Service...');
-      
+
       // Connect to MCP server
       await this.mcpClient.connect({
         command: 'npx',
@@ -131,18 +131,18 @@ export class BrowserbaseService extends EventEmitter {
           ...(this.config.advancedStealth ? ['--advancedStealth'] : []),
           ...(this.config.keepAlive ? ['--keepAlive'] : []),
           ...(this.config.modelName ? ['--modelName', this.config.modelName] : []),
-          ...(this.config.modelApiKey ? ['--modelApiKey', this.config.modelApiKey] : [])
+          ...(this.config.modelApiKey ? ['--modelApiKey', this.config.modelApiKey] : []),
         ],
         env: {
           BROWSERBASE_API_KEY: this.config.apiKey,
           BROWSERBASE_PROJECT_ID: this.config.projectId,
-          ...(this.config.modelApiKey && { GEMINI_API_KEY: this.config.modelApiKey })
-        }
+          ...(this.config.modelApiKey && { GEMINI_API_KEY: this.config.modelApiKey }),
+        },
       });
 
       this.isConnected = true;
       this.emit('connected');
-      
+
       console.log('✅ Browserbase MCP Service initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize Browserbase MCP Service:', error);
@@ -161,7 +161,7 @@ export class BrowserbaseService extends EventEmitter {
 
     try {
       const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
+
       const session: BrowserSession = {
         id: sessionId,
         createdAt: new Date(),
@@ -173,8 +173,8 @@ export class BrowserbaseService extends EventEmitter {
           proxy: options.proxy,
           stealth: options.stealth,
           keepAlive: options.keepAlive,
-          contextId: options.contextId
-        }
+          contextId: options.contextId,
+        },
       };
 
       // Create session using MCP tools
@@ -187,8 +187,8 @@ export class BrowserbaseService extends EventEmitter {
           proxy: options.proxy,
           stealth: options.stealth,
           keepAlive: options.keepAlive,
-          contextId: options.contextId
-        }
+          contextId: options.contextId,
+        },
       });
 
       if (result.success) {
@@ -209,10 +209,14 @@ export class BrowserbaseService extends EventEmitter {
   /**
    * Navigate to a URL in a session
    */
-  async navigateToUrl(sessionId: string, url: string, options: {
-    waitUntil?: 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2';
-    timeout?: number;
-  } = {}): Promise<ActionResult> {
+  async navigateToUrl(
+    sessionId: string,
+    url: string,
+    options: {
+      waitUntil?: 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2';
+      timeout?: number;
+    } = {}
+  ): Promise<ActionResult> {
     if (!this.isConnected) {
       throw new Error('Browserbase service not connected');
     }
@@ -228,8 +232,8 @@ export class BrowserbaseService extends EventEmitter {
         url,
         options: {
           waitUntil: options.waitUntil || 'networkidle2',
-          timeout: options.timeout || 30000
-        }
+          timeout: options.timeout || 30000,
+        },
       });
 
       if (result.success) {
@@ -250,11 +254,15 @@ export class BrowserbaseService extends EventEmitter {
   /**
    * Execute natural language instructions
    */
-  async executeInstructions(sessionId: string, instructions: string, options: {
-    timeout?: number;
-    extractData?: string[];
-    takeScreenshot?: boolean;
-  } = {}): Promise<ActionResult> {
+  async executeInstructions(
+    sessionId: string,
+    instructions: string,
+    options: {
+      timeout?: number;
+      extractData?: string[];
+      takeScreenshot?: boolean;
+    } = {}
+  ): Promise<ActionResult> {
     if (!this.isConnected) {
       throw new Error('Browserbase service not connected');
     }
@@ -271,8 +279,8 @@ export class BrowserbaseService extends EventEmitter {
         options: {
           timeout: options.timeout || 30000,
           extractData: options.extractData,
-          takeScreenshot: options.takeScreenshot || false
-        }
+          takeScreenshot: options.takeScreenshot || false,
+        },
       });
 
       if (result.success) {
@@ -309,8 +317,8 @@ export class BrowserbaseService extends EventEmitter {
           fullPage: options.fullPage || false,
           format: options.format || 'png',
           quality: options.quality || 90,
-          selector: options.selector
-        }
+          selector: options.selector,
+        },
       });
 
       if (result.success && result.screenshot) {
@@ -333,11 +341,14 @@ export class BrowserbaseService extends EventEmitter {
   /**
    * Extract data from page
    */
-  async extractData(sessionId: string, schema: {
-    selectors: string[];
-    attributes?: string[];
-    textContent?: boolean;
-  }): Promise<ExtractedData> {
+  async extractData(
+    sessionId: string,
+    schema: {
+      selectors: string[];
+      attributes?: string[];
+      textContent?: boolean;
+    }
+  ): Promise<ExtractedData> {
     if (!this.isConnected) {
       throw new Error('Browserbase service not connected');
     }
@@ -350,7 +361,7 @@ export class BrowserbaseService extends EventEmitter {
     try {
       const result = await this.callTool('extract_data', {
         sessionId,
-        schema
+        schema,
       });
 
       if (result.success) {
@@ -360,7 +371,7 @@ export class BrowserbaseService extends EventEmitter {
           content: result.content || '',
           metadata: result.metadata || {},
           elements: result.elements || [],
-          timestamp: new Date()
+          timestamp: new Date(),
         };
 
         session.lastActivity = new Date();
@@ -451,8 +462,8 @@ export class BrowserbaseService extends EventEmitter {
         method: 'tools/call',
         params: {
           name: toolName,
-          arguments: params
-        }
+          arguments: params,
+        },
       });
 
       return response.result;
@@ -500,7 +511,7 @@ export class BrowserbaseService extends EventEmitter {
     return {
       connected: this.isConnected,
       activeSessions,
-      totalSessions
+      totalSessions,
     };
   }
 }

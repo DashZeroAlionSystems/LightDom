@@ -59,7 +59,7 @@ export class StartupScript {
         modelDataRestored: 0,
         pendingTransactionsProcessed: 0,
         errors: ['Startup already in progress'],
-        duration: 0
+        duration: 0,
       };
     }
 
@@ -109,28 +109,31 @@ export class StartupScript {
         metaverseAssetsRestored,
         modelDataRestored,
         pendingTransactionsProcessed,
-        errors
+        errors,
       });
 
       const duration = Date.now() - startTime;
       return {
         success: errors.length === 0,
-        dataRestored: optimizationsRestored > 0 || harvestersRestored > 0 || metaverseAssetsRestored > 0 || modelDataRestored > 0,
+        dataRestored:
+          optimizationsRestored > 0 ||
+          harvestersRestored > 0 ||
+          metaverseAssetsRestored > 0 ||
+          modelDataRestored > 0,
         optimizationsRestored,
         harvestersRestored,
         metaverseAssetsRestored,
         modelDataRestored,
         pendingTransactionsProcessed,
         errors,
-        duration
+        duration,
       };
-
     } catch (error) {
       const duration = Date.now() - startTime;
       errors.push(`Critical startup error: ${error}`);
-      
+
       console.error('❌ Critical error during startup:', error);
-      
+
       return {
         success: false,
         dataRestored: false,
@@ -140,7 +143,7 @@ export class StartupScript {
         modelDataRestored,
         pendingTransactionsProcessed,
         errors,
-        duration
+        duration,
       };
     } finally {
       this.startupInProgress = false;
@@ -157,7 +160,7 @@ export class StartupScript {
       console.log('User settings loaded:', {
         maxFileUploadSize: this.formatBytes(userSettings.maxFileUploadSize),
         autoSync: userSettings.autoSync,
-        syncInterval: userSettings.syncInterval
+        syncInterval: userSettings.syncInterval,
       });
     } catch (error) {
       console.error('Error initializing persistent storage:', error);
@@ -254,7 +257,6 @@ export class StartupScript {
           console.log('Data restored from critical backup');
         }
       }
-
     } catch (error) {
       errors.push(`Error restoring data from storage: ${error}`);
     }
@@ -265,7 +267,7 @@ export class StartupScript {
       metaverseAssetsRestored,
       modelDataRestored,
       pendingTransactionsProcessed,
-      errors
+      errors,
     };
   }
 
@@ -337,7 +339,7 @@ export class StartupScript {
 
       console.log('File upload limits validated:', {
         maxSize: this.formatBytes(userSettings.maxFileUploadSize),
-        chromeLimit: this.formatBytes(chromeMaxSize)
+        chromeLimit: this.formatBytes(chromeMaxSize),
       });
     } catch (error) {
       console.error('Error validating file upload limits:', error);
@@ -362,7 +364,7 @@ export class StartupScript {
     console.log(`  ✅ Metaverse assets restored: ${stats.metaverseAssetsRestored}`);
     console.log(`  ✅ Model data restored: ${stats.modelDataRestored}`);
     console.log(`  ✅ Pending transactions processed: ${stats.pendingTransactionsProcessed}`);
-    
+
     if (stats.errors.length > 0) {
       console.log(`  ⚠️  Errors encountered: ${stats.errors.length}`);
       stats.errors.forEach(error => console.log(`    - ${error}`));
@@ -398,8 +400,11 @@ export class StartupScript {
         transition: all 0.3s ease;
       `;
 
-      const totalRestored = stats.optimizationsRestored + stats.harvestersRestored + 
-                          stats.metaverseAssetsRestored + stats.modelDataRestored;
+      const totalRestored =
+        stats.optimizationsRestored +
+        stats.harvestersRestored +
+        stats.metaverseAssetsRestored +
+        stats.modelDataRestored;
 
       notification.innerHTML = `
         <div style="font-weight: 600; margin-bottom: 8px;">🚀 LightDom Ready</div>
@@ -428,7 +433,6 @@ export class StartupScript {
           }
         }, 300);
       }, 5000);
-
     } catch (error) {
       console.error('Error displaying startup notification:', error);
     }
@@ -451,7 +455,7 @@ export class StartupScript {
   public getStartupStatus(): { initialized: boolean; inProgress: boolean } {
     return {
       initialized: this.isInitialized,
-      inProgress: this.startupInProgress
+      inProgress: this.startupInProgress,
     };
   }
 

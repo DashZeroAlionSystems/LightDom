@@ -45,10 +45,7 @@ export class PasswordManagerService {
    * Check if password manager features are supported
    */
   private checkSupport(): void {
-    this.isSupported = !!(
-      'credentials' in navigator &&
-      'password' in HTMLInputElement.prototype
-    );
+    this.isSupported = !!('credentials' in navigator && 'password' in HTMLInputElement.prototype);
 
     if (!this.isSupported) {
       this.logger.warn('Password manager features not fully supported');
@@ -64,7 +61,7 @@ export class PasswordManagerService {
     try {
       // Create .well-known/change-password endpoint
       const changePasswordUrl = this.config.changePasswordUrl;
-      
+
       // Add meta tag for password managers
       const metaTag = document.createElement('meta');
       metaTag.name = 'password-change-url';
@@ -83,16 +80,16 @@ export class PasswordManagerService {
   setupDigitalAssetLinks(): void {
     try {
       const assetLinks = this.config.digitalAssetLinks;
-      
+
       // Create digital asset links JSON
       const assetLinksJson = {
         relation: assetLinks.flatMap(link => link.relation),
-        target: assetLinks.map(link => link.target)
+        target: assetLinks.map(link => link.target),
       };
 
       // Store in sessionStorage for reference
       sessionStorage.setItem('digital-asset-links', JSON.stringify(assetLinksJson));
-      
+
       this.logger.info('Digital asset links configured');
     } catch (error) {
       this.logger.error('Failed to setup digital asset links:', error);
@@ -108,15 +105,15 @@ export class PasswordManagerService {
 
       // Find all forms
       const forms = document.querySelectorAll('form');
-      
+
       forms.forEach((form, index) => {
         this.setupFormAutofillForForm(form, index);
       });
 
       // Watch for dynamically added forms
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          mutation.addedNodes.forEach((node) => {
+      const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as Element;
               if (element.tagName === 'FORM') {
@@ -129,7 +126,7 @@ export class PasswordManagerService {
 
       observer.observe(document.body, {
         childList: true,
-        subtree: true
+        subtree: true,
       });
 
       this.logger.info('Form autofill setup completed');
@@ -158,21 +155,29 @@ export class PasswordManagerService {
       }
 
       // Find new password field
-      const newPasswordField = this.findField(form, ['new-password', 'newPassword', 'new_password']);
+      const newPasswordField = this.findField(form, [
+        'new-password',
+        'newPassword',
+        'new_password',
+      ]);
       if (newPasswordField) {
         newPasswordField.setAttribute('autocomplete', 'new-password');
         newPasswordField.setAttribute('data-password-manager', 'new-password');
       }
 
       // Find confirm password field
-      const confirmPasswordField = this.findField(form, ['confirm-password', 'confirmPassword', 'confirm_password']);
+      const confirmPasswordField = this.findField(form, [
+        'confirm-password',
+        'confirmPassword',
+        'confirm_password',
+      ]);
       if (confirmPasswordField) {
         confirmPasswordField.setAttribute('autocomplete', 'new-password');
         confirmPasswordField.setAttribute('data-password-manager', 'confirm-password');
       }
 
       // Add form submission handler
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', e => {
         this.handleFormSubmission(form, e);
       });
 
@@ -241,7 +246,7 @@ export class PasswordManagerService {
         id: credentials.username,
         password: credentials.password,
         name: credentials.username,
-        iconURL: `${window.location.origin}/favicon.ico`
+        iconURL: `${window.location.origin}/favicon.ico`,
       });
 
       await navigator.credentials.store(credential);
@@ -264,7 +269,7 @@ export class PasswordManagerService {
 
     try {
       const credentials = await navigator.credentials.getAll({
-        password: true
+        password: true,
       });
 
       return credentials.map(cred => ({
@@ -272,7 +277,7 @@ export class PasswordManagerService {
         password: (cred as PasswordCredential).password,
         url: window.location.origin,
         lastUsed: new Date(),
-        isSecure: window.location.protocol === 'https:'
+        isSecure: window.location.protocol === 'https:',
       }));
     } catch (error) {
       this.logger.error('Failed to get saved credentials:', error);
@@ -295,7 +300,7 @@ export class PasswordManagerService {
     try {
       // Get existing credentials
       const credentials = await this.getSavedCredentials();
-      
+
       if (credentials.length === 0) {
         this.logger.warn('No existing credentials to update');
         return false;
@@ -307,11 +312,11 @@ export class PasswordManagerService {
 
       // Save updated credential
       const success = await this.saveCredentials(credential);
-      
+
       if (success) {
         this.logger.info('Password updated in password manager');
       }
-      
+
       return success;
     } catch (error) {
       this.logger.error('Failed to update password:', error);
@@ -368,14 +373,14 @@ export class PasswordManagerService {
    */
   private calculatePasswordStrength(password: string): number {
     let strength = 0;
-    
+
     if (password.length >= 8) strength += 1;
     if (password.length >= 12) strength += 1;
     if (/[a-z]/.test(password)) strength += 1;
     if (/[A-Z]/.test(password)) strength += 1;
     if (/[0-9]/.test(password)) strength += 1;
     if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-    
+
     return strength;
   }
 
@@ -385,7 +390,7 @@ export class PasswordManagerService {
   private updatePasswordStrengthIndicator(indicator: HTMLElement, strength: number): void {
     const fill = indicator.querySelector('.strength-fill') as HTMLElement;
     const text = indicator.querySelector('.strength-text') as HTMLElement;
-    
+
     if (!fill || !text) return;
 
     const percentage = (strength / 6) * 100;
@@ -393,7 +398,7 @@ export class PasswordManagerService {
 
     const colors = ['#e74c3c', '#f39c12', '#f39c12', '#27ae60', '#27ae60', '#2ecc71'];
     const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
-    
+
     fill.style.backgroundColor = colors[Math.min(strength, 5)];
     text.textContent = labels[Math.min(strength, 5)];
   }
@@ -406,7 +411,7 @@ export class PasswordManagerService {
       isSupported: this.isSupported,
       hasCredentials: false, // Will be updated by hasCredentials()
       canAutofill: this.isSupported,
-      canSave: this.isSupported
+      canSave: this.isSupported,
     };
   }
 

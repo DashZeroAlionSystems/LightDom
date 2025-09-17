@@ -2,7 +2,7 @@
 
 /**
  * Browserbase Setup Script
- * 
+ *
  * Sets up Browserbase MCP server integration for LightDom project
  * including environment configuration, dependency installation, and testing.
  */
@@ -31,7 +31,6 @@ class BrowserbaseSetup {
       await this.setupMCPClient();
       await this.runTests();
       await this.displaySummary();
-
     } catch (error) {
       console.error(chalk.red.bold('❌ Setup failed:'), error.message);
       process.exit(1);
@@ -44,7 +43,7 @@ class BrowserbaseSetup {
     // Check Node.js version
     const nodeVersion = process.version;
     const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
-    
+
     if (majorVersion < 18) {
       throw new Error('Node.js 18 or higher is required');
     }
@@ -62,14 +61,12 @@ class BrowserbaseSetup {
   async installDependencies() {
     console.log(chalk.yellow('📦 Installing Browserbase dependencies...'));
 
-    const dependencies = [
-      '@browserbasehq/mcp-server-browserbase'
-    ];
+    const dependencies = ['@browserbasehq/mcp-server-browserbase'];
 
     try {
       execSync(`npm install ${dependencies.join(' ')} --save`, {
         stdio: 'inherit',
-        cwd: this.projectRoot
+        cwd: this.projectRoot,
       });
       console.log(chalk.green('✅ Dependencies installed successfully'));
     } catch (error) {
@@ -81,11 +78,7 @@ class BrowserbaseSetup {
     console.log(chalk.yellow('🔧 Setting up environment variables...'));
 
     let envContent = '';
-    const requiredVars = [
-      'BROWSERBASE_API_KEY',
-      'BROWSERBASE_PROJECT_ID',
-      'GEMINI_API_KEY'
-    ];
+    const requiredVars = ['BROWSERBASE_API_KEY', 'BROWSERBASE_PROJECT_ID', 'GEMINI_API_KEY'];
 
     // Read existing .env file
     if (fs.existsSync(this.envPath)) {
@@ -93,19 +86,19 @@ class BrowserbaseSetup {
     }
 
     // Check which variables are missing
-    const missingVars = requiredVars.filter(varName => 
-      !envContent.includes(varName) || envContent.includes(`${varName}=`)
+    const missingVars = requiredVars.filter(
+      varName => !envContent.includes(varName) || envContent.includes(`${varName}=`)
     );
 
     if (missingVars.length > 0) {
       console.log(chalk.yellow(`⚠️  Missing environment variables: ${missingVars.join(', ')}`));
       console.log(chalk.blue('Please add the following to your .env file:'));
       console.log(chalk.gray(''));
-      
+
       missingVars.forEach(varName => {
         console.log(chalk.gray(`${varName}=your_${varName.toLowerCase()}_here`));
       });
-      
+
       console.log(chalk.gray(''));
       console.log(chalk.blue('You can get these from:'));
       console.log(chalk.gray('- BROWSERBASE_API_KEY: https://browserbase.com'));
@@ -135,43 +128,43 @@ class BrowserbaseSetup {
 
     const config = {
       browserbase: {
-        apiKey: "${BROWSERBASE_API_KEY}",
-        projectId: "${BROWSERBASE_PROJECT_ID}",
-        modelApiKey: "${GEMINI_API_KEY}",
-        modelName: "google/gemini-2.0-flash",
+        apiKey: '${BROWSERBASE_API_KEY}',
+        projectId: '${BROWSERBASE_PROJECT_ID}',
+        modelApiKey: '${GEMINI_API_KEY}',
+        modelName: 'google/gemini-2.0-flash',
         proxies: true,
         advancedStealth: true,
         keepAlive: true,
         defaultViewport: {
           width: 1920,
-          height: 1080
+          height: 1080,
         },
         defaultTimeout: 30000,
         sessionManagement: {
           maxSessions: 10,
           sessionTimeout: 1800000,
           cleanupInterval: 300000,
-          persistentSessions: true
+          persistentSessions: true,
         },
         aiOptimization: {
           enabled: true,
           confidenceThreshold: 70,
           maxSuggestions: 10,
-          enableRealTimeAnalysis: true
+          enableRealTimeAnalysis: true,
         },
         security: {
           enableProxy: true,
           enableStealth: true,
           userAgentRotation: true,
-          fingerprintMasking: true
+          fingerprintMasking: true,
         },
         monitoring: {
           enableMetrics: true,
-          logLevel: "info",
+          logLevel: 'info',
           performanceTracking: true,
-          errorTracking: true
-        }
-      }
+          errorTracking: true,
+        },
+      },
     };
 
     fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2));
@@ -193,25 +186,25 @@ class BrowserbaseSetup {
     mcpConfig.mcpServers = {
       ...mcpConfig.mcpServers,
       browserbase: {
-        command: "npx",
+        command: 'npx',
         args: [
-          "@browserbasehq/mcp-server-browserbase",
-          "--proxies",
-          "--advancedStealth",
-          "--keepAlive",
-          "--browserWidth",
-          "1920",
-          "--browserHeight",
-          "1080",
-          "--modelName",
-          "google/gemini-2.0-flash"
+          '@browserbasehq/mcp-server-browserbase',
+          '--proxies',
+          '--advancedStealth',
+          '--keepAlive',
+          '--browserWidth',
+          '1920',
+          '--browserHeight',
+          '1080',
+          '--modelName',
+          'google/gemini-2.0-flash',
         ],
         env: {
-          BROWSERBASE_API_KEY: "${BROWSERBASE_API_KEY}",
-          BROWSERBASE_PROJECT_ID: "${BROWSERBASE_PROJECT_ID}",
-          GEMINI_API_KEY: "${GEMINI_API_KEY}"
-        }
-      }
+          BROWSERBASE_API_KEY: '${BROWSERBASE_API_KEY}',
+          BROWSERBASE_PROJECT_ID: '${BROWSERBASE_PROJECT_ID}',
+          GEMINI_API_KEY: '${GEMINI_API_KEY}',
+        },
+      },
     };
 
     fs.writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
@@ -235,7 +228,6 @@ class BrowserbaseSetup {
       }
 
       console.log(chalk.green('✅ Integration tests passed'));
-
     } catch (error) {
       console.log(chalk.yellow('⚠️  Some tests failed, but setup can continue'));
       console.log(chalk.gray(`Error: ${error.message}`));
@@ -262,7 +254,9 @@ class BrowserbaseSetup {
     console.log(chalk.gray('  "https://example.com",'));
     console.log(chalk.gray('  {'));
     console.log(chalk.gray('    useAI: true,'));
-    console.log(chalk.gray('    aiInstructions: "Extract product information and take a screenshot"'));
+    console.log(
+      chalk.gray('    aiInstructions: "Extract product information and take a screenshot"')
+    );
     console.log(chalk.gray('  }'));
     console.log(chalk.gray(');'));
 

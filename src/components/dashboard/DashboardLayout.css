@@ -200,7 +200,9 @@
   text-align: center;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .stat-card:hover {
@@ -272,27 +274,27 @@
   .mobile-header {
     display: flex;
   }
-  
+
   .dashboard-sidebar {
     display: none;
   }
-  
+
   .dashboard-main {
     margin-left: 0;
   }
-  
+
   .dashboard-header {
     display: none;
   }
-  
+
   .quick-stats-bar {
     padding: 16px;
   }
-  
+
   .dashboard-content {
     padding: 16px;
   }
-  
+
   .stat-card {
     margin-bottom: 16px;
   }
@@ -302,7 +304,7 @@
   .quick-stats-bar .ant-col {
     margin-bottom: 16px;
   }
-  
+
   .dashboard-content {
     padding: 12px;
   }
@@ -313,26 +315,26 @@
   .dashboard-layout {
     background: #141414;
   }
-  
+
   .dashboard-header {
     background: #1f1f1f;
     border-bottom-color: #303030;
   }
-  
+
   .quick-stats-bar {
     background: #1f1f1f;
     border-bottom-color: #303030;
   }
-  
+
   .stat-card {
     background: #262626;
     border-color: #303030;
   }
-  
+
   .stat-card .ant-statistic-title {
     color: #a6a6a6;
   }
-  
+
   .stat-card .ant-statistic-content {
     color: #fff;
   }

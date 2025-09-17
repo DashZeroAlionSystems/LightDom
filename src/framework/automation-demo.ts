@@ -22,12 +22,12 @@ async function demonstrateAutomation(): Promise<void> {
     // Create storage nodes for demonstration
     console.log('\n2. Setting up Storage Nodes...');
     await lightDomFramework.startMiningWorkflow();
-    
+
     const node1 = await lightDomFramework.createStorageNode({
       name: 'US East Mining Node',
       capacity: 5000,
       location: 'us-east-1',
-      priority: 'high'
+      priority: 'high',
     });
     console.log(`✅ Created node: ${node1.name}`);
 
@@ -35,7 +35,7 @@ async function demonstrateAutomation(): Promise<void> {
       name: 'EU West Mining Node',
       capacity: 8000,
       location: 'eu-west-1',
-      priority: 'medium'
+      priority: 'medium',
     });
     console.log(`✅ Created node: ${node2.name}`);
 
@@ -46,7 +46,7 @@ async function demonstrateAutomation(): Promise<void> {
       'https://github.com',
       'https://stackoverflow.com',
       'https://medium.com',
-      'https://dev.to'
+      'https://dev.to',
     ];
 
     const jobIds = await lightDomFramework.addMiningJobs(
@@ -56,7 +56,7 @@ async function demonstrateAutomation(): Promise<void> {
 
     // Create automation rules
     console.log('\n4. Creating Automation Rules...');
-    
+
     // Performance monitoring rule
     const performanceRule = await cursorAPIIntegration.createAutomationRule({
       name: 'Performance Monitoring',
@@ -66,18 +66,18 @@ async function demonstrateAutomation(): Promise<void> {
           type: 'age',
           operator: 'greater_than',
           value: 5,
-          unit: 'minutes'
-        }
+          unit: 'minutes',
+        },
       ],
       actions: [
         {
           type: 'optimize_code',
           config: { target: 'performance' },
-          priority: 'high'
-        }
+          priority: 'high',
+        },
       ],
       enabled: true,
-      priority: 'high'
+      priority: 'high',
     });
     console.log(`✅ Created rule: ${performanceRule.name}`);
 
@@ -90,18 +90,18 @@ async function demonstrateAutomation(): Promise<void> {
           type: 'age',
           operator: 'greater_than',
           value: 10,
-          unit: 'minutes'
-        }
+          unit: 'minutes',
+        },
       ],
       actions: [
         {
           type: 'cleanup_files',
           config: { threshold: 80 },
-          priority: 'medium'
-        }
+          priority: 'medium',
+        },
       ],
       enabled: true,
-      priority: 'medium'
+      priority: 'medium',
     });
     console.log(`✅ Created rule: ${storageRule.name}`);
 
@@ -114,28 +114,28 @@ async function demonstrateAutomation(): Promise<void> {
           type: 'age',
           operator: 'greater_than',
           value: 15,
-          unit: 'minutes'
-        }
+          unit: 'minutes',
+        },
       ],
       actions: [
         {
           type: 'scale_resources',
           config: { target: 'mining' },
-          priority: 'low'
-        }
+          priority: 'low',
+        },
       ],
       enabled: true,
-      priority: 'low'
+      priority: 'low',
     });
     console.log(`✅ Created rule: ${miningRule.name}`);
 
     // Deploy n8n workflows
     console.log('\n5. Deploying N8N Workflows...');
-    
+
     if (n8nWorkflowManager.getStatus().running) {
       const deployedWorkflows = await n8nWorkflowManager.deployAllLightDomWorkflows();
       console.log(`✅ Deployed ${deployedWorkflows.length} N8N workflows`);
-      
+
       for (const workflow of deployedWorkflows) {
         console.log(`   - ${workflow.name} (${workflow.id})`);
       }
@@ -145,7 +145,7 @@ async function demonstrateAutomation(): Promise<void> {
 
     // Create Cursor API workflows
     console.log('\n6. Creating Cursor API Workflows...');
-    
+
     // Auto-optimization workflow
     const autoOptimizationWorkflow = await cursorAPIIntegration.createWorkflow({
       name: 'Auto Optimization Workflow',
@@ -153,7 +153,7 @@ async function demonstrateAutomation(): Promise<void> {
       trigger: {
         type: 'schedule',
         config: { interval: 300000 }, // 5 minutes
-        enabled: true
+        enabled: true,
       },
       status: 'active',
       actions: [
@@ -198,12 +198,12 @@ async function demonstrateAutomation(): Promise<void> {
                 console.log('High storage utilization detected, triggering cleanup');
                 // await lightDomFramework.cleanupStorage();
               }
-            `
+            `,
           },
           enabled: true,
-          order: 1
-        }
-      ]
+          order: 1,
+        },
+      ],
     });
     console.log(`✅ Created workflow: ${autoOptimizationWorkflow.name}`);
 
@@ -214,7 +214,7 @@ async function demonstrateAutomation(): Promise<void> {
       trigger: {
         type: 'schedule',
         config: { interval: 600000 }, // 10 minutes
-        enabled: true
+        enabled: true,
       },
       status: 'active',
       actions: [
@@ -239,18 +239,18 @@ async function demonstrateAutomation(): Promise<void> {
                   // await lightDomFramework.optimizeStorageNode(node.id);
                 }
               }
-            `
+            `,
           },
           enabled: true,
-          order: 1
-        }
-      ]
+          order: 1,
+        },
+      ],
     });
     console.log(`✅ Created workflow: ${storageManagementWorkflow.name}`);
 
     // Execute workflows manually for demonstration
     console.log('\n7. Executing Workflows...');
-    
+
     // Execute auto-optimization workflow
     console.log('🚀 Executing Auto Optimization Workflow...');
     const execution1 = await cursorAPIIntegration.executeWorkflow(autoOptimizationWorkflow.id);
@@ -264,7 +264,8 @@ async function demonstrateAutomation(): Promise<void> {
     // Execute n8n workflows if available
     if (n8nWorkflowManager.getStatus().running) {
       const n8nWorkflows = n8nWorkflowManager.getAllWorkflows();
-      for (const workflow of n8nWorkflows.slice(0, 2)) { // Execute first 2 workflows
+      for (const workflow of n8nWorkflows.slice(0, 2)) {
+        // Execute first 2 workflows
         console.log(`🚀 Executing N8N workflow: ${workflow.name}...`);
         try {
           const execution = await n8nWorkflowManager.executeWorkflow(workflow.id);
@@ -277,40 +278,40 @@ async function demonstrateAutomation(): Promise<void> {
 
     // Monitor automation for a while
     console.log('\n8. Monitoring Automation...');
-    
+
     let monitoringCycles = 0;
     const maxCycles = 5;
-    
+
     const monitoringInterval = setInterval(async () => {
       monitoringCycles++;
-      
+
       console.log(`\n📊 Monitoring Cycle ${monitoringCycles}/${maxCycles}`);
-      
+
       // Get automation statistics
       const stats = automationOrchestrator.getAutomationStats();
       console.log(`   Events: ${stats.totalEvents}`);
       console.log(`   Active Workflows: ${stats.activeWorkflows}`);
       console.log(`   Successful Executions: ${stats.successfulExecutions}`);
       console.log(`   Failed Executions: ${stats.failedExecutions}`);
-      
+
       // Get LightDom status
       const lightDomStatus = lightDomFramework.getStatus();
       console.log(`   LightDom Status: ${lightDomStatus.running ? 'Running' : 'Stopped'}`);
       console.log(`   Processing Time: ${lightDomStatus.performance.averageProcessingTime}ms`);
       console.log(`   Error Rate: ${lightDomStatus.performance.errorRate}%`);
-      
+
       // Get storage metrics
       const storageMetrics = lightDomFramework.getStorageMetrics();
       console.log(`   Storage Utilization: ${storageMetrics.utilizationRate.toFixed(2)}%`);
       console.log(`   Total Capacity: ${storageMetrics.totalCapacity}MB`);
       console.log(`   Total Used: ${storageMetrics.totalUsed}MB`);
-      
+
       // Get mining stats
       const miningStats = lightDomFramework.getMiningStats();
       console.log(`   Mining Jobs: ${miningStats.totalJobs}`);
       console.log(`   Completed: ${miningStats.completedJobs}`);
       console.log(`   Success Rate: ${miningStats.successRate.toFixed(2)}%`);
-      
+
       if (monitoringCycles >= maxCycles) {
         clearInterval(monitoringInterval);
         console.log('\n✅ Monitoring completed');
@@ -339,14 +340,16 @@ async function demonstrateAutomation(): Promise<void> {
 
     // Get workflow status
     console.log('\n10. Workflow Status...');
-    
+
     // Cursor API workflows
     const cursorWorkflows = cursorAPIIntegration.getAllWorkflows();
     console.log(`📋 Cursor API Workflows: ${cursorWorkflows.length}`);
     for (const workflow of cursorWorkflows) {
-      console.log(`   - ${workflow.name}: ${workflow.status} (${workflow.executionCount} executions)`);
+      console.log(
+        `   - ${workflow.name}: ${workflow.status} (${workflow.executionCount} executions)`
+      );
     }
-    
+
     // N8N workflows
     if (n8nWorkflowManager.getStatus().running) {
       const n8nWorkflows = n8nWorkflowManager.getAllWorkflows();
@@ -358,7 +361,6 @@ async function demonstrateAutomation(): Promise<void> {
 
     console.log('\n✅ Automation Demonstration Completed!');
     console.log('🎉 All automation features are working correctly!');
-
   } catch (error) {
     console.error('❌ Demonstration failed:', error);
   } finally {

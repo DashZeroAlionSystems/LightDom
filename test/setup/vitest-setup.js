@@ -18,18 +18,18 @@ global.WebSocket = vi.fn(() => ({
   close: vi.fn(),
   send: vi.fn(),
   addEventListener: vi.fn(),
-  removeEventListener: vi.fn()
+  removeEventListener: vi.fn(),
 }));
 
 // Mock crypto for Node.js environment
 if (typeof global.crypto === 'undefined') {
   global.crypto = {
-    getRandomValues: (arr) => {
+    getRandomValues: arr => {
       for (let i = 0; i < arr.length; i++) {
         arr[i] = Math.floor(Math.random() * 256);
       }
       return arr;
-    }
+    },
   };
 }
 

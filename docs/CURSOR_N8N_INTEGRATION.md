@@ -40,6 +40,7 @@ The core component that manages task execution lifecycle:
 - **Event System**: Real-time task status updates via EventEmitter
 
 **Key Features:**
+
 - Task creation and queuing
 - Concurrent task execution
 - Task monitoring and status tracking
@@ -57,6 +58,7 @@ Manages headless Chrome browser instances:
 - **Resource Optimization**: Block unnecessary resources for faster execution
 
 **Key Features:**
+
 - Optimized Chrome configuration for performance
 - Request interception and filtering
 - DOM analysis and performance metrics
@@ -73,6 +75,7 @@ Orchestrates the integration between all components:
 - **Status Monitoring**: Real-time integration status and health checks
 
 **Built-in Cursor API Functions:**
+
 - `analyzeDOM`: Comprehensive DOM structure and performance analysis
 - `extractText`: Extract all text content from pages
 - `getTitle`: Get page title
@@ -97,6 +100,7 @@ RESTful API endpoints for task management:
 ### Task Management
 
 #### Create JavaScript Task
+
 ```http
 POST /api/tasks/javascript
 Content-Type: application/json
@@ -110,6 +114,7 @@ Content-Type: application/json
 ```
 
 #### Create DOM Analysis Task
+
 ```http
 POST /api/tasks/dom-analysis
 Content-Type: application/json
@@ -122,6 +127,7 @@ Content-Type: application/json
 ```
 
 #### Create N8n Workflow Task
+
 ```http
 POST /api/tasks/n8n-workflow
 Content-Type: application/json
@@ -138,11 +144,13 @@ Content-Type: application/json
 ```
 
 #### Get Task Status
+
 ```http
 GET /api/tasks/{taskId}
 ```
 
 #### Get Task Statistics
+
 ```http
 GET /api/tasks/stats
 ```
@@ -150,6 +158,7 @@ GET /api/tasks/stats
 ### Direct Execution
 
 #### Execute JavaScript
+
 ```http
 POST /api/execute/javascript
 Content-Type: application/json
@@ -162,6 +171,7 @@ Content-Type: application/json
 ```
 
 #### Execute Cursor API Function
+
 ```http
 POST /api/cursor/execute
 Content-Type: application/json
@@ -176,16 +186,19 @@ Content-Type: application/json
 ### Integration Status
 
 #### Get Integration Status
+
 ```http
 GET /api/integration/status
 ```
 
 #### Get Available Cursor Functions
+
 ```http
 GET /api/integration/cursor/functions
 ```
 
 #### Get Available N8n Workflows
+
 ```http
 GET /api/integration/n8n/workflows
 ```
@@ -198,6 +211,7 @@ GET /api/integration/n8n/workflows
 **Webhook**: `/webhook/dom-analysis`
 
 **Input**:
+
 ```json
 {
   "url": "https://example.com",
@@ -206,6 +220,7 @@ GET /api/integration/n8n/workflows
 ```
 
 **Output**:
+
 ```json
 {
   "success": true,
@@ -233,6 +248,7 @@ GET /api/integration/n8n/workflows
 **Webhook**: `/webhook/execute-js`
 
 **Input**:
+
 ```json
 {
   "script": "return document.title;",
@@ -246,6 +262,7 @@ GET /api/integration/n8n/workflows
 **Webhook**: `/webhook/cursor-api`
 
 **Input**:
+
 ```json
 {
   "functionName": "analyzeDOM",
@@ -259,6 +276,7 @@ GET /api/integration/n8n/workflows
 **Webhook**: `/webhook/optimize-dom`
 
 **Input**:
+
 ```json
 {
   "url": "https://example.com",
@@ -299,19 +317,19 @@ DB_PASSWORD=postgres
 const config = {
   cursorAPI: {
     enabled: true,
-    baseUrl: 'http://localhost:3001/api/cursor'
+    baseUrl: 'http://localhost:3001/api/cursor',
   },
   n8n: {
     enabled: true,
     baseUrl: 'http://localhost:5678',
     apiKey: 'your_api_key',
-    webhookSecret: 'your_webhook_secret'
+    webhookSecret: 'your_webhook_secret',
   },
   headlessChrome: {
     enabled: true,
     maxConcurrency: 5,
-    defaultTimeout: 30000
-  }
+    defaultTimeout: 30000,
+  },
 };
 ```
 
@@ -321,18 +339,21 @@ const config = {
 
 ```javascript
 // Create a task for DOM analysis
-const taskId = await taskManager.createJavaScriptTask(`
+const taskId = await taskManager.createJavaScriptTask(
+  `
   const analysis = {
     title: document.title,
     totalElements: document.querySelectorAll('*').length,
     images: document.querySelectorAll('img').length
   };
   return analysis;
-`, {
-  url: 'https://example.com',
-  timeout: 30000,
-  priority: 8
-});
+`,
+  {
+    url: 'https://example.com',
+    timeout: 30000,
+    priority: 8,
+  }
+);
 
 // Monitor task completion
 const task = await taskManager.getTask(taskId);
@@ -343,10 +364,14 @@ console.log('Task result:', task.result);
 
 ```javascript
 // Execute built-in DOM analysis function
-const result = await integrationService.executeCursorFunction('analyzeDOM', {}, {
-  url: 'https://example.com',
-  timeout: 30000
-});
+const result = await integrationService.executeCursorFunction(
+  'analyzeDOM',
+  {},
+  {
+    url: 'https://example.com',
+    timeout: 30000,
+  }
+);
 
 console.log('DOM Analysis:', result);
 ```
@@ -357,7 +382,7 @@ console.log('DOM Analysis:', result);
 // Execute optimization pipeline workflow
 const result = await integrationService.executeN8nWorkflow('optimization-pipeline-workflow', {
   url: 'https://example.com',
-  optimizationType: 'full'
+  optimizationType: 'full',
 });
 
 console.log('Optimization results:', result);
@@ -370,7 +395,7 @@ console.log('Optimization results:', result);
 const result = await integrationService.executeOptimizationPipeline('https://example.com', {
   analysisType: 'full',
   includeAccessibility: true,
-  timeout: 120000
+  timeout: 120000,
 });
 
 console.log('Pipeline results:', result);

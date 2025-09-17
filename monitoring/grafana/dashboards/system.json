@@ -2,10 +2,7 @@
   "dashboard": {
     "id": null,
     "title": "System Overview",
-    "tags": [
-      "lightdom",
-      "automation"
-    ],
+    "tags": ["lightdom", "automation"],
     "timezone": "browser",
     "panels": [
       {

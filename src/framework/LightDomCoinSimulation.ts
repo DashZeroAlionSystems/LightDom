@@ -99,7 +99,7 @@ export class LightDomCoinSimulation extends EventEmitter {
       enableMining: true,
       enableStaking: true,
       enableGovernance: true,
-      ...config
+      ...config,
     };
 
     this.metrics = {
@@ -113,7 +113,7 @@ export class LightDomCoinSimulation extends EventEmitter {
       activeNodes: 0,
       totalOptimizations: 0,
       totalSpaceSaved: 0,
-      averageReward: 0
+      averageReward: 0,
     };
 
     this.initializeTokenDistribution();
@@ -140,7 +140,6 @@ export class LightDomCoinSimulation extends EventEmitter {
       this.emit('started');
 
       console.log('✅ LightDom coin simulation started successfully');
-
     } catch (error) {
       console.error('❌ Failed to start coin simulation:', error);
       throw error;
@@ -195,9 +194,8 @@ export class LightDomCoinSimulation extends EventEmitter {
       this.emit('simulationCycle', {
         blockNumber: this.blockNumber,
         metrics: this.metrics,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
-
     } catch (error) {
       console.error('❌ Simulation cycle error:', error);
       this.emit('simulationError', error);
@@ -210,8 +208,8 @@ export class LightDomCoinSimulation extends EventEmitter {
   private async processOptimizationRewards(): Promise<void> {
     // Get recent optimizations
     const optimizations = spaceOptimizationEngine.getOptimizations();
-    const recentOptimizations = optimizations.filter(opt => 
-      Date.now() - opt.timestamp < this.config.simulationInterval
+    const recentOptimizations = optimizations.filter(
+      opt => Date.now() - opt.timestamp < this.config.simulationInterval
     );
 
     for (const optimization of recentOptimizations) {
@@ -237,7 +235,7 @@ export class LightDomCoinSimulation extends EventEmitter {
         harvester: optimization.harvesterAddress,
         amount: finalReward,
         spaceSaved: optimization.spaceSavedBytes,
-        transaction
+        transaction,
       });
     }
   }
@@ -278,7 +276,7 @@ export class LightDomCoinSimulation extends EventEmitter {
             poolId,
             owner: pool.owner,
             amount: reward,
-            totalRewards: pool.rewards
+            totalRewards: pool.rewards,
           });
         }
       }
@@ -296,11 +294,11 @@ export class LightDomCoinSimulation extends EventEmitter {
         // Check if proposal passed
         const totalVotes = proposal.votesFor + proposal.votesAgainst;
         const quorum = this.calculateQuorum();
-        
+
         if (totalVotes >= quorum && proposal.votesFor > proposal.votesAgainst) {
           proposal.status = 'passed';
           proposal.executionTime = currentTime;
-          
+
           this.emit('governanceProposalPassed', proposal);
         } else {
           proposal.status = 'rejected';
@@ -317,7 +315,7 @@ export class LightDomCoinSimulation extends EventEmitter {
     const baseReward = (optimization.spaceSavedBytes / 1024) * 0.001; // 0.001 tokens per KB
     const qualityMultiplier = optimization.qualityScore / 100;
     const reputationMultiplier = optimization.reputationMultiplier;
-    
+
     return baseReward * qualityMultiplier * reputationMultiplier;
   }
 
@@ -347,7 +345,7 @@ export class LightDomCoinSimulation extends EventEmitter {
     amount: number
   ): TokenTransaction {
     const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     return {
       id: transactionId,
       type,
@@ -357,7 +355,7 @@ export class LightDomCoinSimulation extends EventEmitter {
       timestamp: Date.now(),
       blockNumber: this.blockNumber,
       gasUsed: this.calculateGasUsed(type),
-      status: 'pending'
+      status: 'pending',
     };
   }
 
@@ -396,7 +394,6 @@ export class LightDomCoinSimulation extends EventEmitter {
       this.metrics.totalTransactions++;
 
       this.emit('transactionProcessed', transaction);
-
     } catch (error) {
       console.error('❌ Transaction processing error:', error);
       transaction.status = 'failed';
@@ -409,7 +406,10 @@ export class LightDomCoinSimulation extends EventEmitter {
    */
   private validateTransaction(transaction: TokenTransaction): boolean {
     // Check if sender has sufficient balance (except for rewards)
-    if (transaction.type !== 'reward' && transaction.from !== '0x0000000000000000000000000000000000000000') {
+    if (
+      transaction.type !== 'reward' &&
+      transaction.from !== '0x0000000000000000000000000000000000000000'
+    ) {
       const senderBalance = this.tokenHolders.get(transaction.from) || 0;
       if (senderBalance < transaction.amount) {
         return false;
@@ -438,7 +438,7 @@ export class LightDomCoinSimulation extends EventEmitter {
   private async processTransferTransaction(transaction: TokenTransaction): Promise<void> {
     // Deduct from sender
     this.updateTokenBalance(transaction.from, -transaction.amount);
-    
+
     // Add to receiver
     this.updateTokenBalance(transaction.to, transaction.amount);
   }
@@ -449,7 +449,7 @@ export class LightDomCoinSimulation extends EventEmitter {
   private async processStakeTransaction(transaction: TokenTransaction): Promise<void> {
     // Deduct from sender
     this.updateTokenBalance(transaction.from, -transaction.amount);
-    
+
     // Create staking pool
     const poolId = `pool_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const stakingPool: StakingPool = {
@@ -458,9 +458,9 @@ export class LightDomCoinSimulation extends EventEmitter {
       amount: transaction.amount,
       duration: 30 * 24 * 60 * 60 * 1000, // 30 days
       startTime: Date.now(),
-      endTime: Date.now() + (30 * 24 * 60 * 60 * 1000),
+      endTime: Date.now() + 30 * 24 * 60 * 60 * 1000,
       rewards: 0,
-      status: 'active'
+      status: 'active',
     };
 
     this.stakingPools.set(poolId, stakingPool);
@@ -474,13 +474,14 @@ export class LightDomCoinSimulation extends EventEmitter {
    */
   private async processUnstakeTransaction(transaction: TokenTransaction): Promise<void> {
     // Find staking pool
-    const pool = Array.from(this.stakingPools.values())
-      .find(p => p.owner === transaction.from && p.status === 'active');
+    const pool = Array.from(this.stakingPools.values()).find(
+      p => p.owner === transaction.from && p.status === 'active'
+    );
 
     if (pool && pool.amount >= transaction.amount) {
       // Return staked amount
       this.updateTokenBalance(transaction.from, transaction.amount);
-      
+
       // Update pool
       pool.amount -= transaction.amount;
       this.metrics.stakedAmount -= transaction.amount;
@@ -489,7 +490,11 @@ export class LightDomCoinSimulation extends EventEmitter {
         pool.status = 'completed';
       }
 
-      this.emit('tokensUnstaked', { poolId: pool.id, amount: transaction.amount, owner: transaction.from });
+      this.emit('tokensUnstaked', {
+        poolId: pool.id,
+        amount: transaction.amount,
+        owner: transaction.from,
+      });
     }
   }
 
@@ -499,7 +504,7 @@ export class LightDomCoinSimulation extends EventEmitter {
   private async processFeeTransaction(transaction: TokenTransaction): Promise<void> {
     // Fees are burned, so deduct from sender
     this.updateTokenBalance(transaction.from, -transaction.amount);
-    
+
     // Reduce circulating supply
     this.metrics.circulatingSupply -= transaction.amount;
   }
@@ -522,7 +527,7 @@ export class LightDomCoinSimulation extends EventEmitter {
       transfer: 21000,
       stake: 50000,
       unstake: 30000,
-      fee: 10000
+      fee: 10000,
     };
     return gasRates[type] || 21000;
   }
@@ -554,7 +559,8 @@ export class LightDomCoinSimulation extends EventEmitter {
       .slice(-100); // Last 100 reward transactions
 
     if (recentTransactions.length > 0) {
-      this.metrics.averageReward = recentTransactions.reduce((sum, tx) => sum + tx.amount, 0) / recentTransactions.length;
+      this.metrics.averageReward =
+        recentTransactions.reduce((sum, tx) => sum + tx.amount, 0) / recentTransactions.length;
     }
 
     // Update network hash rate (simplified)
@@ -572,11 +578,11 @@ export class LightDomCoinSimulation extends EventEmitter {
     const systemAddresses = [
       '0x1234567890123456789012345678901234567890',
       '0x2345678901234567890123456789012345678901',
-      '0x3456789012345678901234567890123456789012'
+      '0x3456789012345678901234567890123456789012',
     ];
 
     const tokensPerAddress = this.config.initialDistribution / systemAddresses.length;
-    
+
     systemAddresses.forEach(address => {
       this.tokenHolders.set(address, tokensPerAddress);
     });
@@ -623,13 +629,9 @@ export class LightDomCoinSimulation extends EventEmitter {
   /**
    * Create governance proposal
    */
-  createGovernanceProposal(
-    proposer: string,
-    title: string,
-    description: string
-  ): string {
+  createGovernanceProposal(proposer: string, title: string, description: string): string {
     const proposalId = `prop_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const proposal: GovernanceProposal = {
       id: proposalId,
       title,
@@ -640,7 +642,7 @@ export class LightDomCoinSimulation extends EventEmitter {
       totalVotes: 0,
       status: 'active',
       startTime: Date.now(),
-      endTime: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
+      endTime: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
     };
 
     this.governanceProposals.set(proposalId, proposal);
@@ -660,7 +662,8 @@ export class LightDomCoinSimulation extends EventEmitter {
 
     // Check if voter has staked tokens
     const voterBalance = this.getTokenBalance(voter);
-    if (voterBalance < 1000) { // Minimum 1000 tokens to vote
+    if (voterBalance < 1000) {
+      // Minimum 1000 tokens to vote
       return false;
     }
 
@@ -692,8 +695,11 @@ export class LightDomCoinSimulation extends EventEmitter {
       blockNumber: this.blockNumber,
       metrics: this.metrics,
       totalTransactions: this.transactions.size,
-      activeStakingPools: Array.from(this.stakingPools.values()).filter(p => p.status === 'active').length,
-      activeProposals: Array.from(this.governanceProposals.values()).filter(p => p.status === 'active').length
+      activeStakingPools: Array.from(this.stakingPools.values()).filter(p => p.status === 'active')
+        .length,
+      activeProposals: Array.from(this.governanceProposals.values()).filter(
+        p => p.status === 'active'
+      ).length,
     };
   }
 }

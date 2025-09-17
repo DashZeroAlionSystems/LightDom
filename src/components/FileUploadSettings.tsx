@@ -36,7 +36,9 @@ export const FileUploadSettings: React.FC = () => {
 
     try {
       if (maxFileSize > chromeLimits.maxFileSize) {
-        setMessage(`File size cannot exceed Chrome limit of ${formatBytes(chromeLimits.maxFileSize)}`);
+        setMessage(
+          `File size cannot exceed Chrome limit of ${formatBytes(chromeLimits.maxFileSize)}`
+        );
         return;
       }
 
@@ -59,14 +61,14 @@ export const FileUploadSettings: React.FC = () => {
 
   const getRecommendedSizes = () => {
     if (!chromeLimits) return [];
-    
+
     const maxSize = chromeLimits.maxFileSize;
     return [
       { label: 'Small (1MB)', value: 1024 * 1024 },
       { label: 'Medium (10MB)', value: 10 * 1024 * 1024 },
       { label: 'Large (100MB)', value: 100 * 1024 * 1024 },
       { label: 'Very Large (1GB)', value: 1024 * 1024 * 1024 },
-      { label: 'Maximum (2GB)', value: maxSize }
+      { label: 'Maximum (2GB)', value: maxSize },
     ].filter(size => size.value <= maxSize);
   };
 
@@ -75,54 +77,52 @@ export const FileUploadSettings: React.FC = () => {
   }
 
   return (
-    <div className="file-upload-settings">
+    <div className='file-upload-settings'>
       <h2>File Upload Settings</h2>
-      
-      <div className="chrome-info">
+
+      <div className='chrome-info'>
         <h3>Chrome Browser Limits</h3>
-        <div className="limits-grid">
-          <div className="limit-item">
+        <div className='limits-grid'>
+          <div className='limit-item'>
             <label>Maximum File Size:</label>
             <span>{formatBytes(chromeLimits.maxFileSize)}</span>
           </div>
-          <div className="limit-item">
+          <div className='limit-item'>
             <label>Maximum Files:</label>
             <span>{chromeLimits.maxFiles.toLocaleString()}</span>
           </div>
-          <div className="limit-item">
+          <div className='limit-item'>
             <label>Total Upload Limit:</label>
             <span>{formatBytes(chromeLimits.maxTotalSize)}</span>
           </div>
-          <div className="limit-item">
+          <div className='limit-item'>
             <label>Browser Version:</label>
             <span>Chrome {chromeLimits.browserVersion}</span>
           </div>
         </div>
       </div>
 
-      <div className="size-settings">
+      <div className='size-settings'>
         <h3>Set Your Maximum File Upload Size</h3>
-        
-        <div className="size-input">
-          <label htmlFor="maxFileSize">
-            Maximum File Size (bytes):
-          </label>
+
+        <div className='size-input'>
+          <label htmlFor='maxFileSize'>Maximum File Size (bytes):</label>
           <input
-            id="maxFileSize"
-            type="number"
+            id='maxFileSize'
+            type='number'
             value={maxFileSize}
             onChange={handleSizeChange}
-            min="1024"
+            min='1024'
             max={chromeLimits.maxFileSize}
-            step="1024"
+            step='1024'
           />
-          <span className="size-display">{formatBytes(maxFileSize)}</span>
+          <span className='size-display'>{formatBytes(maxFileSize)}</span>
         </div>
 
-        <div className="recommended-sizes">
+        <div className='recommended-sizes'>
           <h4>Recommended Sizes:</h4>
-          <div className="size-buttons">
-            {getRecommendedSizes().map((size) => (
+          <div className='size-buttons'>
+            {getRecommendedSizes().map(size => (
               <button
                 key={size.value}
                 onClick={() => setMaxFileSize(size.value)}
@@ -134,34 +134,26 @@ export const FileUploadSettings: React.FC = () => {
           </div>
         </div>
 
-        <div className="supported-formats">
+        <div className='supported-formats'>
           <h4>Supported File Types:</h4>
-          <div className="format-tags">
+          <div className='format-tags'>
             {chromeLimits.supportedFormats.slice(0, 10).map((format, index) => (
-              <span key={index} className="format-tag">
+              <span key={index} className='format-tag'>
                 {format}
               </span>
             ))}
             {chromeLimits.supportedFormats.length > 10 && (
-              <span className="format-tag">
-                +{chromeLimits.supportedFormats.length - 10} more
-              </span>
+              <span className='format-tag'>+{chromeLimits.supportedFormats.length - 10} more</span>
             )}
           </div>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={loading}
-          className="save-button"
-        >
+        <button onClick={handleSave} disabled={loading} className='save-button'>
           {loading ? 'Saving...' : 'Save Settings'}
         </button>
 
         {message && (
-          <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
-            {message}
-          </div>
+          <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>{message}</div>
         )}
       </div>
 

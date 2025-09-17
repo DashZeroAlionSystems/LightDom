@@ -1,81 +1,77 @@
 {
-  "groups": [
-    {
-      "name": "lightdom.rules",
-      "rules": [
-        {
-          "alert": "High CPU Usage",
-          "expr": "cpu_usage_percent > 90",
-          "for": "5m",
-          "labels": {
-            "severity": "critical"
-          },
-          "annotations": {
-            "summary": "CPU usage is critically high",
-            "description": "CPU usage is critically high"
-          }
-        },
-        {
-          "alert": "High Memory Usage",
-          "expr": "memory_usage_percent > 95",
-          "for": "2m",
-          "labels": {
-            "severity": "critical"
-          },
-          "annotations": {
-            "summary": "Memory usage is critically high",
-            "description": "Memory usage is critically high"
-          }
-        },
-        {
-          "alert": "Disk Space Low",
-          "expr": "disk_usage_percent > 90",
-          "for": "10m",
-          "labels": {
-            "severity": "warning"
-          },
-          "annotations": {
-            "summary": "Disk space is running low",
-            "description": "Disk space is running low"
-          }
-        },
-        {
-          "alert": "Blockchain Node Down",
-          "expr": "blockchain_node_health < 0.5",
-          "for": "1m",
-          "labels": {
-            "severity": "critical"
-          },
-          "annotations": {
-            "summary": "Blockchain node is down or unhealthy",
-            "description": "Blockchain node is down or unhealthy"
-          }
-        },
-        {
-          "alert": "Workflow Failure Rate High",
-          "expr": "automation_workflow_success_rate < 0.8",
-          "for": "5m",
-          "labels": {
-            "severity": "warning"
-          },
-          "annotations": {
-            "summary": "Workflow failure rate is high",
-            "description": "Workflow failure rate is high"
-          }
-        },
-        {
-          "alert": "High Error Rate",
-          "expr": "automation_error_rate > 0.1",
-          "for": "2m",
-          "labels": {
-            "severity": "critical"
-          },
-          "annotations": {
-            "summary": "System error rate is critically high",
-            "description": "System error rate is critically high"
-          }
-        }
-      ]
-    }
-  ]
+  'groups':
+    [
+      {
+        'name': 'lightdom.rules',
+        'rules':
+          [
+            {
+              'alert': 'High CPU Usage',
+              'expr': 'cpu_usage_percent > 90',
+              'for': '5m',
+              'labels': { 'severity': 'critical' },
+              'annotations':
+                {
+                  'summary': 'CPU usage is critically high',
+                  'description': 'CPU usage is critically high',
+                },
+            },
+            {
+              'alert': 'High Memory Usage',
+              'expr': 'memory_usage_percent > 95',
+              'for': '2m',
+              'labels': { 'severity': 'critical' },
+              'annotations':
+                {
+                  'summary': 'Memory usage is critically high',
+                  'description': 'Memory usage is critically high',
+                },
+            },
+            {
+              'alert': 'Disk Space Low',
+              'expr': 'disk_usage_percent > 90',
+              'for': '10m',
+              'labels': { 'severity': 'warning' },
+              'annotations':
+                {
+                  'summary': 'Disk space is running low',
+                  'description': 'Disk space is running low',
+                },
+            },
+            {
+              'alert': 'Blockchain Node Down',
+              'expr': 'blockchain_node_health < 0.5',
+              'for': '1m',
+              'labels': { 'severity': 'critical' },
+              'annotations':
+                {
+                  'summary': 'Blockchain node is down or unhealthy',
+                  'description': 'Blockchain node is down or unhealthy',
+                },
+            },
+            {
+              'alert': 'Workflow Failure Rate High',
+              'expr': 'automation_workflow_success_rate < 0.8',
+              'for': '5m',
+              'labels': { 'severity': 'warning' },
+              'annotations':
+                {
+                  'summary': 'Workflow failure rate is high',
+                  'description': 'Workflow failure rate is high',
+                },
+            },
+            {
+              'alert': 'High Error Rate',
+              'expr': 'automation_error_rate > 0.1',
+              'for': '2m',
+              'labels': { 'severity': 'critical' },
+              'annotations':
+                {
+                  'summary': 'System error rate is critically high',
+                  'description': 'System error rate is critically high',
+                },
+            },
+          ],
+      },
+    ],
 }

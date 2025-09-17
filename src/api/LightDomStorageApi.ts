@@ -56,7 +56,7 @@ export class LightDomStorageAPI {
     'application/pdf',
     'application/zip',
     'application/x-tar',
-    'application/gzip'
+    'application/gzip',
   ];
 
   /**
@@ -66,25 +66,25 @@ export class LightDomStorageAPI {
   async getStorageSettings(req: Request, res: Response): Promise<void> {
     try {
       const userSettings = persistentBlockchainStorage.getUserSettings();
-      
+
       const settings: StorageSettings = {
         maxFileUploadSize: userSettings.maxFileUploadSize,
         allowedFileTypes: this.ALLOWED_FILE_TYPES,
         compressionEnabled: true,
         encryptionEnabled: false,
         autoBackup: userSettings.autoSync,
-        retentionDays: 365
+        retentionDays: 365,
       };
 
       res.json({
         success: true,
-        data: settings
+        data: settings,
       });
     } catch (error) {
       console.error('Error getting storage settings:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -102,15 +102,16 @@ export class LightDomStorageAPI {
         if (maxFileUploadSize > this.CHROME_MAX_FILE_SIZE) {
           res.status(400).json({
             error: 'Invalid file size',
-            message: `Maximum file size cannot exceed ${this.formatBytes(this.CHROME_MAX_FILE_SIZE)}`
+            message: `Maximum file size cannot exceed ${this.formatBytes(this.CHROME_MAX_FILE_SIZE)}`,
           });
           return;
         }
 
-        if (maxFileUploadSize < 1024) { // Minimum 1KB
+        if (maxFileUploadSize < 1024) {
+          // Minimum 1KB
           res.status(400).json({
             error: 'Invalid file size',
-            message: 'Minimum file size is 1KB'
+            message: 'Minimum file size is 1KB',
           });
           return;
         }
@@ -118,19 +119,19 @@ export class LightDomStorageAPI {
         // Update user settings
         persistentBlockchainStorage.updateUserSettings({
           maxFileUploadSize,
-          autoSync: autoBackup
+          autoSync: autoBackup,
         });
       }
 
       res.json({
         success: true,
-        message: 'Storage settings updated successfully'
+        message: 'Storage settings updated successfully',
       });
     } catch (error) {
       console.error('Error updating storage settings:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -144,7 +145,7 @@ export class LightDomStorageAPI {
       if (!req.file) {
         res.status(400).json({
           error: 'No file provided',
-          message: 'Please select a file to upload'
+          message: 'Please select a file to upload',
         });
         return;
       }
@@ -159,7 +160,7 @@ export class LightDomStorageAPI {
       if (file.size > userSettings.maxFileUploadSize) {
         res.status(400).json({
           error: 'File too large',
-          message: `File size (${this.formatBytes(file.size)}) exceeds maximum allowed size (${this.formatBytes(userSettings.maxFileUploadSize)})`
+          message: `File size (${this.formatBytes(file.size)}) exceeds maximum allowed size (${this.formatBytes(userSettings.maxFileUploadSize)})`,
         });
         return;
       }
@@ -168,7 +169,7 @@ export class LightDomStorageAPI {
       if (!this.ALLOWED_FILE_TYPES.includes(file.mimetype)) {
         res.status(400).json({
           error: 'File type not allowed',
-          message: `File type ${file.mimetype} is not supported`
+          message: `File type ${file.mimetype} is not supported`,
         });
         return;
       }
@@ -203,7 +204,7 @@ export class LightDomStorageAPI {
         storageType,
         metadata,
         blockchainHash,
-        uploadedAt: Date.now()
+        uploadedAt: Date.now(),
       });
 
       const response: FileUploadResponse = {
@@ -214,19 +215,18 @@ export class LightDomStorageAPI {
         fileType: file.mimetype,
         storagePath,
         blockchainHash,
-        message: `File uploaded successfully. Size: ${this.formatBytes(file.size)}`
+        message: `File uploaded successfully. Size: ${this.formatBytes(file.size)}`,
       };
 
       res.json({
         success: true,
-        data: response
+        data: response,
       });
-
     } catch (error) {
       console.error('Error uploading file:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -234,7 +234,11 @@ export class LightDomStorageAPI {
   /**
    * Process optimization file
    */
-  private async processOptimizationFile(file: Express.Multer.File, fileId: string, metadata: any): Promise<string> {
+  private async processOptimizationFile(
+    file: Express.Multer.File,
+    fileId: string,
+    metadata: any
+  ): Promise<string> {
     // Simulate optimization processing
     const optimizationData = {
       url: metadata.url || 'unknown',
@@ -243,7 +247,7 @@ export class LightDomStorageAPI {
       biomeType: metadata.biomeType || 'digital',
       harvesterAddress: metadata.harvesterAddress || '0x0000000000000000000000000000000000000000',
       beforeHash: '',
-      afterHash: this.generateHash(file.buffer)
+      afterHash: this.generateHash(file.buffer),
     };
 
     const result = await spaceOptimizationEngine.processOptimization(optimizationData);
@@ -253,7 +257,11 @@ export class LightDomStorageAPI {
   /**
    * Process model file
    */
-  private async processModelFile(file: Express.Multer.File, fileId: string, metadata: any): Promise<string> {
+  private async processModelFile(
+    file: Express.Multer.File,
+    fileId: string,
+    metadata: any
+  ): Promise<string> {
     // Simulate model processing
     const modelData = {
       modelId: fileId,
@@ -280,38 +288,45 @@ export class LightDomStorageAPI {
         dataSize: file.size,
         preprocessing: metadata.preprocessing || [],
         augmentation: metadata.augmentation || [],
-        hyperparameters: metadata.hyperparameters || {}
+        hyperparameters: metadata.hyperparameters || {},
       },
       schema: {
         inputSchema: metadata.inputSchema || {},
         outputSchema: metadata.outputSchema || {},
         dataTypes: metadata.dataTypes || {},
         constraints: metadata.constraints || {},
-        validationRules: metadata.validationRules || []
+        validationRules: metadata.validationRules || [],
       },
       connections: {
         parentModels: metadata.parentModels || [],
         childModels: metadata.childModels || [],
         dependencies: metadata.dependencies || [],
         integrations: metadata.integrations || [],
-        apis: metadata.apis || []
+        apis: metadata.apis || [],
       },
       access: {
         adminAddresses: [metadata.adminAddress || '0x0000000000000000000000000000000000000000'],
         readPermissions: [],
         writePermissions: [],
-        encrypted: false
-      }
+        encrypted: false,
+      },
     };
 
-    const result = await blockchainModelStorage.storeModelData(modelData, metadata.adminAddress || '0x0000000000000000000000000000000000000000');
+    const result = await blockchainModelStorage.storeModelData(
+      modelData,
+      metadata.adminAddress || '0x0000000000000000000000000000000000000000'
+    );
     return result.blockchain.transactionHash;
   }
 
   /**
    * Process asset file
    */
-  private async processAssetFile(file: Express.Multer.File, fileId: string, metadata: any): Promise<string> {
+  private async processAssetFile(
+    file: Express.Multer.File,
+    fileId: string,
+    metadata: any
+  ): Promise<string> {
     // Simulate asset processing
     const assetData = {
       id: fileId,
@@ -320,7 +335,7 @@ export class LightDomStorageAPI {
       size: file.size,
       stakingRewards: metadata.stakingRewards || 0,
       developmentLevel: metadata.developmentLevel || 1,
-      sourceUrl: metadata.sourceUrl || 'unknown'
+      sourceUrl: metadata.sourceUrl || 'unknown',
     };
 
     // Save to persistent storage
@@ -331,7 +346,11 @@ export class LightDomStorageAPI {
   /**
    * Process general file
    */
-  private async processGeneralFile(file: Express.Multer.File, fileId: string, metadata: any): Promise<string> {
+  private async processGeneralFile(
+    file: Express.Multer.File,
+    fileId: string,
+    metadata: any
+  ): Promise<string> {
     // For general files, just generate a hash
     return this.generateHash(file.buffer);
   }
@@ -354,9 +373,9 @@ export class LightDomStorageAPI {
   async getUploadedFiles(req: Request, res: Response): Promise<void> {
     try {
       const { storageType, limit = 50, offset = 0 } = req.query;
-      
+
       const files = JSON.parse(localStorage.getItem('lightdom_uploaded_files') || '[]');
-      
+
       let filteredFiles = files;
       if (storageType) {
         filteredFiles = files.filter((file: any) => file.storageType === storageType);
@@ -373,14 +392,14 @@ export class LightDomStorageAPI {
           files: paginatedFiles,
           total: filteredFiles.length,
           limit: Number(limit),
-          offset: Number(offset)
-        }
+          offset: Number(offset),
+        },
       });
     } catch (error) {
       console.error('Error getting uploaded files:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -392,14 +411,14 @@ export class LightDomStorageAPI {
   async deleteUploadedFile(req: Request, res: Response): Promise<void> {
     try {
       const { fileId } = req.params;
-      
+
       const files = JSON.parse(localStorage.getItem('lightdom_uploaded_files') || '[]');
       const filteredFiles = files.filter((file: any) => file.fileId !== fileId);
-      
+
       if (filteredFiles.length === files.length) {
         res.status(404).json({
           error: 'File not found',
-          message: `File with ID ${fileId} not found`
+          message: `File with ID ${fileId} not found`,
         });
         return;
       }
@@ -408,13 +427,13 @@ export class LightDomStorageAPI {
 
       res.json({
         success: true,
-        message: 'File deleted successfully'
+        message: 'File deleted successfully',
       });
     } catch (error) {
       console.error('Error deleting file:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -427,7 +446,7 @@ export class LightDomStorageAPI {
     try {
       const files = JSON.parse(localStorage.getItem('lightdom_uploaded_files') || '[]');
       const userSettings = persistentBlockchainStorage.getUserSettings();
-      
+
       const totalFiles = files.length;
       const totalSize = files.reduce((sum: number, file: any) => sum + file.fileSize, 0);
       const storageTypes = files.reduce((acc: any, file: any) => {
@@ -444,18 +463,18 @@ export class LightDomStorageAPI {
         storageTypes,
         availableSpace: userSettings.maxFileUploadSize - totalSize,
         availableSpaceFormatted: this.formatBytes(userSettings.maxFileUploadSize - totalSize),
-        usagePercentage: (totalSize / userSettings.maxFileUploadSize) * 100
+        usagePercentage: (totalSize / userSettings.maxFileUploadSize) * 100,
       };
 
       res.json({
         success: true,
-        data: stats
+        data: stats,
       });
     } catch (error) {
       console.error('Error getting storage stats:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -476,19 +495,19 @@ export class LightDomStorageAPI {
           imageFiles: 'Use WebP format for better compression',
           textFiles: 'Compress large text files before upload',
           modelFiles: 'Consider splitting large models into chunks',
-          generalFiles: 'Use compression for files over 10MB'
-        }
+          generalFiles: 'Use compression for files over 10MB',
+        },
       };
 
       res.json({
         success: true,
-        data: limits
+        data: limits,
       });
     } catch (error) {
       console.error('Error getting file upload limits:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -516,7 +535,7 @@ export class LightDomStorageAPI {
     let hash = 0;
     for (let i = 0; i < buffer.length; i++) {
       const char = buffer[i];
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(16);

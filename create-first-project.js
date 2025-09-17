@@ -22,7 +22,7 @@ const colors = {
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
   magenta: '\x1b[35m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 function log(message, color = 'reset') {
@@ -63,7 +63,7 @@ const projectTemplates = {
       cpu: 8,
       memory: 16384,
       storage: 500,
-      bandwidth: 500
+      bandwidth: 500,
     },
     milestones: [
       {
@@ -74,8 +74,8 @@ const projectTemplates = {
           'Deploy smart contracts',
           'Setup API server',
           'Configure database',
-          'Implement authentication'
-        ]
+          'Implement authentication',
+        ],
       },
       {
         name: 'Web Crawler System',
@@ -85,8 +85,8 @@ const projectTemplates = {
           'Build crawler service',
           'Implement optimization algorithms',
           'Setup monitoring',
-          'Create dashboard'
-        ]
+          'Create dashboard',
+        ],
       },
       {
         name: 'Blockchain Integration',
@@ -96,10 +96,10 @@ const projectTemplates = {
           'Deploy to mainnet',
           'Setup monitoring',
           'Performance optimization',
-          'Security audit'
-        ]
-      }
-    ]
+          'Security audit',
+        ],
+      },
+    ],
   },
   'nft-marketplace': {
     name: 'NFT Marketplace Platform',
@@ -112,7 +112,7 @@ const projectTemplates = {
       cpu: 6,
       memory: 12288,
       storage: 300,
-      bandwidth: 400
+      bandwidth: 400,
     },
     milestones: [
       {
@@ -123,32 +123,22 @@ const projectTemplates = {
           'ERC-721 implementation',
           'Marketplace contracts',
           'Auction system',
-          'Royalty system'
-        ]
+          'Royalty system',
+        ],
       },
       {
         name: 'Frontend Development',
         description: 'Build user interface and marketplace features',
         duration: '1.5 months',
-        tasks: [
-          'React frontend',
-          'Wallet integration',
-          'NFT display',
-          'Trading interface'
-        ]
+        tasks: ['React frontend', 'Wallet integration', 'NFT display', 'Trading interface'],
       },
       {
         name: 'Deployment & Testing',
         description: 'Deploy and thoroughly test the platform',
         duration: '1 month',
-        tasks: [
-          'Testnet deployment',
-          'Security testing',
-          'Mainnet deployment',
-          'User testing'
-        ]
-      }
-    ]
+        tasks: ['Testnet deployment', 'Security testing', 'Mainnet deployment', 'User testing'],
+      },
+    ],
   },
   'defi-protocol': {
     name: 'DeFi Lending Protocol',
@@ -161,7 +151,7 @@ const projectTemplates = {
       cpu: 12,
       memory: 24576,
       storage: 1000,
-      bandwidth: 800
+      bandwidth: 800,
     },
     milestones: [
       {
@@ -172,69 +162,55 @@ const projectTemplates = {
           'Lending pools',
           'Interest rate models',
           'Collateral management',
-          'Liquidation system'
-        ]
+          'Liquidation system',
+        ],
       },
       {
         name: 'Governance System',
         description: 'Implement decentralized governance',
         duration: '2 months',
-        tasks: [
-          'Governance token',
-          'Voting mechanisms',
-          'Proposal system',
-          'Treasury management'
-        ]
+        tasks: ['Governance token', 'Voting mechanisms', 'Proposal system', 'Treasury management'],
       },
       {
         name: 'Security & Audit',
         description: 'Comprehensive security audit and testing',
         duration: '2 months',
-        tasks: [
-          'Security audit',
-          'Penetration testing',
-          'Bug fixes',
-          'Formal verification'
-        ]
+        tasks: ['Security audit', 'Penetration testing', 'Bug fixes', 'Formal verification'],
       },
       {
         name: 'Launch & Marketing',
         description: 'Launch the protocol and marketing campaign',
         duration: '1 month',
-        tasks: [
-          'Mainnet launch',
-          'Marketing campaign',
-          'Community building',
-          'Partnerships'
-        ]
-      }
-    ]
-  }
+        tasks: ['Mainnet launch', 'Marketing campaign', 'Community building', 'Partnerships'],
+      },
+    ],
+  },
 };
 
 async function main() {
   try {
     logHeader('🚀 Create Your First Blockchain Project');
-    
+
     // Check if system is running
     logInfo('Checking if the automation system is running...');
-    if (!await checkSystemStatus()) {
-      logWarning('The automation system is not running. Please start it first with: npm run automation');
+    if (!(await checkSystemStatus())) {
+      logWarning(
+        'The automation system is not running. Please start it first with: npm run automation'
+      );
       return;
     }
-    
+
     // Interactive project creation
     const project = await createProjectInteractively();
-    
+
     // Save project configuration
     await saveProject(project);
-    
+
     // Display project summary
     displayProjectSummary(project);
-    
+
     logSuccess('🎉 Project created successfully!');
     logInfo('Your project is now ready for development and automation.');
-    
   } catch (error) {
     logError(`Failed to create project: ${error.message}`);
     process.exit(1);
@@ -250,39 +226,48 @@ async function checkSystemStatus() {
 async function createProjectInteractively() {
   const rl = createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
-  
-  const question = (prompt) => new Promise((resolve) => {
-    rl.question(prompt, resolve);
-  });
-  
+
+  const question = prompt =>
+    new Promise(resolve => {
+      rl.question(prompt, resolve);
+    });
+
   try {
     logHeader('📋 Project Configuration');
-    
+
     // Select project template
     logInfo('Available project templates:');
     Object.entries(projectTemplates).forEach(([key, template], index) => {
       log(`  ${index + 1}. ${template.name} (${template.complexity})`, 'cyan');
       log(`     ${template.description}`, 'yellow');
-      log(`     Duration: ${template.estimatedDuration} | Budget: $${template.budget.toLocaleString()}`, 'blue');
+      log(
+        `     Duration: ${template.estimatedDuration} | Budget: $${template.budget.toLocaleString()}`,
+        'blue'
+      );
     });
-    
+
     const templateChoice = await question('\nSelect a template (1-3): ');
     const templateKeys = Object.keys(projectTemplates);
     const selectedTemplate = projectTemplates[templateKeys[parseInt(templateChoice) - 1]];
-    
+
     if (!selectedTemplate) {
       throw new Error('Invalid template selection');
     }
-    
+
     logSuccess(`Selected template: ${selectedTemplate.name}`);
-    
+
     // Customize project details
-    const projectName = await question(`\nProject name (${selectedTemplate.name}): `) || selectedTemplate.name;
-    const projectDescription = await question(`Description (${selectedTemplate.description}): `) || selectedTemplate.description;
-    const budget = await question(`Budget ($${selectedTemplate.budget.toLocaleString()}): `) || selectedTemplate.budget;
-    
+    const projectName =
+      (await question(`\nProject name (${selectedTemplate.name}): `)) || selectedTemplate.name;
+    const projectDescription =
+      (await question(`Description (${selectedTemplate.description}): `)) ||
+      selectedTemplate.description;
+    const budget =
+      (await question(`Budget ($${selectedTemplate.budget.toLocaleString()}): `)) ||
+      selectedTemplate.budget;
+
     // Create project object
     const project = {
       id: `proj-${Date.now()}`,
@@ -316,15 +301,15 @@ async function createProjectInteractively() {
             memory: 4096,
             storage: 50,
             workflows: [],
-            nodes: []
+            nodes: [],
           },
           dueDate: new Date(Date.now() + (index + 1) * 15 * 24 * 60 * 60 * 1000).toISOString(),
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         })),
         dependencies: [],
         deliverables: milestone.tasks,
-        successCriteria: milestone.tasks.map(task => `Complete ${task}`)
+        successCriteria: milestone.tasks.map(task => `Complete ${task}`),
       })),
       tasks: [],
       dependencies: [],
@@ -335,31 +320,33 @@ async function createProjectInteractively() {
           email: 'pm@company.com',
           role: 'manager',
           permissions: ['read', 'write', 'execute', 'manage'],
-          notifications: true
-        }
+          notifications: true,
+        },
       ],
       metrics: {
         progress: 0,
         budgetUsed: 0,
         budgetRemaining: parseInt(budget),
         tasksCompleted: 0,
-        tasksTotal: selectedTemplate.milestones.reduce((total, milestone) => total + milestone.tasks.length, 0),
+        tasksTotal: selectedTemplate.milestones.reduce(
+          (total, milestone) => total + milestone.tasks.length,
+          0
+        ),
         milestonesCompleted: 0,
         milestonesTotal: selectedTemplate.milestones.length,
         resourceUtilization: 0,
         timelineVariance: 0,
         qualityScore: 0,
-        riskScore: 0
+        riskScore: 0,
       },
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
-    
+
     // Flatten tasks from milestones
     project.tasks = project.milestones.flatMap(milestone => milestone.tasks);
-    
+
     return project;
-    
   } finally {
     rl.close();
   }
@@ -367,59 +354,59 @@ async function createProjectInteractively() {
 
 async function saveProject(project) {
   logInfo('Saving project configuration...');
-  
+
   // Create projects directory if it doesn't exist
   const projectsDir = 'data/projects';
   if (!existsSync(projectsDir)) {
     require('fs').mkdirSync(projectsDir, { recursive: true });
   }
-  
+
   // Save project to file
   const projectFile = `${projectsDir}/${project.id}.json`;
   writeFileSync(projectFile, JSON.stringify(project, null, 2));
-  
+
   // Update projects index
   const indexFile = `${projectsDir}/index.json`;
   let projectsIndex = [];
   if (existsSync(indexFile)) {
     projectsIndex = JSON.parse(readFileSync(indexFile, 'utf8'));
   }
-  
+
   projectsIndex.push({
     id: project.id,
     name: project.name,
     status: project.status,
-    createdAt: project.createdAt
+    createdAt: project.createdAt,
   });
-  
+
   writeFileSync(indexFile, JSON.stringify(projectsIndex, null, 2));
-  
+
   logSuccess(`Project saved to: ${projectFile}`);
 }
 
 function displayProjectSummary(project) {
   logHeader('📊 Project Summary');
-  
+
   log(`Project ID: ${project.id}`, 'cyan');
   log(`Name: ${project.name}`, 'green');
   log(`Type: ${project.type}`, 'blue');
   log(`Complexity: ${project.complexity}`, 'yellow');
   log(`Budget: $${project.budget.toLocaleString()}`, 'green');
   log(`Status: ${project.status}`, 'blue');
-  
+
   log(`\n📋 Milestones (${project.milestones.length}):`, 'cyan');
   project.milestones.forEach((milestone, index) => {
     log(`  ${index + 1}. ${milestone.name}`, 'yellow');
     log(`     ${milestone.description}`, 'blue');
     log(`     Tasks: ${milestone.tasks.length}`, 'green');
   });
-  
+
   log(`\n📊 Resources:`, 'cyan');
   log(`  CPU: ${project.resources.cpu} cores`, 'green');
   log(`  Memory: ${project.resources.memory} MB`, 'green');
   log(`  Storage: ${project.resources.storage} GB`, 'green');
   log(`  Bandwidth: ${project.resources.bandwidth} Mbps`, 'green');
-  
+
   log(`\n🎯 Next Steps:`, 'cyan');
   log('  1. Review the project configuration', 'blue');
   log('  2. Start the first milestone', 'blue');
@@ -434,7 +421,7 @@ process.on('SIGINT', () => {
 });
 
 // Run the script
-main().catch((error) => {
+main().catch(error => {
   logError(`Script failed: ${error.message}`);
   process.exit(1);
 });

@@ -15,23 +15,23 @@ class CrawlerSupervisor extends EventEmitter {
       checkpointPath: './checkpoints',
       maxRetries: 3,
       retryDelay: 5000,
-      ...options
+      ...options,
     };
-    
+
     this.activeCrawlers = new Map();
     this.checkpoints = new Map();
     this.isRunning = false;
-    
+
     this.init();
   }
 
   async init() {
     // Ensure directories exist
     await this.ensureDirectories();
-    
+
     // Load existing checkpoints
     await this.loadCheckpoints();
-    
+
     this.isRunning = true;
     this.emit('initialized');
   }
@@ -63,7 +63,7 @@ class CrawlerSupervisor extends EventEmitter {
 
   async start() {
     if (this.isRunning) return;
-    
+
     this.isRunning = true;
     this.emit('started');
     console.log('Crawler supervisor started');
@@ -71,10 +71,10 @@ class CrawlerSupervisor extends EventEmitter {
 
   async stop() {
     this.isRunning = false;
-    
+
     // Save all active checkpoints
     await this.saveAllCheckpoints();
-    
+
     this.emit('stopped');
     console.log('Crawler supervisor stopped');
   }
@@ -87,12 +87,12 @@ class CrawlerSupervisor extends EventEmitter {
       startTime: Date.now(),
       lastCheckpoint: null,
       retryCount: 0,
-      errors: []
+      errors: [],
     };
-    
+
     this.activeCrawlers.set(crawlerId, crawler);
     this.emit('crawlerRegistered', crawler);
-    
+
     return crawler;
   }
 
@@ -102,17 +102,17 @@ class CrawlerSupervisor extends EventEmitter {
       crawlerId,
       timestamp: Date.now(),
       data,
-      status: 'active'
+      status: 'active',
     };
-    
+
     this.checkpoints.set(checkpoint.id, checkpoint);
     await this.saveCheckpoint(checkpoint);
-    
+
     const crawler = this.activeCrawlers.get(crawlerId);
     if (crawler) {
       crawler.lastCheckpoint = checkpoint.id;
     }
-    
+
     this.emit('checkpointCreated', checkpoint);
     return checkpoint;
   }
@@ -135,21 +135,21 @@ class CrawlerSupervisor extends EventEmitter {
   async handleCrawlerError(crawlerId, error) {
     const crawler = this.activeCrawlers.get(crawlerId);
     if (!crawler) return;
-    
+
     crawler.errors.push({
       timestamp: Date.now(),
       error: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
-    
+
     crawler.retryCount++;
-    
+
     if (crawler.retryCount <= this.options.maxRetries) {
       // Schedule retry
       setTimeout(() => {
         this.retryCrawler(crawlerId);
       }, this.options.retryDelay);
-      
+
       this.emit('crawlerRetryScheduled', { crawlerId, retryCount: crawler.retryCount });
     } else {
       // Mark as failed
@@ -161,7 +161,7 @@ class CrawlerSupervisor extends EventEmitter {
   async retryCrawler(crawlerId) {
     const crawler = this.activeCrawlers.get(crawlerId);
     if (!crawler) return;
-    
+
     crawler.status = 'retrying';
     this.emit('crawlerRetrying', { crawlerId, retryCount: crawler.retryCount });
   }
@@ -176,10 +176,10 @@ class CrawlerSupervisor extends EventEmitter {
         status: crawler.status,
         startTime: crawler.startTime,
         retryCount: crawler.retryCount,
-        errorCount: crawler.errors.length
-      }))
+        errorCount: crawler.errors.length,
+      })),
     };
-    
+
     return stats;
   }
 
@@ -192,8 +192,9 @@ class CrawlerSupervisor extends EventEmitter {
   }
 
   getCheckpointsForCrawler(crawlerId) {
-    return Array.from(this.checkpoints.values())
-      .filter(checkpoint => checkpoint.crawlerId === crawlerId);
+    return Array.from(this.checkpoints.values()).filter(
+      checkpoint => checkpoint.crawlerId === crawlerId
+    );
   }
 }
 

@@ -16,7 +16,7 @@ import {
   Steps,
   Result,
   Modal,
-  message
+  message,
 } from 'antd';
 import {
   CreditCardOutlined,
@@ -25,7 +25,7 @@ import {
   LockOutlined,
   TrophyOutlined,
   GlobalOutlined,
-  OptimizationOutlined
+  OptimizationOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -69,10 +69,10 @@ const PaymentPage: React.FC = () => {
         '3 website optimizations per month',
         'Basic performance metrics',
         'Email support',
-        'Community access'
+        'Community access',
       ],
       tokens: 100,
-      optimizations: 3
+      optimizations: 3,
     },
     {
       id: 'pro',
@@ -86,11 +86,11 @@ const PaymentPage: React.FC = () => {
         'Priority support',
         'API access',
         'Custom optimization rules',
-        'Team collaboration'
+        'Team collaboration',
       ],
       popular: true,
       tokens: 1000,
-      optimizations: -1 // unlimited
+      optimizations: -1, // unlimited
     },
     {
       id: 'enterprise',
@@ -104,17 +104,17 @@ const PaymentPage: React.FC = () => {
         'Custom integrations',
         'White-label options',
         'SLA guarantee',
-        'On-premise deployment'
+        'On-premise deployment',
       ],
       tokens: 5000,
-      optimizations: -1 // unlimited
-    }
+      optimizations: -1, // unlimited
+    },
   ];
 
   const yearlyPlans = plans.map(plan => ({
     ...plan,
     price: Math.round(plan.price * 12 * 0.8), // 20% discount
-    interval: 'yearly' as const
+    interval: 'yearly' as const,
   }));
 
   const allPlans = [...plans, ...yearlyPlans];
@@ -142,23 +142,22 @@ const PaymentPage: React.FC = () => {
     try {
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // In a real app, you would integrate with a payment processor
       const paymentData = {
         plan: selectedPlan,
         paymentMethod,
-        ...values
+        ...values,
       };
 
       // Mock successful payment
       setPaymentSuccess(true);
       setCurrentStep(2);
-      
+
       // Redirect to dashboard after 3 seconds
       setTimeout(() => {
         navigate('/dashboard');
       }, 3000);
-      
     } catch (error) {
       message.error('Payment failed. Please try again.');
     } finally {
@@ -169,29 +168,29 @@ const PaymentPage: React.FC = () => {
   const steps = [
     {
       title: 'Select Plan',
-      description: 'Choose your subscription plan'
+      description: 'Choose your subscription plan',
     },
     {
       title: 'Payment Details',
-      description: 'Enter your payment information'
+      description: 'Enter your payment information',
     },
     {
       title: 'Confirmation',
-      description: 'Complete your subscription'
-    }
+      description: 'Complete your subscription',
+    },
   ];
 
   if (paymentSuccess) {
     return (
-      <div className="payment-success">
+      <div className='payment-success'>
         <Result
-          status="success"
-          title="Payment Successful!"
-          subTitle="Your subscription has been activated. You can now access all features."
+          status='success'
+          title='Payment Successful!'
+          subTitle='Your subscription has been activated. You can now access all features.'
           extra={[
-            <Button type="primary" key="dashboard" onClick={() => navigate('/dashboard')}>
+            <Button type='primary' key='dashboard' onClick={() => navigate('/dashboard')}>
               Go to Dashboard
-            </Button>
+            </Button>,
           ]}
         />
       </div>
@@ -199,26 +198,26 @@ const PaymentPage: React.FC = () => {
   }
 
   return (
-    <div className="payment-page">
-      <div className="payment-container">
-        <div className="payment-header">
+    <div className='payment-page'>
+      <div className='payment-container'>
+        <div className='payment-header'>
           <Title level={2}>Choose Your Plan</Title>
-          <Paragraph type="secondary">
+          <Paragraph type='secondary'>
             Unlock the full potential of LightDom with our powerful optimization tools
           </Paragraph>
         </div>
 
-        <Steps current={currentStep} className="payment-steps">
+        <Steps current={currentStep} className='payment-steps'>
           {steps.map((step, index) => (
             <Step key={index} title={step.title} description={step.description} />
           ))}
         </Steps>
 
-        <div className="payment-content">
+        <div className='payment-content'>
           {currentStep === 0 && (
-            <div className="plan-selection">
-              <Row gutter={[24, 24]} justify="center">
-                {allPlans.map((plan) => (
+            <div className='plan-selection'>
+              <Row gutter={[24, 24]} justify='center'>
+                {allPlans.map(plan => (
                   <Col xs={24} sm={12} lg={8} key={`${plan.id}-${plan.interval}`}>
                     <Card
                       className={`plan-card ${plan.popular ? 'popular' : ''}`}
@@ -226,38 +225,39 @@ const PaymentPage: React.FC = () => {
                       onClick={() => handlePlanSelect(plan)}
                     >
                       {plan.popular && (
-                        <div className="popular-badge">
+                        <div className='popular-badge'>
                           <TrophyOutlined /> Most Popular
                         </div>
                       )}
-                      
-                      <div className="plan-header">
+
+                      <div className='plan-header'>
                         <Title level={3}>{plan.name}</Title>
-                        <div className="plan-price">
-                          <span className="currency">$</span>
-                          <span className="amount">{plan.price}</span>
-                          <span className="interval">/{plan.interval}</span>
+                        <div className='plan-price'>
+                          <span className='currency'>$</span>
+                          <span className='amount'>{plan.price}</span>
+                          <span className='interval'>/{plan.interval}</span>
                         </div>
                         {plan.interval === 'yearly' && (
-                          <Text type="secondary" className="discount-text">
+                          <Text type='secondary' className='discount-text'>
                             Save 20% with yearly billing
                           </Text>
                         )}
                       </div>
 
-                      <div className="plan-features">
-                        <div className="feature-item">
+                      <div className='plan-features'>
+                        <div className='feature-item'>
                           <OptimizationOutlined />
                           <span>
-                            {plan.optimizations === -1 ? 'Unlimited' : plan.optimizations} optimizations
+                            {plan.optimizations === -1 ? 'Unlimited' : plan.optimizations}{' '}
+                            optimizations
                           </span>
                         </div>
-                        <div className="feature-item">
+                        <div className='feature-item'>
                           <WalletOutlined />
                           <span>{plan.tokens.toLocaleString()} tokens included</span>
                         </div>
                         {plan.features.map((feature, index) => (
-                          <div key={index} className="feature-item">
+                          <div key={index} className='feature-item'>
                             <CheckCircleOutlined />
                             <span>{feature}</span>
                           </div>
@@ -266,9 +266,9 @@ const PaymentPage: React.FC = () => {
 
                       <Button
                         type={plan.popular ? 'primary' : 'default'}
-                        size="large"
+                        size='large'
                         block
-                        className="select-plan-btn"
+                        className='select-plan-btn'
                       >
                         {plan.price === 0 ? 'Get Started Free' : 'Select Plan'}
                       </Button>
@@ -280,29 +280,29 @@ const PaymentPage: React.FC = () => {
           )}
 
           {currentStep === 1 && selectedPlan && (
-            <div className="payment-details">
+            <div className='payment-details'>
               <Row gutter={[24, 24]}>
                 <Col xs={24} lg={16}>
-                  <Card title="Payment Information" className="payment-form-card">
+                  <Card title='Payment Information' className='payment-form-card'>
                     <Form
                       form={form}
-                      layout="vertical"
+                      layout='vertical'
                       onFinish={handlePayment}
                       initialValues={{ paymentMethod: 'card' }}
                     >
-                      <Form.Item label="Payment Method">
+                      <Form.Item label='Payment Method'>
                         <Radio.Group
                           value={paymentMethod}
-                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          onChange={e => setPaymentMethod(e.target.value)}
                         >
-                          <Space direction="vertical">
-                            <Radio value="card">
+                          <Space direction='vertical'>
+                            <Radio value='card'>
                               <Space>
                                 <CreditCardOutlined />
                                 Credit/Debit Card
                               </Space>
                             </Radio>
-                            <Radio value="crypto">
+                            <Radio value='crypto'>
                               <Space>
                                 <WalletOutlined />
                                 Cryptocurrency
@@ -315,82 +315,84 @@ const PaymentPage: React.FC = () => {
                       {paymentMethod === 'card' && (
                         <>
                           <Form.Item
-                            name="cardNumber"
-                            label="Card Number"
+                            name='cardNumber'
+                            label='Card Number'
                             rules={[{ required: true, message: 'Please enter card number' }]}
                           >
-                            <Input placeholder="1234 5678 9012 3456" />
+                            <Input placeholder='1234 5678 9012 3456' />
                           </Form.Item>
-                          
+
                           <Row gutter={16}>
                             <Col span={12}>
                               <Form.Item
-                                name="expiryDate"
-                                label="Expiry Date"
+                                name='expiryDate'
+                                label='Expiry Date'
                                 rules={[{ required: true, message: 'Please enter expiry date' }]}
                               >
-                                <Input placeholder="MM/YY" />
+                                <Input placeholder='MM/YY' />
                               </Form.Item>
                             </Col>
                             <Col span={12}>
                               <Form.Item
-                                name="cvv"
-                                label="CVV"
+                                name='cvv'
+                                label='CVV'
                                 rules={[{ required: true, message: 'Please enter CVV' }]}
                               >
-                                <Input placeholder="123" />
+                                <Input placeholder='123' />
                               </Form.Item>
                             </Col>
                           </Row>
-                          
+
                           <Form.Item
-                            name="cardholderName"
-                            label="Cardholder Name"
+                            name='cardholderName'
+                            label='Cardholder Name'
                             rules={[{ required: true, message: 'Please enter cardholder name' }]}
                           >
-                            <Input placeholder="John Doe" />
+                            <Input placeholder='John Doe' />
                           </Form.Item>
                         </>
                       )}
 
                       {paymentMethod === 'crypto' && (
                         <Alert
-                          message="Cryptocurrency Payment"
-                          description="You will be redirected to complete the payment with your preferred cryptocurrency wallet."
-                          type="info"
+                          message='Cryptocurrency Payment'
+                          description='You will be redirected to complete the payment with your preferred cryptocurrency wallet.'
+                          type='info'
                           showIcon
                         />
                       )}
 
                       <Divider />
 
-                      <div className="payment-summary">
+                      <div className='payment-summary'>
                         <Title level={4}>Order Summary</Title>
-                        <div className="summary-item">
+                        <div className='summary-item'>
                           <span>{selectedPlan.name} Plan</span>
-                          <span>${selectedPlan.price}/{selectedPlan.interval}</span>
+                          <span>
+                            ${selectedPlan.price}/{selectedPlan.interval}
+                          </span>
                         </div>
-                        <div className="summary-item">
+                        <div className='summary-item'>
                           <span>Included Tokens</span>
                           <span>{selectedPlan.tokens.toLocaleString()}</span>
                         </div>
                         <Divider />
-                        <div className="summary-total">
+                        <div className='summary-total'>
                           <span>Total</span>
-                          <span>${selectedPlan.price}/{selectedPlan.interval}</span>
+                          <span>
+                            ${selectedPlan.price}/{selectedPlan.interval}
+                          </span>
                         </div>
                       </div>
 
                       <Form.Item>
                         <Space>
-                          <Button onClick={() => setCurrentStep(0)}>
-                            Back
-                          </Button>
+                          <Button onClick={() => setCurrentStep(0)}>Back</Button>
                           <Button
-                            type="primary"
-                            htmlType="submit"
+                            type='primary'
+                            htmlType='submit'
                             loading={loading}
-                            size="large"
+                            size='large'
                             icon={<LockOutlined />}
                           >
                             Complete Payment
@@ -400,20 +402,20 @@ const PaymentPage: React.FC = () => {
                     </Form>
                   </Card>
                 </Col>
-                
+
                 <Col xs={24} lg={8}>
-                  <Card title="Plan Details" className="plan-details-card">
-                    <div className="plan-info">
+                  <Card title='Plan Details' className='plan-details-card'>
+                    <div className='plan-info'>
                       <Title level={4}>{selectedPlan.name}</Title>
-                      <div className="plan-price-display">
-                        <span className="currency">$</span>
-                        <span className="amount">{selectedPlan.price}</span>
-                        <span className="interval">/{selectedPlan.interval}</span>
+                      <div className='plan-price-display'>
+                        <span className='currency'>$</span>
+                        <span className='amount'>{selectedPlan.price}</span>
+                        <span className='interval'>/{selectedPlan.interval}</span>
                       </div>
-                      
-                      <div className="plan-features-list">
+
+                      <div className='plan-features-list'>
                         {selectedPlan.features.map((feature, index) => (
-                          <div key={index} className="feature-item">
+                          <div key={index} className='feature-item'>
                             <CheckCircleOutlined />
                             <span>{feature}</span>
                           </div>

@@ -23,14 +23,15 @@ class AgentRunner extends EventEmitter {
 
   log(message, type = 'info') {
     const timestamp = new Date().toISOString();
-    const prefix = {
-      info: 'ℹ️',
-      success: '✅',
-      error: '❌',
-      warning: '⚠️',
-      agent: '🤖'
-    }[type] || 'ℹ️';
-    
+    const prefix =
+      {
+        info: 'ℹ️',
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        agent: '🤖',
+      }[type] || 'ℹ️';
+
     console.log(`${prefix} [${timestamp}] ${message}`);
   }
 
@@ -46,8 +47,8 @@ class AgentRunner extends EventEmitter {
         workflows: workflowsConfig.workflows,
         global: {
           ...agentsConfig.globalConfig,
-          ...workflowsConfig.globalConfig
-        }
+          ...workflowsConfig.globalConfig,
+        },
       };
 
       this.log('Configuration loaded successfully', 'success');
@@ -59,9 +60,9 @@ class AgentRunner extends EventEmitter {
 
   async startAgent(agentConfig) {
     const agentId = `agent-${agentConfig.name.toLowerCase().replace(/\s+/g, '-')}`;
-    
+
     this.log(`Starting agent: ${agentConfig.name}`, 'agent');
-    
+
     const agent = {
       id: agentId,
       config: agentConfig,
@@ -69,7 +70,7 @@ class AgentRunner extends EventEmitter {
       process: null,
       lastRun: null,
       runCount: 0,
-      errorCount: 0
+      errorCount: 0,
     };
 
     this.agents.set(agentId, agent);
@@ -79,28 +80,28 @@ class AgentRunner extends EventEmitter {
     try {
       const agentProcess = spawn('node', ['scripts/agent-executor.js', agentId], {
         stdio: 'pipe',
-        env: { ...process.env, AGENT_CONFIG: JSON.stringify(agentConfig) }
+        env: { ...process.env, AGENT_CONFIG: JSON.stringify(agentConfig) },
       });
 
       agent.process = agentProcess;
       agent.status = 'running';
 
-      agentProcess.stdout.on('data', (data) => {
+      agentProcess.stdout.on('data', data => {
         this.log(`[${agentConfig.name}] ${data.toString().trim()}`, 'info');
       });
 
-      agentProcess.stderr.on('data', (data) => {
+      agentProcess.stderr.on('data', data => {
         this.log(`[${agentConfig.name}] ERROR: ${data.toString().trim()}`, 'error');
         agent.errorCount++;
       });
 
-      agentProcess.on('close', (code) => {
+      agentProcess.on('close', code => {
         agent.status = 'stopped';
         this.log(`Agent ${agentConfig.name} stopped with code ${code}`, 'warning');
         this.emit('agentStopped', agent);
       });
 
-      agentProcess.on('error', (error) => {
+      agentProcess.on('error', error => {
         agent.status = 'error';
         agent.errorCount++;
         this.log(`Agent ${agentConfig.name} error: ${error.message}`, 'error');
@@ -124,7 +125,7 @@ class AgentRunner extends EventEmitter {
     }
 
     this.log(`Stopping agent: ${agent.config.name}`, 'agent');
-    
+
     if (agent.process) {
       agent.process.kill('SIGTERM');
       agent.status = 'stopping';
@@ -140,36 +141,36 @@ class AgentRunner extends EventEmitter {
     }
 
     this.log(`Executing task: ${taskName}`, 'agent');
-    
+
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
-      
+
       const child = spawn('npm', ['run', taskName], {
         stdio: 'pipe',
         shell: true,
-        ...options
+        ...options,
       });
 
       let stdout = '';
       let stderr = '';
 
-      child.stdout.on('data', (data) => {
+      child.stdout.on('data', data => {
         stdout += data.toString();
         if (options.verbose) {
           console.log(data.toString());
         }
       });
 
-      child.stderr.on('data', (data) => {
+      child.stderr.on('data', data => {
         stderr += data.toString();
         if (options.verbose) {
           console.error(data.toString());
         }
       });
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         const duration = Date.now() - startTime;
-        
+
         if (code === 0) {
           this.log(`Task ${taskName} completed successfully in ${duration}ms`, 'success');
           resolve({ code, stdout, stderr, duration });
@@ -179,7 +180,7 @@ class AgentRunner extends EventEmitter {
         }
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         this.log(`Task ${taskName} error: ${error.message}`, 'error');
         reject(error);
       });
@@ -201,13 +202,13 @@ class AgentRunner extends EventEmitter {
     }
 
     this.log(`Executing workflow: ${workflowName}`, 'agent');
-    
+
     const startTime = Date.now();
     const results = {
       workflow: workflowName,
       startTime: new Date().toISOString(),
       tasks: [],
-      status: 'running'
+      status: 'running',
     };
 
     try {
@@ -215,7 +216,7 @@ class AgentRunner extends EventEmitter {
         // Execute phases sequentially
         for (const phase of workflow.phases) {
           this.log(`Executing phase: ${phase.name}`, 'agent');
-          
+
           if (phase.continuous) {
             // Start continuous tasks
             for (const taskName of phase.tasks) {
@@ -248,14 +249,14 @@ class AgentRunner extends EventEmitter {
       results.status = 'completed';
       results.endTime = new Date().toISOString();
       results.duration = Date.now() - startTime;
-      
+
       this.log(`Workflow ${workflowName} completed successfully`, 'success');
     } catch (error) {
       results.status = 'failed';
       results.error = error.message;
       results.endTime = new Date().toISOString();
       results.duration = Date.now() - startTime;
-      
+
       this.log(`Workflow ${workflowName} failed: ${error.message}`, 'error');
       throw error;
     }
@@ -265,7 +266,7 @@ class AgentRunner extends EventEmitter {
 
   async startAllAgents() {
     this.log('Starting all agents...', 'agent');
-    
+
     for (const agentConfig of this.config.agents) {
       if (agentConfig.enabled !== false) {
         await this.startAgent(agentConfig);
@@ -280,7 +281,7 @@ class AgentRunner extends EventEmitter {
 
   async stopAllAgents() {
     this.log('Stopping all agents...', 'agent');
-    
+
     for (const [agentId, agent] of this.agents) {
       await this.stopAgent(agentId);
     }
@@ -298,8 +299,8 @@ class AgentRunner extends EventEmitter {
         status: agent.status,
         lastRun: agent.lastRun,
         runCount: agent.runCount,
-        errorCount: agent.errorCount
-      }))
+        errorCount: agent.errorCount,
+      })),
     };
 
     return status;
@@ -307,7 +308,7 @@ class AgentRunner extends EventEmitter {
 
   async handleFileChange(filePath) {
     this.log(`File changed: ${filePath}`, 'info');
-    
+
     // Trigger relevant agents based on file type
     const fileExt = path.extname(filePath);
     const triggers = {
@@ -317,11 +318,11 @@ class AgentRunner extends EventEmitter {
       '.jsx': ['Code Quality Agent', 'Test Automation Agent'],
       '.sol': ['Code Quality Agent', 'Security Agent'],
       '.json': ['Code Quality Agent'],
-      '.md': ['Documentation Agent']
+      '.md': ['Documentation Agent'],
     };
 
     const relevantAgents = triggers[fileExt] || [];
-    
+
     for (const agentName of relevantAgents) {
       const agent = Array.from(this.agents.values()).find(a => a.config.name === agentName);
       if (agent && agent.status === 'running') {
@@ -352,7 +353,7 @@ class AgentRunner extends EventEmitter {
     const health = {
       status: 'healthy',
       agents: {},
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     for (const [agentId, agent] of this.agents) {
@@ -360,7 +361,7 @@ class AgentRunner extends EventEmitter {
         status: agent.status,
         lastRun: agent.lastRun,
         errorCount: agent.errorCount,
-        healthy: agent.status === 'running' && agent.errorCount < 5
+        healthy: agent.status === 'running' && agent.errorCount < 5,
       };
 
       if (!health.agents[agentId].healthy) {

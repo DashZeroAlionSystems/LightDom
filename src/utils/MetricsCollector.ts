@@ -26,7 +26,7 @@ export class MetricsCollector extends EventEmitter {
       storage: 0,
       network: 0,
       uptime: 0,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
@@ -50,7 +50,7 @@ export class MetricsCollector extends EventEmitter {
       storage: Math.random() * 100,
       network: Math.random() * 100,
       uptime: process.uptime(),
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     this.emit('metricsCollected', this.metrics);

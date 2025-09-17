@@ -26,7 +26,7 @@ export class CrawlerSupervisor extends EventEmitter {
       successfulCrawls: 0,
       failedCrawls: 0,
       averageCrawlTime: 0,
-      queueSize: 0
+      queueSize: 0,
     };
   }
 

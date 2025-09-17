@@ -36,7 +36,6 @@ export class BlockchainPersistenceIntegration {
 
       this.isInitialized = true;
       console.log('✅ Blockchain Persistence System initialized successfully');
-
     } catch (error) {
       console.error('❌ Error initializing persistence system:', error);
     }
@@ -71,12 +70,12 @@ export class BlockchainPersistenceIntegration {
    * Setup error handling
    */
   private setupErrorHandling(): void {
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', event => {
       console.error('Global error:', event.error);
       this.handleError(event.error);
     });
 
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener('unhandledrejection', event => {
       console.error('Unhandled promise rejection:', event.reason);
       this.handleError(event.reason);
     });
@@ -106,7 +105,7 @@ export class BlockchainPersistenceIntegration {
         message: error.message || 'Unknown error',
         stack: error.stack || '',
         userAgent: navigator.userAgent,
-        url: window.location.href
+        url: window.location.href,
       };
 
       localStorage.setItem('lightdom_error', JSON.stringify(errorData));
@@ -152,7 +151,7 @@ export class BlockchainPersistenceIntegration {
       lastSync: syncStatus.lastSync,
       syncStatus: syncStatus.status,
       storageStats,
-      errorCount
+      errorCount,
     };
   }
 
@@ -195,7 +194,7 @@ export class BlockchainPersistenceIntegration {
         refreshData: localStorage.getItem('lightdom_sync'),
         errorData: localStorage.getItem('lightdom_error'),
         exportDate: Date.now(),
-        version: '1.0.0'
+        version: '1.0.0',
       };
 
       return new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });

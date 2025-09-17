@@ -2,7 +2,7 @@
 
 /**
  * n8n MCP CLI Tool
- * 
+ *
  * Command-line interface for managing n8n MCP server integration
  */
 
@@ -28,13 +28,13 @@ class N8nMCPCLI {
 
   async testConnection(): Promise<boolean> {
     const spinner = ora('Testing n8n connection...').start();
-    
+
     try {
       const response = await axios.get(`${this.config.baseUrl}/api/v1/workflows`, {
         headers: this.config.apiKey ? { 'X-N8N-API-KEY': this.config.apiKey } : {},
         timeout: this.config.timeout,
       });
-      
+
       spinner.succeed('n8n connection successful');
       console.log(chalk.green(`Connected to n8n at ${this.config.baseUrl}`));
       console.log(chalk.blue(`Found ${response.data?.data?.length || 0} workflows`));
@@ -48,17 +48,17 @@ class N8nMCPCLI {
 
   async listWorkflows(): Promise<void> {
     const spinner = ora('Fetching workflows...').start();
-    
+
     try {
       const response = await axios.get(`${this.config.baseUrl}/api/v1/workflows`, {
         headers: this.config.apiKey ? { 'X-N8N-API-KEY': this.config.apiKey } : {},
         timeout: this.config.timeout,
       });
-      
+
       spinner.succeed('Workflows fetched');
-      
+
       const workflows = response.data?.data || response.data || [];
-      
+
       if (workflows.length === 0) {
         console.log(chalk.yellow('No workflows found'));
         return;
@@ -66,12 +66,14 @@ class N8nMCPCLI {
 
       console.log(chalk.blue('\n📋 Available Workflows:'));
       console.log(chalk.gray('─'.repeat(80)));
-      
+
       workflows.forEach((workflow: any) => {
         const status = workflow.active ? chalk.green('● Active') : chalk.gray('○ Inactive');
         const nodes = workflow.nodes?.length || 0;
         console.log(`${chalk.bold(workflow.name)} (${workflow.id})`);
-        console.log(`  ${status} | ${nodes} nodes | Created: ${new Date(workflow.createdAt).toLocaleDateString()}`);
+        console.log(
+          `  ${status} | ${nodes} nodes | Created: ${new Date(workflow.createdAt).toLocaleDateString()}`
+        );
         if (workflow.tags?.length > 0) {
           console.log(`  Tags: ${workflow.tags.join(', ')}`);
         }
@@ -85,7 +87,7 @@ class N8nMCPCLI {
 
   async createSampleWorkflow(): Promise<void> {
     const spinner = ora('Creating sample workflow...').start();
-    
+
     const sampleWorkflow = {
       name: 'Sample Webhook Workflow',
       nodes: [
@@ -146,7 +148,7 @@ class N8nMCPCLI {
 
   async exportWorkflow(workflowId: string, outputPath?: string): Promise<void> {
     const spinner = ora(`Exporting workflow ${workflowId}...`).start();
-    
+
     try {
       const response = await axios.get(`${this.config.baseUrl}/api/v1/workflows/${workflowId}`, {
         headers: this.config.apiKey ? { 'X-N8N-API-KEY': this.config.apiKey } : {},
@@ -172,11 +174,11 @@ class N8nMCPCLI {
 
   async importWorkflow(filePath: string, newName?: string): Promise<void> {
     const spinner = ora(`Importing workflow from ${filePath}...`).start();
-    
+
     try {
       const fileContent = await fs.readFile(filePath, 'utf-8');
       const importData = JSON.parse(fileContent);
-      
+
       const workflowData = {
         name: newName || importData.workflow.name || `Imported-${Date.now()}`,
         nodes: importData.workflow.nodes,
@@ -222,7 +224,11 @@ class N8nMCPCLI {
       console.log(chalk.green(`MCP configuration saved to ${configPath}`));
       console.log(chalk.blue('Add this file to your Cursor MCP settings'));
     } catch (error) {
-      console.error(chalk.red(`Failed to save config: ${error instanceof Error ? error.message : String(error)}`));
+      console.error(
+        chalk.red(
+          `Failed to save config: ${error instanceof Error ? error.message : String(error)}`
+        )
+      );
     }
   }
 
@@ -233,16 +239,13 @@ class N8nMCPCLI {
       apiKey: this.config.apiKey,
       timeout: this.config.timeout,
     });
-    
+
     await server.run();
   }
 }
 
 // CLI Program Setup
-program
-  .name('n8n-mcp-cli')
-  .description('CLI tool for n8n MCP integration')
-  .version('1.0.0');
+program.name('n8n-mcp-cli').description('CLI tool for n8n MCP integration').version('1.0.0');
 
 program
   .option('-u, --url <url>', 'n8n base URL', 'http://localhost:5678')
@@ -252,13 +255,13 @@ program
 program
   .command('test')
   .description('Test connection to n8n instance')
-  .action(async (options) => {
+  .action(async options => {
     const config: CLIConfig = {
       baseUrl: options.url || 'http://localhost:5678',
       apiKey: options.apiKey,
       timeout: parseInt(options.timeout),
     };
-    
+
     const cli = new N8nMCPCLI(config);
     await cli.testConnection();
   });
@@ -266,13 +269,13 @@ program
 program
   .command('list')
   .description('List all workflows')
-  .action(async (options) => {
+  .action(async options => {
     const config: CLIConfig = {
       baseUrl: options.url || 'http://localhost:5678',
       apiKey: options.apiKey,
       timeout: parseInt(options.timeout),
     };
-    
+
     const cli = new N8nMCPCLI(config);
     await cli.listWorkflows();
   });
@@ -280,13 +283,13 @@ program
 program
   .command('create-sample')
   .description('Create a sample workflow for testing')
-  .action(async (options) => {
+  .action(async options => {
     const config: CLIConfig = {
       baseUrl: options.url || 'http://localhost:5678',
       apiKey: options.apiKey,
       timeout: parseInt(options.timeout),
     };
-    
+
     const cli = new N8nMCPCLI(config);
     await cli.createSampleWorkflow();
   });
@@ -301,7 +304,7 @@ program
       apiKey: options.apiKey,
       timeout: parseInt(options.timeout),
     };
-    
+
     const cli = new N8nMCPCLI(config);
     await cli.exportWorkflow(workflowId, options.output);
   });
@@ -316,7 +319,7 @@ program
       apiKey: options.apiKey,
       timeout: parseInt(options.timeout),
     };
-    
+
     const cli = new N8nMCPCLI(config);
     await cli.importWorkflow(filePath, options.name);
   });
@@ -324,13 +327,13 @@ program
 program
   .command('generate-config')
   .description('Generate MCP configuration file')
-  .action(async (options) => {
+  .action(async options => {
     const config: CLIConfig = {
       baseUrl: options.url || 'http://localhost:5678',
       apiKey: options.apiKey,
       timeout: parseInt(options.timeout),
     };
-    
+
     const cli = new N8nMCPCLI(config);
     await cli.generateConfig();
   });
@@ -338,13 +341,13 @@ program
 program
   .command('start-server')
   .description('Start the MCP server')
-  .action(async (options) => {
+  .action(async options => {
     const config: CLIConfig = {
       baseUrl: options.url || 'http://localhost:5678',
       apiKey: options.apiKey,
       timeout: parseInt(options.timeout),
     };
-    
+
     const cli = new N8nMCPCLI(config);
     await cli.startServer();
   });

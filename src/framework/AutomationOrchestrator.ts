@@ -82,7 +82,7 @@ export class AutomationOrchestrator extends EventEmitter {
 
   constructor(config?: Partial<AutomationConfig>) {
     super();
-    
+
     this.config = {
       enableCursorAPI: true,
       enableN8N: true,
@@ -95,12 +95,12 @@ export class AutomationOrchestrator extends EventEmitter {
         errorRate: 10,
         responseTime: 5000,
         storageUtilization: 80,
-        miningSuccessRate: 70
+        miningSuccessRate: 70,
       },
       automationRules: [],
-      ...config
+      ...config,
     };
-    
+
     this.setupEventHandlers();
   }
 
@@ -109,31 +109,31 @@ export class AutomationOrchestrator extends EventEmitter {
    */
   async initialize(): Promise<void> {
     console.log('🎭 Initializing Automation Orchestrator...');
-    
+
     try {
       this.startTime = Date.now();
-      
+
       // Initialize Cursor API integration
       if (this.config.enableCursorAPI) {
         await cursorAPIIntegration.initialize();
         console.log('✅ Cursor API integration initialized');
       }
-      
+
       // Initialize N8N workflow manager
       if (this.config.enableN8N) {
         await n8nWorkflowManager.initialize();
         console.log('✅ N8N workflow manager initialized');
       }
-      
+
       // Deploy default workflows
       await this.deployDefaultWorkflows();
-      
+
       // Start monitoring
       this.startMonitoring();
-      
+
       this.isRunning = true;
       this.emit('initialized');
-      
+
       console.log('✅ Automation Orchestrator initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize Automation Orchestrator:', error);
@@ -146,18 +146,18 @@ export class AutomationOrchestrator extends EventEmitter {
    */
   private async deployDefaultWorkflows(): Promise<void> {
     console.log('🚀 Deploying default automation workflows...');
-    
+
     try {
       // Deploy Cursor API workflows
       if (this.config.enableCursorAPI) {
         await this.deployCursorWorkflows();
       }
-      
+
       // Deploy N8N workflows
       if (this.config.enableN8N) {
         await n8nWorkflowManager.deployAllLightDomWorkflows();
       }
-      
+
       console.log('✅ Default workflows deployed successfully');
     } catch (error) {
       console.error('❌ Failed to deploy default workflows:', error);
@@ -175,7 +175,7 @@ export class AutomationOrchestrator extends EventEmitter {
       trigger: {
         type: 'schedule',
         config: { interval: 300000 }, // 5 minutes
-        enabled: true
+        enabled: true,
       },
       status: 'active',
       actions: [
@@ -198,12 +198,12 @@ export class AutomationOrchestrator extends EventEmitter {
                 console.log('High error rate detected, triggering error handling');
                 await lightDomFramework.handleHighErrorRate();
               }
-            `
+            `,
           },
           enabled: true,
-          order: 1
-        }
-      ]
+          order: 1,
+        },
+      ],
     });
 
     // Storage optimization workflow
@@ -213,7 +213,7 @@ export class AutomationOrchestrator extends EventEmitter {
       trigger: {
         type: 'schedule',
         config: { interval: 600000 }, // 10 minutes
-        enabled: true
+        enabled: true,
       },
       status: 'active',
       actions: [
@@ -236,12 +236,12 @@ export class AutomationOrchestrator extends EventEmitter {
                   }
                 }
               }
-            `
+            `,
           },
           enabled: true,
-          order: 1
-        }
-      ]
+          order: 1,
+        },
+      ],
     });
 
     // Mining automation workflow
@@ -251,7 +251,7 @@ export class AutomationOrchestrator extends EventEmitter {
       trigger: {
         type: 'schedule',
         config: { interval: 1800000 }, // 30 minutes
-        enabled: true
+        enabled: true,
       },
       status: 'active',
       actions: [
@@ -280,25 +280,27 @@ export class AutomationOrchestrator extends EventEmitter {
                   }
                 }
               }
-            `
+            `,
           },
           enabled: true,
-          order: 1
-        }
-      ]
+          order: 1,
+        },
+      ],
     });
   }
 
   /**
    * Create automation rule
    */
-  async createAutomationRule(rule: Omit<AutomationRule, 'id' | 'triggerCount' | 'createdAt'>): Promise<AutomationRule> {
+  async createAutomationRule(
+    rule: Omit<AutomationRule, 'id' | 'triggerCount' | 'createdAt'>
+  ): Promise<AutomationRule> {
     try {
       const automationRule = await cursorAPIIntegration.createAutomationRule(rule);
-      
+
       this.emit('automationRuleCreated', automationRule);
       console.log(`✅ Created automation rule: ${automationRule.name}`);
-      
+
       return automationRule;
     } catch (error) {
       console.error('❌ Failed to create automation rule:', error);
@@ -317,7 +319,7 @@ export class AutomationOrchestrator extends EventEmitter {
 
     try {
       console.log(`🤖 Executing automation rule: ${rule.name}`);
-      
+
       // Evaluate conditions
       const shouldExecute = await this.evaluateRuleConditions(rule, context);
       if (!shouldExecute) {
@@ -333,7 +335,6 @@ export class AutomationOrchestrator extends EventEmitter {
       rule.triggerCount++;
       this.emit('automationRuleExecuted', rule);
       console.log(`✅ Automation rule executed: ${rule.name}`);
-      
     } catch (error) {
       console.error(`❌ Failed to execute automation rule ${rule.name}:`, error);
       this.emit('automationRuleFailed', { rule, error });
@@ -347,12 +348,12 @@ export class AutomationOrchestrator extends EventEmitter {
     for (const condition of rule.conditions) {
       const value = await this.getConditionValue(condition, context);
       const threshold = condition.threshold || condition.value;
-      
+
       if (!this.evaluateCondition(condition.operator, value, threshold)) {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -539,7 +540,7 @@ export class AutomationOrchestrator extends EventEmitter {
   private startMonitoring(): void {
     this.monitoringInterval = setInterval(async () => {
       if (!this.isRunning) return;
-      
+
       try {
         await this.monitorSystemHealth();
         await this.checkAutomationRules();
@@ -557,47 +558,46 @@ export class AutomationOrchestrator extends EventEmitter {
       const status = lightDomFramework.getStatus();
       const storageMetrics = lightDomFramework.getStorageMetrics();
       const miningStats = lightDomFramework.getMiningStats();
-      
+
       // Check alert thresholds
       const alerts = [];
-      
+
       if (status.performance.averageProcessingTime > this.config.alertThresholds.responseTime) {
         alerts.push({
           type: 'response_time',
           message: `High response time: ${status.performance.averageProcessingTime}ms`,
-          severity: 'warning'
+          severity: 'warning',
         });
       }
-      
+
       if (status.performance.errorRate > this.config.alertThresholds.errorRate) {
         alerts.push({
           type: 'error_rate',
           message: `High error rate: ${status.performance.errorRate}%`,
-          severity: 'error'
+          severity: 'error',
         });
       }
-      
+
       if (storageMetrics.utilizationRate > this.config.alertThresholds.storageUtilization) {
         alerts.push({
           type: 'storage_utilization',
           message: `High storage utilization: ${storageMetrics.utilizationRate}%`,
-          severity: 'warning'
+          severity: 'warning',
         });
       }
-      
+
       if (miningStats.successRate < this.config.alertThresholds.miningSuccessRate) {
         alerts.push({
           type: 'mining_success_rate',
           message: `Low mining success rate: ${miningStats.successRate}%`,
-          severity: 'warning'
+          severity: 'warning',
         });
       }
-      
+
       // Process alerts
       for (const alert of alerts) {
         await this.processAlert(alert);
       }
-      
     } catch (error) {
       console.error('Health monitoring error:', error);
     }
@@ -614,12 +614,12 @@ export class AutomationOrchestrator extends EventEmitter {
       timestamp: new Date().toISOString(),
       data: alert,
       severity: alert.severity,
-      resolved: false
+      resolved: false,
     };
-    
+
     this.events.set(event.id, event);
     this.emit('alert', event);
-    
+
     console.log(`🚨 Alert: ${alert.message}`);
   }
 
@@ -628,10 +628,10 @@ export class AutomationOrchestrator extends EventEmitter {
    */
   private async checkAutomationRules(): Promise<void> {
     const rules = cursorAPIIntegration.getAllAutomationRules();
-    
+
     for (const rule of rules) {
       if (!rule.enabled) continue;
-      
+
       try {
         await this.executeAutomationRule(rule.id);
       } catch (error) {
@@ -644,18 +644,18 @@ export class AutomationOrchestrator extends EventEmitter {
    * Setup event handlers
    */
   private setupEventHandlers(): void {
-    this.on('alert', (event) => {
+    this.on('alert', event => {
       console.log(`🚨 Alert: ${event.data.message}`);
     });
-    
-    this.on('automationRuleCreated', (rule) => {
+
+    this.on('automationRuleCreated', rule => {
       console.log(`🤖 Automation rule created: ${rule.name}`);
     });
-    
-    this.on('automationRuleExecuted', (rule) => {
+
+    this.on('automationRuleExecuted', rule => {
       console.log(`✅ Automation rule executed: ${rule.name}`);
     });
-    
+
     this.on('automationRuleFailed', ({ rule, error }) => {
       console.error(`❌ Automation rule failed: ${rule.name} - ${error}`);
     });
@@ -669,13 +669,15 @@ export class AutomationOrchestrator extends EventEmitter {
     const executions = events.filter(e => e.type === 'workflow_execution');
     const successfulExecutions = executions.filter(e => e.data?.status === 'completed').length;
     const failedExecutions = executions.filter(e => e.data?.status === 'failed').length;
-    
-    const averageExecutionTime = executions.length > 0 ? 
-      executions.reduce((total, e) => total + (e.data?.duration || 0), 0) / executions.length : 0;
-    
-    const lastExecution = executions.length > 0 ? 
-      Math.max(...executions.map(e => new Date(e.timestamp).getTime())) : 0;
-    
+
+    const averageExecutionTime =
+      executions.length > 0
+        ? executions.reduce((total, e) => total + (e.data?.duration || 0), 0) / executions.length
+        : 0;
+
+    const lastExecution =
+      executions.length > 0 ? Math.max(...executions.map(e => new Date(e.timestamp).getTime())) : 0;
+
     return {
       totalEvents: events.length,
       activeWorkflows: this.getActiveWorkflowCount(),
@@ -683,7 +685,7 @@ export class AutomationOrchestrator extends EventEmitter {
       failedExecutions,
       averageExecutionTime,
       lastExecution: lastExecution > 0 ? new Date(lastExecution).toISOString() : '',
-      uptime: this.isRunning ? Date.now() - this.startTime : 0
+      uptime: this.isRunning ? Date.now() - this.startTime : 0,
     };
   }
 
@@ -692,15 +694,15 @@ export class AutomationOrchestrator extends EventEmitter {
    */
   private getActiveWorkflowCount(): number {
     let count = 0;
-    
+
     if (this.config.enableCursorAPI) {
       count += cursorAPIIntegration.getAllWorkflows().filter(w => w.status === 'active').length;
     }
-    
+
     if (this.config.enableN8N) {
       count += n8nWorkflowManager.getAllWorkflows().filter(w => w.active).length;
     }
-    
+
     return count;
   }
 
@@ -708,8 +710,8 @@ export class AutomationOrchestrator extends EventEmitter {
    * Get all events
    */
   getAllEvents(): AutomationEvent[] {
-    return Array.from(this.events.values()).sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    return Array.from(this.events.values()).sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
   }
 
@@ -732,22 +734,22 @@ export class AutomationOrchestrator extends EventEmitter {
    */
   async stop(): Promise<void> {
     console.log('🛑 Stopping Automation Orchestrator...');
-    
+
     this.isRunning = false;
-    
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
-    
+
     if (this.config.enableCursorAPI) {
       await cursorAPIIntegration.stop();
     }
-    
+
     if (this.config.enableN8N) {
       await n8nWorkflowManager.stop();
     }
-    
+
     this.emit('stopped');
     console.log('✅ Automation Orchestrator stopped');
   }
@@ -759,7 +761,7 @@ export class AutomationOrchestrator extends EventEmitter {
     return {
       running: this.isRunning,
       config: this.config,
-      stats: this.getAutomationStats()
+      stats: this.getAutomationStats(),
     };
   }
 }

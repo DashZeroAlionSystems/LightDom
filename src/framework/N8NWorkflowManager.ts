@@ -42,11 +42,13 @@ export interface N8NNode {
 
 export interface N8NConnections {
   [nodeId: string]: {
-    main: Array<Array<{
-      node: string;
-      type: string;
-      index: number;
-    }>>;
+    main: Array<
+      Array<{
+        node: string;
+        type: string;
+        index: number;
+      }>
+    >;
   };
 }
 
@@ -105,17 +107,17 @@ export class N8NWorkflowManager extends EventEmitter {
 
   constructor(config: N8NConfig) {
     super();
-    
+
     this.config = config;
     this.api = axios.create({
       baseURL: config.baseUrl,
       timeout: config.timeout,
       headers: {
         'X-N8N-API-KEY': config.apiKey,
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
-    
+
     this.setupInterceptors();
     this.setupEventHandlers();
   }
@@ -125,23 +127,23 @@ export class N8NWorkflowManager extends EventEmitter {
    */
   async initialize(): Promise<void> {
     console.log('🔧 Initializing N8N Workflow Manager...');
-    
+
     try {
       // Test N8N connection
       await this.testConnection();
-      
+
       // Load workflow templates
       await this.loadWorkflowTemplates();
-      
+
       // Load existing workflows
       await this.loadWorkflows();
-      
+
       // Start monitoring
       this.startMonitoring();
-      
+
       this.isRunning = true;
       this.emit('initialized');
-      
+
       console.log('✅ N8N Workflow Manager initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize N8N Workflow Manager:', error);
@@ -173,7 +175,7 @@ export class N8NWorkflowManager extends EventEmitter {
       const templatesPath = path.join(__dirname, 'n8n-workflows.json');
       const templatesData = await fs.readFile(templatesPath, 'utf8');
       const { workflows } = JSON.parse(templatesData);
-      
+
       for (const workflow of workflows) {
         const template: WorkflowTemplate = {
           id: workflow.id,
@@ -183,12 +185,12 @@ export class N8NWorkflowManager extends EventEmitter {
           tags: this.extractTags(workflow),
           template: workflow,
           variables: this.extractVariables(workflow),
-          requirements: this.extractRequirements(workflow)
+          requirements: this.extractRequirements(workflow),
         };
-        
+
         this.templates.set(template.id, template);
       }
-      
+
       console.log(`✅ Loaded ${this.templates.size} workflow templates`);
     } catch (error) {
       console.error('❌ Failed to load workflow templates:', error);
@@ -201,7 +203,7 @@ export class N8NWorkflowManager extends EventEmitter {
   private categorizeWorkflow(workflow: any): WorkflowTemplate['category'] {
     const name = workflow.name.toLowerCase();
     const description = workflow.description.toLowerCase();
-    
+
     if (name.includes('optimization') || description.includes('optimization')) {
       return 'optimization';
     } else if (name.includes('monitoring') || description.includes('monitoring')) {
@@ -213,7 +215,7 @@ export class N8NWorkflowManager extends EventEmitter {
     } else if (name.includes('storage') || description.includes('storage')) {
       return 'storage';
     }
-    
+
     return 'monitoring';
   }
 
@@ -222,7 +224,7 @@ export class N8NWorkflowManager extends EventEmitter {
    */
   private extractTags(workflow: any): string[] {
     const tags = ['lightdom'];
-    
+
     if (workflow.name.toLowerCase().includes('auto')) {
       tags.push('automation');
     }
@@ -238,7 +240,7 @@ export class N8NWorkflowManager extends EventEmitter {
     if (workflow.name.toLowerCase().includes('storage')) {
       tags.push('storage');
     }
-    
+
     return tags;
   }
 
@@ -247,7 +249,7 @@ export class N8NWorkflowManager extends EventEmitter {
    */
   private extractVariables(workflow: any): WorkflowVariable[] {
     const variables: WorkflowVariable[] = [];
-    
+
     // Extract variables from HTTP request nodes
     for (const node of workflow.nodes) {
       if (node.type === 'n8n-nodes-base.httpRequest') {
@@ -259,13 +261,13 @@ export class N8NWorkflowManager extends EventEmitter {
               type: 'string',
               description: 'LightDom API URL',
               required: true,
-              default: 'http://localhost:3000'
+              default: 'http://localhost:3000',
             });
           }
         }
       }
     }
-    
+
     return variables;
   }
 
@@ -274,7 +276,7 @@ export class N8NWorkflowManager extends EventEmitter {
    */
   private extractRequirements(workflow: any): string[] {
     const requirements: string[] = ['LightDom Framework API'];
-    
+
     // Check for specific node types that require external services
     for (const node of workflow.nodes) {
       if (node.type === 'n8n-nodes-base.slack') {
@@ -287,7 +289,7 @@ export class N8NWorkflowManager extends EventEmitter {
         requirements.push('Cron scheduler');
       }
     }
-    
+
     return requirements;
   }
 
@@ -298,11 +300,11 @@ export class N8NWorkflowManager extends EventEmitter {
     try {
       const response = await this.api.get('/workflows');
       const workflows = response.data.data || response.data;
-      
+
       for (const workflow of workflows) {
         this.workflows.set(workflow.id, workflow);
       }
-      
+
       console.log(`✅ Loaded ${this.workflows.size} existing workflows`);
     } catch (error) {
       console.error('❌ Failed to load workflows:', error);
@@ -312,7 +314,10 @@ export class N8NWorkflowManager extends EventEmitter {
   /**
    * Deploy a workflow template
    */
-  async deployWorkflow(templateId: string, variables: Record<string, any> = {}): Promise<N8NWorkflow> {
+  async deployWorkflow(
+    templateId: string,
+    variables: Record<string, any> = {}
+  ): Promise<N8NWorkflow> {
     const template = this.templates.get(templateId);
     if (!template) {
       throw new Error(`Template ${templateId} not found`);
@@ -321,14 +326,14 @@ export class N8NWorkflowManager extends EventEmitter {
     try {
       // Apply variables to template
       const workflow = this.applyVariables(template.template, variables);
-      
+
       // Deploy to N8N
       const response = await this.api.post('/workflows', workflow);
       const deployedWorkflow = response.data;
-      
+
       this.workflows.set(deployedWorkflow.id, deployedWorkflow);
       this.emit('workflowDeployed', deployedWorkflow);
-      
+
       console.log(`✅ Deployed workflow: ${deployedWorkflow.name}`);
       return deployedWorkflow;
     } catch (error) {
@@ -342,14 +347,14 @@ export class N8NWorkflowManager extends EventEmitter {
    */
   private applyVariables(template: N8NWorkflow, variables: Record<string, any>): N8NWorkflow {
     const workflow = JSON.parse(JSON.stringify(template));
-    
+
     // Replace variables in node parameters
     for (const node of workflow.nodes) {
       if (node.parameters) {
         this.replaceVariablesInObject(node.parameters, variables);
       }
     }
-    
+
     return workflow;
   }
 
@@ -374,15 +379,15 @@ export class N8NWorkflowManager extends EventEmitter {
   async executeWorkflow(workflowId: string, input?: any): Promise<N8NExecution> {
     try {
       const response = await this.api.post(`/workflows/${workflowId}/execute`, {
-        data: input
+        data: input,
       });
-      
+
       const execution = response.data;
       this.executions.set(execution.id, execution);
-      
+
       this.emit('workflowExecuted', execution);
       console.log(`🚀 Executed workflow: ${workflowId}`);
-      
+
       return execution;
     } catch (error) {
       console.error('❌ Failed to execute workflow:', error);
@@ -397,7 +402,7 @@ export class N8NWorkflowManager extends EventEmitter {
     try {
       const response = await this.api.get(`/executions/${executionId}`);
       const execution = response.data;
-      
+
       this.executions.set(execution.id, execution);
       return execution;
     } catch (error) {
@@ -412,13 +417,13 @@ export class N8NWorkflowManager extends EventEmitter {
   async activateWorkflow(workflowId: string): Promise<void> {
     try {
       await this.api.patch(`/workflows/${workflowId}`, { active: true });
-      
+
       const workflow = this.workflows.get(workflowId);
       if (workflow) {
         workflow.active = true;
         this.workflows.set(workflowId, workflow);
       }
-      
+
       this.emit('workflowActivated', workflowId);
       console.log(`✅ Activated workflow: ${workflowId}`);
     } catch (error) {
@@ -433,13 +438,13 @@ export class N8NWorkflowManager extends EventEmitter {
   async deactivateWorkflow(workflowId: string): Promise<void> {
     try {
       await this.api.patch(`/workflows/${workflowId}`, { active: false });
-      
+
       const workflow = this.workflows.get(workflowId);
       if (workflow) {
         workflow.active = false;
         this.workflows.set(workflowId, workflow);
       }
-      
+
       this.emit('workflowDeactivated', workflowId);
       console.log(`✅ Deactivated workflow: ${workflowId}`);
     } catch (error) {
@@ -454,10 +459,10 @@ export class N8NWorkflowManager extends EventEmitter {
   async deleteWorkflow(workflowId: string): Promise<void> {
     try {
       await this.api.delete(`/workflows/${workflowId}`);
-      
+
       this.workflows.delete(workflowId);
       this.emit('workflowDeleted', workflowId);
-      
+
       console.log(`✅ Deleted workflow: ${workflowId}`);
     } catch (error) {
       console.error('❌ Failed to delete workflow:', error);
@@ -470,27 +475,26 @@ export class N8NWorkflowManager extends EventEmitter {
    */
   async deployAllLightDomWorkflows(): Promise<N8NWorkflow[]> {
     console.log('🚀 Deploying all LightDom workflows...');
-    
+
     const deployedWorkflows: N8NWorkflow[] = [];
-    
+
     for (const template of this.templates.values()) {
       try {
         const workflow = await this.deployWorkflow(template.id, {
           api_url: 'http://localhost:3000',
           slack_webhook: process.env.SLACK_WEBHOOK_URL || '',
-          git_webhook: process.env.GIT_WEBHOOK_URL || ''
+          git_webhook: process.env.GIT_WEBHOOK_URL || '',
         });
-        
+
         deployedWorkflows.push(workflow);
-        
+
         // Activate the workflow
         await this.activateWorkflow(workflow.id);
-        
       } catch (error) {
         console.error(`❌ Failed to deploy workflow ${template.name}:`, error);
       }
     }
-    
+
     console.log(`✅ Deployed ${deployedWorkflows.length} workflows`);
     return deployedWorkflows;
   }
@@ -501,7 +505,7 @@ export class N8NWorkflowManager extends EventEmitter {
   private startMonitoring(): void {
     this.monitoringInterval = setInterval(async () => {
       if (!this.isRunning) return;
-      
+
       try {
         await this.monitorExecutions();
       } catch (error) {
@@ -518,18 +522,18 @@ export class N8NWorkflowManager extends EventEmitter {
       const response = await this.api.get('/executions', {
         params: {
           limit: 50,
-          status: 'running'
-        }
+          status: 'running',
+        },
       });
-      
+
       const executions = response.data.data || response.data;
-      
+
       for (const execution of executions) {
         if (!this.executions.has(execution.id)) {
           this.executions.set(execution.id, execution);
           this.emit('executionStarted', execution);
         }
-        
+
         // Check if execution completed
         if (execution.finished && !this.executions.get(execution.id)?.finished) {
           this.executions.set(execution.id, execution);
@@ -546,22 +550,22 @@ export class N8NWorkflowManager extends EventEmitter {
    */
   private setupInterceptors(): void {
     this.api.interceptors.request.use(
-      (config) => {
+      config => {
         console.log(`[N8N] ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },
-      (error) => {
+      error => {
         console.error('[N8N] Request error:', error);
         return Promise.reject(error);
       }
     );
 
     this.api.interceptors.response.use(
-      (response) => {
+      response => {
         console.log(`[N8N] Response: ${response.status} ${response.statusText}`);
         return response;
       },
-      (error) => {
+      error => {
         console.error('[N8N] Response error:', error);
         return Promise.reject(error);
       }
@@ -572,27 +576,27 @@ export class N8NWorkflowManager extends EventEmitter {
    * Setup event handlers
    */
   private setupEventHandlers(): void {
-    this.on('workflowDeployed', (workflow) => {
+    this.on('workflowDeployed', workflow => {
       console.log(`📋 Workflow deployed: ${workflow.name}`);
     });
-    
-    this.on('workflowActivated', (workflowId) => {
+
+    this.on('workflowActivated', workflowId => {
       console.log(`✅ Workflow activated: ${workflowId}`);
     });
-    
-    this.on('workflowDeactivated', (workflowId) => {
+
+    this.on('workflowDeactivated', workflowId => {
       console.log(`⏸️ Workflow deactivated: ${workflowId}`);
     });
-    
-    this.on('workflowExecuted', (execution) => {
+
+    this.on('workflowExecuted', execution => {
       console.log(`🚀 Workflow executed: ${execution.id}`);
     });
-    
-    this.on('executionStarted', (execution) => {
+
+    this.on('executionStarted', execution => {
       console.log(`▶️ Execution started: ${execution.id}`);
     });
-    
-    this.on('executionCompleted', (execution) => {
+
+    this.on('executionCompleted', execution => {
       console.log(`✅ Execution completed: ${execution.id} - ${execution.status}`);
     });
   }
@@ -651,14 +655,14 @@ export class N8NWorkflowManager extends EventEmitter {
    */
   async stop(): Promise<void> {
     console.log('🛑 Stopping N8N Workflow Manager...');
-    
+
     this.isRunning = false;
-    
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
-    
+
     this.emit('stopped');
     console.log('✅ N8N Workflow Manager stopped');
   }
@@ -671,7 +675,7 @@ export class N8NWorkflowManager extends EventEmitter {
       running: this.isRunning,
       workflows: this.workflows.size,
       templates: this.templates.size,
-      executions: this.executions.size
+      executions: this.executions.size,
     };
   }
 }
@@ -681,5 +685,5 @@ export const n8nWorkflowManager = new N8NWorkflowManager({
   baseUrl: process.env.N8N_BASE_URL || 'http://localhost:5678/api/v1',
   apiKey: process.env.N8N_API_KEY || 'demo-key',
   timeout: 30000,
-  retryAttempts: 3
+  retryAttempts: 3,
 });

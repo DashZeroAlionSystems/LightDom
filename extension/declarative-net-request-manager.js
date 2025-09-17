@@ -11,28 +11,28 @@ class LightDomDeclarativeNetRequestManager {
       TRACKING_BLOCKING: 'tracking_blocking',
       RESOURCE_OPTIMIZATION: 'resource_optimization',
       CACHE_OPTIMIZATION: 'cache_optimization',
-      CUSTOM_RULES: 'custom_rules'
+      CUSTOM_RULES: 'custom_rules',
     };
-    
+
     this.rulePriorities = {
       HIGH: 1,
       MEDIUM: 2,
-      LOW: 3
+      LOW: 3,
     };
-    
+
     this.init();
   }
 
   async init() {
     // Load existing rules
     await this.loadRules();
-    
+
     // Initialize default optimization rules
     await this.initializeDefaultRules();
-    
+
     // Listen for rule updates
     this.setupRuleListeners();
-    
+
     console.log('Declarative Net Request Manager initialized');
   }
 
@@ -40,21 +40,21 @@ class LightDomDeclarativeNetRequestManager {
     try {
       // Load static rules from manifest
       const staticRules = await chrome.declarativeNetRequest.getStaticRules();
-      
+
       // Load dynamic rules
       const dynamicRules = await chrome.declarativeNetRequest.getDynamicRules();
-      
+
       // Combine and organize rules
       const allRules = [...staticRules, ...dynamicRules];
-      
+
       allRules.forEach(rule => {
         this.rules.set(rule.id, {
           ...rule,
           category: this.categorizeRule(rule),
-          isActive: true
+          isActive: true,
         });
       });
-      
+
       console.log(`Loaded ${allRules.length} declarative net request rules`);
     } catch (error) {
       console.error('Failed to load rules:', error);
@@ -70,9 +70,9 @@ class LightDomDeclarativeNetRequestManager {
         action: { type: 'block' },
         condition: {
           urlFilter: '||ads.*',
-          resourceTypes: ['script', 'stylesheet', 'image']
+          resourceTypes: ['script', 'stylesheet', 'image'],
         },
-        category: this.ruleCategories.AD_BLOCKING
+        category: this.ruleCategories.AD_BLOCKING,
       },
       {
         id: 1002,
@@ -80,11 +80,11 @@ class LightDomDeclarativeNetRequestManager {
         action: { type: 'block' },
         condition: {
           urlFilter: '||banner.*',
-          resourceTypes: ['image', 'script']
+          resourceTypes: ['image', 'script'],
         },
-        category: this.ruleCategories.AD_BLOCKING
+        category: this.ruleCategories.AD_BLOCKING,
       },
-      
+
       // Tracking blocking rules
       {
         id: 2001,
@@ -92,9 +92,9 @@ class LightDomDeclarativeNetRequestManager {
         action: { type: 'block' },
         condition: {
           urlFilter: '||analytics.*',
-          resourceTypes: ['script', 'xmlhttprequest']
+          resourceTypes: ['script', 'xmlhttprequest'],
         },
-        category: this.ruleCategories.TRACKING_BLOCKING
+        category: this.ruleCategories.TRACKING_BLOCKING,
       },
       {
         id: 2002,
@@ -102,65 +102,71 @@ class LightDomDeclarativeNetRequestManager {
         action: { type: 'block' },
         condition: {
           urlFilter: '||tracking.*',
-          resourceTypes: ['script', 'xmlhttprequest']
+          resourceTypes: ['script', 'xmlhttprequest'],
         },
-        category: this.ruleCategories.TRACKING_BLOCKING
+        category: this.ruleCategories.TRACKING_BLOCKING,
       },
-      
+
       // Resource optimization rules
       {
         id: 3001,
         priority: this.rulePriorities.MEDIUM,
         action: {
           type: 'modifyHeaders',
-          requestHeaders: [{
-            header: 'Accept-Encoding',
-            operation: 'set',
-            value: 'gzip, deflate, br'
-          }]
+          requestHeaders: [
+            {
+              header: 'Accept-Encoding',
+              operation: 'set',
+              value: 'gzip, deflate, br',
+            },
+          ],
         },
         condition: {
           urlFilter: '*',
-          resourceTypes: ['main_frame', 'sub_frame']
+          resourceTypes: ['main_frame', 'sub_frame'],
         },
-        category: this.ruleCategories.RESOURCE_OPTIMIZATION
+        category: this.ruleCategories.RESOURCE_OPTIMIZATION,
       },
-      
+
       // Cache optimization rules
       {
         id: 4001,
         priority: this.rulePriorities.LOW,
         action: {
           type: 'modifyHeaders',
-          responseHeaders: [{
-            header: 'Cache-Control',
-            operation: 'set',
-            value: 'max-age=3600'
-          }]
+          responseHeaders: [
+            {
+              header: 'Cache-Control',
+              operation: 'set',
+              value: 'max-age=3600',
+            },
+          ],
         },
         condition: {
           urlFilter: '*.css',
-          resourceTypes: ['stylesheet']
+          resourceTypes: ['stylesheet'],
         },
-        category: this.ruleCategories.CACHE_OPTIMIZATION
+        category: this.ruleCategories.CACHE_OPTIMIZATION,
       },
       {
         id: 4002,
         priority: this.rulePriorities.LOW,
         action: {
           type: 'modifyHeaders',
-          responseHeaders: [{
-            header: 'Cache-Control',
-            operation: 'set',
-            value: 'max-age=86400'
-          }]
+          responseHeaders: [
+            {
+              header: 'Cache-Control',
+              operation: 'set',
+              value: 'max-age=86400',
+            },
+          ],
         },
         condition: {
           urlFilter: '*.js',
-          resourceTypes: ['script']
+          resourceTypes: ['script'],
         },
-        category: this.ruleCategories.CACHE_OPTIMIZATION
-      }
+        category: this.ruleCategories.CACHE_OPTIMIZATION,
+      },
     ];
 
     // Add default rules if they don't exist
@@ -185,37 +191,37 @@ class LightDomDeclarativeNetRequestManager {
         const addResult = await this.addRule(message.rule);
         sendResponse({ success: addResult.success, ruleId: addResult.ruleId });
         break;
-        
+
       case 'REMOVE_DECLARATIVE_RULE':
         const removeResult = await this.removeRule(message.ruleId);
         sendResponse({ success: removeResult });
         break;
-        
+
       case 'UPDATE_DECLARATIVE_RULE':
         const updateResult = await this.updateRule(message.ruleId, message.rule);
         sendResponse({ success: updateResult });
         break;
-        
+
       case 'GET_DECLARATIVE_RULES':
         const rules = await this.getRules(message.category);
         sendResponse({ success: true, rules });
         break;
-        
+
       case 'ENABLE_DECLARATIVE_RULE':
         const enableResult = await this.enableRule(message.ruleId);
         sendResponse({ success: enableResult });
         break;
-        
+
       case 'DISABLE_DECLARATIVE_RULE':
         const disableResult = await this.disableRule(message.ruleId);
         sendResponse({ success: disableResult });
         break;
-        
+
       case 'BULK_UPDATE_RULES':
         const bulkResult = await this.bulkUpdateRules(message.operations);
         sendResponse({ success: bulkResult.success, results: bulkResult.results });
         break;
-        
+
       default:
         sendResponse({ success: false, error: 'Unknown message type' });
     }
@@ -227,32 +233,34 @@ class LightDomDeclarativeNetRequestManager {
       if (!rule.id) {
         rule.id = this.generateRuleId();
       }
-      
+
       // Validate rule
       const validation = await this.validateRule(rule);
       if (!validation.isValid) {
         throw new Error(`Invalid rule: ${validation.errors.join(', ')}`);
       }
-      
+
       // Add to dynamic rules
       await chrome.declarativeNetRequest.updateDynamicRules({
-        addRules: [{
-          id: rule.id,
-          priority: rule.priority || this.rulePriorities.MEDIUM,
-          action: rule.action,
-          condition: rule.condition
-        }]
+        addRules: [
+          {
+            id: rule.id,
+            priority: rule.priority || this.rulePriorities.MEDIUM,
+            action: rule.action,
+            condition: rule.condition,
+          },
+        ],
       });
-      
+
       // Store in local map
       this.rules.set(rule.id, {
         ...rule,
         isActive: true,
-        addedAt: Date.now()
+        addedAt: Date.now(),
       });
-      
+
       console.log(`Added declarative rule ${rule.id}: ${rule.category || 'custom'}`);
-      
+
       return { success: true, ruleId: rule.id };
     } catch (error) {
       console.error('Failed to add rule:', error);
@@ -264,12 +272,12 @@ class LightDomDeclarativeNetRequestManager {
     try {
       // Remove from dynamic rules
       await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: [ruleId]
+        removeRuleIds: [ruleId],
       });
-      
+
       // Remove from local map
       this.rules.delete(ruleId);
-      
+
       console.log(`Removed declarative rule ${ruleId}`);
       return true;
     } catch (error) {
@@ -284,16 +292,16 @@ class LightDomDeclarativeNetRequestManager {
       if (!existingRule) {
         throw new Error('Rule not found');
       }
-      
+
       // Remove old rule
       await this.removeRule(ruleId);
-      
+
       // Add updated rule
       const result = await this.addRule({
         ...updatedRule,
-        id: ruleId
+        id: ruleId,
       });
-      
+
       return result.success;
     } catch (error) {
       console.error('Failed to update rule:', error);
@@ -307,24 +315,26 @@ class LightDomDeclarativeNetRequestManager {
       if (!rule) {
         throw new Error('Rule not found');
       }
-      
+
       if (rule.isActive) {
         return true; // Already enabled
       }
-      
+
       // Re-add rule to enable it
       await chrome.declarativeNetRequest.updateDynamicRules({
-        addRules: [{
-          id: rule.id,
-          priority: rule.priority,
-          action: rule.action,
-          condition: rule.condition
-        }]
+        addRules: [
+          {
+            id: rule.id,
+            priority: rule.priority,
+            action: rule.action,
+            condition: rule.condition,
+          },
+        ],
       });
-      
+
       rule.isActive = true;
       rule.enabledAt = Date.now();
-      
+
       console.log(`Enabled declarative rule ${ruleId}`);
       return true;
     } catch (error) {
@@ -339,19 +349,19 @@ class LightDomDeclarativeNetRequestManager {
       if (!rule) {
         throw new Error('Rule not found');
       }
-      
+
       if (!rule.isActive) {
         return true; // Already disabled
       }
-      
+
       // Remove rule to disable it
       await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: [ruleId]
+        removeRuleIds: [ruleId],
       });
-      
+
       rule.isActive = false;
       rule.disabledAt = Date.now();
-      
+
       console.log(`Disabled declarative rule ${ruleId}`);
       return true;
     } catch (error) {
@@ -362,7 +372,7 @@ class LightDomDeclarativeNetRequestManager {
 
   async bulkUpdateRules(operations) {
     const results = [];
-    
+
     for (const operation of operations) {
       try {
         let result;
@@ -385,26 +395,26 @@ class LightDomDeclarativeNetRequestManager {
           default:
             result = { success: false, error: 'Unknown operation type' };
         }
-        
+
         results.push({
           operation: operation.type,
           ruleId: operation.ruleId || operation.rule?.id,
           success: result.success,
-          error: result.error
+          error: result.error,
         });
       } catch (error) {
         results.push({
           operation: operation.type,
           ruleId: operation.ruleId || operation.rule?.id,
           success: false,
-          error: error.message
+          error: error.message,
         });
       }
     }
-    
+
     return {
       success: results.every(r => r.success),
-      results
+      results,
     };
   }
 
@@ -417,7 +427,7 @@ class LightDomDeclarativeNetRequestManager {
 
   async validateRule(rule) {
     const errors = [];
-    
+
     // Check required fields
     if (!rule.action) {
       errors.push('Action is required');
@@ -425,81 +435,98 @@ class LightDomDeclarativeNetRequestManager {
     if (!rule.condition) {
       errors.push('Condition is required');
     }
-    
+
     // Validate action
     if (rule.action) {
       if (!rule.action.type) {
         errors.push('Action type is required');
       }
-      
+
       const validActionTypes = ['block', 'allow', 'redirect', 'modifyHeaders'];
       if (!validActionTypes.includes(rule.action.type)) {
         errors.push(`Invalid action type: ${rule.action.type}`);
       }
     }
-    
+
     // Validate condition
     if (rule.condition) {
       if (!rule.condition.urlFilter && !rule.condition.regexFilter) {
         errors.push('URL filter or regex filter is required');
       }
-      
+
       if (rule.condition.resourceTypes) {
         const validResourceTypes = [
-          'main_frame', 'sub_frame', 'stylesheet', 'script', 'image',
-          'font', 'object', 'xmlhttprequest', 'ping', 'csp_report',
-          'media', 'websocket', 'webtransport', 'webbundle'
+          'main_frame',
+          'sub_frame',
+          'stylesheet',
+          'script',
+          'image',
+          'font',
+          'object',
+          'xmlhttprequest',
+          'ping',
+          'csp_report',
+          'media',
+          'websocket',
+          'webtransport',
+          'webbundle',
         ];
-        
-        const invalidTypes = rule.condition.resourceTypes.filter(type => 
-          !validResourceTypes.includes(type)
+
+        const invalidTypes = rule.condition.resourceTypes.filter(
+          type => !validResourceTypes.includes(type)
         );
-        
+
         if (invalidTypes.length > 0) {
           errors.push(`Invalid resource types: ${invalidTypes.join(', ')}`);
         }
       }
     }
-    
+
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
   categorizeRule(rule) {
     const condition = rule.condition;
-    
+
     // Ad blocking
-    if (condition.urlFilter && (
-      condition.urlFilter.includes('ads') ||
-      condition.urlFilter.includes('banner') ||
-      condition.urlFilter.includes('popup')
-    )) {
+    if (
+      condition.urlFilter &&
+      (condition.urlFilter.includes('ads') ||
+        condition.urlFilter.includes('banner') ||
+        condition.urlFilter.includes('popup'))
+    ) {
       return this.ruleCategories.AD_BLOCKING;
     }
-    
+
     // Tracking blocking
-    if (condition.urlFilter && (
-      condition.urlFilter.includes('analytics') ||
-      condition.urlFilter.includes('tracking') ||
-      condition.urlFilter.includes('metrics')
-    )) {
+    if (
+      condition.urlFilter &&
+      (condition.urlFilter.includes('analytics') ||
+        condition.urlFilter.includes('tracking') ||
+        condition.urlFilter.includes('metrics'))
+    ) {
       return this.ruleCategories.TRACKING_BLOCKING;
     }
-    
+
     // Cache optimization
-    if (rule.action.type === 'modifyHeaders' && 
-        rule.action.responseHeaders?.some(h => h.header === 'Cache-Control')) {
+    if (
+      rule.action.type === 'modifyHeaders' &&
+      rule.action.responseHeaders?.some(h => h.header === 'Cache-Control')
+    ) {
       return this.ruleCategories.CACHE_OPTIMIZATION;
     }
-    
+
     // Resource optimization
-    if (rule.action.type === 'modifyHeaders' && 
-        (rule.action.requestHeaders || rule.action.responseHeaders)) {
+    if (
+      rule.action.type === 'modifyHeaders' &&
+      (rule.action.requestHeaders || rule.action.responseHeaders)
+    ) {
       return this.ruleCategories.RESOURCE_OPTIMIZATION;
     }
-    
+
     return this.ruleCategories.CUSTOM_RULES;
   }
 
@@ -517,83 +544,95 @@ class LightDomDeclarativeNetRequestManager {
       action: { type: 'block' },
       condition: {
         urlFilter: urlPattern,
-        resourceTypes
+        resourceTypes,
       },
-      category: this.ruleCategories.RESOURCE_OPTIMIZATION
+      category: this.ruleCategories.RESOURCE_OPTIMIZATION,
     };
-    
+
     return await this.addRule(rule);
   }
 
   async addPerformanceOptimizationRule(domain, optimizations) {
     const rules = [];
-    
+
     if (optimizations.blockAds) {
       rules.push({
         priority: this.rulePriorities.HIGH,
         action: { type: 'block' },
         condition: {
           urlFilter: `||${domain}/ads/*`,
-          resourceTypes: ['script', 'stylesheet', 'image']
+          resourceTypes: ['script', 'stylesheet', 'image'],
         },
-        category: this.ruleCategories.AD_BLOCKING
+        category: this.ruleCategories.AD_BLOCKING,
       });
     }
-    
+
     if (optimizations.blockTracking) {
       rules.push({
         priority: this.rulePriorities.HIGH,
         action: { type: 'block' },
         condition: {
           urlFilter: `||${domain}/analytics/*`,
-          resourceTypes: ['script', 'xmlhttprequest']
+          resourceTypes: ['script', 'xmlhttprequest'],
         },
-        category: this.ruleCategories.TRACKING_BLOCKING
+        category: this.ruleCategories.TRACKING_BLOCKING,
       });
     }
-    
+
     if (optimizations.optimizeCache) {
       rules.push({
         priority: this.rulePriorities.LOW,
         action: {
           type: 'modifyHeaders',
-          responseHeaders: [{
-            header: 'Cache-Control',
-            operation: 'set',
-            value: 'max-age=86400'
-          }]
+          responseHeaders: [
+            {
+              header: 'Cache-Control',
+              operation: 'set',
+              value: 'max-age=86400',
+            },
+          ],
         },
         condition: {
           urlFilter: `||${domain}/*`,
-          resourceTypes: ['stylesheet', 'script']
+          resourceTypes: ['stylesheet', 'script'],
         },
-        category: this.ruleCategories.CACHE_OPTIMIZATION
+        category: this.ruleCategories.CACHE_OPTIMIZATION,
       });
     }
-    
+
     const results = [];
     for (const rule of rules) {
       const result = await this.addRule(rule);
       results.push(result);
     }
-    
+
     return results;
   }
 
   async getRuleStatistics() {
     const rules = Array.from(this.rules.values());
-    
+
     return {
       total: rules.length,
       active: rules.filter(r => r.isActive).length,
       inactive: rules.filter(r => !r.isActive).length,
       byCategory: {
-        [this.ruleCategories.AD_BLOCKING]: rules.filter(r => r.category === this.ruleCategories.AD_BLOCKING).length,
-        [this.ruleCategories.TRACKING_BLOCKING]: rules.filter(r => r.category === this.ruleCategories.TRACKING_BLOCKING).length,
-        [this.ruleCategories.RESOURCE_OPTIMIZATION]: rules.filter(r => r.category === this.ruleCategories.RESOURCE_OPTIMIZATION).length,
-        [this.ruleCategories.CACHE_OPTIMIZATION]: rules.filter(r => r.category === this.ruleCategories.CACHE_OPTIMIZATION).length,
-        [this.ruleCategories.CUSTOM_RULES]: rules.filter(r => r.category === this.ruleCategories.CUSTOM_RULES).length
-      }
+        [this.ruleCategories.AD_BLOCKING]: rules.filter(
+          r => r.category === this.ruleCategories.AD_BLOCKING
+        ).length,
+        [this.ruleCategories.TRACKING_BLOCKING]: rules.filter(
+          r => r.category === this.ruleCategories.TRACKING_BLOCKING
+        ).length,
+        [this.ruleCategories.RESOURCE_OPTIMIZATION]: rules.filter(
+          r => r.category === this.ruleCategories.RESOURCE_OPTIMIZATION
+        ).length,
+        [this.ruleCategories.CACHE_OPTIMIZATION]: rules.filter(
+          r => r.category === this.ruleCategories.CACHE_OPTIMIZATION
+        ).length,
+        [this.ruleCategories.CUSTOM_RULES]: rules.filter(
+          r => r.category === this.ruleCategories.CUSTOM_RULES
+        ).length,
+      },
     };
   }
 }

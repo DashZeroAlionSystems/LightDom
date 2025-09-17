@@ -8,9 +8,9 @@ class LightDomStorageManager {
     this.storageTypes = {
       LOCAL: 'local',
       SESSION: 'session',
-      MANAGED: 'managed'
+      MANAGED: 'managed',
     };
-    
+
     this.storageKeys = {
       USER_ADDRESS: 'userAddress',
       IS_MINING: 'isMining',
@@ -20,19 +20,19 @@ class LightDomStorageManager {
       BLOCKCHAIN_CONFIG: 'blockchainConfig',
       ENTERPRISE_POLICIES: 'enterprisePolicies',
       PERFORMANCE_DATA: 'performanceData',
-      USER_PREFERENCES: 'userPreferences'
+      USER_PREFERENCES: 'userPreferences',
     };
-    
+
     this.init();
   }
 
   async init() {
     // Check if managed storage is available (enterprise deployments)
     this.managedStorageAvailable = await this.checkManagedStorage();
-    
+
     // Initialize default values
     await this.initializeDefaults();
-    
+
     // Setup storage change listeners
     this.setupStorageListeners();
   }
@@ -54,21 +54,21 @@ class LightDomStorageManager {
         spaceSaved: 0,
         blocksMined: 0,
         peers: 0,
-        lastUpdate: Date.now()
+        lastUpdate: Date.now(),
       },
       [this.storageKeys.RECENT_OPTIMIZATIONS]: [],
       [this.storageKeys.OPTIMIZATION_RULES]: this.getDefaultOptimizationRules(),
       [this.storageKeys.BLOCKCHAIN_CONFIG]: {
         networkUrl: 'http://localhost:3001/blockchain',
         autoMine: false,
-        notificationLevel: 'normal'
+        notificationLevel: 'normal',
       },
       [this.storageKeys.USER_PREFERENCES]: {
         theme: 'dark',
         notifications: true,
         analytics: true,
-        autoOptimize: true
-      }
+        autoOptimize: true,
+      },
     };
 
     // Set defaults only if they don't exist
@@ -88,7 +88,7 @@ class LightDomStorageManager {
       compressImages: false,
       minifyCSS: true,
       minifyJS: false,
-      customRules: []
+      customRules: [],
     };
   }
 
@@ -101,11 +101,13 @@ class LightDomStorageManager {
 
   handleStorageChange(changes, namespace) {
     // Broadcast changes to other parts of the extension
-    chrome.runtime.sendMessage({
-      type: 'STORAGE_CHANGED',
-      changes,
-      namespace
-    }).catch(() => {}); // Ignore errors if no listeners
+    chrome.runtime
+      .sendMessage({
+        type: 'STORAGE_CHANGED',
+        changes,
+        namespace,
+      })
+      .catch(() => {}); // Ignore errors if no listeners
   }
 
   // Generic storage methods
@@ -124,10 +126,10 @@ class LightDomStorageManager {
     try {
       const storage = this.getStorageAPI(storageType);
       await storage.set({ [key]: value });
-      
+
       // Emit change event
       this.handleStorageChange({ [key]: { newValue: value } }, storageType);
-      
+
       return true;
     } catch (error) {
       console.error(`Failed to set ${key} in ${storageType} storage:`, error);
@@ -139,10 +141,10 @@ class LightDomStorageManager {
     try {
       const storage = this.getStorageAPI(storageType);
       await storage.remove(key);
-      
+
       // Emit change event
       this.handleStorageChange({ [key]: { newValue: undefined } }, storageType);
-      
+
       return true;
     } catch (error) {
       console.error(`Failed to remove ${key} from ${storageType} storage:`, error);
@@ -179,12 +181,12 @@ class LightDomStorageManager {
 
   async setUserAddress(address) {
     const success = await this.set(this.storageKeys.USER_ADDRESS, address);
-    
+
     if (success) {
       // Also store in session for quick access
       await this.set(this.storageKeys.USER_ADDRESS, address, this.storageTypes.SESSION);
     }
-    
+
     return success;
   }
 
@@ -194,19 +196,19 @@ class LightDomStorageManager {
 
   async setMiningStatus(isMining) {
     const success = await this.set(this.storageKeys.IS_MINING, isMining);
-    
+
     if (success) {
       // Update timestamp in metrics
       const metrics = await this.getMetrics();
       metrics.lastMiningStatusChange = Date.now();
       await this.setMetrics(metrics);
     }
-    
+
     return success;
   }
 
   async getMetrics() {
-    return await this.get(this.storageKeys.METRICS) || this.getDefaultMetrics();
+    return (await this.get(this.storageKeys.METRICS)) || this.getDefaultMetrics();
   }
 
   getDefaultMetrics() {
@@ -216,16 +218,16 @@ class LightDomStorageManager {
       blocksMined: 0,
       peers: 0,
       lastUpdate: Date.now(),
-      lastMiningStatusChange: null
+      lastMiningStatusChange: null,
     };
   }
 
   async setMetrics(metrics) {
     const updatedMetrics = {
       ...metrics,
-      lastUpdate: Date.now()
+      lastUpdate: Date.now(),
     };
-    
+
     return await this.set(this.storageKeys.METRICS, updatedMetrics);
   }
 
@@ -234,39 +236,43 @@ class LightDomStorageManager {
     const updatedMetrics = {
       ...currentMetrics,
       ...updates,
-      lastUpdate: Date.now()
+      lastUpdate: Date.now(),
     };
-    
+
     return await this.setMetrics(updatedMetrics);
   }
 
   async getRecentOptimizations() {
-    return await this.get(this.storageKeys.RECENT_OPTIMIZATIONS) || [];
+    return (await this.get(this.storageKeys.RECENT_OPTIMIZATIONS)) || [];
   }
 
   async addOptimization(optimization) {
     const optimizations = await this.getRecentOptimizations();
-    
+
     const newOptimization = {
       ...optimization,
       id: this.generateId(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
-    
+
     optimizations.push(newOptimization);
-    
+
     // Keep only last 100 optimizations
     if (optimizations.length > 100) {
       optimizations.splice(0, optimizations.length - 100);
     }
-    
+
     const success = await this.set(this.storageKeys.RECENT_OPTIMIZATIONS, optimizations);
-    
+
     if (success) {
       // Also store in session for quick access
-      await this.set(this.storageKeys.RECENT_OPTIMIZATIONS, optimizations.slice(-10), this.storageTypes.SESSION);
+      await this.set(
+        this.storageKeys.RECENT_OPTIMIZATIONS,
+        optimizations.slice(-10),
+        this.storageTypes.SESSION
+      );
     }
-    
+
     return success ? newOptimization : null;
   }
 
@@ -281,7 +287,7 @@ class LightDomStorageManager {
         );
       }
     }
-    
+
     return await this.get(this.storageKeys.OPTIMIZATION_RULES);
   }
 
@@ -296,13 +302,13 @@ class LightDomStorageManager {
       ...userRules,
       ...enterpriseRules,
       // Some enterprise rules cannot be overridden
-      ...(enterpriseRules.nonOverridable ? enterpriseRules.nonOverridable : {})
+      ...(enterpriseRules.nonOverridable ? enterpriseRules.nonOverridable : {}),
     };
   }
 
   async getBlockchainConfig() {
     const config = await this.get(this.storageKeys.BLOCKCHAIN_CONFIG);
-    
+
     // Check for enterprise configuration
     if (this.managedStorageAvailable) {
       const enterpriseConfig = await this.get('blockchainConfig', this.storageTypes.MANAGED);
@@ -310,7 +316,7 @@ class LightDomStorageManager {
         return { ...config, ...enterpriseConfig };
       }
     }
-    
+
     return config;
   }
 
@@ -328,23 +334,28 @@ class LightDomStorageManager {
 
   // Performance data storage (using session storage for temporary data)
   async storePerformanceData(data) {
-    const performanceData = await this.get(this.storageKeys.PERFORMANCE_DATA, this.storageTypes.SESSION) || [];
-    
+    const performanceData =
+      (await this.get(this.storageKeys.PERFORMANCE_DATA, this.storageTypes.SESSION)) || [];
+
     performanceData.push({
       ...data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
-    
+
     // Keep only last 50 performance entries
     if (performanceData.length > 50) {
       performanceData.splice(0, performanceData.length - 50);
     }
-    
-    return await this.set(this.storageKeys.PERFORMANCE_DATA, performanceData, this.storageTypes.SESSION);
+
+    return await this.set(
+      this.storageKeys.PERFORMANCE_DATA,
+      performanceData,
+      this.storageTypes.SESSION
+    );
   }
 
   async getPerformanceData() {
-    return await this.get(this.storageKeys.PERFORMANCE_DATA, this.storageTypes.SESSION) || [];
+    return (await this.get(this.storageKeys.PERFORMANCE_DATA, this.storageTypes.SESSION)) || [];
   }
 
   // Data synchronization methods
@@ -354,19 +365,19 @@ class LightDomStorageManager {
         userAddress: await this.getUserAddress(),
         metrics: await this.getMetrics(),
         optimizationRules: await this.getOptimizationRules(),
-        userPreferences: await this.getUserPreferences()
+        userPreferences: await this.getUserPreferences(),
       };
-      
+
       // Send to LightDom cloud service
       const response = await fetch('https://api.lightdom.com/sync', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await this.getUserAddress()}`
+          Authorization: `Bearer ${await this.getUserAddress()}`,
         },
-        body: JSON.stringify(dataToSync)
+        body: JSON.stringify(dataToSync),
       });
-      
+
       if (response.ok) {
         console.log('Data synced to cloud successfully');
         return true;
@@ -383,16 +394,16 @@ class LightDomStorageManager {
     try {
       const userAddress = await this.getUserAddress();
       if (!userAddress) return false;
-      
+
       const response = await fetch(`https://api.lightdom.com/sync/${userAddress}`, {
         headers: {
-          'Authorization': `Bearer ${userAddress}`
-        }
+          Authorization: `Bearer ${userAddress}`,
+        },
       });
-      
+
       if (response.ok) {
         const cloudData = await response.json();
-        
+
         // Merge cloud data with local data
         if (cloudData.metrics) {
           await this.setMetrics(cloudData.metrics);
@@ -403,7 +414,7 @@ class LightDomStorageManager {
         if (cloudData.userPreferences) {
           await this.setUserPreferences(cloudData.userPreferences);
         }
-        
+
         console.log('Data synced from cloud successfully');
         return true;
       } else {
@@ -429,28 +440,29 @@ class LightDomStorageManager {
       recentOptimizations: await this.getRecentOptimizations(),
       optimizationRules: await this.getOptimizationRules(),
       blockchainConfig: await this.getBlockchainConfig(),
-      userPreferences: await this.getUserPreferences()
+      userPreferences: await this.getUserPreferences(),
     };
-    
+
     return JSON.stringify(data, null, 2);
   }
 
   async importData(jsonData) {
     try {
       const data = JSON.parse(jsonData);
-      
+
       if (data.version !== '2.0') {
         throw new Error('Unsupported data format version');
       }
-      
+
       // Import data with validation
       if (data.userAddress) await this.setUserAddress(data.userAddress);
       if (data.metrics) await this.setMetrics(data.metrics);
-      if (data.recentOptimizations) await this.set(this.storageKeys.RECENT_OPTIMIZATIONS, data.recentOptimizations);
+      if (data.recentOptimizations)
+        await this.set(this.storageKeys.RECENT_OPTIMIZATIONS, data.recentOptimizations);
       if (data.optimizationRules) await this.setOptimizationRules(data.optimizationRules);
       if (data.blockchainConfig) await this.setBlockchainConfig(data.blockchainConfig);
       if (data.userPreferences) await this.setUserPreferences(data.userPreferences);
-      
+
       console.log('Data imported successfully');
       return true;
     } catch (error) {
@@ -462,13 +474,15 @@ class LightDomStorageManager {
   // Cleanup methods
   async cleanupOldData() {
     const optimizations = await this.getRecentOptimizations();
-    const cutoffDate = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30 days ago
-    
+    const cutoffDate = Date.now() - 30 * 24 * 60 * 60 * 1000; // 30 days ago
+
     const filteredOptimizations = optimizations.filter(opt => opt.timestamp > cutoffDate);
-    
+
     if (filteredOptimizations.length !== optimizations.length) {
       await this.set(this.storageKeys.RECENT_OPTIMIZATIONS, filteredOptimizations);
-      console.log(`Cleaned up ${optimizations.length - filteredOptimizations.length} old optimizations`);
+      console.log(
+        `Cleaned up ${optimizations.length - filteredOptimizations.length} old optimizations`
+      );
     }
   }
 }

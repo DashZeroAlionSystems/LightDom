@@ -15,6 +15,7 @@ The LightDom Framework now includes comprehensive automation features that integ
 ### 1. Cursor API Integration
 
 #### Workflow Management
+
 ```typescript
 // Create a Cursor API workflow
 const workflow = await lightDomFramework.createCursorWorkflow({
@@ -23,7 +24,7 @@ const workflow = await lightDomFramework.createCursorWorkflow({
   trigger: {
     type: 'schedule',
     config: { interval: 300000 }, // 5 minutes
-    enabled: true
+    enabled: true,
   },
   status: 'active',
   actions: [
@@ -38,16 +39,17 @@ const workflow = await lightDomFramework.createCursorWorkflow({
           if (status.performance.averageProcessingTime > 5000) {
             await lightDomFramework.optimizePerformance();
           }
-        `
+        `,
       },
       enabled: true,
-      order: 1
-    }
-  ]
+      order: 1,
+    },
+  ],
 });
 ```
 
 #### Automation Rules
+
 ```typescript
 // Create automation rule
 const rule = await lightDomFramework.createAutomationRule({
@@ -58,47 +60,44 @@ const rule = await lightDomFramework.createAutomationRule({
       type: 'age',
       operator: 'greater_than',
       value: 10,
-      unit: 'minutes'
-    }
+      unit: 'minutes',
+    },
   ],
   actions: [
     {
       type: 'cleanup_files',
       config: { threshold: 80 },
-      priority: 'medium'
-    }
+      priority: 'medium',
+    },
   ],
   enabled: true,
-  priority: 'high'
+  priority: 'high',
 });
 ```
 
 ### 2. N8N Workflow Management
 
 #### Deploy N8N Workflows
+
 ```typescript
 // Deploy N8N workflow from template
-const workflow = await lightDomFramework.deployN8NWorkflow(
-  'lightdom-auto-optimization',
-  {
-    api_url: 'http://localhost:3000',
-    slack_webhook: process.env.SLACK_WEBHOOK_URL
-  }
-);
+const workflow = await lightDomFramework.deployN8NWorkflow('lightdom-auto-optimization', {
+  api_url: 'http://localhost:3000',
+  slack_webhook: process.env.SLACK_WEBHOOK_URL,
+});
 ```
 
 #### Execute N8N Workflows
+
 ```typescript
 // Execute N8N workflow
-const execution = await lightDomFramework.executeN8NWorkflow(
-  workflow.id,
-  { input: 'test data' }
-);
+const execution = await lightDomFramework.executeN8NWorkflow(workflow.id, { input: 'test data' });
 ```
 
 ### 3. Automation Orchestrator
 
 #### Initialize Automation
+
 ```typescript
 // Initialize automation orchestrator
 await lightDomFramework.initializeAutomation();
@@ -109,6 +108,7 @@ console.log('Automation Status:', status);
 ```
 
 #### Monitor Automation
+
 ```typescript
 // Get automation statistics
 const stats = lightDomFramework.getAutomationStats();
@@ -120,14 +120,16 @@ console.log('Success Rate:', stats.successfulExecutions / stats.totalEvents);
 ## 📊 N8N Workflow Templates
 
 ### 1. LightDom Auto Optimization
+
 - **Trigger**: Schedule (every 5 minutes)
-- **Actions**: 
+- **Actions**:
   - Get LightDom metrics
   - Check performance thresholds
   - Run optimization if needed
   - Send notifications
 
 ### 2. LightDom Storage Management
+
 - **Trigger**: Webhook
 - **Actions**:
   - Get storage metrics
@@ -136,6 +138,7 @@ console.log('Success Rate:', stats.successfulExecutions / stats.totalEvents);
   - Log results
 
 ### 3. LightDom Mining Automation
+
 - **Trigger**: Cron (every hour)
 - **Actions**:
   - Get mining queue
@@ -144,6 +147,7 @@ console.log('Success Rate:', stats.successfulExecutions / stats.totalEvents);
   - Monitor progress
 
 ### 4. LightDom Deployment Automation
+
 - **Trigger**: Git webhook
 - **Actions**:
   - Check git changes
@@ -153,6 +157,7 @@ console.log('Success Rate:', stats.successfulExecutions / stats.totalEvents);
   - Send notifications
 
 ### 5. LightDom Monitoring Alerts
+
 - **Trigger**: Schedule (every 2 minutes)
 - **Actions**:
   - Get system health
@@ -162,6 +167,7 @@ console.log('Success Rate:', stats.successfulExecutions / stats.totalEvents);
 ## 🔧 Configuration
 
 ### Environment Variables
+
 ```bash
 # Cursor API Configuration
 CURSOR_API_KEY=your_cursor_api_key
@@ -177,6 +183,7 @@ GIT_WEBHOOK_URL=https://your-git-webhook-url.com
 ```
 
 ### Automation Configuration
+
 ```typescript
 const config = {
   enableCursorAPI: true,
@@ -190,14 +197,15 @@ const config = {
     errorRate: 10,
     responseTime: 5000,
     storageUtilization: 80,
-    miningSuccessRate: 70
-  }
+    miningSuccessRate: 70,
+  },
 };
 ```
 
 ## 🎯 Usage Examples
 
 ### Basic Setup
+
 ```typescript
 import { lightDomFramework } from './src/framework';
 
@@ -210,17 +218,18 @@ const node = await lightDomFramework.createStorageNode({
   name: 'Mining Node',
   capacity: 10000,
   location: 'us-east-1',
-  priority: 'high'
+  priority: 'high',
 });
 
 // Add URLs to mining queue
 const jobIds = await lightDomFramework.addMiningJobs([
   { url: 'https://example.com', priority: 'high' },
-  { url: 'https://github.com', priority: 'medium' }
+  { url: 'https://github.com', priority: 'medium' },
 ]);
 ```
 
 ### Advanced Automation
+
 ```typescript
 // Create performance monitoring workflow
 const performanceWorkflow = await lightDomFramework.createCursorWorkflow({
@@ -229,7 +238,7 @@ const performanceWorkflow = await lightDomFramework.createCursorWorkflow({
   trigger: {
     type: 'schedule',
     config: { interval: 300000 },
-    enabled: true
+    enabled: true,
   },
   status: 'active',
   actions: [
@@ -259,30 +268,31 @@ const performanceWorkflow = await lightDomFramework.createCursorWorkflow({
             console.log('Low mining success rate detected');
             // Trigger mining optimization
           }
-        `
+        `,
       },
       enabled: true,
-      order: 1
-    }
-  ]
+      order: 1,
+    },
+  ],
 });
 
 // Deploy N8N workflows
 const n8nWorkflows = await Promise.all([
   lightDomFramework.deployN8NWorkflow('lightdom-auto-optimization'),
   lightDomFramework.deployN8NWorkflow('lightdom-storage-management'),
-  lightDomFramework.deployN8NWorkflow('lightdom-mining-automation')
+  lightDomFramework.deployN8NWorkflow('lightdom-mining-automation'),
 ]);
 ```
 
 ### Monitoring and Alerts
+
 ```typescript
 // Set up event listeners
 lightDomFramework.on('automationInitialized', () => {
   console.log('Automation system initialized');
 });
 
-lightDomFramework.on('workflowExecuted', (execution) => {
+lightDomFramework.on('workflowExecuted', execution => {
   console.log(`Workflow executed: ${execution.id}`);
 });
 
@@ -290,13 +300,13 @@ lightDomFramework.on('workflowExecuted', (execution) => {
 setInterval(() => {
   const status = lightDomFramework.getAutomationStatus();
   const stats = lightDomFramework.getAutomationStats();
-  
+
   console.log('Automation Status:', {
     orchestrator: status.orchestrator.running,
     cursorAPI: status.cursorAPI.running,
     n8n: status.n8n.running,
     totalEvents: stats.totalEvents,
-    activeWorkflows: stats.activeWorkflows
+    activeWorkflows: stats.activeWorkflows,
   });
 }, 60000); // Check every minute
 ```
@@ -304,6 +314,7 @@ setInterval(() => {
 ## 🚀 Quick Start
 
 ### 1. Start the Framework
+
 ```bash
 # Start with automation enabled
 npm start
@@ -313,12 +324,14 @@ npm run start:dev
 ```
 
 ### 2. Run Automation Demo
+
 ```bash
 # Run comprehensive automation demo
 npm run demo:automation
 ```
 
 ### 3. Deploy N8N Workflows
+
 ```typescript
 // Deploy all LightDom workflows
 const workflows = await n8nWorkflowManager.deployAllLightDomWorkflows();
@@ -326,6 +339,7 @@ console.log(`Deployed ${workflows.length} workflows`);
 ```
 
 ### 4. Create Automation Rules
+
 ```typescript
 // Create performance monitoring rule
 const rule = await lightDomFramework.createAutomationRule({
@@ -336,24 +350,25 @@ const rule = await lightDomFramework.createAutomationRule({
       type: 'age',
       operator: 'greater_than',
       value: 5,
-      unit: 'minutes'
-    }
+      unit: 'minutes',
+    },
   ],
   actions: [
     {
       type: 'notification',
       config: { message: 'Performance alert triggered' },
-      priority: 'high'
-    }
+      priority: 'high',
+    },
   ],
   enabled: true,
-  priority: 'high'
+  priority: 'high',
 });
 ```
 
 ## 📈 Monitoring and Analytics
 
 ### Automation Statistics
+
 ```typescript
 const stats = lightDomFramework.getAutomationStats();
 console.log('Automation Statistics:', {
@@ -362,11 +377,12 @@ console.log('Automation Statistics:', {
   successfulExecutions: stats.successfulExecutions,
   failedExecutions: stats.failedExecutions,
   averageExecutionTime: stats.averageExecutionTime,
-  uptime: stats.uptime
+  uptime: stats.uptime,
 });
 ```
 
 ### Event Monitoring
+
 ```typescript
 // Get all automation events
 const events = lightDomFramework.getAutomationEvents();
@@ -382,6 +398,7 @@ const warningEvents = events.filter(e => e.severity === 'warning');
 ```
 
 ### Workflow Status
+
 ```typescript
 // Get Cursor API workflows
 const cursorWorkflows = lightDomFramework.getAllCursorWorkflows();
@@ -421,6 +438,7 @@ console.log(`Automation Rules: ${rules.length}`);
    - Check execution logs for errors
 
 ### Debug Commands
+
 ```bash
 # Check automation status
 npx lightdom automation status
@@ -438,6 +456,7 @@ npx lightdom automation stats
 ## 🔮 Future Enhancements
 
 ### Planned Features
+
 - **AI-Powered Automation**: Machine learning for intelligent automation
 - **Visual Workflow Builder**: Drag-and-drop workflow creation
 - **Advanced Analytics**: Detailed automation analytics and insights
@@ -445,6 +464,7 @@ npx lightdom automation stats
 - **Real-time Collaboration**: Team collaboration on automation workflows
 
 ### Research Areas
+
 - **Automation Intelligence**: Smarter automation decision making
 - **Performance Optimization**: Better automation performance
 - **Security Integration**: Enhanced security for automation workflows
@@ -457,6 +477,7 @@ npx lightdom automation stats
 The LightDom Automation Features provide a comprehensive solution for automated app management using Cursor API and n8n. With real-time monitoring, intelligent automation, and extensive workflow templates, the framework can automatically manage and optimize the LightDom application with minimal human intervention.
 
 **Key Benefits:**
+
 - ✅ **Automated Management**: Hands-free app management and optimization
 - ✅ **Visual Workflows**: Easy-to-use n8n workflow templates
 - ✅ **Real-time Monitoring**: Continuous monitoring and alerting

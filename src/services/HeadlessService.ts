@@ -26,7 +26,7 @@ export class HeadlessService extends EventEmitter {
     this.logger = new Logger('HeadlessService');
     this.errorHandler = new ErrorHandler();
     this.configManager = new ConfigManager(this.logger);
-    
+
     // Initialize services
     this.headlessChrome = new HeadlessChromeService();
     this.webCrawler = new WebCrawlerService();
@@ -54,7 +54,7 @@ export class HeadlessService extends EventEmitter {
         headless: this.headlessChrome,
         crawler: this.webCrawler,
         optimization: this.optimizationEngine,
-        backgroundWorker: this.backgroundWorker
+        backgroundWorker: this.backgroundWorker,
       });
 
       // Initialize monitoring
@@ -79,10 +79,10 @@ export class HeadlessService extends EventEmitter {
         webCrawler: this.webCrawler.getStatus(),
         optimizationEngine: this.optimizationEngine.getStatus(),
         backgroundWorker: this.backgroundWorker.getStatus(),
-        monitoringService: this.monitoringService.getStatus()
+        monitoringService: this.monitoringService.getStatus(),
       },
       config: this.configManager.getConfig(),
-      errors: this.errorHandler.getStatus()
+      errors: this.errorHandler.getStatus(),
     };
   }
 

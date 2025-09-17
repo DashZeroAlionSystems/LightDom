@@ -86,7 +86,6 @@ class WorkflowTestSuite {
 
       // Generate final report
       this.generateTestReport();
-
     } catch (error) {
       console.error('❌ Test suite failed:', error);
       process.exit(1);
@@ -98,14 +97,14 @@ class WorkflowTestSuite {
    */
   private async runTestSuite(name: string, testFunction: () => Promise<void>): Promise<void> {
     console.log(`\n🔬 Running ${name}...`);
-    
+
     this.currentSuite = {
       name,
       tests: [],
       totalDuration: 0,
       passed: 0,
       failed: 0,
-      successRate: 0
+      successRate: 0,
     };
 
     const startTime = Date.now();
@@ -117,8 +116,10 @@ class WorkflowTestSuite {
     }
 
     this.currentSuite.totalDuration = Date.now() - startTime;
-    this.currentSuite.successRate = this.currentSuite.tests.length > 0 ? 
-      (this.currentSuite.passed / this.currentSuite.tests.length) * 100 : 0;
+    this.currentSuite.successRate =
+      this.currentSuite.tests.length > 0
+        ? (this.currentSuite.passed / this.currentSuite.tests.length) * 100
+        : 0;
 
     this.results.push(this.currentSuite);
     this.currentSuite = null;
@@ -137,7 +138,7 @@ class WorkflowTestSuite {
         name,
         passed: true,
         duration: Date.now() - startTime,
-        details
+        details,
       };
       this.currentSuite!.passed++;
       console.log(`  ✅ ${name} (${result.duration}ms)`);
@@ -146,7 +147,7 @@ class WorkflowTestSuite {
         name,
         passed: false,
         duration: Date.now() - startTime,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       };
       this.currentSuite!.failed++;
       console.log(`  ❌ ${name} (${result.duration}ms) - ${result.error}`);
@@ -172,14 +173,14 @@ class WorkflowTestSuite {
     await this.runTest('Check Framework Components', async () => {
       const status = lightDomFramework.getStatus();
       const components = status.components;
-      
+
       if (!components.framework) {
         throw new Error('Framework component not active');
       }
       if (!components.queue) {
         throw new Error('Queue component not active');
       }
-      
+
       return components;
     });
   }
@@ -194,46 +195,46 @@ class WorkflowTestSuite {
         'high',
         'ecommerce'
       );
-      
+
       if (!queueId) {
         throw new Error('Failed to add URL to queue');
       }
-      
+
       return { queueId };
     });
 
     await this.runTest('Get Queue Status', async () => {
       const status = urlQueueManager.getStatus();
-      
+
       if (status.total === 0) {
         throw new Error('Queue is empty');
       }
-      
+
       return status;
     });
 
     await this.runTest('Add Multiple URLs', async () => {
       const urls = [
         { url: 'https://test1.com', priority: 'medium' as const, siteType: 'blog' as const },
-        { url: 'https://test2.com', priority: 'low' as const, siteType: 'corporate' as const }
+        { url: 'https://test2.com', priority: 'low' as const, siteType: 'corporate' as const },
       ];
-      
+
       const queueIds = await urlQueueManager.addURLs(urls);
-      
+
       if (queueIds.length !== urls.length) {
         throw new Error('Failed to add all URLs');
       }
-      
+
       return { queueIds };
     });
 
     await this.runTest('Get Queue Items', async () => {
       const items = urlQueueManager.getAllItems();
-      
+
       if (items.length === 0) {
         throw new Error('No queue items found');
       }
-      
+
       return { itemCount: items.length };
     });
   }
@@ -248,15 +249,15 @@ class WorkflowTestSuite {
         spaceSavedBytes: 1024,
         optimizationType: 'test',
         biomeType: 'digital',
-        harvesterAddress: '0x1234567890123456789012345678901234567890'
+        harvesterAddress: '0x1234567890123456789012345678901234567890',
       };
-      
+
       const result = await spaceOptimizationEngine.processOptimization(optimization);
-      
+
       if (!result.proofHash) {
         throw new Error('Optimization processing failed');
       }
-      
+
       return result;
     });
 
@@ -264,19 +265,19 @@ class WorkflowTestSuite {
       const stats = {
         totalSpaceHarvested: spaceOptimizationEngine.getTotalSpaceHarvested(),
         totalTokensDistributed: spaceOptimizationEngine.getTotalTokensDistributed(),
-        metaverseStats: spaceOptimizationEngine.getMetaverseStats()
+        metaverseStats: spaceOptimizationEngine.getMetaverseStats(),
       };
-      
+
       return stats;
     });
 
     await this.runTest('Create Optimization Nodes', async () => {
       const node = advancedNodeManager.createNode('optimization', 100, 'digital', []);
-      
+
       if (!node.id) {
         throw new Error('Failed to create optimization node');
       }
-      
+
       return node;
     });
   }
@@ -287,37 +288,37 @@ class WorkflowTestSuite {
   private async testSimulationEngine(): Promise<void> {
     await this.runTest('Start Simulation Engine', async () => {
       await simulationEngine.start();
-      
+
       if (!simulationEngine.isSimulationRunning()) {
         throw new Error('Simulation engine not running');
       }
-      
+
       return { running: true };
     });
 
     await this.runTest('Run Simulation', async () => {
       const result = await simulationEngine.runSimulation();
-      
+
       if (result.networkEfficiency < 0 || result.networkEfficiency > 100) {
         throw new Error('Invalid network efficiency');
       }
-      
+
       return result;
     });
 
     await this.runTest('Get Simulation History', async () => {
       const history = simulationEngine.getSimulationHistory();
-      
+
       if (history.length === 0) {
         throw new Error('No simulation history found');
       }
-      
+
       return { historyLength: history.length };
     });
 
     await this.runTest('Get Simulation Statistics', async () => {
       const stats = simulationEngine.getSimulationStatistics();
-      
+
       return stats;
     });
   }
@@ -328,33 +329,33 @@ class WorkflowTestSuite {
   private async testHeadlessBrowserService(): Promise<void> {
     await this.runTest('Initialize Headless Browser', async () => {
       await headlessBrowserService.initialize();
-      
+
       const status = headlessBrowserService.getStatus();
       if (!status.running) {
         throw new Error('Headless browser not running');
       }
-      
+
       return status;
     });
 
     await this.runTest('Create Browser Page', async () => {
       const page = await headlessBrowserService.createPage('https://example.com');
-      
+
       if (!page) {
         throw new Error('Failed to create browser page');
       }
-      
+
       return { pageCreated: true };
     });
 
     await this.runTest('Close Headless Browser', async () => {
       await headlessBrowserService.close();
-      
+
       const status = headlessBrowserService.getStatus();
       if (status.running) {
         throw new Error('Headless browser still running after close');
       }
-      
+
       return { closed: true };
     });
   }
@@ -365,12 +366,12 @@ class WorkflowTestSuite {
   private async testWorkersService(): Promise<void> {
     await this.runTest('Start Workers Service', async () => {
       await workersService.start();
-      
+
       const status = workersService.getStatus();
       if (!status.running) {
         throw new Error('Workers service not running');
       }
-      
+
       return status;
     });
 
@@ -378,19 +379,19 @@ class WorkflowTestSuite {
       const taskId = workersService.addTask({
         type: 'optimization',
         data: { url: 'https://example.com', siteType: 'test' },
-        priority: 'high'
+        priority: 'high',
       });
-      
+
       if (!taskId) {
         throw new Error('Failed to add worker task');
       }
-      
+
       return { taskId };
     });
 
     await this.runTest('Get Worker Metrics', async () => {
       const metrics = workersService.getMetrics();
-      
+
       return metrics;
     });
   }
@@ -401,28 +402,30 @@ class WorkflowTestSuite {
   private async testCoinSimulation(): Promise<void> {
     await this.runTest('Start Coin Simulation', async () => {
       await lightDomCoinSimulation.start();
-      
+
       const status = lightDomCoinSimulation.getStatus();
       if (!status.running) {
         throw new Error('Coin simulation not running');
       }
-      
+
       return status;
     });
 
     await this.runTest('Get Network Metrics', async () => {
       const metrics = lightDomCoinSimulation.getNetworkMetrics();
-      
+
       if (metrics.totalSupply <= 0) {
         throw new Error('Invalid total supply');
       }
-      
+
       return metrics;
     });
 
     await this.runTest('Get Token Balance', async () => {
-      const balance = lightDomCoinSimulation.getTokenBalance('0x1234567890123456789012345678901234567890');
-      
+      const balance = lightDomCoinSimulation.getTokenBalance(
+        '0x1234567890123456789012345678901234567890'
+      );
+
       return { balance };
     });
 
@@ -432,11 +435,11 @@ class WorkflowTestSuite {
         'Test Proposal',
         'This is a test governance proposal'
       );
-      
+
       if (!proposalId) {
         throw new Error('Failed to create governance proposal');
       }
-      
+
       return { proposalId };
     });
   }
@@ -447,24 +450,24 @@ class WorkflowTestSuite {
   private async testEndToEndWorkflow(): Promise<void> {
     await this.runTest('Run Workflow Simulation', async () => {
       const simulation = workflowSimulation;
-      
+
       // Run a short simulation
       const result = await simulation.start();
-      
+
       if (result.processedUrls === 0) {
         throw new Error('No URLs were processed');
       }
-      
+
       return result;
     });
 
     await this.runTest('Check Workflow Progress', async () => {
       const progress = workflowSimulation.getProgress();
-      
+
       if (progress.totalUrls === 0) {
         throw new Error('No URLs in simulation');
       }
-      
+
       return progress;
     });
   }

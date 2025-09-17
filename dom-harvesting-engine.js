@@ -10,7 +10,7 @@ class DOMSpaceHarvestingEngine {
       totalSpaceHarvested: 0,
       tokensDistributed: 0,
       sitesOptimized: 0,
-      networkHashRate: 0
+      networkHashRate: 0,
     };
   }
 
@@ -25,7 +25,7 @@ class DOMSpaceHarvestingEngine {
       orphanedElements: await this.detectOrphanedElements(domTree),
       inefficientSelectors: await this.analyzeSelectorsEfficiency(stylesheets),
       memoryLeaks: await this.detectMemoryLeaks(domTree),
-      bundleOptimization: await this.analyzeBundleOptimization(scripts)
+      bundleOptimization: await this.analyzeBundleOptimization(scripts),
     };
 
     return this.quantifySpaceSavings(analysis);
@@ -64,7 +64,7 @@ class DOMSpaceHarvestingEngine {
       totalSelectorsCount: allSelectors.size,
       wastedBytes: wastedCSS.bytes,
       optimizationPotential: wastedCSS.bytes / this.getTotalCSSSize(stylesheets),
-      suggestions: this.generateCSSOptimizationSuggestions(unusedSelectors)
+      suggestions: this.generateCSSOptimizationSuggestions(unusedSelectors),
     };
   }
 
@@ -76,20 +76,20 @@ class DOMSpaceHarvestingEngine {
       unusedFunctions: [],
       unusedVariables: [],
       unreachableCode: [],
-      wastedBytes: 0
+      wastedBytes: 0,
     };
 
     for (const script of scripts) {
       const ast = this.parseJavaScript(script.content);
       const usageMap = this.analyzeJSUsage(ast, domTree);
-      
+
       // Find unused functions
       ast.functions.forEach(func => {
         if (!usageMap.functions.has(func.name)) {
           deadCode.unusedFunctions.push({
             name: func.name,
             size: func.end - func.start,
-            file: script.src
+            file: script.src,
           });
           deadCode.wastedBytes += func.end - func.start;
         }
@@ -101,7 +101,7 @@ class DOMSpaceHarvestingEngine {
           deadCode.unusedVariables.push({
             name: variable.name,
             size: variable.declaration.length,
-            file: script.src
+            file: script.src,
           });
           deadCode.wastedBytes += variable.declaration.length;
         }
@@ -122,13 +122,10 @@ class DOMSpaceHarvestingEngine {
    */
   async detectOrphanedElements(domTree) {
     const orphaned = [];
-    const walker = domTree.createTreeWalker(
-      domTree.body,
-      NodeFilter.SHOW_ELEMENT
-    );
+    const walker = domTree.createTreeWalker(domTree.body, NodeFilter.SHOW_ELEMENT);
 
     let node;
-    while (node = walker.nextNode()) {
+    while ((node = walker.nextNode())) {
       const isOrphaned = this.isElementOrphaned(node);
       if (isOrphaned.orphaned) {
         orphaned.push({
@@ -137,7 +134,7 @@ class DOMSpaceHarvestingEngine {
           classes: [...node.classList],
           reason: isOrphaned.reason,
           size: this.estimateElementSize(node),
-          xpath: this.getXPath(node)
+          xpath: this.getXPath(node),
         });
       }
     }
@@ -153,18 +150,18 @@ class DOMSpaceHarvestingEngine {
       detachedNodes: [],
       eventListenerLeaks: [],
       circularReferences: [],
-      estimatedMemoryWaste: 0
+      estimatedMemoryWaste: 0,
     };
 
     // Simulate memory profiling
     const allElements = domTree.querySelectorAll('*');
-    
+
     allElements.forEach(element => {
       // Check for detached nodes (simplified simulation)
       if (!element.isConnected) {
         leaks.detachedNodes.push({
           tag: element.tagName,
-          estimatedMemory: this.estimateElementMemoryUsage(element)
+          estimatedMemory: this.estimateElementMemoryUsage(element),
         });
       }
 
@@ -174,12 +171,12 @@ class DOMSpaceHarvestingEngine {
         leaks.eventListenerLeaks.push({
           element: element.tagName + (element.id ? `#${element.id}` : ''),
           listenerCount,
-          estimatedMemory: listenerCount * 50 // rough estimate
+          estimatedMemory: listenerCount * 50, // rough estimate
         });
       }
     });
 
-    leaks.estimatedMemoryWaste = 
+    leaks.estimatedMemoryWaste =
       leaks.detachedNodes.reduce((sum, node) => sum + node.estimatedMemory, 0) +
       leaks.eventListenerLeaks.reduce((sum, leak) => sum + leak.estimatedMemory, 0);
 
@@ -194,14 +191,14 @@ class DOMSpaceHarvestingEngine {
       cssBytes: analysis.unusedCSS.wastedBytes,
       jsBytes: analysis.deadJavaScript.wastedBytes,
       domMemory: analysis.memoryLeaks.estimatedMemoryWaste,
-      orphanedElementsSize: analysis.orphanedElements.reduce((sum, el) => sum + el.size, 0)
+      orphanedElementsSize: analysis.orphanedElements.reduce((sum, el) => sum + el.size, 0),
     };
 
     const totalBytes = Object.values(savings).reduce((sum, bytes) => sum + bytes, 0);
-    
+
     // Convert bytes to "space units" for tokenization
     const spaceUnits = this.bytesToSpaceUnits(totalBytes);
-    
+
     return {
       ...savings,
       totalBytesWasted: totalBytes,
@@ -209,7 +206,7 @@ class DOMSpaceHarvestingEngine {
       estimatedLoadTimeImprovement: this.calculateLoadTimeImprovement(totalBytes),
       estimatedBandwidthSavings: this.calculateBandwidthSavings(totalBytes),
       carbonFootprintReduction: this.calculateCarbonImpact(totalBytes),
-      tokenValue: this.calculateTokenValue(spaceUnits)
+      tokenValue: this.calculateTokenValue(spaceUnits),
     };
   }
 
@@ -230,12 +227,10 @@ class DOMSpaceHarvestingEngine {
     }
 
     // Distribute tasks
-    const workerPromises = workers.map(worker => 
-      this.runWorker(worker, taskQueue, results)
-    );
+    const workerPromises = workers.map(worker => this.runWorker(worker, taskQueue, results));
 
     await Promise.all(workerPromises);
-    
+
     // Aggregate results and distribute tokens
     return this.aggregateHarvestingResults(results);
   }
@@ -248,15 +243,14 @@ class DOMSpaceHarvestingEngine {
       try {
         const harvestResult = await worker.harvestSite(url);
         results.push(harvestResult);
-        
+
         // Update network statistics
         this.updateNetworkStats(harvestResult);
-        
+
         // Emit to blockchain if significant savings found
         if (harvestResult.spaceUnits > 100) {
           await this.submitToBlockchain(harvestResult);
         }
-
       } catch (error) {
         console.error(`Worker ${worker.id} failed to harvest ${url}:`, error);
       }
@@ -274,18 +268,18 @@ class DOMSpaceHarvestingEngine {
       worker: harvestResult.workerId,
       timestamp: Date.now(),
       proof: this.generateProofOfOptimization(harvestResult),
-      tokenReward: harvestResult.tokenValue
+      tokenReward: harvestResult.tokenValue,
     };
 
     // Submit to blockchain network
     const txHash = await this.blockchain.submitTransaction(transaction);
-    
+
     // Update distributed ledger
     await this.blockchain.updateSpaceRegistry({
       url: harvestResult.url,
       spaceOptimized: harvestResult.totalBytesWasted,
       txHash,
-      blockHeight: await this.blockchain.getCurrentBlockHeight()
+      blockHeight: await this.blockchain.getCurrentBlockHeight(),
     });
 
     return txHash;
@@ -301,7 +295,7 @@ class DOMSpaceHarvestingEngine {
       afterHash: harvestResult.domHashAfter,
       optimizationSteps: harvestResult.optimizationSteps,
       spaceCalculation: harvestResult.spaceCalculation,
-      timestamp: harvestResult.timestamp
+      timestamp: harvestResult.timestamp,
     };
 
     return this.blockchain.generateMerkleProof(proofData);
@@ -315,23 +309,29 @@ class DOMSpaceHarvestingEngine {
     const hasContent = element.textContent.trim().length > 0 || element.children.length > 0;
     const hasVisualImpact = this.hasVisualStyling(element);
     const hasInteractivity = this.hasEventListeners(element);
-    const isStructural = ['html', 'head', 'body', 'script', 'style'].includes(element.tagName.toLowerCase());
+    const isStructural = ['html', 'head', 'body', 'script', 'style'].includes(
+      element.tagName.toLowerCase()
+    );
 
     if (isStructural) return { orphaned: false };
 
     if (!hasContent && !hasVisualImpact && !hasInteractivity) {
-      return { 
-        orphaned: true, 
-        reason: 'No content, styling, or interactivity' 
+      return {
+        orphaned: true,
+        reason: 'No content, styling, or interactivity',
       };
     }
 
     // Check for elements with only whitespace
-    if (element.textContent.trim() === '' && element.children.length === 0 && 
-        !hasVisualImpact && !hasInteractivity) {
-      return { 
-        orphaned: true, 
-        reason: 'Empty element with no purpose' 
+    if (
+      element.textContent.trim() === '' &&
+      element.children.length === 0 &&
+      !hasVisualImpact &&
+      !hasInteractivity
+    ) {
+      return {
+        orphaned: true,
+        reason: 'Empty element with no purpose',
       };
     }
 
@@ -348,7 +348,7 @@ class DOMSpaceHarvestingEngine {
     // Token economics: 1 space unit = 0.001 DSH tokens
     // With bonuses for larger optimizations
     const baseValue = spaceUnits * 0.001;
-    const bonusMultiplier = Math.min(1 + (spaceUnits / 10000), 2); // Max 2x bonus
+    const bonusMultiplier = Math.min(1 + spaceUnits / 10000, 2); // Max 2x bonus
     return baseValue * bonusMultiplier;
   }
 
@@ -373,7 +373,7 @@ class DOMSpaceHarvestingEngine {
 
   estimateElementMemoryUsage(element) {
     // Rough estimate: base memory + attributes + content
-    return 100 + (element.attributes.length * 20) + element.textContent.length;
+    return 100 + element.attributes.length * 20 + element.textContent.length;
   }
 
   getEventListenerCount(element) {
@@ -383,9 +383,11 @@ class DOMSpaceHarvestingEngine {
 
   hasVisualStyling(element) {
     const computedStyle = window.getComputedStyle ? window.getComputedStyle(element) : {};
-    return computedStyle.display !== 'none' && 
-           computedStyle.visibility !== 'hidden' &&
-           (computedStyle.width !== '0px' || computedStyle.height !== '0px');
+    return (
+      computedStyle.display !== 'none' &&
+      computedStyle.visibility !== 'hidden' &&
+      (computedStyle.width !== '0px' || computedStyle.height !== '0px')
+    );
   }
 
   hasEventListeners(element) {
@@ -427,22 +429,22 @@ class DOMHarvestingWorker {
       sitesHarvested: 0,
       totalSpaceHarvested: 0,
       tokensEarned: 0,
-      hashRate: 0
+      hashRate: 0,
     };
   }
 
   async harvestSite(url) {
     const startTime = Date.now();
-    
+
     try {
       // Simulate DOM fetching and parsing
       const siteData = await this.fetchSiteDOM(url);
-      
+
       // Analyze for optimization opportunities
       const analysis = await this.engine.analyzeDOMWaste(
-        url, 
-        siteData.dom, 
-        siteData.stylesheets, 
+        url,
+        siteData.dom,
+        siteData.stylesheets,
         siteData.scripts
       );
 
@@ -456,12 +458,11 @@ class DOMHarvestingWorker {
         timestamp: Date.now(),
         processingTime,
         ...analysis,
-        success: true
+        success: true,
       };
 
       this.updateWorkerStats(result);
       return result;
-
     } catch (error) {
       return {
         url,
@@ -469,7 +470,7 @@ class DOMHarvestingWorker {
         timestamp: Date.now(),
         processingTime: Date.now() - startTime,
         error: error.message,
-        success: false
+        success: false,
       };
     }
   }
@@ -480,7 +481,7 @@ class DOMHarvestingWorker {
     return {
       dom: this.simulateDOM(url),
       stylesheets: this.simulateStylesheets(),
-      scripts: this.simulateScripts()
+      scripts: this.simulateScripts(),
     };
   }
 
@@ -488,9 +489,9 @@ class DOMHarvestingWorker {
     // Simulate DOM structure based on site complexity
     const complexity = this.getSiteComplexity(url);
     return {
-      querySelectorAll: (selector) => new Array(Math.floor(Math.random() * complexity.elements)),
+      querySelectorAll: selector => new Array(Math.floor(Math.random() * complexity.elements)),
       createTreeWalker: () => ({ nextNode: () => null }),
-      body: { children: new Array(complexity.elements) }
+      body: { children: new Array(complexity.elements) },
     };
   }
 
@@ -499,9 +500,9 @@ class DOMHarvestingWorker {
       {
         rules: new Array(Math.floor(Math.random() * 500) + 100).fill().map((_, i) => ({
           selector: `.class-${i}, #id-${i}, div.container-${i}`,
-          size: Math.floor(Math.random() * 200) + 50
-        }))
-      }
+          size: Math.floor(Math.random() * 200) + 50,
+        })),
+      },
     ];
   }
 
@@ -510,8 +511,8 @@ class DOMHarvestingWorker {
       {
         src: 'main.js',
         content: 'simulated',
-        size: Math.floor(Math.random() * 50000) + 10000
-      }
+        size: Math.floor(Math.random() * 50000) + 10000,
+      },
     ];
   }
 
@@ -519,11 +520,15 @@ class DOMHarvestingWorker {
     // Simulate site complexity based on domain
     const complexSites = ['amazon.com', 'facebook.com', 'youtube.com'];
     const isComplex = complexSites.some(site => url.includes(site));
-    
+
     return {
-      elements: isComplex ? Math.floor(Math.random() * 5000) + 1000 : Math.floor(Math.random() * 1000) + 100,
+      elements: isComplex
+        ? Math.floor(Math.random() * 5000) + 1000
+        : Math.floor(Math.random() * 1000) + 100,
       scripts: isComplex ? Math.floor(Math.random() * 20) + 5 : Math.floor(Math.random() * 10) + 1,
-      stylesheets: isComplex ? Math.floor(Math.random() * 10) + 3 : Math.floor(Math.random() * 5) + 1
+      stylesheets: isComplex
+        ? Math.floor(Math.random() * 10) + 3
+        : Math.floor(Math.random() * 5) + 1,
     };
   }
 
@@ -549,12 +554,12 @@ class DOMSpaceBlockchain {
   async submitTransaction(transaction) {
     this.pendingTransactions.push(transaction);
     const txHash = this.generateHash(JSON.stringify(transaction));
-    
+
     // Simulate block mining
     if (this.pendingTransactions.length >= 10) {
       await this.mineBlock();
     }
-    
+
     return txHash;
   }
 
@@ -564,7 +569,7 @@ class DOMSpaceBlockchain {
       timestamp: Date.now(),
       transactions: [...this.pendingTransactions],
       previousHash: this.blocks.length > 0 ? this.blocks[this.blocks.length - 1].hash : '0',
-      nonce: Math.floor(Math.random() * 1000000)
+      nonce: Math.floor(Math.random() * 1000000),
     };
 
     block.hash = this.generateHash(JSON.stringify(block));
@@ -579,7 +584,7 @@ class DOMSpaceBlockchain {
     let hash = 0;
     for (let i = 0; i < data.length; i++) {
       const char = data.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(16);
@@ -589,7 +594,7 @@ class DOMSpaceBlockchain {
     return {
       data,
       hash: this.generateHash(JSON.stringify(data)),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -614,7 +619,7 @@ async function startHarvesting() {
     'https://github.com',
     'https://stackoverflow.com',
     'https://youtube.com',
-    'https://twitter.com'
+    'https://twitter.com',
   ];
 
   console.log('Starting DOM Space Harvesting...');
@@ -627,6 +632,6 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     DOMSpaceHarvestingEngine,
     DOMHarvestingWorker,
-    DOMSpaceBlockchain
+    DOMSpaceBlockchain,
   };
 }

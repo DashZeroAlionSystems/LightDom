@@ -5,24 +5,28 @@ A comprehensive implementation of modern web identity management and Progressive
 ## 🚀 Features Implemented
 
 ### 🔑 **WebAuthn & Passkeys**
+
 - **Passkey Registration**: Secure passkey creation and storage
 - **Passkey Authentication**: Passwordless login using device biometrics
 - **Cross-platform Support**: Works across devices and browsers
 - **Fallback Support**: Graceful degradation for unsupported browsers
 
 ### 📱 **WebOTP API Integration**
+
 - **SMS OTP**: Automatic OTP retrieval from SMS messages
 - **Form Autofill**: Seamless OTP form population
 - **Phone Verification**: Secure phone number verification
 - **Cross-browser Compatibility**: Works on mobile and desktop
 
 ### 🔐 **Password Manager Integration**
+
 - **Autofill Support**: Automatic form filling with saved credentials
 - **Password Change URL**: `/.well-known/change-password` endpoint
 - **Digital Asset Links**: Cross-app credential sharing
 - **Credential Management**: Save, update, and delete credentials
 
 ### 🛡️ **Two-Factor Authentication (2FA)**
+
 - **TOTP Support**: Time-based one-time passwords
 - **SMS 2FA**: SMS-based verification codes
 - **Email 2FA**: Email-based verification codes
@@ -30,6 +34,7 @@ A comprehensive implementation of modern web identity management and Progressive
 - **Multiple Methods**: Support for multiple 2FA methods
 
 ### 📱 **Progressive Web App (PWA)**
+
 - **App Manifest**: Complete PWA manifest with icons and shortcuts
 - **Service Worker**: Offline functionality and caching
 - **Install Prompts**: Native app-like installation experience
@@ -82,7 +87,7 @@ import WebAuthnService from './services/WebAuthnService';
 const webAuthnService = new WebAuthnService({
   rpId: window.location.hostname,
   rpName: 'LightDom',
-  origin: window.location.origin
+  origin: window.location.origin,
 });
 
 // Check passkey support
@@ -92,7 +97,7 @@ const isSupported = await webAuthnService.isPasskeySupported();
 const user = {
   id: 'user123',
   name: 'user@example.com',
-  displayName: 'John Doe'
+  displayName: 'John Doe',
 };
 const credential = await webAuthnService.registerPasskey(user);
 
@@ -141,8 +146,10 @@ import PasswordManagerService from './services/PasswordManagerService';
 
 const passwordManagerService = new PasswordManagerService({
   changePasswordUrl: '/change-password',
-  digitalAssetLinks: [/* ... */],
-  autofillSelectors: ['form']
+  digitalAssetLinks: [
+    /* ... */
+  ],
+  autofillSelectors: ['form'],
 });
 
 // Setup autofill
@@ -152,7 +159,7 @@ passwordManagerService.setupFormAutofill();
 await passwordManagerService.saveCredentials({
   username: 'user@example.com',
   password: 'password123',
-  url: window.location.origin
+  url: window.location.origin,
 });
 ```
 
@@ -165,7 +172,7 @@ const twoFactorAuthService = new TwoFactorAuthService({
   issuer: 'LightDom',
   algorithm: 'SHA1',
   digits: 6,
-  period: 30
+  period: 30,
 });
 
 // Generate TOTP secret
@@ -186,10 +193,10 @@ const isValid = await twoFactorAuthService.verifyTOTPCode(secret, '123456');
 import SignInForm from './components/auth/SignInForm';
 
 <SignInForm
-  onSignIn={(credentials) => handleSignIn(credentials)}
+  onSignIn={credentials => handleSignIn(credentials)}
   onSignUp={() => setShowSignUp(true)}
   onForgotPassword={() => setShowForgotPassword(true)}
-/>
+/>;
 ```
 
 ### **Sign Up Form with Passkey Support**
@@ -197,10 +204,7 @@ import SignInForm from './components/auth/SignInForm';
 ```tsx
 import SignUpForm from './components/auth/SignUpForm';
 
-<SignUpForm
-  onSignUp={(userData) => handleSignUp(userData)}
-  onSignIn={() => setShowSignIn(true)}
-/>
+<SignUpForm onSignUp={userData => handleSignUp(userData)} onSignIn={() => setShowSignIn(true)} />;
 ```
 
 ### **Complete Identity PWA App**
@@ -212,7 +216,7 @@ const app = new IdentityPWAApp({
   webAuthn: {
     rpId: window.location.hostname,
     rpName: 'LightDom',
-    origin: window.location.origin
+    origin: window.location.origin,
   },
   pwa: {
     name: 'LightDom',
@@ -220,19 +224,19 @@ const app = new IdentityPWAApp({
     description: 'Web Optimization Platform',
     startUrl: '/',
     themeColor: '#4285f4',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
   },
   passwordManager: {
     changePasswordUrl: '/change-password',
-    digitalAssetLinks: []
+    digitalAssetLinks: [],
   },
   twoFactorAuth: {
     issuer: 'LightDom',
     algorithm: 'SHA1',
     digits: 6,
     period: 30,
-    window: 1
-  }
+    window: 1,
+  },
 });
 
 await app.initialize();
@@ -263,7 +267,7 @@ await app.initialize();
     {
       "name": "Dashboard",
       "url": "/dashboard",
-      "icons": [{"src": "/icons/shortcut-dashboard.png", "sizes": "96x96"}]
+      "icons": [{ "src": "/icons/shortcut-dashboard.png", "sizes": "96x96" }]
     }
   ]
 }
@@ -275,29 +279,29 @@ await app.initialize();
 const CACHE_NAME = 'lightdom-v1.0.0';
 const urlsToCache = ['/', '/dashboard', '/manifest.json'];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
-  );
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
 });
 ```
 
 ## 🛡️ Security Features
 
 ### **WebAuthn Security**
+
 - **Biometric Authentication**: Uses device biometrics for authentication
 - **Cryptographic Keys**: Strong cryptographic key pairs
 - **Phishing Protection**: Keys are bound to specific origins
 - **No Password Storage**: Eliminates password-related vulnerabilities
 
 ### **2FA Security**
+
 - **Multiple Methods**: TOTP, SMS, Email, Backup codes
 - **Time-based Codes**: TOTP codes expire after 30 seconds
 - **Backup Recovery**: Secure backup code generation
 - **Method Management**: Enable/disable individual methods
 
 ### **Password Manager Security**
+
 - **Secure Storage**: Credentials stored by browser/password manager
 - **Autofill Protection**: Prevents credential theft
 - **Change Password URL**: Secure password update flow
@@ -306,18 +310,21 @@ self.addEventListener('install', (event) => {
 ## 📱 PWA Features
 
 ### **Installation**
+
 - **Native-like Experience**: App can be installed on device
 - **Home Screen Icon**: Custom icon on home screen
 - **Splash Screen**: Custom splash screen on launch
 - **Standalone Mode**: Runs without browser UI
 
 ### **Offline Support**
+
 - **Service Worker**: Caches resources for offline use
 - **Background Sync**: Syncs data when connection restored
 - **Offline Pages**: Custom offline experience
 - **Cache Management**: Intelligent cache invalidation
 
 ### **Push Notifications**
+
 - **Real-time Alerts**: Instant notifications
 - **Action Buttons**: Interactive notification actions
 - **Badge Updates**: App icon badge updates
@@ -326,6 +333,7 @@ self.addEventListener('install', (event) => {
 ## 🔄 Integration with LightDom
 
 ### **Authentication Flow**
+
 1. **User Registration**: Sign up with email/password or passkey
 2. **Email Verification**: Verify email address
 3. **2FA Setup**: Optional two-factor authentication
@@ -333,12 +341,14 @@ self.addEventListener('install', (event) => {
 5. **Session Management**: Secure session handling
 
 ### **PWA Integration**
+
 1. **App Installation**: Users can install as native app
 2. **Offline Optimization**: Works offline with cached data
 3. **Push Notifications**: Real-time optimization alerts
 4. **Background Sync**: Syncs optimization data when online
 
 ### **Security Integration**
+
 1. **Passkey Login**: Passwordless authentication
 2. **2FA Verification**: Additional security layer
 3. **Session Security**: Secure session management
@@ -347,18 +357,21 @@ self.addEventListener('install', (event) => {
 ## 📊 Browser Support
 
 ### **WebAuthn Support**
+
 - ✅ Chrome 67+
 - ✅ Firefox 60+
 - ✅ Safari 14+
 - ✅ Edge 79+
 
 ### **WebOTP Support**
+
 - ✅ Chrome 84+
 - ✅ Edge 84+
 - ⚠️ Firefox (Limited)
 - ⚠️ Safari (Limited)
 
 ### **PWA Support**
+
 - ✅ Chrome 68+
 - ✅ Firefox 58+
 - ✅ Safari 11.3+
@@ -401,12 +414,14 @@ npm run deploy
 ## 📈 Performance
 
 ### **Optimization Features**
+
 - **Service Worker Caching**: Reduces load times
 - **Lazy Loading**: Loads resources on demand
 - **Code Splitting**: Splits code for faster loading
 - **Image Optimization**: Optimizes images for web
 
 ### **Monitoring**
+
 - **Performance Metrics**: Core Web Vitals monitoring
 - **Error Tracking**: Real-time error monitoring
 - **User Analytics**: User behavior tracking
@@ -447,18 +462,21 @@ console.log('2FA status:', twoFactorAuthService.getStatus());
 ## 📚 Resources
 
 ### **Web.dev Identity**
+
 - [Passkeys Overview](https://web.dev/passkeys/)
 - [WebOTP API](https://web.dev/web-otp/)
 - [Password Manager Integration](https://web.dev/password-manager-integration/)
 - [Two-Factor Authentication](https://web.dev/two-factor-authentication/)
 
 ### **PWA Resources**
+
 - [PWA Fundamentals](https://web.dev/pwa/)
 - [Service Worker Guide](https://web.dev/service-workers/)
 - [Web App Manifest](https://web.dev/web-app-manifest/)
 - [Push Notifications](https://web.dev/push-notifications/)
 
 ### **Security Resources**
+
 - [WebAuthn Specification](https://www.w3.org/TR/webauthn-2/)
 - [OWASP Authentication](https://owasp.org/www-project-authentication-cheat-sheet/)
 - [Security Best Practices](https://web.dev/security/)
@@ -467,4 +485,4 @@ console.log('2FA status:', twoFactorAuthService.getStatus());
 
 **Built with ❤️ using modern web standards and security best practices**
 
-*This implementation follows the latest web.dev identity guidelines and provides a comprehensive solution for modern web authentication and PWA capabilities.*
+_This implementation follows the latest web.dev identity guidelines and provides a comprehensive solution for modern web authentication and PWA capabilities._

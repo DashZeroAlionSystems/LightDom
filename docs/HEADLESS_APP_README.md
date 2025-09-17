@@ -5,6 +5,7 @@ A comprehensive headless Chrome application built with Puppeteer and TypeScript,
 ## ✨ Features
 
 ### 🔧 Core Capabilities
+
 - **Headless Chrome Automation**: Full Puppeteer integration with advanced configuration
 - **Performance Testing**: Comprehensive performance metrics and analysis
 - **Accessibility Testing**: WCAG compliance testing and recommendations
@@ -15,6 +16,7 @@ A comprehensive headless Chrome application built with Puppeteer and TypeScript,
 - **Mobile Emulation**: Device-specific testing and responsive design validation
 
 ### 🎯 Advanced Features
+
 - **Chrome DevTools Protocol (CDP)**: Direct CDP integration for advanced browser control
 - **Performance Tracing**: Detailed performance traces and flame graphs
 - **Accessibility Tree Analysis**: Deep accessibility structure analysis
@@ -92,6 +94,7 @@ npm run headless server --port 3001
 ## 📖 CLI Commands
 
 ### Test Command
+
 ```bash
 headless-cli test <url> [options]
 
@@ -111,6 +114,7 @@ Options:
 ```
 
 ### Screenshot Command
+
 ```bash
 headless-cli screenshot <url> [options]
 
@@ -123,6 +127,7 @@ Options:
 ```
 
 ### PDF Command
+
 ```bash
 headless-cli pdf <url> [options]
 
@@ -134,6 +139,7 @@ Options:
 ```
 
 ### Performance Command
+
 ```bash
 headless-cli performance <url> [options]
 
@@ -143,6 +149,7 @@ Options:
 ```
 
 ### Accessibility Command
+
 ```bash
 headless-cli accessibility <url> [options]
 
@@ -152,6 +159,7 @@ Options:
 ```
 
 ### Security Command
+
 ```bash
 headless-cli security <url> [options]
 
@@ -160,6 +168,7 @@ Options:
 ```
 
 ### Demo Command
+
 ```bash
 headless-cli demo [options]
 
@@ -168,6 +177,7 @@ Options:
 ```
 
 ### Server Command
+
 ```bash
 headless-cli server [options]
 
@@ -183,19 +193,22 @@ Options:
 ```typescript
 import HeadlessApp from './src/apps/HeadlessApp';
 
-const app = new HeadlessApp({
-  headless: 'new',
-  devtools: false,
-  slowMo: 100,
-  timeout: 30000
-}, {
-  performanceTracing: true,
-  accessibilityTesting: true,
-  networkInterception: true,
-  securityAudit: true,
-  visualTesting: true,
-  mobileEmulation: true
-});
+const app = new HeadlessApp(
+  {
+    headless: 'new',
+    devtools: false,
+    slowMo: 100,
+    timeout: 30000,
+  },
+  {
+    performanceTracing: true,
+    accessibilityTesting: true,
+    networkInterception: true,
+    securityAudit: true,
+    visualTesting: true,
+    mobileEmulation: true,
+  }
+);
 
 // Initialize
 await app.initialize();
@@ -208,7 +221,7 @@ console.log('Test Results:', {
   performance: result.performance.score,
   accessibility: result.accessibility.score,
   security: result.security.score,
-  visual: result.visual.score
+  visual: result.visual.score,
 });
 
 // Cleanup
@@ -235,13 +248,13 @@ await app.navigateToPage(pageId, 'https://example.com');
 const screenshot = await app.takeScreenshot(pageId, {
   fullPage: true,
   type: 'png',
-  quality: 90
+  quality: 90,
 });
 
 // Generate PDF
 const pdf = await app.generatePDF(pageId, {
   format: 'A4',
-  printBackground: true
+  printBackground: true,
 });
 
 // Close page
@@ -253,6 +266,7 @@ await app.cleanup();
 ## 📊 Test Results
 
 ### Performance Metrics
+
 - **Load Time**: Total page load time
 - **First Contentful Paint**: Time to first contentful paint
 - **Largest Contentful Paint**: Time to largest contentful paint
@@ -261,12 +275,14 @@ await app.cleanup();
 - **Memory Usage**: JavaScript heap usage
 
 ### Accessibility Results
+
 - **WCAG Compliance**: A, AA, or AAA level compliance
 - **Violations**: List of accessibility violations
 - **Recommendations**: Improvement suggestions
 - **Score**: Overall accessibility score (0-100)
 
 ### Security Results
+
 - **HTTPS Status**: Secure connection validation
 - **Mixed Content**: Insecure resource detection
 - **CSP Status**: Content Security Policy validation
@@ -274,6 +290,7 @@ await app.cleanup();
 - **Score**: Overall security score (0-100)
 
 ### Visual Results
+
 - **Layout Shift**: Cumulative layout shift score
 - **Color Contrast**: Color contrast ratio analysis
 - **Font Readability**: Typography readability assessment
@@ -281,6 +298,7 @@ await app.cleanup();
 - **Score**: Overall visual score (0-100)
 
 ### Network Results
+
 - **Total Requests**: Number of network requests
 - **Total Size**: Total resource size
 - **Load Time**: Network load time
@@ -291,6 +309,7 @@ await app.cleanup();
 ## 🎯 Use Cases
 
 ### Web Development
+
 - **Performance Optimization**: Identify and fix performance bottlenecks
 - **Accessibility Compliance**: Ensure WCAG compliance
 - **Security Auditing**: Validate security implementations
@@ -298,6 +317,7 @@ await app.cleanup();
 - **Mobile Testing**: Validate responsive design
 
 ### Quality Assurance
+
 - **Automated Testing**: Integrate into CI/CD pipelines
 - **Regression Testing**: Detect visual and functional regressions
 - **Performance Monitoring**: Track performance over time
@@ -305,6 +325,7 @@ await app.cleanup();
 - **Compliance Testing**: Ensure regulatory compliance
 
 ### SEO & Marketing
+
 - **Page Speed Analysis**: Optimize for search rankings
 - **Mobile-First Testing**: Ensure mobile optimization
 - **Core Web Vitals**: Monitor Google's Core Web Vitals
@@ -349,6 +370,7 @@ interface AdvancedFeatures {
 The headless application includes a REST API server for programmatic access:
 
 ### Endpoints
+
 - `GET /health` - Health check
 - `GET /api/status` - Service status
 - `POST /api/headless/page/create` - Create page

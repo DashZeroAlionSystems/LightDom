@@ -32,15 +32,6 @@
       "@/types/*": ["src/types/*"]
     }
   },
-  "include": [
-    "src/**/*",
-    "scripts/**/*",
-    "contracts/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build"
-  ],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "build", "scripts/**/*", "contracts/**/*"]
 }

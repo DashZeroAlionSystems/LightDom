@@ -4,24 +4,24 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Activity, 
-  Cpu, 
-  HardDrive, 
-  Zap, 
-  Globe, 
-  TrendingUp, 
-  Award, 
-  Settings, 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Database, 
-  Network, 
-  Link, 
-  Search, 
-  Map, 
-  Brain, 
+import {
+  Activity,
+  Cpu,
+  HardDrive,
+  Zap,
+  Globe,
+  TrendingUp,
+  Award,
+  Settings,
+  Play,
+  Pause,
+  RotateCcw,
+  Database,
+  Network,
+  Link,
+  Search,
+  Map,
+  Brain,
   Layers,
   BarChart3,
   PieChart,
@@ -47,9 +47,16 @@ import {
   Inbox,
   HelpCircle,
   Crown,
-  Shield
+  Shield,
 } from 'lucide-react';
-import { DiscordButton, DiscordCard, DiscordCollapsible, DiscordModal, DiscordToast, DiscordProgressBar } from './DiscordComponents';
+import {
+  DiscordButton,
+  DiscordCard,
+  DiscordCollapsible,
+  DiscordModal,
+  DiscordToast,
+  DiscordProgressBar,
+} from './DiscordComponents';
 
 interface OptimizationResult {
   id: string;
@@ -86,7 +93,9 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [notificationCount, setNotificationCount] = useState(3);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [toasts, setToasts] = useState<Array<{id: string, message: string, type: 'success' | 'error' | 'warning' | 'info'}>>([]);
+  const [toasts, setToasts] = useState<
+    Array<{ id: string; message: string; type: 'success' | 'error' | 'warning' | 'info' }>
+  >([]);
   const [userStatus, setUserStatus] = useState<'online' | 'idle' | 'dnd' | 'offline'>('online');
 
   const socketRef = useRef<WebSocket | null>(null);
@@ -104,7 +113,7 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
         qualityScore: 95,
         timestamp: Date.now() - 300000,
         harvesterAddress: '0x1234...5678',
-        metaverseAssets: 12
+        metaverseAssets: 12,
       },
       {
         id: '2',
@@ -116,8 +125,8 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
         qualityScore: 88,
         timestamp: Date.now() - 600000,
         harvesterAddress: '0x1234...5678',
-        metaverseAssets: 8
-      }
+        metaverseAssets: 8,
+      },
     ];
 
     const mockStats: HarvesterStats = {
@@ -127,7 +136,7 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
       totalTokensEarned: 12345,
       rank: 42,
       efficiency: 94.5,
-      lastActive: Date.now() - 120000
+      lastActive: Date.now() - 120000,
     };
 
     setOptimizations(mockOptimizations);
@@ -149,10 +158,14 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'online': return 'var(--discord-success)';
-      case 'warning': return 'var(--discord-warning)';
-      case 'error': return 'var(--discord-danger)';
-      default: return 'var(--discord-text-muted)';
+      case 'online':
+        return 'var(--discord-success)';
+      case 'warning':
+        return 'var(--discord-warning)';
+      case 'error':
+        return 'var(--discord-danger)';
+      default:
+        return 'var(--discord-text-muted)';
     }
   };
 
@@ -167,27 +180,81 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
 
   const getStatusIcon = (status: 'online' | 'idle' | 'dnd' | 'offline') => {
     switch (status) {
-      case 'online': return <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--discord-success)' }} />;
-      case 'idle': return <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--discord-warning)' }} />;
-      case 'dnd': return <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--discord-danger)' }} />;
-      case 'offline': return <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--discord-text-muted)' }} />;
+      case 'online':
+        return (
+          <div
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--discord-success)',
+            }}
+          />
+        );
+      case 'idle':
+        return (
+          <div
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--discord-warning)',
+            }}
+          />
+        );
+      case 'dnd':
+        return (
+          <div
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--discord-danger)',
+            }}
+          />
+        );
+      case 'offline':
+        return (
+          <div
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--discord-text-muted)',
+            }}
+          />
+        );
     }
   };
 
-  const ServerIcon = ({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) => (
+  const ServerIcon = ({
+    icon,
+    label,
+    active = false,
+  }: {
+    icon: React.ReactNode;
+    label: string;
+    active?: boolean;
+  }) => (
     <div className={`discord-server-icon ${active ? 'active' : ''}`} title={label}>
       {icon}
     </div>
   );
 
-  const SidebarItem = ({ icon, label, active = false, badge = 0, onClick }: {
+  const SidebarItem = ({
+    icon,
+    label,
+    active = false,
+    badge = 0,
+    onClick,
+  }: {
     icon: React.ReactNode;
     label: string;
     active?: boolean;
     badge?: number;
     onClick?: () => void;
   }) => (
-    <div 
+    <div
       className={`discord-sidebar-item ${active ? 'active' : ''}`}
       onClick={onClick}
       style={{
@@ -199,25 +266,27 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
         borderRadius: 'var(--discord-radius-sm)',
         margin: '2px var(--discord-spacing-sm)',
         backgroundColor: active ? 'var(--discord-hover-bg)' : 'transparent',
-        transition: 'all 0.2s ease'
+        transition: 'all 0.2s ease',
       }}
     >
       <div style={{ fontSize: '20px' }}>{icon}</div>
       <span style={{ fontSize: '14px', fontWeight: '500' }}>{label}</span>
       {badge > 0 && (
-        <div style={{
-          backgroundColor: 'var(--discord-danger)',
-          color: 'white',
-          borderRadius: '50%',
-          width: '20px',
-          height: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '12px',
-          fontWeight: '600',
-          marginLeft: 'auto'
-        }}>
+        <div
+          style={{
+            backgroundColor: 'var(--discord-danger)',
+            color: 'white',
+            borderRadius: '50%',
+            width: '20px',
+            height: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '12px',
+            fontWeight: '600',
+            marginLeft: 'auto',
+          }}
+        >
           {badge}
         </div>
       )}
@@ -227,132 +296,147 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
   return (
     <div className={`discord-app ${className}`}>
       {/* Server List */}
-      <div className="discord-server-list">
-        <ServerIcon icon={<Zap size={24} />} label="LightDom" active />
-        <ServerIcon icon={<Globe size={24} />} label="Web Crawler" />
-        <ServerIcon icon={<Database size={24} />} label="Database" />
-        <ServerIcon icon={<Network size={24} />} label="Blockchain" />
-        <div style={{ 
-          width: '32px', 
-          height: '2px', 
-          backgroundColor: 'var(--discord-border)', 
-          borderRadius: '1px',
-          margin: 'var(--discord-spacing-sm) 0'
-        }} />
-        <ServerIcon icon={<Settings size={24} />} label="Settings" />
-        <ServerIcon icon={<Plus size={24} />} label="Add Server" />
+      <div className='discord-server-list'>
+        <ServerIcon icon={<Zap size={24} />} label='LightDom' active />
+        <ServerIcon icon={<Globe size={24} />} label='Web Crawler' />
+        <ServerIcon icon={<Database size={24} />} label='Database' />
+        <ServerIcon icon={<Network size={24} />} label='Blockchain' />
+        <div
+          style={{
+            width: '32px',
+            height: '2px',
+            backgroundColor: 'var(--discord-border)',
+            borderRadius: '1px',
+            margin: 'var(--discord-spacing-sm) 0',
+          }}
+        />
+        <ServerIcon icon={<Settings size={24} />} label='Settings' />
+        <ServerIcon icon={<Plus size={24} />} label='Add Server' />
       </div>
 
       {/* Sidebar */}
-      <div className="discord-sidebar">
-        <div style={{
-          padding: 'var(--discord-spacing-md)',
-          borderBottom: '1px solid var(--discord-border)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--discord-spacing-sm)'
-        }}>
+      <div className='discord-sidebar'>
+        <div
+          style={{
+            padding: 'var(--discord-spacing-md)',
+            borderBottom: '1px solid var(--discord-border)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--discord-spacing-sm)',
+          }}
+        >
           <Hash size={20} />
           <span style={{ fontWeight: '600', fontSize: '16px' }}>lightdom-space</span>
         </div>
 
         <div style={{ padding: 'var(--discord-spacing-sm) 0', flex: 1 }}>
-          <SidebarItem 
-            icon={<Activity size={20} />} 
-            label="Dashboard" 
+          <SidebarItem
+            icon={<Activity size={20} />}
+            label='Dashboard'
             active={currentView === 'dashboard'}
             onClick={() => setCurrentView('dashboard')}
           />
-          <SidebarItem 
-            icon={<Globe size={20} />} 
-            label="Crawler" 
+          <SidebarItem
+            icon={<Globe size={20} />}
+            label='Crawler'
             badge={notificationCount}
             onClick={() => setCurrentView('crawler')}
           />
-          <SidebarItem 
-            icon={<Network size={20} />} 
-            label="Blockchain" 
+          <SidebarItem
+            icon={<Network size={20} />}
+            label='Blockchain'
             onClick={() => setCurrentView('blockchain')}
           />
-          <SidebarItem 
-            icon={<Database size={20} />} 
-            label="Database" 
+          <SidebarItem
+            icon={<Database size={20} />}
+            label='Database'
             onClick={() => setCurrentView('database')}
           />
-          <SidebarItem 
-            icon={<Map size={20} />} 
-            label="Metaverse" 
+          <SidebarItem
+            icon={<Map size={20} />}
+            label='Metaverse'
             onClick={() => setCurrentView('metaverse')}
           />
-          <SidebarItem 
-            icon={<BarChart3 size={20} />} 
-            label="Analytics" 
+          <SidebarItem
+            icon={<BarChart3 size={20} />}
+            label='Analytics'
             onClick={() => setCurrentView('analytics')}
           />
         </div>
 
-        <div style={{
-          padding: 'var(--discord-spacing-sm)',
-          borderTop: '1px solid var(--discord-border)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--discord-spacing-sm)',
-          cursor: 'pointer',
-          transition: 'background-color 0.2s ease'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--discord-hover-bg)'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-        onClick={() => setShowSettingsModal(true)}
+        <div
+          style={{
+            padding: 'var(--discord-spacing-sm)',
+            borderTop: '1px solid var(--discord-border)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--discord-spacing-sm)',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s ease',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--discord-hover-bg)')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+          onClick={() => setShowSettingsModal(true)}
         >
           <div style={{ position: 'relative' }}>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--discord-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
-              fontWeight: '600'
-            }}>
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--discord-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: '600',
+              }}
+            >
               LD
             </div>
-            <div style={{
-              position: 'absolute',
-              bottom: '-2px',
-              right: '-2px',
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--discord-bg-secondary)',
-              border: '2px solid var(--discord-bg-secondary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '-2px',
+                right: '-2px',
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--discord-bg-secondary)',
+                border: '2px solid var(--discord-bg-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               {getStatusIcon(userStatus)}
             </div>
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '14px', fontWeight: '500' }}>LightDom Harvester</div>
-            <div style={{ fontSize: '12px', color: 'var(--discord-text-muted)' }}>#{Math.floor(Math.random() * 9999)}</div>
+            <div style={{ fontSize: '12px', color: 'var(--discord-text-muted)' }}>
+              #{Math.floor(Math.random() * 9999)}
+            </div>
           </div>
           <div style={{ display: 'flex', gap: 'var(--discord-spacing-xs)' }}>
-            <Mic size={16} style={{ cursor: 'pointer', opacity: 0.7 }} title="Microphone" />
-            <Headphones size={16} style={{ cursor: 'pointer', opacity: 0.7 }} title="Voice Settings" />
-            <Settings size={16} style={{ cursor: 'pointer', opacity: 0.7 }} title="User Settings" />
+            <Mic size={16} style={{ cursor: 'pointer', opacity: 0.7 }} title='Microphone' />
+            <Headphones
+              size={16}
+              style={{ cursor: 'pointer', opacity: 0.7 }}
+              title='Voice Settings'
+            />
+            <Settings size={16} style={{ cursor: 'pointer', opacity: 0.7 }} title='User Settings' />
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="discord-main">
+      <div className='discord-main'>
         {/* Header */}
-        <div className="discord-header">
-          <div className="discord-flex discord-items-center discord-gap-md">
+        <div className='discord-header'>
+          <div className='discord-flex discord-items-center discord-gap-md'>
             <Hash size={24} />
-            <span className="discord-header-title">
+            <span className='discord-header-title'>
               {currentView === 'dashboard' && 'Dashboard'}
               {currentView === 'crawler' && 'Web Crawler'}
               {currentView === 'blockchain' && 'Blockchain'}
@@ -361,9 +445,12 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
               {currentView === 'analytics' && 'Analytics'}
             </span>
           </div>
-          <div className="discord-flex discord-items-center discord-gap-sm" style={{ marginLeft: 'auto' }}>
-            <div className="discord-status">
-              <div className="discord-status-dot discord-status-online" />
+          <div
+            className='discord-flex discord-items-center discord-gap-sm'
+            style={{ marginLeft: 'auto' }}
+          >
+            <div className='discord-status'>
+              <div className='discord-status-dot discord-status-online' />
               <span>Online</span>
             </div>
             <Bell size={20} style={{ cursor: 'pointer', opacity: 0.7 }} />
@@ -372,49 +459,53 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
         </div>
 
         {/* Content */}
-        <div className="discord-content discord-scrollbar">
+        <div className='discord-content discord-scrollbar'>
           {currentView === 'dashboard' && (
-            <div className="discord-fade-in">
-              <div className="dashboard-grid">
+            <div className='discord-fade-in'>
+              <div className='dashboard-grid'>
                 {/* Stats Cards */}
-                <div className="metric-card">
-                  <div className="discord-flex discord-items-center discord-gap-sm discord-mb-sm">
+                <div className='metric-card'>
+                  <div className='discord-flex discord-items-center discord-gap-sm discord-mb-sm'>
                     <Activity size={20} style={{ color: 'var(--discord-primary)' }} />
-                    <span className="metric-label">Active Optimizations</span>
+                    <span className='metric-label'>Active Optimizations</span>
                   </div>
-                  <div className="metric-value">{optimizations.length}</div>
+                  <div className='metric-value'>{optimizations.length}</div>
                 </div>
 
-                <div className="metric-card">
-                  <div className="discord-flex discord-items-center discord-gap-sm discord-mb-sm">
+                <div className='metric-card'>
+                  <div className='discord-flex discord-items-center discord-gap-sm discord-mb-sm'>
                     <HardDrive size={20} style={{ color: 'var(--discord-success)' }} />
-                    <span className="metric-label">Space Saved</span>
+                    <span className='metric-label'>Space Saved</span>
                   </div>
-                  <div className="metric-value">{formatBytes(harvesterStats?.totalSpaceSaved || 0)}</div>
+                  <div className='metric-value'>
+                    {formatBytes(harvesterStats?.totalSpaceSaved || 0)}
+                  </div>
                 </div>
 
-                <div className="metric-card">
-                  <div className="discord-flex discord-items-center discord-gap-sm discord-mb-sm">
+                <div className='metric-card'>
+                  <div className='discord-flex discord-items-center discord-gap-sm discord-mb-sm'>
                     <Coins size={20} style={{ color: 'var(--discord-warning)' }} />
-                    <span className="metric-label">Tokens Earned</span>
+                    <span className='metric-label'>Tokens Earned</span>
                   </div>
-                  <div className="metric-value">{harvesterStats?.totalTokensEarned.toLocaleString() || 0}</div>
+                  <div className='metric-value'>
+                    {harvesterStats?.totalTokensEarned.toLocaleString() || 0}
+                  </div>
                 </div>
 
-                <div className="metric-card">
-                  <div className="discord-flex discord-items-center discord-gap-sm discord-mb-sm">
+                <div className='metric-card'>
+                  <div className='discord-flex discord-items-center discord-gap-sm discord-mb-sm'>
                     <Award size={20} style={{ color: 'var(--discord-info)' }} />
-                    <span className="metric-label">Rank</span>
+                    <span className='metric-label'>Rank</span>
                   </div>
-                  <div className="metric-value">#{harvesterStats?.rank || 0}</div>
+                  <div className='metric-value'>#{harvesterStats?.rank || 0}</div>
                 </div>
               </div>
 
               {/* Control Panel */}
-              <div className="discord-card discord-mb-lg">
-                <div className="discord-card-header">
-                  <h3 className="discord-card-title">Crawler Control</h3>
-                  <div className="discord-flex discord-gap-sm">
+              <div className='discord-card discord-mb-lg'>
+                <div className='discord-card-header'>
+                  <h3 className='discord-card-title'>Crawler Control</h3>
+                  <div className='discord-flex discord-gap-sm'>
                     <DiscordButton
                       variant={isCrawling ? 'danger' : 'success'}
                       onClick={() => {
@@ -429,7 +520,7 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
                       {isCrawling ? 'Stop' : 'Start'} Crawling
                     </DiscordButton>
                     <DiscordButton
-                      variant="secondary"
+                      variant='secondary'
                       onClick={() => {
                         addToast('System reset', 'info');
                       }}
@@ -442,30 +533,27 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
               </div>
 
               {/* Recent Activity */}
-              <div className="discord-card">
-                <div className="discord-card-header">
-                  <h3 className="discord-card-title">Recent Optimizations</h3>
+              <div className='discord-card'>
+                <div className='discord-card-header'>
+                  <h3 className='discord-card-title'>Recent Optimizations</h3>
                 </div>
-                <div className="activity-feed">
-                  {optimizations.map((opt) => (
-                    <div key={opt.id} className="activity-item">
-                      <div 
-                        className="activity-icon"
+                <div className='activity-feed'>
+                  {optimizations.map(opt => (
+                    <div key={opt.id} className='activity-item'>
+                      <div
+                        className='activity-icon'
                         style={{ backgroundColor: getStatusColor('online') }}
                       >
                         <Zap size={16} />
                       </div>
-                      <div className="activity-content">
-                        <div className="activity-title">
-                          Optimized {opt.url}
-                        </div>
-                        <div className="activity-description">
-                          {formatBytes(opt.spaceSavedKB * 1024)} saved • {opt.tokensEarned} tokens earned
+                      <div className='activity-content'>
+                        <div className='activity-title'>Optimized {opt.url}</div>
+                        <div className='activity-description'>
+                          {formatBytes(opt.spaceSavedKB * 1024)} saved • {opt.tokensEarned} tokens
+                          earned
                         </div>
                       </div>
-                      <div className="activity-time">
-                        {formatTime(opt.timestamp)}
-                      </div>
+                      <div className='activity-time'>{formatTime(opt.timestamp)}</div>
                     </div>
                   ))}
                 </div>
@@ -474,34 +562,38 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
           )}
 
           {currentView === 'crawler' && (
-            <div className="discord-fade-in">
-              <div className="discord-card">
-                <div className="discord-card-header">
-                  <h3 className="discord-card-title">Web Crawler Status</h3>
-                  <div className="discord-status">
-                    <div className="discord-status-dot discord-status-online" />
+            <div className='discord-fade-in'>
+              <div className='discord-card'>
+                <div className='discord-card-header'>
+                  <h3 className='discord-card-title'>Web Crawler Status</h3>
+                  <div className='discord-status'>
+                    <div className='discord-status-dot discord-status-online' />
                     <span>Active</span>
                   </div>
                 </div>
-                <div className="discord-p-md">
-                  <p className="discord-text-secondary">Crawler is actively scanning websites for optimization opportunities.</p>
+                <div className='discord-p-md'>
+                  <p className='discord-text-secondary'>
+                    Crawler is actively scanning websites for optimization opportunities.
+                  </p>
                 </div>
               </div>
             </div>
           )}
 
           {currentView === 'blockchain' && (
-            <div className="discord-fade-in">
-              <div className="discord-card">
-                <div className="discord-card-header">
-                  <h3 className="discord-card-title">Blockchain Status</h3>
-                  <div className="discord-status">
-                    <div className="discord-status-dot discord-status-online" />
+            <div className='discord-fade-in'>
+              <div className='discord-card'>
+                <div className='discord-card-header'>
+                  <h3 className='discord-card-title'>Blockchain Status</h3>
+                  <div className='discord-status'>
+                    <div className='discord-status-dot discord-status-online' />
                     <span>Connected</span>
                   </div>
                 </div>
-                <div className="discord-p-md">
-                  <p className="discord-text-secondary">Blockchain network is connected and mining operations are active.</p>
+                <div className='discord-p-md'>
+                  <p className='discord-text-secondary'>
+                    Blockchain network is connected and mining operations are active.
+                  </p>
                 </div>
               </div>
             </div>
@@ -513,13 +605,13 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
       <DiscordModal
         isOpen={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
-        title="User Settings"
+        title='User Settings'
         footer={
           <>
-            <DiscordButton variant="secondary" onClick={() => setShowSettingsModal(false)}>
+            <DiscordButton variant='secondary' onClick={() => setShowSettingsModal(false)}>
               Cancel
             </DiscordButton>
-            <DiscordButton variant="primary" onClick={() => setShowSettingsModal(false)}>
+            <DiscordButton variant='primary' onClick={() => setShowSettingsModal(false)}>
               Save Changes
             </DiscordButton>
           </>
@@ -527,22 +619,38 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--discord-spacing-md)' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: 'var(--discord-spacing-xs)', fontSize: '12px', fontWeight: '600', color: 'var(--discord-text-secondary)' }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: 'var(--discord-spacing-xs)',
+                fontSize: '12px',
+                fontWeight: '600',
+                color: 'var(--discord-text-secondary)',
+              }}
+            >
               USERNAME
             </label>
             <input
-              type="text"
-              className="discord-input"
-              defaultValue="LightDom Harvester"
+              type='text'
+              className='discord-input'
+              defaultValue='LightDom Harvester'
               style={{ width: '100%' }}
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: 'var(--discord-spacing-xs)', fontSize: '12px', fontWeight: '600', color: 'var(--discord-text-secondary)' }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: 'var(--discord-spacing-xs)',
+                fontSize: '12px',
+                fontWeight: '600',
+                color: 'var(--discord-text-secondary)',
+              }}
+            >
               STATUS
             </label>
             <div style={{ display: 'flex', gap: 'var(--discord-spacing-sm)' }}>
-              {(['online', 'idle', 'dnd', 'offline'] as const).map((status) => (
+              {(['online', 'idle', 'dnd', 'offline'] as const).map(status => (
                 <button
                   key={status}
                   onClick={() => setUserStatus(status)}
@@ -557,7 +665,7 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
                     alignItems: 'center',
                     gap: 'var(--discord-spacing-xs)',
                     fontSize: '12px',
-                    textTransform: 'capitalize'
+                    textTransform: 'capitalize',
                   }}
                 >
                   {getStatusIcon(status)}
@@ -570,7 +678,7 @@ const DiscordStyleDashboard: React.FC<DiscordStyleDashboardProps> = ({ className
       </DiscordModal>
 
       {/* Toasts */}
-      {toasts.map((toast) => (
+      {toasts.map(toast => (
         <DiscordToast
           key={toast.id}
           message={toast.message}

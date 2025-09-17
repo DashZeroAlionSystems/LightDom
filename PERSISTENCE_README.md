@@ -5,24 +5,28 @@ A comprehensive persistence system that maintains blockchain data across browser
 ## Features
 
 ### 🔄 Browser Refresh Persistence
+
 - **IndexedDB Storage**: Persistent storage using IndexedDB for large data sets
 - **localStorage Backup**: Cross-tab synchronization using localStorage
 - **Automatic Save**: Data is automatically saved before page unload
 - **State Restoration**: Application state is restored on page load
 
 ### 🔗 Blockchain Integration
+
 - **Smart Contract Sync**: Optimizations and data are synced to blockchain
 - **Transaction Tracking**: All blockchain transactions are tracked and stored
 - **Gas Optimization**: Efficient storage and retrieval of blockchain data
 - **Error Recovery**: Automatic retry mechanisms for failed blockchain operations
 
 ### 🗄️ PostgreSQL Synchronization
+
 - **Real-time Sync**: Data is synchronized to PostgreSQL database
 - **Batch Operations**: Efficient batch processing for large data sets
 - **Conflict Resolution**: Handles data conflicts between local and remote storage
 - **Backup & Recovery**: Full backup and recovery capabilities
 
 ### 📁 File Upload Management
+
 - **Chrome Limits Detection**: Automatically detects Chrome browser file upload limits
 - **Configurable Limits**: Users can set their preferred file upload size
 - **Format Support**: Supports all Chrome-compatible file formats
@@ -53,6 +57,7 @@ A comprehensive persistence system that maintains blockchain data across browser
 ### Core Components
 
 #### 1. PersistentBlockchainStorage
+
 - **Location**: `src/core/PersistentBlockchainStorage.ts`
 - **Purpose**: Main persistence layer using IndexedDB
 - **Features**:
@@ -62,6 +67,7 @@ A comprehensive persistence system that maintains blockchain data across browser
   - Storage statistics
 
 #### 2. BrowserRefreshHandler
+
 - **Location**: `src/scripts/BrowserRefreshHandler.ts`
 - **Purpose**: Handles browser refresh events
 - **Features**:
@@ -71,6 +77,7 @@ A comprehensive persistence system that maintains blockchain data across browser
   - Error recovery
 
 #### 3. LightDomStorageAPI
+
 - **Location**: `src/api/LightDomStorageAPI.ts`
 - **Purpose**: File upload and storage API
 - **Features**:
@@ -82,6 +89,7 @@ A comprehensive persistence system that maintains blockchain data across browser
 ### Integration Components
 
 #### 4. BlockchainPersistenceIntegration
+
 - **Location**: `src/scripts/BlockchainPersistenceIntegration.ts`
 - **Purpose**: Main integration orchestrator
 - **Features**:
@@ -91,6 +99,7 @@ A comprehensive persistence system that maintains blockchain data across browser
   - Data export/import
 
 #### 5. PersistenceInitializer
+
 - **Location**: `src/scripts/InitializePersistence.ts`
 - **Purpose**: System startup initialization
 - **Features**:
@@ -103,12 +112,12 @@ A comprehensive persistence system that maintains blockchain data across browser
 
 Based on research, Chrome browser has the following limits:
 
-| Limit Type | Value | Description |
-|------------|-------|-------------|
-| Max File Size | 2GB | Maximum size for a single file |
-| Max Files | 1,000 | Maximum number of files in one upload |
-| Max Total Size | 20GB | Maximum total size for all files |
-| Supported Formats | All | All standard web formats |
+| Limit Type        | Value | Description                           |
+| ----------------- | ----- | ------------------------------------- |
+| Max File Size     | 2GB   | Maximum size for a single file        |
+| Max Files         | 1,000 | Maximum number of files in one upload |
+| Max Total Size    | 20GB  | Maximum total size for all files      |
+| Supported Formats | All   | All standard web formats              |
 
 ### Dynamic Limits Detection
 
@@ -120,7 +129,7 @@ const chromeLimits = {
   maxFiles: 1000,
   maxTotalSize: 20 * 1024 * 1024 * 1024, // 20GB
   supportedFormats: ['image/*', 'video/*', 'audio/*', 'text/*', 'application/*'],
-  browserVersion: 'Chrome 120'
+  browserVersion: 'Chrome 120',
 };
 ```
 

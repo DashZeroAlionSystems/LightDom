@@ -30,7 +30,7 @@ export class BlockchainMetricsCollector extends EventEmitter {
       errorRate: 0,
       averageGasPrice: 0,
       networkLatency: 0,
-      nodeHealth: 100
+      nodeHealth: 100,
     };
   }
 

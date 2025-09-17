@@ -80,9 +80,9 @@ export class WorkflowSimulation extends EventEmitter {
         'https://www.wikipedia.org',
         'https://www.reddit.com',
         'https://www.youtube.com',
-        'https://www.amazon.com'
+        'https://www.amazon.com',
       ],
-      ...config
+      ...config,
     };
   }
 
@@ -116,7 +116,6 @@ export class WorkflowSimulation extends EventEmitter {
       console.log('✅ Workflow simulation completed successfully');
 
       return result;
-
     } catch (error) {
       console.error('❌ Simulation failed:', error);
       this.errors.push(`Simulation failed: ${error.message}`);
@@ -247,7 +246,6 @@ export class WorkflowSimulation extends EventEmitter {
         if (this.config.enableMetrics) {
           this.updateMetrics();
         }
-
       } catch (error) {
         console.error('❌ Optimization processing error:', error);
         this.errors.push(`Optimization processing error: ${error.message}`);
@@ -270,7 +268,6 @@ export class WorkflowSimulation extends EventEmitter {
         if (Date.now() - this.startTime >= this.config.duration) {
           this.stop();
         }
-
       } catch (error) {
         console.error('❌ Simulation monitoring error:', error);
         this.errors.push(`Simulation monitoring error: ${error.message}`);
@@ -284,11 +281,11 @@ export class WorkflowSimulation extends EventEmitter {
   private async processOptimizationTasks(): Promise<void> {
     // Get queue status
     const queueStatus = urlQueueManager.getStatus();
-    
+
     if (queueStatus.completed > 0) {
       // Get completed items
       const completedItems = urlQueueManager.getItemsByStatus('completed');
-      
+
       for (const item of completedItems) {
         if (!this.processedUrls.has(item.url)) {
           this.processedUrls.add(item.url);
@@ -300,7 +297,7 @@ export class WorkflowSimulation extends EventEmitter {
     if (queueStatus.failed > 0) {
       // Get failed items
       const failedItems = urlQueueManager.getItemsByStatus('failed');
-      
+
       for (const item of failedItems) {
         if (!this.failedUrls.has(item.url)) {
           this.failedUrls.add(item.url);
@@ -317,12 +314,13 @@ export class WorkflowSimulation extends EventEmitter {
     try {
       // Run framework simulation
       const simulationResult = await simulationEngine.runSimulation();
-      
-      console.log(`🔄 Simulation completed - Efficiency: ${simulationResult.networkEfficiency.toFixed(2)}%`);
-      
+
+      console.log(
+        `🔄 Simulation completed - Efficiency: ${simulationResult.networkEfficiency.toFixed(2)}%`
+      );
+
       // Emit simulation event
       this.emit('simulationCycle', simulationResult);
-
     } catch (error) {
       console.error('❌ Simulation error:', error);
       this.errors.push(`Simulation error: ${error.message}`);
@@ -337,8 +335,10 @@ export class WorkflowSimulation extends EventEmitter {
     // For now, just log current status
     const queueStatus = urlQueueManager.getStatus();
     const frameworkStatus = lightDomFramework.getStatus();
-    
-    console.log(`📊 Metrics - Queue: ${queueStatus.total}, Processed: ${this.processedUrls.size}, Failed: ${this.failedUrls.size}`);
+
+    console.log(
+      `📊 Metrics - Queue: ${queueStatus.total}, Processed: ${this.processedUrls.size}, Failed: ${this.failedUrls.size}`
+    );
   }
 
   /**
@@ -346,8 +346,12 @@ export class WorkflowSimulation extends EventEmitter {
    */
   private determineSiteType(url: string): string {
     const domain = new URL(url).hostname.toLowerCase();
-    
-    if (domain.includes('github') || domain.includes('stackoverflow') || domain.includes('developer')) {
+
+    if (
+      domain.includes('github') ||
+      domain.includes('stackoverflow') ||
+      domain.includes('developer')
+    ) {
       return 'blog';
     } else if (domain.includes('amazon') || domain.includes('shop') || domain.includes('store')) {
       return 'ecommerce';
@@ -366,7 +370,7 @@ export class WorkflowSimulation extends EventEmitter {
    * Wait for simulation completion
    */
   private async waitForCompletion(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const checkCompletion = () => {
         if (!this.isRunning) {
           resolve();
@@ -384,7 +388,7 @@ export class WorkflowSimulation extends EventEmitter {
   private generateSimulationResult(): SimulationResult {
     const endTime = Date.now();
     const duration = endTime - this.startTime;
-    
+
     // Get final metrics
     const frameworkMetrics = lightDomFramework.getStatus();
     const queueMetrics = urlQueueManager.getMetrics();
@@ -424,8 +428,8 @@ export class WorkflowSimulation extends EventEmitter {
         queue: queueMetrics,
         simulation: simulationMetrics,
         workers: workersMetrics,
-        coin: coinMetrics
-      }
+        coin: coinMetrics,
+      },
     };
   }
 
@@ -448,7 +452,7 @@ export class WorkflowSimulation extends EventEmitter {
       duration: Date.now() - this.startTime,
       processedUrls: this.processedUrls.size,
       failedUrls: this.failedUrls.size,
-      errors: this.errors.length
+      errors: this.errors.length,
     };
   }
 
@@ -466,18 +470,17 @@ export class WorkflowSimulation extends EventEmitter {
     const processedUrls = this.processedUrls.size;
     const failedUrls = this.failedUrls.size;
     const progress = totalUrls > 0 ? ((processedUrls + failedUrls) / totalUrls) * 100 : 0;
-    
+
     // Estimate remaining time
     const elapsed = Date.now() - this.startTime;
-    const estimatedTimeRemaining = progress > 0 ? 
-      (elapsed / progress) * (100 - progress) : 0;
+    const estimatedTimeRemaining = progress > 0 ? (elapsed / progress) * (100 - progress) : 0;
 
     return {
       totalUrls,
       processedUrls,
       failedUrls,
       progress,
-      estimatedTimeRemaining
+      estimatedTimeRemaining,
     };
   }
 }

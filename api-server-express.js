@@ -40,18 +40,18 @@ class DOMSpaceHarvesterAPI {
     this.server = http.createServer(this.app);
     this.io = new socketIo(this.server, {
       cors: {
-        origin: process.env.FRONTEND_URL || "http://localhost:3000",
-        methods: ["GET", "POST"]
-      }
+        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+        methods: ['GET', 'POST'],
+      },
     });
-    
+
     this.dbDisabled = process.env.DB_DISABLED === 'true';
-    
+
     // Database connection pool
     this.db = this.dbDisabled
       ? {
           query: async () => ({ rows: [], rowCount: 0 }),
-          end: async () => {}
+          end: async () => {},
         }
       : new Pool({
           host: process.env.DB_HOST || 'localhost',
@@ -68,7 +68,7 @@ class DOMSpaceHarvesterAPI {
     this.crawlerSystem = null;
     this.crawlingSessions = new Map();
     this.connectedClients = new Set();
-    
+
     // Blockchain integration
     this.blockchainEnabled = process.env.BLOCKCHAIN_ENABLED === 'true';
     this.provider = null;
@@ -76,38 +76,38 @@ class DOMSpaceHarvesterAPI {
     this.pooContract = null;
     this.tokenContract = null;
     this.landContract = null;
-    
+
     // Load contract ABIs
     this.loadContractABIs();
-    
+
     // Crawler supervisor for resilience
     this.supervisor = new CrawlerSupervisor({
       outboxPath: './outbox',
-      checkpointPath: './checkpoints'
+      checkpointPath: './checkpoints',
     });
-    
+
     // Metrics collector
     this.metrics = new MetricsCollector();
-    
+
     // Blockchain metrics collector
     this.blockchainMetrics = new BlockchainMetricsCollector();
-    
+
     // Headless blockchain runner
     this.blockchainRunner = new HeadlessBlockchainRunner({
       headless: process.env.HEADLESS_CHROME !== 'false',
-      devtools: process.env.CHROME_DEVTOOLS === 'true'
+      devtools: process.env.CHROME_DEVTOOLS === 'true',
     });
-    
+
     // Setup blockchain runner event handlers
     this.setupBlockchainEventHandlers();
-    
+
     // Blockchain mining sessions
     this.miningSessions = new Map();
-    
+
     // Initialize new services (commented out until TypeScript files are compiled)
     // this.headlessChromeService = new HeadlessChromeService();
     // this.taskManager = new TaskManager(this.headlessChromeService);
-    
+
     // Initialize integration service
     // this.integrationService = new CursorN8nIntegrationService(
     //   this.taskManager,
@@ -130,19 +130,19 @@ class DOMSpaceHarvesterAPI {
     //     }
     //   }
     // );
-    
+
     // Initialize task API
     // this.taskAPI = new TaskAPI(this.app, this.taskManager, this.headlessChromeService);
-    
+
     // Setup all routes
     this.setupRoutes();
-    
+
     // Statistics cache
     this.statsCache = {
       lastUpdate: 0,
-      data: {}
+      data: {},
     };
-    
+
     this.setupMiddleware();
     this.setupWebSocket();
     this.startRealtimeUpdates();
@@ -154,14 +154,21 @@ class DOMSpaceHarvesterAPI {
         const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
         const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
         const tokenAbi = ['function mint(address to, uint256 amount) external'];
-        const objects = { wallet, token: new ethers.Contract(process.env.DSH_CONTRACT, tokenAbi, wallet) };
+        const objects = {
+          wallet,
+          token: new ethers.Contract(process.env.DSH_CONTRACT, tokenAbi, wallet),
+        };
         // Optional Registry contract for saving optimization proofs
         if (process.env.REGISTRY_CONTRACT) {
           const registryAbi = [
             'function recordOptimization(bytes32 urlHash, bytes32 beforeHash, bytes32 afterHash, uint256 spaceSaved, string url) external',
-            'function getOptimization(bytes32 urlHash) view returns (bytes32 beforeHash, bytes32 afterHash, uint256 spaceSaved, string url, uint256 timestamp)'
+            'function getOptimization(bytes32 urlHash) view returns (bytes32 beforeHash, bytes32 afterHash, uint256 spaceSaved, string url, uint256 timestamp)',
           ];
-          objects.registry = new ethers.Contract(process.env.REGISTRY_CONTRACT, registryAbi, wallet);
+          objects.registry = new ethers.Contract(
+            process.env.REGISTRY_CONTRACT,
+            registryAbi,
+            wallet
+          );
         }
         this.eth = objects;
         console.log('✅ Blockchain configured');
@@ -178,7 +185,7 @@ class DOMSpaceHarvesterAPI {
       if (fs.existsSync(pooABIPath)) {
         this.pooABI = JSON.parse(fs.readFileSync(pooABIPath, 'utf8'));
       }
-      
+
       // Load other contract ABIs as needed
       // this.tokenABI = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockchain', 'abi', 'DOMSpaceToken.json'), 'utf8'));
       // this.landABI = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockchain', 'abi', 'VirtualLandNFT.json'), 'utf8'));
@@ -197,23 +204,23 @@ class DOMSpaceHarvesterAPI {
       // Initialize provider
       const rpcUrl = process.env.RPC_URL || 'http://localhost:8545';
       this.provider = new ethers.JsonRpcProvider(rpcUrl);
-      
+
       // Initialize wallet
       const privateKey = process.env.PRIVATE_KEY;
       if (!privateKey) {
         console.warn('No private key provided, using read-only mode');
         return;
       }
-      
+
       this.wallet = new ethers.Wallet(privateKey, this.provider);
-      
+
       // Initialize contracts
       const pooAddress = process.env.POO_CONTRACT_ADDRESS;
       if (pooAddress && this.pooABI) {
         this.pooContract = new ethers.Contract(pooAddress, this.pooABI, this.wallet);
         console.log('PoO contract initialized at:', pooAddress);
       }
-      
+
       console.log('Blockchain initialized successfully');
     } catch (error) {
       console.error('Failed to initialize blockchain:', error.message);
@@ -229,7 +236,7 @@ class DOMSpaceHarvesterAPI {
     this.app.use(express.urlencoded({ extended: true }));
     // Serve optimizer static assets
     this.app.use('/optimizer', express.static('optimizer', { maxAge: '7d', etag: true }));
-    
+
     // Serve bridge chat pages
     this.app.get('/bridge/:bridgeId', (req, res) => {
       res.send(`
@@ -252,7 +259,7 @@ class DOMSpaceHarvesterAPI {
     const limiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
       max: 100, // limit each IP to 100 requests per windowMs
-      message: 'Too many requests from this IP'
+      message: 'Too many requests from this IP',
     });
     this.app.use(limiter);
 
@@ -289,13 +296,13 @@ class DOMSpaceHarvesterAPI {
             database: process.env.DB_NAME || 'dom_space_harvester',
             user: process.env.DB_USER || 'postgres',
             password: process.env.DB_PASSWORD || 'password',
-          }
+          },
         };
 
         if (this.crawlerSystem && this.crawlerSystem.isRunning) {
-          return res.status(400).json({ 
+          return res.status(400).json({
             error: 'Crawler is already running',
-            sessionId: this.crawlerSystem.sessionId 
+            sessionId: this.crawlerSystem.sessionId,
           });
         }
 
@@ -316,8 +323,10 @@ class DOMSpaceHarvesterAPI {
               // Save optimization proof to registry if available
               if (this.eth.registry) {
                 try {
-                  const beforeHash = '0x' + (result.optimizations?.beforeHash || '').replace(/^0x/, '');
-                  const afterHash = '0x' + (result.optimizations?.afterHash || '').replace(/^0x/, '');
+                  const beforeHash =
+                    '0x' + (result.optimizations?.beforeHash || '').replace(/^0x/, '');
+                  const afterHash =
+                    '0x' + (result.optimizations?.afterHash || '').replace(/^0x/, '');
                   const urlHash = ethers.keccak256(ethers.toUtf8Bytes(url));
                   const saveTx = await this.eth.registry.recordOptimization(
                     urlHash,
@@ -332,7 +341,14 @@ class DOMSpaceHarvesterAPI {
                     await this.db.query(
                       `INSERT INTO optimization_proofs (url, domain, before_hash, after_hash, space_saved_bytes, tx_hash, on_chain)
                        VALUES ($1,$2,$3,$4,$5,$6,true)`,
-                      [url, new URL(url).hostname, beforeHash, afterHash, result.spaceSaved || 0, saveTx.hash]
+                      [
+                        url,
+                        new URL(url).hostname,
+                        beforeHash,
+                        afterHash,
+                        result.spaceSaved || 0,
+                        saveTx.hash,
+                      ]
                     );
                   } catch (e) {}
                 } catch (e) {
@@ -350,7 +366,7 @@ class DOMSpaceHarvesterAPI {
             } catch (e) {
               console.log('⚠️ onOptimization mint failed:', e.message);
             }
-          }
+          },
         });
         await this.crawlerSystem.initialize();
 
@@ -359,7 +375,7 @@ class DOMSpaceHarvesterAPI {
         this.crawlingSessions.set(sessionId, {
           startTime: new Date(),
           config,
-          status: 'running'
+          status: 'running',
         });
 
         this.crawlerSystem.startCrawling().catch(error => {
@@ -370,17 +386,16 @@ class DOMSpaceHarvesterAPI {
         // Emit start event to all connected clients
         this.io.emit('crawler_started', { sessionId, config });
 
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           sessionId,
-          message: 'Crawler started successfully' 
+          message: 'Crawler started successfully',
         });
-
       } catch (error) {
         console.error('Failed to start crawler:', error);
-        res.status(500).json({ 
-          error: 'Failed to start crawler', 
-          details: error.message 
+        res.status(500).json({
+          error: 'Failed to start crawler',
+          details: error.message,
         });
       }
     });
@@ -407,7 +422,12 @@ class DOMSpaceHarvesterAPI {
 
         req.apiKey = key;
         // Increment usage (lightweight)
-        this.db.query('UPDATE api_keys SET requests_used = requests_used + 1, last_used_at = NOW() WHERE id = $1', [key.id]).catch(() => {});
+        this.db
+          .query(
+            'UPDATE api_keys SET requests_used = requests_used + 1, last_used_at = NOW() WHERE id = $1',
+            [key.id]
+          )
+          .catch(() => {});
         next();
       } catch (e) {
         res.status(500).json({ error: 'Auth failure' });
@@ -417,7 +437,9 @@ class DOMSpaceHarvesterAPI {
     // Public: list pricing plans
     this.app.get('/api/pricing/plans', async (req, res) => {
       try {
-        const plans = await this.db.query('SELECT plan_code, name, monthly_price_cents, requests_included, overage_price_cents_per_1k, stripe_price_id FROM pricing_plans ORDER BY monthly_price_cents ASC');
+        const plans = await this.db.query(
+          'SELECT plan_code, name, monthly_price_cents, requests_included, overage_price_cents_per_1k, stripe_price_id FROM pricing_plans ORDER BY monthly_price_cents ASC'
+        );
         res.json(plans.rows);
       } catch (e) {
         res.status(500).json({ error: 'Failed to load plans' });
@@ -427,13 +449,22 @@ class DOMSpaceHarvesterAPI {
     // Admin-lite: set/update Stripe price mapping for plan (protect in prod)
     this.app.post('/api/pricing/plan', adminAuth, async (req, res) => {
       try {
-        const { planCode, name, monthlyPriceCents, included, overagePer1k, stripePriceId } = req.body || {};
-        if (!planCode || !name) return res.status(400).json({ error: 'planCode and name required' });
+        const { planCode, name, monthlyPriceCents, included, overagePer1k, stripePriceId } =
+          req.body || {};
+        if (!planCode || !name)
+          return res.status(400).json({ error: 'planCode and name required' });
         await this.db.query(
           `INSERT INTO pricing_plans (plan_code, name, monthly_price_cents, requests_included, overage_price_cents_per_1k, stripe_price_id)
            VALUES ($1,$2,$3,$4,$5,$6)
            ON CONFLICT (plan_code) DO UPDATE SET name=$2, monthly_price_cents=$3, requests_included=$4, overage_price_cents_per_1k=$5, stripe_price_id=$6`,
-          [planCode, name, monthlyPriceCents || 0, included || 0, overagePer1k || 0, stripePriceId || null]
+          [
+            planCode,
+            name,
+            monthlyPriceCents || 0,
+            included || 0,
+            overagePer1k || 0,
+            stripePriceId || null,
+          ]
         );
         res.json({ success: true });
       } catch (e) {
@@ -445,13 +476,19 @@ class DOMSpaceHarvesterAPI {
     this.app.post('/api/keys/create', adminAuth, async (req, res) => {
       try {
         const { ownerEmail, planCode } = req.body || {};
-        if (!ownerEmail || !planCode) return res.status(400).json({ error: 'ownerEmail and planCode required' });
-        const plan = await this.db.query('SELECT id FROM pricing_plans WHERE plan_code = $1', [planCode]);
+        if (!ownerEmail || !planCode)
+          return res.status(400).json({ error: 'ownerEmail and planCode required' });
+        const plan = await this.db.query('SELECT id FROM pricing_plans WHERE plan_code = $1', [
+          planCode,
+        ]);
         if (plan.rowCount === 0) return res.status(400).json({ error: 'Invalid plan' });
 
         const rawKey = require('crypto').randomBytes(24).toString('hex');
         const keyHash = require('crypto').createHash('sha256').update(rawKey).digest('hex');
-        await this.db.query('INSERT INTO api_keys (key_hash, owner_email, plan_id) VALUES ($1, $2, $3)', [keyHash, ownerEmail, plan.rows[0].id]);
+        await this.db.query(
+          'INSERT INTO api_keys (key_hash, owner_email, plan_id) VALUES ($1, $2, $3)',
+          [keyHash, ownerEmail, plan.rows[0].id]
+        );
         res.json({ apiKey: rawKey });
       } catch (e) {
         res.status(500).json({ error: 'Failed to create API key' });
@@ -461,7 +498,9 @@ class DOMSpaceHarvesterAPI {
     // Bounty marketplace
     this.app.get('/api/bounties', async (req, res) => {
       try {
-        const rows = await this.db.query('SELECT id, url, description, reward_cents, status, posted_by, claimed_by, created_at FROM optimization_bounties ORDER BY created_at DESC LIMIT 100');
+        const rows = await this.db.query(
+          'SELECT id, url, description, reward_cents, status, posted_by, claimed_by, created_at FROM optimization_bounties ORDER BY created_at DESC LIMIT 100'
+        );
         res.json(rows.rows);
       } catch (e) {
         res.status(500).json({ error: 'Failed to load bounties' });
@@ -498,7 +537,8 @@ class DOMSpaceHarvesterAPI {
     this.app.post('/api/bounties', apiKeyAuth, async (req, res) => {
       try {
         const { url, description, rewardCents } = req.body || {};
-        if (!url || !rewardCents) return res.status(400).json({ error: 'url and rewardCents required' });
+        if (!url || !rewardCents)
+          return res.status(400).json({ error: 'url and rewardCents required' });
         await this.db.query(
           'INSERT INTO optimization_bounties (url, description, reward_cents, posted_by) VALUES ($1,$2,$3,$4)',
           [url, description || '', rewardCents, req.apiKey.owner_email]
@@ -553,7 +593,8 @@ class DOMSpaceHarvesterAPI {
     this.app.post('/ai/analytics', async (req, res) => {
       try {
         const { batch, websiteId } = req.body || {};
-        if (!Array.isArray(batch) || !websiteId) return res.status(400).json({ error: 'batch and websiteId required' });
+        if (!Array.isArray(batch) || !websiteId)
+          return res.status(400).json({ error: 'batch and websiteId required' });
         // For now, store to logs or extend DB with analytics table
         console.log('📥 analytics batch', websiteId, batch.length);
         res.json({ ok: true });
@@ -569,13 +610,20 @@ class DOMSpaceHarvesterAPI {
     // Save an optimization proof to on-chain registry
     this.app.post('/api/chain/save-optimization', async (req, res) => {
       try {
-        if (!this.eth || !this.eth.registry) return res.status(501).json({ error: 'Registry not configured' });
+        if (!this.eth || !this.eth.registry)
+          return res.status(501).json({ error: 'Registry not configured' });
         const { url, beforeHash, afterHash, spaceSaved } = req.body || {};
         if (!url || !beforeHash || !afterHash || typeof spaceSaved !== 'number') {
           return res.status(400).json({ error: 'url, beforeHash, afterHash, spaceSaved required' });
         }
         const urlHash = ethers.keccak256(ethers.toUtf8Bytes(url));
-        const tx = await this.eth.registry.recordOptimization(urlHash, beforeHash, afterHash, BigInt(spaceSaved), url);
+        const tx = await this.eth.registry.recordOptimization(
+          urlHash,
+          beforeHash,
+          afterHash,
+          BigInt(spaceSaved),
+          url
+        );
         res.json({ txHash: tx.hash });
       } catch (e) {
         res.status(500).json({ error: 'Failed to save on chain', details: e.message });
@@ -585,13 +633,20 @@ class DOMSpaceHarvesterAPI {
     // Load an optimization record from on-chain registry
     this.app.get('/api/chain/optimization', async (req, res) => {
       try {
-        if (!this.eth || !this.eth.registry) return res.status(501).json({ error: 'Registry not configured' });
+        if (!this.eth || !this.eth.registry)
+          return res.status(501).json({ error: 'Registry not configured' });
         const url = req.query.url;
         if (!url) return res.status(400).json({ error: 'url required' });
         const urlHash = ethers.keccak256(ethers.toUtf8Bytes(url));
         const rec = await this.eth.registry.getOptimization(urlHash);
         const [beforeHash, afterHash, spaceSaved, storedUrl, timestamp] = rec;
-        res.json({ url: storedUrl, beforeHash, afterHash, spaceSaved: Number(spaceSaved), timestamp: Number(timestamp) });
+        res.json({
+          url: storedUrl,
+          beforeHash,
+          afterHash,
+          spaceSaved: Number(spaceSaved),
+          timestamp: Number(timestamp),
+        });
       } catch (e) {
         res.status(500).json({ error: 'Failed to load from chain', details: e.message });
       }
@@ -602,7 +657,12 @@ class DOMSpaceHarvesterAPI {
       try {
         const { websiteId, optimizations, timestamp } = req.body || {};
         if (!websiteId) return res.status(400).json({ error: 'websiteId required' });
-        console.log('📥 training data', websiteId, Array.isArray(optimizations) ? optimizations.length : 0, timestamp);
+        console.log(
+          '📥 training data',
+          websiteId,
+          Array.isArray(optimizations) ? optimizations.length : 0,
+          timestamp
+        );
         res.json({ ok: true });
       } catch (e) {
         res.status(500).json({ error: 'Failed to collect training data' });
@@ -613,13 +673,16 @@ class DOMSpaceHarvesterAPI {
     this.app.get('/api/usage', apiKeyAuth, async (req, res) => {
       try {
         const key = req.apiKey;
-        const plan = await this.db.query('SELECT plan_code, requests_included FROM pricing_plans WHERE id=$1', [key.plan_id]);
+        const plan = await this.db.query(
+          'SELECT plan_code, requests_included FROM pricing_plans WHERE id=$1',
+          [key.plan_id]
+        );
         const planRow = plan.rows[0] || { plan_code: 'unknown', requests_included: 0 };
         res.json({
           owner: key.owner_email,
           plan: planRow.plan_code,
           requestsUsed: key.requests_used,
-          requestsIncluded: planRow.requests_included
+          requestsIncluded: planRow.requests_included,
         });
       } catch (e) {
         res.status(500).json({ error: 'Failed to load usage' });
@@ -644,15 +707,17 @@ class DOMSpaceHarvesterAPI {
               database: process.env.DB_NAME || 'dom_space_harvester',
               user: process.env.DB_USER || 'postgres',
               password: process.env.DB_PASSWORD || 'password',
-            }
+            },
           };
           this.crawlerSystem = new RealWebCrawlerSystem(config);
           await this.crawlerSystem.initialize();
         }
         // Add target and trigger queue reload; simple insert
-        await this.db.query(`INSERT INTO crawl_targets (url, domain, priority, status)
+        await this.db.query(
+          `INSERT INTO crawl_targets (url, domain, priority, status)
                              VALUES ($1,$2,10,'pending') ON CONFLICT (url) DO UPDATE SET status='pending'`,
-                             [url, new URL(url).hostname]);
+          [url, new URL(url).hostname]
+        );
         // Reward enqueue: optional on-chain mint of 1 DSH
         if (this.eth) {
           try {
@@ -679,13 +744,14 @@ class DOMSpaceHarvesterAPI {
       this.app.post('/api/billing/create-checkout', async (req, res) => {
         try {
           const { priceId, customerEmail } = req.body || {};
-          if (!priceId || !customerEmail) return res.status(400).json({ error: 'priceId and customerEmail required' });
+          if (!priceId || !customerEmail)
+            return res.status(400).json({ error: 'priceId and customerEmail required' });
           const session = await stripe.checkout.sessions.create({
             mode: 'subscription',
             line_items: [{ price: priceId, quantity: 1 }],
             customer_email: customerEmail,
             success_url: (process.env.FRONTEND_URL || 'http://localhost:3000') + '/billing/success',
-            cancel_url: (process.env.FRONTEND_URL || 'http://localhost:3000') + '/billing/cancel'
+            cancel_url: (process.env.FRONTEND_URL || 'http://localhost:3000') + '/billing/cancel',
           });
           res.json({ url: session.url });
         } catch (e) {
@@ -694,56 +760,68 @@ class DOMSpaceHarvesterAPI {
       });
 
       // Stripe webhook (raw body parsing for signature verification)
-      this.app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-        try {
-          const sig = req.headers['stripe-signature'];
-          const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-          let event;
+      this.app.post(
+        '/api/billing/webhook',
+        express.raw({ type: 'application/json' }),
+        async (req, res) => {
           try {
-            event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-          } catch (err) {
-            return res.status(400).send(`Webhook Error: ${err.message}`);
-          }
+            const sig = req.headers['stripe-signature'];
+            const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+            let event;
+            try {
+              event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+            } catch (err) {
+              return res.status(400).send(`Webhook Error: ${err.message}`);
+            }
 
-          switch (event.type) {
-            case 'checkout.session.completed': {
-              const session = event.data.object;
-              const email = session.customer_details?.email;
-              if (email) {
-                // Activate base subscription if exists
-                const planCode = 'starter';
-                const plan = await this.db.query('SELECT id FROM pricing_plans WHERE plan_code=$1', [planCode]);
-                if (plan.rowCount > 0) {
-                  await this.db.query(
-                    `INSERT INTO subscriptions (owner_email, plan_id) VALUES ($1,$2)
+            switch (event.type) {
+              case 'checkout.session.completed': {
+                const session = event.data.object;
+                const email = session.customer_details?.email;
+                if (email) {
+                  // Activate base subscription if exists
+                  const planCode = 'starter';
+                  const plan = await this.db.query(
+                    'SELECT id FROM pricing_plans WHERE plan_code=$1',
+                    [planCode]
+                  );
+                  if (plan.rowCount > 0) {
+                    await this.db.query(
+                      `INSERT INTO subscriptions (owner_email, plan_id) VALUES ($1,$2)
                      ON CONFLICT (owner_email, plan_id) DO NOTHING`,
-                    [email, plan.rows[0].id]
+                      [email, plan.rows[0].id]
+                    );
+                  }
+                }
+                break;
+              }
+              case 'invoice.paid': {
+                const inv = event.data.object;
+                const email = inv.customer_email || inv.customer?.email || null;
+                if (email) {
+                  await this.db.query(
+                    `INSERT INTO payments (owner_email, amount_cents, currency, provider, provider_payment_id, status)
+                   VALUES ($1,$2,$3,'stripe',$4,'succeeded')`,
+                    [
+                      email,
+                      Math.round(inv.amount_paid),
+                      inv.currency?.toUpperCase() || 'USD',
+                      inv.id,
+                    ]
                   );
                 }
+                break;
               }
-              break;
+              default:
+                break;
             }
-            case 'invoice.paid': {
-              const inv = event.data.object;
-              const email = inv.customer_email || inv.customer?.email || null;
-              if (email) {
-                await this.db.query(
-                  `INSERT INTO payments (owner_email, amount_cents, currency, provider, provider_payment_id, status)
-                   VALUES ($1,$2,$3,'stripe',$4,'succeeded')`,
-                  [email, Math.round(inv.amount_paid), inv.currency?.toUpperCase() || 'USD', inv.id]
-                );
-              }
-              break;
-            }
-            default:
-              break;
-          }
 
-          res.json({ received: true });
-        } catch (e) {
-          res.status(500).json({ error: 'Webhook handling failed' });
+            res.json({ received: true });
+          } catch (e) {
+            res.status(500).json({ error: 'Webhook handling failed' });
+          }
         }
-      });
+      );
     }
 
     // Invoice generation (manual, aggregates current month usage/overage)
@@ -753,11 +831,14 @@ class DOMSpaceHarvesterAPI {
         if (!ownerEmail) return res.status(400).json({ error: 'ownerEmail required' });
         const periodStart = new Date();
         periodStart.setDate(1);
-        periodStart.setHours(0,0,0,0);
+        periodStart.setHours(0, 0, 0, 0);
         const periodEnd = new Date();
 
         // Get usage
-        const keyAgg = await this.db.query('SELECT COALESCE(SUM(requests_used),0) as used FROM api_keys WHERE owner_email=$1', [ownerEmail]);
+        const keyAgg = await this.db.query(
+          'SELECT COALESCE(SUM(requests_used),0) as used FROM api_keys WHERE owner_email=$1',
+          [ownerEmail]
+        );
         const sub = await this.db.query(
           `SELECT pp.monthly_price_cents, pp.requests_included, pp.overage_price_cents_per_1k
            FROM subscriptions s JOIN pricing_plans pp ON s.plan_id=pp.id
@@ -776,7 +857,7 @@ class DOMSpaceHarvesterAPI {
           base: plan.monthly_price_cents,
           overage_units: overageUnits,
           overage_blocks: overageBlocks,
-          overage_cents: overageCost
+          overage_cents: overageCost,
         };
 
         const inv = await this.db.query(
@@ -812,12 +893,11 @@ class DOMSpaceHarvesterAPI {
         this.io.emit('crawler_stopped');
 
         res.json({ success: true, message: 'Crawler stopped successfully' });
-
       } catch (error) {
         console.error('Failed to stop crawler:', error);
-        res.status(500).json({ 
-          error: 'Failed to stop crawler', 
-          details: error.message 
+        res.status(500).json({
+          error: 'Failed to stop crawler',
+          details: error.message,
         });
       }
     });
@@ -833,16 +913,16 @@ class DOMSpaceHarvesterAPI {
         `);
 
         const isRunning = this.crawlerSystem && this.crawlerSystem.isRunning;
-        const currentSession = Array.from(this.crawlingSessions.values())
-          .find(session => session.status === 'running');
+        const currentSession = Array.from(this.crawlingSessions.values()).find(
+          session => session.status === 'running'
+        );
 
         res.json({
           isRunning,
           currentSession: currentSession || null,
           activeCrawlers: activeCrawlers.rows,
-          totalSessions: this.crawlingSessions.size
+          totalSessions: this.crawlingSessions.size,
         });
-
       } catch (error) {
         console.error('Failed to get crawler status:', error);
         res.status(500).json({ error: 'Failed to get crawler status' });
@@ -865,7 +945,7 @@ class DOMSpaceHarvesterAPI {
           this.getCrawlStatistics(),
           this.getMetaverseStatistics(),
           this.getSchemaStatistics(),
-          this.getBacklinkStatistics()
+          this.getBacklinkStatistics(),
         ]);
 
         const dashboardData = {
@@ -873,7 +953,7 @@ class DOMSpaceHarvesterAPI {
           metaverse: metaverseStats,
           schemas: schemaStats,
           backlinks: backlinkStats,
-          lastUpdated: new Date().toISOString()
+          lastUpdated: new Date().toISOString(),
         };
 
         // Update cache
@@ -881,7 +961,6 @@ class DOMSpaceHarvesterAPI {
         this.statsCache.lastUpdate = Date.now();
 
         res.json(dashboardData);
-
       } catch (error) {
         console.error('Failed to get dashboard stats:', error);
         res.status(500).json({ error: 'Failed to get dashboard statistics' });
@@ -894,7 +973,8 @@ class DOMSpaceHarvesterAPI {
         const limit = Math.min(parseInt(req.query.limit) || 20, 100);
         const offset = parseInt(req.query.offset) || 0;
 
-        const result = await this.db.query(`
+        const result = await this.db.query(
+          `
           SELECT 
             do.url,
             ct.domain,
@@ -916,7 +996,9 @@ class DOMSpaceHarvesterAPI {
           GROUP BY do.id, ct.domain, sa.biome_type
           ORDER BY do.crawl_timestamp DESC
           LIMIT $1 OFFSET $2
-        `, [limit, offset]);
+        `,
+          [limit, offset]
+        );
 
         const totalCount = await this.db.query(`
           SELECT COUNT(*) as total 
@@ -930,10 +1012,9 @@ class DOMSpaceHarvesterAPI {
             total: parseInt(totalCount.rows[0].total),
             limit,
             offset,
-            hasMore: offset + limit < parseInt(totalCount.rows[0].total)
-          }
+            hasMore: offset + limit < parseInt(totalCount.rows[0].total),
+          },
         });
-
       } catch (error) {
         console.error('Failed to get optimizations:', error);
         res.status(500).json({ error: 'Failed to get optimization data' });
@@ -971,7 +1052,6 @@ class DOMSpaceHarvesterAPI {
         `);
 
         res.json(result.rows);
-
       } catch (error) {
         console.error('Failed to get domain stats:', error);
         res.status(500).json({ error: 'Failed to get domain statistics' });
@@ -1019,7 +1099,7 @@ class DOMSpaceHarvesterAPI {
       try {
         const biome = req.query.biome;
         const ownerAddress = req.query.owner;
-        
+
         let query = `
           SELECT 
             parcel_id,
@@ -1052,7 +1132,6 @@ class DOMSpaceHarvesterAPI {
 
         const result = await this.db.query(query, params);
         res.json(result.rows);
-
       } catch (error) {
         console.error('Failed to get virtual land:', error);
         res.status(500).json({ error: 'Failed to get virtual land data' });
@@ -1081,7 +1160,6 @@ class DOMSpaceHarvesterAPI {
         `);
 
         res.json(result.rows);
-
       } catch (error) {
         console.error('Failed to get AI nodes:', error);
         res.status(500).json({ error: 'Failed to get AI node data' });
@@ -1145,15 +1223,18 @@ class DOMSpaceHarvesterAPI {
         const { bridgeId } = req.params;
         const limit = Math.min(parseInt(req.query.limit) || 50, 100);
         const offset = parseInt(req.query.offset) || 0;
-        
-        const result = await this.db.query(`
+
+        const result = await this.db.query(
+          `
           SELECT message_id, user_name, message_text, created_at
           FROM bridge_messages 
           WHERE bridge_id = $1
           ORDER BY created_at DESC
           LIMIT $2 OFFSET $3
-        `, [bridgeId, limit, offset]);
-        
+        `,
+          [bridgeId, limit, offset]
+        );
+
         res.json(result.rows.reverse()); // Return in chronological order
       } catch (error) {
         console.error('Error fetching bridge chat:', error);
@@ -1165,17 +1246,20 @@ class DOMSpaceHarvesterAPI {
     this.app.get('/api/metaverse/bridge/:bridgeId', async (req, res) => {
       try {
         const { bridgeId } = req.params;
-        const result = await this.db.query(`
+        const result = await this.db.query(
+          `
           SELECT bridge_id, source_chain, target_chain, bridge_capacity, 
                  current_volume, is_operational, validator_count, last_transaction
           FROM dimensional_bridges 
           WHERE bridge_id = $1
-        `, [bridgeId]);
-        
+        `,
+          [bridgeId]
+        );
+
         if (result.rows.length === 0) {
           return res.status(404).json({ error: 'Bridge not found' });
         }
-        
+
         res.json(result.rows[0]);
       } catch (error) {
         console.error('Error fetching bridge details:', error);
@@ -1225,7 +1309,6 @@ class DOMSpaceHarvesterAPI {
 
         const result = await this.db.query(sqlQuery, params);
         res.json(result.rows);
-
       } catch (error) {
         console.error('Failed to search schemas:', error);
         res.status(500).json({ error: 'Failed to search schema data' });
@@ -1267,7 +1350,6 @@ class DOMSpaceHarvesterAPI {
 
         const result = await this.db.query(query, params);
         res.json(result.rows);
-
       } catch (error) {
         console.error('Failed to search backlinks:', error);
         res.status(500).json({ error: 'Failed to search backlink data' });
@@ -1282,7 +1364,7 @@ class DOMSpaceHarvesterAPI {
     this.app.post('/api/admin/add-targets', async (req, res) => {
       try {
         const { urls, priority = 5 } = req.body;
-        
+
         if (!Array.isArray(urls) || urls.length === 0) {
           return res.status(400).json({ error: 'URLs array required' });
         }
@@ -1293,11 +1375,14 @@ class DOMSpaceHarvesterAPI {
             const urlObj = new URL(url);
             const domain = urlObj.hostname;
 
-            await this.db.query(`
+            await this.db.query(
+              `
               INSERT INTO crawl_targets (url, domain, priority, status)
               VALUES ($1, $2, $3, 'pending')
               ON CONFLICT (url) DO NOTHING
-            `, [url, domain, priority]);
+            `,
+              [url, domain, priority]
+            );
 
             addedUrls.push(url);
           } catch (error) {
@@ -1305,12 +1390,11 @@ class DOMSpaceHarvesterAPI {
           }
         }
 
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           added: addedUrls.length,
-          urls: addedUrls 
+          urls: addedUrls,
         });
-
       } catch (error) {
         console.error('Failed to add crawl targets:', error);
         res.status(500).json({ error: 'Failed to add crawl targets' });
@@ -1322,16 +1406,16 @@ class DOMSpaceHarvesterAPI {
       try {
         // Check database connection
         const dbResult = await this.db.query('SELECT NOW()');
-        
+
         // Check crawler system
-        const crawlerStatus = this.crawlerSystem ? 
-          { running: this.crawlerSystem.isRunning || false } : 
-          { running: false };
+        const crawlerStatus = this.crawlerSystem
+          ? { running: this.crawlerSystem.isRunning || false }
+          : { running: false };
 
         // Get basic stats
-        const statsResult = this.dbDisabled ? 
-          { rows: [{ total_targets: 0, total_optimizations: 0, total_schemas: 0 }] } :
-          await this.db.query(`
+        const statsResult = this.dbDisabled
+          ? { rows: [{ total_targets: 0, total_optimizations: 0, total_schemas: 0 }] }
+          : await this.db.query(`
             SELECT 
               (SELECT COUNT(*) FROM crawl_targets) as total_targets,
               (SELECT COUNT(*) FROM dom_optimizations) as total_optimizations,
@@ -1339,26 +1423,27 @@ class DOMSpaceHarvesterAPI {
           `);
 
         // Get integration service status
-        const integrationStatus = this.integrationService ? this.integrationService.getStatus() : null;
+        const integrationStatus = this.integrationService
+          ? this.integrationService.getStatus()
+          : null;
 
         res.json({
           status: 'healthy',
           timestamp: new Date().toISOString(),
           database: {
             connected: !this.dbDisabled,
-            serverTime: this.dbDisabled ? new Date().toISOString() : dbResult.rows[0].now
+            serverTime: this.dbDisabled ? new Date().toISOString() : dbResult.rows[0].now,
           },
           crawler: crawlerStatus,
           statistics: statsResult.rows[0],
           connectedClients: this.connectedClients.size,
-          integration: integrationStatus
+          integration: integrationStatus,
         });
-
       } catch (error) {
         console.error('Health check failed:', error);
         res.status(500).json({
           status: 'unhealthy',
-          error: error.message
+          error: error.message,
         });
       }
     });
@@ -1367,21 +1452,20 @@ class DOMSpaceHarvesterAPI {
     this.app.get('/api/integration/status', async (req, res) => {
       try {
         const status = this.integrationService ? this.integrationService.getStatus() : null;
-        
+
         if (!status) {
           return res.status(503).json({ error: 'Integration service not available' });
         }
 
         res.json({
           success: true,
-          status
+          status,
         });
-
       } catch (error) {
         console.error('Failed to get integration status:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to get integration status',
-          details: error.message 
+          details: error.message,
         });
       }
     });
@@ -1389,20 +1473,19 @@ class DOMSpaceHarvesterAPI {
     // Get available Cursor API functions
     this.app.get('/api/integration/cursor/functions', async (req, res) => {
       try {
-        const functions = this.integrationService ? 
-          this.integrationService.getAvailableCursorFunctions() : 
-          [];
+        const functions = this.integrationService
+          ? this.integrationService.getAvailableCursorFunctions()
+          : [];
 
         res.json({
           success: true,
-          functions
+          functions,
         });
-
       } catch (error) {
         console.error('Failed to get Cursor functions:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to get Cursor functions',
-          details: error.message 
+          details: error.message,
         });
       }
     });
@@ -1410,20 +1493,19 @@ class DOMSpaceHarvesterAPI {
     // Get available n8n workflows
     this.app.get('/api/integration/n8n/workflows', async (req, res) => {
       try {
-        const workflows = this.integrationService ? 
-          this.integrationService.getAvailableN8nWorkflows() : 
-          [];
+        const workflows = this.integrationService
+          ? this.integrationService.getAvailableN8nWorkflows()
+          : [];
 
         res.json({
           success: true,
-          workflows
+          workflows,
         });
-
       } catch (error) {
         console.error('Failed to get n8n workflows:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to get n8n workflows',
-          details: error.message 
+          details: error.message,
         });
       }
     });
@@ -1436,7 +1518,7 @@ class DOMSpaceHarvesterAPI {
     this.app.post('/api/blockchain/submit-poo', async (req, res) => {
       try {
         const { crawlId, merkleRoot, bytesSaved, backlinksCount, artifactCID } = req.body;
-        
+
         if (!this.pooContract) {
           return res.status(503).json({ error: 'PoO contract not initialized' });
         }
@@ -1459,7 +1541,7 @@ class DOMSpaceHarvesterAPI {
           txHash: tx.hash,
           bytesSaved,
           backlinksCount,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
 
         res.json({
@@ -1467,7 +1549,7 @@ class DOMSpaceHarvesterAPI {
           txHash: tx.hash,
           crawlId,
           bytesSaved,
-          backlinksCount
+          backlinksCount,
         });
       } catch (error) {
         console.error('PoO submission failed:', error);
@@ -1479,13 +1561,13 @@ class DOMSpaceHarvesterAPI {
     this.app.get('/api/blockchain/poo/:crawlId', async (req, res) => {
       try {
         const { crawlId } = req.params;
-        
+
         if (!this.pooContract) {
           return res.status(503).json({ error: 'PoO contract not initialized' });
         }
 
         const proof = await this.pooContract.getProof(crawlId);
-        
+
         res.json({
           crawlId,
           submitter: proof.submitter,
@@ -1496,7 +1578,7 @@ class DOMSpaceHarvesterAPI {
           submittedAt: proof.submittedAt.toString(),
           challengeWindowEnds: proof.challengeWindowEnds.toString(),
           finalized: proof.finalized,
-          slashed: proof.slashed
+          slashed: proof.slashed,
         });
       } catch (error) {
         console.error('Failed to get PoO status:', error);
@@ -1508,7 +1590,7 @@ class DOMSpaceHarvesterAPI {
     this.app.post('/api/blockchain/challenge-poo', async (req, res) => {
       try {
         const { crawlId, merkleProof, leafData } = req.body;
-        
+
         if (!this.pooContract) {
           return res.status(503).json({ error: 'PoO contract not initialized' });
         }
@@ -1519,7 +1601,7 @@ class DOMSpaceHarvesterAPI {
         res.json({
           success: true,
           txHash: tx.hash,
-          crawlId
+          crawlId,
         });
       } catch (error) {
         console.error('PoO challenge failed:', error);
@@ -1531,7 +1613,7 @@ class DOMSpaceHarvesterAPI {
     this.app.post('/api/blockchain/submit-batch-poo', async (req, res) => {
       try {
         const { batch, batchHash, signature, timestamp } = req.body;
-        
+
         if (!this.pooContract) {
           return res.status(503).json({ error: 'PoO contract not initialized' });
         }
@@ -1548,7 +1630,7 @@ class DOMSpaceHarvesterAPI {
             merkleRoot: poo.merkleRoot,
             bytesSaved: poo.bytesSaved,
             backlinksCount: poo.backlinksCount,
-            artifactCID: poo.artifactCID
+            artifactCID: poo.artifactCID,
           })),
           batchHash,
           signature
@@ -1561,13 +1643,13 @@ class DOMSpaceHarvesterAPI {
           type: 'batch_poo_submitted',
           batchSize: batch.length,
           txHash: tx.hash,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
 
         res.json({
           success: true,
           txHash: tx.hash,
-          batchSize: batch.length
+          batchSize: batch.length,
         });
       } catch (error) {
         console.error('Batch PoO submission failed:', error);
@@ -1591,7 +1673,7 @@ class DOMSpaceHarvesterAPI {
           totalBytesSaved: totalBytesSaved.toString(),
           totalBacklinks: totalBacklinks.toString(),
           contractAddress: this.pooContract.target,
-          networkId: await this.provider.getNetwork().then(n => n.chainId)
+          networkId: await this.provider.getNetwork().then(n => n.chainId),
         });
       } catch (error) {
         console.error('Failed to get blockchain stats:', error);
@@ -1610,7 +1692,7 @@ class DOMSpaceHarvesterAPI {
       console.log('Headless blockchain runner started');
       this.broadcastToClients('blockchain_update', {
         type: 'runner_started',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     });
 
@@ -1618,60 +1700,60 @@ class DOMSpaceHarvesterAPI {
       console.log('Headless blockchain runner stopped');
       this.broadcastToClients('blockchain_update', {
         type: 'runner_stopped',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     });
 
-    this.blockchainRunner.on('optimization', (data) => {
+    this.blockchainRunner.on('optimization', data => {
       console.log('Blockchain optimization:', data);
       this.blockchainMetrics.onOptimizationSubmitted(data);
       this.broadcastToClients('blockchain_update', {
         type: 'optimization_submitted',
         data: data,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     });
 
-    this.blockchainRunner.on('blockMined', (data) => {
+    this.blockchainRunner.on('blockMined', data => {
       console.log('Block mined:', data);
       this.blockchainMetrics.onBlockMined(data);
       this.broadcastToClients('blockchain_update', {
         type: 'block_mined',
         data: data,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     });
 
-    this.blockchainRunner.on('sessionStarted', (data) => {
+    this.blockchainRunner.on('sessionStarted', data => {
       console.log('Mining session started:', data);
       this.miningSessions.set(data.sessionId, data);
       this.broadcastToClients('blockchain_update', {
         type: 'session_started',
         data: data,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     });
 
-    this.blockchainRunner.on('sessionStopped', (data) => {
+    this.blockchainRunner.on('sessionStopped', data => {
       console.log('Mining session stopped:', data);
       this.miningSessions.delete(data.sessionId);
       this.broadcastToClients('blockchain_update', {
         type: 'session_stopped',
         data: data,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     });
 
     // Blockchain metrics events
-    this.blockchainMetrics.on('metricsUpdated', (data) => {
+    this.blockchainMetrics.on('metricsUpdated', data => {
       this.broadcastToClients('blockchain_update', {
         type: 'metrics_updated',
         data: data,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     });
 
-    this.blockchainMetrics.on('error', (error) => {
+    this.blockchainMetrics.on('error', error => {
       console.error('Blockchain metrics error:', error);
     });
   }
@@ -1689,17 +1771,17 @@ class DOMSpaceHarvesterAPI {
     this.app.post('/api/blockchain/start-mining', async (req, res) => {
       try {
         const { userAddress, extensionId } = req.body;
-        
+
         if (!userAddress) {
           return res.status(400).json({ error: 'User address required' });
         }
 
         const sessionId = await this.blockchainRunner.startMiningSession(userAddress, extensionId);
-        
+
         res.json({
           success: true,
           sessionId,
-          message: 'Mining session started'
+          message: 'Mining session started',
         });
       } catch (error) {
         console.error('Failed to start mining:', error);
@@ -1711,7 +1793,7 @@ class DOMSpaceHarvesterAPI {
     this.app.post('/api/blockchain/stop-mining', async (req, res) => {
       try {
         const { userAddress } = req.body;
-        
+
         // Find and stop session for this user
         for (const [sessionId, session] of this.miningSessions) {
           if (session.userAddress === userAddress) {
@@ -1719,10 +1801,10 @@ class DOMSpaceHarvesterAPI {
             break;
           }
         }
-        
+
         res.json({
           success: true,
-          message: 'Mining session stopped'
+          message: 'Mining session stopped',
         });
       } catch (error) {
         console.error('Failed to stop mining:', error);
@@ -1734,16 +1816,19 @@ class DOMSpaceHarvesterAPI {
     this.app.post('/api/blockchain/submit-optimization', async (req, res) => {
       try {
         const { url, userAddress, domAnalysis, spaceSaved, timestamp } = req.body;
-        
+
         if (!userAddress || !spaceSaved) {
           return res.status(400).json({ error: 'User address and space saved required' });
         }
 
         // Store optimization in database
-        await this.db.query(`
+        await this.db.query(
+          `
           INSERT INTO blockchain_optimizations (user_address, url, dom_analysis, space_saved, timestamp, status)
           VALUES ($1, $2, $3, $4, $5, 'submitted')
-        `, [userAddress, url, JSON.stringify(domAnalysis), spaceSaved, new Date(timestamp)]);
+        `,
+          [userAddress, url, JSON.stringify(domAnalysis), spaceSaved, new Date(timestamp)]
+        );
 
         // Update blockchain metrics
         this.blockchainMetrics.onOptimizationSubmitted({ spaceSaved });
@@ -1755,13 +1840,13 @@ class DOMSpaceHarvesterAPI {
             userAddress,
             url,
             spaceSaved,
-            timestamp: Date.now()
-          }
+            timestamp: Date.now(),
+          },
         });
 
         res.json({
           success: true,
-          message: 'Optimization submitted to blockchain'
+          message: 'Optimization submitted to blockchain',
         });
       } catch (error) {
         console.error('Failed to submit optimization:', error);
@@ -1774,11 +1859,11 @@ class DOMSpaceHarvesterAPI {
       try {
         const metrics = this.blockchainMetrics.getCurrentMetrics();
         const runnerMetrics = this.blockchainRunner.getMetrics();
-        
+
         res.json({
           blockchain: metrics,
           runner: runnerMetrics,
-          sessions: Array.from(this.miningSessions.values())
+          sessions: Array.from(this.miningSessions.values()),
         });
       } catch (error) {
         console.error('Failed to get blockchain metrics:', error);
@@ -1793,7 +1878,7 @@ class DOMSpaceHarvesterAPI {
           isRunning: this.blockchainRunner.isRunning,
           activeSessions: this.miningSessions.size,
           metrics: this.blockchainRunner.getMetrics(),
-          uptime: process.uptime()
+          uptime: process.uptime(),
         });
       } catch (error) {
         console.error('Failed to get blockchain status:', error);
@@ -1832,7 +1917,7 @@ class DOMSpaceHarvesterAPI {
         const summary = this.metrics.getSummary();
         const supervisorStats = this.supervisor.getStats();
         const blockchainMetrics = this.blockchainMetrics.getCurrentMetrics();
-        
+
         res.json({
           status: 'healthy',
           timestamp: new Date().toISOString(),
@@ -1841,7 +1926,7 @@ class DOMSpaceHarvesterAPI {
           metrics: summary,
           blockchain: blockchainMetrics,
           supervisor: supervisorStats,
-          crawler: this.crawlerSystem ? this.crawlerSystem.getStatus() : null
+          crawler: this.crawlerSystem ? this.crawlerSystem.getStatus() : null,
         });
       } catch (error) {
         console.error('Detailed health check failed:', error);
@@ -1858,14 +1943,14 @@ class DOMSpaceHarvesterAPI {
   }
 
   setupWebSocket() {
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', socket => {
       console.log('Client connected:', socket.id);
       this.connectedClients.add(socket.id);
 
       // Send initial data to new client
       socket.emit('initial_data', {
         connectedClients: this.connectedClients.size,
-        crawlerRunning: this.crawlerSystem && this.crawlerSystem.isRunning
+        crawlerRunning: this.crawlerSystem && this.crawlerSystem.isRunning,
       });
 
       // Handle client requests for real-time updates
@@ -1881,35 +1966,38 @@ class DOMSpaceHarvesterAPI {
         socket.join('metaverse_updates');
       });
 
-  // Bridge chat rooms
-  socket.on('bridge_join', (bridgeId) => {
-    if (!bridgeId) return;
-    socket.join(`bridge_${bridgeId}`);
-  });
-  socket.on('bridge_leave', (bridgeId) => {
-    if (!bridgeId) return;
-    socket.leave(`bridge_${bridgeId}`);
-  });
-  socket.on('bridge_message', async ({ bridgeId, user, text }) => {
-    if (!bridgeId || !text) return;
-    const payload = { user: user || 'anon', text, ts: Date.now(), bridgeId };
-    
-    // Persist message to database
-    try {
-      await this.db.query(`
+      // Bridge chat rooms
+      socket.on('bridge_join', bridgeId => {
+        if (!bridgeId) return;
+        socket.join(`bridge_${bridgeId}`);
+      });
+      socket.on('bridge_leave', bridgeId => {
+        if (!bridgeId) return;
+        socket.leave(`bridge_${bridgeId}`);
+      });
+      socket.on('bridge_message', async ({ bridgeId, user, text }) => {
+        if (!bridgeId || !text) return;
+        const payload = { user: user || 'anon', text, ts: Date.now(), bridgeId };
+
+        // Persist message to database
+        try {
+          await this.db.query(
+            `
         INSERT INTO bridge_messages (bridge_id, user_name, message_text, created_at)
         VALUES ($1, $2, $3, NOW())
-      `, [bridgeId, payload.user, payload.text]);
-    } catch (err) {
-      console.error('Failed to persist bridge message:', err);
-    }
-    
-    this.io.to(`bridge_${bridgeId}`).emit('bridge_message', payload);
-  });
-  socket.on('bridge_typing', ({ bridgeId, user, isTyping }) => {
-    if (!bridgeId) return;
-    socket.to(`bridge_${bridgeId}`).emit('bridge_typing', { user, isTyping, ts: Date.now() });
-  });
+      `,
+            [bridgeId, payload.user, payload.text]
+          );
+        } catch (err) {
+          console.error('Failed to persist bridge message:', err);
+        }
+
+        this.io.to(`bridge_${bridgeId}`).emit('bridge_message', payload);
+      });
+      socket.on('bridge_typing', ({ bridgeId, user, isTyping }) => {
+        if (!bridgeId) return;
+        socket.to(`bridge_${bridgeId}`).emit('bridge_typing', { user, isTyping, ts: Date.now() });
+      });
 
       socket.on('disconnect', () => {
         console.log('Client disconnected:', socket.id);
@@ -1973,7 +2061,7 @@ class DOMSpaceHarvesterAPI {
       top_types: typeStats.rows.reduce((acc, row) => {
         acc[row.schema_type] = parseInt(row.count);
         return acc;
-      }, {})
+      }, {}),
     };
   }
 
@@ -2010,7 +2098,7 @@ class DOMSpaceHarvesterAPI {
           ORDER BY crawl_timestamp DESC
           LIMIT 10
         `);
-        
+
         if (recentOptimizations.rows.length > 0) {
           this.io.to('optimization_updates').emit('new_optimizations', recentOptimizations.rows);
         }
@@ -2026,13 +2114,12 @@ class DOMSpaceHarvesterAPI {
             FROM active_crawlers
             WHERE last_heartbeat >= NOW() - INTERVAL '30 seconds'
           `);
-          
+
           this.io.emit('crawler_update', {
             activeCrawlers: crawlerUpdate.rows,
-            isRunning: this.crawlerSystem.isRunning || false
+            isRunning: this.crawlerSystem.isRunning || false,
           });
         }
-
       } catch (error) {
         console.error('Real-time update error:', error);
       }
@@ -2056,16 +2143,16 @@ class DOMSpaceHarvesterAPI {
       // await this.integrationService.initialize();
       // console.log('✅ Cursor-N8n integration service initialized');
 
-        // Start supervisor
-        await this.supervisor.start();
-        
-        // Start blockchain runner (optional - can be started later)
-        try {
-          await this.blockchainRunner.start();
-        } catch (error) {
-          console.warn('⚠️ Blockchain runner failed to start:', error.message);
-          console.log('ℹ️ Blockchain runner will be available after server is fully started');
-        }
+      // Start supervisor
+      await this.supervisor.start();
+
+      // Start blockchain runner (optional - can be started later)
+      try {
+        await this.blockchainRunner.start();
+      } catch (error) {
+        console.warn('⚠️ Blockchain runner failed to start:', error.message);
+        console.log('ℹ️ Blockchain runner will be available after server is fully started');
+      }
 
       // Start server
       this.server.listen(port, () => {
@@ -2077,7 +2164,6 @@ class DOMSpaceHarvesterAPI {
           console.log(`⛓️  Blockchain: ${this.provider ? 'Connected' : 'Disabled'}`);
         }
       });
-
     } catch (error) {
       console.error('❌ Failed to start server:', error);
       process.exit(1);
@@ -2086,18 +2172,18 @@ class DOMSpaceHarvesterAPI {
 
   async shutdown() {
     console.log('🛑 Shutting down API server...');
-    
+
     if (this.crawlerSystem) {
       await this.crawlerSystem.shutdown();
     }
-    
+
     // if (this.integrationService) {
     //   await this.integrationService.shutdown();
     // }
-    
+
     await this.db.end();
     this.server.close();
-    
+
     console.log('✅ Server shutdown complete');
   }
 }
@@ -2107,7 +2193,7 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', error => {
   console.error('Uncaught Exception:', error);
   process.exit(1);
 });
@@ -2125,7 +2211,7 @@ process.on('SIGINT', async () => {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const apiServer = new DOMSpaceHarvesterAPI();
   global.apiServer = apiServer;
-  
+
   const port = process.env.PORT || 3001;
   apiServer.start(port);
 }

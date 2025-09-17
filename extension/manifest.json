@@ -20,11 +20,7 @@
     "contextMenus",
     "alarms"
   ],
-  "host_permissions": [
-    "http://localhost:*/*",
-    "https://*/*",
-    "file://*/*"
-  ],
+  "host_permissions": ["http://localhost:*/*", "https://*/*", "file://*/*"],
   "background": {
     "service_worker": "background.js"
   },
@@ -60,7 +56,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "lightdom-blockchain.js", 
+        "lightdom-blockchain.js",
         "blockchain-miner.js",
         "storage-manager.js",
         "declarative-net-request-manager.js",

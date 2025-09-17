@@ -65,7 +65,7 @@ export class WorkersService extends EventEmitter {
       enableServiceWorker: true,
       enableCaching: true,
       enableMetrics: true,
-      ...config
+      ...config,
     };
 
     this.metrics = {
@@ -75,7 +75,7 @@ export class WorkersService extends EventEmitter {
       activeWorkers: 0,
       averageProcessingTime: 0,
       successRate: 0,
-      throughput: 0
+      throughput: 0,
     };
   }
 
@@ -103,7 +103,6 @@ export class WorkersService extends EventEmitter {
       this.emit('started');
 
       console.log(`✅ Workers service started with ${this.config.maxWorkers} workers`);
-
     } catch (error) {
       console.error('❌ Failed to start workers service:', error);
       throw error;
@@ -151,14 +150,14 @@ export class WorkersService extends EventEmitter {
    */
   addTask(task: Omit<WorkerTask, 'id' | 'createdAt' | 'status' | 'retryCount'>): string {
     const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const workerTask: WorkerTask = {
       id: taskId,
       createdAt: Date.now(),
       status: 'pending',
       retryCount: 0,
       maxRetries: this.config.retryAttempts,
-      ...task
+      ...task,
     };
 
     this.tasks.set(taskId, workerTask);
@@ -247,14 +246,14 @@ export class WorkersService extends EventEmitter {
    */
   private async startWorker(task: WorkerTask): Promise<void> {
     const workerId = `worker_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     try {
       // Create worker
       const worker = new Worker(__filename, {
         workerData: {
           task,
-          config: this.config
-        }
+          config: this.config,
+        },
       });
 
       // Store worker
@@ -266,15 +265,15 @@ export class WorkersService extends EventEmitter {
       task.startedAt = Date.now();
 
       // Set up worker event handlers
-      worker.on('message', (result) => {
+      worker.on('message', result => {
         this.handleWorkerMessage(workerId, task, result);
       });
 
-      worker.on('error', (error) => {
+      worker.on('error', error => {
         this.handleWorkerError(workerId, task, error);
       });
 
-      worker.on('exit', (code) => {
+      worker.on('exit', code => {
         this.handleWorkerExit(workerId, task, code);
       });
 
@@ -286,7 +285,6 @@ export class WorkersService extends EventEmitter {
       }, this.config.workerTimeout);
 
       this.emit('workerStarted', { workerId, task });
-
     } catch (error) {
       console.error(`❌ Failed to start worker for task ${task.id}:`, error);
       this.handleTaskFailure(task, error);
@@ -333,7 +331,7 @@ export class WorkersService extends EventEmitter {
    */
   private handleWorkerTimeout(workerId: string, task: WorkerTask): void {
     console.error(`⏰ Worker timeout for task ${task.id}`);
-    
+
     // Terminate worker
     const worker = this.workers.get(workerId);
     if (worker) {
@@ -382,7 +380,7 @@ export class WorkersService extends EventEmitter {
       task.status = 'pending';
       task.startedAt = undefined;
       task.error = undefined;
-      
+
       // Add back to queue with delay
       setTimeout(() => {
         this.taskQueue.unshift(task); // Add to front of queue
@@ -390,12 +388,11 @@ export class WorkersService extends EventEmitter {
 
       this.emit('taskRetry', task);
       console.log(`🔄 Retrying task: ${task.id} (attempt ${task.retryCount + 1})`);
-
     } else {
       // Task failed permanently
       task.status = 'failed';
       task.completedAt = Date.now();
-      
+
       this.metrics.failedTasks++;
       this.updateSuccessRate();
 
@@ -412,8 +409,8 @@ export class WorkersService extends EventEmitter {
       const processingTime = task.completedAt - task.startedAt;
       const currentAvg = this.metrics.averageProcessingTime;
       const totalCompleted = this.metrics.completedTasks;
-      
-      this.metrics.averageProcessingTime = 
+
+      this.metrics.averageProcessingTime =
         (currentAvg * (totalCompleted - 1) + processingTime) / totalCompleted;
     }
   }
@@ -443,7 +440,7 @@ export class WorkersService extends EventEmitter {
       maxWorkers: this.config.maxWorkers,
       tasks: this.tasks.size,
       queue: this.taskQueue.length,
-      metrics: this.metrics
+      metrics: this.metrics,
     };
   }
 }
@@ -451,19 +448,21 @@ export class WorkersService extends EventEmitter {
 // Worker thread code
 if (!isMainThread) {
   const { task, config } = workerData;
-  
+
   // Process task based on type
-  processTask(task, config).then(result => {
-    parentPort?.postMessage({
-      type: 'completed',
-      data: result
+  processTask(task, config)
+    .then(result => {
+      parentPort?.postMessage({
+        type: 'completed',
+        data: result,
+      });
+    })
+    .catch(error => {
+      parentPort?.postMessage({
+        type: 'error',
+        error: error.message,
+      });
     });
-  }).catch(error => {
-    parentPort?.postMessage({
-      type: 'error',
-      error: error.message
-    });
-  });
 }
 
 /**
@@ -489,7 +488,7 @@ async function processTask(task: WorkerTask, config: WorkerConfig): Promise<any>
  */
 async function processOptimizationTask(task: WorkerTask, config: WorkerConfig): Promise<any> {
   const { url, siteType, priority } = task.data;
-  
+
   try {
     // Initialize headless browser if needed
     if (config.enableHeadlessBrowser) {
@@ -498,33 +497,33 @@ async function processOptimizationTask(task: WorkerTask, config: WorkerConfig): 
 
     // Create page for optimization
     const page = await headlessBrowserService.createPage(url);
-    
+
     // Navigate to URL
     await page.goto(url, { waitUntil: 'networkidle2' });
-    
+
     // Analyze page for optimization opportunities
     const optimizations = await analyzePageForOptimizations(page);
-    
+
     // Calculate space savings
     const totalSpaceSaved = optimizations.reduce((sum, opt) => sum + opt.spaceSaved, 0);
-    
+
     // Create optimization result
     const result = {
       url,
       originalSize: task.data.originalSize || 0,
       optimizedSize: Math.max(0, (task.data.originalSize || 0) - totalSpaceSaved),
       spaceSaved: totalSpaceSaved,
-      spaceSavedPercentage: task.data.originalSize ? 
-        (totalSpaceSaved / task.data.originalSize) * 100 : 0,
+      spaceSavedPercentage: task.data.originalSize
+        ? (totalSpaceSaved / task.data.originalSize) * 100
+        : 0,
       optimizations,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     // Close page
     await page.close();
 
     return result;
-
   } catch (error) {
     throw new Error(`Optimization task failed: ${error.message}`);
   }
@@ -535,7 +534,7 @@ async function processOptimizationTask(task: WorkerTask, config: WorkerConfig): 
  */
 async function processAnalysisTask(task: WorkerTask, config: WorkerConfig): Promise<any> {
   const { url, analysisType } = task.data;
-  
+
   try {
     // Perform different types of analysis
     switch (analysisType) {
@@ -560,7 +559,7 @@ async function processAnalysisTask(task: WorkerTask, config: WorkerConfig): Prom
  */
 async function processSimulationTask(task: WorkerTask, config: WorkerConfig): Promise<any> {
   const { simulationType, parameters } = task.data;
-  
+
   try {
     // Run simulation based on type
     switch (simulationType) {
@@ -583,7 +582,7 @@ async function processSimulationTask(task: WorkerTask, config: WorkerConfig): Pr
  */
 async function processCleanupTask(task: WorkerTask, config: WorkerConfig): Promise<any> {
   const { cleanupType } = task.data;
-  
+
   try {
     switch (cleanupType) {
       case 'cache':
@@ -612,15 +611,15 @@ async function analyzePageForOptimizations(page: any): Promise<any[]> {
       description: 'Remove unnecessary whitespace',
       spaceSaved: 1024,
       impact: 'medium',
-      implementation: 'Minify HTML'
+      implementation: 'Minify HTML',
     },
     {
       type: 'css',
       description: 'Minify CSS',
       spaceSaved: 2048,
       impact: 'high',
-      implementation: 'Use CSS minifier'
-    }
+      implementation: 'Use CSS minifier',
+    },
   ];
 }
 
@@ -633,7 +632,7 @@ async function analyzePerformance(url: string): Promise<any> {
     loadTime: 1500,
     firstContentfulPaint: 800,
     largestContentfulPaint: 1200,
-    cumulativeLayoutShift: 0.1
+    cumulativeLayoutShift: 0.1,
   };
 }
 
@@ -644,9 +643,7 @@ async function analyzeAccessibility(url: string): Promise<any> {
   // Mock accessibility analysis
   return {
     score: 85,
-    issues: [
-      { type: 'color-contrast', severity: 'medium', description: 'Low color contrast' }
-    ]
+    issues: [{ type: 'color-contrast', severity: 'medium', description: 'Low color contrast' }],
   };
 }
 
@@ -658,8 +655,8 @@ async function analyzeSEO(url: string): Promise<any> {
   return {
     score: 90,
     issues: [
-      { type: 'meta-description', severity: 'low', description: 'Missing meta description' }
-    ]
+      { type: 'meta-description', severity: 'low', description: 'Missing meta description' },
+    ],
   };
 }
 
@@ -670,9 +667,7 @@ async function analyzeSecurity(url: string): Promise<any> {
   // Mock security analysis
   return {
     score: 95,
-    issues: [
-      { type: 'https', severity: 'high', description: 'Not using HTTPS' }
-    ]
+    issues: [{ type: 'https', severity: 'high', description: 'Not using HTTPS' }],
   };
 }
 
@@ -683,10 +678,7 @@ async function simulateNetworkOptimization(parameters: any): Promise<any> {
   // Mock network optimization simulation
   return {
     efficiency: 85.5,
-    recommendations: [
-      'Add more optimization nodes',
-      'Implement load balancing'
-    ]
+    recommendations: ['Add more optimization nodes', 'Implement load balancing'],
   };
 }
 
@@ -698,7 +690,7 @@ async function simulateTokenDistribution(parameters: any): Promise<any> {
   return {
     totalDistributed: 1000,
     averagePerOptimization: 50,
-    distributionVariance: 0.15
+    distributionVariance: 0.15,
   };
 }
 
@@ -709,10 +701,7 @@ async function simulateLoadBalancing(parameters: any): Promise<any> {
   // Mock load balancing simulation
   return {
     loadDistribution: 0.8,
-    recommendations: [
-      'Redistribute storage allocations',
-      'Scale up underutilized nodes'
-    ]
+    recommendations: ['Redistribute storage allocations', 'Scale up underutilized nodes'],
   };
 }
 
@@ -723,7 +712,7 @@ async function cleanupCache(): Promise<any> {
   // Mock cache cleanup
   return {
     cleanedFiles: 150,
-    spaceFreed: 50 * 1024 * 1024 // 50MB
+    spaceFreed: 50 * 1024 * 1024, // 50MB
   };
 }
 
@@ -734,7 +723,7 @@ async function cleanupLogs(): Promise<any> {
   // Mock log cleanup
   return {
     cleanedFiles: 25,
-    spaceFreed: 10 * 1024 * 1024 // 10MB
+    spaceFreed: 10 * 1024 * 1024, // 10MB
   };
 }
 
@@ -745,7 +734,7 @@ async function cleanupTempFiles(): Promise<any> {
   // Mock temp file cleanup
   return {
     cleanedFiles: 100,
-    spaceFreed: 5 * 1024 * 1024 // 5MB
+    spaceFreed: 5 * 1024 * 1024, // 5MB
   };
 }
 

@@ -21,7 +21,7 @@ const colors = {
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
   magenta: '\x1b[35m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 function log(message, color = 'reset') {
@@ -57,27 +57,27 @@ const scalingConfig = {
     maxNodes: 10,
     scaleUpThreshold: 80,
     scaleDownThreshold: 30,
-    cooldownPeriod: 300 // 5 minutes
+    cooldownPeriod: 300, // 5 minutes
   },
   resourceLimits: {
     cpu: {
       min: 1,
       max: 16,
       scaleUpStep: 2,
-      scaleDownStep: 1
+      scaleDownStep: 1,
     },
     memory: {
       min: 2048,
       max: 32768,
       scaleUpStep: 4096,
-      scaleDownStep: 2048
+      scaleDownStep: 2048,
     },
     storage: {
       min: 100,
       max: 1000,
       scaleUpStep: 100,
-      scaleDownStep: 50
-    }
+      scaleDownStep: 50,
+    },
   },
   scalingPolicies: [
     {
@@ -85,41 +85,40 @@ const scalingConfig = {
       metric: 'cpu_usage_percent',
       threshold: 80,
       action: 'scale_up',
-      cooldown: 300
+      cooldown: 300,
     },
     {
       name: 'Memory Scaling',
       metric: 'memory_usage_percent',
       threshold: 85,
       action: 'scale_up',
-      cooldown: 300
+      cooldown: 300,
     },
     {
       name: 'Low Utilization',
       metric: 'cpu_usage_percent',
       threshold: 30,
       action: 'scale_down',
-      cooldown: 600
-    }
-  ]
+      cooldown: 600,
+    },
+  ],
 };
 
 async function main() {
   try {
     logHeader('⚖️ Scaling Management Setup');
-    
+
     // Create scaling configuration
     await createScalingConfig();
-    
+
     // Create scaling scripts
     await createScalingScripts();
-    
+
     // Display scaling status
     await displayScalingStatus();
-    
+
     logSuccess('🎉 Scaling management setup completed!');
     logInfo('Auto-scaling is now configured and ready to use.');
-    
   } catch (error) {
     logError(`Setup failed: ${error.message}`);
     process.exit(1);
@@ -128,24 +127,24 @@ async function main() {
 
 async function createScalingConfig() {
   logInfo('Creating scaling configuration...');
-  
+
   const configDir = 'config/scaling';
   if (!existsSync(configDir)) {
     mkdirSync(configDir, { recursive: true });
   }
-  
+
   writeFileSync(`${configDir}/scaling.json`, JSON.stringify(scalingConfig, null, 2));
   logSuccess('Scaling configuration created');
 }
 
 async function createScalingScripts() {
   logInfo('Creating scaling scripts...');
-  
+
   const scriptsDir = 'scripts/scaling';
   if (!existsSync(scriptsDir)) {
     mkdirSync(scriptsDir, { recursive: true });
   }
-  
+
   // Auto-scaling script
   const autoScalingScript = `#!/bin/bash
 # Auto-scaling Script for LightDom Blockchain Automation
@@ -175,9 +174,9 @@ fi
 
 echo "✅ Scaling check completed"
 `;
-  
+
   writeFileSync(`${scriptsDir}/auto-scale.sh`, autoScalingScript);
-  
+
   // Scale up script
   const scaleUpScript = `#!/usr/bin/env node
 // Scale Up Script
@@ -196,9 +195,9 @@ console.log(\`🔼 Scaling up \${resource} by \${amount}\`);
 
 console.log('✅ Scale up completed');
 `;
-  
+
   writeFileSync(`${scriptsDir}/scale-up.js`, scaleUpScript);
-  
+
   // Scale down script
   const scaleDownScript = `#!/usr/bin/env node
 // Scale Down Script
@@ -217,26 +216,35 @@ console.log(\`🔽 Scaling down \${resource} by \${amount}\`);
 
 console.log('✅ Scale down completed');
 `;
-  
+
   writeFileSync(`${scriptsDir}/scale-down.js`, scaleDownScript);
-  
+
   logSuccess('Scaling scripts created');
 }
 
 async function displayScalingStatus() {
   logHeader('📊 Current Scaling Status');
-  
+
   log(`Auto-scaling: ${scalingConfig.autoScaling.enabled ? 'Enabled' : 'Disabled'}`, 'cyan');
   log(`Min nodes: ${scalingConfig.autoScaling.minNodes}`, 'blue');
   log(`Max nodes: ${scalingConfig.autoScaling.maxNodes}`, 'blue');
   log(`Scale up threshold: ${scalingConfig.autoScaling.scaleUpThreshold}%`, 'yellow');
   log(`Scale down threshold: ${scalingConfig.autoScaling.scaleDownThreshold}%`, 'yellow');
-  
+
   log(`\nResource Limits:`, 'cyan');
-  log(`CPU: ${scalingConfig.resourceLimits.cpu.min}-${scalingConfig.resourceLimits.cpu.max} cores`, 'blue');
-  log(`Memory: ${scalingConfig.resourceLimits.memory.min}-${scalingConfig.resourceLimits.memory.max} MB`, 'blue');
-  log(`Storage: ${scalingConfig.resourceLimits.storage.min}-${scalingConfig.resourceLimits.storage.max} GB`, 'blue');
-  
+  log(
+    `CPU: ${scalingConfig.resourceLimits.cpu.min}-${scalingConfig.resourceLimits.cpu.max} cores`,
+    'blue'
+  );
+  log(
+    `Memory: ${scalingConfig.resourceLimits.memory.min}-${scalingConfig.resourceLimits.memory.max} MB`,
+    'blue'
+  );
+  log(
+    `Storage: ${scalingConfig.resourceLimits.storage.min}-${scalingConfig.resourceLimits.storage.max} GB`,
+    'blue'
+  );
+
   log(`\nScaling Policies:`, 'cyan');
   scalingConfig.scalingPolicies.forEach((policy, index) => {
     log(`  ${index + 1}. ${policy.name}`, 'yellow');
@@ -253,7 +261,7 @@ process.on('SIGINT', () => {
 });
 
 // Run the setup
-main().catch((error) => {
+main().catch(error => {
   logError(`Setup failed: ${error.message}`);
   process.exit(1);
 });

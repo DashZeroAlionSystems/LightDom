@@ -29,23 +29,26 @@ The n8n MCP server provides a bridge between Cursor IDE and n8n workflows, allow
 
 ### Prerequisites
 
-- Node.js 16+ 
+- Node.js 16+
 - n8n instance running (local or remote)
 - Cursor IDE with MCP support
 
 ### Setup Steps
 
 1. **Install dependencies**:
+
    ```bash
    npm install @modelcontextprotocol/sdk axios commander chalk ora
    ```
 
 2. **Run the setup script**:
+
    ```bash
    node scripts/setup-n8n-mcp.js
    ```
 
 3. **Configure environment**:
+
    ```bash
    # Edit .env file
    N8N_BASE_URL=http://localhost:5678
@@ -54,11 +57,13 @@ The n8n MCP server provides a bridge between Cursor IDE and n8n workflows, allow
    ```
 
 4. **Build the MCP server**:
+
    ```bash
    npm run build:n8n-mcp
    ```
 
 5. **Test the connection**:
+
    ```bash
    npm run test:n8n-mcp
    ```
@@ -71,12 +76,12 @@ The n8n MCP server provides a bridge between Cursor IDE and n8n workflows, allow
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `N8N_BASE_URL` | Base URL of n8n instance | `http://localhost:5678` |
-| `N8N_API_KEY` | API key for authentication | - |
-| `N8N_WEBHOOK_URL` | Base URL for webhooks | - |
-| `N8N_TIMEOUT` | Request timeout (ms) | `30000` |
+| Variable          | Description                | Default                 |
+| ----------------- | -------------------------- | ----------------------- |
+| `N8N_BASE_URL`    | Base URL of n8n instance   | `http://localhost:5678` |
+| `N8N_API_KEY`     | API key for authentication | -                       |
+| `N8N_WEBHOOK_URL` | Base URL for webhooks      | -                       |
+| `N8N_TIMEOUT`     | Request timeout (ms)       | `30000`                 |
 
 ### MCP Configuration
 
@@ -104,12 +109,15 @@ The `mcp-config.json` file configures the MCP server:
 ### Workflow Management
 
 #### `list_workflows`
+
 List all workflows in your n8n instance.
 
 **Parameters:**
+
 - `active` (boolean, optional): Filter by active status
 
 **Example:**
+
 ```typescript
 // List all workflows
 await list_workflows({});
@@ -119,51 +127,59 @@ await list_workflows({ active: true });
 ```
 
 #### `get_workflow`
+
 Get details of a specific workflow.
 
 **Parameters:**
+
 - `workflowId` (string, required): The workflow ID
 
 **Example:**
+
 ```typescript
-await get_workflow({ workflowId: "123" });
+await get_workflow({ workflowId: '123' });
 ```
 
 #### `create_workflow`
+
 Create a new workflow.
 
 **Parameters:**
+
 - `name` (string, required): Workflow name
 - `nodes` (array, required): Workflow nodes
 - `connections` (object, required): Node connections
 - `active` (boolean, optional): Whether to activate
 
 **Example:**
+
 ```typescript
 await create_workflow({
-  name: "My Workflow",
+  name: 'My Workflow',
   nodes: [
     {
-      id: "webhook",
-      name: "Webhook",
-      type: "n8n-nodes-base.webhook",
+      id: 'webhook',
+      name: 'Webhook',
+      type: 'n8n-nodes-base.webhook',
       typeVersion: 1,
       position: [240, 300],
       parameters: {
-        httpMethod: "POST",
-        path: "my-webhook"
-      }
-    }
+        httpMethod: 'POST',
+        path: 'my-webhook',
+      },
+    },
   ],
   connections: {},
-  active: false
+  active: false,
 });
 ```
 
 #### `update_workflow`
+
 Update an existing workflow.
 
 **Parameters:**
+
 - `workflowId` (string, required): The workflow ID
 - `name` (string, optional): New name
 - `nodes` (array, optional): Updated nodes
@@ -171,55 +187,68 @@ Update an existing workflow.
 - `active` (boolean, optional): Active status
 
 #### `delete_workflow`
+
 Delete a workflow.
 
 **Parameters:**
+
 - `workflowId` (string, required): The workflow ID
 
 ### Execution Management
 
 #### `execute_workflow`
+
 Execute a workflow.
 
 **Parameters:**
+
 - `workflowId` (string, required): The workflow ID
 - `inputData` (object, optional): Input data
 
 **Example:**
+
 ```typescript
 await execute_workflow({
-  workflowId: "123",
-  inputData: { message: "Hello World" }
+  workflowId: '123',
+  inputData: { message: 'Hello World' },
 });
 ```
 
 #### `get_execution`
+
 Get execution details.
 
 **Parameters:**
+
 - `executionId` (string, required): The execution ID
 
 #### `list_executions`
+
 List workflow executions.
 
 **Parameters:**
+
 - `workflowId` (string, optional): Filter by workflow ID
 - `limit` (number, optional): Maximum results (default: 20)
 
 ### Webhook Management
 
 #### `create_webhook`
+
 Create a webhook for a workflow.
 
 **Parameters:**
+
 - `workflowId` (string, required): The workflow ID
 - `httpMethod` (string, optional): HTTP method (default: POST)
 - `path` (string, optional): Webhook path
 
 #### `trigger_webhook`
+
 Trigger a workflow via webhook.
 
 **Parameters:**
+
 - `webhookUrl` (string, required): The webhook URL
 - `method` (string, optional): HTTP method (default: POST)
 - `data` (object, optional): Data to send
@@ -228,31 +257,39 @@ Trigger a workflow via webhook.
 ### Import/Export
 
 #### `export_workflow`
+
 Export workflow as JSON.
 
 **Parameters:**
+
 - `workflowId` (string, required): The workflow ID
 - `filePath` (string, optional): File path to save
 
 #### `import_workflow`
+
 Import workflow from JSON file.
 
 **Parameters:**
+
 - `filePath` (string, required): Path to JSON file
 - `name` (string, optional): New name for imported workflow
 
 ### Validation and Analytics
 
 #### `validate_workflow`
+
 Validate workflow configuration.
 
 **Parameters:**
+
 - `workflow` (object, required): Workflow definition
 
 #### `get_workflow_statistics`
+
 Get workflow execution statistics.
 
 **Parameters:**
+
 - `workflowId` (string, required): The workflow ID
 - `timeRange` (string, optional): Time range (hour/day/week/month)
 
@@ -287,34 +324,34 @@ npm run cli:n8n-mcp generate-config
 ```typescript
 // Create a workflow for DOM optimization
 const optimizationWorkflow = {
-  name: "DOM Optimization Pipeline",
+  name: 'DOM Optimization Pipeline',
   nodes: [
     {
-      id: "webhook-trigger",
-      name: "Webhook",
-      type: "n8n-nodes-base.webhook",
+      id: 'webhook-trigger',
+      name: 'Webhook',
+      type: 'n8n-nodes-base.webhook',
       typeVersion: 1,
       position: [240, 300],
       parameters: {
-        httpMethod: "POST",
-        path: "optimize-dom"
-      }
+        httpMethod: 'POST',
+        path: 'optimize-dom',
+      },
     },
     {
-      id: "crawl-url",
-      name: "Crawl URL",
-      type: "n8n-nodes-base.httpRequest",
+      id: 'crawl-url',
+      name: 'Crawl URL',
+      type: 'n8n-nodes-base.httpRequest',
       typeVersion: 1,
       position: [460, 300],
       parameters: {
-        url: "={{ $json.url }}",
-        method: "GET"
-      }
+        url: '={{ $json.url }}',
+        method: 'GET',
+      },
     },
     {
-      id: "optimize-dom",
-      name: "Optimize DOM",
-      type: "n8n-nodes-base.function",
+      id: 'optimize-dom',
+      name: 'Optimize DOM',
+      type: 'n8n-nodes-base.function',
       typeVersion: 1,
       position: [680, 300],
       parameters: {
@@ -323,38 +360,38 @@ const optimizationWorkflow = {
           // DOM optimization logic here
           const optimized = optimizeDOM(html);
           return [{ json: { optimizedHTML: optimized } }];
-        `
-      }
+        `,
+      },
     },
     {
-      id: "save-result",
-      name: "Save Result",
-      type: "n8n-nodes-base.httpRequest",
+      id: 'save-result',
+      name: 'Save Result',
+      type: 'n8n-nodes-base.httpRequest',
       typeVersion: 1,
       position: [900, 300],
       parameters: {
-        url: "http://localhost:3000/api/optimization-results",
-        method: "POST",
+        url: 'http://localhost:3000/api/optimization-results',
+        method: 'POST',
         body: {
-          originalURL: "={{ $json.url }}",
-          optimizedHTML: "={{ $json.optimizedHTML }}",
-          timestamp: "={{ new Date().toISOString() }}"
-        }
-      }
-    }
+          originalURL: '={{ $json.url }}',
+          optimizedHTML: '={{ $json.optimizedHTML }}',
+          timestamp: '={{ new Date().toISOString() }}',
+        },
+      },
+    },
   ],
   connections: {
-    "webhook-trigger": {
-      main: [[{ node: "crawl-url", type: "main", index: 0 }]]
+    'webhook-trigger': {
+      main: [[{ node: 'crawl-url', type: 'main', index: 0 }]],
     },
-    "crawl-url": {
-      main: [[{ node: "optimize-dom", type: "main", index: 0 }]]
+    'crawl-url': {
+      main: [[{ node: 'optimize-dom', type: 'main', index: 0 }]],
     },
-    "optimize-dom": {
-      main: [[{ node: "save-result", type: "main", index: 0 }]]
-    }
+    'optimize-dom': {
+      main: [[{ node: 'save-result', type: 'main', index: 0 }]],
+    },
   },
-  active: false
+  active: false,
 };
 
 // Create the workflow
@@ -366,13 +403,13 @@ await create_workflow(optimizationWorkflow);
 ```typescript
 // Execute the workflow
 const execution = await execute_workflow({
-  workflowId: "optimization-workflow-id",
-  inputData: { url: "https://example.com" }
+  workflowId: 'optimization-workflow-id',
+  inputData: { url: 'https://example.com' },
 });
 
 // Monitor execution
 const executionDetails = await get_execution({
-  executionId: execution.id
+  executionId: execution.id,
 });
 
 console.log(`Execution status: ${executionDetails.status}`);
@@ -383,9 +420,9 @@ console.log(`Execution status: ${executionDetails.status}`);
 ```typescript
 // Create webhook for real-time processing
 const webhook = await create_webhook({
-  workflowId: "optimization-workflow-id",
-  httpMethod: "POST",
-  path: "optimize"
+  workflowId: 'optimization-workflow-id',
+  httpMethod: 'POST',
+  path: 'optimize',
 });
 
 console.log(`Webhook URL: ${webhook.webhookUrl}`);
@@ -396,21 +433,25 @@ console.log(`Webhook URL: ${webhook.webhookUrl}`);
 The n8n MCP integration enhances LightDom's capabilities by:
 
 ### 1. Automated DOM Optimization
+
 - Trigger optimization workflows from code changes
 - Process multiple URLs in parallel
 - Store results in blockchain for proof of optimization
 
 ### 2. Blockchain Integration
+
 - Execute smart contract interactions
 - Mint tokens for optimization achievements
 - Record optimization proofs on-chain
 
 ### 3. Real-time Monitoring
+
 - Monitor optimization pipeline health
 - Get alerts for failed optimizations
 - Track performance metrics
 
 ### 4. CI/CD Integration
+
 - Automate workflow deployment
 - Run optimization tests on code changes
 - Generate optimization reports
@@ -418,18 +459,21 @@ The n8n MCP integration enhances LightDom's capabilities by:
 ## Security Considerations
 
 ### API Security
+
 - Store API keys in environment variables
 - Use HTTPS for all communications
 - Implement rate limiting
 - Validate all input data
 
 ### Workflow Security
+
 - Sanitize workflow inputs
 - Use sandboxed execution environments
 - Implement access controls
 - Audit workflow executions
 
 ### Data Protection
+
 - Encrypt sensitive data in transit
 - Implement proper backup strategies
 - Follow GDPR compliance requirements
@@ -440,25 +484,33 @@ The n8n MCP integration enhances LightDom's capabilities by:
 ### Common Issues
 
 #### Connection Failed
+
 ```
 Error: connect ECONNREFUSED 127.0.0.1:5678
 ```
+
 **Solution:** Ensure n8n is running and accessible at the configured URL.
 
 #### Authentication Failed
+
 ```
 Error: 401 Unauthorized
 ```
+
 **Solution:** Check API key configuration and permissions.
 
 #### Build Errors
+
 ```
 Error: Cannot find module '@modelcontextprotocol/sdk'
 ```
+
 **Solution:** Run `npm install` to install dependencies.
 
 #### MCP Not Working in Cursor
-**Solution:** 
+
+**Solution:**
+
 1. Verify `mcp-config.json` is in Cursor settings
 2. Restart Cursor after configuration changes
 3. Check Cursor console for error messages
@@ -474,6 +526,7 @@ N8N_DEBUG=true npm run start:n8n-mcp
 ### Logs
 
 Check logs for troubleshooting:
+
 - MCP server logs: Console output
 - n8n logs: n8n instance logs
 - Cursor logs: Cursor developer console
@@ -481,16 +534,19 @@ Check logs for troubleshooting:
 ## Performance Optimization
 
 ### Caching
+
 - Cache workflow definitions
 - Implement request deduplication
 - Use connection pooling
 
 ### Rate Limiting
+
 - Respect n8n API rate limits
 - Implement exponential backoff
 - Queue requests when necessary
 
 ### Monitoring
+
 - Track response times
 - Monitor error rates
 - Set up alerts for failures
@@ -534,4 +590,4 @@ For support and questions:
 
 ---
 
-*Last updated: December 2024*
+_Last updated: December 2024_

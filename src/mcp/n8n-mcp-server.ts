@@ -2,7 +2,7 @@
 
 /**
  * n8n MCP Server for Cursor Integration
- * 
+ *
  * This MCP server provides integration between Cursor and n8n workflows,
  * allowing developers to create, manage, and execute n8n workflows directly
  * from the Cursor IDE.
@@ -10,10 +10,7 @@
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import axios from 'axios';
 import * as fs from 'fs/promises';
 
@@ -529,14 +526,14 @@ class N8nMCPServer {
   private async listExecutions(args: { workflowId?: string; limit?: number }) {
     let endpoint = '/api/v1/executions';
     const params = new URLSearchParams();
-    
+
     if (args.workflowId) {
       params.append('workflowId', args.workflowId);
     }
     if (args.limit) {
       params.append('limit', args.limit.toString());
     }
-    
+
     if (params.toString()) {
       endpoint += `?${params.toString()}`;
     }
@@ -552,11 +549,7 @@ class N8nMCPServer {
     };
   }
 
-  private async createWebhook(args: {
-    workflowId: string;
-    httpMethod?: string;
-    path?: string;
-  }) {
+  private async createWebhook(args: { workflowId: string; httpMethod?: string; path?: string }) {
     const webhookData = {
       httpMethod: args.httpMethod || 'POST',
       path: args.path || `webhook-${args.workflowId}`,
@@ -634,7 +627,7 @@ class N8nMCPServer {
   private async importWorkflow(args: { filePath: string; name?: string }) {
     const fileContent = await fs.readFile(args.filePath, 'utf-8');
     const importData = JSON.parse(fileContent);
-    
+
     const workflowData = {
       name: args.name || importData.workflow.name || `Imported-${Date.now()}`,
       nodes: importData.workflow.nodes,
@@ -681,10 +674,10 @@ class N8nMCPServer {
     }
 
     // Check for at least one trigger node
-    const hasTrigger = args.workflow.nodes?.some((node: any) => 
-      node.type && node.type.includes('Trigger')
+    const hasTrigger = args.workflow.nodes?.some(
+      (node: any) => node.type && node.type.includes('Trigger')
     );
-    
+
     if (!hasTrigger) {
       (validation.warnings as string[]).push('Workflow should have at least one trigger node');
     }
@@ -699,10 +692,7 @@ class N8nMCPServer {
     };
   }
 
-  private async getWorkflowStatistics(args: {
-    workflowId: string;
-    timeRange?: string;
-  }) {
+  private async getWorkflowStatistics(args: { workflowId: string; timeRange?: string }) {
     // Get executions for the time range
     const executions = await this.listExecutions({
       workflowId: args.workflowId,
@@ -763,7 +753,7 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch((error) => {
+  main().catch(error => {
     console.error('Failed to start n8n MCP Server:', error);
     process.exit(1);
   });

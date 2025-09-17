@@ -21,7 +21,7 @@ const colors = {
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
   magenta: '\x1b[35m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 function log(message, color = 'reset') {
@@ -56,8 +56,8 @@ const monitoringConfig = {
     retentionPeriod: '30d',
     storage: {
       type: 'prometheus',
-      endpoint: 'http://localhost:9090'
-    }
+      endpoint: 'http://localhost:9090',
+    },
   },
   alerts: {
     channels: [
@@ -71,20 +71,21 @@ const monitoringConfig = {
             secure: false,
             auth: {
               user: process.env.ALERT_EMAIL_USER || 'alerts@company.com',
-              pass: process.env.ALERT_EMAIL_PASS || 'your_password'
-            }
+              pass: process.env.ALERT_EMAIL_PASS || 'your_password',
+            },
           },
           to: process.env.ALERT_EMAIL_TO || 'admin@company.com',
-          from: process.env.ALERT_EMAIL_FROM || 'alerts@company.com'
-        }
+          from: process.env.ALERT_EMAIL_FROM || 'alerts@company.com',
+        },
       },
       {
         type: 'slack',
         enabled: true,
         config: {
-          webhook: process.env.SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK',
-          channel: process.env.SLACK_CHANNEL || '#alerts'
-        }
+          webhook:
+            process.env.SLACK_WEBHOOK_URL || 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK',
+          channel: process.env.SLACK_CHANNEL || '#alerts',
+        },
       },
       {
         type: 'webhook',
@@ -94,11 +95,11 @@ const monitoringConfig = {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.WEBHOOK_TOKEN || 'your_token'}`
-          }
-        }
-      }
-    ]
+            Authorization: `Bearer ${process.env.WEBHOOK_TOKEN || 'your_token'}`,
+          },
+        },
+      },
+    ],
   },
   dashboards: {
     system: {
@@ -108,27 +109,27 @@ const monitoringConfig = {
           title: 'CPU Usage',
           type: 'graph',
           query: 'cpu_usage_percent',
-          threshold: { warning: 70, critical: 90 }
+          threshold: { warning: 70, critical: 90 },
         },
         {
           title: 'Memory Usage',
           type: 'graph',
           query: 'memory_usage_percent',
-          threshold: { warning: 80, critical: 95 }
+          threshold: { warning: 80, critical: 95 },
         },
         {
           title: 'Disk Usage',
           type: 'graph',
           query: 'disk_usage_percent',
-          threshold: { warning: 80, critical: 95 }
+          threshold: { warning: 80, critical: 95 },
         },
         {
           title: 'Network I/O',
           type: 'graph',
           query: 'network_io_bytes',
-          threshold: { warning: 1000000000, critical: 2000000000 }
-        }
-      ]
+          threshold: { warning: 1000000000, critical: 2000000000 },
+        },
+      ],
     },
     blockchain: {
       name: 'Blockchain Metrics',
@@ -137,27 +138,27 @@ const monitoringConfig = {
           title: 'Transaction Rate',
           type: 'graph',
           query: 'blockchain_transactions_per_second',
-          threshold: { warning: 100, critical: 200 }
+          threshold: { warning: 100, critical: 200 },
         },
         {
           title: 'Gas Usage',
           type: 'graph',
           query: 'blockchain_gas_used',
-          threshold: { warning: 1000000, critical: 2000000 }
+          threshold: { warning: 1000000, critical: 2000000 },
         },
         {
           title: 'Block Time',
           type: 'graph',
           query: 'blockchain_block_time_seconds',
-          threshold: { warning: 15, critical: 30 }
+          threshold: { warning: 15, critical: 30 },
         },
         {
           title: 'Node Health',
           type: 'table',
           query: 'blockchain_node_health',
-          threshold: { warning: 0.8, critical: 0.6 }
-        }
-      ]
+          threshold: { warning: 0.8, critical: 0.6 },
+        },
+      ],
     },
     automation: {
       name: 'Automation Metrics',
@@ -166,28 +167,28 @@ const monitoringConfig = {
           title: 'Workflow Success Rate',
           type: 'graph',
           query: 'automation_workflow_success_rate',
-          threshold: { warning: 0.9, critical: 0.8 }
+          threshold: { warning: 0.9, critical: 0.8 },
         },
         {
           title: 'Active Workflows',
           type: 'graph',
           query: 'automation_active_workflows',
-          threshold: { warning: 50, critical: 100 }
+          threshold: { warning: 50, critical: 100 },
         },
         {
           title: 'Error Rate',
           type: 'graph',
           query: 'automation_error_rate',
-          threshold: { warning: 0.05, critical: 0.1 }
+          threshold: { warning: 0.05, critical: 0.1 },
         },
         {
           title: 'Execution Time',
           type: 'graph',
           query: 'automation_execution_time_seconds',
-          threshold: { warning: 300, critical: 600 }
-        }
-      ]
-    }
+          threshold: { warning: 300, critical: 600 },
+        },
+      ],
+    },
   },
   rules: [
     {
@@ -195,73 +196,72 @@ const monitoringConfig = {
       condition: 'cpu_usage_percent > 90',
       severity: 'critical',
       message: 'CPU usage is critically high',
-      duration: '5m'
+      duration: '5m',
     },
     {
       name: 'High Memory Usage',
       condition: 'memory_usage_percent > 95',
       severity: 'critical',
       message: 'Memory usage is critically high',
-      duration: '2m'
+      duration: '2m',
     },
     {
       name: 'Disk Space Low',
       condition: 'disk_usage_percent > 90',
       severity: 'warning',
       message: 'Disk space is running low',
-      duration: '10m'
+      duration: '10m',
     },
     {
       name: 'Blockchain Node Down',
       condition: 'blockchain_node_health < 0.5',
       severity: 'critical',
       message: 'Blockchain node is down or unhealthy',
-      duration: '1m'
+      duration: '1m',
     },
     {
       name: 'Workflow Failure Rate High',
       condition: 'automation_workflow_success_rate < 0.8',
       severity: 'warning',
       message: 'Workflow failure rate is high',
-      duration: '5m'
+      duration: '5m',
     },
     {
       name: 'High Error Rate',
       condition: 'automation_error_rate > 0.1',
       severity: 'critical',
       message: 'System error rate is critically high',
-      duration: '2m'
-    }
-  ]
+      duration: '2m',
+    },
+  ],
 };
 
 async function main() {
   try {
     logHeader('📊 Setting up Monitoring and Alerting');
-    
+
     // Create monitoring directories
     await createMonitoringDirectories();
-    
+
     // Setup Prometheus configuration
     await setupPrometheus();
-    
+
     // Setup Grafana dashboards
     await setupGrafana();
-    
+
     // Setup alerting rules
     await setupAlerting();
-    
+
     // Setup log aggregation
     await setupLogAggregation();
-    
+
     // Create monitoring scripts
     await createMonitoringScripts();
-    
+
     logSuccess('🎉 Monitoring and alerting setup completed!');
     logInfo('Monitoring system is now configured and ready to use.');
     logInfo('Access Grafana at: http://localhost:3001');
     logInfo('Access Prometheus at: http://localhost:9090');
-    
   } catch (error) {
     logError(`Setup failed: ${error.message}`);
     process.exit(1);
@@ -270,7 +270,7 @@ async function main() {
 
 async function createMonitoringDirectories() {
   logInfo('Creating monitoring directories...');
-  
+
   const directories = [
     'monitoring',
     'monitoring/prometheus',
@@ -281,9 +281,9 @@ async function createMonitoringDirectories() {
     'monitoring/grafana/provisioning/datasources',
     'monitoring/alertmanager',
     'monitoring/logs',
-    'monitoring/scripts'
+    'monitoring/scripts',
   ];
-  
+
   for (const dir of directories) {
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
@@ -296,65 +296,63 @@ async function createMonitoringDirectories() {
 
 async function setupPrometheus() {
   logInfo('Setting up Prometheus configuration...');
-  
+
   const prometheusConfig = {
     global: {
       scrape_interval: '30s',
-      evaluation_interval: '30s'
+      evaluation_interval: '30s',
     },
-    rule_files: [
-      'monitoring/prometheus/rules/*.yml'
-    ],
+    rule_files: ['monitoring/prometheus/rules/*.yml'],
     alerting: {
       alertmanagers: [
         {
           static_configs: [
             {
-              targets: ['localhost:9093']
-            }
-          ]
-        }
-      ]
+              targets: ['localhost:9093'],
+            },
+          ],
+        },
+      ],
     },
     scrape_configs: [
       {
         job_name: 'lightdom-automation',
         static_configs: [
           {
-            targets: ['localhost:3000']
-          }
+            targets: ['localhost:3000'],
+          },
         ],
         metrics_path: '/metrics',
-        scrape_interval: '30s'
+        scrape_interval: '30s',
       },
       {
         job_name: 'blockchain-nodes',
         static_configs: [
           {
-            targets: ['localhost:8545']
-          }
+            targets: ['localhost:8545'],
+          },
         ],
-        scrape_interval: '30s'
+        scrape_interval: '30s',
       },
       {
         job_name: 'system-metrics',
         static_configs: [
           {
-            targets: ['localhost:9100']
-          }
+            targets: ['localhost:9100'],
+          },
         ],
-        scrape_interval: '30s'
-      }
-    ]
+        scrape_interval: '30s',
+      },
+    ],
   };
-  
+
   writeFileSync('monitoring/prometheus/prometheus.yml', JSON.stringify(prometheusConfig, null, 2));
   logSuccess('Prometheus configuration created');
 }
 
 async function setupGrafana() {
   logInfo('Setting up Grafana dashboards...');
-  
+
   // Create datasource configuration
   const datasourceConfig = {
     apiVersion: 1,
@@ -364,13 +362,16 @@ async function setupGrafana() {
         type: 'prometheus',
         access: 'proxy',
         url: 'http://localhost:9090',
-        isDefault: true
-      }
-    ]
+        isDefault: true,
+      },
+    ],
   };
-  
-  writeFileSync('monitoring/grafana/provisioning/datasources/datasources.yml', JSON.stringify(datasourceConfig, null, 2));
-  
+
+  writeFileSync(
+    'monitoring/grafana/provisioning/datasources/datasources.yml',
+    JSON.stringify(datasourceConfig, null, 2)
+  );
+
   // Create dashboard configurations
   for (const [key, dashboard] of Object.entries(monitoringConfig.dashboards)) {
     const dashboardConfig = {
@@ -385,14 +386,17 @@ async function setupGrafana() {
           updateIntervalSeconds: 10,
           allowUiUpdates: true,
           options: {
-            path: `/var/lib/grafana/dashboards/${key}`
-          }
-        }
-      ]
+            path: `/var/lib/grafana/dashboards/${key}`,
+          },
+        },
+      ],
     };
-    
-    writeFileSync(`monitoring/grafana/provisioning/dashboards/${key}.yml`, JSON.stringify(dashboardConfig, null, 2));
-    
+
+    writeFileSync(
+      `monitoring/grafana/provisioning/dashboards/${key}.yml`,
+      JSON.stringify(dashboardConfig, null, 2)
+    );
+
     // Create dashboard JSON
     const dashboardJson = {
       dashboard: {
@@ -407,77 +411,85 @@ async function setupGrafana() {
           targets: [
             {
               expr: panel.query,
-              refId: 'A'
-            }
-          ],
-          thresholds: panel.threshold ? [
-            {
-              value: panel.threshold.warning,
-              color: 'yellow'
+              refId: 'A',
             },
-            {
-              value: panel.threshold.critical,
-              color: 'red'
-            }
-          ] : []
+          ],
+          thresholds: panel.threshold
+            ? [
+                {
+                  value: panel.threshold.warning,
+                  color: 'yellow',
+                },
+                {
+                  value: panel.threshold.critical,
+                  color: 'red',
+                },
+              ]
+            : [],
         })),
         time: {
           from: 'now-1h',
-          to: 'now'
+          to: 'now',
         },
-        refresh: '30s'
-      }
+        refresh: '30s',
+      },
     };
-    
-    writeFileSync(`monitoring/grafana/dashboards/${key}.json`, JSON.stringify(dashboardJson, null, 2));
+
+    writeFileSync(
+      `monitoring/grafana/dashboards/${key}.json`,
+      JSON.stringify(dashboardJson, null, 2)
+    );
   }
-  
+
   logSuccess('Grafana dashboards created');
 }
 
 async function setupAlerting() {
   logInfo('Setting up alerting rules...');
-  
+
   // Create rules directory
   const rulesDir = 'monitoring/prometheus/rules';
   if (!existsSync(rulesDir)) {
     mkdirSync(rulesDir, { recursive: true });
   }
-  
+
   // Create Alertmanager configuration
   const alertmanagerConfig = {
     global: {
       smtp_smarthost: 'smtp.gmail.com:587',
-      smtp_from: process.env.ALERT_EMAIL_FROM || 'alerts@company.com'
+      smtp_from: process.env.ALERT_EMAIL_FROM || 'alerts@company.com',
     },
     route: {
       group_by: ['alertname'],
       group_wait: '10s',
       group_interval: '10s',
       repeat_interval: '1h',
-      receiver: 'web.hook'
+      receiver: 'web.hook',
     },
     receivers: [
       {
         name: 'web.hook',
         webhook_configs: [
           {
-            url: process.env.WEBHOOK_URL || 'http://localhost:3001/api/alerts'
-          }
+            url: process.env.WEBHOOK_URL || 'http://localhost:3001/api/alerts',
+          },
         ],
         email_configs: [
           {
             to: process.env.ALERT_EMAIL_TO || 'admin@company.com',
             subject: 'LightDom Alert: {{ .GroupLabels.alertname }}',
-            body: '{{ range .Alerts }}{{ .Annotations.message }}{{ end }}'
-          }
-        ]
-      }
-    ]
+            body: '{{ range .Alerts }}{{ .Annotations.message }}{{ end }}',
+          },
+        ],
+      },
+    ],
   };
-  
-  writeFileSync('monitoring/alertmanager/alertmanager.yml', JSON.stringify(alertmanagerConfig, null, 2));
-  
+
+  writeFileSync(
+    'monitoring/alertmanager/alertmanager.yml',
+    JSON.stringify(alertmanagerConfig, null, 2)
+  );
+
   // Create Prometheus alerting rules
   const alertingRules = {
     groups: [
@@ -488,31 +500,31 @@ async function setupAlerting() {
           expr: rule.condition,
           for: rule.duration,
           labels: {
-            severity: rule.severity
+            severity: rule.severity,
           },
           annotations: {
             summary: rule.message,
-            description: rule.message
-          }
-        }))
-      }
-    ]
+            description: rule.message,
+          },
+        })),
+      },
+    ],
   };
-  
+
   writeFileSync('monitoring/prometheus/rules/alerts.yml', JSON.stringify(alertingRules, null, 2));
-  
+
   logSuccess('Alerting rules created');
 }
 
 async function setupLogAggregation() {
   logInfo('Setting up log aggregation...');
-  
+
   // Create logstash directory
   const logstashDir = 'monitoring/logstash';
   if (!existsSync(logstashDir)) {
     mkdirSync(logstashDir, { recursive: true });
   }
-  
+
   const logConfig = {
     version: '3.8',
     services: {
@@ -520,27 +532,27 @@ async function setupLogAggregation() {
         image: 'elasticsearch:7.17.0',
         environment: {
           'discovery.type': 'single-node',
-          'ES_JAVA_OPTS': '-Xms512m -Xmx512m'
+          ES_JAVA_OPTS: '-Xms512m -Xmx512m',
         },
-        ports: ['9200:9200']
+        ports: ['9200:9200'],
       },
       kibana: {
         image: 'kibana:7.17.0',
         ports: ['5601:5601'],
         environment: {
-          'ELASTICSEARCH_HOSTS': 'http://elasticsearch:9200'
-        }
+          ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200',
+        },
       },
       logstash: {
         image: 'logstash:7.17.0',
         volumes: ['./monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf'],
-        ports: ['5044:5044']
-      }
-    }
+        ports: ['5044:5044'],
+      },
+    },
   };
-  
+
   writeFileSync('monitoring/docker-compose.yml', JSON.stringify(logConfig, null, 2));
-  
+
   // Create Logstash configuration
   const logstashConfig = `
 input {
@@ -567,15 +579,15 @@ output {
   }
 }
 `;
-  
+
   writeFileSync('monitoring/logstash/logstash.conf', logstashConfig);
-  
+
   logSuccess('Log aggregation configured');
 }
 
 async function createMonitoringScripts() {
   logInfo('Creating monitoring scripts...');
-  
+
   // Health check script
   const healthCheckScript = `#!/usr/bin/env node
 // LightDom Health Check Script
@@ -609,9 +621,9 @@ if (!allHealthy) {
 
 console.log('✅ System health check completed');
 `;
-  
+
   writeFileSync('monitoring/scripts/health-check.sh', healthCheckScript);
-  
+
   // Metrics collection script
   const metricsScript = `#!/usr/bin/env node
 // Metrics Collection Script
@@ -656,9 +668,9 @@ console.log(\`network_tx_bytes \${networkTx}\`);
 
 console.log('✅ Metrics collected');
 `;
-  
+
   writeFileSync('monitoring/scripts/collect-metrics.sh', metricsScript);
-  
+
   logSuccess('Monitoring scripts created');
 }
 
@@ -669,7 +681,7 @@ process.on('SIGINT', () => {
 });
 
 // Run the setup
-main().catch((error) => {
+main().catch(error => {
   logError(`Setup failed: ${error.message}`);
   process.exit(1);
 });

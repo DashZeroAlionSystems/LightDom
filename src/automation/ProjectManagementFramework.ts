@@ -5,7 +5,11 @@
  */
 
 import { EventEmitter } from 'events';
-import { BlockchainAutomationManager, BlockchainNodeConfig, AutomationWorkflow } from './BlockchainAutomationManager';
+import {
+  BlockchainAutomationManager,
+  BlockchainNodeConfig,
+  AutomationWorkflow,
+} from './BlockchainAutomationManager';
 
 export interface Project {
   id: string;
@@ -165,14 +169,14 @@ export class ProjectManagementFramework extends EventEmitter {
       storage: 0,
       bandwidth: 0,
       nodes: 0,
-      workflows: 0
+      workflows: 0,
     };
     this.capacityPlan = {
       totalCapacity: { ...this.resourcePool },
       allocatedCapacity: { ...this.resourcePool },
       availableCapacity: { ...this.resourcePool },
       projectedDemand: { ...this.resourcePool },
-      recommendations: []
+      recommendations: [],
     };
   }
 
@@ -181,24 +185,23 @@ export class ProjectManagementFramework extends EventEmitter {
    */
   async initialize(): Promise<void> {
     console.log('📋 Initializing Project Management Framework...');
-    
+
     try {
       // Initialize resource pool
       await this.initializeResourcePool();
-      
+
       // Load existing projects
       await this.loadProjects();
-      
+
       // Start capacity monitoring
       this.startCapacityMonitoring();
-      
+
       // Start workload optimization
       this.startWorkloadOptimization();
-      
+
       this.isInitialized = true;
       console.log('✅ Project Management Framework initialized');
       this.emit('initialized');
-      
     } catch (error) {
       console.error('❌ Failed to initialize Project Management Framework:', error);
       this.emit('error', error);
@@ -212,14 +215,14 @@ export class ProjectManagementFramework extends EventEmitter {
   private async initializeResourcePool(): Promise<void> {
     // Get available resources from automation manager
     const metrics = this.automationManager.getMetrics();
-    
+
     this.resourcePool = {
       cpu: 16, // Total CPU cores available
       memory: 32768, // Total memory in MB
       storage: 1000, // Total storage in GB
       bandwidth: 1000, // Total bandwidth in Mbps
       nodes: metrics.totalNodes,
-      workflows: metrics.totalWorkflows
+      workflows: metrics.totalWorkflows,
     };
 
     this.updateCapacityPlan();
@@ -247,7 +250,7 @@ export class ProjectManagementFramework extends EventEmitter {
           memory: 16384,
           storage: 500,
           bandwidth: 500,
-          estimatedCost: 500000
+          estimatedCost: 500000,
         },
         milestones: [
           {
@@ -259,7 +262,7 @@ export class ProjectManagementFramework extends EventEmitter {
             tasks: ['task-1', 'task-2'],
             dependencies: [],
             deliverables: ['Smart contracts', 'API server'],
-            successCriteria: ['Contracts deployed', 'API functional']
+            successCriteria: ['Contracts deployed', 'API functional'],
           },
           {
             id: 'milestone-2',
@@ -270,8 +273,8 @@ export class ProjectManagementFramework extends EventEmitter {
             tasks: ['task-3', 'task-4'],
             dependencies: ['milestone-1'],
             deliverables: ['Crawler service', 'Optimization engine'],
-            successCriteria: ['Crawler operational', 'Optimizations working']
-          }
+            successCriteria: ['Crawler operational', 'Optimizations working'],
+          },
         ],
         tasks: [
           {
@@ -290,11 +293,11 @@ export class ProjectManagementFramework extends EventEmitter {
               memory: 4096,
               storage: 100,
               workflows: ['deploy-contracts'],
-              nodes: ['mining-node-1']
+              nodes: ['mining-node-1'],
             },
             dueDate: new Date('2024-02-15'),
             createdAt: new Date('2024-01-01'),
-            updatedAt: new Date('2024-02-15')
+            updatedAt: new Date('2024-02-15'),
           },
           {
             id: 'task-2',
@@ -312,12 +315,12 @@ export class ProjectManagementFramework extends EventEmitter {
               memory: 8192,
               storage: 200,
               workflows: ['api-development'],
-              nodes: ['validation-node-1']
+              nodes: ['validation-node-1'],
             },
             dueDate: new Date('2024-03-15'),
             createdAt: new Date('2024-01-01'),
-            updatedAt: new Date('2024-03-15')
-          }
+            updatedAt: new Date('2024-03-15'),
+          },
         ],
         dependencies: [],
         stakeholders: [
@@ -327,8 +330,8 @@ export class ProjectManagementFramework extends EventEmitter {
             email: 'john@company.com',
             role: 'sponsor',
             permissions: ['read', 'write', 'approve'],
-            notifications: true
-          }
+            notifications: true,
+          },
         ],
         metrics: {
           progress: 45,
@@ -341,11 +344,11 @@ export class ProjectManagementFramework extends EventEmitter {
           resourceUtilization: 75,
           timelineVariance: 0,
           qualityScore: 85,
-          riskScore: 25
+          riskScore: 25,
         },
         createdAt: new Date('2024-01-01'),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     ];
 
     for (const project of defaultProjects) {
@@ -377,7 +380,7 @@ export class ProjectManagementFramework extends EventEmitter {
    */
   private updateCapacityPlan(): void {
     const metrics = this.automationManager.getMetrics();
-    
+
     this.capacityPlan.totalCapacity = { ...this.resourcePool };
     this.capacityPlan.allocatedCapacity = {
       cpu: this.calculateAllocatedCPU(),
@@ -385,16 +388,19 @@ export class ProjectManagementFramework extends EventEmitter {
       storage: this.calculateAllocatedStorage(),
       bandwidth: this.calculateAllocatedBandwidth(),
       nodes: metrics.activeNodes,
-      workflows: metrics.runningWorkflows
+      workflows: metrics.runningWorkflows,
     };
-    
+
     this.capacityPlan.availableCapacity = {
       cpu: this.capacityPlan.totalCapacity.cpu - this.capacityPlan.allocatedCapacity.cpu,
       memory: this.capacityPlan.totalCapacity.memory - this.capacityPlan.allocatedCapacity.memory,
-      storage: this.capacityPlan.totalCapacity.storage - this.capacityPlan.allocatedCapacity.storage,
-      bandwidth: this.capacityPlan.totalCapacity.bandwidth - this.capacityPlan.allocatedCapacity.bandwidth,
+      storage:
+        this.capacityPlan.totalCapacity.storage - this.capacityPlan.allocatedCapacity.storage,
+      bandwidth:
+        this.capacityPlan.totalCapacity.bandwidth - this.capacityPlan.allocatedCapacity.bandwidth,
       nodes: this.capacityPlan.totalCapacity.nodes - this.capacityPlan.allocatedCapacity.nodes,
-      workflows: this.capacityPlan.totalCapacity.workflows - this.capacityPlan.allocatedCapacity.workflows
+      workflows:
+        this.capacityPlan.totalCapacity.workflows - this.capacityPlan.allocatedCapacity.workflows,
     };
   }
 
@@ -455,9 +461,10 @@ export class ProjectManagementFramework extends EventEmitter {
    */
   private analyzeCapacity(): void {
     const recommendations: CapacityRecommendation[] = [];
-    
+
     // Check CPU utilization
-    const cpuUtilization = (this.capacityPlan.allocatedCapacity.cpu / this.capacityPlan.totalCapacity.cpu) * 100;
+    const cpuUtilization =
+      (this.capacityPlan.allocatedCapacity.cpu / this.capacityPlan.totalCapacity.cpu) * 100;
     if (cpuUtilization > 80) {
       recommendations.push({
         type: 'scale_up',
@@ -465,7 +472,7 @@ export class ProjectManagementFramework extends EventEmitter {
         description: 'CPU utilization is above 80%. Consider adding more CPU resources.',
         impact: 'Prevents performance degradation and system bottlenecks',
         cost: 5000,
-        timeline: '1-2 weeks'
+        timeline: '1-2 weeks',
       });
     } else if (cpuUtilization < 30) {
       recommendations.push({
@@ -474,12 +481,13 @@ export class ProjectManagementFramework extends EventEmitter {
         description: 'CPU utilization is below 30%. Consider optimizing resource allocation.',
         impact: 'Reduces costs and improves efficiency',
         cost: -2000,
-        timeline: '1 week'
+        timeline: '1 week',
       });
     }
 
     // Check memory utilization
-    const memoryUtilization = (this.capacityPlan.allocatedCapacity.memory / this.capacityPlan.totalCapacity.memory) * 100;
+    const memoryUtilization =
+      (this.capacityPlan.allocatedCapacity.memory / this.capacityPlan.totalCapacity.memory) * 100;
     if (memoryUtilization > 85) {
       recommendations.push({
         type: 'scale_up',
@@ -487,12 +495,13 @@ export class ProjectManagementFramework extends EventEmitter {
         description: 'Memory utilization is above 85%. Consider adding more memory.',
         impact: 'Prevents memory-related crashes and performance issues',
         cost: 3000,
-        timeline: '1 week'
+        timeline: '1 week',
       });
     }
 
     // Check storage utilization
-    const storageUtilization = (this.capacityPlan.allocatedCapacity.storage / this.capacityPlan.totalCapacity.storage) * 100;
+    const storageUtilization =
+      (this.capacityPlan.allocatedCapacity.storage / this.capacityPlan.totalCapacity.storage) * 100;
     if (storageUtilization > 90) {
       recommendations.push({
         type: 'scale_up',
@@ -500,7 +509,7 @@ export class ProjectManagementFramework extends EventEmitter {
         description: 'Storage utilization is above 90%. Consider adding more storage.',
         impact: 'Prevents data loss and system failures',
         cost: 2000,
-        timeline: '3-5 days'
+        timeline: '3-5 days',
       });
     }
 
@@ -514,10 +523,10 @@ export class ProjectManagementFramework extends EventEmitter {
   private optimizeWorkloadDistribution(): void {
     for (const [projectId, project] of this.projects) {
       if (project.status !== 'active') continue;
-      
+
       const distribution = this.calculateWorkloadDistribution(project);
       this.workloadDistributions.set(projectId, distribution);
-      
+
       // Apply optimizations
       this.applyWorkloadOptimizations(projectId, distribution);
     }
@@ -527,20 +536,22 @@ export class ProjectManagementFramework extends EventEmitter {
    * Calculate workload distribution for a project
    */
   private calculateWorkloadDistribution(project: Project): WorkloadDistribution {
-    const tasks = project.tasks.filter(task => task.status === 'pending' || task.status === 'in_progress');
+    const tasks = project.tasks.filter(
+      task => task.status === 'pending' || task.status === 'in_progress'
+    );
     const workloadTasks: WorkloadTask[] = tasks.map(task => ({
       taskId: task.id,
       priority: task.priority,
       estimatedDuration: task.estimatedHours,
       resourceRequirements: task.resources,
       dependencies: task.dependencies,
-      deadline: task.dueDate
+      deadline: task.dueDate,
     }));
 
     // Simple round-robin distribution (in production, use more sophisticated algorithms)
     const distribution: WorkloadDistributionMap = {};
     const nodeIds = Array.from(this.automationManager['nodes'].keys());
-    
+
     for (let i = 0; i < workloadTasks.length; i++) {
       const nodeId = nodeIds[i % nodeIds.length];
       if (!distribution[nodeId]) {
@@ -548,7 +559,7 @@ export class ProjectManagementFramework extends EventEmitter {
           tasks: [],
           load: 0,
           capacity: 100,
-          efficiency: 0.8
+          efficiency: 0.8,
         };
       }
       distribution[nodeId].tasks.push(workloadTasks[i].taskId);
@@ -560,7 +571,7 @@ export class ProjectManagementFramework extends EventEmitter {
       tasks: workloadTasks,
       distribution,
       efficiency: this.calculateDistributionEfficiency(distribution),
-      loadBalance: this.calculateLoadBalance(distribution)
+      loadBalance: this.calculateLoadBalance(distribution),
     };
   }
 
@@ -570,8 +581,9 @@ export class ProjectManagementFramework extends EventEmitter {
   private calculateDistributionEfficiency(distribution: WorkloadDistributionMap): number {
     const loads = Object.values(distribution).map(d => d.load);
     const avgLoad = loads.reduce((sum, load) => sum + load, 0) / loads.length;
-    const variance = loads.reduce((sum, load) => sum + Math.pow(load - avgLoad, 2), 0) / loads.length;
-    return Math.max(0, 1 - (variance / (avgLoad * avgLoad)));
+    const variance =
+      loads.reduce((sum, load) => sum + Math.pow(load - avgLoad, 2), 0) / loads.length;
+    return Math.max(0, 1 - variance / (avgLoad * avgLoad));
   }
 
   /**
@@ -597,7 +609,9 @@ export class ProjectManagementFramework extends EventEmitter {
   /**
    * Create a new project
    */
-  async createProject(projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'metrics'>): Promise<Project> {
+  async createProject(
+    projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'metrics'>
+  ): Promise<Project> {
     const project: Project = {
       ...projectData,
       id: this.generateProjectId(),
@@ -614,13 +628,13 @@ export class ProjectManagementFramework extends EventEmitter {
         resourceUtilization: 0,
         timelineVariance: 0,
         qualityScore: 0,
-        riskScore: 0
-      }
+        riskScore: 0,
+      },
     };
 
     this.projects.set(project.id, project);
     this.emit('projectCreated', project);
-    
+
     return project;
   }
 
@@ -636,7 +650,7 @@ export class ProjectManagementFramework extends EventEmitter {
     const updatedProject = {
       ...project,
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     this.projects.set(projectId, updatedProject);
@@ -646,7 +660,10 @@ export class ProjectManagementFramework extends EventEmitter {
   /**
    * Add task to project
    */
-  async addTask(projectId: string, task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {
+  async addTask(
+    projectId: string,
+    task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<void> {
     const project = this.projects.get(projectId);
     if (!project) {
       throw new Error(`Project ${projectId} not found`);
@@ -656,12 +673,12 @@ export class ProjectManagementFramework extends EventEmitter {
       ...task,
       id: this.generateTaskId(),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     project.tasks.push(newTask);
     project.updatedAt = new Date();
-    
+
     this.projects.set(projectId, project);
     this.emit('taskAdded', { projectId, task: newTask });
   }
@@ -683,7 +700,7 @@ export class ProjectManagementFramework extends EventEmitter {
     project.tasks[taskIndex] = {
       ...project.tasks[taskIndex],
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     project.updatedAt = new Date();
@@ -738,10 +755,10 @@ export class ProjectManagementFramework extends EventEmitter {
    */
   async shutdown(): Promise<void> {
     console.log('🛑 Shutting down Project Management Framework...');
-    
+
     // Save project data
     await this.saveProjects();
-    
+
     this.isInitialized = false;
     console.log('✅ Project Management Framework shutdown complete');
     this.emit('shutdown');

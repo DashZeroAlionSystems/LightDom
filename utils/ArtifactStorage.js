@@ -36,15 +36,15 @@ class ArtifactStorage {
         performance: artifactData.performance,
         merkleRoot: artifactData.merkleRoot,
         backlinks: artifactData.backlinks || [],
-        schemas: artifactData.schemas || []
+        schemas: artifactData.schemas || [],
       };
 
       const cid = await this.storeToStorage(artifact);
-      
+
       return {
         cid,
         size: JSON.stringify(artifact).length,
-        type: this.storageType
+        type: this.storageType,
       };
     } catch (error) {
       console.error('Failed to store artifact:', error);
@@ -71,10 +71,10 @@ class ArtifactStorage {
       const content = JSON.stringify(artifact, null, 2);
       const hash = crypto.createHash('sha256').update(content).digest('hex');
       const cid = `local:${hash}`;
-      
+
       const filePath = path.join(this.localPath, `${hash}.json`);
       await fs.writeFile(filePath, content);
-      
+
       console.log(`📁 Artifact stored locally: ${cid}`);
       return cid;
     } catch (error) {
@@ -89,12 +89,12 @@ class ArtifactStorage {
       const content = JSON.stringify(artifact, null, 2);
       const hash = crypto.createHash('sha256').update(content).digest('hex');
       const cid = `ipfs://${hash}`;
-      
+
       // In production, use actual IPFS client
       // const ipfs = await IPFS.create();
       // const result = await ipfs.add(content);
       // return `ipfs://${result.cid}`;
-      
+
       console.log(`🌐 Artifact stored to IPFS: ${cid}`);
       return cid;
     } catch (error) {
@@ -109,12 +109,12 @@ class ArtifactStorage {
       const content = JSON.stringify(artifact, null, 2);
       const hash = crypto.createHash('sha256').update(content).digest('hex');
       const cid = `filecoin://${hash}`;
-      
+
       // In production, use actual Filecoin client
       // const filecoin = new FilecoinClient(this.filecoinEndpoint);
       // const result = await filecoin.store(content);
       // return `filecoin://${result.cid}`;
-      
+
       console.log(`💎 Artifact stored to Filecoin: ${cid}`);
       return cid;
     } catch (error) {
@@ -161,7 +161,7 @@ class ArtifactStorage {
       // const ipfs = await IPFS.create();
       // const result = await ipfs.cat(cid.replace('ipfs://', ''));
       // return JSON.parse(result.toString());
-      
+
       throw new Error('IPFS retrieval not implemented');
     } catch (error) {
       console.error('IPFS retrieval failed:', error);
@@ -176,7 +176,7 @@ class ArtifactStorage {
       // const filecoin = new FilecoinClient(this.filecoinEndpoint);
       // const result = await filecoin.retrieve(cid.replace('filecoin://', ''));
       // return JSON.parse(result);
-      
+
       throw new Error('Filecoin retrieval not implemented');
     } catch (error) {
       console.error('Filecoin retrieval failed:', error);
@@ -189,12 +189,12 @@ class ArtifactStorage {
     try {
       const files = await fs.readdir(this.localPath);
       const totalSize = await this.calculateDirectorySize(this.localPath);
-      
+
       return {
         type: this.storageType,
         totalArtifacts: files.length,
         totalSize,
-        path: this.localPath
+        path: this.localPath,
       };
     } catch (error) {
       console.error('Failed to get storage stats:', error);
@@ -202,7 +202,7 @@ class ArtifactStorage {
         type: this.storageType,
         totalArtifacts: 0,
         totalSize: 0,
-        path: this.localPath
+        path: this.localPath,
       };
     }
   }
@@ -212,13 +212,13 @@ class ArtifactStorage {
     try {
       const files = await fs.readdir(dirPath);
       let totalSize = 0;
-      
+
       for (const file of files) {
         const filePath = path.join(dirPath, file);
         const stats = await fs.stat(filePath);
         totalSize += stats.size;
       }
-      
+
       return totalSize;
     } catch (error) {
       return 0;

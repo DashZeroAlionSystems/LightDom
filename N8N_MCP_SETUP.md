@@ -7,17 +7,20 @@ This guide will help you set up the n8n MCP (Model Context Protocol) integration
 The following files have been created for the n8n MCP integration:
 
 ### Core Files
+
 - `src/mcp/n8n-mcp-server.ts` - Main MCP server implementation
 - `src/mcp/n8n-mcp-cli.ts` - Command-line interface
 - `src/types/N8nTypes.ts` - TypeScript type definitions
 - `mcp-config.json` - MCP configuration for Cursor
 
 ### Scripts and Tools
+
 - `scripts/setup-n8n-mcp.js` - Automated setup script
 - `scripts/quick-start-n8n-mcp.sh` - Quick start script (Unix/Linux/macOS)
 - `test/mcp/n8n-mcp.test.js` - Test suite
 
 ### Documentation
+
 - `docs/N8N_MCP_INTEGRATION.md` - Comprehensive documentation
 - `src/mcp/README.md` - Quick reference guide
 - `workflows/dom-optimization-template.json` - Sample workflow template
@@ -37,6 +40,7 @@ node scripts/setup-n8n-mcp.js
 ```
 
 This script will:
+
 - Check and install missing dependencies
 - Create environment configuration files
 - Generate MCP configuration
@@ -151,6 +155,7 @@ N8N_DEBUG=true npm run start:n8n-mcp
 ## Support
 
 For more detailed information, see:
+
 - `docs/N8N_MCP_INTEGRATION.md` - Comprehensive documentation
 - `src/mcp/README.md` - Quick reference guide
 - n8n documentation for workflow creation
@@ -165,4 +170,4 @@ For more detailed information, see:
 
 ---
 
-*The n8n MCP integration is now ready to use with your LightDom project!*
+_The n8n MCP integration is now ready to use with your LightDom project!_

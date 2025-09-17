@@ -1,225 +1,228 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body {
-      width: 350px;
-      height: 500px;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-      color: white;
-    }
-    
-    .header {
-      padding: 20px;
-      text-align: center;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    .logo {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
-    
-    .subtitle {
-      font-size: 12px;
-      opacity: 0.8;
-    }
-    
-    .content {
-      padding: 20px;
-    }
-    
-    .status {
-      background: rgba(255,255,255,0.1);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 20px;
-    }
-    
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-right: 8px;
-    }
-    
-    .status-dot.active {
-      background: #00ff88;
-      animation: pulse 2s infinite;
-    }
-    
-    .status-dot.inactive {
-      background: #ff4444;
-    }
-    
-    .stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    
-    .stat {
-      background: rgba(255,255,255,0.05);
-      border-radius: 6px;
-      padding: 12px;
-      text-align: center;
-    }
-    
-    .stat-value {
-      font-size: 18px;
-      font-weight: bold;
-      color: #00ff88;
-    }
-    
-    .stat-label {
-      font-size: 11px;
-      opacity: 0.8;
-      margin-top: 4px;
-    }
-    
-    .controls {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    
-    .btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .btn-primary {
-      background: #00ff88;
-      color: #000;
-    }
-    
-    .btn-primary:hover {
-      background: #00cc6a;
-    }
-    
-    .btn-secondary {
-      background: rgba(255,255,255,0.1);
-      color: white;
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-    
-    .btn-secondary:hover {
-      background: rgba(255,255,255,0.2);
-    }
-    
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    .mining-info {
-      background: rgba(255,255,255,0.05);
-      border-radius: 6px;
-      padding: 12px;
-      font-size: 11px;
-      line-height: 1.4;
-    }
-    
-    .mining-info h4 {
-      margin: 0 0 8px 0;
-      color: #00ff88;
-    }
-    
-    .mining-info ul {
-      margin: 0;
-      padding-left: 16px;
-    }
-    
-    .mining-info li {
-      margin-bottom: 4px;
-    }
-    
-    .footer {
-      padding: 16px 20px;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      text-align: center;
-      font-size: 10px;
-      opacity: 0.6;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <div class="logo">⚡ LightDom</div>
-    <div class="subtitle">Blockchain Mining Extension</div>
-  </div>
-  
-  <div class="content">
-    <div class="status">
-      <div class="status-indicator">
-        <div class="status-dot" id="statusDot"></div>
-        <span id="statusText">Mining Inactive</span>
-      </div>
-      <div id="userAddress" style="font-size: 11px; opacity: 0.8; font-family: monospace;"></div>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        width: 350px;
+        height: 500px;
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+      }
+
+      .header {
+        padding: 20px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .logo {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+
+      .content {
+        padding: 20px;
+      }
+
+      .status {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+      }
+
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+
+      .status-dot.active {
+        background: #00ff88;
+        animation: pulse 2s infinite;
+      }
+
+      .status-dot.inactive {
+        background: #ff4444;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .stat {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 6px;
+        padding: 12px;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: #00ff88;
+      }
+
+      .stat-label {
+        font-size: 11px;
+        opacity: 0.8;
+        margin-top: 4px;
+      }
+
+      .controls {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: #00ff88;
+        color: #000;
+      }
+
+      .btn-primary:hover {
+        background: #00cc6a;
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .mining-info {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 6px;
+        padding: 12px;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+
+      .mining-info h4 {
+        margin: 0 0 8px 0;
+        color: #00ff88;
+      }
+
+      .mining-info ul {
+        margin: 0;
+        padding-left: 16px;
+      }
+
+      .mining-info li {
+        margin-bottom: 4px;
+      }
+
+      .footer {
+        padding: 16px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+        font-size: 10px;
+        opacity: 0.6;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="logo">⚡ LightDom</div>
+      <div class="subtitle">Blockchain Mining Extension</div>
     </div>
-    
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-value" id="optimizations">0</div>
-        <div class="stat-label">Optimizations</div>
+
+    <div class="content">
+      <div class="status">
+        <div class="status-indicator">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText">Mining Inactive</span>
+        </div>
+        <div id="userAddress" style="font-size: 11px; opacity: 0.8; font-family: monospace"></div>
       </div>
-      <div class="stat">
-        <div class="stat-value" id="spaceSaved">0 KB</div>
-        <div class="stat-label">Space Saved</div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value" id="optimizations">0</div>
+          <div class="stat-label">Optimizations</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="spaceSaved">0 KB</div>
+          <div class="stat-label">Space Saved</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="blocksMined">0</div>
+          <div class="stat-label">Blocks Mined</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="peers">0</div>
+          <div class="stat-label">Peers</div>
+        </div>
       </div>
-      <div class="stat">
-        <div class="stat-value" id="blocksMined">0</div>
-        <div class="stat-label">Blocks Mined</div>
+
+      <div class="controls">
+        <button class="btn btn-primary" id="toggleMining">Start Mining</button>
+        <button class="btn btn-secondary" id="openDashboard">Dashboard</button>
       </div>
-      <div class="stat">
-        <div class="stat-value" id="peers">0</div>
-        <div class="stat-label">Peers</div>
+
+      <div class="mining-info">
+        <h4>Mining Information</h4>
+        <ul>
+          <li>Automatically optimizes DOM on visited websites</li>
+          <li>Earns DSH tokens for space saved</li>
+          <li>Contributes to LightDom blockchain network</li>
+          <li>Only notifies LightDom users</li>
+        </ul>
       </div>
     </div>
-    
-    <div class="controls">
-      <button class="btn btn-primary" id="toggleMining">Start Mining</button>
-      <button class="btn btn-secondary" id="openDashboard">Dashboard</button>
-    </div>
-    
-    <div class="mining-info">
-      <h4>Mining Information</h4>
-      <ul>
-        <li>Automatically optimizes DOM on visited websites</li>
-        <li>Earns DSH tokens for space saved</li>
-        <li>Contributes to LightDom blockchain network</li>
-        <li>Only notifies LightDom users</li>
-      </ul>
-    </div>
-  </div>
-  
-  <div class="footer">
-    LightDom Blockchain v1.0.0
-  </div>
-  
-  <script src="popup.js"></script>
-</body>
+
+    <div class="footer">LightDom Blockchain v1.0.0</div>
+
+    <script src="popup.js"></script>
+  </body>
 </html>

@@ -27,9 +27,13 @@ async function testIntegration() {
       console.log(`   Initialized: ${integrationResponse.data.status.initialized}`);
       console.log(`   Cursor API enabled: ${integrationResponse.data.status.cursorAPI.enabled}`);
       console.log(`   N8n enabled: ${integrationResponse.data.status.n8n.enabled}`);
-      console.log(`   Headless Chrome enabled: ${integrationResponse.data.status.headlessChrome.enabled}`);
+      console.log(
+        `   Headless Chrome enabled: ${integrationResponse.data.status.headlessChrome.enabled}`
+      );
     } catch (error) {
-      console.log('⚠️ Integration service not available (this is expected if not fully configured)');
+      console.log(
+        '⚠️ Integration service not available (this is expected if not fully configured)'
+      );
     }
 
     // Test 3: Check available Cursor functions
@@ -79,15 +83,14 @@ async function testIntegration() {
     console.log('   - Configure n8n if needed');
     console.log('   - Test JavaScript execution');
     console.log('   - Test DOM analysis workflows');
-
   } catch (error) {
     console.error('❌ Integration test failed:', error.message);
-    
+
     if (error.code === 'ECONNREFUSED') {
       console.log('\n💡 Make sure the API server is running:');
       console.log('   npm run api');
     }
-    
+
     process.exit(1);
   }
 }

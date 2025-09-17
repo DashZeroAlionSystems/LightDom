@@ -298,17 +298,24 @@ export interface CrawlServiceStatus {
 
 // Event types
 export interface CrawlEvents {
-  'crawlStarted': (crawlId: string, url: string) => void;
-  'crawlCompleted': (crawlId: string, result: CrawlResult) => void;
-  'crawlFailed': (crawlId: string, error: CrawlError) => void;
-  'crawlProgress': (crawlId: string, progress: number) => void;
-  'opportunityFound': (crawlId: string, opportunity: OptimizationOpportunity) => void;
-  'error': (error: CrawlError) => void;
+  crawlStarted: (crawlId: string, url: string) => void;
+  crawlCompleted: (crawlId: string, result: CrawlResult) => void;
+  crawlFailed: (crawlId: string, error: CrawlError) => void;
+  crawlProgress: (crawlId: string, progress: number) => void;
+  opportunityFound: (crawlId: string, opportunity: OptimizationOpportunity) => void;
+  error: (error: CrawlError) => void;
 }
 
 // Utility types
 export type CrawlEventType = keyof CrawlEvents;
 export type CrawlStatusType = 'queued' | 'processing' | 'completed' | 'failed';
 export type PriorityType = 'low' | 'normal' | 'high' | 'critical';
-export type OpportunityType = 'image' | 'script' | 'css' | 'html' | 'performance' | 'seo' | 'accessibility';
+export type OpportunityType =
+  | 'image'
+  | 'script'
+  | 'css'
+  | 'html'
+  | 'performance'
+  | 'seo'
+  | 'accessibility';
 export type CategoryType = 'performance' | 'seo' | 'accessibility' | 'security' | 'best-practices';

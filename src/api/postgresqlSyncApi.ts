@@ -31,33 +31,32 @@ export class PostgreSQLSyncAPI {
 
       // Sync optimizations
       await this.syncOptimizations(syncData.optimizations);
-      
+
       // Sync nodes
       await this.syncNodes(syncData.nodes || []);
-      
+
       // Sync algorithms
       await this.syncAlgorithms(syncData.algorithms || []);
-      
+
       // Sync data mining results
       await this.syncDataMiningResults(syncData.dataMiningResults || []);
-      
+
       // Sync blockchain upgrades
       await this.syncBlockchainUpgrades(syncData.blockchainUpgrades || []);
-      
+
       // Sync wallet data
       await this.syncWalletData(syncData.walletData);
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: 'Data synced to PostgreSQL successfully',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
-
     } catch (error) {
       console.error('PostgreSQL sync error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to sync data to PostgreSQL',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -68,7 +67,7 @@ export class PostgreSQLSyncAPI {
   private static async syncOptimizations(optimizations: any[]): Promise<void> {
     // This would integrate with actual PostgreSQL client
     console.log(`Syncing ${optimizations.length} optimizations to PostgreSQL`);
-    
+
     for (const optimization of optimizations) {
       // Insert or update optimization record
       console.log(`Syncing optimization: ${optimization.proofHash}`);
@@ -80,7 +79,7 @@ export class PostgreSQLSyncAPI {
    */
   private static async syncNodes(nodes: any[]): Promise<void> {
     console.log(`Syncing ${nodes.length} nodes to PostgreSQL`);
-    
+
     for (const node of nodes) {
       console.log(`Syncing node: ${node.id}`);
     }
@@ -91,7 +90,7 @@ export class PostgreSQLSyncAPI {
    */
   private static async syncAlgorithms(algorithms: any[]): Promise<void> {
     console.log(`Syncing ${algorithms.length} algorithms to PostgreSQL`);
-    
+
     for (const algorithm of algorithms) {
       console.log(`Syncing algorithm: ${algorithm.id}`);
     }
@@ -102,7 +101,7 @@ export class PostgreSQLSyncAPI {
    */
   private static async syncDataMiningResults(results: any[]): Promise<void> {
     console.log(`Syncing ${results.length} data mining results to PostgreSQL`);
-    
+
     for (const result of results) {
       console.log(`Syncing data mining result: ${result.id}`);
     }
@@ -113,7 +112,7 @@ export class PostgreSQLSyncAPI {
    */
   private static async syncBlockchainUpgrades(upgrades: any[]): Promise<void> {
     console.log(`Syncing ${upgrades.length} blockchain upgrades to PostgreSQL`);
-    
+
     for (const upgrade of upgrades) {
       console.log(`Syncing blockchain upgrade: ${upgrade.id}`);
     }

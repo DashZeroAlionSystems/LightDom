@@ -125,7 +125,7 @@ export class MonitoringService extends EventEmitter {
     this.services.set('crawler', services.crawler);
     this.services.set('optimization', services.optimization);
     this.services.set('backgroundWorker', services.backgroundWorker);
-    
+
     this.logger.info('Services registered for monitoring');
   }
 
@@ -166,21 +166,25 @@ export class MonitoringService extends EventEmitter {
   async collectMetrics(): Promise<MonitoringMetrics> {
     try {
       const timestamp = new Date().toISOString();
-      
+
       // System metrics
       const system = {
         memory: process.memoryUsage(),
         cpu: process.cpuUsage(),
         uptime: process.uptime(),
-        loadAverage: require('os').loadavg()
+        loadAverage: require('os').loadavg(),
       };
 
       // Service metrics
       const services = {
         headless: this.services.get('headless')?.getStatus() || { error: 'Service not available' },
         crawler: this.services.get('crawler')?.getStatus() || { error: 'Service not available' },
-        optimization: this.services.get('optimization')?.getStatus() || { error: 'Service not available' },
-        backgroundWorker: this.services.get('backgroundWorker')?.getStatus() || { error: 'Service not available' }
+        optimization: this.services.get('optimization')?.getStatus() || {
+          error: 'Service not available',
+        },
+        backgroundWorker: this.services.get('backgroundWorker')?.getStatus() || {
+          error: 'Service not available',
+        },
       };
 
       // Queue metrics
@@ -189,7 +193,9 @@ export class MonitoringService extends EventEmitter {
         const queueNames = ['crawl', 'optimization', 'monitoring', 'cleanup'];
         for (const queueName of queueNames) {
           try {
-            queues[queueName] = await this.services.get('backgroundWorker').getQueueStatus(queueName);
+            queues[queueName] = await this.services
+              .get('backgroundWorker')
+              .getQueueStatus(queueName);
           } catch (error) {
             queues[queueName] = { error: 'Failed to get queue status' };
           }
@@ -205,12 +211,12 @@ export class MonitoringService extends EventEmitter {
         services,
         queues,
         performance,
-        alerts: this.alerts.filter(alert => !alert.resolved)
+        alerts: this.alerts.filter(alert => !alert.resolved),
       };
 
       // Store metrics
       this.metrics.push(metrics);
-      
+
       // Keep only last 1000 metrics in memory
       if (this.metrics.length > 1000) {
         this.metrics = this.metrics.slice(-1000);
@@ -236,29 +242,27 @@ export class MonitoringService extends EventEmitter {
     try {
       // Get recent metrics
       const recentMetrics = this.metrics.slice(-10);
-      
+
       if (recentMetrics.length === 0) {
         return {
           averageResponseTime: 0,
           totalRequests: 0,
           errorRate: 0,
-          successRate: 100
+          successRate: 100,
         };
       }
 
       // Calculate averages
       const totalRequests = recentMetrics.length;
-      const errorCount = recentMetrics.filter(m => 
-        Object.values(m.services).some(service => 
-          service.error || !service.isRunning
-        )
+      const errorCount = recentMetrics.filter(m =>
+        Object.values(m.services).some(service => service.error || !service.isRunning)
       ).length;
 
       return {
         averageResponseTime: 1000, // Placeholder - would need actual response time data
         totalRequests,
         errorRate: (errorCount / totalRequests) * 100,
-        successRate: ((totalRequests - errorCount) / totalRequests) * 100
+        successRate: ((totalRequests - errorCount) / totalRequests) * 100,
       };
     } catch (error) {
       this.logger.error('Failed to calculate performance metrics:', error);
@@ -266,7 +270,7 @@ export class MonitoringService extends EventEmitter {
         averageResponseTime: 0,
         totalRequests: 0,
         errorRate: 0,
-        successRate: 100
+        successRate: 100,
       };
     }
   }
@@ -281,16 +285,15 @@ export class MonitoringService extends EventEmitter {
 
       // Check system alerts
       await this.checkSystemAlerts(latestMetrics);
-      
+
       // Check service alerts
       await this.checkServiceAlerts(latestMetrics);
-      
+
       // Check queue alerts
       await this.checkQueueAlerts(latestMetrics);
-      
+
       // Check performance alerts
       await this.checkPerformanceAlerts(latestMetrics);
-
     } catch (error) {
       this.logger.error('Failed to check alerts:', error);
     }
@@ -301,7 +304,7 @@ export class MonitoringService extends EventEmitter {
    */
   private async checkSystemAlerts(metrics: MonitoringMetrics): Promise<void> {
     const { system } = metrics;
-    
+
     // Memory usage alert
     const memoryUsagePercent = (system.memory.heapUsed / system.memory.heapTotal) * 100;
     if (memoryUsagePercent > this.config.alertThresholds.memoryUsage) {
@@ -311,7 +314,7 @@ export class MonitoringService extends EventEmitter {
         title: 'High Memory Usage',
         message: `Memory usage is ${memoryUsagePercent.toFixed(2)}% (threshold: ${this.config.alertThresholds.memoryUsage}%)`,
         service: 'system',
-        metadata: { memoryUsage: memoryUsagePercent }
+        metadata: { memoryUsage: memoryUsagePercent },
       });
     }
 
@@ -323,7 +326,7 @@ export class MonitoringService extends EventEmitter {
         title: 'High CPU Usage',
         message: `Load average is ${system.loadAverage[0].toFixed(2)} (threshold: ${this.config.alertThresholds.cpuUsage})`,
         service: 'system',
-        metadata: { loadAverage: system.loadAverage[0] }
+        metadata: { loadAverage: system.loadAverage[0] },
       });
     }
   }
@@ -333,7 +336,7 @@ export class MonitoringService extends EventEmitter {
    */
   private async checkServiceAlerts(metrics: MonitoringMetrics): Promise<void> {
     const { services } = metrics;
-    
+
     for (const [serviceName, service] of Object.entries(services)) {
       if (service.error) {
         await this.createAlert({
@@ -342,7 +345,7 @@ export class MonitoringService extends EventEmitter {
           title: `${serviceName} Service Error`,
           message: `Service ${serviceName} is reporting an error: ${service.error}`,
           service: serviceName,
-          metadata: { error: service.error }
+          metadata: { error: service.error },
         });
       } else if (!service.isRunning && service.isRunning !== undefined) {
         await this.createAlert({
@@ -350,7 +353,7 @@ export class MonitoringService extends EventEmitter {
           severity: 'critical',
           title: `${serviceName} Service Down`,
           message: `Service ${serviceName} is not running`,
-          service: serviceName
+          service: serviceName,
         });
       }
     }
@@ -361,7 +364,7 @@ export class MonitoringService extends EventEmitter {
    */
   private async checkQueueAlerts(metrics: MonitoringMetrics): Promise<void> {
     const { queues } = metrics;
-    
+
     for (const [queueName, queue] of Object.entries(queues)) {
       if (queue.error) {
         await this.createAlert({
@@ -370,7 +373,7 @@ export class MonitoringService extends EventEmitter {
           title: `${queueName} Queue Error`,
           message: `Queue ${queueName} is reporting an error: ${queue.error}`,
           service: 'queue',
-          metadata: { queueName, error: queue.error }
+          metadata: { queueName, error: queue.error },
         });
       } else if (queue.waiting > this.config.alertThresholds.queueBacklog) {
         await this.createAlert({
@@ -379,7 +382,7 @@ export class MonitoringService extends EventEmitter {
           title: `${queueName} Queue Backlog`,
           message: `Queue ${queueName} has ${queue.waiting} waiting jobs (threshold: ${this.config.alertThresholds.queueBacklog})`,
           service: 'queue',
-          metadata: { queueName, waiting: queue.waiting }
+          metadata: { queueName, waiting: queue.waiting },
         });
       }
     }
@@ -390,7 +393,7 @@ export class MonitoringService extends EventEmitter {
    */
   private async checkPerformanceAlerts(metrics: MonitoringMetrics): Promise<void> {
     const { performance } = metrics;
-    
+
     if (performance.errorRate > this.config.alertThresholds.errorRate) {
       await this.createAlert({
         type: 'error',
@@ -398,7 +401,7 @@ export class MonitoringService extends EventEmitter {
         title: 'High Error Rate',
         message: `Error rate is ${performance.errorRate.toFixed(2)}% (threshold: ${this.config.alertThresholds.errorRate}%)`,
         service: 'performance',
-        metadata: { errorRate: performance.errorRate }
+        metadata: { errorRate: performance.errorRate },
       });
     }
 
@@ -409,7 +412,7 @@ export class MonitoringService extends EventEmitter {
         title: 'Slow Response Time',
         message: `Average response time is ${performance.averageResponseTime}ms (threshold: ${this.config.alertThresholds.responseTime}ms)`,
         service: 'performance',
-        metadata: { responseTime: performance.averageResponseTime }
+        metadata: { responseTime: performance.averageResponseTime },
       });
     }
   }
@@ -422,21 +425,24 @@ export class MonitoringService extends EventEmitter {
       id: `alert_${Date.now()}_${++this.alertCounter}`,
       timestamp: new Date().toISOString(),
       resolved: false,
-      ...alertData
+      ...alertData,
     };
 
     this.alerts.push(alert);
-    
+
     // Store in Redis
     await this.redis.setex(`alert:${alert.id}`, 86400, JSON.stringify(alert)); // 24 hours
     await this.redis.lpush('alerts:recent', JSON.stringify(alert));
     await this.redis.ltrim('alerts:recent', 0, 100);
 
-    this.logger.warn(`Alert created: ${alert.title}`, { alertId: alert.id, severity: alert.severity });
-    
+    this.logger.warn(`Alert created: ${alert.title}`, {
+      alertId: alert.id,
+      severity: alert.severity,
+    });
+
     // Emit event
     this.emit('alert', alert);
-    
+
     // Send notifications
     await this.sendNotifications(alert);
 
@@ -470,11 +476,11 @@ export class MonitoringService extends EventEmitter {
       if (this.config.notifications.email) {
         await this.sendEmailNotification(alert);
       }
-      
+
       if (this.config.notifications.slack) {
         await this.sendSlackNotification(alert);
       }
-      
+
       if (this.config.notifications.webhook) {
         await this.sendWebhookNotification(alert);
       }
@@ -518,8 +524,8 @@ export class MonitoringService extends EventEmitter {
         services: {},
         system: {
           memory: process.memoryUsage(),
-          uptime: process.uptime()
-        }
+          uptime: process.uptime(),
+        },
       };
 
       // Check each service
@@ -528,12 +534,12 @@ export class MonitoringService extends EventEmitter {
           const status = service.getStatus ? service.getStatus() : { error: 'No status method' };
           healthStatus.services[name] = {
             status: status.error ? 'unhealthy' : 'healthy',
-            details: status
+            details: status,
           };
         } catch (error) {
           healthStatus.services[name] = {
             status: 'unhealthy',
-            error: error.message
+            error: error.message,
           };
         }
       }
@@ -587,13 +593,13 @@ export class MonitoringService extends EventEmitter {
       const alertsRetention = this.config.retention.alerts * 24 * 60 * 60 * 1000;
 
       // Cleanup old metrics
-      this.metrics = this.metrics.filter(metric => 
-        now - new Date(metric.timestamp).getTime() < metricsRetention
+      this.metrics = this.metrics.filter(
+        metric => now - new Date(metric.timestamp).getTime() < metricsRetention
       );
 
       // Cleanup old alerts
-      this.alerts = this.alerts.filter(alert => 
-        now - new Date(alert.timestamp).getTime() < alertsRetention
+      this.alerts = this.alerts.filter(
+        alert => now - new Date(alert.timestamp).getTime() < alertsRetention
       );
 
       // Cleanup Redis data
@@ -630,7 +636,7 @@ export class MonitoringService extends EventEmitter {
       metricsCount: this.metrics.length,
       alertsCount: this.alerts.length,
       activeAlerts: this.alerts.filter(alert => !alert.resolved).length,
-      cronJobs: Array.from(this.cronJobs.keys())
+      cronJobs: Array.from(this.cronJobs.keys()),
     };
   }
 

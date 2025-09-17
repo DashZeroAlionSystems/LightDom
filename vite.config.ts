@@ -17,8 +17,8 @@ export default defineConfig({
         target: 'ws://localhost:3001',
         ws: true,
         changeOrigin: true,
-      }
-    }
+      },
+    },
   },
   build: {
     outDir: 'dist',
@@ -28,12 +28,12 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           ui: ['lucide-react'],
-          utils: ['axios', 'uuid']
-        }
-      }
-    }
+          utils: ['axios', 'uuid'],
+        },
+      },
+    },
   },
   define: {
     global: 'globalThis',
-  }
+  },
 });

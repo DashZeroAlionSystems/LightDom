@@ -2,7 +2,11 @@ import { EventEmitter } from 'events';
 import { Logger } from '../utils/Logger';
 import HeadlessChromeService from './HeadlessChromeService';
 import WebCrawlerService from './WebCrawlerService';
-import { OptimizationResult, OptimizationOptions, OptimizationRule } from '../types/OptimizationTypes';
+import {
+  OptimizationResult,
+  OptimizationOptions,
+  OptimizationRule,
+} from '../types/OptimizationTypes';
 import { Queue } from 'bull';
 import Redis from 'ioredis';
 
@@ -26,8 +30,8 @@ export class OptimizationEngine extends EventEmitter {
       redis: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD
-      }
+        password: process.env.REDIS_PASSWORD,
+      },
     });
 
     this.setupQueueProcessing();
@@ -53,7 +57,7 @@ export class OptimizationEngine extends EventEmitter {
    * Setup queue processing
    */
   private setupQueueProcessing(): void {
-    this.optimizationQueue.process('optimize-website', 3, async (job) => {
+    this.optimizationQueue.process('optimize-website', 3, async job => {
       const { url, options, optimizationId } = job.data;
       return await this.processOptimizationJob(url, options, optimizationId);
     });
@@ -83,9 +87,9 @@ export class OptimizationEngine extends EventEmitter {
         description: 'Compress images to reduce file size',
         conditions: {
           imageCount: { min: 1 },
-          imageSize: { min: 100000 } // 100KB
+          imageSize: { min: 100000 }, // 100KB
         },
-        actions: ['compress-images', 'convert-webp', 'lazy-load']
+        actions: ['compress-images', 'convert-webp', 'lazy-load'],
       },
       {
         id: 'image-alt-text',
@@ -94,9 +98,9 @@ export class OptimizationEngine extends EventEmitter {
         priority: 'high',
         description: 'Add alt text to images for accessibility',
         conditions: {
-          imagesWithoutAlt: { min: 1 }
+          imagesWithoutAlt: { min: 1 },
         },
-        actions: ['add-alt-text', 'generate-alt-text']
+        actions: ['add-alt-text', 'generate-alt-text'],
       },
       {
         id: 'image-responsive',
@@ -105,9 +109,9 @@ export class OptimizationEngine extends EventEmitter {
         priority: 'medium',
         description: 'Make images responsive for different screen sizes',
         conditions: {
-          oversizedImages: { min: 1 }
+          oversizedImages: { min: 1 },
         },
-        actions: ['responsive-images', 'srcset-generation']
+        actions: ['responsive-images', 'srcset-generation'],
       },
 
       // CSS optimization rules
@@ -118,9 +122,9 @@ export class OptimizationEngine extends EventEmitter {
         priority: 'medium',
         description: 'Minify CSS files to reduce size',
         conditions: {
-          cssFiles: { min: 1 }
+          cssFiles: { min: 1 },
         },
-        actions: ['minify-css', 'remove-unused-css']
+        actions: ['minify-css', 'remove-unused-css'],
       },
       {
         id: 'css-critical',
@@ -130,9 +134,9 @@ export class OptimizationEngine extends EventEmitter {
         description: 'Extract and inline critical CSS',
         conditions: {
           cssFiles: { min: 1 },
-          pageSize: { min: 50000 }
+          pageSize: { min: 50000 },
         },
-        actions: ['extract-critical-css', 'inline-critical-css']
+        actions: ['extract-critical-css', 'inline-critical-css'],
       },
 
       // JavaScript optimization rules
@@ -143,9 +147,9 @@ export class OptimizationEngine extends EventEmitter {
         priority: 'medium',
         description: 'Minify JavaScript files',
         conditions: {
-          jsFiles: { min: 1 }
+          jsFiles: { min: 1 },
         },
-        actions: ['minify-js', 'remove-unused-js']
+        actions: ['minify-js', 'remove-unused-js'],
       },
       {
         id: 'js-bundle-splitting',
@@ -155,9 +159,9 @@ export class OptimizationEngine extends EventEmitter {
         description: 'Split JavaScript bundles for better caching',
         conditions: {
           jsFiles: { min: 3 },
-          bundleSize: { min: 500000 } // 500KB
+          bundleSize: { min: 500000 }, // 500KB
         },
-        actions: ['split-bundles', 'code-splitting']
+        actions: ['split-bundles', 'code-splitting'],
       },
 
       // HTML optimization rules
@@ -168,9 +172,9 @@ export class OptimizationEngine extends EventEmitter {
         priority: 'low',
         description: 'Minify HTML to reduce size',
         conditions: {
-          htmlSize: { min: 10000 }
+          htmlSize: { min: 10000 },
         },
-        actions: ['minify-html', 'remove-whitespace']
+        actions: ['minify-html', 'remove-whitespace'],
       },
       {
         id: 'html-semantic',
@@ -180,9 +184,9 @@ export class OptimizationEngine extends EventEmitter {
         description: 'Improve HTML semantic structure',
         conditions: {
           divCount: { min: 10 },
-          semanticElements: { max: 5 }
+          semanticElements: { max: 5 },
         },
-        actions: ['semantic-html', 'heading-structure']
+        actions: ['semantic-html', 'heading-structure'],
       },
 
       // Performance optimization rules
@@ -194,9 +198,9 @@ export class OptimizationEngine extends EventEmitter {
         description: 'Implement lazy loading for images and content',
         conditions: {
           imageCount: { min: 5 },
-          pageHeight: { min: 2000 }
+          pageHeight: { min: 2000 },
         },
-        actions: ['lazy-load-images', 'lazy-load-content']
+        actions: ['lazy-load-images', 'lazy-load-content'],
       },
       {
         id: 'preloading',
@@ -205,9 +209,9 @@ export class OptimizationEngine extends EventEmitter {
         priority: 'medium',
         description: 'Preload critical resources',
         conditions: {
-          criticalResources: { min: 3 }
+          criticalResources: { min: 3 },
         },
-        actions: ['preload-fonts', 'preload-css', 'preload-js']
+        actions: ['preload-fonts', 'preload-css', 'preload-js'],
       },
 
       // SEO optimization rules
@@ -218,9 +222,9 @@ export class OptimizationEngine extends EventEmitter {
         priority: 'high',
         description: 'Optimize meta tags for SEO',
         conditions: {
-          missingMetaTags: { min: 1 }
+          missingMetaTags: { min: 1 },
         },
-        actions: ['add-meta-description', 'add-meta-keywords', 'add-og-tags']
+        actions: ['add-meta-description', 'add-meta-keywords', 'add-og-tags'],
       },
       {
         id: 'heading-structure',
@@ -229,10 +233,10 @@ export class OptimizationEngine extends EventEmitter {
         priority: 'medium',
         description: 'Improve heading hierarchy',
         conditions: {
-          headingIssues: { min: 1 }
+          headingIssues: { min: 1 },
         },
-        actions: ['fix-heading-hierarchy', 'add-missing-headings']
-      }
+        actions: ['fix-heading-hierarchy', 'add-missing-headings'],
+      },
     ];
   }
 
@@ -241,29 +245,33 @@ export class OptimizationEngine extends EventEmitter {
    */
   async optimizeWebsite(url: string, options: OptimizationOptions = {}): Promise<string> {
     const optimizationId = this.generateOptimizationId();
-    
+
     try {
       // Add to queue
-      const job = await this.optimizationQueue.add('optimize-website', {
-        url,
-        options,
-        optimizationId
-      }, {
-        priority: options.priority || 0,
-        delay: options.delay || 0,
-        attempts: options.attempts || 3,
-        backoff: {
-          type: 'exponential',
-          delay: 5000
+      const job = await this.optimizationQueue.add(
+        'optimize-website',
+        {
+          url,
+          options,
+          optimizationId,
+        },
+        {
+          priority: options.priority || 0,
+          delay: options.delay || 0,
+          attempts: options.attempts || 3,
+          backoff: {
+            type: 'exponential',
+            delay: 5000,
+          },
         }
-      });
+      );
 
       this.activeOptimizations.set(optimizationId, {
         jobId: job.id,
         url,
         status: 'queued',
         startTime: new Date(),
-        options
+        options,
       });
 
       this.logger.info(`Optimization job queued for ${url} with ID: ${optimizationId}`);
@@ -277,16 +285,20 @@ export class OptimizationEngine extends EventEmitter {
   /**
    * Process an optimization job
    */
-  private async processOptimizationJob(url: string, options: OptimizationOptions, optimizationId: string): Promise<OptimizationResult> {
+  private async processOptimizationJob(
+    url: string,
+    options: OptimizationOptions,
+    optimizationId: string
+  ): Promise<OptimizationResult> {
     const pageId = `optimize-${optimizationId}`;
-    
+
     try {
       this.updateOptimizationStatus(optimizationId, 'analyzing');
-      
+
       // First, crawl the website to get baseline data
       const crawlResult = await this.crawlerService.crawlWebsite(url, {
         generatePDF: true,
-        waitForSelector: options.waitForSelector
+        waitForSelector: options.waitForSelector,
       });
 
       // Wait for crawl to complete
@@ -308,7 +320,7 @@ export class OptimizationEngine extends EventEmitter {
       // Create page for optimization
       const page = await this.headlessService.createPage(pageId, {
         width: options.viewport?.width || 1920,
-        height: options.viewport?.height || 1080
+        height: options.viewport?.height || 1080,
       });
 
       // Navigate to URL
@@ -327,7 +339,7 @@ export class OptimizationEngine extends EventEmitter {
       const beforeScreenshot = crawlData.screenshot;
       const afterScreenshot = await this.headlessService.takeScreenshot(pageId, {
         fullPage: true,
-        type: 'png'
+        type: 'png',
       });
 
       // Close page
@@ -340,18 +352,30 @@ export class OptimizationEngine extends EventEmitter {
         status: 'completed',
         beforeMetrics: crawlData.domAnalysis.performanceMetrics,
         afterMetrics: performanceAfter,
-        improvements: this.calculateImprovements(crawlData.domAnalysis.performanceMetrics, performanceAfter),
+        improvements: this.calculateImprovements(
+          crawlData.domAnalysis.performanceMetrics,
+          performanceAfter
+        ),
         appliedOptimizations,
         optimizedContent,
         beforeScreenshot,
         afterScreenshot,
         savings: {
           fileSize: this.calculateFileSizeSavings(crawlData, optimizedContent),
-          loadTime: this.calculateLoadTimeSavings(crawlData.domAnalysis.performanceMetrics, performanceAfter),
+          loadTime: this.calculateLoadTimeSavings(
+            crawlData.domAnalysis.performanceMetrics,
+            performanceAfter
+          ),
           seoScore: this.calculateSEOScore(crawlData.websiteData, appliedOptimizations),
-          accessibilityScore: this.calculateAccessibilityScore(crawlData.domAnalysis, appliedOptimizations)
+          accessibilityScore: this.calculateAccessibilityScore(
+            crawlData.domAnalysis,
+            appliedOptimizations
+          ),
         },
-        recommendations: this.generateRecommendations(appliedOptimizations, crawlData.opportunities)
+        recommendations: this.generateRecommendations(
+          appliedOptimizations,
+          crawlData.opportunities
+        ),
       };
 
       // Store result in Redis
@@ -364,7 +388,7 @@ export class OptimizationEngine extends EventEmitter {
     } catch (error) {
       this.logger.error(`Optimization failed for ${url}:`, error);
       this.updateOptimizationStatus(optimizationId, 'failed');
-      
+
       // Clean up page if it exists
       try {
         await this.headlessService.closePage(pageId);
@@ -379,7 +403,11 @@ export class OptimizationEngine extends EventEmitter {
   /**
    * Apply optimization rules
    */
-  private async applyOptimizationRules(pageId: string, crawlData: any, options: OptimizationOptions): Promise<any[]> {
+  private async applyOptimizationRules(
+    pageId: string,
+    crawlData: any,
+    options: OptimizationOptions
+  ): Promise<any[]> {
     const appliedOptimizations = [];
     const page = this.headlessService['pages'].get(pageId);
     if (!page) {
@@ -397,7 +425,7 @@ export class OptimizationEngine extends EventEmitter {
               category: rule.category,
               priority: rule.priority,
               result: result.data,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
             });
           }
         } catch (error) {
@@ -412,7 +440,11 @@ export class OptimizationEngine extends EventEmitter {
   /**
    * Check if rule should be applied
    */
-  private shouldApplyRule(rule: OptimizationRule, crawlData: any, options: OptimizationOptions): boolean {
+  private shouldApplyRule(
+    rule: OptimizationRule,
+    crawlData: any,
+    options: OptimizationOptions
+  ): boolean {
     // Check if rule is enabled in options
     if (options.disabledRules?.includes(rule.id)) {
       return false;
@@ -443,25 +475,25 @@ export class OptimizationEngine extends EventEmitter {
     switch (rule.id) {
       case 'image-compression':
         return await this.optimizeImages(page, crawlData);
-      
+
       case 'image-alt-text':
         return await this.addAltText(page, crawlData);
-      
+
       case 'css-minification':
         return await this.minifyCSS(page, crawlData);
-      
+
       case 'js-minification':
         return await this.minifyJS(page, crawlData);
-      
+
       case 'html-minification':
         return await this.minifyHTML(page, crawlData);
-      
+
       case 'lazy-loading':
         return await this.implementLazyLoading(page, crawlData);
-      
+
       case 'meta-tags':
         return await this.optimizeMetaTags(page, crawlData);
-      
+
       default:
         return { success: false, error: 'Unknown rule' };
     }
@@ -504,8 +536,8 @@ export class OptimizationEngine extends EventEmitter {
         data: {
           optimizedImages: optimizedCount,
           totalImages: images.length,
-          estimatedSavings: totalSavings
-        }
+          estimatedSavings: totalSavings,
+        },
       };
     });
   }
@@ -523,7 +555,7 @@ export class OptimizationEngine extends EventEmitter {
         const parent = img.parentElement;
         const context = parent?.textContent?.trim() || '';
         const altText = context.substring(0, 100) || 'Image';
-        
+
         img.alt = altText;
         addedCount++;
       });
@@ -532,8 +564,8 @@ export class OptimizationEngine extends EventEmitter {
         success: true,
         data: {
           addedAltText: addedCount,
-          totalImages: images.length
-        }
+          totalImages: images.length,
+        },
       };
     });
   }
@@ -556,8 +588,8 @@ export class OptimizationEngine extends EventEmitter {
       return {
         success: true,
         data: {
-          minifiedStylesheets: minifiedCount
-        }
+          minifiedStylesheets: minifiedCount,
+        },
       };
     });
   }
@@ -579,8 +611,8 @@ export class OptimizationEngine extends EventEmitter {
       return {
         success: true,
         data: {
-          minifiedScripts: minifiedCount
-        }
+          minifiedScripts: minifiedCount,
+        },
       };
     });
   }
@@ -591,16 +623,11 @@ export class OptimizationEngine extends EventEmitter {
   private async minifyHTML(page: any, crawlData: any): Promise<any> {
     return await page.evaluate(() => {
       // Remove unnecessary whitespace
-      const walker = document.createTreeWalker(
-        document.body,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-      );
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
 
       let textNodes = [];
       let node;
-      while (node = walker.nextNode()) {
+      while ((node = walker.nextNode())) {
         textNodes.push(node);
       }
 
@@ -611,8 +638,8 @@ export class OptimizationEngine extends EventEmitter {
       return {
         success: true,
         data: {
-          minifiedTextNodes: textNodes.length
-        }
+          minifiedTextNodes: textNodes.length,
+        },
       };
     });
   }
@@ -633,8 +660,8 @@ export class OptimizationEngine extends EventEmitter {
       return {
         success: true,
         data: {
-          lazyLoadedImages: lazyLoadedCount
-        }
+          lazyLoadedImages: lazyLoadedCount,
+        },
       };
     });
   }
@@ -667,8 +694,8 @@ export class OptimizationEngine extends EventEmitter {
       return {
         success: true,
         data: {
-          addedMetaTags: addedTags
-        }
+          addedMetaTags: addedTags,
+        },
       };
     });
   }
@@ -684,16 +711,28 @@ export class OptimizationEngine extends EventEmitter {
 
     return await page.evaluate(() => {
       const performance = window.performance;
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
+
       return {
         domContentLoaded: navigation.domContentLoadedEventEnd - navigation.navigationStart,
         loadComplete: navigation.loadEventEnd - navigation.navigationStart,
-        firstPaint: performance.getEntriesByType('paint').find(entry => entry.name === 'first-paint')?.startTime || 0,
-        firstContentfulPaint: performance.getEntriesByType('paint').find(entry => entry.name === 'first-contentful-paint')?.startTime || 0,
-        largestContentfulPaint: performance.getEntriesByType('largest-contentful-paint')[0]?.startTime || 0,
-        cumulativeLayoutShift: performance.getEntriesByType('layout-shift').reduce((sum, entry) => sum + entry.value, 0),
-        totalBlockingTime: performance.getEntriesByType('longtask').reduce((sum, entry) => sum + entry.duration, 0)
+        firstPaint:
+          performance.getEntriesByType('paint').find(entry => entry.name === 'first-paint')
+            ?.startTime || 0,
+        firstContentfulPaint:
+          performance
+            .getEntriesByType('paint')
+            .find(entry => entry.name === 'first-contentful-paint')?.startTime || 0,
+        largestContentfulPaint:
+          performance.getEntriesByType('largest-contentful-paint')[0]?.startTime || 0,
+        cumulativeLayoutShift: performance
+          .getEntriesByType('layout-shift')
+          .reduce((sum, entry) => sum + entry.value, 0),
+        totalBlockingTime: performance
+          .getEntriesByType('longtask')
+          .reduce((sum, entry) => sum + entry.duration, 0),
       };
     });
   }
@@ -701,7 +740,10 @@ export class OptimizationEngine extends EventEmitter {
   /**
    * Generate optimized content
    */
-  private async generateOptimizedContent(pageId: string, appliedOptimizations: any[]): Promise<string> {
+  private async generateOptimizedContent(
+    pageId: string,
+    appliedOptimizations: any[]
+  ): Promise<string> {
     const page = this.headlessService['pages'].get(pageId);
     if (!page) {
       throw new Error(`Page ${pageId} not found`);
@@ -715,10 +757,23 @@ export class OptimizationEngine extends EventEmitter {
    */
   private calculateImprovements(before: any, after: any): any {
     return {
-      loadTime: ((before.loadComplete - after.loadComplete) / before.loadComplete * 100).toFixed(2),
-      firstContentfulPaint: ((before.firstContentfulPaint - after.firstContentfulPaint) / before.firstContentfulPaint * 100).toFixed(2),
-      largestContentfulPaint: ((before.largestContentfulPaint - after.largestContentfulPaint) / before.largestContentfulPaint * 100).toFixed(2),
-      cumulativeLayoutShift: ((before.cumulativeLayoutShift - after.cumulativeLayoutShift) / before.cumulativeLayoutShift * 100).toFixed(2)
+      loadTime: (((before.loadComplete - after.loadComplete) / before.loadComplete) * 100).toFixed(
+        2
+      ),
+      firstContentfulPaint: (
+        ((before.firstContentfulPaint - after.firstContentfulPaint) / before.firstContentfulPaint) *
+        100
+      ).toFixed(2),
+      largestContentfulPaint: (
+        ((before.largestContentfulPaint - after.largestContentfulPaint) /
+          before.largestContentfulPaint) *
+        100
+      ).toFixed(2),
+      cumulativeLayoutShift: (
+        ((before.cumulativeLayoutShift - after.cumulativeLayoutShift) /
+          before.cumulativeLayoutShift) *
+        100
+      ).toFixed(2),
     };
   }
 
@@ -728,14 +783,14 @@ export class OptimizationEngine extends EventEmitter {
   private calculateFileSizeSavings(crawlData: any, optimizedContent: string): number {
     const originalSize = crawlData.domAnalysis.resourceAnalysis.totalSize;
     const optimizedSize = optimizedContent.length;
-    return ((originalSize - optimizedSize) / originalSize * 100);
+    return ((originalSize - optimizedSize) / originalSize) * 100;
   }
 
   /**
    * Calculate load time savings
    */
   private calculateLoadTimeSavings(before: any, after: any): number {
-    return ((before.loadComplete - after.loadComplete) / before.loadComplete * 100);
+    return ((before.loadComplete - after.loadComplete) / before.loadComplete) * 100;
   }
 
   /**
@@ -743,16 +798,16 @@ export class OptimizationEngine extends EventEmitter {
    */
   private calculateSEOScore(websiteData: any, appliedOptimizations: any[]): number {
     let score = 0;
-    
+
     // Meta tags
     if (websiteData.title) score += 10;
     if (websiteData.description) score += 10;
     if (websiteData.keywords) score += 5;
-    
+
     // Applied optimizations
     const seoOptimizations = appliedOptimizations.filter(opt => opt.category === 'seo');
     score += seoOptimizations.length * 5;
-    
+
     return Math.min(score, 100);
   }
 
@@ -761,16 +816,18 @@ export class OptimizationEngine extends EventEmitter {
    */
   private calculateAccessibilityScore(domAnalysis: any, appliedOptimizations: any[]): number {
     let score = 0;
-    
+
     // Image alt text
     const totalImages = domAnalysis.imageAnalysis.total;
     const imagesWithAlt = totalImages - domAnalysis.imageAnalysis.withoutAlt;
     score += (imagesWithAlt / totalImages) * 30;
-    
+
     // Applied optimizations
-    const accessibilityOptimizations = appliedOptimizations.filter(opt => opt.category === 'accessibility');
+    const accessibilityOptimizations = appliedOptimizations.filter(
+      opt => opt.category === 'accessibility'
+    );
     score += accessibilityOptimizations.length * 10;
-    
+
     return Math.min(score, 100);
   }
 
@@ -779,17 +836,17 @@ export class OptimizationEngine extends EventEmitter {
    */
   private generateRecommendations(appliedOptimizations: any[], opportunities: any[]): string[] {
     const recommendations = [];
-    
+
     appliedOptimizations.forEach(opt => {
       recommendations.push(`Applied ${opt.ruleName} optimization`);
     });
-    
+
     opportunities.forEach(opp => {
       if (opp.priority === 'high') {
         recommendations.push(`High priority: ${opp.title}`);
       }
     });
-    
+
     return recommendations;
   }
 
@@ -799,12 +856,12 @@ export class OptimizationEngine extends EventEmitter {
   private getValueFromCrawlData(crawlData: any, key: string): any {
     const keys = key.split('.');
     let value = crawlData;
-    
+
     for (const k of keys) {
       value = value?.[k];
       if (value === undefined) break;
     }
-    
+
     return value;
   }
 
@@ -863,9 +920,9 @@ export class OptimizationEngine extends EventEmitter {
         waiting: this.optimizationQueue.getWaiting().length,
         active: this.optimizationQueue.getActive().length,
         completed: this.optimizationQueue.getCompleted().length,
-        failed: this.optimizationQueue.getFailed().length
+        failed: this.optimizationQueue.getFailed().length,
       },
-      rulesLoaded: this.optimizationRules.length
+      rulesLoaded: this.optimizationRules.length,
     };
   }
 

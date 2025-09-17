@@ -1,12 +1,17 @@
 /**
  * BrowserbaseAPI - Enhanced Web Crawling API with AI-Powered Automation
- * 
+ *
  * Provides RESTful API endpoints for Browserbase integration,
  * enabling natural language web automation and advanced crawling capabilities.
  */
 
 import { Request, Response } from 'express';
-import { BrowserbaseService, SessionOptions, ScreenshotOptions, ExtractedData } from '../services/BrowserbaseService.js';
+import {
+  BrowserbaseService,
+  SessionOptions,
+  ScreenshotOptions,
+  ExtractedData,
+} from '../services/BrowserbaseService.js';
 import { WebCrawlerService } from '../services/WebCrawlerService.js';
 import { OptimizationEngine } from '../services/OptimizationEngine.js';
 import { EventEmitter } from 'events';
@@ -56,7 +61,7 @@ export class BrowserbaseAPI extends EventEmitter {
       if (!url || !instructions) {
         res.status(400).json({
           success: false,
-          error: 'URL and instructions are required'
+          error: 'URL and instructions are required',
         });
         return;
       }
@@ -69,7 +74,7 @@ export class BrowserbaseAPI extends EventEmitter {
         stealth: options.stealth || true,
         keepAlive: options.keepAlive || false,
         proxy: options.proxy,
-        viewport: options.viewport || { width: 1920, height: 1080 }
+        viewport: options.viewport || { width: 1920, height: 1080 },
       });
 
       try {
@@ -79,15 +84,11 @@ export class BrowserbaseAPI extends EventEmitter {
         }
 
         // Execute AI instructions
-        const result = await this.browserbaseService.executeInstructions(
-          session.id,
-          instructions,
-          {
-            timeout: options.timeout || 30000,
-            extractData: options.extractData,
-            takeScreenshot: options.takeScreenshot || false
-          }
-        );
+        const result = await this.browserbaseService.executeInstructions(session.id, instructions, {
+          timeout: options.timeout || 30000,
+          extractData: options.extractData,
+          takeScreenshot: options.takeScreenshot || false,
+        });
 
         // Extract data if requested
         let extractedData = null;
@@ -95,20 +96,17 @@ export class BrowserbaseAPI extends EventEmitter {
           extractedData = await this.browserbaseService.extractData(session.id, {
             selectors: options.extractData,
             textContent: true,
-            attributes: ['href', 'src', 'alt', 'title', 'class', 'id']
+            attributes: ['href', 'src', 'alt', 'title', 'class', 'id'],
           });
         }
 
         // Take screenshot if requested
         let screenshot = null;
         if (options.takeScreenshot) {
-          const screenshotBuffer = await this.browserbaseService.captureScreenshot(
-            session.id,
-            {
-              fullPage: options.fullPageScreenshot || false,
-              format: options.screenshotFormat || 'png'
-            }
-          );
+          const screenshotBuffer = await this.browserbaseService.captureScreenshot(session.id, {
+            fullPage: options.fullPageScreenshot || false,
+            format: options.screenshotFormat || 'png',
+          });
           screenshot = screenshotBuffer.toString('base64');
         }
 
@@ -125,22 +123,20 @@ export class BrowserbaseAPI extends EventEmitter {
             extractedData,
             screenshot,
             optimization: optimizationResult,
-            timestamp: new Date()
-          }
+            timestamp: new Date(),
+          },
         });
-
       } finally {
         // Close session if not keeping alive
         if (!options.keepAlive) {
           await this.browserbaseService.closeSession(session.id);
         }
       }
-
     } catch (error) {
       console.error('❌ AI Crawling error:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
       });
     }
   }
@@ -159,15 +155,14 @@ export class BrowserbaseAPI extends EventEmitter {
         data: {
           sessionId: session.id,
           createdAt: session.createdAt,
-          metadata: session.metadata
-        }
+          metadata: session.metadata,
+        },
       });
-
     } catch (error) {
       console.error('❌ Session creation error:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to create session'
+        error: error instanceof Error ? error.message : 'Failed to create session',
       });
     }
   }
@@ -183,7 +178,7 @@ export class BrowserbaseAPI extends EventEmitter {
       if (!session) {
         res.status(404).json({
           success: false,
-          error: 'Session not found'
+          error: 'Session not found',
         });
         return;
       }
@@ -191,7 +186,7 @@ export class BrowserbaseAPI extends EventEmitter {
       if (!session.isActive) {
         res.status(400).json({
           success: false,
-          error: 'Session is not active'
+          error: 'Session is not active',
         });
         return;
       }
@@ -203,15 +198,14 @@ export class BrowserbaseAPI extends EventEmitter {
           url: session.url,
           createdAt: session.createdAt,
           lastActivity: session.lastActivity,
-          metadata: session.metadata
-        }
+          metadata: session.metadata,
+        },
       });
-
     } catch (error) {
       console.error('❌ Session resume error:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to resume session'
+        error: error instanceof Error ? error.message : 'Failed to resume session',
       });
     }
   }
@@ -227,20 +221,16 @@ export class BrowserbaseAPI extends EventEmitter {
       if (!instructions) {
         res.status(400).json({
           success: false,
-          error: 'Instructions are required'
+          error: 'Instructions are required',
         });
         return;
       }
 
-      const result = await this.browserbaseService.executeInstructions(
-        sessionId,
-        instructions,
-        {
-          timeout: options.timeout || 30000,
-          extractData: options.extractData,
-          takeScreenshot: options.takeScreenshot || false
-        }
-      );
+      const result = await this.browserbaseService.executeInstructions(sessionId, instructions, {
+        timeout: options.timeout || 30000,
+        extractData: options.extractData,
+        takeScreenshot: options.takeScreenshot || false,
+      });
 
       res.json({
         success: true,
@@ -248,15 +238,14 @@ export class BrowserbaseAPI extends EventEmitter {
           sessionId,
           instructions,
           result,
-          timestamp: new Date()
-        }
+          timestamp: new Date(),
+        },
       });
-
     } catch (error) {
       console.error('❌ Instructions execution error:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to execute instructions'
+        error: error instanceof Error ? error.message : 'Failed to execute instructions',
       });
     }
   }
@@ -272,14 +261,16 @@ export class BrowserbaseAPI extends EventEmitter {
       const screenshotBuffer = await this.browserbaseService.captureScreenshot(sessionId, options);
 
       res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Content-Disposition', `attachment; filename="screenshot-${sessionId}-${Date.now()}.png"`);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="screenshot-${sessionId}-${Date.now()}.png"`
+      );
       res.send(screenshotBuffer);
-
     } catch (error) {
       console.error('❌ Screenshot capture error:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to capture screenshot'
+        error: error instanceof Error ? error.message : 'Failed to capture screenshot',
       });
     }
   }
@@ -295,7 +286,7 @@ export class BrowserbaseAPI extends EventEmitter {
       if (!schema || !schema.selectors) {
         res.status(400).json({
           success: false,
-          error: 'Schema with selectors is required'
+          error: 'Schema with selectors is required',
         });
         return;
       }
@@ -304,14 +295,13 @@ export class BrowserbaseAPI extends EventEmitter {
 
       res.json({
         success: true,
-        data: extractedData
+        data: extractedData,
       });
-
     } catch (error) {
       console.error('❌ Data extraction error:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to extract data'
+        error: error instanceof Error ? error.message : 'Failed to extract data',
       });
     }
   }
@@ -327,14 +317,13 @@ export class BrowserbaseAPI extends EventEmitter {
 
       res.json({
         success: true,
-        message: `Session ${sessionId} closed successfully`
+        message: `Session ${sessionId} closed successfully`,
       });
-
     } catch (error) {
       console.error('❌ Session close error:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to close session'
+        error: error instanceof Error ? error.message : 'Failed to close session',
       });
     }
   }
@@ -355,17 +344,16 @@ export class BrowserbaseAPI extends EventEmitter {
             createdAt: session.createdAt,
             lastActivity: session.lastActivity,
             isActive: session.isActive,
-            metadata: session.metadata
+            metadata: session.metadata,
           })),
-          count: sessions.length
-        }
+          count: sessions.length,
+        },
       });
-
     } catch (error) {
       console.error('❌ List sessions error:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to list sessions'
+        error: error instanceof Error ? error.message : 'Failed to list sessions',
       });
     }
   }
@@ -381,15 +369,14 @@ export class BrowserbaseAPI extends EventEmitter {
         success: true,
         data: {
           ...status,
-          timestamp: new Date()
-        }
+          timestamp: new Date(),
+        },
       });
-
     } catch (error) {
       console.error('❌ Status check error:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get status'
+        error: error instanceof Error ? error.message : 'Failed to get status',
       });
     }
   }
@@ -403,7 +390,7 @@ export class BrowserbaseAPI extends EventEmitter {
       const extractedData = await this.browserbaseService.extractData(sessionId, {
         selectors: ['html', 'head', 'body', 'script', 'link', 'img', 'style'],
         textContent: true,
-        attributes: ['src', 'href', 'type', 'rel', 'media']
+        attributes: ['src', 'href', 'type', 'rel', 'media'],
       });
 
       // Calculate original size
@@ -428,13 +415,12 @@ export class BrowserbaseAPI extends EventEmitter {
             'Enable image compression and WebP conversion',
             'Minify CSS and JavaScript files',
             'Implement lazy loading for images',
-            'Optimize font loading with font-display: swap'
+            'Optimize font loading with font-display: swap',
           ],
-          priority: savings > 50000 ? 'high' : savings > 10000 ? 'medium' : 'low'
+          priority: savings > 50000 ? 'high' : savings > 10000 ? 'medium' : 'low',
         },
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-
     } catch (error) {
       console.error('❌ AI optimization analysis error:', error);
       throw error;
@@ -444,12 +430,14 @@ export class BrowserbaseAPI extends EventEmitter {
   /**
    * Generate AI-Powered Optimization Suggestions
    */
-  private async generateAIOptimizationSuggestions(extractedData: ExtractedData): Promise<Array<{
-    type: string;
-    description: string;
-    impact: string;
-    aiSuggestion: string;
-  }>> {
+  private async generateAIOptimizationSuggestions(extractedData: ExtractedData): Promise<
+    Array<{
+      type: string;
+      description: string;
+      impact: string;
+      aiSuggestion: string;
+    }>
+  > {
     // Analyze the extracted data and generate intelligent suggestions
     const suggestions = [];
 
@@ -460,7 +448,8 @@ export class BrowserbaseAPI extends EventEmitter {
         type: 'image_optimization',
         description: `Found ${images.length} images that can be optimized`,
         impact: 'high',
-        aiSuggestion: 'Convert images to WebP format and implement lazy loading to reduce initial page load time'
+        aiSuggestion:
+          'Convert images to WebP format and implement lazy loading to reduce initial page load time',
       });
     }
 
@@ -471,18 +460,20 @@ export class BrowserbaseAPI extends EventEmitter {
         type: 'javascript_optimization',
         description: `Found ${scripts.length} JavaScript files`,
         impact: 'medium',
-        aiSuggestion: 'Minify and bundle JavaScript files to reduce HTTP requests and file sizes'
+        aiSuggestion: 'Minify and bundle JavaScript files to reduce HTTP requests and file sizes',
       });
     }
 
     // Check for CSS
-    const stylesheets = extractedData.elements.filter(el => el.selector.includes('link') && el.attributes.rel === 'stylesheet');
+    const stylesheets = extractedData.elements.filter(
+      el => el.selector.includes('link') && el.attributes.rel === 'stylesheet'
+    );
     if (stylesheets.length > 0) {
       suggestions.push({
         type: 'css_optimization',
         description: `Found ${stylesheets.length} CSS files`,
         impact: 'medium',
-        aiSuggestion: 'Minify CSS and extract critical CSS for above-the-fold content'
+        aiSuggestion: 'Minify CSS and extract critical CSS for above-the-fold content',
       });
     }
 
@@ -492,7 +483,8 @@ export class BrowserbaseAPI extends EventEmitter {
         type: 'content_optimization',
         description: 'Large content detected',
         impact: 'high',
-        aiSuggestion: 'Implement content compression and consider pagination for large content sections'
+        aiSuggestion:
+          'Implement content compression and consider pagination for large content sections',
       });
     }
 
@@ -505,18 +497,21 @@ export class BrowserbaseAPI extends EventEmitter {
   setupRoutes(app: any): void {
     // AI-Powered crawling
     app.post('/api/browserbase/crawl/ai', this.crawlWithAI.bind(this));
-    
+
     // Session management
     app.post('/api/browserbase/sessions', this.createSession.bind(this));
     app.get('/api/browserbase/sessions/:sessionId', this.resumeSession.bind(this));
     app.delete('/api/browserbase/sessions/:sessionId', this.closeSession.bind(this));
     app.get('/api/browserbase/sessions', this.listSessions.bind(this));
-    
+
     // Session operations
-    app.post('/api/browserbase/sessions/:sessionId/instructions', this.executeInstructions.bind(this));
+    app.post(
+      '/api/browserbase/sessions/:sessionId/instructions',
+      this.executeInstructions.bind(this)
+    );
     app.post('/api/browserbase/sessions/:sessionId/screenshot', this.captureScreenshot.bind(this));
     app.post('/api/browserbase/sessions/:sessionId/extract', this.extractData.bind(this));
-    
+
     // Service status
     app.get('/api/browserbase/status', this.getStatus.bind(this));
 

@@ -7,7 +7,12 @@
 // import { ethers } from 'ethers'; // Will be used for blockchain integration
 import { spaceOptimizationEngine, OptimizationResult } from './SpaceOptimizationEngine';
 import { advancedNodeManager, NodeConfig } from './AdvancedNodeManager';
-import { metaverseMiningEngine, AlgorithmDiscovery, DataMiningResult, BlockchainUpgrade } from './MetaverseMiningEngine';
+import {
+  metaverseMiningEngine,
+  AlgorithmDiscovery,
+  DataMiningResult,
+  BlockchainUpgrade,
+} from './MetaverseMiningEngine';
 
 export interface PersistentData {
   optimizations: OptimizationResult[];
@@ -54,11 +59,25 @@ export class PersistentBlockchainStorage {
     maxFiles: 1000, // Chrome's file input limit
     maxTotalSize: 20 * 1024 * 1024 * 1024, // 20GB (Chrome's total limit)
     supportedFormats: [
-      'image/*', 'video/*', 'audio/*', 'text/*', 'application/*',
-      '.js', '.css', '.html', '.json', '.xml', '.csv', '.pdf',
-      '.zip', '.tar', '.gz', '.7z', '.rar'
+      'image/*',
+      'video/*',
+      'audio/*',
+      'text/*',
+      'application/*',
+      '.js',
+      '.css',
+      '.html',
+      '.json',
+      '.xml',
+      '.csv',
+      '.pdf',
+      '.zip',
+      '.tar',
+      '.gz',
+      '.7z',
+      '.rar',
     ],
-    browserVersion: this.getChromeVersion()
+    browserVersion: this.getChromeVersion(),
   };
 
   constructor() {
@@ -80,12 +99,14 @@ export class PersistentBlockchainStorage {
         resolve();
       };
 
-      request.onupgradeneeded = (event) => {
+      request.onupgradeneeded = event => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         // Create object stores
         if (!db.objectStoreNames.contains('optimizations')) {
-          const optimizationsStore = db.createObjectStore('optimizations', { keyPath: 'proofHash' });
+          const optimizationsStore = db.createObjectStore('optimizations', {
+            keyPath: 'proofHash',
+          });
           optimizationsStore.createIndex('timestamp', 'timestamp', { unique: false });
           optimizationsStore.createIndex('harvesterAddress', 'harvesterAddress', { unique: false });
         }
@@ -191,7 +212,7 @@ export class PersistentBlockchainStorage {
         walletData: this.getCurrentWalletData(),
         userSettings: await this.getUserSettings(),
         lastSync: Date.now(),
-        version: '1.0.0'
+        version: '1.0.0',
       };
 
       await this.saveToIndexedDB('persistentData', persistentData);
@@ -208,8 +229,8 @@ export class PersistentBlockchainStorage {
     if (!this.db) return;
 
     try {
-      const persistentData = await this.getFromIndexedDB('persistentData') as PersistentData;
-      
+      const persistentData = (await this.getFromIndexedDB('persistentData')) as PersistentData;
+
       if (persistentData) {
         // Restore optimizations
         persistentData.optimizations.forEach(opt => {
@@ -251,33 +272,33 @@ export class PersistentBlockchainStorage {
     this.pendingSync = true;
 
     try {
-      const persistentData = await this.getFromIndexedDB('persistentData') as PersistentData;
-      
+      const persistentData = (await this.getFromIndexedDB('persistentData')) as PersistentData;
+
       if (persistentData) {
         // Sync optimizations to blockchain
         await this.syncOptimizationsToBlockchain(persistentData.optimizations);
-        
+
         // Sync to PostgreSQL
         await this.syncToPostgreSQL(persistentData);
-        
+
         // Update sync state
         await this.saveToIndexedDB('syncState', {
           key: 'lastSync',
           timestamp: Date.now(),
-          status: 'success'
+          status: 'success',
         });
 
         console.log('✅ Data synced to blockchain and PostgreSQL');
       }
     } catch (error) {
       console.error('❌ Error syncing to blockchain:', error);
-      
+
       // Save sync error state
       await this.saveToIndexedDB('syncState', {
         key: 'lastSync',
         timestamp: Date.now(),
         status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     } finally {
       this.pendingSync = false;
@@ -317,8 +338,8 @@ export class PersistentBlockchainStorage {
           dataMiningResults: data.dataMiningResults,
           blockchainUpgrades: data.blockchainUpgrades,
           walletData: data.walletData,
-          timestamp: Date.now()
-        })
+          timestamp: Date.now(),
+        }),
       });
 
       if (!response.ok) {
@@ -351,7 +372,7 @@ export class PersistentBlockchainStorage {
       balance: 0,
       totalValue: 0,
       pendingRewards: 0,
-      totalEarned: 0
+      totalEarned: 0,
     };
   }
 
@@ -367,14 +388,18 @@ export class PersistentBlockchainStorage {
    * Get user settings
    */
   private async getUserSettings(): Promise<PersistentData['userSettings']> {
-    const settings = await this.getFromIndexedDB('userSettings') as PersistentData['userSettings'];
-    
-    return settings || {
-      maxFileUploadSize: this.CHROME_LIMITS.maxFileSize,
-      autoSave: true,
-      syncInterval: 30000,
-      preferredBiome: 'digital'
-    };
+    const settings = (await this.getFromIndexedDB(
+      'userSettings'
+    )) as PersistentData['userSettings'];
+
+    return (
+      settings || {
+        maxFileUploadSize: this.CHROME_LIMITS.maxFileSize,
+        autoSave: true,
+        syncInterval: 30000,
+        preferredBiome: 'digital',
+      }
+    );
   }
 
   /**
@@ -434,7 +459,7 @@ export class PersistentBlockchainStorage {
 
     const settings = await this.getUserSettings();
     settings.maxFileUploadSize = size;
-    
+
     await this.saveToIndexedDB('userSettings', settings);
     console.log(`✅ Max file upload size set to ${size} bytes`);
   }
@@ -448,11 +473,13 @@ export class PersistentBlockchainStorage {
     error?: string;
   }> {
     const syncState = await this.getFromIndexedDB('syncState', 'lastSync');
-    
-    return syncState || {
-      lastSync: 0,
-      status: 'pending'
-    };
+
+    return (
+      syncState || {
+        lastSync: 0,
+        status: 'pending',
+      }
+    );
   }
 
   /**
@@ -469,8 +496,17 @@ export class PersistentBlockchainStorage {
   public async clearAllData(): Promise<void> {
     if (!this.db) return;
 
-    const storeNames = ['optimizations', 'nodes', 'algorithms', 'dataMining', 'blockchainUpgrades', 'walletData', 'userSettings', 'syncState'];
-    
+    const storeNames = [
+      'optimizations',
+      'nodes',
+      'algorithms',
+      'dataMining',
+      'blockchainUpgrades',
+      'walletData',
+      'userSettings',
+      'syncState',
+    ];
+
     for (const storeName of storeNames) {
       const transaction = this.db.transaction([storeName], 'readwrite');
       const store = transaction.objectStore(storeName);
@@ -497,8 +533,17 @@ export class PersistentBlockchainStorage {
     const breakdown: Record<string, number> = {};
     let totalSize = 0;
 
-    const storeNames = ['optimizations', 'nodes', 'algorithms', 'dataMining', 'blockchainUpgrades', 'walletData', 'userSettings', 'syncState'];
-    
+    const storeNames = [
+      'optimizations',
+      'nodes',
+      'algorithms',
+      'dataMining',
+      'blockchainUpgrades',
+      'walletData',
+      'userSettings',
+      'syncState',
+    ];
+
     for (const storeName of storeNames) {
       const data = await this.getFromIndexedDB(storeName);
       const size = JSON.stringify(data).length;
@@ -512,7 +557,7 @@ export class PersistentBlockchainStorage {
     return {
       totalSize,
       breakdown,
-      availableSpace
+      availableSpace,
     };
   }
 }

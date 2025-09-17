@@ -65,8 +65,8 @@ export class BackgroundWorkerService extends EventEmitter {
       redis: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD
-      }
+        password: process.env.REDIS_PASSWORD,
+      },
     };
 
     // Crawl queue
@@ -93,18 +93,22 @@ export class BackgroundWorkerService extends EventEmitter {
    */
   private async setupWorkers(): Promise<void> {
     // Crawl worker
-    const crawlWorker = new Worker('crawl-queue', async (job: Job) => {
-      return await this.processCrawlJob(job);
-    }, {
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD
+    const crawlWorker = new Worker(
+      'crawl-queue',
+      async (job: Job) => {
+        return await this.processCrawlJob(job);
       },
-      concurrency: 5
-    });
+      {
+        connection: {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379'),
+          password: process.env.REDIS_PASSWORD,
+        },
+        concurrency: 5,
+      }
+    );
 
-    crawlWorker.on('completed', (job) => {
+    crawlWorker.on('completed', job => {
       this.logger.info(`Crawl job ${job.id} completed`);
       this.emit('crawlCompleted', { jobId: job.id, data: job.returnvalue });
     });
@@ -117,18 +121,22 @@ export class BackgroundWorkerService extends EventEmitter {
     this.workers.set('crawl', crawlWorker);
 
     // Optimization worker
-    const optimizationWorker = new Worker('optimization-queue', async (job: Job) => {
-      return await this.processOptimizationJob(job);
-    }, {
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD
+    const optimizationWorker = new Worker(
+      'optimization-queue',
+      async (job: Job) => {
+        return await this.processOptimizationJob(job);
       },
-      concurrency: 3
-    });
+      {
+        connection: {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379'),
+          password: process.env.REDIS_PASSWORD,
+        },
+        concurrency: 3,
+      }
+    );
 
-    optimizationWorker.on('completed', (job) => {
+    optimizationWorker.on('completed', job => {
       this.logger.info(`Optimization job ${job.id} completed`);
       this.emit('optimizationCompleted', { jobId: job.id, data: job.returnvalue });
     });
@@ -141,18 +149,22 @@ export class BackgroundWorkerService extends EventEmitter {
     this.workers.set('optimization', optimizationWorker);
 
     // Monitoring worker
-    const monitoringWorker = new Worker('monitoring-queue', async (job: Job) => {
-      return await this.processMonitoringJob(job);
-    }, {
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD
+    const monitoringWorker = new Worker(
+      'monitoring-queue',
+      async (job: Job) => {
+        return await this.processMonitoringJob(job);
       },
-      concurrency: 10
-    });
+      {
+        connection: {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379'),
+          password: process.env.REDIS_PASSWORD,
+        },
+        concurrency: 10,
+      }
+    );
 
-    monitoringWorker.on('completed', (job) => {
+    monitoringWorker.on('completed', job => {
       this.logger.info(`Monitoring job ${job.id} completed`);
     });
 
@@ -163,18 +175,22 @@ export class BackgroundWorkerService extends EventEmitter {
     this.workers.set('monitoring', monitoringWorker);
 
     // Cleanup worker
-    const cleanupWorker = new Worker('cleanup-queue', async (job: Job) => {
-      return await this.processCleanupJob(job);
-    }, {
-      connection: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD
+    const cleanupWorker = new Worker(
+      'cleanup-queue',
+      async (job: Job) => {
+        return await this.processCleanupJob(job);
       },
-      concurrency: 2
-    });
+      {
+        connection: {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379'),
+          password: process.env.REDIS_PASSWORD,
+        },
+        concurrency: 2,
+      }
+    );
 
-    cleanupWorker.on('completed', (job) => {
+    cleanupWorker.on('completed', job => {
       this.logger.info(`Cleanup job ${job.id} completed`);
     });
 
@@ -227,19 +243,20 @@ export class BackgroundWorkerService extends EventEmitter {
 
     try {
       this.logger.info(`Processing crawl job for ${url}`);
-      
+
       // Update job progress
       await job.progress(10);
 
       // Start crawling
       const result = await crawlerService.crawlWebsite(url, options);
-      
+
       await job.progress(50);
 
       // Wait for completion
       let crawlData;
       let attempts = 0;
-      while (attempts < 60) { // 1 minute timeout
+      while (attempts < 60) {
+        // 1 minute timeout
         crawlData = await crawlerService.getCrawlResult(result);
         if (crawlData) break;
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -268,18 +285,19 @@ export class BackgroundWorkerService extends EventEmitter {
 
     try {
       this.logger.info(`Processing optimization job for ${url}`);
-      
+
       await job.progress(10);
 
       // Start optimization
       const result = await optimizationEngine.optimizeWebsite(url, options);
-      
+
       await job.progress(50);
 
       // Wait for completion
       let optimizationData;
       let attempts = 0;
-      while (attempts < 120) { // 2 minute timeout
+      while (attempts < 120) {
+        // 2 minute timeout
         optimizationData = await optimizationEngine.getOptimizationResult(result);
         if (optimizationData) break;
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -309,13 +327,13 @@ export class BackgroundWorkerService extends EventEmitter {
       switch (type) {
         case 'health-check':
           return await this.performHealthCheck();
-        
+
         case 'performance-monitor':
           return await this.monitorPerformance(data);
-        
+
         case 'queue-monitor':
           return await this.monitorQueues();
-        
+
         default:
           throw new Error(`Unknown monitoring job type: ${type}`);
       }
@@ -335,13 +353,13 @@ export class BackgroundWorkerService extends EventEmitter {
       switch (type) {
         case 'old-results':
           return await this.cleanupOldResults(data);
-        
+
         case 'temp-files':
           return await this.cleanupTempFiles();
-        
+
         case 'browser-instances':
           return await this.cleanupBrowserInstances();
-        
+
         default:
           throw new Error(`Unknown cleanup job type: ${type}`);
       }
@@ -363,8 +381,8 @@ export class BackgroundWorkerService extends EventEmitter {
       system: {
         memory: process.memoryUsage(),
         uptime: process.uptime(),
-        cpu: process.cpuUsage()
-      }
+        cpu: process.cpuUsage(),
+      },
     };
 
     // Check services
@@ -372,12 +390,12 @@ export class BackgroundWorkerService extends EventEmitter {
       try {
         healthStatus.services[name] = {
           status: 'healthy',
-          details: service.getStatus ? service.getStatus() : 'No status available'
+          details: service.getStatus ? service.getStatus() : 'No status available',
         };
       } catch (error) {
         healthStatus.services[name] = {
           status: 'unhealthy',
-          error: error.message
+          error: error.message,
         };
       }
     }
@@ -396,13 +414,13 @@ export class BackgroundWorkerService extends EventEmitter {
             waiting: waiting.length,
             active: active.length,
             completed: completed.length,
-            failed: failed.length
-          }
+            failed: failed.length,
+          },
         };
       } catch (error) {
         healthStatus.queues[name] = {
           status: 'unhealthy',
-          error: error.message
+          error: error.message,
         };
       }
     }
@@ -412,12 +430,12 @@ export class BackgroundWorkerService extends EventEmitter {
       try {
         healthStatus.workers[name] = {
           status: 'healthy',
-          isRunning: worker.isRunning()
+          isRunning: worker.isRunning(),
         };
       } catch (error) {
         healthStatus.workers[name] = {
           status: 'unhealthy',
-          error: error.message
+          error: error.message,
         };
       }
     }
@@ -438,9 +456,9 @@ export class BackgroundWorkerService extends EventEmitter {
       metrics: {
         memory: process.memoryUsage(),
         cpu: process.cpuUsage(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
       },
-      services: {}
+      services: {},
     };
 
     // Monitor each service
@@ -449,12 +467,12 @@ export class BackgroundWorkerService extends EventEmitter {
         const status = service.getStatus ? service.getStatus() : {};
         performanceData.services[name] = {
           status: 'monitored',
-          metrics: status
+          metrics: status,
         };
       } catch (error) {
         performanceData.services[name] = {
           status: 'error',
-          error: error.message
+          error: error.message,
         };
       }
     }
@@ -472,7 +490,7 @@ export class BackgroundWorkerService extends EventEmitter {
   private async monitorQueues(): Promise<any> {
     const queueStatus = {
       timestamp: new Date().toISOString(),
-      queues: {}
+      queues: {},
     };
 
     for (const [name, queue] of this.queues) {
@@ -487,7 +505,7 @@ export class BackgroundWorkerService extends EventEmitter {
           active: active.length,
           completed: completed.length,
           failed: failed.length,
-          total: waiting.length + active.length + completed.length + failed.length
+          total: waiting.length + active.length + completed.length + failed.length,
         };
 
         // Alert if queue is backed up
@@ -516,19 +534,19 @@ export class BackgroundWorkerService extends EventEmitter {
     // Cleanup old results (older than 7 days)
     await cleanupQueue.add('old-results', {
       type: 'old-results',
-      data: { olderThan: 7 * 24 * 60 * 60 * 1000 } // 7 days in milliseconds
+      data: { olderThan: 7 * 24 * 60 * 60 * 1000 }, // 7 days in milliseconds
     });
 
     // Cleanup temp files
     await cleanupQueue.add('temp-files', {
       type: 'temp-files',
-      data: {}
+      data: {},
     });
 
     // Cleanup browser instances
     await cleanupQueue.add('browser-instances', {
       type: 'browser-instances',
-      data: {}
+      data: {},
     });
 
     this.logger.info('Cleanup jobs scheduled');
@@ -543,7 +561,7 @@ export class BackgroundWorkerService extends EventEmitter {
 
     await monitoringQueue.add('performance-monitor', {
       type: 'performance-monitor',
-      data: {}
+      data: {},
     });
 
     this.logger.info('Performance monitoring scheduled');
@@ -555,7 +573,7 @@ export class BackgroundWorkerService extends EventEmitter {
   private async cleanupOldResults(data: any): Promise<any> {
     const { olderThan } = data;
     const cutoffTime = Date.now() - olderThan;
-    
+
     // Get all keys with crawl: or optimization: prefix
     const keys = await this.redis.keys('crawl:*');
     const optimizationKeys = await this.redis.keys('optimization:*');
@@ -640,7 +658,7 @@ export class BackgroundWorkerService extends EventEmitter {
       active: active.length,
       completed: completed.length,
       failed: failed.length,
-      total: waiting.length + active.length + completed.length + failed.length
+      total: waiting.length + active.length + completed.length + failed.length,
     };
   }
 
@@ -653,7 +671,7 @@ export class BackgroundWorkerService extends EventEmitter {
       workers: Array.from(this.workers.keys()),
       queues: Array.from(this.queues.keys()),
       services: Array.from(this.services.keys()),
-      cronJobs: Array.from(this.cronJobs.keys())
+      cronJobs: Array.from(this.cronJobs.keys()),
     };
   }
 

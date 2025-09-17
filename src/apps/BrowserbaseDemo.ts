@@ -1,6 +1,6 @@
 /**
  * Browserbase Demo Application
- * 
+ *
  * Demonstrates AI-powered web crawling and automation capabilities
  * using Browserbase MCP server integration with LightDom.
  */
@@ -30,7 +30,7 @@ class BrowserbaseDemo {
       modelName: 'google/gemini-2.0-flash',
       proxies: false, // Disable for demo
       advancedStealth: false, // Disable for demo
-      keepAlive: false // Disable for demo
+      keepAlive: false, // Disable for demo
     });
 
     // Initialize optimization engine
@@ -42,7 +42,7 @@ class BrowserbaseDemo {
       navigateToPage: () => Promise.resolve(),
       analyzeDOM: () => Promise.resolve({}),
       takeScreenshot: () => Promise.resolve(Buffer.from('mock')),
-      closePage: () => Promise.resolve()
+      closePage: () => Promise.resolve(),
     };
 
     // Initialize enhanced crawler
@@ -55,7 +55,9 @@ class BrowserbaseDemo {
 
   async run() {
     console.log(chalk.blue.bold('🚀 Browserbase Demo - AI-Powered Web Crawling'));
-    console.log(chalk.gray('Demonstrating enhanced crawling capabilities with natural language automation\n'));
+    console.log(
+      chalk.gray('Demonstrating enhanced crawling capabilities with natural language automation\n')
+    );
 
     try {
       await this.initialize();
@@ -65,7 +67,6 @@ class BrowserbaseDemo {
       await this.demoOptimizationAnalysis();
       await this.demoConcurrentSessions();
       await this.cleanup();
-
     } catch (error) {
       console.error(chalk.red.bold('❌ Demo failed:'), error);
       process.exit(1);
@@ -74,9 +75,9 @@ class BrowserbaseDemo {
 
   async initialize() {
     console.log(chalk.yellow('🔧 Initializing Browserbase service...'));
-    
+
     await this.browserbaseService.initialize();
-    
+
     const status = this.browserbaseService.getStatus();
     console.log(chalk.green(`✅ Service initialized - Connected: ${status.connected}`));
     console.log(chalk.gray(`   Active sessions: ${status.activeSessions}`));
@@ -84,10 +85,10 @@ class BrowserbaseDemo {
 
   async demoBasicNavigation() {
     console.log(chalk.blue.bold('\n📱 Demo 1: Basic Navigation and Screenshots'));
-    
+
     const session = await this.browserbaseService.createSession({
       viewport: { width: 1280, height: 720 },
-      stealth: false
+      stealth: false,
     });
 
     try {
@@ -105,10 +106,9 @@ class BrowserbaseDemo {
       console.log(chalk.gray('   Taking screenshot...'));
       const screenshot = await this.browserbaseService.captureScreenshot(session.id, {
         fullPage: false,
-        format: 'png'
+        format: 'png',
       });
       console.log(chalk.green(`   ✅ Screenshot captured: ${screenshot.length} bytes`));
-
     } finally {
       await this.browserbaseService.closeSession(session.id);
       console.log(chalk.gray(`   Session closed: ${session.id}`));
@@ -117,9 +117,9 @@ class BrowserbaseDemo {
 
   async demoNaturalLanguageAutomation() {
     console.log(chalk.blue.bold('\n🤖 Demo 2: Natural Language Automation'));
-    
+
     const session = await this.browserbaseService.createSession({
-      viewport: { width: 1280, height: 720 }
+      viewport: { width: 1280, height: 720 },
     });
 
     try {
@@ -133,28 +133,23 @@ class BrowserbaseDemo {
       const instructions = [
         'Take a screenshot of the page',
         'Extract the main heading text',
-        'Get the page title'
+        'Get the page title',
       ];
 
       for (const instruction of instructions) {
         console.log(chalk.gray(`   Executing: "${instruction}"`));
-        
-        const result = await this.browserbaseService.executeInstructions(
-          session.id,
-          instruction,
-          {
-            timeout: 10000,
-            takeScreenshot: instruction.includes('screenshot')
-          }
-        );
+
+        const result = await this.browserbaseService.executeInstructions(session.id, instruction, {
+          timeout: 10000,
+          takeScreenshot: instruction.includes('screenshot'),
+        });
 
         console.log(chalk.green(`   ✅ Result: ${result.message}`));
-        
+
         if (result.screenshot) {
           console.log(chalk.gray(`      Screenshot data: ${result.screenshot.length} bytes`));
         }
       }
-
     } finally {
       await this.browserbaseService.closeSession(session.id);
       console.log(chalk.gray(`   Session closed: ${session.id}`));
@@ -163,7 +158,7 @@ class BrowserbaseDemo {
 
   async demoDataExtraction() {
     console.log(chalk.blue.bold('\n📊 Demo 3: AI-Powered Data Extraction'));
-    
+
     const session = await this.browserbaseService.createSession();
 
     try {
@@ -178,7 +173,7 @@ class BrowserbaseDemo {
       const extractedData = await this.browserbaseService.extractData(session.id, {
         selectors: ['h1', 'h2', 'h3', 'p', 'title', 'meta'],
         textContent: true,
-        attributes: ['href', 'src', 'alt', 'title', 'name', 'content', 'property']
+        attributes: ['href', 'src', 'alt', 'title', 'name', 'content', 'property'],
       });
 
       console.log(chalk.green('   ✅ Data extraction completed'));
@@ -191,10 +186,13 @@ class BrowserbaseDemo {
       if (extractedData.elements.length > 0) {
         console.log(chalk.gray('   Sample extracted elements:'));
         extractedData.elements.slice(0, 3).forEach((element, index) => {
-          console.log(chalk.gray(`      ${index + 1}. ${element.selector}: "${element.text?.substring(0, 50)}..."`));
+          console.log(
+            chalk.gray(
+              `      ${index + 1}. ${element.selector}: "${element.text?.substring(0, 50)}..."`
+            )
+          );
         });
       }
-
     } finally {
       await this.browserbaseService.closeSession(session.id);
       console.log(chalk.gray(`   Session closed: ${session.id}`));
@@ -203,7 +201,7 @@ class BrowserbaseDemo {
 
   async demoOptimizationAnalysis() {
     console.log(chalk.blue.bold('\n🎯 Demo 4: AI-Powered Optimization Analysis'));
-    
+
     const session = await this.browserbaseService.createSession();
 
     try {
@@ -218,7 +216,7 @@ class BrowserbaseDemo {
       const extractedData = await this.browserbaseService.extractData(session.id, {
         selectors: ['html', 'head', 'body', 'script', 'link', 'img', 'style'],
         textContent: true,
-        attributes: ['src', 'href', 'type', 'rel', 'media']
+        attributes: ['src', 'href', 'type', 'rel', 'media'],
       });
 
       // Perform AI optimization analysis
@@ -232,7 +230,11 @@ class BrowserbaseDemo {
       console.log(chalk.green('   ✅ Optimization analysis completed'));
       console.log(chalk.gray(`      Original size: ${optimization.originalSize} bytes`));
       console.log(chalk.gray(`      Optimized size: ${optimization.optimizedSize} bytes`));
-      console.log(chalk.gray(`      Potential savings: ${optimization.savings} bytes (${optimization.savingsPercentage.toFixed(1)}%)`));
+      console.log(
+        chalk.gray(
+          `      Potential savings: ${optimization.savings} bytes (${optimization.savingsPercentage.toFixed(1)}%)`
+        )
+      );
       console.log(chalk.gray(`      Complexity: ${optimization.aiAnalysis.complexity}`));
       console.log(chalk.gray(`      Priority: ${optimization.aiAnalysis.priority}`));
       console.log(chalk.gray(`      Confidence: ${optimization.aiAnalysis.confidence}%`));
@@ -246,7 +248,6 @@ class BrowserbaseDemo {
           console.log(chalk.gray(`         Estimated savings: ${opt.estimatedSavings} bytes`));
         });
       }
-
     } finally {
       await this.browserbaseService.closeSession(session.id);
       console.log(chalk.gray(`   Session closed: ${session.id}`));
@@ -255,17 +256,17 @@ class BrowserbaseDemo {
 
   async demoConcurrentSessions() {
     console.log(chalk.blue.bold('\n⚡ Demo 5: Concurrent Session Management'));
-    
+
     const sessionCount = 3;
     const sessions: any[] = [];
 
     try {
       // Create multiple concurrent sessions
       console.log(chalk.gray(`   Creating ${sessionCount} concurrent sessions...`));
-      
+
       const sessionPromises = Array.from({ length: sessionCount }, (_, i) =>
         this.browserbaseService.createSession({
-          viewport: { width: 1280, height: 720 }
+          viewport: { width: 1280, height: 720 },
         })
       );
 
@@ -276,69 +277,74 @@ class BrowserbaseDemo {
 
       // Perform operations on all sessions
       console.log(chalk.gray('   Performing concurrent operations...'));
-      
+
       const operationPromises = sessions.map(async (session, index) => {
         try {
           await this.browserbaseService.navigateToUrl(
             session.id,
             `https://httpbin.org/delay/${index + 1}`
           );
-          
+
           const screenshot = await this.browserbaseService.captureScreenshot(session.id);
-          
+
           return {
             sessionId: session.id,
             success: true,
-            screenshotSize: screenshot.length
+            screenshotSize: screenshot.length,
           };
         } catch (error) {
           return {
             sessionId: session.id,
             success: false,
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: error instanceof Error ? error.message : 'Unknown error',
           };
         }
       });
 
       const results = await Promise.all(operationPromises);
-      
+
       const successful = results.filter(r => r.success).length;
-      console.log(chalk.green(`   ✅ Concurrent operations completed: ${successful}/${results.length} successful`));
+      console.log(
+        chalk.green(
+          `   ✅ Concurrent operations completed: ${successful}/${results.length} successful`
+        )
+      );
 
       // Display results
       results.forEach((result, index) => {
         if (result.success) {
-          console.log(chalk.gray(`      Session ${index + 1}: ✅ (screenshot: ${result.screenshotSize} bytes)`));
+          console.log(
+            chalk.gray(
+              `      Session ${index + 1}: ✅ (screenshot: ${result.screenshotSize} bytes)`
+            )
+          );
         } else {
           console.log(chalk.gray(`      Session ${index + 1}: ❌ (${result.error})`));
         }
       });
-
     } finally {
       // Clean up all sessions
       console.log(chalk.gray('   Cleaning up sessions...'));
-      await Promise.all(
-        sessions.map(session => this.browserbaseService.closeSession(session.id))
-      );
+      await Promise.all(sessions.map(session => this.browserbaseService.closeSession(session.id)));
       console.log(chalk.gray(`   ✅ Cleaned up ${sessions.length} sessions`));
     }
   }
 
   async cleanup() {
     console.log(chalk.yellow('\n🧹 Cleaning up...'));
-    
+
     await this.browserbaseService.disconnect();
-    
+
     console.log(chalk.green('✅ Cleanup completed'));
     console.log(chalk.blue.bold('\n🎉 Demo completed successfully!'));
-    
+
     console.log(chalk.gray('\nKey features demonstrated:'));
     console.log(chalk.gray('• AI-powered natural language automation'));
     console.log(chalk.gray('• Intelligent data extraction'));
     console.log(chalk.gray('• Optimization analysis with AI suggestions'));
     console.log(chalk.gray('• Concurrent session management'));
     console.log(chalk.gray('• Screenshot capture and processing'));
-    
+
     console.log(chalk.gray('\nNext steps:'));
     console.log(chalk.gray('• Configure your API keys in .env file'));
     console.log(chalk.gray('• Integrate with your existing crawling workflows'));
@@ -365,7 +371,7 @@ async function main() {
   const config: DemoConfig = {
     apiKey: process.env.BROWSERBASE_API_KEY!,
     projectId: process.env.BROWSERBASE_PROJECT_ID!,
-    modelApiKey: process.env.GEMINI_API_KEY
+    modelApiKey: process.env.GEMINI_API_KEY,
   };
 
   const demo = new BrowserbaseDemo(config);

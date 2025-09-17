@@ -18,17 +18,17 @@ console.log('=====================================\n');
 // Start the frontend
 const frontendProcess = spawn('yarn', ['dev'], {
   stdio: 'inherit',
-  env: { 
+  env: {
     ...process.env,
-    VITE_PORT: '3000'
-  }
+    VITE_PORT: '3000',
+  },
 });
 
-frontendProcess.on('error', (error) => {
+frontendProcess.on('error', error => {
   console.error('❌ Frontend error:', error);
 });
 
-frontendProcess.on('exit', (code) => {
+frontendProcess.on('exit', code => {
   console.log(`Frontend exited with code ${code}`);
 });
 

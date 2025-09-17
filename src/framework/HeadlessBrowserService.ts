@@ -98,17 +98,17 @@ export class HeadlessBrowserService extends EventEmitter {
         '--disable-css', // Disable CSS for initial analysis
         '--disable-fonts', // Disable fonts for initial analysis
         '--disable-web-security',
-        '--disable-features=VizDisplayCompositor'
+        '--disable-features=VizDisplayCompositor',
       ],
       defaultViewport: {
         width: 1920,
-        height: 1080
+        height: 1080,
       },
       timeout: 30000,
       maxConcurrentPages: 10,
       enableServiceWorker: true,
       enableCache: true,
-      ...config
+      ...config,
     };
 
     this.serviceWorkerConfig = {
@@ -116,7 +116,7 @@ export class HeadlessBrowserService extends EventEmitter {
       cacheStrategy: 'cacheFirst',
       cacheName: 'lightdom-cache',
       maxCacheSize: 50 * 1024 * 1024, // 50MB
-      offlineSupport: true
+      offlineSupport: true,
     };
   }
 
@@ -138,7 +138,7 @@ export class HeadlessBrowserService extends EventEmitter {
         devtools: this.config.devtools,
         args: this.config.args,
         defaultViewport: this.config.defaultViewport,
-        timeout: this.config.timeout
+        timeout: this.config.timeout,
       });
 
       // Set up browser event handlers
@@ -148,7 +148,6 @@ export class HeadlessBrowserService extends EventEmitter {
       this.emit('initialized');
 
       console.log('✅ Headless browser service initialized successfully');
-
     } catch (error) {
       console.error('❌ Failed to initialize headless browser service:', error);
       throw error;
@@ -170,18 +169,18 @@ export class HeadlessBrowserService extends EventEmitter {
     try {
       const page = await this.browser.newPage();
       const pageId = `page_${++this.pageCounter}_${Date.now()}`;
-      
+
       // Configure page
       await this.configurePage(page, url);
-      
+
       // Store page
       this.pages.set(pageId, page);
-      
+
       // Set up page event handlers
       this.setupPageEventHandlers(page, pageId);
-      
+
       this.emit('pageCreated', { pageId, url });
-      
+
       return page;
     } catch (error) {
       console.error('❌ Failed to create page:', error);
@@ -205,10 +204,10 @@ export class HeadlessBrowserService extends EventEmitter {
 
     // Set up request interception for optimization
     await page.setRequestInterception(true);
-    
-    page.on('request', (request) => {
+
+    page.on('request', request => {
       const resourceType = request.resourceType();
-      
+
       // Block unnecessary resources for initial analysis
       if (['image', 'media', 'font', 'stylesheet'].includes(resourceType)) {
         request.abort();
@@ -218,7 +217,7 @@ export class HeadlessBrowserService extends EventEmitter {
     });
 
     // Set up response interception for analysis
-    page.on('response', (response) => {
+    page.on('response', response => {
       this.analyzeResponse(response);
     });
   }
@@ -310,11 +309,11 @@ export class HeadlessBrowserService extends EventEmitter {
     const status = response.status();
     const headers = response.headers();
     const contentLength = headers['content-length'];
-    
+
     if (status === 200 && contentLength) {
       const size = parseInt(contentLength);
       const contentType = headers['content-type'] || '';
-      
+
       // Analyze different resource types
       if (contentType.includes('text/html')) {
         this.analyzeHTMLResponse(url, size, response);
@@ -332,15 +331,15 @@ export class HeadlessBrowserService extends EventEmitter {
   private async analyzeHTMLResponse(url: string, size: number, response: any): Promise<void> {
     try {
       const content = await response.text();
-      
+
       // Analyze HTML for optimization opportunities
       const optimizations = this.analyzeHTML(content);
-      
+
       if (optimizations.length > 0) {
         this.emit('htmlOptimization', {
           url,
           originalSize: size,
-          optimizations
+          optimizations,
         });
       }
     } catch (error) {
@@ -354,15 +353,15 @@ export class HeadlessBrowserService extends EventEmitter {
   private async analyzeCSSResponse(url: string, size: number, response: any): Promise<void> {
     try {
       const content = await response.text();
-      
+
       // Analyze CSS for optimization opportunities
       const optimizations = this.analyzeCSS(content);
-      
+
       if (optimizations.length > 0) {
         this.emit('cssOptimization', {
           url,
           originalSize: size,
-          optimizations
+          optimizations,
         });
       }
     } catch (error) {
@@ -376,15 +375,15 @@ export class HeadlessBrowserService extends EventEmitter {
   private async analyzeJSResponse(url: string, size: number, response: any): Promise<void> {
     try {
       const content = await response.text();
-      
+
       // Analyze JS for optimization opportunities
       const optimizations = this.analyzeJS(content);
-      
+
       if (optimizations.length > 0) {
         this.emit('jsOptimization', {
           url,
           originalSize: size,
-          optimizations
+          optimizations,
         });
       }
     } catch (error) {
@@ -397,14 +396,11 @@ export class HeadlessBrowserService extends EventEmitter {
    */
   private analyzeHTML(content: string): Optimization[] {
     const optimizations: Optimization[] = [];
-    
+
     // Remove unnecessary whitespace
     const originalLength = content.length;
-    const minified = content
-      .replace(/\s+/g, ' ')
-      .replace(/>\s+</g, '><')
-      .trim();
-    
+    const minified = content.replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim();
+
     const spaceSaved = originalLength - minified.length;
     if (spaceSaved > 0) {
       optimizations.push({
@@ -412,29 +408,29 @@ export class HeadlessBrowserService extends EventEmitter {
         description: 'Remove unnecessary whitespace',
         spaceSaved,
         impact: spaceSaved > 1000 ? 'high' : 'medium',
-        implementation: 'Minify HTML by removing extra whitespace'
+        implementation: 'Minify HTML by removing extra whitespace',
       });
     }
-    
+
     // Remove comments
     const commentRegex = /<!--[\s\S]*?-->/g;
     const withoutComments = content.replace(commentRegex, '');
     const commentSpaceSaved = content.length - withoutComments.length;
-    
+
     if (commentSpaceSaved > 0) {
       optimizations.push({
         type: 'html',
         description: 'Remove HTML comments',
         spaceSaved: commentSpaceSaved,
         impact: commentSpaceSaved > 500 ? 'medium' : 'low',
-        implementation: 'Remove HTML comments from production builds'
+        implementation: 'Remove HTML comments from production builds',
       });
     }
-    
+
     // Optimize attributes
     const attributeOptimizations = this.optimizeHTMLAttributes(content);
     optimizations.push(...attributeOptimizations);
-    
+
     return optimizations;
   }
 
@@ -443,7 +439,7 @@ export class HeadlessBrowserService extends EventEmitter {
    */
   private analyzeCSS(content: string): Optimization[] {
     const optimizations: Optimization[] = [];
-    
+
     // Remove unnecessary whitespace and comments
     const originalLength = content.length;
     const minified = content
@@ -454,7 +450,7 @@ export class HeadlessBrowserService extends EventEmitter {
       .replace(/\s*}\s*/g, '}') // Remove spaces around closing braces
       .replace(/;\s*;/g, ';') // Remove duplicate semicolons
       .trim();
-    
+
     const spaceSaved = originalLength - minified.length;
     if (spaceSaved > 0) {
       optimizations.push({
@@ -462,10 +458,10 @@ export class HeadlessBrowserService extends EventEmitter {
         description: 'Minify CSS',
         spaceSaved,
         impact: spaceSaved > 2000 ? 'high' : 'medium',
-        implementation: 'Minify CSS by removing comments and unnecessary whitespace'
+        implementation: 'Minify CSS by removing comments and unnecessary whitespace',
       });
     }
-    
+
     // Remove unused CSS rules
     const unusedRules = this.findUnusedCSSRules(content);
     if (unusedRules.length > 0) {
@@ -474,10 +470,10 @@ export class HeadlessBrowserService extends EventEmitter {
         description: `Remove ${unusedRules.length} unused CSS rules`,
         spaceSaved: unusedRules.reduce((sum, rule) => sum + rule.length, 0),
         impact: 'medium',
-        implementation: 'Remove unused CSS rules using tools like PurgeCSS'
+        implementation: 'Remove unused CSS rules using tools like PurgeCSS',
       });
     }
-    
+
     return optimizations;
   }
 
@@ -486,7 +482,7 @@ export class HeadlessBrowserService extends EventEmitter {
    */
   private analyzeJS(content: string): Optimization[] {
     const optimizations: Optimization[] = [];
-    
+
     // Remove unnecessary whitespace and comments
     const originalLength = content.length;
     const minified = content
@@ -495,7 +491,7 @@ export class HeadlessBrowserService extends EventEmitter {
       .replace(/\s+/g, ' ') // Collapse whitespace
       .replace(/\s*([{}();,])\s*/g, '$1') // Remove spaces around operators
       .trim();
-    
+
     const spaceSaved = originalLength - minified.length;
     if (spaceSaved > 0) {
       optimizations.push({
@@ -503,10 +499,10 @@ export class HeadlessBrowserService extends EventEmitter {
         description: 'Minify JavaScript',
         spaceSaved,
         impact: spaceSaved > 5000 ? 'high' : 'medium',
-        implementation: 'Minify JavaScript using tools like Terser'
+        implementation: 'Minify JavaScript using tools like Terser',
       });
     }
-    
+
     // Remove unused code
     const unusedCode = this.findUnusedJSCode(content);
     if (unusedCode.length > 0) {
@@ -515,10 +511,10 @@ export class HeadlessBrowserService extends EventEmitter {
         description: `Remove ${unusedCode.length} unused functions/variables`,
         spaceSaved: unusedCode.reduce((sum, code) => sum + code.length, 0),
         impact: 'medium',
-        implementation: 'Remove unused code using tree-shaking'
+        implementation: 'Remove unused code using tree-shaking',
       });
     }
-    
+
     return optimizations;
   }
 
@@ -527,14 +523,14 @@ export class HeadlessBrowserService extends EventEmitter {
    */
   private optimizeHTMLAttributes(content: string): Optimization[] {
     const optimizations: Optimization[] = [];
-    
+
     // Remove unnecessary attributes
     const unnecessaryAttributes = [
       /type="text\/javascript"/g,
       /type="text\/css"/g,
-      /language="javascript"/g
+      /language="javascript"/g,
     ];
-    
+
     let totalSpaceSaved = 0;
     unnecessaryAttributes.forEach(regex => {
       const matches = content.match(regex);
@@ -542,17 +538,17 @@ export class HeadlessBrowserService extends EventEmitter {
         totalSpaceSaved += matches.reduce((sum, match) => sum + match.length, 0);
       }
     });
-    
+
     if (totalSpaceSaved > 0) {
       optimizations.push({
         type: 'html',
         description: 'Remove unnecessary attributes',
         spaceSaved: totalSpaceSaved,
         impact: 'low',
-        implementation: 'Remove unnecessary type and language attributes'
+        implementation: 'Remove unnecessary type and language attributes',
       });
     }
-    
+
     return optimizations;
   }
 
@@ -563,19 +559,21 @@ export class HeadlessBrowserService extends EventEmitter {
     // This is a simplified implementation
     // In a real scenario, you would need to analyze the HTML to see which selectors are actually used
     const unusedRules: string[] = [];
-    
+
     // Find CSS rules that are likely unused
     const cssRules = content.match(/[^{}]+{[^}]*}/g) || [];
-    
+
     cssRules.forEach(rule => {
       // Check for common unused patterns
-      if (rule.includes('display: none') || 
-          rule.includes('visibility: hidden') ||
-          rule.includes('opacity: 0')) {
+      if (
+        rule.includes('display: none') ||
+        rule.includes('visibility: hidden') ||
+        rule.includes('opacity: 0')
+      ) {
         unusedRules.push(rule);
       }
     });
-    
+
     return unusedRules;
   }
 
@@ -586,23 +584,24 @@ export class HeadlessBrowserService extends EventEmitter {
     // This is a simplified implementation
     // In a real scenario, you would need to analyze the code to find truly unused functions
     const unusedCode: string[] = [];
-    
+
     // Find function declarations
     const functions = content.match(/function\s+\w+\s*\([^)]*\)\s*{[^}]*}/g) || [];
-    
+
     functions.forEach(func => {
       const functionName = func.match(/function\s+(\w+)/)?.[1];
       if (functionName) {
         // Check if function is called elsewhere in the code
         const callRegex = new RegExp(`\\b${functionName}\\s*\\(`, 'g');
         const calls = content.match(callRegex) || [];
-        
-        if (calls.length <= 1) { // Only the declaration, no calls
+
+        if (calls.length <= 1) {
+          // Only the declaration, no calls
           unusedCode.push(func);
         }
       }
     });
-    
+
     return unusedCode;
   }
 
@@ -618,11 +617,11 @@ export class HeadlessBrowserService extends EventEmitter {
       this.emit('disconnected');
     });
 
-    this.browser.on('targetcreated', (target) => {
+    this.browser.on('targetcreated', target => {
       console.log('🎯 New target created:', target.url());
     });
 
-    this.browser.on('targetdestroyed', (target) => {
+    this.browser.on('targetdestroyed', target => {
       console.log('🗑️ Target destroyed:', target.url());
     });
   }
@@ -636,7 +635,7 @@ export class HeadlessBrowserService extends EventEmitter {
       this.emit('pageLoaded', { pageId });
     });
 
-    page.on('error', (error) => {
+    page.on('error', error => {
       console.error(`❌ Page error (${pageId}):`, error);
       this.emit('pageError', { pageId, error });
     });
@@ -661,7 +660,7 @@ export class HeadlessBrowserService extends EventEmitter {
       running: this.isRunning,
       pages: this.pages.size,
       maxPages: this.config.maxConcurrentPages,
-      config: this.config
+      config: this.config,
     };
   }
 

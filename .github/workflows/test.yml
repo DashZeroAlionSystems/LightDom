@@ -2,33 +2,33 @@ name: Test Suite
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   test-smart-contracts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'yarn'
-      
+
       - name: Install dependencies
         run: yarn install
-      
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: latest
-      
+
       - name: Compile contracts
         run: cd contracts && forge build
-      
+
       - name: Run contract tests
         run: cd contracts && forge test --gas-report
 
@@ -47,7 +47,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      
+
       anvil:
         image: ghcr.io/foundry-rs/foundry:latest
         env:
@@ -60,36 +60,36 @@ jobs:
         ports:
           - 8545:8545
         command: anvil --host 0.0.0.0 --port 8545
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'yarn'
-      
+
       - name: Install dependencies
         run: yarn install
-      
+
       - name: Wait for services
         run: |
           npx wait-on tcp:5432
           npx wait-on tcp:8545
-      
+
       - name: Setup database
         run: |
           PGPASSWORD=postgres psql -h localhost -U postgres -d dom_space_harvester -f postgresql-setup-script.sql
         env:
           PGPASSWORD: postgres
-      
+
       - name: Deploy contracts
         run: yarn devnet:setup
         env:
           RPC_URL: http://localhost:8545
           PRIVATE_KEY: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-      
+
       - name: Run API tests
         run: yarn test:api
         env:
@@ -105,16 +105,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'yarn'
-      
+
       - name: Install dependencies
         run: yarn install
-      
+
       - name: Run frontend tests
         run: yarn test:frontend
         env:
@@ -135,7 +135,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      
+
       anvil:
         image: ghcr.io/foundry-rs/foundry:latest
         env:
@@ -148,36 +148,36 @@ jobs:
         ports:
           - 8545:8545
         command: anvil --host 0.0.0.0 --port 8545
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'yarn'
-      
+
       - name: Install dependencies
         run: yarn install
-      
+
       - name: Wait for services
         run: |
           npx wait-on tcp:5432
           npx wait-on tcp:8545
-      
+
       - name: Setup database
         run: |
           PGPASSWORD=postgres psql -h localhost -U postgres -d dom_space_harvester -f postgresql-setup-script.sql
         env:
           PGPASSWORD: postgres
-      
+
       - name: Deploy contracts
         run: yarn devnet:setup
         env:
           RPC_URL: http://localhost:8545
           PRIVATE_KEY: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-      
+
       - name: Run integration tests
         run: yarn test:integration
         env:
@@ -194,16 +194,16 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'yarn'
-      
+
       - name: Install dependencies
         run: yarn install
-      
+
       - name: Run performance tests
         run: yarn test:performance
         env:
@@ -213,19 +213,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'yarn'
-      
+
       - name: Install dependencies
         run: yarn install
-      
+
       - name: Run tests with coverage
         run: yarn test:coverage
-      
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:

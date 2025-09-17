@@ -21,30 +21,75 @@ router.get('/harvester/:address', optimizationAPI.getHarvesterStats.bind(optimiz
 router.get('/harvester/list', optimizationAPI.getHarvesters.bind(optimizationAPI));
 router.get('/metaverse/stats', optimizationAPI.getMetaverseStats.bind(optimizationAPI));
 router.get('/metaverse/assets', optimizationAPI.getMetaverseAssets.bind(optimizationAPI));
-router.get('/analytics/optimization', optimizationAPI.getOptimizationAnalytics.bind(optimizationAPI));
+router.get(
+  '/analytics/optimization',
+  optimizationAPI.getOptimizationAnalytics.bind(optimizationAPI)
+);
 router.get('/feed/optimizations', optimizationAPI.getOptimizationFeed.bind(optimizationAPI));
 
 // Blockchain Model Storage API routes
-router.post('/blockchain-models/store', blockchainModelStorageAPI.storeModelData.bind(blockchainModelStorageAPI));
-router.get('/blockchain-models/:modelId', blockchainModelStorageAPI.getModelData.bind(blockchainModelStorageAPI));
-router.put('/blockchain-models/:modelId', blockchainModelStorageAPI.updateModelData.bind(blockchainModelStorageAPI));
-router.delete('/blockchain-models/:modelId', blockchainModelStorageAPI.deleteModelData.bind(blockchainModelStorageAPI));
-router.get('/blockchain-models/ids', blockchainModelStorageAPI.getAllModelIds.bind(blockchainModelStorageAPI));
-router.get('/blockchain-models/count', blockchainModelStorageAPI.getModelCount.bind(blockchainModelStorageAPI));
-router.post('/blockchain-models/search', blockchainModelStorageAPI.searchModels.bind(blockchainModelStorageAPI));
-router.get('/blockchain-models/statistics', blockchainModelStorageAPI.getModelStatistics.bind(blockchainModelStorageAPI));
-router.post('/blockchain-models/admin/add', blockchainModelStorageAPI.addAdmin.bind(blockchainModelStorageAPI));
-router.delete('/blockchain-models/admin/remove', blockchainModelStorageAPI.removeAdmin.bind(blockchainModelStorageAPI));
-router.get('/blockchain-models/admin/list', blockchainModelStorageAPI.getAdminAccess.bind(blockchainModelStorageAPI));
-router.get('/blockchain-models/all', blockchainModelStorageAPI.getAllModels.bind(blockchainModelStorageAPI));
-router.get('/blockchain-models/admin/verify', blockchainModelStorageAPI.verifyAdminAccess.bind(blockchainModelStorageAPI));
+router.post(
+  '/blockchain-models/store',
+  blockchainModelStorageAPI.storeModelData.bind(blockchainModelStorageAPI)
+);
+router.get(
+  '/blockchain-models/:modelId',
+  blockchainModelStorageAPI.getModelData.bind(blockchainModelStorageAPI)
+);
+router.put(
+  '/blockchain-models/:modelId',
+  blockchainModelStorageAPI.updateModelData.bind(blockchainModelStorageAPI)
+);
+router.delete(
+  '/blockchain-models/:modelId',
+  blockchainModelStorageAPI.deleteModelData.bind(blockchainModelStorageAPI)
+);
+router.get(
+  '/blockchain-models/ids',
+  blockchainModelStorageAPI.getAllModelIds.bind(blockchainModelStorageAPI)
+);
+router.get(
+  '/blockchain-models/count',
+  blockchainModelStorageAPI.getModelCount.bind(blockchainModelStorageAPI)
+);
+router.post(
+  '/blockchain-models/search',
+  blockchainModelStorageAPI.searchModels.bind(blockchainModelStorageAPI)
+);
+router.get(
+  '/blockchain-models/statistics',
+  blockchainModelStorageAPI.getModelStatistics.bind(blockchainModelStorageAPI)
+);
+router.post(
+  '/blockchain-models/admin/add',
+  blockchainModelStorageAPI.addAdmin.bind(blockchainModelStorageAPI)
+);
+router.delete(
+  '/blockchain-models/admin/remove',
+  blockchainModelStorageAPI.removeAdmin.bind(blockchainModelStorageAPI)
+);
+router.get(
+  '/blockchain-models/admin/list',
+  blockchainModelStorageAPI.getAdminAccess.bind(blockchainModelStorageAPI)
+);
+router.get(
+  '/blockchain-models/all',
+  blockchainModelStorageAPI.getAllModels.bind(blockchainModelStorageAPI)
+);
+router.get(
+  '/blockchain-models/admin/verify',
+  blockchainModelStorageAPI.verifyAdminAccess.bind(blockchainModelStorageAPI)
+);
 
 // Light DOM Storage API routes
 router.get('/storage/settings', lightDomStorageAPI.getStorageSettings.bind(lightDomStorageAPI));
 router.put('/storage/settings', lightDomStorageAPI.updateStorageSettings.bind(lightDomStorageAPI));
 router.post('/storage/upload', lightDomStorageAPI.uploadFile.bind(lightDomStorageAPI));
 router.get('/storage/files', lightDomStorageAPI.getUploadedFiles.bind(lightDomStorageAPI));
-router.delete('/storage/files/:fileId', lightDomStorageAPI.deleteUploadedFile.bind(lightDomStorageAPI));
+router.delete(
+  '/storage/files/:fileId',
+  lightDomStorageAPI.deleteUploadedFile.bind(lightDomStorageAPI)
+);
 router.get('/storage/stats', lightDomStorageAPI.getStorageStats.bind(lightDomStorageAPI));
 router.get('/storage/limits', lightDomStorageAPI.getFileUploadLimits.bind(lightDomStorageAPI));
 
@@ -54,12 +99,12 @@ router.get('/startup/status', (req, res) => {
     const status = startupScript.getStartupStatus();
     res.json({
       success: true,
-      data: status
+      data: status,
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -69,12 +114,12 @@ router.post('/startup/restart', async (req, res) => {
     const result = await startupScript.forceRestart();
     res.json({
       success: result.success,
-      data: result
+      data: result,
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -84,12 +129,12 @@ router.post('/refresh/save', async (req, res) => {
     const result = await browserRefreshHandler.forceSave();
     res.json({
       success: result.success,
-      data: result
+      data: result,
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -99,12 +144,12 @@ router.get('/refresh/status', (req, res) => {
     const status = browserRefreshHandler.getSaveStatus();
     res.json({
       success: true,
-      data: status
+      data: status,
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -114,12 +159,12 @@ router.post('/refresh/restore', async (req, res) => {
     const restored = await browserRefreshHandler.restoreFromBackup();
     res.json({
       success: restored,
-      message: restored ? 'Data restored from backup' : 'No backup data found'
+      message: restored ? 'Data restored from backup' : 'No backup data found',
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -130,12 +175,12 @@ router.get('/persistent/data', async (req, res) => {
     const data = await persistentBlockchainStorage.loadAllData();
     res.json({
       success: true,
-      data
+      data,
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -145,12 +190,12 @@ router.get('/persistent/stats', async (req, res) => {
     const stats = await persistentBlockchainStorage.getStorageStats();
     res.json({
       success: true,
-      data: stats
+      data: stats,
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -160,12 +205,12 @@ router.post('/persistent/sync', async (req, res) => {
     await persistentBlockchainStorage.syncWithBlockchain();
     res.json({
       success: true,
-      message: 'Data synced with blockchain successfully'
+      message: 'Data synced with blockchain successfully',
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -175,12 +220,12 @@ router.post('/persistent/clear', async (req, res) => {
     await persistentBlockchainStorage.clearAllData();
     res.json({
       success: true,
-      message: 'All persistent data cleared'
+      message: 'All persistent data cleared',
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -190,12 +235,12 @@ router.post('/persistent/export', async (req, res) => {
     const data = await persistentBlockchainStorage.exportData();
     res.json({
       success: true,
-      data
+      data,
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -206,7 +251,7 @@ router.post('/persistent/import', async (req, res) => {
     if (!data) {
       res.status(400).json({
         error: 'Invalid request',
-        message: 'Data is required for import'
+        message: 'Data is required for import',
       });
       return;
     }
@@ -214,12 +259,12 @@ router.post('/persistent/import', async (req, res) => {
     await persistentBlockchainStorage.importData(data);
     res.json({
       success: true,
-      message: 'Data imported successfully'
+      message: 'Data imported successfully',
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -230,12 +275,12 @@ router.get('/settings', (req, res) => {
     const settings = persistentBlockchainStorage.getUserSettings();
     res.json({
       success: true,
-      data: settings
+      data: settings,
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -246,7 +291,7 @@ router.put('/settings', (req, res) => {
     if (!updates) {
       res.status(400).json({
         error: 'Invalid request',
-        message: 'Updates are required'
+        message: 'Updates are required',
       });
       return;
     }
@@ -254,12 +299,12 @@ router.put('/settings', (req, res) => {
     persistentBlockchainStorage.updateUserSettings(updates);
     res.json({
       success: true,
-      message: 'Settings updated successfully'
+      message: 'Settings updated successfully',
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -269,20 +314,20 @@ router.get('/health', (req, res) => {
   try {
     const startupStatus = startupScript.getStartupStatus();
     const refreshStatus = browserRefreshHandler.getSaveStatus();
-    
+
     res.json({
       success: true,
       data: {
         status: 'healthy',
         startup: startupStatus,
         refresh: refreshStatus,
-        timestamp: Date.now()
-      }
+        timestamp: Date.now(),
+      },
     });
   } catch (error) {
     res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });

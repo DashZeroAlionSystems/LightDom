@@ -5,12 +5,14 @@ A revolutionary blockchain system that mines "Light DOM" - converting web optimi
 ## 🌟 Features
 
 ### 🔗 **Headless Chrome Blockchain Runner**
+
 - Runs the LightDom blockchain in headless Chrome for mining and monitoring
 - Real-time DOM optimization and space harvesting
 - Advanced metrics collection and monitoring
 - User-specific mining sessions
 
 ### 🔌 **Chrome Extension**
+
 - **Manifest V3** compliant extension
 - Real-time DOM monitoring and optimization
 - User-specific notifications for LightDom users only
@@ -18,12 +20,14 @@ A revolutionary blockchain system that mines "Light DOM" - converting web optimi
 - Popup interface for mining control
 
 ### 📊 **Advanced Monitoring**
+
 - **Blockchain Metrics**: Network health, mining stats, optimization data
 - **Performance Metrics**: Memory, CPU, response times, error rates
 - **Economic Metrics**: DSH token minting, transaction volume, gas usage
 - **User Metrics**: Active users, retention, session data
 
 ### 🎯 **User-Specific Notifications**
+
 - Only LightDom blockchain users receive notifications
 - Real-time optimization alerts
 - Block mining notifications
@@ -33,23 +37,27 @@ A revolutionary blockchain system that mines "Light DOM" - converting web optimi
 ## 🚀 Quick Start
 
 ### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 2. Setup Database
+
 ```bash
 # Run PostgreSQL setup script
 psql -U postgres -f postgresql-setup-script.sql
 ```
 
 ### 3. Install Chrome Extension
+
 1. Open Chrome and go to `chrome://extensions/`
 2. Enable "Developer mode"
 3. Click "Load unpacked" and select the `extension/` folder
 4. The LightDom extension will be installed and ready
 
 ### 4. Start the System
+
 ```bash
 # Start API server with blockchain runner
 npm run dev
@@ -62,6 +70,7 @@ npm run blockchain
 ## 🏗️ Architecture
 
 ### **Headless Chrome Integration**
+
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Chrome        │    │   LightDom       │    │   PostgreSQL    │
@@ -74,6 +83,7 @@ npm run blockchain
 ```
 
 ### **Blockchain Flow**
+
 1. **Extension** monitors DOM on visited websites
 2. **Headless Chrome** runs blockchain mining process
 3. **API Server** coordinates mining sessions and metrics
@@ -83,6 +93,7 @@ npm run blockchain
 ## 📱 Chrome Extension
 
 ### **Features**
+
 - **Real-time DOM Mining**: Automatically optimizes websites you visit
 - **User Authentication**: Secure user address management
 - **Mining Control**: Start/stop mining with one click
@@ -90,12 +101,14 @@ npm run blockchain
 - **Notifications**: Get notified of optimizations and blocks mined
 
 ### **Installation**
+
 1. Download the extension from `extension/` folder
 2. Open Chrome → Extensions → Developer mode
 3. Load unpacked extension
 4. Click the LightDom icon to start mining
 
 ### **Usage**
+
 1. **Start Mining**: Click "Start Mining" in the popup
 2. **Browse Websites**: Visit any website to start mining
 3. **View Stats**: Check your mining statistics
@@ -104,6 +117,7 @@ npm run blockchain
 ## 🔧 API Endpoints
 
 ### **Blockchain Endpoints**
+
 ```bash
 # Start mining session
 POST /api/blockchain/start-mining
@@ -135,6 +149,7 @@ GET /api/blockchain/status
 ```
 
 ### **Monitoring Endpoints**
+
 ```bash
 # Prometheus metrics
 GET /metrics
@@ -149,6 +164,7 @@ GET /api/health/detailed
 ## 📊 Monitoring & Metrics
 
 ### **Blockchain Metrics**
+
 - **Network**: Total nodes, active nodes, latency, hash rate
 - **Mining**: Blocks mined, block time, difficulty, hash rate
 - **Optimization**: Total optimizations, space saved, success rate
@@ -157,6 +173,7 @@ GET /api/health/detailed
 - **Economic**: DSH minted, transaction volume, gas usage
 
 ### **Real-time Monitoring**
+
 - WebSocket events for live updates
 - Prometheus metrics for external monitoring
 - Grafana dashboards (optional)
@@ -165,12 +182,14 @@ GET /api/health/detailed
 ## 🔐 Security Features
 
 ### **User Authentication**
+
 - Blockchain address verification
 - Extension ID validation
 - Session management
 - Rate limiting
 
 ### **Data Protection**
+
 - Encrypted storage
 - Secure API endpoints
 - Input validation
@@ -179,12 +198,14 @@ GET /api/health/detailed
 ## 🌐 Custom Routing
 
 ### **Blockchain URLs**
+
 - Each bridge chat has a unique URL: `/bridge/{bridgeId}`
 - Direct access to specific mining sessions
 - Shareable links for collaboration
 - Browser history support
 
 ### **Extension Integration**
+
 - Seamless navigation between extension and web interface
 - Real-time synchronization
 - Cross-tab communication
@@ -193,18 +214,21 @@ GET /api/health/detailed
 ## 🚀 Advanced Features
 
 ### **Headless Chrome Mining**
+
 - Runs blockchain in background
 - Advanced DOM analysis
 - Real-time optimization detection
 - Performance monitoring
 
 ### **User-Specific Notifications**
+
 - Only LightDom users receive notifications
 - Real-time WebSocket updates
 - Custom notification types
 - Priority-based delivery
 
 ### **Metrics Collection**
+
 - Comprehensive performance monitoring
 - Historical data storage
 - Trend analysis
@@ -213,6 +237,7 @@ GET /api/health/detailed
 ## 🔧 Configuration
 
 ### **Environment Variables**
+
 ```bash
 # Blockchain
 BLOCKCHAIN_URL=http://localhost:3001/blockchain
@@ -228,6 +253,7 @@ NODE_ENV=development
 ```
 
 ### **Extension Configuration**
+
 - User address management
 - Mining preferences
 - Notification settings
@@ -236,12 +262,14 @@ NODE_ENV=development
 ## 📈 Performance
 
 ### **Optimization**
+
 - Efficient DOM analysis algorithms
 - Minimal memory footprint
 - Fast response times
 - Scalable architecture
 
 ### **Monitoring**
+
 - Real-time performance metrics
 - Resource usage tracking
 - Error rate monitoring
@@ -250,6 +278,7 @@ NODE_ENV=development
 ## 🛠️ Development
 
 ### **Running Tests**
+
 ```bash
 # Run all tests
 npm run test:all
@@ -261,6 +290,7 @@ npm run test:api
 ```
 
 ### **Building**
+
 ```bash
 # Build extension
 npm run build:extension

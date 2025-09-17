@@ -20,13 +20,13 @@ export const setupPostgreSQLSyncEndpoint = (app: any) => {
         success: true,
         lastSync: Date.now(),
         status: 'success',
-        message: 'Sync status retrieved successfully'
+        message: 'Sync status retrieved successfully',
       });
     } catch (error) {
       res.status(500).json({
         success: false,
         error: 'Failed to get sync status',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -38,13 +38,13 @@ export const setupPostgreSQLSyncEndpoint = (app: any) => {
       res.json({
         success: true,
         message: 'Force sync initiated',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     } catch (error) {
       res.status(500).json({
         success: false,
         error: 'Failed to initiate force sync',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });

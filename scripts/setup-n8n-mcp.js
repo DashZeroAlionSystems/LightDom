@@ -2,7 +2,7 @@
 
 /**
  * Setup script for n8n MCP integration
- * 
+ *
  * This script helps set up the n8n MCP server integration
  * for the LightDom project.
  */
@@ -16,24 +16,18 @@ console.log('🚀 Setting up n8n MCP integration for LightDom...\n');
 // Check if required dependencies are installed
 function checkDependencies() {
   console.log('📦 Checking dependencies...');
-  
+
   const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  const requiredDeps = [
-    '@modelcontextprotocol/sdk',
-    'axios',
-    'commander',
-    'chalk',
-    'ora'
-  ];
-  
-  const missingDeps = requiredDeps.filter(dep => 
-    !packageJson.dependencies[dep] && !packageJson.devDependencies[dep]
+  const requiredDeps = ['@modelcontextprotocol/sdk', 'axios', 'commander', 'chalk', 'ora'];
+
+  const missingDeps = requiredDeps.filter(
+    dep => !packageJson.dependencies[dep] && !packageJson.devDependencies[dep]
   );
-  
+
   if (missingDeps.length > 0) {
     console.log(`❌ Missing dependencies: ${missingDeps.join(', ')}`);
     console.log('Installing missing dependencies...');
-    
+
     try {
       execSync(`npm install ${missingDeps.join(' ')}`, { stdio: 'inherit' });
       console.log('✅ Dependencies installed successfully');
@@ -49,7 +43,7 @@ function checkDependencies() {
 // Create environment configuration
 function createEnvConfig() {
   console.log('\n🔧 Creating environment configuration...');
-  
+
   const envExample = `# n8n MCP Configuration
 N8N_BASE_URL=http://localhost:5678
 N8N_API_KEY=your_api_key_here
@@ -66,7 +60,7 @@ N8N_DEBUG=false
   } else {
     console.log('ℹ️  .env.example already exists');
   }
-  
+
   if (!fs.existsSync('.env')) {
     fs.writeFileSync('.env', envExample);
     console.log('✅ Created .env file');
@@ -79,20 +73,20 @@ N8N_DEBUG=false
 // Create MCP configuration
 function createMCPConfig() {
   console.log('\n⚙️  Creating MCP configuration...');
-  
+
   const mcpConfig = {
     mcpServers: {
       n8n: {
-        command: "node",
-        args: ["dist/src/mcp/n8n-mcp-server.js"],
+        command: 'node',
+        args: ['dist/src/mcp/n8n-mcp-server.js'],
         env: {
-          N8N_BASE_URL: "http://localhost:5678",
-          N8N_API_KEY: "",
-          N8N_WEBHOOK_URL: "",
-          N8N_TIMEOUT: "30000"
-        }
-      }
-    }
+          N8N_BASE_URL: 'http://localhost:5678',
+          N8N_API_KEY: '',
+          N8N_WEBHOOK_URL: '',
+          N8N_TIMEOUT: '30000',
+        },
+      },
+    },
   };
 
   fs.writeFileSync('mcp-config.json', JSON.stringify(mcpConfig, null, 2));
@@ -103,7 +97,7 @@ function createMCPConfig() {
 // Create build script
 function createBuildScript() {
   console.log('\n🔨 Creating build script...');
-  
+
   const buildScript = `#!/bin/bash
 
 # Build n8n MCP server
@@ -116,32 +110,33 @@ echo "You can now use the MCP server with Cursor"
 `;
 
   fs.writeFileSync('scripts/build-n8n-mcp.sh', buildScript);
-  
+
   // Make it executable on Unix systems
   try {
     execSync('chmod +x scripts/build-n8n-mcp.sh', { stdio: 'inherit' });
   } catch (error) {
     console.log('⚠️  Could not make build script executable (this is normal on Windows)');
   }
-  
+
   console.log('✅ Created build script at scripts/build-n8n-mcp.sh');
 }
 
 // Update package.json scripts
 function updatePackageScripts() {
   console.log('\n📝 Updating package.json scripts...');
-  
+
   const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  
+
   if (!packageJson.scripts) {
     packageJson.scripts = {};
   }
-  
-  packageJson.scripts['build:n8n-mcp'] = 'npx tsc src/mcp/*.ts --outDir dist --target es2020 --module commonjs --esModuleInterop --skipLibCheck';
+
+  packageJson.scripts['build:n8n-mcp'] =
+    'npx tsc src/mcp/*.ts --outDir dist --target es2020 --module commonjs --esModuleInterop --skipLibCheck';
   packageJson.scripts['start:n8n-mcp'] = 'node dist/src/mcp/n8n-mcp-server.js';
   packageJson.scripts['cli:n8n-mcp'] = 'node dist/src/mcp/n8n-mcp-cli.js';
   packageJson.scripts['test:n8n-mcp'] = 'node dist/src/mcp/n8n-mcp-cli.js test';
-  
+
   fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
   console.log('✅ Updated package.json with n8n MCP scripts');
 }
@@ -149,7 +144,7 @@ function updatePackageScripts() {
 // Create documentation
 function createDocumentation() {
   console.log('\n📚 Creating documentation...');
-  
+
   const docs = `# n8n MCP Integration
 
 This directory contains the n8n MCP (Model Context Protocol) integration for the LightDom project.
@@ -339,7 +334,7 @@ async function main() {
     createBuildScript();
     updatePackageScripts();
     createDocumentation();
-    
+
     console.log('\n🎉 n8n MCP integration setup completed!');
     console.log('\nNext steps:');
     console.log('1. Update .env with your n8n configuration');
@@ -348,7 +343,6 @@ async function main() {
     console.log('4. Add mcp-config.json to your Cursor MCP settings');
     console.log('5. Restart Cursor');
     console.log('\nFor more information, see src/mcp/README.md');
-    
   } catch (error) {
     console.error('❌ Setup failed:', error.message);
     process.exit(1);

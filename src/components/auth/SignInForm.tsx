@@ -26,23 +26,23 @@ export const SignInForm: React.FC<SignInFormProps> = ({
   onSignIn,
   onSignUp,
   onForgotPassword,
-  className = ''
+  className = '',
 }) => {
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
-    rememberMe: false
+    rememberMe: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPasskeyOption, setShowPasskeyOption] = useState(false);
   const [showOTPOption, setShowOTPOption] = useState(false);
-  
+
   const logger = new Logger('SignInForm');
   const webAuthnService = new WebAuthnService({
     rpId: window.location.hostname,
     rpName: 'LightDom',
-    origin: window.location.origin
+    origin: window.location.origin,
   });
   const webOTPService = new WebOTPService();
 
@@ -99,21 +99,21 @@ export const SignInForm: React.FC<SignInFormProps> = ({
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
 
     // Clear error when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({
         ...prev,
-        [name]: undefined
+        [name]: undefined,
       }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -123,20 +123,19 @@ export const SignInForm: React.FC<SignInFormProps> = ({
 
     try {
       logger.info('Attempting sign in');
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // In real implementation, call your authentication API
       const credentials = {
         email: formData.email,
         password: formData.password,
-        rememberMe: formData.rememberMe
+        rememberMe: formData.rememberMe,
       };
 
       onSignIn(credentials);
       logger.info('Sign in successful');
-      
     } catch (error) {
       logger.error('Sign in failed:', error);
       setErrors({ general: 'Invalid email or password' });
@@ -149,15 +148,14 @@ export const SignInForm: React.FC<SignInFormProps> = ({
     try {
       setIsLoading(true);
       logger.info('Attempting passkey sign in');
-      
+
       const credential = await webAuthnService.authenticateWithPasskey();
-      
+
       if (credential) {
         // In real implementation, send credential to server for verification
         onSignIn({ type: 'passkey', credential });
         logger.info('Passkey sign in successful');
       }
-      
     } catch (error) {
       logger.error('Passkey sign in failed:', error);
       setErrors({ general: 'Passkey authentication failed' });
@@ -174,93 +172,77 @@ export const SignInForm: React.FC<SignInFormProps> = ({
 
   return (
     <div className={`sign-in-form ${className}`}>
-      <div className="form-header">
+      <div className='form-header'>
         <h2>Sign In</h2>
         <p>Welcome back! Please sign in to your account.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="auth-form" noValidate>
-        {errors.general && (
-          <div className="error-message general-error">
-            {errors.general}
-          </div>
-        )}
+      <form onSubmit={handleSubmit} className='auth-form' noValidate>
+        {errors.general && <div className='error-message general-error'>{errors.general}</div>}
 
-        <div className="form-group">
-          <label htmlFor="email">Email Address</label>
+        <div className='form-group'>
+          <label htmlFor='email'>Email Address</label>
           <input
-            type="email"
-            id="email"
-            name="email"
+            type='email'
+            id='email'
+            name='email'
             value={formData.email}
             onChange={handleInputChange}
             className={errors.email ? 'error' : ''}
-            placeholder="Enter your email"
-            autoComplete="email"
+            placeholder='Enter your email'
+            autoComplete='email'
             required
           />
-          {errors.email && (
-            <span className="error-text">{errors.email}</span>
-          )}
+          {errors.email && <span className='error-text'>{errors.email}</span>}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
+        <div className='form-group'>
+          <label htmlFor='password'>Password</label>
           <input
-            type="password"
-            id="password"
-            name="password"
+            type='password'
+            id='password'
+            name='password'
             value={formData.password}
             onChange={handleInputChange}
             className={errors.password ? 'error' : ''}
-            placeholder="Enter your password"
-            autoComplete="current-password"
+            placeholder='Enter your password'
+            autoComplete='current-password'
             required
           />
-          {errors.password && (
-            <span className="error-text">{errors.password}</span>
-          )}
+          {errors.password && <span className='error-text'>{errors.password}</span>}
         </div>
 
-        <div className="form-options">
-          <label className="checkbox-label">
+        <div className='form-options'>
+          <label className='checkbox-label'>
             <input
-              type="checkbox"
-              name="rememberMe"
+              type='checkbox'
+              name='rememberMe'
               checked={formData.rememberMe}
               onChange={handleInputChange}
             />
-            <span className="checkmark"></span>
+            <span className='checkmark'></span>
             Remember me
           </label>
-          
-          <button
-            type="button"
-            className="forgot-password-link"
-            onClick={onForgotPassword}
-          >
+
+          <button type='button' className='forgot-password-link' onClick={onForgotPassword}>
             Forgot password?
           </button>
         </div>
 
-        <button
-          type="submit"
-          className="btn btn-primary btn-full"
-          disabled={isLoading}
-        >
+        <button type='submit' className='btn btn-primary btn-full' disabled={isLoading}>
           {isLoading ? 'Signing In...' : 'Sign In'}
         </button>
 
         {/* Alternative sign-in methods */}
-        <div className="alternative-signin">
-          <div className="divider">
+        <div className='alternative-signin'>
+          <div className='divider'>
             <span>or</span>
           </div>
 
           {showPasskeyOption && (
             <button
-              type="button"
-              className="btn btn-outline btn-full"
+              type='button'
+              className='btn btn-outline btn-full'
               onClick={handlePasskeySignIn}
               disabled={isLoading}
             >
@@ -270,8 +252,8 @@ export const SignInForm: React.FC<SignInFormProps> = ({
 
           {showOTPOption && (
             <button
-              type="button"
-              className="btn btn-outline btn-full"
+              type='button'
+              className='btn btn-outline btn-full'
               onClick={handleOTPSignIn}
               disabled={isLoading}
             >
@@ -281,19 +263,15 @@ export const SignInForm: React.FC<SignInFormProps> = ({
         </div>
 
         {/* OTP Container */}
-        <div id="otp-container" className="otp-container" style={{ display: 'none' }}>
+        <div id='otp-container' className='otp-container' style={{ display: 'none' }}>
           {/* OTP form will be inserted here */}
         </div>
       </form>
 
-      <div className="form-footer">
+      <div className='form-footer'>
         <p>
           Don't have an account?{' '}
-          <button
-            type="button"
-            className="link-button"
-            onClick={onSignUp}
-          >
+          <button type='button' className='link-button' onClick={onSignUp}>
             Sign up
           </button>
         </p>

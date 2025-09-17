@@ -23,7 +23,7 @@ import {
   Spin,
   Empty,
   Statistic,
-  Timeline
+  Timeline,
 } from 'antd';
 import {
   PlusOutlined,
@@ -43,7 +43,7 @@ import {
   ExclamationCircleOutlined,
   InfoCircleOutlined,
   GlobalOutlined,
-  OptimizationOutlined
+  OptimizationOutlined,
 } from '@ant-design/icons';
 import { useOptimization } from '../../hooks/useOptimization';
 import { useWebsites } from '../../hooks/useWebsites';
@@ -61,16 +61,16 @@ interface OptimizationDashboardProps {
 
 const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className }) => {
   const { user } = useAuth();
-  const { 
-    optimizations, 
-    createOptimization, 
-    updateOptimization, 
+  const {
+    optimizations,
+    createOptimization,
+    updateOptimization,
     deleteOptimization,
     runOptimization,
-    loading: optimizationLoading 
+    loading: optimizationLoading,
   } = useOptimization();
   const { websites, loading: websitesLoading } = useWebsites();
-  
+
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -85,12 +85,14 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
       dataIndex: 'website',
       key: 'website',
       render: (website: string, record: any) => (
-        <div className="website-cell">
-          <Avatar icon={<GlobalOutlined />} size="small" />
-          <div className="website-info">
+        <div className='website-cell'>
+          <Avatar icon={<GlobalOutlined />} size='small' />
+          <div className='website-info'>
             <Text strong>{website}</Text>
             <br />
-            <Text type="secondary" className="website-url">{record.url}</Text>
+            <Text type='secondary' className='website-url'>
+              {record.url}
+            </Text>
           </div>
         </div>
       ),
@@ -99,9 +101,7 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
-      render: (type: string) => (
-        <Tag color={getTypeColor(type)}>{type}</Tag>
-      ),
+      render: (type: string) => <Tag color={getTypeColor(type)}>{type}</Tag>,
     },
     {
       title: 'Status',
@@ -118,14 +118,14 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
       dataIndex: 'progress',
       key: 'progress',
       render: (progress: number, record: any) => (
-        <div className="progress-cell">
+        <div className='progress-cell'>
           <Progress
             percent={progress}
-            size="small"
+            size='small'
             strokeColor={getProgressColor(progress)}
             status={record.status === 'failed' ? 'exception' : 'normal'}
           />
-          <Text type="secondary" className="progress-text">
+          <Text type='secondary' className='progress-text'>
             {progress}%
           </Text>
         </div>
@@ -136,12 +136,10 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
       dataIndex: 'scoreImprovement',
       key: 'scoreImprovement',
       render: (improvement: number) => (
-        <div className="score-improvement">
-          <Text 
-            strong 
-            style={{ color: improvement > 0 ? '#52c41a' : '#f5222d' }}
-          >
-            {improvement > 0 ? '+' : ''}{improvement}%
+        <div className='score-improvement'>
+          <Text strong style={{ color: improvement > 0 ? '#52c41a' : '#f5222d' }}>
+            {improvement > 0 ? '+' : ''}
+            {improvement}%
           </Text>
         </div>
       ),
@@ -150,40 +148,34 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
       title: 'Created',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (date: string) => (
-        <Text type="secondary">{formatDate(date)}</Text>
-      ),
+      render: (date: string) => <Text type='secondary'>{formatDate(date)}</Text>,
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record: any) => (
         <Space>
-          <Tooltip title="View Details">
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetails(record)}
-            />
+          <Tooltip title='View Details'>
+            <Button type='text' icon={<EyeOutlined />} onClick={() => handleViewDetails(record)} />
           </Tooltip>
-          <Tooltip title="Run Optimization">
+          <Tooltip title='Run Optimization'>
             <Button
-              type="text"
+              type='text'
               icon={<PlayCircleOutlined />}
               onClick={() => handleRunOptimization(record)}
               disabled={record.status === 'running'}
             />
           </Tooltip>
-          <Tooltip title="Download Report">
+          <Tooltip title='Download Report'>
             <Button
-              type="text"
+              type='text'
               icon={<DownloadOutlined />}
               onClick={() => handleDownloadReport(record)}
             />
           </Tooltip>
-          <Tooltip title="Delete">
+          <Tooltip title='Delete'>
             <Button
-              type="text"
+              type='text'
               danger
               icon={<DeleteOutlined />}
               onClick={() => handleDeleteOptimization(record)}
@@ -200,29 +192,29 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
       'CSS Optimization': 'green',
       'JavaScript Optimization': 'orange',
       'HTML Optimization': 'red',
-      'Performance': 'purple',
+      Performance: 'purple',
     };
     return colors[type] || 'default';
   };
 
   const getStatusColor = (status: string) => {
     const colors = {
-      'pending': 'default',
-      'running': 'processing',
-      'completed': 'success',
-      'failed': 'error',
-      'paused': 'warning',
+      pending: 'default',
+      running: 'processing',
+      completed: 'success',
+      failed: 'error',
+      paused: 'warning',
     };
     return colors[status] || 'default';
   };
 
   const getStatusIcon = (status: string) => {
     const icons = {
-      'pending': <ClockCircleOutlined />,
-      'running': <PlayCircleOutlined />,
-      'completed': <CheckCircleOutlined />,
-      'failed': <ExclamationCircleOutlined />,
-      'paused': <PauseCircleOutlined />,
+      pending: <ClockCircleOutlined />,
+      running: <PlayCircleOutlined />,
+      completed: <CheckCircleOutlined />,
+      failed: <ExclamationCircleOutlined />,
+      paused: <PauseCircleOutlined />,
     };
     return icons[status];
   };
@@ -293,14 +285,16 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
     }
   };
 
-  const filteredOptimizations = optimizations?.filter(opt => {
-    const matchesSearch = opt.website.toLowerCase().includes(searchText.toLowerCase()) ||
-                         opt.type.toLowerCase().includes(searchText.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || opt.status === statusFilter;
-    const matchesType = typeFilter === 'all' || opt.type === typeFilter;
-    
-    return matchesSearch && matchesStatus && matchesType;
-  }) || [];
+  const filteredOptimizations =
+    optimizations?.filter(opt => {
+      const matchesSearch =
+        opt.website.toLowerCase().includes(searchText.toLowerCase()) ||
+        opt.type.toLowerCase().includes(searchText.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || opt.status === statusFilter;
+      const matchesType = typeFilter === 'all' || opt.type === typeFilter;
+
+      return matchesSearch && matchesStatus && matchesType;
+    }) || [];
 
   const stats = {
     total: optimizations?.length || 0,
@@ -311,8 +305,8 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
 
   if (optimizationLoading || websitesLoading) {
     return (
-      <div className="optimization-dashboard-loading">
-        <Spin size="large" />
+      <div className='optimization-dashboard-loading'>
+        <Spin size='large' />
         <Text>Loading optimization data...</Text>
       </div>
     );
@@ -321,20 +315,18 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
   return (
     <div className={`optimization-dashboard ${className || ''}`}>
       {/* Header */}
-      <Card className="dashboard-header" bordered={false}>
-        <Row align="middle" justify="space-between">
+      <Card className='dashboard-header' bordered={false}>
+        <Row align='middle' justify='space-between'>
           <Col>
             <Title level={2}>DOM Optimization</Title>
-            <Paragraph type="secondary">
-              Manage and monitor your website optimizations
-            </Paragraph>
+            <Paragraph type='secondary'>Manage and monitor your website optimizations</Paragraph>
           </Col>
           <Col>
             <Space>
               <Button icon={<ReloadOutlined />} onClick={() => window.location.reload()}>
                 Refresh
               </Button>
-              <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateOptimization}>
+              <Button type='primary' icon={<PlusOutlined />} onClick={handleCreateOptimization}>
                 New Optimization
               </Button>
             </Space>
@@ -343,11 +335,11 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
       </Card>
 
       {/* Stats Cards */}
-      <Row gutter={[24, 24]} className="stats-row">
+      <Row gutter={[24, 24]} className='stats-row'>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="stat-card">
+          <Card className='stat-card'>
             <Statistic
-              title="Total Optimizations"
+              title='Total Optimizations'
               value={stats.total}
               prefix={<OptimizationOutlined />}
               valueStyle={{ color: '#1890ff' }}
@@ -355,9 +347,9 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="stat-card">
+          <Card className='stat-card'>
             <Statistic
-              title="Completed"
+              title='Completed'
               value={stats.completed}
               prefix={<CheckCircleOutlined />}
               valueStyle={{ color: '#52c41a' }}
@@ -365,9 +357,9 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="stat-card">
+          <Card className='stat-card'>
             <Statistic
-              title="Running"
+              title='Running'
               value={stats.running}
               prefix={<PlayCircleOutlined />}
               valueStyle={{ color: '#faad14' }}
@@ -375,9 +367,9 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="stat-card">
+          <Card className='stat-card'>
             <Statistic
-              title="Failed"
+              title='Failed'
               value={stats.failed}
               prefix={<ExclamationCircleOutlined />}
               valueStyle={{ color: '#f5222d' }}
@@ -387,66 +379,63 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
       </Row>
 
       {/* Filters */}
-      <Card className="filters-card">
-        <Row gutter={[16, 16]} align="middle">
+      <Card className='filters-card'>
+        <Row gutter={[16, 16]} align='middle'>
           <Col xs={24} sm={12} md={8}>
             <Search
-              placeholder="Search optimizations..."
+              placeholder='Search optimizations...'
               value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={e => setSearchText(e.target.value)}
               enterButton={<SearchOutlined />}
             />
           </Col>
           <Col xs={24} sm={12} md={4}>
             <Select
-              placeholder="Status"
+              placeholder='Status'
               value={statusFilter}
               onChange={setStatusFilter}
               style={{ width: '100%' }}
             >
-              <Option value="all">All Status</Option>
-              <Option value="pending">Pending</Option>
-              <Option value="running">Running</Option>
-              <Option value="completed">Completed</Option>
-              <Option value="failed">Failed</Option>
-              <Option value="paused">Paused</Option>
+              <Option value='all'>All Status</Option>
+              <Option value='pending'>Pending</Option>
+              <Option value='running'>Running</Option>
+              <Option value='completed'>Completed</Option>
+              <Option value='failed'>Failed</Option>
+              <Option value='paused'>Paused</Option>
             </Select>
           </Col>
           <Col xs={24} sm={12} md={4}>
             <Select
-              placeholder="Type"
+              placeholder='Type'
               value={typeFilter}
               onChange={setTypeFilter}
               style={{ width: '100%' }}
             >
-              <Option value="all">All Types</Option>
-              <Option value="Image Optimization">Image Optimization</Option>
-              <Option value="CSS Optimization">CSS Optimization</Option>
-              <Option value="JavaScript Optimization">JavaScript Optimization</Option>
-              <Option value="HTML Optimization">HTML Optimization</Option>
-              <Option value="Performance">Performance</Option>
+              <Option value='all'>All Types</Option>
+              <Option value='Image Optimization'>Image Optimization</Option>
+              <Option value='CSS Optimization'>CSS Optimization</Option>
+              <Option value='JavaScript Optimization'>JavaScript Optimization</Option>
+              <Option value='HTML Optimization'>HTML Optimization</Option>
+              <Option value='Performance'>Performance</Option>
             </Select>
           </Col>
           <Col xs={24} sm={12} md={4}>
-            <Button icon={<FilterOutlined />}>
-              More Filters
-            </Button>
+            <Button icon={<FilterOutlined />}>More Filters</Button>
           </Col>
         </Row>
       </Card>
 
       {/* Optimizations Table */}
-      <Card className="optimizations-table-card">
+      <Card className='optimizations-table-card'>
         <Table
           columns={columns}
           dataSource={filteredOptimizations}
-          rowKey="id"
+          rowKey='id'
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} optimizations`,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} optimizations`,
           }}
           loading={optimizationLoading}
           scroll={{ x: 800 }}
@@ -461,13 +450,13 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
         onCancel={() => setIsModalVisible(false)}
         width={600}
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout='vertical'>
           <Form.Item
-            name="website"
-            label="Website"
+            name='website'
+            label='Website'
             rules={[{ required: true, message: 'Please select a website' }]}
           >
-            <Select placeholder="Select website">
+            <Select placeholder='Select website'>
               {websites?.map(website => (
                 <Option key={website.id} value={website.domain}>
                   {website.domain}
@@ -475,38 +464,31 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
               ))}
             </Select>
           </Form.Item>
-          
+
           <Form.Item
-            name="type"
-            label="Optimization Type"
+            name='type'
+            label='Optimization Type'
             rules={[{ required: true, message: 'Please select optimization type' }]}
           >
-            <Select placeholder="Select optimization type">
-              <Option value="Image Optimization">Image Optimization</Option>
-              <Option value="CSS Optimization">CSS Optimization</Option>
-              <Option value="JavaScript Optimization">JavaScript Optimization</Option>
-              <Option value="HTML Optimization">HTML Optimization</Option>
-              <Option value="Performance">Performance</Option>
+            <Select placeholder='Select optimization type'>
+              <Option value='Image Optimization'>Image Optimization</Option>
+              <Option value='CSS Optimization'>CSS Optimization</Option>
+              <Option value='JavaScript Optimization'>JavaScript Optimization</Option>
+              <Option value='HTML Optimization'>HTML Optimization</Option>
+              <Option value='Performance'>Performance</Option>
             </Select>
           </Form.Item>
-          
-          <Form.Item
-            name="priority"
-            label="Priority"
-            initialValue="medium"
-          >
+
+          <Form.Item name='priority' label='Priority' initialValue='medium'>
             <Select>
-              <Option value="low">Low</Option>
-              <Option value="medium">Medium</Option>
-              <Option value="high">High</Option>
+              <Option value='low'>Low</Option>
+              <Option value='medium'>Medium</Option>
+              <Option value='high'>High</Option>
             </Select>
           </Form.Item>
-          
-          <Form.Item
-            name="description"
-            label="Description"
-          >
-            <Input.TextArea rows={3} placeholder="Optional description" />
+
+          <Form.Item name='description' label='Description'>
+            <Input.TextArea rows={3} placeholder='Optional description' />
           </Form.Item>
         </Form>
       </Modal>

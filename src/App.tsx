@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <div>Loading...</div>;
   }
 
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+  return isAuthenticated ? <>{children}</> : <Navigate to='/login' />;
 };
 
 // Main App Component
@@ -34,13 +34,13 @@ const AppContent: React.FC = () => {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/payment" element={<PaymentPage />} />
-        
+        <Route path='/login' element={<LoginPage />} />
+        <Route path='/register' element={<RegisterPage />} />
+        <Route path='/payment' element={<PaymentPage />} />
+
         {/* Protected Routes */}
         <Route
-          path="/dashboard"
+          path='/dashboard'
           element={
             <ProtectedRoute>
               <DashboardLayout />
@@ -48,29 +48,23 @@ const AppContent: React.FC = () => {
           }
         >
           <Route index element={<DashboardOverview />} />
-          <Route path="optimization" element={<OptimizationDashboard />} />
-          <Route path="wallet" element={<WalletDashboard />} />
-          <Route path="analytics" element={<div>Analytics Coming Soon</div>} />
-          <Route path="websites" element={<div>Websites Coming Soon</div>} />
-          <Route path="history" element={<div>History Coming Soon</div>} />
-          <Route path="achievements" element={<div>Achievements Coming Soon</div>} />
-          <Route path="settings" element={<FileUploadSettings />} />
+          <Route path='optimization' element={<OptimizationDashboard />} />
+          <Route path='wallet' element={<WalletDashboard />} />
+          <Route path='analytics' element={<div>Analytics Coming Soon</div>} />
+          <Route path='websites' element={<div>Websites Coming Soon</div>} />
+          <Route path='history' element={<div>History Coming Soon</div>} />
+          <Route path='achievements' element={<div>Achievements Coming Soon</div>} />
+          <Route path='settings' element={<FileUploadSettings />} />
         </Route>
-        
+
         {/* Default Redirect */}
         <Route
-          path="/"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard" />
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
+          path='/'
+          element={isAuthenticated ? <Navigate to='/dashboard' /> : <Navigate to='/login' />}
         />
-        
+
         {/* Catch All */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path='*' element={<Navigate to='/' />} />
       </Routes>
     </Router>
   );
@@ -84,7 +78,8 @@ const App: React.FC = () => {
         token: {
           colorPrimary: '#1890ff',
           borderRadius: 8,
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         },
         components: {
           Layout: {

@@ -5,18 +5,21 @@ A comprehensive enterprise-grade automation system for blockchain operations usi
 ## 🚀 Features
 
 ### Core Automation
+
 - **@puppeteer/browsers Integration**: Automated browser management with Chrome for Testing
 - **Blockchain Node Management**: Intelligent scaling, monitoring, and optimization
 - **Workflow Orchestration**: Automated execution of complex blockchain operations
 - **Resource Management**: Dynamic allocation and scaling of system resources
 
 ### Project Management
+
 - **Large-Scale Project Support**: Manage multiple concurrent blockchain projects
 - **Capacity Planning**: Intelligent resource allocation and demand forecasting
 - **Workload Distribution**: Automatic task distribution across available nodes
 - **Real-time Monitoring**: Live dashboard with comprehensive metrics
 
 ### Enterprise Features
+
 - **High Availability**: Fault-tolerant design with automatic failover
 - **Security**: Comprehensive security measures and access controls
 - **Scalability**: Horizontal and vertical scaling capabilities
@@ -50,13 +53,15 @@ A comprehensive enterprise-grade automation system for blockchain operations usi
 ## 🛠️ Installation
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm 9+
 - PostgreSQL 13+
 - Redis 6+
 - Chrome/Chromium browser
 
 ### Setup
+
 ```bash
 # Install dependencies
 npm install
@@ -78,6 +83,7 @@ npm run automation
 ## 🚀 Quick Start
 
 ### Basic Usage
+
 ```bash
 # Start the complete automation system
 npm run automation
@@ -93,6 +99,7 @@ npm run automation:dry-run
 ```
 
 ### Environment Configuration
+
 ```bash
 # Blockchain Configuration
 BLOCKCHAIN_NETWORK=mainnet
@@ -129,6 +136,7 @@ SECURITY_RATE_LIMITING=true
 ## 📊 Project Management
 
 ### Creating Projects
+
 ```typescript
 import { ProjectManagementFramework } from './src/automation/ProjectManagementFramework';
 
@@ -149,7 +157,7 @@ const project = await projectFramework.createProject({
     memory: 16384,
     storage: 500,
     bandwidth: 500,
-    estimatedCost: 500000
+    estimatedCost: 500000,
   },
   milestones: [
     {
@@ -161,16 +169,17 @@ const project = await projectFramework.createProject({
       tasks: [],
       dependencies: [],
       deliverables: ['Smart contracts', 'API server'],
-      successCriteria: ['Contracts deployed', 'API functional']
-    }
+      successCriteria: ['Contracts deployed', 'API functional'],
+    },
   ],
   tasks: [],
   dependencies: [],
-  stakeholders: []
+  stakeholders: [],
 });
 ```
 
 ### Managing Workflows
+
 ```typescript
 import { BlockchainAutomationManager } from './src/automation/BlockchainAutomationManager';
 
@@ -191,23 +200,24 @@ await automationManager.addWorkflow({
       config: { navigate: { url: 'https://example.com' } },
       dependencies: [],
       timeout: 30000,
-      retryAttempts: 3
-    }
+      retryAttempts: 3,
+    },
   ],
   triggers: [
     {
       type: 'schedule',
-      config: { cron: '0 */6 * * *' }
-    }
+      config: { cron: '0 */6 * * *' },
+    },
   ],
   enabled: true,
-  priority: 1
+  priority: 1,
 });
 ```
 
 ## 🔧 Node Management
 
 ### Adding Blockchain Nodes
+
 ```typescript
 import { BlockchainNodeManager } from './src/automation/BlockchainNodeManager';
 
@@ -221,25 +231,26 @@ await nodeManager.addNode({
   resources: {
     cpu: 4,
     memory: 8192,
-    storage: 100
+    storage: 100,
   },
   blockchain: {
     network: 'mainnet',
     rpcUrl: 'http://localhost:8545',
     privateKey: 'your_private_key',
     gasPrice: '20000000000',
-    gasLimit: 500000
+    gasLimit: 500000,
   },
   automation: {
     enabled: true,
     maxConcurrency: 5,
     retryAttempts: 3,
-    timeout: 30000
-  }
+    timeout: 30000,
+  },
 });
 ```
 
 ### Monitoring Node Health
+
 ```typescript
 // Get node health
 const health = nodeManager.getNodeHealth('mining-node-1');
@@ -257,6 +268,7 @@ allHealth.forEach(node => {
 ## 📈 Monitoring and Metrics
 
 ### System Metrics
+
 ```typescript
 // Get automation metrics
 const metrics = automationManager.getMetrics();
@@ -273,6 +285,7 @@ console.log('Available Resources:', capacityPlan.availableCapacity);
 ```
 
 ### Real-time Dashboard
+
 The system includes a comprehensive React dashboard for real-time monitoring:
 
 ```typescript
@@ -289,6 +302,7 @@ import { ProjectManagementDashboard } from './src/automation/ProjectManagementDa
 ## 🔄 Workflow Types
 
 ### Browser Workflows
+
 ```typescript
 {
   type: 'browser',
@@ -313,6 +327,7 @@ import { ProjectManagementDashboard } from './src/automation/ProjectManagementDa
 ```
 
 ### Blockchain Workflows
+
 ```typescript
 {
   type: 'blockchain',
@@ -326,6 +341,7 @@ import { ProjectManagementDashboard } from './src/automation/ProjectManagementDa
 ```
 
 ### Crawl Workflows
+
 ```typescript
 {
   type: 'crawl',
@@ -339,6 +355,7 @@ import { ProjectManagementDashboard } from './src/automation/ProjectManagementDa
 ```
 
 ### Optimization Workflows
+
 ```typescript
 {
   type: 'optimize',
@@ -353,6 +370,7 @@ import { ProjectManagementDashboard } from './src/automation/ProjectManagementDa
 ## 🚨 Error Handling and Recovery
 
 ### Automatic Retry
+
 The system includes comprehensive retry mechanisms:
 
 ```typescript
@@ -361,12 +379,13 @@ const config = {
   automation: {
     retryAttempts: 3,
     timeout: 30000,
-    backoffMultiplier: 2
-  }
+    backoffMultiplier: 2,
+  },
 };
 ```
 
 ### Health Checks
+
 ```typescript
 // Check system health
 const health = orchestrator.getSystemHealth();
@@ -381,6 +400,7 @@ if (!health.healthy) {
 ## 🔒 Security Features
 
 ### Access Control
+
 ```typescript
 const securityConfig = {
   enabled: true,
@@ -388,14 +408,15 @@ const securityConfig = {
   encryption: true,
   rateLimiting: true,
   permissions: {
-    'admin': ['read', 'write', 'execute', 'manage'],
-    'developer': ['read', 'write', 'execute'],
-    'viewer': ['read']
-  }
+    admin: ['read', 'write', 'execute', 'manage'],
+    developer: ['read', 'write', 'execute'],
+    viewer: ['read'],
+  },
 };
 ```
 
 ### Data Protection
+
 - All sensitive data encrypted at rest and in transit
 - Private keys stored securely
 - API keys managed through environment variables
@@ -404,6 +425,7 @@ const securityConfig = {
 ## 📊 Performance Optimization
 
 ### Resource Scaling
+
 The system automatically scales resources based on demand:
 
 ```typescript
@@ -414,11 +436,12 @@ const scalingConfig = {
   minNodes: 1,
   maxNodes: 10,
   scaleUpThreshold: 80,
-  scaleDownThreshold: 30
+  scaleDownThreshold: 30,
 };
 ```
 
 ### Load Balancing
+
 ```typescript
 // Intelligent workload distribution
 const distribution = projectFramework.getWorkloadDistribution('project-id');
@@ -429,21 +452,25 @@ console.log('Load Balance:', distribution.loadBalance);
 ## 🧪 Testing
 
 ### Unit Tests
+
 ```bash
 npm run test:unit
 ```
 
 ### Integration Tests
+
 ```bash
 npm run test:integration
 ```
 
 ### E2E Tests
+
 ```bash
 npm run test:e2e
 ```
 
 ### Performance Tests
+
 ```bash
 npm run test:performance
 ```
@@ -451,6 +478,7 @@ npm run test:performance
 ## 📚 API Reference
 
 ### BlockchainAutomationManager
+
 - `initialize()`: Initialize the automation manager
 - `addBlockchainNode(nodeConfig)`: Add a new blockchain node
 - `executeWorkflow(workflowId)`: Execute a workflow
@@ -458,6 +486,7 @@ npm run test:performance
 - `shutdown()`: Shutdown the manager
 
 ### ProjectManagementFramework
+
 - `createProject(projectData)`: Create a new project
 - `updateProject(projectId, updates)`: Update a project
 - `addTask(projectId, task)`: Add a task to a project
@@ -465,6 +494,7 @@ npm run test:performance
 - `getWorkloadDistribution(projectId)`: Get workload distribution
 
 ### BlockchainNodeManager
+
 - `addNode(nodeConfig)`: Add a blockchain node
 - `monitorNode(nodeId)`: Monitor a specific node
 - `getNodeHealth(nodeId)`: Get node health status
@@ -485,6 +515,7 @@ MIT License - see LICENSE file for details
 ## 🆘 Support
 
 For support and questions:
+
 - Create an issue on GitHub
 - Check the documentation
 - Review the examples

@@ -11,7 +11,7 @@ class LightDomContentScript {
     this.domObserver = null;
     this.lastOptimization = 0;
     this.minOptimizationInterval = 10000; // 10 seconds between optimizations
-    
+
     this.init();
   }
 
@@ -38,16 +38,16 @@ class LightDomContentScript {
         this.userAddress = message.data.userAddress;
         this.startDOMMonitoring();
         break;
-      
+
       case 'MINING_STOPPED':
         this.isActive = false;
         this.stopDOMMonitoring();
         break;
-      
+
       case 'LIGHTDOM_NOTIFICATION':
         this.displayNotification(message.data);
         break;
-      
+
       case 'BLOCKCHAIN_UPDATE':
         this.updateBlockchainStatus(message.data);
         break;
@@ -56,22 +56,22 @@ class LightDomContentScript {
 
   startDOMMonitoring() {
     if (!this.isActive) return;
-    
+
     // Start observing DOM changes
-    this.domObserver = new MutationObserver((mutations) => {
+    this.domObserver = new MutationObserver(mutations => {
       this.handleDOMChanges(mutations);
     });
-    
+
     this.domObserver.observe(document.body, {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeOldValue: true
+      attributeOldValue: true,
     });
-    
+
     // Initial DOM analysis
     this.analyzeDOM();
-    
+
     // Periodic analysis
     setInterval(() => {
       if (this.isActive) {
@@ -89,12 +89,12 @@ class LightDomContentScript {
 
   handleDOMChanges(mutations) {
     if (!this.isActive) return;
-    
+
     // Analyze changes for optimization opportunities
     const hasSignificantChanges = mutations.some(mutation => {
       return mutation.type === 'childList' && mutation.addedNodes.length > 0;
     });
-    
+
     if (hasSignificantChanges) {
       setTimeout(() => this.analyzeDOM(), 1000); // Debounce
     }
@@ -104,28 +104,28 @@ class LightDomContentScript {
     if (!this.isActive || Date.now() - this.lastOptimization < this.minOptimizationInterval) {
       return;
     }
-    
+
     try {
       const analysis = this.performDOMAnalysis();
-      
+
       if (analysis.spaceSaved > 0) {
         this.lastOptimization = Date.now();
-        
+
         const optimizationData = {
           url: window.location.href,
           domain: window.location.hostname,
           domAnalysis: analysis,
           spaceSaved: analysis.spaceSaved,
           timestamp: Date.now(),
-          userAddress: this.userAddress
+          userAddress: this.userAddress,
         };
-        
+
         // Send to background script
         chrome.runtime.sendMessage({
           type: 'DOM_OPTIMIZATION_FOUND',
-          data: optimizationData
+          data: optimizationData,
         });
-        
+
         // Show visual feedback
         this.showOptimizationFeedback(analysis);
       }
@@ -140,9 +140,9 @@ class LightDomContentScript {
       unusedElements: 0,
       redundantStyles: 0,
       spaceSaved: 0,
-      optimizations: []
+      optimizations: [],
     };
-    
+
     // Find unused elements
     const allElements = document.querySelectorAll('*');
     allElements.forEach(element => {
@@ -152,11 +152,11 @@ class LightDomContentScript {
         analysis.optimizations.push({
           type: 'unused_element',
           element: element.tagName,
-          size: this.estimateElementSize(element)
+          size: this.estimateElementSize(element),
         });
       }
     });
-    
+
     // Find redundant styles
     const styles = document.querySelectorAll('style, link[rel="stylesheet"]');
     styles.forEach(style => {
@@ -166,11 +166,11 @@ class LightDomContentScript {
         analysis.spaceSaved += redundancy;
         analysis.optimizations.push({
           type: 'redundant_style',
-          size: redundancy
+          size: redundancy,
         });
       }
     });
-    
+
     // Find duplicate scripts
     const scripts = document.querySelectorAll('script[src]');
     const scriptSources = new Set();
@@ -179,13 +179,13 @@ class LightDomContentScript {
         analysis.spaceSaved += this.estimateScriptSize(script);
         analysis.optimizations.push({
           type: 'duplicate_script',
-          src: script.src
+          src: script.src,
         });
       } else {
         scriptSources.add(script.src);
       }
     });
-    
+
     return analysis;
   }
 
@@ -194,16 +194,16 @@ class LightDomContentScript {
     if (element.offsetWidth === 0 && element.offsetHeight === 0) {
       return true;
     }
-    
+
     if (element.style.display === 'none' || element.style.visibility === 'hidden') {
       return true;
     }
-    
+
     // Check for empty elements
     if (element.children.length === 0 && !element.textContent.trim()) {
       return true;
     }
-    
+
     return false;
   }
 
@@ -216,11 +216,11 @@ class LightDomContentScript {
   analyzeStyleRedundancy(styleElement) {
     // Analyze CSS for redundancy
     let redundancy = 0;
-    
+
     if (styleElement.textContent) {
       const css = styleElement.textContent;
       const rules = css.split('}');
-      
+
       // Find duplicate rules
       const ruleMap = new Map();
       rules.forEach(rule => {
@@ -234,7 +234,7 @@ class LightDomContentScript {
         }
       });
     }
-    
+
     return redundancy;
   }
 
@@ -260,7 +260,7 @@ class LightDomContentScript {
       max-width: 300px;
       animation: slideIn 0.3s ease-out;
     `;
-    
+
     notification.innerHTML = `
       <div style="font-weight: 600; margin-bottom: 4px;">🚀 LightDom Optimization</div>
       <div style="font-size: 12px; opacity: 0.9;">
@@ -268,7 +268,7 @@ class LightDomContentScript {
         ${analysis.unusedElements} unused elements found
       </div>
     `;
-    
+
     // Add animation styles
     const style = document.createElement('style');
     style.textContent = `
@@ -278,9 +278,9 @@ class LightDomContentScript {
       }
     `;
     document.head.appendChild(style);
-    
+
     document.body.appendChild(notification);
-    
+
     // Remove after 3 seconds
     setTimeout(() => {
       notification.style.animation = 'slideIn 0.3s ease-out reverse';
@@ -295,12 +295,12 @@ class LightDomContentScript {
   displayNotification(notification) {
     // Display LightDom-specific notifications
     console.log('LightDom notification:', notification);
-    
+
     // You can customize this to show notifications in the page
     if (notification.type === 'DOM_OPTIMIZATION') {
       this.showOptimizationFeedback({
         spaceSaved: notification.data.spaceSaved,
-        unusedElements: 1
+        unusedElements: 1,
       });
     }
   }

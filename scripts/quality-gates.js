@@ -16,20 +16,21 @@ class QualityGates {
       passed: 0,
       failed: 0,
       warnings: 0,
-      total: 0
+      total: 0,
     };
     this.startTime = Date.now();
   }
 
   log(message, type = 'info') {
     const timestamp = new Date().toISOString();
-    const prefix = {
-      info: 'ℹ️',
-      success: '✅',
-      error: '❌',
-      warning: '⚠️'
-    }[type] || 'ℹ️';
-    
+    const prefix =
+      {
+        info: 'ℹ️',
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+      }[type] || 'ℹ️';
+
     console.log(`${prefix} [${timestamp}] ${message}`);
   }
 
@@ -38,29 +39,29 @@ class QualityGates {
       const child = spawn(command, options.args || [], {
         stdio: 'pipe',
         shell: true,
-        ...options
+        ...options,
       });
 
       let stdout = '';
       let stderr = '';
 
-      child.stdout.on('data', (data) => {
+      child.stdout.on('data', data => {
         stdout += data.toString();
       });
 
-      child.stderr.on('data', (data) => {
+      child.stderr.on('data', data => {
         stderr += data.toString();
       });
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         resolve({
           code,
           stdout,
-          stderr
+          stderr,
         });
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         reject(error);
       });
     });
@@ -256,7 +257,7 @@ class QualityGates {
         'tsconfig.json',
         'jest.config.js',
         '.eslintrc.js',
-        '.prettierrc'
+        '.prettierrc',
       ];
 
       let compliancePassed = true;
@@ -277,7 +278,7 @@ class QualityGates {
         'lint',
         'format',
         'type-check',
-        'build'
+        'build',
       ];
 
       for (const script of requiredScripts) {
@@ -303,7 +304,7 @@ class QualityGates {
 
   async runAllGates() {
     this.log('Starting quality gates...');
-    
+
     // Pre-commit gates
     await this.checkCodeFormatting();
     await this.runLinting();

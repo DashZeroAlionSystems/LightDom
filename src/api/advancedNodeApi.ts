@@ -8,7 +8,6 @@ import { spaceOptimizationEngine } from '../core/SpaceOptimizationEngine';
 import { advancedNodeManager } from '../core/AdvancedNodeManager';
 
 export class AdvancedNodeAPI {
-  
   /**
    * Create a new optimization node
    * POST /api/nodes/create
@@ -21,7 +20,7 @@ export class AdvancedNodeAPI {
       if (!type || !storageCapacity || !biomeType) {
         res.status(400).json({
           error: 'Invalid node data',
-          message: 'Type, storageCapacity, and biomeType are required'
+          message: 'Type, storageCapacity, and biomeType are required',
         });
         return;
       }
@@ -31,7 +30,7 @@ export class AdvancedNodeAPI {
       if (!validTypes.includes(type)) {
         res.status(400).json({
           error: 'Invalid node type',
-          message: `Type must be one of: ${validTypes.join(', ')}`
+          message: `Type must be one of: ${validTypes.join(', ')}`,
         });
         return;
       }
@@ -47,14 +46,13 @@ export class AdvancedNodeAPI {
       res.status(201).json({
         success: true,
         data: { node },
-        message: `Node created: ${type} with ${storageCapacity}KB storage`
+        message: `Node created: ${type} with ${storageCapacity}KB storage`,
       });
-
     } catch (error) {
       console.error('Error creating node:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -66,42 +64,41 @@ export class AdvancedNodeAPI {
   async getNodes(req: Request, res: Response): Promise<void> {
     try {
       const { type, status, limit = 50, offset = 0 } = req.query;
-      
+
       let nodes = spaceOptimizationEngine.getAllOptimizationNodes();
-      
+
       // Filter by type if specified
       if (type) {
         nodes = nodes.filter(node => node.type === type);
       }
-      
+
       // Filter by status if specified
       if (status) {
         nodes = nodes.filter(node => node.status === status);
       }
-      
+
       // Sort by creation date (newest first)
       nodes.sort((a, b) => b.createdAt - a.createdAt);
-      
+
       // Apply pagination
       const start = Number(offset);
       const end = start + Number(limit);
       const paginatedNodes = nodes.slice(start, end);
-      
+
       res.json({
         success: true,
         data: {
           nodes: paginatedNodes,
           total: nodes.length,
           limit: Number(limit),
-          offset: Number(offset)
-        }
+          offset: Number(offset),
+        },
       });
-
     } catch (error) {
       console.error('Error fetching nodes:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -113,27 +110,26 @@ export class AdvancedNodeAPI {
   async getNode(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      
+
       const nodeStats = spaceOptimizationEngine.getNodeStats(id);
-      
+
       if (!nodeStats) {
         res.status(404).json({
           error: 'Node not found',
-          message: `No node found with ID: ${id}`
+          message: `No node found with ID: ${id}`,
         });
         return;
       }
-      
+
       res.json({
         success: true,
-        data: nodeStats
+        data: nodeStats,
       });
-
     } catch (error) {
       console.error('Error fetching node:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -150,31 +146,30 @@ export class AdvancedNodeAPI {
       if (!additionalStorage || additionalStorage <= 0) {
         res.status(400).json({
           error: 'Invalid storage amount',
-          message: 'Additional storage must be a positive number'
+          message: 'Additional storage must be a positive number',
         });
         return;
       }
 
       const success = spaceOptimizationEngine.scaleUpNode(id, additionalStorage);
-      
+
       if (!success) {
         res.status(400).json({
           error: 'Scaling failed',
-          message: 'Unable to scale up node. Check storage limits.'
+          message: 'Unable to scale up node. Check storage limits.',
         });
         return;
       }
 
       res.json({
         success: true,
-        message: `Node scaled up by ${additionalStorage}KB`
+        message: `Node scaled up by ${additionalStorage}KB`,
       });
-
     } catch (error) {
       console.error('Error scaling node:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -190,17 +185,17 @@ export class AdvancedNodeAPI {
       if (!nodeIds || !Array.isArray(nodeIds) || nodeIds.length < 2) {
         res.status(400).json({
           error: 'Invalid node IDs',
-          message: 'At least 2 node IDs are required for merging'
+          message: 'At least 2 node IDs are required for merging',
         });
         return;
       }
 
       const mergedNode = spaceOptimizationEngine.mergeNodes(nodeIds, newType);
-      
+
       if (!mergedNode) {
         res.status(400).json({
           error: 'Merge failed',
-          message: 'Unable to merge nodes. Check node IDs and types.'
+          message: 'Unable to merge nodes. Check node IDs and types.',
         });
         return;
       }
@@ -208,14 +203,13 @@ export class AdvancedNodeAPI {
       res.json({
         success: true,
         data: { node: mergedNode },
-        message: `Successfully merged ${nodeIds.length} nodes into ${newType} node`
+        message: `Successfully merged ${nodeIds.length} nodes into ${newType} node`,
       });
-
     } catch (error) {
       console.error('Error merging nodes:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -227,17 +221,16 @@ export class AdvancedNodeAPI {
   async getSystemStats(req: Request, res: Response): Promise<void> {
     try {
       const stats = spaceOptimizationEngine.getSystemNodeStats();
-      
+
       res.json({
         success: true,
-        data: stats
+        data: stats,
       });
-
     } catch (error) {
       console.error('Error fetching system stats:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -254,17 +247,23 @@ export class AdvancedNodeAPI {
       if (!nodeId || !type || !targetUrl) {
         res.status(400).json({
           error: 'Invalid task data',
-          message: 'nodeId, type, and targetUrl are required'
+          message: 'nodeId, type, and targetUrl are required',
         });
         return;
       }
 
       // Validate task type
-      const validTypes = ['dom_analysis', 'css_optimization', 'js_minification', 'image_compression', 'bundle_optimization'];
+      const validTypes = [
+        'dom_analysis',
+        'css_optimization',
+        'js_minification',
+        'image_compression',
+        'bundle_optimization',
+      ];
       if (!validTypes.includes(type)) {
         res.status(400).json({
           error: 'Invalid task type',
-          message: `Type must be one of: ${validTypes.join(', ')}`
+          message: `Type must be one of: ${validTypes.join(', ')}`,
         });
         return;
       }
@@ -275,14 +274,13 @@ export class AdvancedNodeAPI {
       res.status(201).json({
         success: true,
         data: { task },
-        message: `Task created: ${type} for ${targetUrl}`
+        message: `Task created: ${type} for ${targetUrl}`,
       });
-
     } catch (error) {
       console.error('Error creating task:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -294,44 +292,43 @@ export class AdvancedNodeAPI {
   async getTasks(req: Request, res: Response): Promise<void> {
     try {
       const { nodeId, status, limit = 50, offset = 0 } = req.query;
-      
+
       // Get all tasks from the node manager
       const allTasks = advancedNodeManager.getAllTasks();
       let tasks = allTasks;
-      
+
       // Filter by node ID if specified
       if (nodeId) {
         tasks = tasks.filter(task => task.nodeId === nodeId);
       }
-      
+
       // Filter by status if specified
       if (status) {
         tasks = tasks.filter(task => task.status === status);
       }
-      
+
       // Sort by creation date (newest first)
       tasks.sort((a, b) => b.createdAt - a.createdAt);
-      
+
       // Apply pagination
       const start = Number(offset);
       const end = start + Number(limit);
       const paginatedTasks = tasks.slice(start, end);
-      
+
       res.json({
         success: true,
         data: {
           tasks: paginatedTasks,
           total: tasks.length,
           limit: Number(limit),
-          offset: Number(offset)
-        }
+          offset: Number(offset),
+        },
       });
-
     } catch (error) {
       console.error('Error fetching tasks:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -347,7 +344,7 @@ export class AdvancedNodeAPI {
       if (!taskIds || !Array.isArray(taskIds) || taskIds.length === 0) {
         res.status(400).json({
           error: 'Invalid task IDs',
-          message: 'Task IDs array is required'
+          message: 'Task IDs array is required',
         });
         return;
       }
@@ -358,14 +355,13 @@ export class AdvancedNodeAPI {
       res.json({
         success: true,
         data: { results },
-        message: `Processed ${results.length} tasks`
+        message: `Processed ${results.length} tasks`,
       });
-
     } catch (error) {
       console.error('Error processing tasks:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -377,21 +373,20 @@ export class AdvancedNodeAPI {
   async getRecommendations(req: Request, res: Response): Promise<void> {
     try {
       const { availableSpace = 1000 } = req.query;
-      
+
       const recommendations = spaceOptimizationEngine.getOptimizationRecommendations(
         Number(availableSpace)
       );
-      
+
       res.json({
         success: true,
-        data: recommendations
+        data: recommendations,
       });
-
     } catch (error) {
       console.error('Error fetching recommendations:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -407,7 +402,7 @@ export class AdvancedNodeAPI {
       if (!spaceKB || !biomeType) {
         res.status(400).json({
           error: 'Invalid network data',
-          message: 'spaceKB and biomeType are required'
+          message: 'spaceKB and biomeType are required',
         });
         return;
       }
@@ -421,14 +416,13 @@ export class AdvancedNodeAPI {
       res.json({
         success: true,
         data: network,
-        message: `Created network with ${network.nodes.length} nodes`
+        message: `Created network with ${network.nodes.length} nodes`,
       });
-
     } catch (error) {
       console.error('Error creating network:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -445,7 +439,7 @@ export class AdvancedNodeAPI {
       if (!targetUrls || !Array.isArray(targetUrls) || targetUrls.length === 0) {
         res.status(400).json({
           error: 'Invalid target URLs',
-          message: 'Target URLs array is required'
+          message: 'Target URLs array is required',
         });
         return;
       }
@@ -460,14 +454,13 @@ export class AdvancedNodeAPI {
       res.json({
         success: true,
         data: { results },
-        message: `Processed ${results.length} optimization tasks`
+        message: `Processed ${results.length} optimization tasks`,
       });
-
     } catch (error) {
       console.error('Error running continuous optimization:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -479,17 +472,16 @@ export class AdvancedNodeAPI {
   async optimizeStorage(req: Request, res: Response): Promise<void> {
     try {
       spaceOptimizationEngine.optimizeStorageAllocation();
-      
+
       res.json({
         success: true,
-        message: 'Storage allocation optimized'
+        message: 'Storage allocation optimized',
       });
-
     } catch (error) {
       console.error('Error optimizing storage:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }

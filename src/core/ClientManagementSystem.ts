@@ -148,12 +148,7 @@ export class ClientManagementSystem {
         id: 'starter',
         name: 'Starter Plan',
         description: 'Perfect for individual developers and small projects',
-        features: [
-          'Basic DOM optimization',
-          'API access',
-          'Email support',
-          'Basic analytics'
-        ],
+        features: ['Basic DOM optimization', 'API access', 'Email support', 'Basic analytics'],
         limits: {
           requestsPerMonth: 1000,
           storageGB: 1,
@@ -161,27 +156,27 @@ export class ClientManagementSystem {
           optimizationTasks: 50,
           cursorAgentAccess: false,
           blockchainIntegration: false,
-          prioritySupport: false
+          prioritySupport: false,
         },
         pricing: {
           monthlyPriceUSD: 29,
           setupFeeUSD: 0,
-          overagePricePerRequest: 0.05
+          overagePricePerRequest: 0.05,
         },
         cursorAgent: {
           enabled: false,
           maxCodeGenerations: 0,
           maxRefactoringTasks: 0,
           maxDebuggingSessions: 0,
-          aiModel: 'none'
+          aiModel: 'none',
         },
         blockchain: {
           enabled: false,
           maxSmartContractDeployments: 0,
           maxTokenMinting: 0,
           maxNFTMinting: 0,
-          gasOptimization: false
-        }
+          gasOptimization: false,
+        },
       },
       {
         id: 'professional',
@@ -193,7 +188,7 @@ export class ClientManagementSystem {
           'Cursor AI agent integration',
           'Basic blockchain integration',
           'Phone support',
-          'Advanced analytics'
+          'Advanced analytics',
         ],
         limits: {
           requestsPerMonth: 10000,
@@ -202,27 +197,27 @@ export class ClientManagementSystem {
           optimizationTasks: 500,
           cursorAgentAccess: true,
           blockchainIntegration: true,
-          prioritySupport: true
+          prioritySupport: true,
         },
         pricing: {
           monthlyPriceUSD: 99,
           setupFeeUSD: 0,
-          overagePricePerRequest: 0.03
+          overagePricePerRequest: 0.03,
         },
         cursorAgent: {
           enabled: true,
           maxCodeGenerations: 100,
           maxRefactoringTasks: 50,
           maxDebuggingSessions: 25,
-          aiModel: 'gpt-4'
+          aiModel: 'gpt-4',
         },
         blockchain: {
           enabled: true,
           maxSmartContractDeployments: 5,
           maxTokenMinting: 1000,
           maxNFTMinting: 100,
-          gasOptimization: true
-        }
+          gasOptimization: true,
+        },
       },
       {
         id: 'enterprise',
@@ -235,7 +230,7 @@ export class ClientManagementSystem {
           'Complete blockchain integration',
           'Dedicated support',
           'Custom integrations',
-          'White-label options'
+          'White-label options',
         ],
         limits: {
           requestsPerMonth: 100000,
@@ -244,28 +239,28 @@ export class ClientManagementSystem {
           optimizationTasks: 5000,
           cursorAgentAccess: true,
           blockchainIntegration: true,
-          prioritySupport: true
+          prioritySupport: true,
         },
         pricing: {
           monthlyPriceUSD: 499,
           setupFeeUSD: 1000,
-          overagePricePerRequest: 0.01
+          overagePricePerRequest: 0.01,
         },
         cursorAgent: {
           enabled: true,
           maxCodeGenerations: 1000,
           maxRefactoringTasks: 500,
           maxDebuggingSessions: 250,
-          aiModel: 'gpt-4-turbo'
+          aiModel: 'gpt-4-turbo',
         },
         blockchain: {
           enabled: true,
           maxSmartContractDeployments: 50,
           maxTokenMinting: 10000,
           maxNFTMinting: 1000,
-          gasOptimization: true
-        }
-      }
+          gasOptimization: true,
+        },
+      },
     ];
 
     plans.forEach(plan => {
@@ -291,7 +286,7 @@ export class ClientManagementSystem {
     const clientId = `client_${++this.clientCounter}_${Date.now()}`;
     const apiKey = this.generateAPIKey();
     const now = Date.now();
-    const expiresAt = now + (30 * 24 * 60 * 60 * 1000); // 30 days
+    const expiresAt = now + 30 * 24 * 60 * 60 * 1000; // 30 days
 
     const client: Client = {
       id: clientId,
@@ -311,13 +306,13 @@ export class ClientManagementSystem {
         cursorAgentUsage: {
           codeGenerations: 0,
           refactoringTasks: 0,
-          debuggingSessions: 0
+          debuggingSessions: 0,
         },
         blockchainUsage: {
           smartContractDeployments: 0,
           tokenMinting: 0,
-          nftMinting: 0
-        }
+          nftMinting: 0,
+        },
       },
       apiKey,
       webhookUrl,
@@ -325,15 +320,15 @@ export class ClientManagementSystem {
         notifications: true,
         autoOptimization: true,
         cursorAgentEnabled: plan.cursorAgent.enabled,
-        blockchainIntegration: plan.blockchain.enabled
+        blockchainIntegration: plan.blockchain.enabled,
       },
       billing: {
         currentPeriodStart: now,
         currentPeriodEnd: expiresAt,
         nextBillingDate: expiresAt,
         totalCharges: plan.pricing.setupFeeUSD,
-        lastPaymentDate: now
-      }
+        lastPaymentDate: now,
+      },
     };
 
     this.clients.set(clientId, client);
@@ -446,7 +441,7 @@ export class ClientManagementSystem {
     return {
       exceeded: exceeded.length > 0,
       limits: exceeded,
-      warnings
+      warnings,
     };
   }
 
@@ -492,7 +487,7 @@ export class ClientManagementSystem {
       status: 'pending',
       createdAt: Date.now(),
       tokensUsed: 0,
-      cost: 0
+      cost: 0,
     };
 
     this.cursorAgentRequests.set(requestId, request);
@@ -515,7 +510,7 @@ export class ClientManagementSystem {
     try {
       // Simulate Cursor AI processing
       const response = await this.simulateCursorAI(request);
-      
+
       request.response = response;
       request.status = 'completed';
       request.completedAt = Date.now();
@@ -537,7 +532,6 @@ export class ClientManagementSystem {
             break;
         }
       }
-
     } catch (error) {
       request.status = 'failed';
       request.completedAt = Date.now();
@@ -548,7 +542,9 @@ export class ClientManagementSystem {
   /**
    * Simulate Cursor AI response
    */
-  private async simulateCursorAI(request: CursorAgentRequest): Promise<CursorAgentRequest['response']> {
+  private async simulateCursorAI(
+    request: CursorAgentRequest
+  ): Promise<CursorAgentRequest['response']> {
     // Simulate processing time
     await new Promise(resolve => setTimeout(resolve, Math.random() * 3000 + 1000));
 
@@ -556,33 +552,37 @@ export class ClientManagementSystem {
       code_generation: {
         generatedCode: `// Generated code for: ${request.prompt}\nfunction optimizedFunction() {\n  // AI-generated optimization\n  return "optimized result";\n}`,
         explanation: 'This code has been optimized for performance and follows best practices.',
-        suggestions: ['Consider adding error handling', 'Add input validation', 'Optimize for memory usage'],
-        confidence: Math.floor(85 + Math.random() * 15) // 85-100%
+        suggestions: [
+          'Consider adding error handling',
+          'Add input validation',
+          'Optimize for memory usage',
+        ],
+        confidence: Math.floor(85 + Math.random() * 15), // 85-100%
       },
       refactoring: {
         generatedCode: `// Refactored code\nclass OptimizedClass {\n  constructor() {\n    this.optimized = true;\n  }\n}`,
         explanation: 'Code has been refactored to improve readability and maintainability.',
         suggestions: ['Extract common functionality', 'Use design patterns', 'Add documentation'],
-        confidence: Math.floor(80 + Math.random() * 20) // 80-100%
+        confidence: Math.floor(80 + Math.random() * 20), // 80-100%
       },
       debugging: {
         generatedCode: `// Debugged code\nfunction debuggedFunction() {\n  try {\n    // Fixed logic\n    return result;\n  } catch (error) {\n    console.error('Error:', error);\n    return null;\n  }\n}`,
         explanation: 'Issues have been identified and fixed with proper error handling.',
         suggestions: ['Add logging', 'Implement retry logic', 'Add monitoring'],
-        confidence: Math.floor(90 + Math.random() * 10) // 90-100%
+        confidence: Math.floor(90 + Math.random() * 10), // 90-100%
       },
       optimization: {
         generatedCode: `// Optimized code\nconst optimized = (data) => {\n  return data\n    .filter(item => item.valid)\n    .map(item => item.processed)\n    .reduce((acc, item) => acc + item.value, 0);\n};`,
         explanation: 'Code has been optimized for better performance and efficiency.',
         suggestions: ['Use memoization', 'Implement caching', 'Optimize algorithms'],
-        confidence: Math.floor(88 + Math.random() * 12) // 88-100%
+        confidence: Math.floor(88 + Math.random() * 12), // 88-100%
       },
       documentation: {
         generatedCode: `/**\n * Optimized function for processing data\n * @param {Array} data - Input data array\n * @returns {Object} Processed result\n */\nfunction processData(data) {\n  // Implementation\n}`,
         explanation: 'Comprehensive documentation has been generated for the code.',
         suggestions: ['Add examples', 'Include type definitions', 'Add usage guidelines'],
-        confidence: Math.floor(92 + Math.random() * 8) // 92-100%
-      }
+        confidence: Math.floor(92 + Math.random() * 8), // 92-100%
+      },
     };
 
     return responses[request.type] || responses.code_generation;
@@ -609,7 +609,10 @@ export class ClientManagementSystem {
     const currentUsage = client.usage.blockchainUsage;
     const limits = client.plan.blockchain;
 
-    if (type === 'smart_contract' && currentUsage.smartContractDeployments >= limits.maxSmartContractDeployments) {
+    if (
+      type === 'smart_contract' &&
+      currentUsage.smartContractDeployments >= limits.maxSmartContractDeployments
+    ) {
       throw new Error('Smart contract deployment limit exceeded');
     }
     if (type === 'token_deployment' && currentUsage.tokenMinting >= limits.maxTokenMinting) {
@@ -627,7 +630,7 @@ export class ClientManagementSystem {
       request,
       status: 'pending',
       createdAt: Date.now(),
-      cost: 0
+      cost: 0,
     };
 
     this.blockchainIntegrations.set(integrationId, integration);
@@ -650,11 +653,11 @@ export class ClientManagementSystem {
     try {
       // Simulate blockchain processing
       const response = await this.simulateBlockchainProcessing(integration);
-      
+
       integration.response = response;
       integration.status = 'completed';
       integration.completedAt = Date.now();
-      integration.cost = response.gasUsed * response.gasPrice / 1e18; // Convert to ETH
+      integration.cost = (response.gasUsed * response.gasPrice) / 1e18; // Convert to ETH
 
       // Update client usage
       const client = this.clients.get(integration.clientId);
@@ -671,7 +674,6 @@ export class ClientManagementSystem {
             break;
         }
       }
-
     } catch (error) {
       integration.status = 'failed';
       integration.completedAt = Date.now();
@@ -682,7 +684,9 @@ export class ClientManagementSystem {
   /**
    * Simulate blockchain processing
    */
-  private async simulateBlockchainProcessing(integration: BlockchainIntegration): Promise<BlockchainIntegration['response']> {
+  private async simulateBlockchainProcessing(
+    integration: BlockchainIntegration
+  ): Promise<BlockchainIntegration['response']> {
     // Simulate processing time
     await new Promise(resolve => setTimeout(resolve, Math.random() * 5000 + 2000));
 
@@ -693,7 +697,7 @@ export class ClientManagementSystem {
       nftTokenId: Math.floor(Math.random() * 1000000).toString(),
       gasUsed: Math.floor(Math.random() * 100000) + 50000,
       gasPrice: Math.floor(Math.random() * 50) + 20, // Gwei
-      blockNumber: Math.floor(Math.random() * 1000000) + 18000000
+      blockNumber: Math.floor(Math.random() * 1000000) + 18000000,
     };
 
     return mockResponse;
@@ -731,8 +735,8 @@ export class ClientManagementSystem {
       planDistribution: {
         starter: clients.filter(c => c.planId === 'starter').length,
         professional: clients.filter(c => c.planId === 'professional').length,
-        enterprise: clients.filter(c => c.planId === 'enterprise').length
-      }
+        enterprise: clients.filter(c => c.planId === 'enterprise').length,
+      },
     };
   }
 }

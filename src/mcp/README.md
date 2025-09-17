@@ -21,16 +21,19 @@ The n8n MCP server provides seamless integration between Cursor IDE and n8n work
 ## Quick Start
 
 1. **Install dependencies**:
+
    ```bash
    npm install @modelcontextprotocol/sdk axios commander chalk ora
    ```
 
 2. **Run the setup script**:
+
    ```bash
    node scripts/setup-n8n-mcp.js
    ```
 
 3. **Configure environment variables in `.env`**:
+
    ```
    N8N_BASE_URL=http://localhost:5678
    N8N_API_KEY=your_api_key_here
@@ -38,11 +41,13 @@ The n8n MCP server provides seamless integration between Cursor IDE and n8n work
    ```
 
 4. **Build the MCP server**:
+
    ```bash
    npm run build:n8n-mcp
    ```
 
 5. **Test the connection**:
+
    ```bash
    npm run test:n8n-mcp
    ```

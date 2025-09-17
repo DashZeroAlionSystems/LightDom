@@ -175,12 +175,12 @@ export class HeadlessChromeError extends Error {
 
 // Event types
 export interface HeadlessChromeEvents {
-  'browserDisconnected': () => void;
-  'pageCreated': (pageId: string) => void;
-  'pageClosed': (pageId: string) => void;
-  'navigationStarted': (pageId: string, url: string) => void;
-  'navigationCompleted': (pageId: string, url: string) => void;
-  'error': (error: HeadlessChromeError) => void;
+  browserDisconnected: () => void;
+  pageCreated: (pageId: string) => void;
+  pageClosed: (pageId: string) => void;
+  navigationStarted: (pageId: string, url: string) => void;
+  navigationCompleted: (pageId: string, url: string) => void;
+  error: (error: HeadlessChromeError) => void;
 }
 
 // API Response types

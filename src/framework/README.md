@@ -5,6 +5,7 @@ A comprehensive, independent DOM optimization framework that runs continuously t
 ## 🚀 Features
 
 ### Core Framework
+
 - **Independent Execution**: Runs independently from mined sites on LightDom coin URLs
 - **Continuous Optimization**: Automatically processes URLs and optimizes DOM space
 - **Real-time Simulation**: Continuously runs simulations to optimize the network
@@ -12,6 +13,7 @@ A comprehensive, independent DOM optimization framework that runs continuously t
 - **Metaverse Integration**: Generates virtual assets from optimization rewards
 
 ### URL Queue Management
+
 - **Priority-based Processing**: High, medium, and low priority queues
 - **Retry Logic**: Automatic retry with exponential backoff
 - **Batch Processing**: Process multiple URLs simultaneously
@@ -19,6 +21,7 @@ A comprehensive, independent DOM optimization framework that runs continuously t
 - **Queue Monitoring**: Real-time queue status and metrics
 
 ### Optimization Perks
+
 - **E-commerce**: Product image optimization, checkout flow optimization, SEO enhancement
 - **Blogs**: Content optimization, reading experience, social media integration
 - **Corporate**: Professional branding, analytics integration, security compliance
@@ -27,6 +30,7 @@ A comprehensive, independent DOM optimization framework that runs continuously t
 - **Social**: Social optimization, analytics tracking, engagement metrics
 
 ### Simulation Engine
+
 - **Network Optimization**: Continuous optimization of node distribution
 - **Token Economics**: Dynamic token distribution based on network performance
 - **Load Balancing**: Automatic load balancing across optimization nodes
@@ -34,6 +38,7 @@ A comprehensive, independent DOM optimization framework that runs continuously t
 - **Recommendations**: AI-powered optimization recommendations
 
 ### API Gateway
+
 - **RESTful API**: Complete REST API for external integration
 - **Webhook Support**: Real-time webhook notifications
 - **Rate Limiting**: Built-in rate limiting and security
@@ -41,6 +46,7 @@ A comprehensive, independent DOM optimization framework that runs continuously t
 - **Metrics Endpoint**: Comprehensive metrics and monitoring
 
 ### Deployment System
+
 - **Docker Support**: Containerized deployment with Docker
 - **Kubernetes**: Full Kubernetes deployment manifests
 - **Auto-scaling**: Automatic scaling based on load
@@ -96,11 +102,7 @@ import { quickStart, frameworkRunner } from './src/framework';
 const runner = await quickStart();
 
 // Add URL to queue
-const queueId = await frameworkRunner.addURL(
-  'https://example.com',
-  'high',
-  'ecommerce'
-);
+const queueId = await frameworkRunner.addURL('https://example.com', 'high', 'ecommerce');
 
 // Get framework status
 const status = frameworkRunner.getStatus();
@@ -121,7 +123,7 @@ import { MonitoringDashboard } from './src/framework/MonitoringDashboard';
 
 function App() {
   return (
-    <div className="App">
+    <div className='App'>
       <MonitoringDashboard />
     </div>
   );
@@ -145,7 +147,7 @@ const config = {
     maxConcurrentOptimizations: 10,
     enableMetrics: true,
     enableWebhook: true,
-    webhookUrl: 'https://your-webhook-url.com'
+    webhookUrl: 'https://your-webhook-url.com',
   },
   queue: {
     maxRetries: 3,
@@ -154,7 +156,7 @@ const config = {
     priorityWeights: { high: 3, medium: 2, low: 1 },
     enableAutoRetry: true,
     enableBatchProcessing: true,
-    maxQueueSize: 1000
+    maxQueueSize: 1000,
   },
   simulation: {
     enabled: true,
@@ -164,7 +166,7 @@ const config = {
     enableTokenOptimization: true,
     enableNodeScaling: true,
     enableLoadBalancing: true,
-    simulationDepth: 'medium'
+    simulationDepth: 'medium',
   },
   api: {
     port: 3000,
@@ -176,19 +178,21 @@ const config = {
     enableMetrics: true,
     enableSwagger: true,
     apiVersion: 'v1',
-    basePath: '/api'
-  }
+    basePath: '/api',
+  },
 };
 ```
 
 ## 📊 API Endpoints
 
 ### Health & Status
+
 - `GET /health` - Health check
 - `GET /api/v1/status` - Framework status
 - `GET /api/v1/metrics` - Comprehensive metrics
 
 ### URL Queue Management
+
 - `POST /api/v1/queue/urls` - Add URL to queue
 - `GET /api/v1/queue/status` - Get queue status
 - `GET /api/v1/queue/items` - Get queue items
@@ -197,55 +201,65 @@ const config = {
 - `DELETE /api/v1/queue/clear` - Clear entire queue
 
 ### Optimization Management
+
 - `GET /api/v1/optimizations` - Get optimizations
 - `GET /api/v1/optimizations/:id` - Get specific optimization
 - `GET /api/v1/optimizations/stats` - Get optimization statistics
 
 ### Node Management
+
 - `GET /api/v1/nodes` - Get nodes
 - `GET /api/v1/nodes/:id` - Get specific node
 - `GET /api/v1/nodes/stats` - Get node statistics
 - `POST /api/v1/nodes/scale` - Scale nodes
 
 ### Simulation Control
+
 - `GET /api/v1/simulation/status` - Get simulation status
 - `POST /api/v1/simulation/run` - Run simulation
 - `GET /api/v1/simulation/history` - Get simulation history
 - `GET /api/v1/simulation/recommendations` - Get recommendations
 
 ### Optimization Perks
+
 - `GET /api/v1/perks` - Get all optimization perks
 - `GET /api/v1/perks/:siteType` - Get perks by site type
 
 ## 🎯 Optimization Perks by Site Type
 
 ### E-commerce Sites
+
 - **Product Image Optimization**: Automatic compression and WebP conversion
 - **Checkout Flow Optimization**: Streamlined checkout process
 - **SEO Enhancement**: Automatic meta tag optimization
 - **Security Headers**: Automatic security header implementation
 
 ### Blog Sites
+
 - **Content Optimization**: Automatic text compression and lazy loading
 - **Reading Experience**: Optimized typography and spacing
 - **Social Media Integration**: Optimized social sharing buttons
 
 ### Corporate Sites
+
 - **Professional Branding**: Consistent branding and color optimization
 - **Analytics Integration**: Advanced analytics and monitoring
 - **Security Compliance**: GDPR compliance and security hardening
 
 ### Portfolio Sites
+
 - **Image Optimization**: Automatic image compression and optimization
 - **Portfolio Showcase**: Optimized portfolio presentation
 - **SEO Optimization**: Enhanced search engine visibility
 
 ### News Sites
+
 - **Content Optimization**: Optimized news content delivery
 - **News SEO**: Specialized SEO for news content
 - **Social Integration**: Enhanced social media sharing
 
 ### Social Sites
+
 - **Social Optimization**: Optimized social media features
 - **Analytics Tracking**: Advanced engagement metrics
 - **Performance Optimization**: Enhanced social media performance
@@ -326,6 +340,7 @@ LIGHTDOM_REDIS_PASSWORD=password
 ## 📈 Monitoring & Metrics
 
 ### Built-in Metrics
+
 - **Framework Metrics**: Uptime, memory usage, CPU usage
 - **Queue Metrics**: Success rate, processing rate, average processing time
 - **Simulation Metrics**: Network efficiency, health trend, recommendations
@@ -333,7 +348,9 @@ LIGHTDOM_REDIS_PASSWORD=password
 - **Optimization Metrics**: Total space saved, tokens distributed, success rate
 
 ### Monitoring Dashboard
+
 The framework includes a React-based monitoring dashboard that provides:
+
 - Real-time metrics visualization
 - Queue management interface
 - Simulation control panel
@@ -341,6 +358,7 @@ The framework includes a React-based monitoring dashboard that provides:
 - Quick action buttons
 
 ### Health Checks
+
 - **Liveness Probe**: `/health` endpoint for container health checks
 - **Readiness Probe**: Framework readiness for traffic
 - **Metrics Endpoint**: `/api/v1/metrics` for monitoring systems
@@ -394,9 +412,9 @@ const newSiteType = {
       description: 'Optimize game assets and resources',
       value: '40% faster loading',
       category: 'performance',
-      tier: 'premium'
-    }
-  ]
+      tier: 'premium',
+    },
+  ],
 };
 
 lightDomFramework.optimizationPerks.set('gaming', newSiteType);
@@ -417,6 +435,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support
 
 For support and questions:
+
 - Create an issue on GitHub
 - Check the documentation
 - Join our Discord community
@@ -425,6 +444,7 @@ For support and questions:
 ## 🔮 Roadmap
 
 ### Phase 1 (Current)
+
 - ✅ Core framework implementation
 - ✅ URL queue management
 - ✅ Simulation engine
@@ -432,12 +452,14 @@ For support and questions:
 - ✅ Basic monitoring
 
 ### Phase 2 (Next)
+
 - 🔄 Advanced AI optimization
 - 🔄 Machine learning recommendations
 - 🔄 Advanced analytics
 - 🔄 Mobile app integration
 
 ### Phase 3 (Future)
+
 - 🔮 Blockchain integration
 - 🔮 Decentralized optimization
 - 🔮 Cross-chain support

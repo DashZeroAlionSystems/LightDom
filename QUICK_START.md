@@ -3,6 +3,7 @@
 ## 🚀 **What We Built**
 
 A complete **LightDom Blockchain System** with:
+
 - **Headless Chrome Mining**: Runs blockchain in background browser
 - **Chrome Extension**: Real-time DOM optimization and mining
 - **User-Specific Notifications**: Only LightDom users get updates
@@ -34,11 +35,13 @@ LightDom/
 ## 🏃‍♂️ **Quick Start**
 
 ### **1. Install Dependencies**
+
 ```bash
 npm install
 ```
 
 ### **2. Start the Blockchain System**
+
 ```bash
 # Option 1: Start everything at once
 npm run blockchain
@@ -49,12 +52,14 @@ npm run dev          # Start frontend (in another terminal)
 ```
 
 ### **3. Install Chrome Extension**
+
 1. Open Chrome → `chrome://extensions/`
 2. Enable "Developer mode"
 3. Click "Load unpacked" → Select `extension/` folder
 4. Click the LightDom icon to start mining
 
 ### **4. Test the System**
+
 ```bash
 npm run test:blockchain
 ```
@@ -85,18 +90,21 @@ npm run build            # Build frontend
 ## 🔌 **Chrome Extension Features**
 
 ### **Mining Control**
+
 - Start/stop blockchain mining
 - Real-time statistics display
 - User address management
 - Mining session tracking
 
 ### **DOM Optimization**
+
 - Automatic website optimization
 - Space savings detection
 - Real-time notifications
 - Performance monitoring
 
 ### **Blockchain Integration**
+
 - Submit optimizations to blockchain
 - Earn DSH tokens for space saved
 - View mining rewards
@@ -105,6 +113,7 @@ npm run build            # Build frontend
 ## 📊 **Monitoring & Metrics**
 
 ### **Real-time Metrics**
+
 - **Network**: Nodes, latency, hash rate
 - **Mining**: Blocks mined, optimizations, space saved
 - **Users**: Active miners, sessions, retention
@@ -112,6 +121,7 @@ npm run build            # Build frontend
 - **Economic**: DSH tokens, transactions, gas usage
 
 ### **Monitoring Endpoints**
+
 ```bash
 # System metrics
 GET /api/metrics
@@ -129,12 +139,14 @@ GET /api/health/detailed
 ## 🔐 **User-Specific Notifications**
 
 ### **LightDom Users Only**
+
 - Notifications sent exclusively to blockchain participants
 - Real-time optimization alerts
 - Block mining notifications
 - Bridge chat updates
 
 ### **Custom Blockchain URLs**
+
 - Bridge chats: `/bridge/{bridgeId}`
 - Mining sessions: User-specific interfaces
 - Shareable links for collaboration
@@ -143,18 +155,21 @@ GET /api/health/detailed
 ## 🚀 **Advanced Features**
 
 ### **Headless Chrome Mining**
+
 - Runs blockchain in background
 - Advanced DOM analysis algorithms
 - Real-time optimization detection
 - Performance monitoring
 
 ### **Chrome Extension**
+
 - Manifest V3 compliant
 - Real-time DOM monitoring
 - User authentication
 - Cross-tab communication
 
 ### **Blockchain Integration**
+
 - Ethereum-compatible smart contracts
 - DSH token minting
 - On-chain optimization proofs
@@ -163,6 +178,7 @@ GET /api/health/detailed
 ## 🛠️ **Configuration**
 
 ### **Environment Variables**
+
 ```bash
 # Blockchain
 BLOCKCHAIN_URL=http://localhost:3001/blockchain
@@ -178,6 +194,7 @@ NODE_ENV=development
 ```
 
 ### **Extension Settings**
+
 - User address management
 - Mining preferences
 - Notification settings
@@ -186,6 +203,7 @@ NODE_ENV=development
 ## 🧪 **Testing**
 
 ### **Run Tests**
+
 ```bash
 # Test blockchain system
 npm run test:blockchain
@@ -197,6 +215,7 @@ npm run test:blockchain
 ```
 
 ### **Manual Testing**
+
 1. Start the system: `npm run blockchain`
 2. Install Chrome extension
 3. Visit any website
@@ -206,12 +225,14 @@ npm run test:blockchain
 ## 📈 **Performance**
 
 ### **Optimization Features**
+
 - Efficient DOM analysis
 - Minimal memory footprint
 - Fast response times
 - Scalable architecture
 
 ### **Monitoring**
+
 - Real-time performance metrics
 - Resource usage tracking
 - Error rate monitoring
@@ -220,12 +241,14 @@ npm run test:blockchain
 ## 🆘 **Troubleshooting**
 
 ### **Common Issues**
+
 1. **Extension not loading**: Check Chrome developer mode
 2. **API not starting**: Check port 3001 availability
 3. **Database errors**: Verify PostgreSQL connection
 4. **Mining not working**: Check user address setup
 
 ### **Debug Mode**
+
 ```bash
 # Enable Chrome devtools
 CHROME_DEVTOOLS=true npm run blockchain
@@ -251,6 +274,6 @@ DEBUG=* npm run api
 
 ---
 
-**🎉 You're ready to mine the LightDom blockchain!** 
+**🎉 You're ready to mine the LightDom blockchain!**
 
 Start with `npm run blockchain` and install the Chrome extension to begin mining DOM optimizations and earning DSH tokens! ⚡

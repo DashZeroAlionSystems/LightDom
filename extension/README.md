@@ -7,6 +7,7 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
 ## 🚀 New Features
 
 ### 1. Side Panel API Integration
+
 - **File**: `sidepanel.html`, `sidepanel.js`
 - **Purpose**: Enhanced user interface with dedicated dashboard
 - **Features**:
@@ -16,6 +17,7 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
   - Interactive controls for mining management
 
 ### 2. Enhanced Storage API
+
 - **File**: `storage-manager.js`
 - **Purpose**: Advanced data management with multiple storage types
 - **Features**:
@@ -25,6 +27,7 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
   - Performance data caching
 
 ### 3. Offscreen Documents API
+
 - **File**: `offscreen.html`, `offscreen-analyzer.js`
 - **Purpose**: Heavy DOM analysis without blocking main thread
 - **Features**:
@@ -34,6 +37,7 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
   - Batch processing capabilities
 
 ### 4. Declarative Net Request API
+
 - **File**: `declarative-rules.json`, `declarative-net-request-manager.js`
 - **Purpose**: Resource blocking and optimization
 - **Features**:
@@ -43,6 +47,7 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
   - Performance monitoring
 
 ### 5. Enhanced User Interface
+
 - **File**: `options.html`, `options.js`
 - **Purpose**: Comprehensive configuration interface
 - **Features**:
@@ -54,21 +59,23 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
 ## 📋 API Permissions
 
 ### New Permissions Added
+
 ```json
 {
   "permissions": [
-    "sidePanel",           // Side panel interface
-    "offscreen",           // Offscreen document creation
+    "sidePanel", // Side panel interface
+    "offscreen", // Offscreen document creation
     "declarativeNetRequest", // Resource blocking
     "declarativeNetRequestFeedback", // Rule feedback
-    "userScripts",         // User script injection
-    "contextMenus",        // Context menu integration
-    "alarms"              // Scheduled tasks
+    "userScripts", // User script injection
+    "contextMenus", // Context menu integration
+    "alarms" // Scheduled tasks
   ]
 }
 ```
 
 ### Enhanced Host Permissions
+
 - Full web access for comprehensive DOM analysis
 - Local development server access
 - File system access for configuration
@@ -76,18 +83,21 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
 ## 🔧 Configuration
 
 ### Manifest V3 Features
+
 - **Side Panel**: Default dashboard interface
 - **Declarative Rules**: Static resource blocking rules
 - **Commands**: Keyboard shortcuts for common actions
 - **Options Page**: Advanced configuration interface
 
 ### Keyboard Shortcuts
+
 - `Ctrl+Shift+L` (Windows) / `Cmd+Shift+L` (Mac): Toggle mining
 - `Ctrl+Shift+D` (Windows) / `Cmd+Shift+D` (Mac): Open side panel
 
 ## 🎯 Optimization Features
 
 ### DOM Analysis
+
 1. **Unused Element Detection**
    - Hidden elements (display: none, visibility: hidden)
    - Zero-dimension elements
@@ -104,6 +114,7 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
    - Loading optimization
 
 ### Resource Blocking
+
 1. **Ad Blocking**
    - Advertisement scripts and stylesheets
    - Banner images
@@ -122,6 +133,7 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
 ## 📊 Performance Monitoring
 
 ### Metrics Collected
+
 - Total DOM optimizations performed
 - Space saved across all optimizations
 - Blocks mined in blockchain network
@@ -129,6 +141,7 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
 - Analysis performance metrics
 
 ### Real-time Updates
+
 - Live statistics in side panel
 - Performance charts and visualizations
 - Optimization history tracking
@@ -137,12 +150,14 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
 ## 🔐 Security Features
 
 ### Data Protection
+
 - Secure storage of user credentials
 - Encrypted communication with blockchain
 - Privacy-focused optimization (no data collection)
 - User consent for all operations
 
 ### Enterprise Features
+
 - Managed storage for enterprise deployments
 - Policy-based rule enforcement
 - Audit trail capabilities
@@ -151,12 +166,14 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
 ## 🚀 Installation & Setup
 
 ### Development Installation
+
 1. Clone the repository
 2. Navigate to `chrome://extensions/`
 3. Enable "Developer mode"
 4. Click "Load unpacked" and select the extension directory
 
 ### Production Deployment
+
 1. Package the extension using Chrome Web Store tools
 2. Submit for review with required documentation
 3. Configure enterprise policies if needed
@@ -164,12 +181,14 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
 ## 📈 Performance Benefits
 
 ### Before Enhancement
+
 - Basic popup interface
 - Limited DOM analysis
 - No resource blocking
 - Simple storage management
 
 ### After Enhancement
+
 - Rich side panel dashboard
 - Comprehensive DOM analysis
 - Advanced resource blocking
@@ -179,12 +198,14 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
 ## 🔄 Migration from v1.0
 
 ### Backward Compatibility
+
 - All v1.0 features maintained
 - Existing user data preserved
 - Gradual feature adoption
 - Configuration migration support
 
 ### New User Onboarding
+
 - Enhanced setup wizard
 - Performance optimization guides
 - Interactive tutorials
@@ -193,6 +214,7 @@ This document outlines the advanced Chrome Extensions APIs integrated into the L
 ## 🛠️ Development
 
 ### File Structure
+
 ```
 extension/
 ├── manifest.json                    # Enhanced manifest with new APIs
@@ -209,6 +231,7 @@ extension/
 ```
 
 ### Key Classes
+
 - `LightDomSidePanel`: Side panel dashboard management
 - `LightDomStorageManager`: Enhanced storage operations
 - `LightDomOffscreenAnalyzer`: Heavy DOM analysis
@@ -218,17 +241,19 @@ extension/
 ## 📝 API Usage Examples
 
 ### Side Panel Integration
+
 ```javascript
 // Open side panel programmatically
 await chrome.sidePanel.open({ windowId: windowId });
 
 // Configure side panel behavior
-await chrome.sidePanel.setPanelBehavior({ 
-  openPanelOnActionClick: true 
+await chrome.sidePanel.setPanelBehavior({
+  openPanelOnActionClick: true,
 });
 ```
 
 ### Storage Management
+
 ```javascript
 // Enhanced storage operations
 await lightDomStorage.setUserAddress(address);
@@ -237,29 +262,32 @@ await lightDomStorage.addOptimization(optimization);
 ```
 
 ### Offscreen Analysis
+
 ```javascript
 // Heavy DOM analysis in offscreen document
 const result = await chrome.runtime.sendMessage({
   type: 'ANALYZE_DOM',
-  data: domData
+  data: domData,
 });
 ```
 
 ### Declarative Net Request
+
 ```javascript
 // Add custom blocking rule
 await chrome.runtime.sendMessage({
   type: 'ADD_DECLARATIVE_RULE',
   rule: {
     action: { type: 'block' },
-    condition: { urlFilter: '*ads*' }
-  }
+    condition: { urlFilter: '*ads*' },
+  },
 });
 ```
 
 ## 🎯 Future Enhancements
 
 ### Planned Features
+
 - Machine learning-based optimization
 - Advanced performance analytics
 - Cloud synchronization
@@ -267,6 +295,7 @@ await chrome.runtime.sendMessage({
 - API for third-party integrations
 
 ### Chrome API Adoption
+
 - User Scripts API for community rules
 - Enhanced notifications
 - Advanced context menus
@@ -275,11 +304,13 @@ await chrome.runtime.sendMessage({
 ## 📞 Support
 
 ### Documentation
+
 - [Chrome Extensions API Documentation](https://developer.chrome.com/docs/extensions)
 - [Manifest V3 Migration Guide](https://developer.chrome.com/docs/extensions/migrating)
 - [Side Panel API Guide](https://developer.chrome.com/docs/extensions/reference/sidePanel)
 
 ### Community
+
 - GitHub Issues for bug reports
 - Discord community for discussions
 - Documentation contributions welcome

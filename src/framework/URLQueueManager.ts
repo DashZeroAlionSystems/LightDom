@@ -48,7 +48,7 @@ export class URLQueueManager extends EventEmitter {
       enableAutoRetry: true,
       enableBatchProcessing: true,
       maxQueueSize: 1000,
-      ...config
+      ...config,
     };
 
     this.metrics = {
@@ -57,7 +57,7 @@ export class URLQueueManager extends EventEmitter {
       averageProcessingTime: 0,
       successRate: 0,
       queueLength: 0,
-      processingRate: 0
+      processingRate: 0,
     };
   }
 
@@ -85,15 +85,15 @@ export class URLQueueManager extends EventEmitter {
       maxRetries: this.config.maxRetries,
       siteType,
       expectedOptimization: this.calculateExpectedOptimization(siteType),
-      ...metadata
+      ...metadata,
     };
 
     this.queue.set(queueItem.id, queueItem);
     this.updateMetrics();
-    
+
     this.emit('urlAdded', queueItem);
     console.log(`📝 Added URL to queue: ${url} (Priority: ${priority}, Type: ${siteType})`);
-    
+
     return queueItem.id;
   }
 
@@ -109,21 +109,16 @@ export class URLQueueManager extends EventEmitter {
     }>
   ): string[] {
     const addedIds: string[] = [];
-    
+
     for (const urlData of urls) {
       try {
-        const id = this.addURL(
-          urlData.url,
-          urlData.priority,
-          urlData.siteType,
-          urlData.metadata
-        );
+        const id = this.addURL(urlData.url, urlData.priority, urlData.siteType, urlData.metadata);
         addedIds.push(id);
       } catch (error) {
         console.error(`Failed to add URL ${urlData.url}:`, error);
       }
     }
-    
+
     this.emit('batchAdded', { count: addedIds.length, ids: addedIds });
     return addedIds;
   }
@@ -168,7 +163,7 @@ export class URLQueueManager extends EventEmitter {
     item.status = 'processing';
     this.processing.add(itemId);
     this.updateMetrics();
-    
+
     this.emit('processingStarted', item);
     return true;
   }
@@ -184,18 +179,18 @@ export class URLQueueManager extends EventEmitter {
 
     const processingTime = Date.now() - item.addedAt;
     this.processingTimes.push(processingTime);
-    
+
     item.status = 'completed';
     item.processedAt = Date.now();
     item.optimizationResult = result;
-    
+
     this.processing.delete(itemId);
     this.completed.set(itemId, item);
     this.queue.delete(itemId);
-    
+
     this.updateMetrics();
     this.emit('processingCompleted', { item, result, processingTime });
-    
+
     return true;
   }
 
@@ -211,9 +206,9 @@ export class URLQueueManager extends EventEmitter {
     item.status = 'failed';
     item.error = error;
     item.retryCount++;
-    
+
     this.processing.delete(itemId);
-    
+
     // Auto-retry if enabled and under max retries
     if (this.config.enableAutoRetry && item.retryCount < item.maxRetries) {
       setTimeout(() => {
@@ -225,10 +220,10 @@ export class URLQueueManager extends EventEmitter {
       this.failed.set(itemId, item);
       this.queue.delete(itemId);
     }
-    
+
     this.updateMetrics();
     this.emit('processingFailed', { item, error });
-    
+
     return true;
   }
 
@@ -244,7 +239,7 @@ export class URLQueueManager extends EventEmitter {
     this.queue.delete(itemId);
     this.processing.delete(itemId);
     this.updateMetrics();
-    
+
     this.emit('itemRemoved', item);
     return true;
   }
@@ -256,7 +251,7 @@ export class URLQueueManager extends EventEmitter {
     const count = this.completed.size;
     this.completed.clear();
     this.updateMetrics();
-    
+
     this.emit('completedCleared', { count });
     return count;
   }
@@ -268,7 +263,7 @@ export class URLQueueManager extends EventEmitter {
     const count = this.failed.size;
     this.failed.clear();
     this.updateMetrics();
-    
+
     this.emit('failedCleared', { count });
     return count;
   }
@@ -286,11 +281,11 @@ export class URLQueueManager extends EventEmitter {
     item.retryCount = 0;
     item.error = undefined;
     item.addedAt = Date.now();
-    
+
     this.failed.delete(itemId);
     this.queue.set(itemId, item);
     this.updateMetrics();
-    
+
     this.emit('itemRetried', item);
     return true;
   }
@@ -309,7 +304,7 @@ export class URLQueueManager extends EventEmitter {
   } {
     const pending = Array.from(this.queue.values()).filter(item => item.status === 'pending');
     const processing = Array.from(this.queue.values()).filter(item => item.status === 'processing');
-    
+
     return {
       pending: pending.length,
       processing: processing.length,
@@ -319,12 +314,15 @@ export class URLQueueManager extends EventEmitter {
       byPriority: {
         high: pending.filter(item => item.priority === 'high').length,
         medium: pending.filter(item => item.priority === 'medium').length,
-        low: pending.filter(item => item.priority === 'low').length
+        low: pending.filter(item => item.priority === 'low').length,
       },
-      bySiteType: pending.reduce((acc, item) => {
-        acc[item.siteType] = (acc[item.siteType] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
+      bySiteType: pending.reduce(
+        (acc, item) => {
+          acc[item.siteType] = (acc[item.siteType] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
     };
   }
 
@@ -349,7 +347,7 @@ export class URLQueueManager extends EventEmitter {
     return [
       ...Array.from(this.queue.values()),
       ...Array.from(this.completed.values()),
-      ...Array.from(this.failed.values())
+      ...Array.from(this.failed.values()),
     ];
   }
 
@@ -375,16 +373,14 @@ export class URLQueueManager extends EventEmitter {
    * Get items by priority
    */
   getItemsByPriority(priority: 'high' | 'medium' | 'low'): URLQueueItem[] {
-    return Array.from(this.queue.values())
-      .filter(item => item.priority === priority);
+    return Array.from(this.queue.values()).filter(item => item.priority === priority);
   }
 
   /**
    * Get items by site type
    */
   getItemsBySiteType(siteType: string): URLQueueItem[] {
-    return Array.from(this.queue.values())
-      .filter(item => item.siteType === siteType);
+    return Array.from(this.queue.values()).filter(item => item.siteType === siteType);
   }
 
   /**
@@ -392,8 +388,7 @@ export class URLQueueManager extends EventEmitter {
    */
   searchItems(pattern: string | RegExp): URLQueueItem[] {
     const regex = pattern instanceof RegExp ? pattern : new RegExp(pattern, 'i');
-    return Array.from(this.queue.values())
-      .filter(item => regex.test(item.url));
+    return Array.from(this.queue.values()).filter(item => regex.test(item.url));
   }
 
   /**
@@ -409,14 +404,14 @@ export class URLQueueManager extends EventEmitter {
   } {
     const allItems = this.getAllItems();
     const pendingItems = this.getItemsByStatus('pending');
-    
+
     return {
       totalItems: allItems.length,
       successRate: this.metrics.successRate,
       averageProcessingTime: this.metrics.averageProcessingTime,
       processingRate: this.metrics.processingRate,
       oldestPendingItem: pendingItems.sort((a, b) => a.addedAt - b.addedAt)[0],
-      newestPendingItem: pendingItems.sort((a, b) => b.addedAt - a.addedAt)[0]
+      newestPendingItem: pendingItems.sort((a, b) => b.addedAt - a.addedAt)[0],
     };
   }
 
@@ -433,14 +428,14 @@ export class URLQueueManager extends EventEmitter {
    */
   clear(): void {
     const totalItems = this.queue.size + this.completed.size + this.failed.size;
-    
+
     this.queue.clear();
     this.processing.clear();
     this.completed.clear();
     this.failed.clear();
     this.processingTimes = [];
     this.updateMetrics();
-    
+
     this.emit('queueCleared', { totalItems });
   }
 
@@ -451,11 +446,11 @@ export class URLQueueManager extends EventEmitter {
     const priorityOrder = { high: 3, medium: 2, low: 1 };
     const aPriority = priorityOrder[a.priority];
     const bPriority = priorityOrder[b.priority];
-    
+
     if (aPriority !== bPriority) {
       return bPriority - aPriority; // Higher priority first
     }
-    
+
     return a.addedAt - b.addedAt; // FIFO within same priority
   };
 
@@ -467,38 +462,38 @@ export class URLQueueManager extends EventEmitter {
       ecommerce: {
         type: ['performance', 'seo', 'security'],
         estimatedSavings: 150,
-        perks: ['image_optimization', 'checkout_optimization', 'seo_enhancement']
+        perks: ['image_optimization', 'checkout_optimization', 'seo_enhancement'],
       },
       blog: {
         type: ['performance', 'seo'],
         estimatedSavings: 80,
-        perks: ['content_optimization', 'reading_experience', 'social_sharing']
+        perks: ['content_optimization', 'reading_experience', 'social_sharing'],
       },
       corporate: {
         type: ['performance', 'security', 'analytics'],
         estimatedSavings: 120,
-        perks: ['professional_branding', 'analytics_integration', 'security_compliance']
+        perks: ['professional_branding', 'analytics_integration', 'security_compliance'],
       },
       portfolio: {
         type: ['performance', 'seo'],
         estimatedSavings: 60,
-        perks: ['image_optimization', 'portfolio_showcase', 'seo_optimization']
+        perks: ['image_optimization', 'portfolio_showcase', 'seo_optimization'],
       },
       news: {
         type: ['performance', 'seo'],
         estimatedSavings: 100,
-        perks: ['content_optimization', 'news_seo', 'social_integration']
+        perks: ['content_optimization', 'news_seo', 'social_integration'],
       },
       social: {
         type: ['performance', 'analytics'],
         estimatedSavings: 200,
-        perks: ['social_optimization', 'analytics_tracking', 'engagement_metrics']
+        perks: ['social_optimization', 'analytics_tracking', 'engagement_metrics'],
       },
       other: {
         type: ['performance'],
         estimatedSavings: 50,
-        perks: ['basic_optimization']
-      }
+        perks: ['basic_optimization'],
+      },
     };
 
     return optimizationMap[siteType] || optimizationMap.other;
@@ -518,18 +513,22 @@ export class URLQueueManager extends EventEmitter {
     const totalProcessed = this.completed.size;
     const totalFailed = this.failed.size;
     const total = totalProcessed + totalFailed;
-    
+
     this.metrics = {
       totalProcessed,
       totalFailed,
-      averageProcessingTime: this.processingTimes.length > 0 
-        ? this.processingTimes.reduce((sum, time) => sum + time, 0) / this.processingTimes.length 
-        : 0,
+      averageProcessingTime:
+        this.processingTimes.length > 0
+          ? this.processingTimes.reduce((sum, time) => sum + time, 0) / this.processingTimes.length
+          : 0,
       successRate: total > 0 ? (totalProcessed / total) * 100 : 0,
       queueLength: this.queue.size,
-      processingRate: this.processingTimes.length > 0 
-        ? this.processingTimes.length / (Date.now() - Math.min(...this.processingTimes)) * 1000 * 60 // per minute
-        : 0
+      processingRate:
+        this.processingTimes.length > 0
+          ? (this.processingTimes.length / (Date.now() - Math.min(...this.processingTimes))) *
+            1000 *
+            60 // per minute
+          : 0,
     };
   }
 }

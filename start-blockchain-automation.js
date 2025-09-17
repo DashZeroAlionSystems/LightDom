@@ -23,37 +23,37 @@ const config = {
     rpcUrl: process.env.BLOCKCHAIN_RPC_URL || 'http://localhost:8545',
     privateKey: process.env.BLOCKCHAIN_PRIVATE_KEY || '',
     gasPrice: process.env.BLOCKCHAIN_GAS_PRICE || '20000000000',
-    gasLimit: parseInt(process.env.BLOCKCHAIN_GAS_LIMIT || '500000')
+    gasLimit: parseInt(process.env.BLOCKCHAIN_GAS_LIMIT || '500000'),
   },
   automation: {
     enabled: process.env.AUTOMATION_ENABLED !== 'false',
     maxConcurrency: parseInt(process.env.AUTOMATION_MAX_CONCURRENCY || '10'),
     retryAttempts: parseInt(process.env.AUTOMATION_RETRY_ATTEMPTS || '3'),
-    timeout: parseInt(process.env.AUTOMATION_TIMEOUT || '30000')
+    timeout: parseInt(process.env.AUTOMATION_TIMEOUT || '30000'),
   },
   monitoring: {
     enabled: process.env.MONITORING_ENABLED !== 'false',
     interval: parseInt(process.env.MONITORING_INTERVAL || '30000'),
     metrics: process.env.MONITORING_METRICS !== 'false',
-    alerts: process.env.MONITORING_ALERTS !== 'false'
+    alerts: process.env.MONITORING_ALERTS !== 'false',
   },
   scaling: {
     enabled: process.env.SCALING_ENABLED !== 'false',
     autoScale: process.env.SCALING_AUTO_SCALE !== 'false',
     minNodes: parseInt(process.env.SCALING_MIN_NODES || '1'),
-    maxNodes: parseInt(process.env.SCALING_MAX_NODES || '10')
+    maxNodes: parseInt(process.env.SCALING_MAX_NODES || '10'),
   },
   projects: {
     loadOnStartup: process.env.PROJECTS_LOAD_ON_STARTUP !== 'false',
     autoStart: process.env.PROJECTS_AUTO_START !== 'false',
-    maxConcurrent: parseInt(process.env.PROJECTS_MAX_CONCURRENT || '5')
+    maxConcurrent: parseInt(process.env.PROJECTS_MAX_CONCURRENT || '5'),
   },
   security: {
     enabled: process.env.SECURITY_ENABLED !== 'false',
     encryption: process.env.SECURITY_ENCRYPTION !== 'false',
     authentication: process.env.SECURITY_AUTHENTICATION !== 'false',
-    rateLimiting: process.env.SECURITY_RATE_LIMITING !== 'false'
-  }
+    rateLimiting: process.env.SECURITY_RATE_LIMITING !== 'false',
+  },
 };
 
 // Global variables
@@ -76,22 +76,21 @@ async function main() {
   try {
     console.log('🚀 Starting LightDom Blockchain Automation System...');
     console.log('================================================');
-    
+
     // Display configuration
     displayConfiguration();
-    
+
     // Create and start orchestrator
     orchestrator = new BlockchainStartupOrchestrator(config);
-    
+
     // Setup event listeners
     setupEventListeners(orchestrator);
-    
+
     // Start the system
     await orchestrator.start();
-    
+
     // Keep the process running
     await keepAlive();
-    
   } catch (error) {
     console.error('❌ Fatal error during startup:', error);
     process.exit(1);
@@ -118,34 +117,39 @@ function displayConfiguration() {
  * Setup event listeners
  */
 function setupEventListeners(orchestrator) {
-  orchestrator.on('startupStarted', (status) => {
+  orchestrator.on('startupStarted', status => {
     console.log(`🔄 Startup started: ${status.message}`);
   });
-  
-  orchestrator.on('statusUpdate', (status) => {
+
+  orchestrator.on('statusUpdate', status => {
     console.log(`📊 [${status.progress}%] ${status.message}`);
   });
-  
-  orchestrator.on('componentAdded', (component) => {
+
+  orchestrator.on('componentAdded', component => {
     console.log(`➕ Component added: ${component.name}`);
   });
-  
-  orchestrator.on('componentUpdated', (component) => {
-    const status = component.status === 'running' ? '✅' : 
-                 component.status === 'error' ? '❌' : 
-                 component.status === 'starting' ? '🔄' : '⏸️';
+
+  orchestrator.on('componentUpdated', component => {
+    const status =
+      component.status === 'running'
+        ? '✅'
+        : component.status === 'error'
+          ? '❌'
+          : component.status === 'starting'
+            ? '🔄'
+            : '⏸️';
     console.log(`${status} ${component.name}: ${component.message}`);
   });
-  
-  orchestrator.on('error', (error) => {
+
+  orchestrator.on('error', error => {
     console.error(`❌ Error in ${error.component}: ${error.error}`);
   });
-  
-  orchestrator.on('startupCompleted', (status) => {
+
+  orchestrator.on('startupCompleted', status => {
     console.log('\n🎉 Blockchain system startup completed!');
     console.log(`⏱️ Total startup time: ${status.readyTime - status.startTime}ms`);
   });
-  
+
   orchestrator.on('startupFailed', ({ status, error }) => {
     console.error('\n❌ Blockchain system startup failed!');
     console.error('Error:', error.message);
@@ -158,21 +162,27 @@ function setupEventListeners(orchestrator) {
  */
 async function keepAlive() {
   console.log('\n🔄 System is running. Press Ctrl+C to stop.');
-  
+
   // Health check interval
   setInterval(async () => {
     if (orchestrator && !isShuttingDown) {
       const health = orchestrator.getSystemHealth();
       if (!health.healthy) {
         console.warn('⚠️ System health check failed');
-        console.warn('Components:', health.components.map(c => `${c.name}: ${c.status}`));
-        console.warn('Errors:', health.errors.map(e => `${e.component}: ${e.error}`));
+        console.warn(
+          'Components:',
+          health.components.map(c => `${c.name}: ${c.status}`)
+        );
+        console.warn(
+          'Errors:',
+          health.errors.map(e => `${e.component}: ${e.error}`)
+        );
       }
     }
   }, 60000); // Check every minute
-  
+
   // Keep the process running
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     // This promise never resolves, keeping the process alive
     // The process will be terminated by signal handlers
   });
@@ -186,18 +196,17 @@ async function handleShutdown(signal) {
     console.log('\n⚠️ Shutdown already in progress...');
     return;
   }
-  
+
   isShuttingDown = true;
   console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`);
-  
+
   try {
     if (orchestrator) {
       await orchestrator.shutdown();
     }
-    
+
     console.log('✅ Shutdown completed successfully');
     process.exit(0);
-    
   } catch (error) {
     console.error('❌ Error during shutdown:', error);
     process.exit(1);
@@ -209,15 +218,18 @@ async function handleShutdown(signal) {
  */
 function handleError(error) {
   console.error('❌ Unhandled error:', error);
-  
+
   if (orchestrator && !isShuttingDown) {
     console.log('🔄 Attempting graceful shutdown...');
-    orchestrator.shutdown().then(() => {
-      process.exit(1);
-    }).catch((shutdownError) => {
-      console.error('❌ Error during emergency shutdown:', shutdownError);
-      process.exit(1);
-    });
+    orchestrator
+      .shutdown()
+      .then(() => {
+        process.exit(1);
+      })
+      .catch(shutdownError => {
+        console.error('❌ Error during emergency shutdown:', shutdownError);
+        process.exit(1);
+      });
   } else {
     process.exit(1);
   }
@@ -303,7 +315,7 @@ if (args.includes('--dry-run')) {
 }
 
 // Start the application
-main().catch((error) => {
+main().catch(error => {
   console.error('❌ Fatal error:', error);
   process.exit(1);
 });

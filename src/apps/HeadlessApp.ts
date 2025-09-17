@@ -111,7 +111,7 @@ export class HeadlessApp extends EventEmitter {
   constructor(config?: Partial<HeadlessAppConfig>, features?: Partial<AdvancedFeatures>) {
     super();
     this.logger = new Logger('HeadlessApp');
-    
+
     this.config = {
       headless: 'new',
       devtools: false,
@@ -120,9 +120,10 @@ export class HeadlessApp extends EventEmitter {
       viewport: {
         width: 1920,
         height: 1080,
-        deviceScaleFactor: 1
+        deviceScaleFactor: 1,
       },
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -159,9 +160,9 @@ export class HeadlessApp extends EventEmitter {
         '--disable-print-preview',
         '--disable-speech-api',
         '--disable-blink-features=AutomationControlled',
-        '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       ],
-      ...config
+      ...config,
     };
 
     this.features = {
@@ -171,7 +172,7 @@ export class HeadlessApp extends EventEmitter {
       securityAudit: true,
       visualTesting: true,
       mobileEmulation: false,
-      ...features
+      ...features,
     };
   }
 
@@ -188,7 +189,7 @@ export class HeadlessApp extends EventEmitter {
         slowMo: this.config.slowMo,
         args: this.config.args,
         ignoreDefaultArgs: ['--enable-automation'],
-        defaultViewport: this.config.viewport
+        defaultViewport: this.config.viewport,
       };
 
       this.browser = await puppeteer.launch(launchOptions);
@@ -203,7 +204,6 @@ export class HeadlessApp extends EventEmitter {
         this.isInitialized = false;
         this.emit('disconnected');
       });
-
     } catch (error) {
       this.logger.error('Failed to initialize HeadlessApp:', error);
       throw error;
@@ -220,22 +220,22 @@ export class HeadlessApp extends EventEmitter {
 
     try {
       const page = await this.browser.newPage();
-      
+
       // Set viewport
       await page.setViewport(this.config.viewport);
-      
+
       // Set user agent
       await page.setUserAgent(this.config.userAgent);
-      
+
       // Enable advanced features
       if (this.features.performanceTracing) {
         await this.enablePerformanceTracing(page);
       }
-      
+
       if (this.features.networkInterception) {
         await this.enableNetworkInterception(page);
       }
-      
+
       if (this.features.accessibilityTesting) {
         await this.enableAccessibilityTesting(page);
       }
@@ -246,7 +246,7 @@ export class HeadlessApp extends EventEmitter {
 
       this.pages.set(pageId, page);
       this.logger.info(`Page ${pageId} created with advanced features`);
-      
+
       this.emit('pageCreated', pageId);
       return page;
     } catch (error) {
@@ -266,18 +266,18 @@ export class HeadlessApp extends EventEmitter {
 
     try {
       this.logger.info(`Navigating to ${url}`);
-      
+
       const navigationOptions = {
         waitUntil: 'networkidle2' as const,
         timeout: this.config.timeout,
-        ...options
+        ...options,
       };
 
       await page.goto(url, navigationOptions);
-      
+
       // Wait for page to be fully loaded
       await page.waitForLoadState?.('networkidle');
-      
+
       this.logger.info(`Successfully navigated to ${url}`);
       this.emit('navigationCompleted', pageId, url);
     } catch (error) {
@@ -291,38 +291,38 @@ export class HeadlessApp extends EventEmitter {
    */
   async runComprehensiveTest(url: string, pageId?: string): Promise<TestResult> {
     const testPageId = pageId || `test_${Date.now()}`;
-    
+
     try {
       this.logger.info(`Starting comprehensive test for ${url}`);
-      
+
       // Create page if not provided
       if (!pageId) {
         await this.createPage(testPageId);
       }
-      
+
       // Navigate to URL
       await this.navigateToPage(testPageId, url);
-      
+
       const page = this.pages.get(testPageId)!;
       const cdpSession = this.cdpSessions.get(testPageId)!;
-      
+
       // Run all tests in parallel
-      const [
-        performance,
-        accessibility,
-        security,
-        visual,
-        network
-      ] = await Promise.all([
+      const [performance, accessibility, security, visual, network] = await Promise.all([
         this.testPerformance(page, cdpSession),
         this.testAccessibility(page, cdpSession),
         this.testSecurity(page, cdpSession),
         this.testVisual(page, cdpSession),
-        this.testNetwork(page, cdpSession)
+        this.testNetwork(page, cdpSession),
       ]);
 
       // Calculate overall score
-      const scores = [performance.score, accessibility.score, security.score, visual.score, network.score];
+      const scores = [
+        performance.score,
+        accessibility.score,
+        security.score,
+        visual.score,
+        network.score,
+      ];
       const overallScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
 
       const result: TestResult = {
@@ -335,12 +335,12 @@ export class HeadlessApp extends EventEmitter {
         network,
         errors: [],
         warnings: [],
-        score: Math.round(overallScore)
+        score: Math.round(overallScore),
       };
 
       this.logger.info(`Comprehensive test completed for ${url} - Score: ${result.score}`);
       this.emit('testCompleted', result);
-      
+
       return result;
     } catch (error) {
       this.logger.error(`Comprehensive test failed for ${url}:`, error);
@@ -351,7 +351,10 @@ export class HeadlessApp extends EventEmitter {
   /**
    * Test performance metrics
    */
-  private async testPerformance(page: Page, cdpSession: CDPSession): Promise<{ score: number; metrics: PerformanceMetrics }> {
+  private async testPerformance(
+    page: Page,
+    cdpSession: CDPSession
+  ): Promise<{ score: number; metrics: PerformanceMetrics }> {
     try {
       // Enable performance domain
       await cdpSession.send('Performance.enable');
@@ -360,17 +363,25 @@ export class HeadlessApp extends EventEmitter {
       // Get performance metrics
       const metrics = await page.metrics();
       const performanceEntries = await page.evaluate(() => {
-        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        const navigation = performance.getEntriesByType(
+          'navigation'
+        )[0] as PerformanceNavigationTiming;
         const paintEntries = performance.getEntriesByType('paint');
-        
+
         return {
           domContentLoaded: navigation.domContentLoadedEventEnd - navigation.navigationStart,
           loadComplete: navigation.loadEventEnd - navigation.navigationStart,
           firstPaint: paintEntries.find(entry => entry.name === 'first-paint')?.startTime || 0,
-          firstContentfulPaint: paintEntries.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0,
-          largestContentfulPaint: performance.getEntriesByType('largest-contentful-paint')[0]?.startTime || 0,
-          cumulativeLayoutShift: performance.getEntriesByType('layout-shift').reduce((sum, entry) => sum + entry.value, 0),
-          totalBlockingTime: performance.getEntriesByType('longtask').reduce((sum, entry) => sum + entry.duration, 0)
+          firstContentfulPaint:
+            paintEntries.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0,
+          largestContentfulPaint:
+            performance.getEntriesByType('largest-contentful-paint')[0]?.startTime || 0,
+          cumulativeLayoutShift: performance
+            .getEntriesByType('layout-shift')
+            .reduce((sum, entry) => sum + entry.value, 0),
+          totalBlockingTime: performance
+            .getEntriesByType('longtask')
+            .reduce((sum, entry) => sum + entry.duration, 0),
         };
       });
 
@@ -384,7 +395,7 @@ export class HeadlessApp extends EventEmitter {
 
       return {
         score: Math.max(0, score),
-        metrics: performanceEntries
+        metrics: performanceEntries,
       };
     } catch (error) {
       this.logger.error('Performance test failed:', error);
@@ -395,19 +406,22 @@ export class HeadlessApp extends EventEmitter {
   /**
    * Test accessibility
    */
-  private async testAccessibility(page: Page, cdpSession: CDPSession): Promise<AccessibilityResult> {
+  private async testAccessibility(
+    page: Page,
+    cdpSession: CDPSession
+  ): Promise<AccessibilityResult> {
     try {
       // Enable accessibility domain
       await cdpSession.send('Accessibility.enable');
-      
+
       // Get accessibility tree
       const accessibilityTree = await cdpSession.send('Accessibility.getFullAXTree');
-      
+
       // Run accessibility audit
       const auditResult = await page.evaluate(() => {
         // Basic accessibility checks
         const violations = [];
-        
+
         // Check for missing alt text
         const images = document.querySelectorAll('img');
         images.forEach((img, index) => {
@@ -418,7 +432,7 @@ export class HeadlessApp extends EventEmitter {
               description: 'Image missing alt text',
               help: 'Add alt text to images for screen readers',
               nodes: [img.outerHTML],
-              tags: ['wcag2a', 'wcag111', 'section508']
+              tags: ['wcag2a', 'wcag111', 'section508'],
             });
           }
         });
@@ -432,21 +446,25 @@ export class HeadlessApp extends EventEmitter {
             description: 'Page missing heading structure',
             help: 'Add heading elements to structure content',
             nodes: ['<body>'],
-            tags: ['wcag2a', 'wcag141']
+            tags: ['wcag2a', 'wcag141'],
           });
         }
 
         // Check for form labels
         const inputs = document.querySelectorAll('input, textarea, select');
         inputs.forEach((input, index) => {
-          if (!input.getAttribute('aria-label') && !input.getAttribute('aria-labelledby') && !input.closest('label')) {
+          if (
+            !input.getAttribute('aria-label') &&
+            !input.getAttribute('aria-labelledby') &&
+            !input.closest('label')
+          ) {
             violations.push({
               id: `missing-label-${index}`,
               impact: 'serious',
               description: 'Form control missing label',
               help: 'Add labels or aria-labels to form controls',
               nodes: [input.outerHTML],
-              tags: ['wcag2a', 'wcag111', 'section508']
+              tags: ['wcag2a', 'wcag111', 'section508'],
             });
           }
         });
@@ -455,8 +473,8 @@ export class HeadlessApp extends EventEmitter {
       });
 
       // Calculate accessibility score
-      const score = Math.max(0, 100 - (auditResult.length * 10));
-      
+      const score = Math.max(0, 100 - auditResult.length * 10);
+
       return {
         score,
         violations: auditResult,
@@ -465,9 +483,9 @@ export class HeadlessApp extends EventEmitter {
           'Ensure proper heading hierarchy',
           'Add labels to all form controls',
           'Use semantic HTML elements',
-          'Ensure sufficient color contrast'
+          'Ensure sufficient color contrast',
         ],
-        wcagLevel: 'AA'
+        wcagLevel: 'AA',
       };
     } catch (error) {
       this.logger.error('Accessibility test failed:', error);
@@ -475,7 +493,7 @@ export class HeadlessApp extends EventEmitter {
         score: 0,
         violations: [],
         recommendations: [],
-        wcagLevel: 'AA'
+        wcagLevel: 'AA',
       };
     }
   }
@@ -487,10 +505,10 @@ export class HeadlessApp extends EventEmitter {
     try {
       // Enable security domain
       await cdpSession.send('Security.enable');
-      
+
       const securityAudit = await page.evaluate(() => {
         const vulnerabilities = [];
-        
+
         // Check HTTPS
         if (location.protocol !== 'https:') {
           vulnerabilities.push({
@@ -498,19 +516,21 @@ export class HeadlessApp extends EventEmitter {
             severity: 'high',
             description: 'Site not using HTTPS',
             url: location.href,
-            recommendation: 'Enable HTTPS for secure communication'
+            recommendation: 'Enable HTTPS for secure communication',
           });
         }
 
         // Check for mixed content
-        const mixedContent = document.querySelectorAll('img[src^="http:"], script[src^="http:"], link[href^="http:"]');
+        const mixedContent = document.querySelectorAll(
+          'img[src^="http:"], script[src^="http:"], link[href^="http:"]'
+        );
         if (mixedContent.length > 0) {
           vulnerabilities.push({
             type: 'mixed-content',
             severity: 'medium',
             description: 'Mixed content detected',
             url: location.href,
-            recommendation: 'Use HTTPS for all resources'
+            recommendation: 'Use HTTPS for all resources',
           });
         }
 
@@ -522,7 +542,7 @@ export class HeadlessApp extends EventEmitter {
             severity: 'medium',
             description: 'Content Security Policy not implemented',
             url: location.href,
-            recommendation: 'Implement CSP to prevent XSS attacks'
+            recommendation: 'Implement CSP to prevent XSS attacks',
           });
         }
 
@@ -530,8 +550,8 @@ export class HeadlessApp extends EventEmitter {
       });
 
       // Calculate security score
-      const score = Math.max(0, 100 - (securityAudit.length * 20));
-      
+      const score = Math.max(0, 100 - securityAudit.length * 20);
+
       return {
         score,
         vulnerabilities: securityAudit,
@@ -540,11 +560,11 @@ export class HeadlessApp extends EventEmitter {
           'Implement Content Security Policy',
           'Use secure headers',
           'Regular security audits',
-          'Keep dependencies updated'
+          'Keep dependencies updated',
         ],
         httpsStatus: location.protocol === 'https:',
         mixedContent: securityAudit.some(v => v.type === 'mixed-content'),
-        cspStatus: !!document.querySelector('meta[http-equiv="Content-Security-Policy"]')
+        cspStatus: !!document.querySelector('meta[http-equiv="Content-Security-Policy"]'),
       };
     } catch (error) {
       this.logger.error('Security test failed:', error);
@@ -554,7 +574,7 @@ export class HeadlessApp extends EventEmitter {
         recommendations: [],
         httpsStatus: false,
         mixedContent: false,
-        cspStatus: false
+        cspStatus: false,
       };
     }
   }
@@ -574,12 +594,13 @@ export class HeadlessApp extends EventEmitter {
         const responsiveDesign = !!viewport;
 
         // Check mobile-friendly elements
-        const mobileFriendly = viewport && viewport.getAttribute('content')?.includes('width=device-width');
+        const mobileFriendly =
+          viewport && viewport.getAttribute('content')?.includes('width=device-width');
 
         return {
           layoutShift: cumulativeLayoutShift,
           responsiveDesign,
-          mobileFriendly: !!mobileFriendly
+          mobileFriendly: !!mobileFriendly,
         };
       });
 
@@ -595,7 +616,7 @@ export class HeadlessApp extends EventEmitter {
         colorContrast: 85, // Placeholder - would need actual color analysis
         fontReadability: 90, // Placeholder - would need font analysis
         responsiveDesign: visualAudit.responsiveDesign,
-        mobileFriendly: visualAudit.mobileFriendly
+        mobileFriendly: visualAudit.mobileFriendly,
       };
     } catch (error) {
       this.logger.error('Visual test failed:', error);
@@ -605,7 +626,7 @@ export class HeadlessApp extends EventEmitter {
         colorContrast: 0,
         fontReadability: 0,
         responsiveDesign: false,
-        mobileFriendly: false
+        mobileFriendly: false,
       };
     }
   }
@@ -617,19 +638,21 @@ export class HeadlessApp extends EventEmitter {
     try {
       // Enable network domain
       await cdpSession.send('Network.enable');
-      
+
       const networkData = await page.evaluate(() => {
-        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        const navigation = performance.getEntriesByType(
+          'navigation'
+        )[0] as PerformanceNavigationTiming;
         const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
-        
+
         const resourceTypes: Record<string, number> = {};
         const slowRequests: any[] = [];
         const failedRequests: any[] = [];
-        
+
         resources.forEach(resource => {
           const type = resource.initiatorType || 'other';
           resourceTypes[type] = (resourceTypes[type] || 0) + 1;
-          
+
           if (resource.duration > 1000) {
             slowRequests.push({
               url: resource.name,
@@ -637,10 +660,10 @@ export class HeadlessApp extends EventEmitter {
               status: 200,
               size: resource.transferSize || 0,
               duration: resource.duration,
-              type: type
+              type: type,
             });
           }
-          
+
           if (resource.transferSize === 0 && resource.duration > 100) {
             failedRequests.push({
               url: resource.name,
@@ -648,7 +671,7 @@ export class HeadlessApp extends EventEmitter {
               status: 0,
               size: 0,
               duration: resource.duration,
-              type: type
+              type: type,
             });
           }
         });
@@ -659,7 +682,7 @@ export class HeadlessApp extends EventEmitter {
           loadTime: navigation.loadEventEnd - navigation.navigationStart,
           slowRequests,
           failedRequests,
-          resourceTypes
+          resourceTypes,
         };
       });
 
@@ -669,7 +692,7 @@ export class HeadlessApp extends EventEmitter {
         loadTime: networkData.loadTime,
         slowRequests: networkData.slowRequests,
         failedRequests: networkData.failedRequests,
-        resourceTypes: networkData.resourceTypes
+        resourceTypes: networkData.resourceTypes,
       };
     } catch (error) {
       this.logger.error('Network test failed:', error);
@@ -679,7 +702,7 @@ export class HeadlessApp extends EventEmitter {
         loadTime: 0,
         slowRequests: [],
         failedRequests: [],
-        resourceTypes: {}
+        resourceTypes: {},
       };
     }
   }
@@ -704,14 +727,14 @@ export class HeadlessApp extends EventEmitter {
   private async enableNetworkInterception(page: Page): Promise<void> {
     try {
       await page.setRequestInterception(true);
-      
-      page.on('request', (request) => {
+
+      page.on('request', request => {
         // Log requests for monitoring
         this.logger.debug(`Request: ${request.method()} ${request.url()}`);
         request.continue();
       });
 
-      page.on('response', (response) => {
+      page.on('response', response => {
         // Log responses for monitoring
         this.logger.debug(`Response: ${response.status()} ${response.url()}`);
       });
@@ -749,7 +772,7 @@ export class HeadlessApp extends EventEmitter {
         fullPage: true,
         type: 'png' as const,
         quality: 90,
-        ...options
+        ...options,
       };
 
       const screenshot = await page.screenshot(screenshotOptions);
@@ -778,9 +801,9 @@ export class HeadlessApp extends EventEmitter {
           top: '1cm',
           right: '1cm',
           bottom: '1cm',
-          left: '1cm'
+          left: '1cm',
         },
-        ...options
+        ...options,
       };
 
       const pdf = await page.pdf(pdfOptions);
@@ -804,7 +827,7 @@ export class HeadlessApp extends EventEmitter {
     try {
       await page.close();
       this.pages.delete(pageId);
-      
+
       const cdpSession = this.cdpSessions.get(pageId);
       if (cdpSession) {
         await cdpSession.detach();
@@ -828,7 +851,7 @@ export class HeadlessApp extends EventEmitter {
       activePages: this.pages.size,
       config: this.config,
       features: this.features,
-      browserConnected: !!this.browser
+      browserConnected: !!this.browser,
     };
   }
 

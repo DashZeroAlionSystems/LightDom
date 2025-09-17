@@ -1,6 +1,6 @@
 /**
  * Browserbase Integration Tests
- * 
+ *
  * Comprehensive test suite for Browserbase MCP server integration
  * with LightDom enhanced web crawling capabilities.
  */
@@ -11,7 +11,7 @@ const BrowserbaseService = require('../../src/services/BrowserbaseService.js');
 const EnhancedWebCrawlerService = require('../../src/services/EnhancedWebCrawlerService.js');
 const BrowserbaseAPI = require('../../src/api/BrowserbaseAPI.js');
 
-describe('Browserbase Integration Tests', function() {
+describe('Browserbase Integration Tests', function () {
   this.timeout(60000); // 60 seconds timeout for integration tests
 
   let browserbaseService;
@@ -19,7 +19,7 @@ describe('Browserbase Integration Tests', function() {
   let browserbaseAPI;
   let testSession;
 
-  before(async function() {
+  before(async function () {
     // Skip tests if API keys are not configured
     if (!process.env.BROWSERBASE_API_KEY || !process.env.BROWSERBASE_PROJECT_ID) {
       console.log('⚠️  Skipping Browserbase tests - API keys not configured');
@@ -34,29 +34,29 @@ describe('Browserbase Integration Tests', function() {
       modelName: 'google/gemini-2.0-flash',
       proxies: false, // Disable for testing
       advancedStealth: false, // Disable for testing
-      keepAlive: false // Disable for testing
+      keepAlive: false, // Disable for testing
     });
 
     await browserbaseService.initialize();
   });
 
-  after(async function() {
+  after(async function () {
     if (browserbaseService) {
       await browserbaseService.disconnect();
     }
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     // Create a fresh test session for each test
     if (browserbaseService) {
       testSession = await browserbaseService.createSession({
         viewport: { width: 1280, height: 720 },
-        stealth: false
+        stealth: false,
       });
     }
   });
 
-  afterEach(async function() {
+  afterEach(async function () {
     // Clean up test session
     if (testSession && browserbaseService) {
       try {
@@ -67,13 +67,13 @@ describe('Browserbase Integration Tests', function() {
     }
   });
 
-  describe('BrowserbaseService', function() {
-    it('should initialize successfully', async function() {
+  describe('BrowserbaseService', function () {
+    it('should initialize successfully', async function () {
       expect(browserbaseService).to.exist;
       expect(browserbaseService.getStatus().connected).to.be.true;
     });
 
-    it('should create and manage sessions', async function() {
+    it('should create and manage sessions', async function () {
       expect(testSession).to.exist;
       expect(testSession.id).to.be.a('string');
       expect(testSession.isActive).to.be.true;
@@ -84,17 +84,14 @@ describe('Browserbase Integration Tests', function() {
       expect(sessions.length).to.be.greaterThan(0);
     });
 
-    it('should navigate to URLs', async function() {
-      const result = await browserbaseService.navigateToUrl(
-        testSession.id,
-        'https://example.com'
-      );
+    it('should navigate to URLs', async function () {
+      const result = await browserbaseService.navigateToUrl(testSession.id, 'https://example.com');
 
       expect(result.success).to.be.true;
       expect(result.message).to.be.a('string');
     });
 
-    it('should execute natural language instructions', async function() {
+    it('should execute natural language instructions', async function () {
       // First navigate to a page
       await browserbaseService.navigateToUrl(testSession.id, 'https://example.com');
 
@@ -108,21 +105,21 @@ describe('Browserbase Integration Tests', function() {
       expect(result.message).to.be.a('string');
     });
 
-    it('should capture screenshots', async function() {
+    it('should capture screenshots', async function () {
       // Navigate to a page first
       await browserbaseService.navigateToUrl(testSession.id, 'https://example.com');
 
       // Capture screenshot
       const screenshot = await browserbaseService.captureScreenshot(testSession.id, {
         fullPage: false,
-        format: 'png'
+        format: 'png',
       });
 
       expect(screenshot).to.be.instanceOf(Buffer);
       expect(screenshot.length).to.be.greaterThan(0);
     });
 
-    it('should extract data from pages', async function() {
+    it('should extract data from pages', async function () {
       // Navigate to a page first
       await browserbaseService.navigateToUrl(testSession.id, 'https://example.com');
 
@@ -130,7 +127,7 @@ describe('Browserbase Integration Tests', function() {
       const extractedData = await browserbaseService.extractData(testSession.id, {
         selectors: ['h1', 'p', 'title'],
         textContent: true,
-        attributes: ['href', 'src']
+        attributes: ['href', 'src'],
       });
 
       expect(extractedData).to.exist;
@@ -139,32 +136,33 @@ describe('Browserbase Integration Tests', function() {
       expect(extractedData.timestamp).to.be.instanceOf(Date);
     });
 
-    it('should handle session cleanup', async function() {
+    it('should handle session cleanup', async function () {
       const sessionId = testSession.id;
-      
+
       await browserbaseService.closeSession(sessionId);
-      
+
       const session = browserbaseService.getSession(sessionId);
       expect(session.isActive).to.be.false;
     });
   });
 
-  describe('Enhanced Web Crawler Service', function() {
-    beforeEach(function() {
+  describe('Enhanced Web Crawler Service', function () {
+    beforeEach(function () {
       // Mock the required services for testing
       const mockHeadlessService = {
         createPage: () => Promise.resolve({}),
         navigateToPage: () => Promise.resolve(),
         analyzeDOM: () => Promise.resolve({}),
         takeScreenshot: () => Promise.resolve(Buffer.from('mock')),
-        closePage: () => Promise.resolve()
+        closePage: () => Promise.resolve(),
       };
 
       const mockOptimizationEngine = {
-        analyzeOptimization: () => Promise.resolve({
-          spaceSavedBytes: 1000,
-          optimizations: []
-        })
+        analyzeOptimization: () =>
+          Promise.resolve({
+            spaceSavedBytes: 1000,
+            optimizations: [],
+          }),
       };
 
       enhancedCrawler = new EnhancedWebCrawlerService(
@@ -174,13 +172,13 @@ describe('Browserbase Integration Tests', function() {
       );
     });
 
-    it('should perform AI-powered crawling', async function() {
+    it('should perform AI-powered crawling', async function () {
       const result = await enhancedCrawler.crawlWebsiteWithAI('https://example.com', {
         useAI: true,
         aiInstructions: 'Extract the main heading and take a screenshot',
         extractWithAI: true,
         extractData: ['h1', 'title'],
-        takeScreenshot: true
+        takeScreenshot: true,
       });
 
       expect(result).to.exist;
@@ -191,12 +189,12 @@ describe('Browserbase Integration Tests', function() {
       expect(result.performanceMetrics).to.exist;
     });
 
-    it('should perform AI optimization analysis', async function() {
+    it('should perform AI optimization analysis', async function () {
       // First extract some data
       await browserbaseService.navigateToUrl(testSession.id, 'https://example.com');
       const extractedData = await browserbaseService.extractData(testSession.id, {
         selectors: ['html', 'head', 'body'],
-        textContent: true
+        textContent: true,
       });
 
       // Perform optimization analysis
@@ -215,7 +213,7 @@ describe('Browserbase Integration Tests', function() {
       expect(optimization.aiAnalysis).to.exist;
     });
 
-    it('should manage AI sessions', async function() {
+    it('should manage AI sessions', async function () {
       const activeSessions = enhancedCrawler.getActiveAISessions();
       expect(activeSessions).to.be.instanceOf(Map);
 
@@ -226,23 +224,25 @@ describe('Browserbase Integration Tests', function() {
     });
   });
 
-  describe('BrowserbaseAPI', function() {
-    beforeEach(function() {
+  describe('BrowserbaseAPI', function () {
+    beforeEach(function () {
       // Mock services for API testing
       const mockWebCrawlerService = {
-        crawlWebsite: () => Promise.resolve({
-          domAnalysis: {},
-          websiteData: {},
-          opportunities: [],
-          screenshot: Buffer.from('mock')
-        })
+        crawlWebsite: () =>
+          Promise.resolve({
+            domAnalysis: {},
+            websiteData: {},
+            opportunities: [],
+            screenshot: Buffer.from('mock'),
+          }),
       };
 
       const mockOptimizationEngine = {
-        analyzeOptimization: () => Promise.resolve({
-          spaceSavedBytes: 1000,
-          optimizations: []
-        })
+        analyzeOptimization: () =>
+          Promise.resolve({
+            spaceSavedBytes: 1000,
+            optimizations: [],
+          }),
       };
 
       browserbaseAPI = new BrowserbaseAPI(
@@ -252,74 +252,74 @@ describe('Browserbase Integration Tests', function() {
       );
     });
 
-    it('should create API endpoints', function() {
+    it('should create API endpoints', function () {
       expect(browserbaseAPI).to.exist;
       expect(browserbaseAPI.setupRoutes).to.be.a('function');
     });
 
-    it('should handle AI crawling requests', async function() {
+    it('should handle AI crawling requests', async function () {
       const mockReq = {
         body: {
           url: 'https://example.com',
           instructions: 'Extract the main content',
           options: {
             useAI: true,
-            takeScreenshot: true
-          }
-        }
+            takeScreenshot: true,
+          },
+        },
       };
 
       const mockRes = {
-        json: (data) => {
+        json: data => {
           expect(data.success).to.be.true;
           expect(data.data.url).to.equal('https://example.com');
           expect(data.data.instructions).to.equal('Extract the main content');
         },
-        status: (code) => ({
-          json: (data) => {
+        status: code => ({
+          json: data => {
             expect(code).to.equal(200);
             expect(data.success).to.be.true;
-          }
-        })
+          },
+        }),
       };
 
       await browserbaseAPI.crawlWithAI(mockReq, mockRes);
     });
 
-    it('should handle session management requests', async function() {
+    it('should handle session management requests', async function () {
       const mockReq = {
         body: {
           viewport: { width: 1280, height: 720 },
-          stealth: true
-        }
+          stealth: true,
+        },
       };
 
       const mockRes = {
-        json: (data) => {
+        json: data => {
           expect(data.success).to.be.true;
           expect(data.data.sessionId).to.be.a('string');
         },
-        status: (code) => ({
-          json: (data) => {
+        status: code => ({
+          json: data => {
             expect(code).to.equal(200);
             expect(data.success).to.be.true;
-          }
-        })
+          },
+        }),
       };
 
       await browserbaseAPI.createSession(mockReq, mockRes);
     });
   });
 
-  describe('Performance Tests', function() {
-    it('should handle concurrent sessions', async function() {
+  describe('Performance Tests', function () {
+    it('should handle concurrent sessions', async function () {
       const sessionPromises = [];
-      
+
       // Create multiple concurrent sessions
       for (let i = 0; i < 3; i++) {
         sessionPromises.push(
           browserbaseService.createSession({
-            viewport: { width: 1280, height: 720 }
+            viewport: { width: 1280, height: 720 },
           })
         );
       }
@@ -328,20 +328,18 @@ describe('Browserbase Integration Tests', function() {
       expect(sessions).to.have.length(3);
 
       // Clean up sessions
-      await Promise.all(
-        sessions.map(session => browserbaseService.closeSession(session.id))
-      );
+      await Promise.all(sessions.map(session => browserbaseService.closeSession(session.id)));
     });
 
-    it('should handle rapid operations', async function() {
+    it('should handle rapid operations', async function () {
       const startTime = Date.now();
-      
+
       // Perform multiple rapid operations
       await browserbaseService.navigateToUrl(testSession.id, 'https://example.com');
       await browserbaseService.captureScreenshot(testSession.id);
       await browserbaseService.extractData(testSession.id, {
         selectors: ['title'],
-        textContent: true
+        textContent: true,
       });
 
       const duration = Date.now() - startTime;
@@ -349,8 +347,8 @@ describe('Browserbase Integration Tests', function() {
     });
   });
 
-  describe('Error Handling', function() {
-    it('should handle invalid URLs gracefully', async function() {
+  describe('Error Handling', function () {
+    it('should handle invalid URLs gracefully', async function () {
       try {
         await browserbaseService.navigateToUrl(testSession.id, 'invalid-url');
         // Should not reach here
@@ -361,7 +359,7 @@ describe('Browserbase Integration Tests', function() {
       }
     });
 
-    it('should handle invalid session IDs', async function() {
+    it('should handle invalid session IDs', async function () {
       try {
         await browserbaseService.navigateToUrl('invalid-session-id', 'https://example.com');
         expect.fail('Should have thrown an error for invalid session ID');
@@ -371,11 +369,15 @@ describe('Browserbase Integration Tests', function() {
       }
     });
 
-    it('should handle network timeouts', async function() {
+    it('should handle network timeouts', async function () {
       try {
-        await browserbaseService.navigateToUrl(testSession.id, 'https://httpstat.us/200?sleep=10000', {
-          timeout: 5000
-        });
+        await browserbaseService.navigateToUrl(
+          testSession.id,
+          'https://httpstat.us/200?sleep=10000',
+          {
+            timeout: 5000,
+          }
+        );
         expect.fail('Should have thrown a timeout error');
       } catch (error) {
         expect(error).to.exist;

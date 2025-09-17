@@ -49,7 +49,7 @@ export class WebAuthnService {
     this.config = {
       timeout: 60000,
       challengeLength: 32,
-      ...config
+      ...config,
     };
     this.checkSupport();
   }
@@ -106,28 +106,23 @@ export class WebAuthnService {
     for (let i = 0; i < bytes.byteLength; i++) {
       binary += String.fromCharCode(bytes[i]);
     }
-    return btoa(binary)
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
   /**
    * Convert Base64URL to ArrayBuffer
    */
   private base64URLToArrayBuffer(base64URL: string): ArrayBuffer {
-    const base64 = base64URL
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
-    
-    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+    const base64 = base64URL.replace(/-/g, '+').replace(/_/g, '/');
+
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
     const binary = atob(padded);
-    
+
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }
-    
+
     return bytes.buffer;
   }
 
@@ -172,14 +167,14 @@ export class WebAuthnService {
         },
       };
 
-      const credential = await navigator.credentials.create(options) as PublicKeyCredential;
-      
+      const credential = (await navigator.credentials.create(options)) as PublicKeyCredential;
+
       if (!credential) {
         throw new Error('Failed to create credential');
       }
 
       const response = credential.response as AuthenticatorAttestationResponse;
-      
+
       const webAuthnCredential: WebAuthnCredential = {
         id: credential.id,
         type: credential.type,
@@ -189,7 +184,6 @@ export class WebAuthnService {
 
       this.logger.info('Passkey registered successfully');
       return webAuthnCredential;
-
     } catch (error) {
       this.logger.error('Failed to register passkey:', error);
       throw error;
@@ -208,29 +202,33 @@ export class WebAuthnService {
       this.logger.info('Authenticating with passkey');
 
       const challenge = this.generateChallenge();
-      
+
       const options: CredentialRequestOptions = {
         publicKey: {
           challenge,
           rpId: this.config.rpId,
           timeout: this.config.timeout,
           userVerification: 'required',
-          allowCredentials: credentialId ? [{
-            type: 'public-key',
-            id: this.base64URLToArrayBuffer(credentialId),
-            transports: ['internal'],
-          }] : undefined,
+          allowCredentials: credentialId
+            ? [
+                {
+                  type: 'public-key',
+                  id: this.base64URLToArrayBuffer(credentialId),
+                  transports: ['internal'],
+                },
+              ]
+            : undefined,
         },
       };
 
-      const credential = await navigator.credentials.get(options) as PublicKeyCredential;
-      
+      const credential = (await navigator.credentials.get(options)) as PublicKeyCredential;
+
       if (!credential) {
         throw new Error('Failed to get credential');
       }
 
       const response = credential.response as AuthenticatorAssertionResponse;
-      
+
       const webAuthnCredential: WebAuthnCredential = {
         id: credential.id,
         type: credential.type,
@@ -240,7 +238,6 @@ export class WebAuthnService {
 
       this.logger.info('Passkey authentication successful');
       return webAuthnCredential;
-
     } catch (error) {
       this.logger.error('Failed to authenticate with passkey:', error);
       throw error;

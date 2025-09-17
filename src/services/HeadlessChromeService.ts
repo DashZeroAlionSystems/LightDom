@@ -63,10 +63,10 @@ export class HeadlessChromeService extends EventEmitter {
           '--safebrowsing-disable-auto-update',
           '--disable-blink-features=AutomationControlled',
           '--disable-features=VizDisplayCompositor',
-          '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         ],
         ignoreDefaultArgs: ['--enable-automation'],
-        ...options
+        ...options,
       };
 
       this.browser = await puppeteer.launch(defaultOptions);
@@ -79,7 +79,6 @@ export class HeadlessChromeService extends EventEmitter {
         this.isInitialized = false;
         this.emit('browserDisconnected');
       });
-
     } catch (error) {
       this.logger.error('Failed to initialize headless Chrome:', error);
       throw error;
@@ -100,24 +99,27 @@ export class HeadlessChromeService extends EventEmitter {
 
     try {
       const page = await this.browser.newPage();
-      
+
       // Set viewport
       await page.setViewport({
         width: options.width || 1920,
         height: options.height || 1080,
         deviceScaleFactor: options.deviceScaleFactor || 1,
         isMobile: options.isMobile || false,
-        hasTouch: options.hasTouch || false
+        hasTouch: options.hasTouch || false,
       });
 
       // Set user agent
-      await page.setUserAgent(options.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+      await page.setUserAgent(
+        options.userAgent ||
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      );
 
       // Enable request interception for optimization
       await page.setRequestInterception(true);
 
       // Block unnecessary resources
-      page.on('request', (request) => {
+      page.on('request', request => {
         const resourceType = request.resourceType();
         const url = request.url();
 
@@ -148,16 +150,15 @@ export class HeadlessChromeService extends EventEmitter {
 
         // Mock permissions
         const originalQuery = window.navigator.permissions.query;
-        window.navigator.permissions.query = (parameters) => (
-          parameters.name === 'notifications' ?
-            Promise.resolve({ state: Notification.permission }) :
-            originalQuery(parameters)
-        );
+        window.navigator.permissions.query = parameters =>
+          parameters.name === 'notifications'
+            ? Promise.resolve({ state: Notification.permission })
+            : originalQuery(parameters);
       });
 
       this.pages.set(pageId, page);
       this.logger.info(`Page created with ID: ${pageId}`);
-      
+
       return page;
     } catch (error) {
       this.logger.error(`Failed to create page ${pageId}:`, error);
@@ -176,15 +177,15 @@ export class HeadlessChromeService extends EventEmitter {
 
     try {
       this.logger.info(`Navigating to: ${url}`);
-      
+
       const navigationPromise = page.waitForNavigation({
         waitUntil: options.waitUntil || 'networkidle2',
-        timeout: options.timeout || 30000
+        timeout: options.timeout || 30000,
       });
 
       await page.goto(url, {
         waitUntil: 'domcontentloaded',
-        timeout: options.timeout || 30000
+        timeout: options.timeout || 30000,
       });
 
       await navigationPromise;
@@ -230,7 +231,7 @@ export class HeadlessChromeService extends EventEmitter {
             return rect.width > 1920 || rect.height > 1080;
           }).length,
           lazyLoaded: Array.from(images).filter(img => img.loading === 'lazy').length,
-          webpSupported: Array.from(images).filter(img => img.src.includes('.webp')).length
+          webpSupported: Array.from(images).filter(img => img.src.includes('.webp')).length,
         };
 
         // Script analysis
@@ -239,7 +240,7 @@ export class HeadlessChromeService extends EventEmitter {
           inline: Array.from(scripts).filter(script => !script.src).length,
           external: Array.from(scripts).filter(script => script.src).length,
           async: Array.from(scripts).filter(script => script.async).length,
-          defer: Array.from(scripts).filter(script => script.defer).length
+          defer: Array.from(scripts).filter(script => script.defer).length,
         };
 
         // CSS analysis
@@ -247,29 +248,46 @@ export class HeadlessChromeService extends EventEmitter {
           stylesheets: stylesheets.length,
           inlineStyles: inlineStyles.length,
           unusedRules: 0, // Would need more complex analysis
-          criticalCSS: 0 // Would need more complex analysis
+          criticalCSS: 0, // Would need more complex analysis
         };
 
         // Performance metrics
         const performanceMetrics = {
-          domContentLoaded: performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart,
+          domContentLoaded:
+            performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart,
           loadComplete: performance.timing.loadEventEnd - performance.timing.navigationStart,
-          firstPaint: performance.getEntriesByType('paint').find(entry => entry.name === 'first-paint')?.startTime || 0,
-          firstContentfulPaint: performance.getEntriesByType('paint').find(entry => entry.name === 'first-contentful-paint')?.startTime || 0,
-          largestContentfulPaint: performance.getEntriesByType('largest-contentful-paint')[0]?.startTime || 0,
-          cumulativeLayoutShift: performance.getEntriesByType('layout-shift').reduce((sum, entry) => sum + entry.value, 0),
-          totalBlockingTime: performance.getEntriesByType('longtask').reduce((sum, entry) => sum + entry.duration, 0)
+          firstPaint:
+            performance.getEntriesByType('paint').find(entry => entry.name === 'first-paint')
+              ?.startTime || 0,
+          firstContentfulPaint:
+            performance
+              .getEntriesByType('paint')
+              .find(entry => entry.name === 'first-contentful-paint')?.startTime || 0,
+          largestContentfulPaint:
+            performance.getEntriesByType('largest-contentful-paint')[0]?.startTime || 0,
+          cumulativeLayoutShift: performance
+            .getEntriesByType('layout-shift')
+            .reduce((sum, entry) => sum + entry.value, 0),
+          totalBlockingTime: performance
+            .getEntriesByType('longtask')
+            .reduce((sum, entry) => sum + entry.duration, 0),
         };
 
         // Resource analysis
         const resources = performance.getEntriesByType('resource');
         const resourceAnalysis = {
           total: resources.length,
-          images: resources.filter(r => r.name.includes('.jpg') || r.name.includes('.png') || r.name.includes('.gif') || r.name.includes('.webp')).length,
+          images: resources.filter(
+            r =>
+              r.name.includes('.jpg') ||
+              r.name.includes('.png') ||
+              r.name.includes('.gif') ||
+              r.name.includes('.webp')
+          ).length,
           scripts: resources.filter(r => r.name.includes('.js')).length,
           stylesheets: resources.filter(r => r.name.includes('.css')).length,
           fonts: resources.filter(r => r.name.includes('.woff') || r.name.includes('.ttf')).length,
-          totalSize: resources.reduce((sum, r) => sum + (r.transferSize || 0), 0)
+          totalSize: resources.reduce((sum, r) => sum + (r.transferSize || 0), 0),
         };
 
         const endTime = performance.now();
@@ -282,7 +300,7 @@ export class HeadlessChromeService extends EventEmitter {
           performanceMetrics,
           resourceAnalysis,
           analysisTime: endTime - startTime,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       });
 
@@ -307,7 +325,7 @@ export class HeadlessChromeService extends EventEmitter {
       const screenshot = await page.screenshot({
         fullPage: true,
         type: 'png',
-        ...options
+        ...options,
       });
 
       this.logger.info(`Screenshot taken for page ${pageId}`);
@@ -335,9 +353,9 @@ export class HeadlessChromeService extends EventEmitter {
           top: '1cm',
           right: '1cm',
           bottom: '1cm',
-          left: '1cm'
+          left: '1cm',
         },
-        ...options
+        ...options,
       });
 
       this.logger.info(`PDF generated for page ${pageId}`);
@@ -423,7 +441,7 @@ export class HeadlessChromeService extends EventEmitter {
       isInitialized: this.isInitialized,
       activePages: this.pages.size,
       maxPages: this.maxPages,
-      browserConnected: this.browser?.isConnected() || false
+      browserConnected: this.browser?.isConnected() || false,
     };
   }
 
@@ -438,13 +456,14 @@ export class HeadlessChromeService extends EventEmitter {
       'doubleclick.net',
       'googlesyndication.com',
       'amazon-adsystem.com',
-      'adsystem.amazon.com'
+      'adsystem.amazon.com',
     ];
 
     const blockedTypes = ['image', 'media', 'font'];
-    
-    return blockedDomains.some(domain => url.includes(domain)) || 
-           blockedTypes.includes(resourceType);
+
+    return (
+      blockedDomains.some(domain => url.includes(domain)) || blockedTypes.includes(resourceType)
+    );
   }
 }
 

@@ -15,7 +15,7 @@ import {
   Alert,
   Spin,
   Empty,
-  Tooltip
+  Tooltip,
 } from 'antd';
 import {
   TrophyOutlined,
@@ -27,7 +27,7 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { Line, Bar, Pie } from '@ant-design/plots';
 import { useOptimization } from '../../hooks/useOptimization';
@@ -44,7 +44,11 @@ interface DashboardOverviewProps {
 
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
   const { user } = useAuth();
-  const { optimizationStats, recentOptimizations, loading: optimizationLoading } = useOptimization();
+  const {
+    optimizationStats,
+    recentOptimizations,
+    loading: optimizationLoading,
+  } = useOptimization();
   const { websites, loading: websitesLoading } = useWebsites();
   const { analytics, loading: analyticsLoading } = useAnalytics();
   const [timeRange, setTimeRange] = useState('7d');
@@ -68,12 +72,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
     { type: 'Other', value: 5, color: '#722ed1' },
   ];
 
-  const websiteOptimizationData = websites?.map(site => ({
-    website: site.domain,
-    beforeScore: site.beforeScore,
-    afterScore: site.afterScore,
-    improvement: site.afterScore - site.beforeScore,
-  })) || [];
+  const websiteOptimizationData =
+    websites?.map(site => ({
+      website: site.domain,
+      beforeScore: site.beforeScore,
+      afterScore: site.afterScore,
+      improvement: site.afterScore - site.beforeScore,
+    })) || [];
 
   const performanceConfig = {
     data: performanceData,
@@ -139,8 +144,8 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
 
   if (optimizationLoading || websitesLoading || analyticsLoading) {
     return (
-      <div className="dashboard-overview-loading">
-        <Spin size="large" />
+      <div className='dashboard-overview-loading'>
+        <Spin size='large' />
         <Text>Loading dashboard data...</Text>
       </div>
     );
@@ -149,23 +154,23 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
   return (
     <div className={`dashboard-overview ${className || ''}`}>
       {/* Welcome Section */}
-      <Card className="welcome-card" bordered={false}>
-        <Row align="middle" justify="space-between">
+      <Card className='welcome-card' bordered={false}>
+        <Row align='middle' justify='space-between'>
           <Col>
-            <Title level={2} className="welcome-title">
+            <Title level={2} className='welcome-title'>
               Welcome back, {user?.name}! 👋
             </Title>
-            <Paragraph className="welcome-subtitle">
+            <Paragraph className='welcome-subtitle'>
               Here's what's happening with your DOM optimizations today.
             </Paragraph>
           </Col>
           <Col>
             <Space>
-              <Button type="primary" size="large">
+              <Button type='primary' size='large'>
                 <OptimizationOutlined />
                 New Optimization
               </Button>
-              <Button size="large">
+              <Button size='large'>
                 <GlobalOutlined />
                 Add Website
               </Button>
@@ -175,112 +180,110 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
       </Card>
 
       {/* Key Metrics */}
-      <Row gutter={[24, 24]} className="metrics-row">
+      <Row gutter={[24, 24]} className='metrics-row'>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="metric-card">
+          <Card className='metric-card'>
             <Statistic
-              title="Total Websites"
+              title='Total Websites'
               value={optimizationStats?.totalWebsites || 0}
               prefix={<GlobalOutlined />}
               valueStyle={{ color: '#1890ff' }}
             />
-            <div className="metric-trend">
-              <ArrowUpOutlined className="trend-up" />
-              <Text type="secondary">+12% from last month</Text>
+            <div className='metric-trend'>
+              <ArrowUpOutlined className='trend-up' />
+              <Text type='secondary'>+12% from last month</Text>
             </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="metric-card">
+          <Card className='metric-card'>
             <Statistic
-              title="Average Score"
+              title='Average Score'
               value={optimizationStats?.averageScore || 0}
-              suffix="%"
+              suffix='%'
               prefix={<TrophyOutlined />}
               valueStyle={{ color: getScoreColor(optimizationStats?.averageScore || 0) }}
             />
-            <div className="metric-trend">
-              <ArrowUpOutlined className="trend-up" />
-              <Text type="secondary">+5% improvement</Text>
+            <div className='metric-trend'>
+              <ArrowUpOutlined className='trend-up' />
+              <Text type='secondary'>+5% improvement</Text>
             </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="metric-card">
+          <Card className='metric-card'>
             <Statistic
-              title="Tokens Earned"
+              title='Tokens Earned'
               value={optimizationStats?.tokensEarned || 0}
               prefix={<WalletOutlined />}
               valueStyle={{ color: '#52c41a' }}
             />
-            <div className="metric-trend">
-              <ArrowUpOutlined className="trend-up" />
-              <Text type="secondary">+8% this week</Text>
+            <div className='metric-trend'>
+              <ArrowUpOutlined className='trend-up' />
+              <Text type='secondary'>+8% this week</Text>
             </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="metric-card">
+          <Card className='metric-card'>
             <Statistic
-              title="Optimizations Today"
+              title='Optimizations Today'
               value={optimizationStats?.optimizationsToday || 0}
               prefix={<OptimizationOutlined />}
               valueStyle={{ color: '#faad14' }}
             />
-            <div className="metric-trend">
-              <ArrowUpOutlined className="trend-up" />
-              <Text type="secondary">+3 from yesterday</Text>
+            <div className='metric-trend'>
+              <ArrowUpOutlined className='trend-up' />
+              <Text type='secondary'>+3 from yesterday</Text>
             </div>
           </Card>
         </Col>
       </Row>
 
       {/* Charts Row */}
-      <Row gutter={[24, 24]} className="charts-row">
+      <Row gutter={[24, 24]} className='charts-row'>
         <Col xs={24} lg={16}>
-          <Card title="Performance Trends" className="chart-card">
+          <Card title='Performance Trends' className='chart-card'>
             <Line {...performanceConfig} />
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card title="Optimization Types" className="chart-card">
+          <Card title='Optimization Types' className='chart-card'>
             <Pie {...optimizationTypesConfig} />
           </Card>
         </Col>
       </Row>
 
       {/* Website Performance */}
-      <Row gutter={[24, 24]} className="websites-row">
+      <Row gutter={[24, 24]} className='websites-row'>
         <Col xs={24} lg={16}>
-          <Card title="Website Performance Comparison" className="chart-card">
+          <Card title='Website Performance Comparison' className='chart-card'>
             <Bar {...websiteComparisonConfig} />
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card title="Top Performing Websites" className="websites-list-card">
+          <Card title='Top Performing Websites' className='websites-list-card'>
             <List
               dataSource={websites?.slice(0, 5)}
-              renderItem={(website) => (
-                <List.Item className="website-item">
+              renderItem={website => (
+                <List.Item className='website-item'>
                   <List.Item.Meta
                     avatar={<Avatar icon={<GlobalOutlined />} />}
                     title={
-                      <div className="website-title">
+                      <div className='website-title'>
                         <Text strong>{website.domain}</Text>
-                        <Tag color={getScoreColor(website.afterScore)}>
-                          {website.afterScore}%
-                        </Tag>
+                        <Tag color={getScoreColor(website.afterScore)}>{website.afterScore}%</Tag>
                       </div>
                     }
                     description={
-                      <div className="website-description">
-                        <Text type="secondary">
+                      <div className='website-description'>
+                        <Text type='secondary'>
                           {website.afterScore - website.beforeScore > 0 ? '+' : ''}
                           {website.afterScore - website.beforeScore}% improvement
                         </Text>
                         <Progress
                           percent={website.afterScore}
-                          size="small"
+                          size='small'
                           strokeColor={getScoreColor(website.afterScore)}
                           showInfo={false}
                         />
@@ -295,9 +298,9 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
       </Row>
 
       {/* Recent Activity */}
-      <Row gutter={[24, 24]} className="activity-row">
+      <Row gutter={[24, 24]} className='activity-row'>
         <Col xs={24} lg={12}>
-          <Card title="Recent Optimizations" className="activity-card">
+          <Card title='Recent Optimizations' className='activity-card'>
             <Timeline>
               {recentOptimizations?.map((optimization, index) => (
                 <Timeline.Item
@@ -312,14 +315,14 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
                     )
                   }
                 >
-                  <div className="timeline-item">
+                  <div className='timeline-item'>
                     <Text strong>{optimization.website}</Text>
                     <br />
-                    <Text type="secondary">
+                    <Text type='secondary'>
                       {optimization.type} - {optimization.status}
                     </Text>
                     <br />
-                    <Text type="secondary" className="timeline-time">
+                    <Text type='secondary' className='timeline-time'>
                       {optimization.timestamp}
                     </Text>
                   </div>
@@ -329,21 +332,21 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card title="Quick Actions" className="quick-actions-card">
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <Button block size="large" type="primary">
+          <Card title='Quick Actions' className='quick-actions-card'>
+            <Space direction='vertical' size='middle' style={{ width: '100%' }}>
+              <Button block size='large' type='primary'>
                 <OptimizationOutlined />
                 Optimize New Website
               </Button>
-              <Button block size="large">
+              <Button block size='large'>
                 <GlobalOutlined />
                 View All Websites
               </Button>
-              <Button block size="large">
+              <Button block size='large'>
                 <BarChartOutlined />
                 View Analytics
               </Button>
-              <Button block size="large">
+              <Button block size='large'>
                 <WalletOutlined />
                 Manage Tokens
               </Button>
@@ -354,9 +357,9 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
 
       {/* Alerts and Notifications */}
       {optimizationStats?.alerts && optimizationStats.alerts.length > 0 && (
-        <Row gutter={[24, 24]} className="alerts-row">
+        <Row gutter={[24, 24]} className='alerts-row'>
           <Col span={24}>
-            <Card title="Important Alerts" className="alerts-card">
+            <Card title='Important Alerts' className='alerts-card'>
               {optimizationStats.alerts.map((alert, index) => (
                 <Alert
                   key={index}
@@ -365,11 +368,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
                   type={alert.type}
                   showIcon
                   action={
-                    <Button size="small" type="primary">
+                    <Button size='small' type='primary'>
                       View Details
                     </Button>
                   }
-                  className="alert-item"
+                  className='alert-item'
                 />
               ))}
             </Card>

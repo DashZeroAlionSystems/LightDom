@@ -12,6 +12,7 @@ This document outlines the continuous testing and improvement of the LightDom cu
 **New Rules**: Specific, measurable criteria with clear examples
 
 **Examples**:
+
 - ❌ Old: "Use TypeScript with strict type checking"
 - ✅ New: "Use TypeScript with strict mode enabled, noUnusedLocals: true, noUnusedParameters: true, noFallthroughCasesInSwitch: true"
 
@@ -51,6 +52,7 @@ Enhanced security requirements based on actual vulnerabilities found:
 ### 1. Code Quality Standards
 
 #### TypeScript/JavaScript
+
 ```typescript
 // ✅ Good: Strict typing with proper error handling
 interface UserData {
@@ -76,6 +78,7 @@ function fetchUser(id: any) {
 ```
 
 #### React/UI Development
+
 ```tsx
 // ✅ Good: Functional component with proper hooks and error boundary
 interface UserProfileProps {
@@ -114,7 +117,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ userId, onUpdate }) => {
 // ❌ Bad: Class component with poor state management
 class UserProfile extends React.Component {
   state = { user: null };
-  
+
   componentDidMount() {
     fetchUser(this.props.userId).then(user => {
       this.setState({ user });
@@ -138,26 +141,26 @@ contract SecureToken is ReentrancyGuard, Ownable {
     event TokensBurned(address indexed from, uint256 amount);
 
     mapping(address => uint256) private balances;
-    
+
     modifier validAmount(uint256 amount) {
         require(amount > 0, "Amount must be greater than zero");
         _;
     }
 
-    function mint(address to, uint256 amount) 
-        external 
-        onlyOwner 
-        nonReentrant 
-        validAmount(amount) 
+    function mint(address to, uint256 amount)
+        external
+        onlyOwner
+        nonReentrant
+        validAmount(amount)
     {
         balances[to] += amount;
         emit TokensMinted(to, amount);
     }
 
-    function burn(uint256 amount) 
-        external 
-        nonReentrant 
-        validAmount(amount) 
+    function burn(uint256 amount)
+        external
+        nonReentrant
+        validAmount(amount)
     {
         require(balances[msg.sender] >= amount, "Insufficient balance");
         balances[msg.sender] -= amount;
@@ -168,7 +171,7 @@ contract SecureToken is ReentrancyGuard, Ownable {
 // ❌ Bad: Insecure contract without proper guards
 contract InsecureToken {
     mapping(address => uint256) balances;
-    
+
     function mint(address to, uint256 amount) external {
         balances[to] += amount; // No access control, no reentrancy guard
     }
@@ -187,23 +190,26 @@ import { body, validationResult } from 'express-validator';
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP'
+  message: 'Too many requests from this IP',
 });
 
 const validateOptimizationRequest = [
   body('url').isURL().withMessage('Valid URL is required'),
   body('priority').isIn(['high', 'medium', 'low']).withMessage('Invalid priority'),
-  body('options').isObject().withMessage('Options must be an object')
+  body('options').isObject().withMessage('Options must be an object'),
 ];
 
 app.use(helmet());
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || false,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || false,
+    credentials: true,
+  })
+);
 app.use('/api/', limiter);
 
-app.post('/api/optimization/submit', 
+app.post(
+  '/api/optimization/submit',
   validateOptimizationRequest,
   authenticateToken,
   async (req, res) => {
@@ -212,7 +218,7 @@ app.post('/api/optimization/submit',
       if (!errors.isEmpty()) {
         return res.status(400).json({
           error: 'Validation failed',
-          details: errors.array()
+          details: errors.array(),
         });
       }
 

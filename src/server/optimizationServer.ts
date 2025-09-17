@@ -29,9 +29,9 @@ export class OptimizationServer {
     this.server = createServer(this.app);
     this.io = new SocketIOServer(this.server, {
       cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-      }
+        origin: '*',
+        methods: ['GET', 'POST'],
+      },
     });
 
     // Initialize database connection
@@ -67,10 +67,10 @@ export class OptimizationServer {
   private setupRoutes(): void {
     // Health check
     this.app.get('/health', (req, res) => {
-      res.json({ 
-        status: 'healthy', 
+      res.json({
+        status: 'healthy',
         timestamp: new Date().toISOString(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
       });
     });
 
@@ -277,12 +277,12 @@ export class OptimizationServer {
         res.json({
           success: true,
           data: { simulation },
-          message: 'Workflow simulation started'
+          message: 'Workflow simulation started',
         });
       } catch (error: any) {
         res.status(500).json({
           error: 'Internal server error',
-          message: error.message
+          message: error.message,
         });
       }
     });
@@ -292,12 +292,12 @@ export class OptimizationServer {
         userWorkflowSimulator.stopAllSimulations();
         res.json({
           success: true,
-          message: 'All simulations stopped'
+          message: 'All simulations stopped',
         });
       } catch (error: any) {
         res.status(500).json({
           error: 'Internal server error',
-          message: error.message
+          message: error.message,
         });
       }
     });
@@ -307,12 +307,12 @@ export class OptimizationServer {
         userWorkflowSimulator.stopAllSimulations();
         res.json({
           success: true,
-          message: 'Simulations reset'
+          message: 'Simulations reset',
         });
       } catch (error: any) {
         res.status(500).json({
           error: 'Internal server error',
-          message: error.message
+          message: error.message,
         });
       }
     });
@@ -323,12 +323,12 @@ export class OptimizationServer {
         const currentSimulation = simulations.find(s => s.status === 'running') || null;
         res.json({
           success: true,
-          data: { simulations, currentSimulation }
+          data: { simulations, currentSimulation },
         });
       } catch (error: any) {
         res.status(500).json({
           error: 'Internal server error',
-          message: error.message
+          message: error.message,
         });
       }
     });
@@ -338,12 +338,12 @@ export class OptimizationServer {
         const stats = userWorkflowSimulator.getSimulationStats();
         res.json({
           success: true,
-          data: { stats }
+          data: { stats },
         });
       } catch (error: any) {
         res.status(500).json({
           error: 'Internal server error',
-          message: error.message
+          message: error.message,
         });
       }
     });
@@ -353,12 +353,12 @@ export class OptimizationServer {
         const isRunning = userWorkflowSimulator.isSimulatorRunning();
         res.json({
           success: true,
-          data: { isRunning }
+          data: { isRunning },
         });
       } catch (error: any) {
         res.status(500).json({
           error: 'Internal server error',
-          message: error.message
+          message: error.message,
         });
       }
     });
@@ -370,12 +370,12 @@ export class OptimizationServer {
         res.json({
           success: true,
           data: { testSuites },
-          message: 'All tests completed'
+          message: 'All tests completed',
         });
       } catch (error: any) {
         res.status(500).json({
           error: 'Internal server error',
-          message: error.message
+          message: error.message,
         });
       }
     });
@@ -386,12 +386,12 @@ export class OptimizationServer {
         const suites = integrationTests.getTestSuites();
         res.json({
           success: true,
-          data: { results, suites }
+          data: { results, suites },
         });
       } catch (error: any) {
         res.status(500).json({
           error: 'Internal server error',
-          message: error.message
+          message: error.message,
         });
       }
     });
@@ -405,7 +405,7 @@ export class OptimizationServer {
       } catch (error: any) {
         res.status(500).json({
           error: 'Internal server error',
-          message: error.message
+          message: error.message,
         });
       }
     });
@@ -436,10 +436,12 @@ export class OptimizationServer {
     });
 
     // Error handling
-    this.app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-      console.error('Error:', err);
-      res.status(500).json({ error: 'Internal server error', message: err.message });
-    });
+    this.app.use(
+      (err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+        console.error('Error:', err);
+        res.status(500).json({ error: 'Internal server error', message: err.message });
+      }
+    );
 
     // 404 handler
     this.app.use((req, res) => {
@@ -448,7 +450,7 @@ export class OptimizationServer {
   }
 
   private setupWebSocket(): void {
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', socket => {
       console.log('Client connected:', socket.id);
 
       socket.on('join_optimization_feed', () => {
@@ -473,7 +475,7 @@ export class OptimizationServer {
         const latest = optimizations[0];
         this.io.to('optimization_feed').emit('optimization', {
           type: 'optimization',
-          optimization: latest
+          optimization: latest,
         });
       }
     }, 5000);
@@ -488,7 +490,6 @@ export class OptimizationServer {
       // Create tables if they don't exist
       await this.createTables();
       console.log('Database tables ready');
-
     } catch (error) {
       console.error('Database setup error:', error);
       throw error;
@@ -566,17 +567,17 @@ export class OptimizationServer {
       'SELECT COUNT(*) as total_optimizations FROM optimizations',
       'SELECT COUNT(*) as total_assets FROM metaverse_assets',
       'SELECT SUM(space_saved_bytes) as total_space_saved FROM optimizations',
-      'SELECT SUM(token_reward) as total_tokens_distributed FROM optimizations'
+      'SELECT SUM(token_reward) as total_tokens_distributed FROM optimizations',
     ];
 
     const results = await Promise.all(queries.map(query => this.db.query(query)));
-    
+
     return {
       totalHarvesters: parseInt(results[0].rows[0].total_harvesters),
       totalOptimizations: parseInt(results[1].rows[0].total_optimizations),
       totalAssets: parseInt(results[2].rows[0].total_assets),
       totalSpaceSaved: parseInt(results[3].rows[0].total_space_saved || 0),
-      totalTokensDistributed: parseFloat(results[4].rows[0].total_tokens_distributed || 0)
+      totalTokensDistributed: parseFloat(results[4].rows[0].total_tokens_distributed || 0),
     };
   }
 
@@ -612,7 +613,7 @@ export class OptimizationServer {
       { url: 'hackernews.com', biome: 'community', authority: 'high' },
       { url: 'techcrunch.com', biome: 'commercial', authority: 'high' },
       { url: 'wired.com', biome: 'knowledge', authority: 'high' },
-      { url: 'reddit.com', biome: 'social', authority: 'high' }
+      { url: 'reddit.com', biome: 'social', authority: 'high' },
     ];
 
     const target = websites[Math.floor(Math.random() * websites.length)];
@@ -624,25 +625,32 @@ export class OptimizationServer {
     const optimization = {
       url: target.url,
       spaceSavedBytes: spaceBytes,
-      optimizationType: ['light-dom', 'css-optimization', 'js-optimization', 'ai-optimization'][Math.floor(Math.random() * 4)],
+      optimizationType: ['light-dom', 'css-optimization', 'js-optimization', 'ai-optimization'][
+        Math.floor(Math.random() * 4)
+      ],
       biomeType: target.biome,
       harvesterAddress: `0x${Math.random().toString(16).substr(2, 40)}`,
       beforeHash: `before_${Math.random().toString(16).substr(2, 16)}`,
-      afterHash: `after_${Math.random().toString(16).substr(2, 16)}`
+      afterHash: `after_${Math.random().toString(16).substr(2, 16)}`,
     };
 
     // Process optimization
-    spaceOptimizationEngine.processOptimization(optimization).then(result => {
-      console.log(`Simulated optimization: ${result.spaceSavedKB}KB saved, ${result.tokenReward.toFixed(6)} DSH earned`);
-      
-      // Broadcast to WebSocket clients
-      this.io.to('optimization_feed').emit('optimization', {
-        type: 'optimization',
-        optimization: result
+    spaceOptimizationEngine
+      .processOptimization(optimization)
+      .then(result => {
+        console.log(
+          `Simulated optimization: ${result.spaceSavedKB}KB saved, ${result.tokenReward.toFixed(6)} DSH earned`
+        );
+
+        // Broadcast to WebSocket clients
+        this.io.to('optimization_feed').emit('optimization', {
+          type: 'optimization',
+          optimization: result,
+        });
+      })
+      .catch(error => {
+        console.error('Error simulating optimization:', error);
       });
-    }).catch(error => {
-      console.error('Error simulating optimization:', error);
-    });
   }
 
   public async start(): Promise<void> {
@@ -658,7 +666,6 @@ export class OptimizationServer {
       setInterval(() => {
         this.simulateOptimization();
       }, 10000); // Every 10 seconds
-
     } catch (error) {
       console.error('Failed to start server:', error);
       throw error;

@@ -59,7 +59,7 @@ export class FrameworkRunner extends EventEmitter {
       enableMetrics: true,
       enableWebhook: false,
       autoStart: true,
-      ...config
+      ...config,
     };
 
     this.setupEventHandlers();
@@ -99,7 +99,6 @@ export class FrameworkRunner extends EventEmitter {
       console.log('🎉 LightDom Framework started successfully!');
       console.log(`📊 API available at: http://localhost:${apiGateway.getStatus().port}/api/v1`);
       console.log(`📚 Documentation: http://localhost:${apiGateway.getStatus().port}/api/v1/docs`);
-
     } catch (error) {
       console.error('❌ Failed to start LightDom Framework:', error);
       await this.stop();
@@ -137,7 +136,6 @@ export class FrameworkRunner extends EventEmitter {
       this.emit('stopped');
 
       console.log('✅ LightDom Framework stopped successfully');
-
     } catch (error) {
       console.error('❌ Error stopping LightDom Framework:', error);
       throw error;
@@ -169,7 +167,7 @@ export class FrameworkRunner extends EventEmitter {
         framework: frameworkStatus.running,
         queue: true, // Queue manager is always available
         simulation: simulationEngine.isSimulationRunning(),
-        api: apiStatus.running
+        api: apiStatus.running,
       },
       uptime: this.isRunning ? Date.now() - this.startTime : 0,
       startTime: this.startTime,
@@ -179,8 +177,8 @@ export class FrameworkRunner extends EventEmitter {
         totalTokensDistributed: frameworkStatus.systemStats.totalTokensEarned || 0,
         activeNodes: frameworkStatus.systemStats.activeNodes || 0,
         queueSize: queueStatus.total,
-        simulationEfficiency: simulationStatus.averageEfficiency || 0
-      }
+        simulationEfficiency: simulationStatus.averageEfficiency || 0,
+      },
     };
   }
 
@@ -190,7 +188,14 @@ export class FrameworkRunner extends EventEmitter {
   async addURL(
     url: string,
     priority: 'high' | 'medium' | 'low' = 'medium',
-    siteType: 'ecommerce' | 'blog' | 'corporate' | 'portfolio' | 'news' | 'social' | 'other' = 'other'
+    siteType:
+      | 'ecommerce'
+      | 'blog'
+      | 'corporate'
+      | 'portfolio'
+      | 'news'
+      | 'social'
+      | 'other' = 'other'
   ): Promise<string> {
     if (!this.isRunning) {
       throw new Error('Framework is not running');
@@ -266,8 +271,8 @@ export class FrameworkRunner extends EventEmitter {
       performance: {
         uptime: status.uptime,
         memoryUsage: process.memoryUsage(),
-        cpuUsage: process.cpuUsage()
-      }
+        cpuUsage: process.cpuUsage(),
+      },
     };
   }
 
@@ -284,29 +289,29 @@ export class FrameworkRunner extends EventEmitter {
    */
   private setupEventHandlers(): void {
     // Framework events
-    lightDomFramework.on('urlAdded', (item) => {
+    lightDomFramework.on('urlAdded', item => {
       this.emit('urlAdded', item);
     });
 
-    lightDomFramework.on('optimizationCompleted', (data) => {
+    lightDomFramework.on('optimizationCompleted', data => {
       this.emit('optimizationCompleted', data);
     });
 
-    lightDomFramework.on('optimizationFailed', (data) => {
+    lightDomFramework.on('optimizationFailed', data => {
       this.emit('optimizationFailed', data);
     });
 
     // Simulation events
-    simulationEngine.on('simulationCompleted', (result) => {
+    simulationEngine.on('simulationCompleted', result => {
       this.emit('simulationCompleted', result);
     });
 
-    simulationEngine.on('simulationError', (error) => {
+    simulationEngine.on('simulationError', error => {
       this.emit('simulationError', error);
     });
 
     // API events
-    apiGateway.on('webhookReceived', (payload) => {
+    apiGateway.on('webhookReceived', payload => {
       this.emit('webhookReceived', payload);
     });
   }
@@ -326,10 +331,13 @@ export class FrameworkRunner extends EventEmitter {
     }, 30000);
 
     // Metrics collection every 5 minutes
-    this.metricsInterval = setInterval(() => {
-      const metrics = this.getMetrics();
-      this.emit('metricsUpdate', metrics);
-    }, 5 * 60 * 1000);
+    this.metricsInterval = setInterval(
+      () => {
+        const metrics = this.getMetrics();
+        this.emit('metricsUpdate', metrics);
+      },
+      5 * 60 * 1000
+    );
 
     console.log('📊 Monitoring started');
   }
@@ -376,7 +384,7 @@ export const frameworkRunner = new FrameworkRunner();
 // Auto-start if configured
 if (process.env.NODE_ENV !== 'test' && process.env.AUTO_START !== 'false') {
   frameworkRunner.setupGracefulShutdown();
-  
+
   // Start framework
   frameworkRunner.start().catch(error => {
     console.error('❌ Failed to start framework:', error);

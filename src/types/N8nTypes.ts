@@ -294,7 +294,7 @@ export interface MCPToolResponse {
 }
 
 // Utility Types
-export type N8nNodeTypeCategory = 
+export type N8nNodeTypeCategory =
   | 'trigger'
   | 'transform'
   | 'output'
@@ -320,7 +320,12 @@ export interface N8nExecutionEvent {
 }
 
 export interface N8nWorkflowEvent {
-  type: 'workflow_created' | 'workflow_updated' | 'workflow_deleted' | 'workflow_activated' | 'workflow_deactivated';
+  type:
+    | 'workflow_created'
+    | 'workflow_updated'
+    | 'workflow_deleted'
+    | 'workflow_activated'
+    | 'workflow_deactivated';
   workflowId: string;
   timestamp: string;
   data?: any;

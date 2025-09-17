@@ -1,32 +1,26 @@
 {
-  "global": {
-    "smtp_smarthost": "smtp.gmail.com:587",
-    "smtp_from": "alerts@company.com"
-  },
-  "route": {
-    "group_by": [
-      "alertname"
-    ],
-    "group_wait": "10s",
-    "group_interval": "10s",
-    "repeat_interval": "1h",
-    "receiver": "web.hook"
-  },
-  "receivers": [
+  'global': { 'smtp_smarthost': 'smtp.gmail.com:587', 'smtp_from': 'alerts@company.com' },
+  'route':
     {
-      "name": "web.hook",
-      "webhook_configs": [
-        {
-          "url": "http://localhost:3001/api/alerts"
-        }
-      ],
-      "email_configs": [
-        {
-          "to": "admin@company.com",
-          "subject": "LightDom Alert: {{ .GroupLabels.alertname }}",
-          "body": "{{ range .Alerts }}{{ .Annotations.message }}{{ end }}"
-        }
-      ]
-    }
-  ]
+      'group_by': ['alertname'],
+      'group_wait': '10s',
+      'group_interval': '10s',
+      'repeat_interval': '1h',
+      'receiver': 'web.hook',
+    },
+  'receivers':
+    [
+      {
+        'name': 'web.hook',
+        'webhook_configs': [{ 'url': 'http://localhost:3001/api/alerts' }],
+        'email_configs':
+          [
+            {
+              'to': 'admin@company.com',
+              'subject': 'LightDom Alert: {{ .GroupLabels.alertname }}',
+              'body': '{{ range .Alerts }}{{ .Annotations.message }}{{ end }}',
+            },
+          ],
+      },
+    ],
 }

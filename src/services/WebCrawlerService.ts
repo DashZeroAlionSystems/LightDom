@@ -1,7 +1,12 @@
 import { EventEmitter } from 'events';
 import { Logger } from '../utils/Logger';
 import HeadlessChromeService from './HeadlessChromeService';
-import { CrawlResult, CrawlOptions, WebsiteData, OptimizationOpportunity } from '../types/CrawlerTypes';
+import {
+  CrawlResult,
+  CrawlOptions,
+  WebsiteData,
+  OptimizationOpportunity,
+} from '../types/CrawlerTypes';
 import { Queue } from 'bull';
 import Redis from 'ioredis';
 
@@ -22,8 +27,8 @@ export class WebCrawlerService extends EventEmitter {
       redis: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD
-      }
+        password: process.env.REDIS_PASSWORD,
+      },
     });
 
     this.setupQueueProcessing();
@@ -46,7 +51,7 @@ export class WebCrawlerService extends EventEmitter {
    * Setup queue processing
    */
   private setupQueueProcessing(): void {
-    this.crawlQueue.process('crawl-website', 5, async (job) => {
+    this.crawlQueue.process('crawl-website', 5, async job => {
       const { url, options, crawlId } = job.data;
       return await this.processCrawlJob(url, options, crawlId);
     });
@@ -67,28 +72,32 @@ export class WebCrawlerService extends EventEmitter {
    */
   async crawlWebsite(url: string, options: CrawlOptions = {}): Promise<string> {
     const crawlId = this.generateCrawlId();
-    
+
     try {
       // Add to queue
-      const job = await this.crawlQueue.add('crawl-website', {
-        url,
-        options,
-        crawlId
-      }, {
-        priority: options.priority || 0,
-        delay: options.delay || 0,
-        attempts: options.attempts || 3,
-        backoff: {
-          type: 'exponential',
-          delay: 2000
+      const job = await this.crawlQueue.add(
+        'crawl-website',
+        {
+          url,
+          options,
+          crawlId,
+        },
+        {
+          priority: options.priority || 0,
+          delay: options.delay || 0,
+          attempts: options.attempts || 3,
+          backoff: {
+            type: 'exponential',
+            delay: 2000,
+          },
         }
-      });
+      );
 
       this.activeCrawls.set(crawlId, {
         jobId: job.id,
         url,
         status: 'queued',
-        startTime: new Date()
+        startTime: new Date(),
       });
 
       this.logger.info(`Crawl job queued for ${url} with ID: ${crawlId}`);
@@ -102,23 +111,27 @@ export class WebCrawlerService extends EventEmitter {
   /**
    * Process a crawl job
    */
-  private async processCrawlJob(url: string, options: CrawlOptions, crawlId: string): Promise<CrawlResult> {
+  private async processCrawlJob(
+    url: string,
+    options: CrawlOptions,
+    crawlId: string
+  ): Promise<CrawlResult> {
     const pageId = `crawl-${crawlId}`;
-    
+
     try {
       this.updateCrawlStatus(crawlId, 'processing');
-      
+
       // Create page
       const page = await this.headlessService.createPage(pageId, {
         width: options.viewport?.width || 1920,
         height: options.viewport?.height || 1080,
-        userAgent: options.userAgent
+        userAgent: options.userAgent,
       });
 
       // Navigate to URL
       await this.headlessService.navigateToPage(pageId, url, {
         waitUntil: options.waitUntil || 'networkidle2',
-        timeout: options.timeout || 30000
+        timeout: options.timeout || 30000,
       });
 
       // Wait for additional content
@@ -138,7 +151,7 @@ export class WebCrawlerService extends EventEmitter {
       // Take screenshot
       const screenshot = await this.headlessService.takeScreenshot(pageId, {
         fullPage: true,
-        type: 'png'
+        type: 'png',
       });
 
       // Generate PDF if requested
@@ -163,8 +176,8 @@ export class WebCrawlerService extends EventEmitter {
         performance: {
           totalTime: Date.now() - this.activeCrawls.get(crawlId)?.startTime.getTime(),
           pagesAnalyzed: 1,
-          errors: []
-        }
+          errors: [],
+        },
       };
 
       // Store result in Redis
@@ -177,7 +190,7 @@ export class WebCrawlerService extends EventEmitter {
     } catch (error) {
       this.logger.error(`Crawl failed for ${url}:`, error);
       this.updateCrawlStatus(crawlId, 'failed');
-      
+
       // Clean up page if it exists
       try {
         await this.headlessService.closePage(pageId);
@@ -198,11 +211,12 @@ export class WebCrawlerService extends EventEmitter {
       throw new Error(`Page ${pageId} not found`);
     }
 
-    return await page.evaluate((url) => {
+    return await page.evaluate(url => {
       const data: WebsiteData = {
         url,
         title: document.title,
-        description: document.querySelector('meta[name="description"]')?.getAttribute('content') || '',
+        description:
+          document.querySelector('meta[name="description"]')?.getAttribute('content') || '',
         keywords: document.querySelector('meta[name="keywords"]')?.getAttribute('content') || '',
         language: document.documentElement.lang || 'en',
         charset: document.characterSet || 'UTF-8',
@@ -210,17 +224,22 @@ export class WebCrawlerService extends EventEmitter {
         robots: document.querySelector('meta[name="robots"]')?.getAttribute('content') || '',
         canonical: document.querySelector('link[rel="canonical"]')?.getAttribute('href') || '',
         ogTitle: document.querySelector('meta[property="og:title"]')?.getAttribute('content') || '',
-        ogDescription: document.querySelector('meta[property="og:description"]')?.getAttribute('content') || '',
+        ogDescription:
+          document.querySelector('meta[property="og:description"]')?.getAttribute('content') || '',
         ogImage: document.querySelector('meta[property="og:image"]')?.getAttribute('content') || '',
-        twitterCard: document.querySelector('meta[name="twitter:card"]')?.getAttribute('content') || '',
-        twitterTitle: document.querySelector('meta[name="twitter:title"]')?.getAttribute('content') || '',
-        twitterDescription: document.querySelector('meta[name="twitter:description"]')?.getAttribute('content') || '',
-        twitterImage: document.querySelector('meta[name="twitter:image"]')?.getAttribute('content') || '',
+        twitterCard:
+          document.querySelector('meta[name="twitter:card"]')?.getAttribute('content') || '',
+        twitterTitle:
+          document.querySelector('meta[name="twitter:title"]')?.getAttribute('content') || '',
+        twitterDescription:
+          document.querySelector('meta[name="twitter:description"]')?.getAttribute('content') || '',
+        twitterImage:
+          document.querySelector('meta[name="twitter:image"]')?.getAttribute('content') || '',
         structuredData: [],
         links: {
           internal: [],
           external: [],
-          broken: []
+          broken: [],
         },
         images: [],
         scripts: [],
@@ -231,8 +250,8 @@ export class WebCrawlerService extends EventEmitter {
           twitter: '',
           linkedin: '',
           instagram: '',
-          youtube: ''
-        }
+          youtube: '',
+        },
       };
 
       // Extract structured data
@@ -259,13 +278,13 @@ export class WebCrawlerService extends EventEmitter {
           data.links.internal.push({
             url: absoluteUrl,
             text: link.textContent?.trim() || '',
-            title: link.getAttribute('title') || ''
+            title: link.getAttribute('title') || '',
           });
         } else {
           data.links.external.push({
             url: absoluteUrl,
             text: link.textContent?.trim() || '',
-            title: link.getAttribute('title') || ''
+            title: link.getAttribute('title') || '',
           });
         }
       });
@@ -279,7 +298,7 @@ export class WebCrawlerService extends EventEmitter {
           title: img.title || '',
           width: img.width || 0,
           height: img.height || 0,
-          loading: img.loading || 'eager'
+          loading: img.loading || 'eager',
         });
       });
 
@@ -290,7 +309,7 @@ export class WebCrawlerService extends EventEmitter {
           src: script.src,
           async: script.async,
           defer: script.defer,
-          type: script.type || 'text/javascript'
+          type: script.type || 'text/javascript',
         });
       });
 
@@ -300,16 +319,18 @@ export class WebCrawlerService extends EventEmitter {
         data.stylesheets.push({
           href: link.href,
           media: link.media || 'all',
-          type: link.type || 'text/css'
+          type: link.type || 'text/css',
         });
       });
 
       // Extract fonts
-      const fontLinks = document.querySelectorAll('link[href*="font"], link[href*="woff"], link[href*="ttf"]');
+      const fontLinks = document.querySelectorAll(
+        'link[href*="font"], link[href*="woff"], link[href*="ttf"]'
+      );
       fontLinks.forEach(link => {
         data.fonts.push({
           href: link.href,
-          type: link.type || 'font/woff2'
+          type: link.type || 'font/woff2',
         });
       });
 
@@ -319,7 +340,7 @@ export class WebCrawlerService extends EventEmitter {
         twitter: 'a[href*="twitter.com"], a[href*="x.com"]',
         linkedin: 'a[href*="linkedin.com"]',
         instagram: 'a[href*="instagram.com"]',
-        youtube: 'a[href*="youtube.com"], a[href*="youtu.be"]'
+        youtube: 'a[href*="youtube.com"], a[href*="youtu.be"]',
       };
 
       Object.entries(socialSelectors).forEach(([platform, selector]) => {
@@ -336,7 +357,10 @@ export class WebCrawlerService extends EventEmitter {
   /**
    * Find optimization opportunities
    */
-  private async findOptimizationOpportunities(pageId: string, domAnalysis: any): Promise<OptimizationOpportunity[]> {
+  private async findOptimizationOpportunities(
+    pageId: string,
+    domAnalysis: any
+  ): Promise<OptimizationOpportunity[]> {
     const opportunities: OptimizationOpportunity[] = [];
 
     // Image optimization opportunities
@@ -351,8 +375,8 @@ export class WebCrawlerService extends EventEmitter {
         effort: 'low',
         savings: {
           seo: 10,
-          accessibility: 20
-        }
+          accessibility: 20,
+        },
       });
     }
 
@@ -367,8 +391,8 @@ export class WebCrawlerService extends EventEmitter {
         effort: 'medium',
         savings: {
           performance: 15,
-          bandwidth: 25
-        }
+          bandwidth: 25,
+        },
       });
     }
 
@@ -384,8 +408,8 @@ export class WebCrawlerService extends EventEmitter {
         effort: 'medium',
         savings: {
           performance: 8,
-          caching: 12
-        }
+          caching: 12,
+        },
       });
     }
 
@@ -401,8 +425,8 @@ export class WebCrawlerService extends EventEmitter {
         effort: 'medium',
         savings: {
           performance: 6,
-          maintainability: 15
-        }
+          maintainability: 15,
+        },
       });
     }
 
@@ -418,8 +442,8 @@ export class WebCrawlerService extends EventEmitter {
         effort: 'high',
         savings: {
           performance: 20,
-          seo: 15
-        }
+          seo: 15,
+        },
       });
     }
 
@@ -434,8 +458,8 @@ export class WebCrawlerService extends EventEmitter {
         effort: 'medium',
         savings: {
           performance: 18,
-          userExperience: 25
-        }
+          userExperience: 25,
+        },
       });
     }
 
@@ -497,8 +521,8 @@ export class WebCrawlerService extends EventEmitter {
         waiting: this.crawlQueue.getWaiting().length,
         active: this.crawlQueue.getActive().length,
         completed: this.crawlQueue.getCompleted().length,
-        failed: this.crawlQueue.getFailed().length
-      }
+        failed: this.crawlQueue.getFailed().length,
+      },
     };
   }
 

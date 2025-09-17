@@ -9,12 +9,16 @@ export class TaskAPI {
   private headlessChromeService: HeadlessChromeService;
   private logger: Logger;
 
-  constructor(app: express.Application, taskManager: TaskManager, headlessChromeService: HeadlessChromeService) {
+  constructor(
+    app: express.Application,
+    taskManager: TaskManager,
+    headlessChromeService: HeadlessChromeService
+  ) {
     this.app = app;
     this.taskManager = taskManager;
     this.headlessChromeService = headlessChromeService;
     this.logger = new Logger('TaskAPI');
-    
+
     this.setupRoutes();
     this.setupWebSocketHandlers();
   }
@@ -38,21 +42,20 @@ export class TaskAPI {
           pageId,
           url,
           timeout,
-          priority
+          priority,
         });
 
         const task = this.taskManager.getTask(taskId);
         res.status(201).json({
           success: true,
           taskId,
-          task
+          task,
         });
-
       } catch (error) {
         this.logger.error('Failed to create JavaScript task:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to create JavaScript task',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -70,21 +73,20 @@ export class TaskAPI {
           inputData,
           webhookUrl,
           timeout,
-          priority
+          priority,
         });
 
         const task = this.taskManager.getTask(taskId);
         res.status(201).json({
           success: true,
           taskId,
-          task
+          task,
         });
-
       } catch (error) {
         this.logger.error('Failed to create n8n workflow task:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to create n8n workflow task',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -101,21 +103,20 @@ export class TaskAPI {
         const taskId = this.taskManager.createDOMAnalysisTask(url, {
           pageId,
           analysisType,
-          priority
+          priority,
         });
 
         const task = this.taskManager.getTask(taskId);
         res.status(201).json({
           success: true,
           taskId,
-          task
+          task,
         });
-
       } catch (error) {
         this.logger.error('Failed to create DOM analysis task:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to create DOM analysis task',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -132,14 +133,13 @@ export class TaskAPI {
 
         res.json({
           success: true,
-          task
+          task,
         });
-
       } catch (error) {
         this.logger.error('Failed to get task:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to get task',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -148,25 +148,24 @@ export class TaskAPI {
     this.app.get('/api/tasks', async (req, res) => {
       try {
         const { status, type, limit } = req.query;
-        
+
         const filter: any = {};
         if (status) filter.status = status;
         if (type) filter.type = type;
         if (limit) filter.limit = parseInt(limit as string);
 
         const tasks = this.taskManager.getTasks(filter);
-        
+
         res.json({
           success: true,
           tasks,
-          total: tasks.length
+          total: tasks.length,
         });
-
       } catch (error) {
         this.logger.error('Failed to get tasks:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to get tasks',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -185,14 +184,13 @@ export class TaskAPI {
         res.json({
           success: true,
           message: 'Task cancelled successfully',
-          task
+          task,
         });
-
       } catch (error) {
         this.logger.error('Failed to cancel task:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to cancel task',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -203,14 +201,13 @@ export class TaskAPI {
         const stats = this.taskManager.getStats();
         res.json({
           success: true,
-          stats
+          stats,
         });
-
       } catch (error) {
         this.logger.error('Failed to get task stats:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to get task statistics',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -245,9 +242,9 @@ export class TaskAPI {
           // Execute the script with timeout
           const result = await Promise.race([
             this.headlessChromeService.executeScript(targetPageId, script, ...(args || [])),
-            new Promise((_, reject) => 
+            new Promise((_, reject) =>
               setTimeout(() => reject(new Error('Script execution timeout')), timeout || 30000)
-            )
+            ),
           ]);
 
           // Clean up page if we created it
@@ -258,9 +255,8 @@ export class TaskAPI {
           res.json({
             success: true,
             result,
-            executionTime: Date.now()
+            executionTime: Date.now(),
           });
-
         } catch (executionError) {
           // Clean up page if we created it
           if (url && !pageId && targetPageId) {
@@ -272,12 +268,11 @@ export class TaskAPI {
           }
           throw executionError;
         }
-
       } catch (error) {
         this.logger.error('Failed to execute JavaScript:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to execute JavaScript',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -306,30 +301,37 @@ export class TaskAPI {
 
         try {
           const results = [];
-          
+
           for (let i = 0; i < scripts.length; i++) {
             const script = scripts[i];
-            
+
             try {
               const result = await Promise.race([
-                this.headlessChromeService.executeScript(targetPageId, script.script, ...(script.args || [])),
-                new Promise((_, reject) => 
-                  setTimeout(() => reject(new Error('Script execution timeout')), script.timeout || timeout || 30000)
-                )
+                this.headlessChromeService.executeScript(
+                  targetPageId,
+                  script.script,
+                  ...(script.args || [])
+                ),
+                new Promise((_, reject) =>
+                  setTimeout(
+                    () => reject(new Error('Script execution timeout')),
+                    script.timeout || timeout || 30000
+                  )
+                ),
               ]);
 
               results.push({
                 index: i,
                 success: true,
                 result,
-                executionTime: Date.now()
+                executionTime: Date.now(),
               });
             } catch (scriptError) {
               results.push({
                 index: i,
                 success: false,
                 error: scriptError instanceof Error ? scriptError.message : String(scriptError),
-                executionTime: Date.now()
+                executionTime: Date.now(),
               });
             }
           }
@@ -344,9 +346,8 @@ export class TaskAPI {
             results,
             totalExecuted: scripts.length,
             successful: results.filter(r => r.success).length,
-            failed: results.filter(r => !r.success).length
+            failed: results.filter(r => !r.success).length,
           });
-
         } catch (error) {
           // Clean up page if we created it
           if (url && !pageId && targetPageId) {
@@ -358,12 +359,11 @@ export class TaskAPI {
           }
           throw error;
         }
-
       } catch (error) {
         this.logger.error('Failed to execute JavaScript batch:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to execute JavaScript batch',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -383,14 +383,13 @@ export class TaskAPI {
         res.status(201).json({
           success: true,
           pageId: id,
-          message: 'Page created successfully'
+          message: 'Page created successfully',
         });
-
       } catch (error) {
         this.logger.error('Failed to create page:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to create page',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -409,14 +408,13 @@ export class TaskAPI {
 
         res.json({
           success: true,
-          message: 'Navigation completed successfully'
+          message: 'Navigation completed successfully',
         });
-
       } catch (error) {
         this.logger.error('Failed to navigate:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to navigate',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -432,15 +430,14 @@ export class TaskAPI {
           pageId,
           status: {
             pageExists: status.activePages > 0, // Simplified check
-            ...status
-          }
+            ...status,
+          },
         });
-
       } catch (error) {
         this.logger.error('Failed to get page status:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to get page status',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -454,14 +451,13 @@ export class TaskAPI {
 
         res.json({
           success: true,
-          message: 'Page closed successfully'
+          message: 'Page closed successfully',
         });
-
       } catch (error) {
         this.logger.error('Failed to close page:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to close page',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -486,14 +482,13 @@ export class TaskAPI {
           success: true,
           webhookId,
           message: 'Webhook triggered successfully',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
-
       } catch (error) {
         this.logger.error('Failed to trigger n8n webhook:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to trigger webhook',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -513,15 +508,14 @@ export class TaskAPI {
           executions: {
             total: 100,
             successful: 95,
-            failed: 5
-          }
+            failed: 5,
+          },
         });
-
       } catch (error) {
         this.logger.error('Failed to get n8n workflow status:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to get workflow status',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -541,7 +535,7 @@ export class TaskAPI {
 
         // Map Cursor API functions to JavaScript execution
         const cursorFunctions = {
-          'analyzeDOM': `
+          analyzeDOM: `
             const analysis = {
               totalElements: document.querySelectorAll('*').length,
               images: document.querySelectorAll('img').length,
@@ -555,13 +549,13 @@ export class TaskAPI {
             };
             return analysis;
           `,
-          'extractText': `
+          extractText: `
             return document.body.innerText;
           `,
-          'getTitle': `
+          getTitle: `
             return document.title;
           `,
-          'getMetaTags': `
+          getMetaTags: `
             const metas = {};
             document.querySelectorAll('meta').forEach(meta => {
               const name = meta.name || meta.property;
@@ -571,10 +565,10 @@ export class TaskAPI {
             });
             return metas;
           `,
-          'screenshot': `
+          screenshot: `
             // This would trigger a screenshot via the API
             return { message: 'Screenshot requested' };
-          `
+          `,
         };
 
         const script = cursorFunctions[functionName as keyof typeof cursorFunctions];
@@ -598,9 +592,9 @@ export class TaskAPI {
         try {
           const result = await Promise.race([
             this.headlessChromeService.executeScript(targetPageId, script, ...(parameters || [])),
-            new Promise((_, reject) => 
+            new Promise((_, reject) =>
               setTimeout(() => reject(new Error('Function execution timeout')), timeout || 30000)
-            )
+            ),
           ]);
 
           // Clean up page if we created it
@@ -612,9 +606,8 @@ export class TaskAPI {
             success: true,
             functionName,
             result,
-            executionTime: Date.now()
+            executionTime: Date.now(),
           });
-
         } catch (executionError) {
           // Clean up page if we created it
           if (url && !pageId && targetPageId) {
@@ -626,12 +619,11 @@ export class TaskAPI {
           }
           throw executionError;
         }
-
       } catch (error) {
         this.logger.error('Failed to execute Cursor API function:', error);
-        res.status(500).json({ 
+        res.status(500).json({
           error: 'Failed to execute Cursor API function',
-          details: error instanceof Error ? error.message : String(error)
+          details: error instanceof Error ? error.message : String(error),
         });
       }
     });
@@ -647,21 +639,21 @@ export class TaskAPI {
    */
   getWebSocketHandlers(): any {
     return {
-      'taskCreated': () => {
+      taskCreated: () => {
         // Emit to all connected clients
       },
-      'taskStarted': () => {
+      taskStarted: () => {
         // Emit to all connected clients
       },
-      'taskCompleted': () => {
+      taskCompleted: () => {
         // Emit to all connected clients
       },
-      'taskFailed': () => {
+      taskFailed: () => {
         // Emit to all connected clients
       },
-      'taskCancelled': () => {
+      taskCancelled: () => {
         // Emit to all connected clients
-      }
+      },
     };
   }
 }

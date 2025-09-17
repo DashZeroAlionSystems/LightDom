@@ -21,7 +21,7 @@ export const DiscordButton: React.FC<DiscordButtonProps> = ({
   size = 'md',
   disabled = false,
   onClick,
-  className = ''
+  className = '',
 }) => {
   const baseClasses = 'discord-btn';
   const variantClasses = {
@@ -29,12 +29,12 @@ export const DiscordButton: React.FC<DiscordButtonProps> = ({
     secondary: 'discord-btn-secondary',
     success: 'discord-btn-success',
     danger: 'discord-btn-danger',
-    ghost: 'discord-btn-ghost'
+    ghost: 'discord-btn-ghost',
   };
   const sizeClasses = {
     sm: 'discord-btn-sm',
     md: '',
-    lg: 'discord-btn-lg'
+    lg: 'discord-btn-lg',
   };
 
   return (
@@ -44,7 +44,7 @@ export const DiscordButton: React.FC<DiscordButtonProps> = ({
       onClick={onClick}
       style={{
         opacity: disabled ? 0.5 : 1,
-        cursor: disabled ? 'not-allowed' : 'pointer'
+        cursor: disabled ? 'not-allowed' : 'pointer',
       }}
     >
       {children}
@@ -67,7 +67,7 @@ export const DiscordInput: React.FC<DiscordInputProps> = ({
   onChange,
   type = 'text',
   disabled = false,
-  className = ''
+  className = '',
 }) => {
   return (
     <input
@@ -75,11 +75,11 @@ export const DiscordInput: React.FC<DiscordInputProps> = ({
       className={`discord-input ${className}`}
       placeholder={placeholder}
       value={value}
-      onChange={(e) => onChange?.(e.target.value)}
+      onChange={e => onChange?.(e.target.value)}
       disabled={disabled}
       style={{
         opacity: disabled ? 0.5 : 1,
-        cursor: disabled ? 'not-allowed' : 'text'
+        cursor: disabled ? 'not-allowed' : 'text',
       }}
     />
   );
@@ -96,13 +96,13 @@ export const DiscordCard: React.FC<DiscordCardProps> = ({
   children,
   title,
   header,
-  className = ''
+  className = '',
 }) => {
   return (
     <div className={`discord-card ${className}`}>
       {(title || header) && (
-        <div className="discord-card-header">
-          {title && <h3 className="discord-card-title">{title}</h3>}
+        <div className='discord-card-header'>
+          {title && <h3 className='discord-card-title'>{title}</h3>}
           {header}
         </div>
       )}
@@ -122,14 +122,14 @@ export const DiscordCollapsible: React.FC<DiscordCollapsibleProps> = ({
   title,
   children,
   defaultOpen = false,
-  className = ''
+  className = '',
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
     <div className={`discord-collapsible ${className}`}>
       <div
-        className="discord-collapsible-header"
+        className='discord-collapsible-header'
         onClick={() => setIsOpen(!isOpen)}
         style={{
           display: 'flex',
@@ -139,14 +139,17 @@ export const DiscordCollapsible: React.FC<DiscordCollapsibleProps> = ({
           cursor: 'pointer',
           borderRadius: 'var(--discord-radius-sm)',
           transition: 'background-color 0.2s ease',
-          userSelect: 'none'
+          userSelect: 'none',
         }}
       >
         {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         <span style={{ fontWeight: '600', fontSize: '14px' }}>{title}</span>
       </div>
       {isOpen && (
-        <div className="discord-collapsible-content" style={{ padding: '0 var(--discord-spacing-md)' }}>
+        <div
+          className='discord-collapsible-content'
+          style={{ padding: '0 var(--discord-spacing-md)' }}
+        >
           {children}
         </div>
       )}
@@ -167,7 +170,7 @@ export const DiscordModal: React.FC<DiscordModalProps> = ({
   onClose,
   title,
   children,
-  footer
+  footer,
 }) => {
   if (!isOpen) return null;
 
@@ -183,13 +186,13 @@ export const DiscordModal: React.FC<DiscordModalProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1000
+        zIndex: 1000,
       }}
       onClick={onClose}
     >
       <div
-        className="discord-modal"
-        onClick={(e) => e.stopPropagation()}
+        className='discord-modal'
+        onClick={e => e.stopPropagation()}
         style={{
           backgroundColor: 'var(--discord-bg-secondary)',
           borderRadius: 'var(--discord-radius-lg)',
@@ -198,16 +201,16 @@ export const DiscordModal: React.FC<DiscordModalProps> = ({
           width: '90%',
           maxHeight: '80vh',
           overflow: 'auto',
-          boxShadow: 'var(--discord-shadow-lg)'
+          boxShadow: 'var(--discord-shadow-lg)',
         }}
       >
         <div
-          className="discord-modal-header"
+          className='discord-modal-header'
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: 'var(--discord-spacing-md)'
+            marginBottom: 'var(--discord-spacing-md)',
           }}
         >
           <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{title}</h2>
@@ -222,24 +225,27 @@ export const DiscordModal: React.FC<DiscordModalProps> = ({
               borderRadius: 'var(--discord-radius-sm)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
             }}
           >
             <X size={20} />
           </button>
         </div>
-        <div className="discord-modal-content" style={{ marginBottom: 'var(--discord-spacing-md)' }}>
+        <div
+          className='discord-modal-content'
+          style={{ marginBottom: 'var(--discord-spacing-md)' }}
+        >
           {children}
         </div>
         {footer && (
           <div
-            className="discord-modal-footer"
+            className='discord-modal-footer'
             style={{
               display: 'flex',
               justifyContent: 'flex-end',
               gap: 'var(--discord-spacing-sm)',
               borderTop: '1px solid var(--discord-border)',
-              paddingTop: 'var(--discord-spacing-md)'
+              paddingTop: 'var(--discord-spacing-md)',
             }}
           >
             {footer}
@@ -261,7 +267,7 @@ export const DiscordToast: React.FC<DiscordToastProps> = ({
   message,
   type = 'info',
   onClose,
-  duration = 5000
+  duration = 5000,
 }) => {
   const [isVisible, setIsVisible] = useState(true);
 
@@ -276,19 +282,27 @@ export const DiscordToast: React.FC<DiscordToastProps> = ({
 
   const getIcon = () => {
     switch (type) {
-      case 'success': return <Check size={16} />;
-      case 'error': return <X size={16} />;
-      case 'warning': return <AlertCircle size={16} />;
-      default: return null;
+      case 'success':
+        return <Check size={16} />;
+      case 'error':
+        return <X size={16} />;
+      case 'warning':
+        return <AlertCircle size={16} />;
+      default:
+        return null;
     }
   };
 
   const getColor = () => {
     switch (type) {
-      case 'success': return 'var(--discord-success)';
-      case 'error': return 'var(--discord-danger)';
-      case 'warning': return 'var(--discord-warning)';
-      default: return 'var(--discord-primary)';
+      case 'success':
+        return 'var(--discord-success)';
+      case 'error':
+        return 'var(--discord-danger)';
+      case 'warning':
+        return 'var(--discord-warning)';
+      default:
+        return 'var(--discord-primary)';
     }
   };
 
@@ -296,7 +310,7 @@ export const DiscordToast: React.FC<DiscordToastProps> = ({
 
   return (
     <div
-      className="discord-toast"
+      className='discord-toast'
       style={{
         position: 'fixed',
         top: 'var(--discord-spacing-md)',
@@ -310,7 +324,7 @@ export const DiscordToast: React.FC<DiscordToastProps> = ({
         gap: 'var(--discord-spacing-sm)',
         boxShadow: 'var(--discord-shadow-md)',
         zIndex: 1001,
-        animation: 'discord-fade-in 0.3s ease-out'
+        animation: 'discord-fade-in 0.3s ease-out',
       }}
     >
       <div style={{ color: getColor() }}>{getIcon()}</div>
@@ -326,7 +340,7 @@ export const DiscordToast: React.FC<DiscordToastProps> = ({
           color: 'var(--discord-text-muted)',
           cursor: 'pointer',
           padding: 'var(--discord-spacing-xs)',
-          marginLeft: 'var(--discord-spacing-sm)'
+          marginLeft: 'var(--discord-spacing-sm)',
         }}
       >
         <X size={16} />
@@ -348,7 +362,7 @@ export const DiscordProgressBar: React.FC<DiscordProgressBarProps> = ({
   max = 100,
   label,
   showPercentage = true,
-  className = ''
+  className = '',
 }) => {
   const percentage = Math.min((value / max) * 100, 100);
 
@@ -360,7 +374,7 @@ export const DiscordProgressBar: React.FC<DiscordProgressBarProps> = ({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: 'var(--discord-spacing-xs)'
+            marginBottom: 'var(--discord-spacing-xs)',
           }}
         >
           {label && <span style={{ fontSize: '12px', fontWeight: '500' }}>{label}</span>}
@@ -377,7 +391,7 @@ export const DiscordProgressBar: React.FC<DiscordProgressBarProps> = ({
           height: '8px',
           backgroundColor: 'var(--discord-bg-quaternary)',
           borderRadius: 'var(--discord-radius-sm)',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
       >
         <div
@@ -386,7 +400,7 @@ export const DiscordProgressBar: React.FC<DiscordProgressBarProps> = ({
             height: '100%',
             backgroundColor: 'var(--discord-primary)',
             borderRadius: 'var(--discord-radius-sm)',
-            transition: 'width 0.3s ease'
+            transition: 'width 0.3s ease',
           }}
         />
       </div>

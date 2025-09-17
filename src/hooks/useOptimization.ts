@@ -59,7 +59,7 @@ export const useOptimization = () => {
       const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/optimizations', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -80,7 +80,7 @@ export const useOptimization = () => {
       const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/optimizations/stats', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -100,7 +100,7 @@ export const useOptimization = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -125,16 +125,14 @@ export const useOptimization = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
 
       if (response.ok) {
         const updatedOptimization = await response.json();
-        setOptimizations(prev =>
-          prev.map(opt => opt.id === id ? updatedOptimization : opt)
-        );
+        setOptimizations(prev => prev.map(opt => (opt.id === id ? updatedOptimization : opt)));
         return updatedOptimization;
       } else {
         throw new Error('Failed to update optimization');
@@ -151,7 +149,7 @@ export const useOptimization = () => {
       const response = await fetch(`/api/optimizations/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -172,15 +170,13 @@ export const useOptimization = () => {
       const response = await fetch(`/api/optimizations/${id}/run`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         const updatedOptimization = await response.json();
-        setOptimizations(prev =>
-          prev.map(opt => opt.id === id ? updatedOptimization : opt)
-        );
+        setOptimizations(prev => prev.map(opt => (opt.id === id ? updatedOptimization : opt)));
         return updatedOptimization;
       } else {
         throw new Error('Failed to run optimization');
@@ -197,15 +193,13 @@ export const useOptimization = () => {
       const response = await fetch(`/api/optimizations/${id}/pause`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         const updatedOptimization = await response.json();
-        setOptimizations(prev =>
-          prev.map(opt => opt.id === id ? updatedOptimization : opt)
-        );
+        setOptimizations(prev => prev.map(opt => (opt.id === id ? updatedOptimization : opt)));
         return updatedOptimization;
       } else {
         throw new Error('Failed to pause optimization');
@@ -222,15 +216,13 @@ export const useOptimization = () => {
       const response = await fetch(`/api/optimizations/${id}/resume`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         const updatedOptimization = await response.json();
-        setOptimizations(prev =>
-          prev.map(opt => opt.id === id ? updatedOptimization : opt)
-        );
+        setOptimizations(prev => prev.map(opt => (opt.id === id ? updatedOptimization : opt)));
         return updatedOptimization;
       } else {
         throw new Error('Failed to resume optimization');
@@ -246,7 +238,7 @@ export const useOptimization = () => {
       const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/optimizations/${id}/report`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 

@@ -19,7 +19,7 @@ describe('n8n MCP Server', () => {
       apiKey: 'test-api-key',
       timeout: 30000,
     };
-    
+
     server = new N8nMCPServer(mockConfig);
     jest.clearAllMocks();
   });
@@ -65,11 +65,11 @@ describe('n8n MCP Server', () => {
 
       // Mock the server's list tools handler
       const mockHandler = jest.fn().mockResolvedValue({
-        tools: tools.map(name => ({ name, description: `Test ${name}` }))
+        tools: tools.map(name => ({ name, description: `Test ${name}` })),
       });
 
       server.server.setRequestHandler = jest.fn();
-      
+
       // Verify tools are registered
       expect(tools.length).toBe(14);
     });
@@ -82,7 +82,7 @@ describe('n8n MCP Server', () => {
 
       // Test error handling in tool execution
       const result = await server.executeWorkflow({ workflowId: 'test' });
-      
+
       expect(result.content[0].text).toContain('Error executing execute_workflow');
     });
 
@@ -91,7 +91,7 @@ describe('n8n MCP Server', () => {
       mockedAxios.mockRejectedValue(error);
 
       const result = await server.getWorkflow({ workflowId: 'invalid-id' });
-      
+
       expect(result.content[0].text).toContain('Error executing get_workflow');
     });
   });
@@ -109,16 +109,16 @@ describe('n8n MCP Server', () => {
             position: [240, 300],
             parameters: {
               httpMethod: 'POST',
-              path: 'test'
-            }
-          }
+              path: 'test',
+            },
+          },
         ],
-        connections: {}
+        connections: {},
       };
 
       const result = await server.validateWorkflow({ workflow: validWorkflow });
       const validation = JSON.parse(result.content[0].text);
-      
+
       expect(validation.valid).toBe(true);
       expect(validation.errors).toHaveLength(0);
     });
@@ -126,12 +126,12 @@ describe('n8n MCP Server', () => {
     test('should detect missing workflow name', async () => {
       const invalidWorkflow = {
         nodes: [],
-        connections: {}
+        connections: {},
       };
 
       const result = await server.validateWorkflow({ workflow: invalidWorkflow });
       const validation = JSON.parse(result.content[0].text);
-      
+
       expect(validation.valid).toBe(false);
       expect(validation.errors).toContain('Workflow name is required');
     });
@@ -139,12 +139,12 @@ describe('n8n MCP Server', () => {
     test('should detect missing nodes', async () => {
       const invalidWorkflow = {
         name: 'Test Workflow',
-        connections: {}
+        connections: {},
       };
 
       const result = await server.validateWorkflow({ workflow: invalidWorkflow });
       const validation = JSON.parse(result.content[0].text);
-      
+
       expect(validation.valid).toBe(false);
       expect(validation.errors).toContain('Workflow must have nodes array');
     });
@@ -159,15 +159,15 @@ describe('n8n MCP Server', () => {
             type: 'n8n-nodes-base.set',
             typeVersion: 1,
             position: [240, 300],
-            parameters: {}
-          }
+            parameters: {},
+          },
         ],
-        connections: {}
+        connections: {},
       };
 
       const result = await server.validateWorkflow({ workflow: workflowWithoutTrigger });
       const validation = JSON.parse(result.content[0].text);
-      
+
       expect(validation.warnings).toContain('Workflow should have at least one trigger node');
     });
   });
@@ -180,31 +180,31 @@ describe('n8n MCP Server', () => {
           finished: true,
           startedAt: '2024-01-01T10:00:00Z',
           finishedAt: '2024-01-01T10:01:00Z',
-          stoppedAt: null
+          stoppedAt: null,
         },
         {
           id: '2',
           finished: true,
           startedAt: '2024-01-01T11:00:00Z',
           finishedAt: '2024-01-01T11:02:00Z',
-          stoppedAt: null
+          stoppedAt: null,
         },
         {
           id: '3',
           finished: true,
           startedAt: '2024-01-01T12:00:00Z',
-          stoppedAt: '2024-01-01T12:01:30Z'
-        }
+          stoppedAt: '2024-01-01T12:01:30Z',
+        },
       ];
 
       // Mock the listExecutions method
       server.listExecutions = jest.fn().mockResolvedValue({
-        content: [{ text: JSON.stringify({ data: mockExecutions }) }]
+        content: [{ text: JSON.stringify({ data: mockExecutions }) }],
       });
 
       const result = await server.getWorkflowStatistics({ workflowId: 'test' });
       const stats = JSON.parse(result.content[0].text);
-      
+
       expect(stats.totalExecutions).toBe(3);
       expect(stats.successfulExecutions).toBe(2);
       expect(stats.failedExecutions).toBe(1);

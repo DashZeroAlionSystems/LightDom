@@ -38,7 +38,12 @@ export interface StorageAllocation {
 export interface OptimizationTask {
   id: string;
   nodeId: string;
-  type: 'dom_analysis' | 'css_optimization' | 'js_minification' | 'image_compression' | 'bundle_optimization';
+  type:
+    | 'dom_analysis'
+    | 'css_optimization'
+    | 'js_minification'
+    | 'image_compression'
+    | 'bundle_optimization';
   targetUrl: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   spaceSaved: number; // in KB
@@ -62,32 +67,32 @@ export class AdvancedNodeManager {
       baseStorage: 1000, // 1MB base
       computePower: 100,
       rewardRate: 0.1, // 0.1 DSH per day per KB
-      maxStorage: 10000 // 10MB max
+      maxStorage: 10000, // 10MB max
     },
     storage_shard: {
       baseStorage: 500, // 500KB base
       computePower: 50,
       rewardRate: 0.05, // 0.05 DSH per day per KB
-      maxStorage: 50000 // 50MB max
+      maxStorage: 50000, // 50MB max
     },
     bridge: {
       baseStorage: 2000, // 2MB base
       computePower: 200,
       rewardRate: 0.2, // 0.2 DSH per day per KB
-      maxStorage: 20000 // 20MB max
+      maxStorage: 20000, // 20MB max
     },
     optimization: {
       baseStorage: 100, // 100KB base
       computePower: 25,
       rewardRate: 0.15, // 0.15 DSH per day per KB
-      maxStorage: 5000 // 5MB max
+      maxStorage: 5000, // 5MB max
     },
     mining: {
       baseStorage: 300, // 300KB base
       computePower: 75,
       rewardRate: 0.08, // 0.08 DSH per day per KB
-      maxStorage: 15000 // 15MB max
-    }
+      maxStorage: 15000, // 15MB max
+    },
   };
 
   /**
@@ -101,7 +106,7 @@ export class AdvancedNodeManager {
   ): NodeConfig {
     const config = this.nodeConfigs[type];
     const nodeId = `node_${++this.nodeCounter}_${Date.now()}`;
-    
+
     const node: NodeConfig = {
       id: nodeId,
       type,
@@ -119,8 +124,8 @@ export class AdvancedNodeManager {
         uptime: 100,
         efficiency: 85,
         tasksCompleted: 0,
-        rewardsEarned: 0
-      }
+        rewardsEarned: 0,
+      },
     };
 
     this.nodes.set(nodeId, node);
@@ -144,7 +149,9 @@ export class AdvancedNodeManager {
     }
 
     if (spaceAllocated > node.availableStorage) {
-      throw new Error(`Insufficient storage. Available: ${node.availableStorage}KB, Requested: ${spaceAllocated}KB`);
+      throw new Error(
+        `Insufficient storage. Available: ${node.availableStorage}KB, Requested: ${spaceAllocated}KB`
+      );
     }
 
     const allocationId = `alloc_${++this.allocationCounter}_${Date.now()}`;
@@ -156,7 +163,7 @@ export class AdvancedNodeManager {
       purpose,
       priority,
       createdAt: Date.now(),
-      expiresAt
+      expiresAt,
     };
 
     // Update node storage
@@ -214,7 +221,7 @@ export class AdvancedNodeManager {
       status: 'pending',
       spaceSaved: 0,
       tokensEarned: 0,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
 
     this.optimizationTasks.set(taskId, task);
@@ -241,15 +248,14 @@ export class AdvancedNodeManager {
     try {
       // Simulate optimization processing
       await this.simulateOptimizationProcessing(task, node);
-      
+
       task.status = 'completed';
       task.completedAt = Date.now();
-      
+
       // Update node performance
       node.performance.tasksCompleted++;
       node.performance.rewardsEarned += task.tokensEarned;
       node.performance.efficiency = Math.min(100, node.performance.efficiency + 1);
-      
     } catch (error) {
       task.status = 'failed';
       task.error = error instanceof Error ? error.message : 'Unknown error';
@@ -261,16 +267,19 @@ export class AdvancedNodeManager {
   /**
    * Simulate optimization processing
    */
-  private async simulateOptimizationProcessing(task: OptimizationTask, node: NodeConfig): Promise<void> {
+  private async simulateOptimizationProcessing(
+    task: OptimizationTask,
+    node: NodeConfig
+  ): Promise<void> {
     // Simulate processing time based on compute power
-    const processingTime = Math.max(1000, 5000 - (node.computePower * 10));
+    const processingTime = Math.max(1000, 5000 - node.computePower * 10);
     await new Promise(resolve => setTimeout(resolve, processingTime));
 
     // Calculate space saved based on task type and node performance
     const baseSpaceSaved = this.getBaseSpaceSavedForTaskType(task.type);
     const performanceMultiplier = node.performance.efficiency / 100;
     const storageMultiplier = Math.min(2, node.usedStorage / 1000); // Up to 2x based on storage
-    
+
     task.spaceSaved = Math.floor(baseSpaceSaved * performanceMultiplier * storageMultiplier);
     task.tokensEarned = (task.spaceSaved * node.rewardRate) / 1000; // Convert KB to DSH
   }
@@ -284,7 +293,7 @@ export class AdvancedNodeManager {
       css_optimization: 30, // 30KB base
       js_minification: 40, // 40KB base
       image_compression: 100, // 100KB base
-      bundle_optimization: 80 // 80KB base
+      bundle_optimization: 80, // 80KB base
     };
     return baseRates[type] || 25;
   }
@@ -300,7 +309,7 @@ export class AdvancedNodeManager {
 
     const config = this.nodeConfigs[node.type];
     const newCapacity = node.storageCapacity + additionalStorage;
-    
+
     if (newCapacity > config.maxStorage) {
       return false; // Exceeds maximum capacity
     }
@@ -345,7 +354,8 @@ export class AdvancedNodeManager {
     mergedNode.computePower = totalCompute;
     mergedNode.performance.rewardsEarned = totalRewards;
     mergedNode.performance.tasksCompleted = totalTasks;
-    mergedNode.performance.efficiency = Math.min(100, 
+    mergedNode.performance.efficiency = Math.min(
+      100,
       nodes.reduce((sum, node) => sum + node.performance.efficiency, 0) / nodes.length
     );
 
@@ -367,11 +377,13 @@ export class AdvancedNodeManager {
       return null;
     }
 
-    const allocations = Array.from(this.storageAllocations.values())
-      .filter(alloc => alloc.nodeId === nodeId);
-    
-    const tasks = Array.from(this.optimizationTasks.values())
-      .filter(task => task.nodeId === nodeId);
+    const allocations = Array.from(this.storageAllocations.values()).filter(
+      alloc => alloc.nodeId === nodeId
+    );
+
+    const tasks = Array.from(this.optimizationTasks.values()).filter(
+      task => task.nodeId === nodeId
+    );
 
     return {
       node,
@@ -380,7 +392,7 @@ export class AdvancedNodeManager {
       activeTasks: tasks.filter(task => task.status === 'processing').length,
       completedTasks: tasks.filter(task => task.status === 'completed').length,
       totalSpaceProcessed: tasks.reduce((sum, task) => sum + task.spaceSaved, 0),
-      totalTokensEarned: tasks.reduce((sum, task) => sum + task.tokensEarned, 0)
+      totalTokensEarned: tasks.reduce((sum, task) => sum + task.tokensEarned, 0),
     };
   }
 
@@ -402,27 +414,24 @@ export class AdvancedNodeManager {
    * Get available storage across all nodes
    */
   getTotalAvailableStorage(): number {
-    return Array.from(this.nodes.values())
-      .reduce((sum, node) => sum + node.availableStorage, 0);
+    return Array.from(this.nodes.values()).reduce((sum, node) => sum + node.availableStorage, 0);
   }
 
   /**
    * Get total compute power
    */
   getTotalComputePower(): number {
-    return Array.from(this.nodes.values())
-      .reduce((sum, node) => sum + node.computePower, 0);
+    return Array.from(this.nodes.values()).reduce((sum, node) => sum + node.computePower, 0);
   }
 
   /**
    * Get daily rewards estimate
    */
   getDailyRewardsEstimate(): number {
-    return Array.from(this.nodes.values())
-      .reduce((sum, node) => {
-        const dailyReward = (node.usedStorage * node.rewardRate) / 1000;
-        return sum + dailyReward;
-      }, 0);
+    return Array.from(this.nodes.values()).reduce((sum, node) => {
+      const dailyReward = (node.usedStorage * node.rewardRate) / 1000;
+      return sum + dailyReward;
+    }, 0);
   }
 
   /**
@@ -482,9 +491,12 @@ export class AdvancedNodeManager {
       totalSpaceProcessed: tasks.reduce((sum, task) => sum + task.spaceSaved, 0),
       totalTokensEarned: tasks.reduce((sum, task) => sum + task.tokensEarned, 0),
       dailyRewardsEstimate: this.getDailyRewardsEstimate(),
-      storageUtilization: nodes.length > 0 ? 
-        (nodes.reduce((sum, node) => sum + node.usedStorage, 0) / 
-         nodes.reduce((sum, node) => sum + node.storageCapacity, 0)) * 100 : 0
+      storageUtilization:
+        nodes.length > 0
+          ? (nodes.reduce((sum, node) => sum + node.usedStorage, 0) /
+              nodes.reduce((sum, node) => sum + node.storageCapacity, 0)) *
+            100
+          : 0,
     };
   }
 

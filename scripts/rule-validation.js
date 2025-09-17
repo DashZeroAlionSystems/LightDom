@@ -22,7 +22,7 @@ class RuleValidator {
       passed: 0,
       failed: 0,
       warnings: 0,
-      total: 0
+      total: 0,
     };
     this.startTime = Date.now();
   }
@@ -33,23 +33,29 @@ class RuleValidator {
       info: '✅',
       warn: '⚠️',
       error: '❌',
-      success: '🎉'
+      success: '🎉',
     }[type];
     console.log(`${prefix} [${timestamp}] ${message}`);
   }
 
   async checkTypeScriptConfig() {
     this.log('Checking TypeScript configuration...');
-    
+
     try {
       const tsconfigPath = 'tsconfig.json';
       const tsconfig = JSON.parse(await fs.readFile(tsconfigPath, 'utf8'));
-      
+
       const checks = [
         { name: 'Strict mode enabled', check: tsconfig.compilerOptions?.strict === true },
         { name: 'No unused locals', check: tsconfig.compilerOptions?.noUnusedLocals === true },
-        { name: 'No unused parameters', check: tsconfig.compilerOptions?.noUnusedParameters === true },
-        { name: 'No fallthrough cases', check: tsconfig.compilerOptions?.noFallthroughCasesInSwitch === true }
+        {
+          name: 'No unused parameters',
+          check: tsconfig.compilerOptions?.noUnusedParameters === true,
+        },
+        {
+          name: 'No fallthrough cases',
+          check: tsconfig.compilerOptions?.noFallthroughCasesInSwitch === true,
+        },
       ];
 
       for (const check of checks) {
@@ -71,11 +77,11 @@ class RuleValidator {
 
   async checkESLintConfig() {
     this.log('Checking ESLint configuration...');
-    
+
     try {
       const eslintFiles = ['.eslintrc.js', '.eslintrc.json', '.eslintrc.yml', '.eslintrc.yaml'];
       let eslintExists = false;
-      
+
       for (const file of eslintFiles) {
         try {
           await fs.access(file);
@@ -98,7 +104,7 @@ class RuleValidator {
       // Check if ESLint is in package.json
       const packageJson = JSON.parse(await fs.readFile('package.json', 'utf8'));
       const hasESLint = packageJson.devDependencies?.eslint || packageJson.dependencies?.eslint;
-      
+
       if (hasESLint) {
         this.log('  ✓ ESLint dependency found', 'success');
         this.results.passed++;
@@ -107,7 +113,6 @@ class RuleValidator {
         this.results.failed++;
       }
       this.results.total++;
-
     } catch (error) {
       this.log(`ESLint config check failed: ${error.message}`, 'error');
       this.results.failed++;
@@ -117,11 +122,16 @@ class RuleValidator {
 
   async checkPrettierConfig() {
     this.log('Checking Prettier configuration...');
-    
+
     try {
-      const prettierFiles = ['.prettierrc', '.prettierrc.js', '.prettierrc.json', '.prettierrc.yml'];
+      const prettierFiles = [
+        '.prettierrc',
+        '.prettierrc.js',
+        '.prettierrc.json',
+        '.prettierrc.yml',
+      ];
       let prettierExists = false;
-      
+
       for (const file of prettierFiles) {
         try {
           await fs.access(file);
@@ -143,8 +153,9 @@ class RuleValidator {
 
       // Check if Prettier is in package.json
       const packageJson = JSON.parse(await fs.readFile('package.json', 'utf8'));
-      const hasPrettier = packageJson.devDependencies?.prettier || packageJson.dependencies?.prettier;
-      
+      const hasPrettier =
+        packageJson.devDependencies?.prettier || packageJson.dependencies?.prettier;
+
       if (hasPrettier) {
         this.log('  ✓ Prettier dependency found', 'success');
         this.results.passed++;
@@ -153,7 +164,6 @@ class RuleValidator {
         this.results.failed++;
       }
       this.results.total++;
-
     } catch (error) {
       this.log(`Prettier config check failed: ${error.message}`, 'error');
       this.results.failed++;
@@ -163,13 +173,13 @@ class RuleValidator {
 
   async checkTestConfiguration() {
     this.log('Checking test configuration...');
-    
+
     try {
       const packageJson = JSON.parse(await fs.readFile('package.json', 'utf8'));
-      
+
       // Check for test scripts
-      const testScripts = Object.keys(packageJson.scripts || {}).filter(script => 
-        script.includes('test') || script.includes('coverage')
+      const testScripts = Object.keys(packageJson.scripts || {}).filter(
+        script => script.includes('test') || script.includes('coverage')
       );
 
       if (testScripts.length > 0) {
@@ -183,8 +193,8 @@ class RuleValidator {
 
       // Check for testing dependencies
       const testingDeps = ['jest', 'vitest', 'mocha', 'chai', 'supertest'];
-      const foundTestingDeps = testingDeps.filter(dep => 
-        packageJson.devDependencies?.[dep] || packageJson.dependencies?.[dep]
+      const foundTestingDeps = testingDeps.filter(
+        dep => packageJson.devDependencies?.[dep] || packageJson.dependencies?.[dep]
       );
 
       if (foundTestingDeps.length > 0) {
@@ -197,9 +207,9 @@ class RuleValidator {
       this.results.total++;
 
       // Check for coverage configuration
-      const hasCoverage = packageJson.scripts && Object.keys(packageJson.scripts).some(script => 
-        script.includes('coverage')
-      );
+      const hasCoverage =
+        packageJson.scripts &&
+        Object.keys(packageJson.scripts).some(script => script.includes('coverage'));
 
       if (hasCoverage) {
         this.log('  ✓ Coverage configuration found', 'success');
@@ -209,7 +219,6 @@ class RuleValidator {
         this.results.warnings++;
       }
       this.results.total++;
-
     } catch (error) {
       this.log(`Test configuration check failed: ${error.message}`, 'error');
       this.results.failed++;
@@ -219,14 +228,14 @@ class RuleValidator {
 
   async checkSecurityConfiguration() {
     this.log('Checking security configuration...');
-    
+
     try {
       const packageJson = JSON.parse(await fs.readFile('package.json', 'utf8'));
-      
+
       // Check for security-related dependencies
       const securityDeps = ['helmet', 'cors', 'express-rate-limit', 'bcryptjs', 'jsonwebtoken'];
-      const foundSecurityDeps = securityDeps.filter(dep => 
-        packageJson.dependencies?.[dep] || packageJson.devDependencies?.[dep]
+      const foundSecurityDeps = securityDeps.filter(
+        dep => packageJson.dependencies?.[dep] || packageJson.devDependencies?.[dep]
       );
 
       if (foundSecurityDeps.length > 0) {
@@ -257,7 +266,6 @@ class RuleValidator {
         this.results.warnings++;
       }
       this.results.total++;
-
     } catch (error) {
       this.log(`Security configuration check failed: ${error.message}`, 'error');
       this.results.failed++;
@@ -267,11 +275,13 @@ class RuleValidator {
 
   async checkCodeQuality() {
     this.log('Checking code quality patterns...');
-    
+
     try {
       // Check for TODO/FIXME comments
-      const { stdout } = await execAsync('grep -r "TODO\\|FIXME\\|HACK\\|XXX" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" src/ || true');
-      
+      const { stdout } = await execAsync(
+        'grep -r "TODO\\|FIXME\\|HACK\\|XXX" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" src/ || true'
+      );
+
       if (stdout.trim()) {
         const todoCount = stdout.split('\n').filter(line => line.trim()).length;
         this.log(`  ⚠ Found ${todoCount} TODO/FIXME comments in codebase`, 'warn');
@@ -283,8 +293,10 @@ class RuleValidator {
       this.results.total++;
 
       // Check for console.log statements in production code
-      const { stdout: consoleLogs } = await execAsync('grep -r "console\\.log\\|console\\.warn\\|console\\.error" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" src/ || true');
-      
+      const { stdout: consoleLogs } = await execAsync(
+        'grep -r "console\\.log\\|console\\.warn\\|console\\.error" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" src/ || true'
+      );
+
       if (consoleLogs.trim()) {
         const consoleCount = consoleLogs.split('\n').filter(line => line.trim()).length;
         this.log(`  ⚠ Found ${consoleCount} console statements in production code`, 'warn');
@@ -296,18 +308,19 @@ class RuleValidator {
       this.results.total++;
 
       // Check for 'any' type usage
-      const { stdout: anyTypes } = await execAsync('grep -r ": any\\|as any" --include="*.ts" --include="*.tsx" src/ || true');
-      
+      const { stdout: anyTypes } = await execAsync(
+        'grep -r ": any\\|as any" --include="*.ts" --include="*.tsx" src/ || true'
+      );
+
       if (anyTypes.trim()) {
         const anyCount = anyTypes.split('\n').filter(line => line.trim()).length;
         this.log(`  ⚠ Found ${anyCount} 'any' type usages`, 'warn');
         this.results.warnings++;
       } else {
-        this.log('  ✓ No \'any\' type usages found', 'success');
+        this.log("  ✓ No 'any' type usages found", 'success');
         this.results.passed++;
       }
       this.results.total++;
-
     } catch (error) {
       this.log(`Code quality check failed: ${error.message}`, 'error');
       this.results.failed++;
@@ -317,14 +330,19 @@ class RuleValidator {
 
   async checkReactPatterns() {
     this.log('Checking React patterns...');
-    
+
     try {
       // Check for class components
-      const { stdout: classComponents } = await execAsync('grep -r "class.*extends.*Component\\|React\\.Component" --include="*.tsx" --include="*.jsx" src/ || true');
-      
+      const { stdout: classComponents } = await execAsync(
+        'grep -r "class.*extends.*Component\\|React\\.Component" --include="*.tsx" --include="*.jsx" src/ || true'
+      );
+
       if (classComponents.trim()) {
         const classCount = classComponents.split('\n').filter(line => line.trim()).length;
-        this.log(`  ⚠ Found ${classCount} class components (should use functional components)`, 'warn');
+        this.log(
+          `  ⚠ Found ${classCount} class components (should use functional components)`,
+          'warn'
+        );
         this.results.warnings++;
       } else {
         this.log('  ✓ No class components found (using functional components)', 'success');
@@ -333,8 +351,10 @@ class RuleValidator {
       this.results.total++;
 
       // Check for proper hook usage
-      const { stdout: hooks } = await execAsync('grep -r "use[A-Z]" --include="*.tsx" --include="*.jsx" src/ || true');
-      
+      const { stdout: hooks } = await execAsync(
+        'grep -r "use[A-Z]" --include="*.tsx" --include="*.jsx" src/ || true'
+      );
+
       if (hooks.trim()) {
         const hookCount = hooks.split('\n').filter(line => line.trim()).length;
         this.log(`  ✓ Found ${hookCount} React hooks usage`, 'success');
@@ -344,7 +364,6 @@ class RuleValidator {
         this.results.warnings++;
       }
       this.results.total++;
-
     } catch (error) {
       this.log(`React patterns check failed: ${error.message}`, 'error');
       this.results.failed++;
@@ -354,11 +373,13 @@ class RuleValidator {
 
   async checkSmartContractPatterns() {
     this.log('Checking smart contract patterns...');
-    
+
     try {
       // Check for OpenZeppelin imports
-      const { stdout: openzeppelin } = await execAsync('grep -r "@openzeppelin" --include="*.sol" contracts/ || true');
-      
+      const { stdout: openzeppelin } = await execAsync(
+        'grep -r "@openzeppelin" --include="*.sol" contracts/ || true'
+      );
+
       if (openzeppelin.trim()) {
         this.log('  ✓ OpenZeppelin imports found', 'success');
         this.results.passed++;
@@ -369,8 +390,10 @@ class RuleValidator {
       this.results.total++;
 
       // Check for reentrancy guards
-      const { stdout: reentrancy } = await execAsync('grep -r "ReentrancyGuard\\|nonReentrant" --include="*.sol" contracts/ || true');
-      
+      const { stdout: reentrancy } = await execAsync(
+        'grep -r "ReentrancyGuard\\|nonReentrant" --include="*.sol" contracts/ || true'
+      );
+
       if (reentrancy.trim()) {
         this.log('  ✓ Reentrancy guards found', 'success');
         this.results.passed++;
@@ -381,8 +404,10 @@ class RuleValidator {
       this.results.total++;
 
       // Check for events
-      const { stdout: events } = await execAsync('grep -r "event " --include="*.sol" contracts/ || true');
-      
+      const { stdout: events } = await execAsync(
+        'grep -r "event " --include="*.sol" contracts/ || true'
+      );
+
       if (events.trim()) {
         const eventCount = events.split('\n').filter(line => line.trim()).length;
         this.log(`  ✓ Found ${eventCount} events in smart contracts`, 'success');
@@ -392,7 +417,6 @@ class RuleValidator {
         this.results.warnings++;
       }
       this.results.total++;
-
     } catch (error) {
       this.log(`Smart contract patterns check failed: ${error.message}`, 'error');
       this.results.failed++;
@@ -402,11 +426,11 @@ class RuleValidator {
 
   async checkEnvironmentSecurity() {
     this.log('Checking environment security...');
-    
+
     try {
       // Check for .env files in git
       const { stdout: envFiles } = await execAsync('git ls-files | grep "\\.env" || true');
-      
+
       if (envFiles.trim()) {
         this.log('  ✗ .env files found in git repository (security risk)', 'error');
         this.results.failed++;
@@ -417,8 +441,10 @@ class RuleValidator {
       this.results.total++;
 
       // Check for hardcoded secrets
-      const { stdout: secrets } = await execAsync('grep -r "password\\|secret\\|key\\|token" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" src/ | grep -v "process\\.env" || true');
-      
+      const { stdout: secrets } = await execAsync(
+        'grep -r "password\\|secret\\|key\\|token" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" src/ | grep -v "process\\.env" || true'
+      );
+
       if (secrets.trim()) {
         this.log('  ⚠ Potential hardcoded secrets found', 'warn');
         this.results.warnings++;
@@ -427,7 +453,6 @@ class RuleValidator {
         this.results.passed++;
       }
       this.results.total++;
-
     } catch (error) {
       this.log(`Environment security check failed: ${error.message}`, 'error');
       this.results.failed++;
@@ -437,12 +462,12 @@ class RuleValidator {
 
   async checkDocumentation() {
     this.log('Checking documentation...');
-    
+
     try {
       // Check for README files
       const readmeFiles = ['README.md', 'README-COMPLETE.md'];
       let readmeExists = false;
-      
+
       for (const file of readmeFiles) {
         try {
           await fs.access(file);
@@ -463,8 +488,10 @@ class RuleValidator {
       this.results.total++;
 
       // Check for API documentation
-      const { stdout: apiDocs } = await execAsync('find . -name "*.md" -exec grep -l "API\\|endpoint\\|swagger\\|openapi" {} \\; || true');
-      
+      const { stdout: apiDocs } = await execAsync(
+        'find . -name "*.md" -exec grep -l "API\\|endpoint\\|swagger\\|openapi" {} \\; || true'
+      );
+
       if (apiDocs.trim()) {
         this.log('  ✓ API documentation found', 'success');
         this.results.passed++;
@@ -473,7 +500,6 @@ class RuleValidator {
         this.results.warnings++;
       }
       this.results.total++;
-
     } catch (error) {
       this.log(`Documentation check failed: ${error.message}`, 'error');
       this.results.failed++;
@@ -484,7 +510,7 @@ class RuleValidator {
   generateReport() {
     const duration = Date.now() - this.startTime;
     const successRate = ((this.results.passed / this.results.total) * 100).toFixed(1);
-    
+
     this.log('\n' + '='.repeat(60));
     this.log('RULE VALIDATION REPORT');
     this.log('='.repeat(60));
@@ -494,7 +520,7 @@ class RuleValidator {
     this.log(`Warnings: ${this.results.warnings} ⚠️`);
     this.log(`Success rate: ${successRate}%`);
     this.log(`Duration: ${duration}ms`);
-    
+
     if (this.results.failed > 0) {
       this.log('\n❌ CRITICAL ISSUES FOUND - Please address failed checks');
     } else if (this.results.warnings > 0) {
@@ -502,20 +528,20 @@ class RuleValidator {
     } else {
       this.log('\n🎉 ALL CHECKS PASSED - Excellent rule compliance!');
     }
-    
+
     this.log('='.repeat(60));
-    
+
     return {
       success: this.results.failed === 0,
       results: this.results,
       duration,
-      successRate: parseFloat(successRate)
+      successRate: parseFloat(successRate),
     };
   }
 
   async runAllChecks() {
     this.log('Starting LightDom Cursor Rules Validation...\n');
-    
+
     await this.checkTypeScriptConfig();
     await this.checkESLintConfig();
     await this.checkPrettierConfig();
@@ -526,20 +552,26 @@ class RuleValidator {
     await this.checkSmartContractPatterns();
     await this.checkEnvironmentSecurity();
     await this.checkDocumentation();
-    
+
     return this.generateReport();
   }
 }
 
 // Run validation if called directly
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1].includes('rule-validation.js')) {
+if (
+  import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1].includes('rule-validation.js')
+) {
   const validator = new RuleValidator();
-  validator.runAllChecks().then(report => {
-    process.exit(report.success ? 0 : 1);
-  }).catch(error => {
-    console.error('Validation failed:', error);
-    process.exit(1);
-  });
+  validator
+    .runAllChecks()
+    .then(report => {
+      process.exit(report.success ? 0 : 1);
+    })
+    .catch(error => {
+      console.error('Validation failed:', error);
+      process.exit(1);
+    });
 }
 
 export default RuleValidator;

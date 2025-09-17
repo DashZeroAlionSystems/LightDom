@@ -59,13 +59,25 @@ class LightDomFrameworkLauncher extends EventEmitter {
       database: {
         name: 'postgresql',
         command: 'docker',
-        args: ['run', '--name', 'lightdom-postgres', '-e', 'POSTGRES_PASSWORD=lightdom', '-e', 'POSTGRES_DB=lightdom', '-p', '5432:5432', '-d', 'postgres:15'],
+        args: [
+          'run',
+          '--name',
+          'lightdom-postgres',
+          '-e',
+          'POSTGRES_PASSWORD=lightdom',
+          '-e',
+          'POSTGRES_DB=lightdom',
+          '-p',
+          '5432:5432',
+          '-d',
+          'postgres:15',
+        ],
         restartOnFailure: true,
         healthCheck: {
           port: 5432,
           interval: 5000,
-          timeout: 10000
-        }
+          timeout: 10000,
+        },
       },
       redis: {
         name: 'redis',
@@ -75,8 +87,8 @@ class LightDomFrameworkLauncher extends EventEmitter {
         healthCheck: {
           port: 6379,
           interval: 5000,
-          timeout: 10000
-        }
+          timeout: 10000,
+        },
       },
       framework: {
         name: 'lightdom-framework',
@@ -89,14 +101,14 @@ class LightDomFrameworkLauncher extends EventEmitter {
           LIGHTDOM_DB_HOST: 'localhost',
           LIGHTDOM_DB_PORT: '5432',
           LIGHTDOM_REDIS_HOST: 'localhost',
-          LIGHTDOM_REDIS_PORT: '6379'
+          LIGHTDOM_REDIS_PORT: '6379',
         },
         restartOnFailure: true,
         healthCheck: {
           url: 'http://localhost:3000/health',
           interval: 10000,
-          timeout: 5000
-        }
+          timeout: 5000,
+        },
       },
       api: {
         name: 'lightdom-api',
@@ -106,14 +118,14 @@ class LightDomFrameworkLauncher extends EventEmitter {
         env: {
           NODE_ENV: 'production',
           API_PORT: '3001',
-          FRAMEWORK_URL: 'http://localhost:3000'
+          FRAMEWORK_URL: 'http://localhost:3000',
         },
         restartOnFailure: true,
         healthCheck: {
           url: 'http://localhost:3001/health',
           interval: 10000,
-          timeout: 5000
-        }
+          timeout: 5000,
+        },
       },
       simulation: {
         name: 'lightdom-simulation',
@@ -123,14 +135,14 @@ class LightDomFrameworkLauncher extends EventEmitter {
         env: {
           NODE_ENV: 'production',
           SIMULATION_INTERVAL: '60000',
-          FRAMEWORK_URL: 'http://localhost:3000'
+          FRAMEWORK_URL: 'http://localhost:3000',
         },
         restartOnFailure: true,
         healthCheck: {
           port: 3002,
           interval: 15000,
-          timeout: 5000
-        }
+          timeout: 5000,
+        },
       },
       workers: {
         name: 'lightdom-workers',
@@ -140,14 +152,14 @@ class LightDomFrameworkLauncher extends EventEmitter {
         env: {
           NODE_ENV: 'production',
           WORKER_CONCURRENCY: '5',
-          FRAMEWORK_URL: 'http://localhost:3000'
+          FRAMEWORK_URL: 'http://localhost:3000',
         },
         restartOnFailure: true,
         healthCheck: {
           port: 3003,
           interval: 15000,
-          timeout: 5000
-        }
+          timeout: 5000,
+        },
       },
       storage: {
         name: 'lightdom-storage',
@@ -158,14 +170,14 @@ class LightDomFrameworkLauncher extends EventEmitter {
           NODE_ENV: 'production',
           STORAGE_MAX_NODES: '10',
           STORAGE_DEFAULT_CAPACITY: '10000',
-          FRAMEWORK_URL: 'http://localhost:3000'
+          FRAMEWORK_URL: 'http://localhost:3000',
         },
         restartOnFailure: true,
         healthCheck: {
           port: 3005,
           interval: 15000,
-          timeout: 5000
-        }
+          timeout: 5000,
+        },
       },
       mining: {
         name: 'lightdom-mining',
@@ -176,14 +188,14 @@ class LightDomFrameworkLauncher extends EventEmitter {
           NODE_ENV: 'production',
           MINING_MAX_CONCURRENT: '5',
           MINING_TIMEOUT: '60000',
-          FRAMEWORK_URL: 'http://localhost:3000'
+          FRAMEWORK_URL: 'http://localhost:3000',
         },
         restartOnFailure: true,
         healthCheck: {
           port: 3006,
           interval: 15000,
-          timeout: 5000
-        }
+          timeout: 5000,
+        },
       },
       monitoring: {
         name: 'lightdom-monitoring',
@@ -193,15 +205,15 @@ class LightDomFrameworkLauncher extends EventEmitter {
         env: {
           NODE_ENV: 'production',
           MONITORING_PORT: '3004',
-          FRAMEWORK_URL: 'http://localhost:3000'
+          FRAMEWORK_URL: 'http://localhost:3000',
         },
         restartOnFailure: true,
         healthCheck: {
           url: 'http://localhost:3004/health',
           interval: 15000,
-          timeout: 5000
-        }
-      }
+          timeout: 5000,
+        },
+      },
     };
   }
 
@@ -243,7 +255,6 @@ class LightDomFrameworkLauncher extends EventEmitter {
 
       // Start health monitoring
       this.startHealthMonitoring();
-
     } catch (error) {
       console.error('❌ Failed to start LightDom Framework:', error);
       await this.stop();
@@ -265,8 +276,16 @@ class LightDomFrameworkLauncher extends EventEmitter {
     this.stopHealthMonitoring();
 
     // Stop services in reverse order
-    const serviceOrder = ['monitoring', 'workers', 'simulation', 'api', 'framework', 'redis', 'database'];
-    
+    const serviceOrder = [
+      'monitoring',
+      'workers',
+      'simulation',
+      'api',
+      'framework',
+      'redis',
+      'database',
+    ];
+
     for (const serviceName of serviceOrder) {
       await this.stopService(serviceName);
     }
@@ -305,7 +324,9 @@ class LightDomFrameworkLauncher extends EventEmitter {
     const nodeVersion = process.version;
     const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
     if (majorVersion < 18) {
-      throw new Error(`Node.js version ${nodeVersion} is not supported. Please use Node.js 18 or higher.`);
+      throw new Error(
+        `Node.js version ${nodeVersion} is not supported. Please use Node.js 18 or higher.`
+      );
     }
     console.log(`✅ Node.js ${nodeVersion} is compatible`);
 
@@ -313,7 +334,7 @@ class LightDomFrameworkLauncher extends EventEmitter {
     const requiredFiles = [
       'dist/framework/FrameworkRunner.js',
       'dist/framework/APIGateway.js',
-      'dist/framework/SimulationEngine.js'
+      'dist/framework/SimulationEngine.js',
     ];
 
     for (const file of requiredFiles) {
@@ -343,23 +364,23 @@ class LightDomFrameworkLauncher extends EventEmitter {
       const child = spawn(config.command, config.args, {
         cwd: config.cwd || process.cwd(),
         env: { ...process.env, ...config.env },
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       // Store service process
       this.services.set(serviceName, child);
 
       // Handle service output
-      child.stdout?.on('data', (data) => {
+      child.stdout?.on('data', data => {
         console.log(`[${config.name}] ${data.toString().trim()}`);
       });
 
-      child.stderr?.on('data', (data) => {
+      child.stderr?.on('data', data => {
         console.error(`[${config.name}] ${data.toString().trim()}`);
       });
 
       // Handle service exit
-      child.on('exit', (code) => {
+      child.on('exit', code => {
         console.log(`[${config.name}] Process exited with code ${code}`);
         if (config.restartOnFailure && code !== 0) {
           console.log(`[${config.name}] Restarting due to failure...`);
@@ -373,7 +394,6 @@ class LightDomFrameworkLauncher extends EventEmitter {
       }
 
       console.log(`✅ ${config.name} started successfully`);
-
     } catch (error) {
       console.error(`❌ Failed to start ${config.name}:`, error);
       throw error;
@@ -393,9 +413,9 @@ class LightDomFrameworkLauncher extends EventEmitter {
 
     try {
       child.kill('SIGTERM');
-      
+
       // Wait for graceful shutdown
-      await new Promise((resolve) => {
+      await new Promise(resolve => {
         child.on('exit', resolve);
         setTimeout(() => {
           child.kill('SIGKILL');
@@ -405,7 +425,6 @@ class LightDomFrameworkLauncher extends EventEmitter {
 
       this.services.delete(serviceName);
       console.log(`✅ ${serviceName} stopped`);
-
     } catch (error) {
       console.error(`❌ Error stopping ${serviceName}:`, error);
     }
@@ -509,18 +528,18 @@ class LightDomFrameworkLauncher extends EventEmitter {
    */
   getStatus(): { running: boolean; services: Record<string, any> } {
     const services: Record<string, any> = {};
-    
+
     for (const [serviceName, child] of this.services) {
       services[serviceName] = {
         running: !child.killed,
         pid: child.pid,
-        exitCode: child.exitCode
+        exitCode: child.exitCode,
       };
     }
 
     return {
       running: this.isRunning,
-      services
+      services,
     };
   }
 

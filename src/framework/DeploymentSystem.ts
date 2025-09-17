@@ -59,7 +59,7 @@ export class DeploymentSystem extends EventEmitter {
       resources: {
         cpu: '500m',
         memory: '512Mi',
-        storage: '1Gi'
+        storage: '1Gi',
       },
       environment: {},
       enableLoadBalancer: true,
@@ -69,9 +69,9 @@ export class DeploymentSystem extends EventEmitter {
         minReplicas: 1,
         maxReplicas: 10,
         targetCPU: 70,
-        targetMemory: 80
+        targetMemory: 80,
       },
-      ...config
+      ...config,
     };
   }
 
@@ -81,22 +81,22 @@ export class DeploymentSystem extends EventEmitter {
   async deploy(): Promise<DeploymentStatus> {
     try {
       console.log(`🚀 Deploying LightDom Framework: ${this.config.name}`);
-      
+
       // Create deployment directory
       await this.createDeploymentDirectory();
-      
+
       // Generate deployment files
       await this.generateDeploymentFiles();
-      
+
       // Deploy using Docker/Kubernetes
       const deploymentStatus = await this.executeDeployment();
-      
+
       // Store deployment status
       this.deployments.set(this.config.name, deploymentStatus);
-      
+
       this.emit('deployed', deploymentStatus);
       console.log(`✅ LightDom Framework deployed successfully: ${this.config.name}`);
-      
+
       return deploymentStatus;
     } catch (error) {
       console.error('❌ Deployment failed:', error);
@@ -114,20 +114,20 @@ export class DeploymentSystem extends EventEmitter {
 
     try {
       console.log(`📈 Scaling deployment to ${replicas} replicas`);
-      
+
       // Update Kubernetes deployment
       await execAsync(`kubectl scale deployment ${this.config.name} --replicas=${replicas}`);
-      
+
       // Update local config
       this.config.replicas = replicas;
-      
+
       // Get updated status
       const status = await this.getDeploymentStatus(this.config.name);
       this.deployments.set(this.config.name, status);
-      
+
       this.emit('scaled', { name: this.config.name, replicas, status });
       console.log(`✅ Deployment scaled to ${replicas} replicas`);
-      
+
       return status;
     } catch (error) {
       console.error('❌ Scaling failed:', error);
@@ -141,10 +141,10 @@ export class DeploymentSystem extends EventEmitter {
   async stop(): Promise<void> {
     try {
       console.log(`🛑 Stopping deployment: ${this.config.name}`);
-      
+
       // Scale down to 0 replicas
       await execAsync(`kubectl scale deployment ${this.config.name} --replicas=0`);
-      
+
       // Update status
       const status = this.deployments.get(this.config.name);
       if (status) {
@@ -152,7 +152,7 @@ export class DeploymentSystem extends EventEmitter {
         status.runningReplicas = 0;
         this.deployments.set(this.config.name, status);
       }
-      
+
       this.emit('stopped', this.config.name);
       console.log(`✅ Deployment stopped: ${this.config.name}`);
     } catch (error) {
@@ -169,7 +169,7 @@ export class DeploymentSystem extends EventEmitter {
       // Get Kubernetes deployment status
       const { stdout } = await execAsync(`kubectl get deployment ${name} -o json`);
       const deployment = JSON.parse(stdout);
-      
+
       const status: DeploymentStatus = {
         name,
         status: this.mapKubernetesStatus(deployment.status.conditions),
@@ -178,9 +178,9 @@ export class DeploymentSystem extends EventEmitter {
         uptime: this.calculateUptime(deployment.metadata.creationTimestamp),
         health: this.determineHealth(deployment.status),
         endpoints: await this.getEndpoints(name),
-        logs: await this.getLogs(name)
+        logs: await this.getLogs(name),
       };
-      
+
       return status;
     } catch (error) {
       console.error('❌ Failed to get deployment status:', error);
@@ -192,7 +192,7 @@ export class DeploymentSystem extends EventEmitter {
         uptime: 0,
         health: 'unknown',
         endpoints: [],
-        logs: []
+        logs: [],
       };
     }
   }
@@ -230,16 +230,16 @@ export class DeploymentSystem extends EventEmitter {
    */
   private async generateDeploymentFiles(): Promise<void> {
     const deploymentDir = path.join(process.cwd(), 'deployments', this.config.name);
-    
+
     // Generate Dockerfile
     await this.generateDockerfile(deploymentDir);
-    
+
     // Generate Kubernetes manifests
     await this.generateKubernetesManifests(deploymentDir);
-    
+
     // Generate docker-compose.yml
     await this.generateDockerCompose(deploymentDir);
-    
+
     // Generate environment file
     await this.generateEnvironmentFile(deploymentDir);
   }
@@ -292,58 +292,62 @@ CMD ["npm", "start"]
         name: this.config.name,
         labels: {
           app: this.config.name,
-          version: this.config.version
-        }
+          version: this.config.version,
+        },
       },
       spec: {
         replicas: this.config.replicas,
         selector: {
           matchLabels: {
-            app: this.config.name
-          }
+            app: this.config.name,
+          },
         },
         template: {
           metadata: {
             labels: {
               app: this.config.name,
-              version: this.config.version
-            }
+              version: this.config.version,
+            },
           },
           spec: {
-            containers: [{
-              name: this.config.name,
-              image: `${this.config.name}:${this.config.version}`,
-              ports: [{
-                containerPort: this.config.port
-              }],
-              resources: {
-                requests: this.config.resources,
-                limits: this.config.resources
-              },
-              env: Object.entries(this.config.environment).map(([key, value]) => ({
-                name: key,
-                value: value
-              })),
-              livenessProbe: {
-                httpGet: {
-                  path: '/health',
-                  port: this.config.port
+            containers: [
+              {
+                name: this.config.name,
+                image: `${this.config.name}:${this.config.version}`,
+                ports: [
+                  {
+                    containerPort: this.config.port,
+                  },
+                ],
+                resources: {
+                  requests: this.config.resources,
+                  limits: this.config.resources,
                 },
-                initialDelaySeconds: 30,
-                periodSeconds: 10
-              },
-              readinessProbe: {
-                httpGet: {
-                  path: '/health',
-                  port: this.config.port
+                env: Object.entries(this.config.environment).map(([key, value]) => ({
+                  name: key,
+                  value: value,
+                })),
+                livenessProbe: {
+                  httpGet: {
+                    path: '/health',
+                    port: this.config.port,
+                  },
+                  initialDelaySeconds: 30,
+                  periodSeconds: 10,
                 },
-                initialDelaySeconds: 5,
-                periodSeconds: 5
-              }
-            }]
-          }
-        }
-      }
+                readinessProbe: {
+                  httpGet: {
+                    path: '/health',
+                    port: this.config.port,
+                  },
+                  initialDelaySeconds: 5,
+                  periodSeconds: 5,
+                },
+              },
+            ],
+          },
+        },
+      },
     };
 
     // Service manifest
@@ -353,68 +357,67 @@ CMD ["npm", "start"]
       metadata: {
         name: `${this.config.name}-service`,
         labels: {
-          app: this.config.name
-        }
+          app: this.config.name,
+        },
       },
       spec: {
         selector: {
-          app: this.config.name
+          app: this.config.name,
         },
-        ports: [{
-          port: 80,
-          targetPort: this.config.port
-        }],
-        type: this.config.enableLoadBalancer ? 'LoadBalancer' : 'ClusterIP'
-      }
+        ports: [
+          {
+            port: 80,
+            targetPort: this.config.port,
+          },
+        ],
+        type: this.config.enableLoadBalancer ? 'LoadBalancer' : 'ClusterIP',
+      },
     };
 
     // Ingress manifest (if load balancer is enabled)
-    const ingress = this.config.enableLoadBalancer ? {
-      apiVersion: 'networking.k8s.io/v1',
-      kind: 'Ingress',
-      metadata: {
-        name: `${this.config.name}-ingress`,
-        annotations: {
-          'nginx.ingress.kubernetes.io/rewrite-target': '/'
+    const ingress = this.config.enableLoadBalancer
+      ? {
+          apiVersion: 'networking.k8s.io/v1',
+          kind: 'Ingress',
+          metadata: {
+            name: `${this.config.name}-ingress`,
+            annotations: {
+              'nginx.ingress.kubernetes.io/rewrite-target': '/',
+            },
+          },
+          spec: {
+            rules: [
+              {
+                host: `${this.config.name}.local`,
+                http: {
+                  paths: [
+                    {
+                      path: '/',
+                      pathType: 'Prefix',
+                      backend: {
+                        service: {
+                          name: `${this.config.name}-service`,
+                          port: {
+                            number: 80,
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
         }
-      },
-      spec: {
-        rules: [{
-          host: `${this.config.name}.local`,
-          http: {
-            paths: [{
-              path: '/',
-              pathType: 'Prefix',
-              backend: {
-                service: {
-                  name: `${this.config.name}-service`,
-                  port: {
-                    number: 80
-                  }
-                }
-              }
-            }]
-          }
-        }]
-      }
-    } : null;
+      : null;
 
     // Write manifests
-    await fs.writeFile(
-      path.join(deploymentDir, 'deployment.yaml'),
-      this.yamlStringify(deployment)
-    );
-    
-    await fs.writeFile(
-      path.join(deploymentDir, 'service.yaml'),
-      this.yamlStringify(service)
-    );
+    await fs.writeFile(path.join(deploymentDir, 'deployment.yaml'), this.yamlStringify(deployment));
+
+    await fs.writeFile(path.join(deploymentDir, 'service.yaml'), this.yamlStringify(service));
 
     if (ingress) {
-      await fs.writeFile(
-        path.join(deploymentDir, 'ingress.yaml'),
-        this.yamlStringify(ingress)
-      );
+      await fs.writeFile(path.join(deploymentDir, 'ingress.yaml'), this.yamlStringify(ingress));
     }
   }
 
@@ -432,19 +435,19 @@ CMD ["npm", "start"]
           deploy: {
             resources: {
               limits: this.config.resources,
-              reservations: this.config.resources
+              reservations: this.config.resources,
             },
-            replicas: this.config.replicas
+            replicas: this.config.replicas,
           },
           healthcheck: {
             test: [`CMD-SHELL`, `curl -f http://localhost:${this.config.port}/health || exit 1`],
             interval: '30s',
             timeout: '10s',
             retries: 3,
-            start_period: '40s'
-          }
-        }
-      }
+            start_period: '40s',
+          },
+        },
+      },
     };
 
     await fs.writeFile(
@@ -469,28 +472,30 @@ CMD ["npm", "start"]
    */
   private async executeDeployment(): Promise<DeploymentStatus> {
     const deploymentDir = path.join(process.cwd(), 'deployments', this.config.name);
-    
+
     try {
       // Build Docker image
       console.log('🔨 Building Docker image...');
-      await execAsync(`docker build -t ${this.config.name}:${this.config.version} ${deploymentDir}`);
-      
+      await execAsync(
+        `docker build -t ${this.config.name}:${this.config.version} ${deploymentDir}`
+      );
+
       // Apply Kubernetes manifests
       console.log('🚀 Applying Kubernetes manifests...');
       await execAsync(`kubectl apply -f ${deploymentDir}/deployment.yaml`);
       await execAsync(`kubectl apply -f ${deploymentDir}/service.yaml`);
-      
+
       if (this.config.enableLoadBalancer) {
         await execAsync(`kubectl apply -f ${deploymentDir}/ingress.yaml`);
       }
-      
+
       // Wait for deployment to be ready
       console.log('⏳ Waiting for deployment to be ready...');
       await execAsync(`kubectl rollout status deployment/${this.config.name}`);
-      
+
       // Get deployment status
       const status = await this.getDeploymentStatus(this.config.name);
-      
+
       return status;
     } catch (error) {
       console.error('❌ Deployment execution failed:', error);
@@ -503,14 +508,18 @@ CMD ["npm", "start"]
    */
   private async getEndpoints(name: string): Promise<string[]> {
     try {
-      const { stdout } = await execAsync(`kubectl get service ${name}-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`);
+      const { stdout } = await execAsync(
+        `kubectl get service ${name}-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`
+      );
       const ip = stdout.trim();
-      
+
       if (ip) {
         return [`http://${ip}`];
       } else {
         // Get cluster IP
-        const { stdout: clusterIP } = await execAsync(`kubectl get service ${name}-service -o jsonpath='{.spec.clusterIP}'`);
+        const { stdout: clusterIP } = await execAsync(
+          `kubectl get service ${name}-service -o jsonpath='{.spec.clusterIP}'`
+        );
         return [`http://${clusterIP.trim()}`];
       }
     } catch (error) {
@@ -524,7 +533,7 @@ CMD ["npm", "start"]
   private mapKubernetesStatus(conditions: any[]): DeploymentStatus['status'] {
     const availableCondition = conditions.find(c => c.type === 'Available');
     const progressingCondition = conditions.find(c => c.type === 'Progressing');
-    
+
     if (availableCondition?.status === 'True') {
       return 'running';
     } else if (progressingCondition?.status === 'True') {
@@ -548,7 +557,7 @@ CMD ["npm", "start"]
   private determineHealth(status: any): DeploymentStatus['health'] {
     const readyReplicas = status.readyReplicas || 0;
     const replicas = status.replicas || 0;
-    
+
     if (readyReplicas === replicas && replicas > 0) {
       return 'healthy';
     } else if (readyReplicas > 0) {

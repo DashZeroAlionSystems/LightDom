@@ -29,11 +29,7 @@ interface FormErrors {
   general?: string;
 }
 
-export const SignUpForm: React.FC<SignUpFormProps> = ({
-  onSignUp,
-  onSignIn,
-  className = ''
-}) => {
+export const SignUpForm: React.FC<SignUpFormProps> = ({ onSignUp, onSignIn, className = '' }) => {
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -41,19 +37,19 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
     password: '',
     confirmPassword: '',
     agreeToTerms: false,
-    marketingEmails: false
+    marketingEmails: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPasskeyOption, setShowPasskeyOption] = useState(false);
   const [showOTPOption, setShowOTPOption] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
-  
+
   const logger = new Logger('SignUpForm');
   const webAuthnService = new WebAuthnService({
     rpId: window.location.hostname,
     rpName: 'LightDom',
-    origin: window.location.origin
+    origin: window.location.origin,
   });
   const webOTPService = new WebOTPService();
 
@@ -77,7 +73,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
       { id: 'firstName', autocomplete: 'given-name' },
       { id: 'lastName', autocomplete: 'family-name' },
       { id: 'email', autocomplete: 'email' },
-      { id: 'password', autocomplete: 'new-password' }
+      { id: 'password', autocomplete: 'new-password' },
     ];
 
     inputs.forEach(({ id, autocomplete }) => {
@@ -90,14 +86,14 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
 
   const calculatePasswordStrength = (password: string): number => {
     let strength = 0;
-    
+
     if (password.length >= 8) strength += 1;
     if (password.length >= 12) strength += 1;
     if (/[a-z]/.test(password)) strength += 1;
     if (/[A-Z]/.test(password)) strength += 1;
     if (/[0-9]/.test(password)) strength += 1;
     if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-    
+
     return strength;
   };
 
@@ -164,7 +160,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
 
     // Update password strength
@@ -177,14 +173,14 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({
         ...prev,
-        [name]: undefined
+        [name]: undefined,
       }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -194,22 +190,21 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
 
     try {
       logger.info('Attempting sign up');
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // In real implementation, call your registration API
       const userData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
-        marketingEmails: formData.marketingEmails
+        marketingEmails: formData.marketingEmails,
       };
 
       onSignUp(userData);
       logger.info('Sign up successful');
-      
     } catch (error) {
       logger.error('Sign up failed:', error);
       setErrors({ general: 'Registration failed. Please try again.' });
@@ -222,30 +217,29 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
     try {
       setIsLoading(true);
       logger.info('Attempting passkey registration');
-      
+
       const user = {
         id: crypto.randomUUID(),
         name: formData.email,
         displayName: `${formData.firstName} ${formData.lastName}`,
-        icon: undefined
+        icon: undefined,
       };
 
       const credential = await webAuthnService.registerPasskey(user);
-      
+
       if (credential) {
         // In real implementation, send credential to server for storage
-        onSignUp({ 
-          type: 'passkey', 
+        onSignUp({
+          type: 'passkey',
           credential,
           user: {
             firstName: formData.firstName,
             lastName: formData.lastName,
-            email: formData.email
-          }
+            email: formData.email,
+          },
         });
         logger.info('Passkey registration successful');
       }
-      
     } catch (error) {
       logger.error('Passkey registration failed:', error);
       setErrors({ general: 'Passkey registration failed' });
@@ -262,182 +256,159 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
 
   return (
     <div className={`sign-up-form ${className}`}>
-      <div className="form-header">
+      <div className='form-header'>
         <h2>Create Account</h2>
         <p>Join LightDom and start optimizing your web presence.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="auth-form" noValidate>
-        {errors.general && (
-          <div className="error-message general-error">
-            {errors.general}
-          </div>
-        )}
+      <form onSubmit={handleSubmit} className='auth-form' noValidate>
+        {errors.general && <div className='error-message general-error'>{errors.general}</div>}
 
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="firstName">First Name</label>
+        <div className='form-row'>
+          <div className='form-group'>
+            <label htmlFor='firstName'>First Name</label>
             <input
-              type="text"
-              id="firstName"
-              name="firstName"
+              type='text'
+              id='firstName'
+              name='firstName'
               value={formData.firstName}
               onChange={handleInputChange}
               className={errors.firstName ? 'error' : ''}
-              placeholder="Enter your first name"
-              autoComplete="given-name"
+              placeholder='Enter your first name'
+              autoComplete='given-name'
               required
             />
-            {errors.firstName && (
-              <span className="error-text">{errors.firstName}</span>
-            )}
+            {errors.firstName && <span className='error-text'>{errors.firstName}</span>}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="lastName">Last Name</label>
+          <div className='form-group'>
+            <label htmlFor='lastName'>Last Name</label>
             <input
-              type="text"
-              id="lastName"
-              name="lastName"
+              type='text'
+              id='lastName'
+              name='lastName'
               value={formData.lastName}
               onChange={handleInputChange}
               className={errors.lastName ? 'error' : ''}
-              placeholder="Enter your last name"
-              autoComplete="family-name"
+              placeholder='Enter your last name'
+              autoComplete='family-name'
               required
             />
-            {errors.lastName && (
-              <span className="error-text">{errors.lastName}</span>
-            )}
+            {errors.lastName && <span className='error-text'>{errors.lastName}</span>}
           </div>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="email">Email Address</label>
+        <div className='form-group'>
+          <label htmlFor='email'>Email Address</label>
           <input
-            type="email"
-            id="email"
-            name="email"
+            type='email'
+            id='email'
+            name='email'
             value={formData.email}
             onChange={handleInputChange}
             className={errors.email ? 'error' : ''}
-            placeholder="Enter your email"
-            autoComplete="email"
+            placeholder='Enter your email'
+            autoComplete='email'
             required
           />
-          {errors.email && (
-            <span className="error-text">{errors.email}</span>
-          )}
+          {errors.email && <span className='error-text'>{errors.email}</span>}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
+        <div className='form-group'>
+          <label htmlFor='password'>Password</label>
           <input
-            type="password"
-            id="password"
-            name="password"
+            type='password'
+            id='password'
+            name='password'
             value={formData.password}
             onChange={handleInputChange}
             className={errors.password ? 'error' : ''}
-            placeholder="Create a strong password"
-            autoComplete="new-password"
+            placeholder='Create a strong password'
+            autoComplete='new-password'
             required
           />
           {formData.password && (
-            <div className="password-strength">
-              <div className="strength-bar">
-                <div 
-                  className="strength-fill"
-                  style={{ 
+            <div className='password-strength'>
+              <div className='strength-bar'>
+                <div
+                  className='strength-fill'
+                  style={{
                     width: `${(passwordStrength / 6) * 100}%`,
-                    backgroundColor: getPasswordStrengthColor(passwordStrength)
+                    backgroundColor: getPasswordStrengthColor(passwordStrength),
                   }}
                 />
               </div>
-              <span className="strength-text">
-                {getPasswordStrengthText(passwordStrength)}
-              </span>
+              <span className='strength-text'>{getPasswordStrengthText(passwordStrength)}</span>
             </div>
           )}
-          {errors.password && (
-            <span className="error-text">{errors.password}</span>
-          )}
+          {errors.password && <span className='error-text'>{errors.password}</span>}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="confirmPassword">Confirm Password</label>
+        <div className='form-group'>
+          <label htmlFor='confirmPassword'>Confirm Password</label>
           <input
-            type="password"
-            id="confirmPassword"
-            name="confirmPassword"
+            type='password'
+            id='confirmPassword'
+            name='confirmPassword'
             value={formData.confirmPassword}
             onChange={handleInputChange}
             className={errors.confirmPassword ? 'error' : ''}
-            placeholder="Confirm your password"
-            autoComplete="new-password"
+            placeholder='Confirm your password'
+            autoComplete='new-password'
             required
           />
-          {errors.confirmPassword && (
-            <span className="error-text">{errors.confirmPassword}</span>
-          )}
+          {errors.confirmPassword && <span className='error-text'>{errors.confirmPassword}</span>}
         </div>
 
-        <div className="form-options">
-          <label className="checkbox-label">
+        <div className='form-options'>
+          <label className='checkbox-label'>
             <input
-              type="checkbox"
-              name="agreeToTerms"
+              type='checkbox'
+              name='agreeToTerms'
               checked={formData.agreeToTerms}
               onChange={handleInputChange}
               required
             />
-            <span className="checkmark"></span>
-            I agree to the{' '}
-            <a href="/terms" target="_blank" rel="noopener noreferrer">
+            <span className='checkmark'></span>I agree to the{' '}
+            <a href='/terms' target='_blank' rel='noopener noreferrer'>
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="/privacy" target="_blank" rel="noopener noreferrer">
+            <a href='/privacy' target='_blank' rel='noopener noreferrer'>
               Privacy Policy
             </a>
           </label>
-          
-          {errors.agreeToTerms && (
-            <span className="error-text">{errors.agreeToTerms}</span>
-          )}
+
+          {errors.agreeToTerms && <span className='error-text'>{errors.agreeToTerms}</span>}
         </div>
 
-        <div className="form-options">
-          <label className="checkbox-label">
+        <div className='form-options'>
+          <label className='checkbox-label'>
             <input
-              type="checkbox"
-              name="marketingEmails"
+              type='checkbox'
+              name='marketingEmails'
               checked={formData.marketingEmails}
               onChange={handleInputChange}
             />
-            <span className="checkmark"></span>
+            <span className='checkmark'></span>
             Send me marketing emails and updates
           </label>
         </div>
 
-        <button
-          type="submit"
-          className="btn btn-primary btn-full"
-          disabled={isLoading}
-        >
+        <button type='submit' className='btn btn-primary btn-full' disabled={isLoading}>
           {isLoading ? 'Creating Account...' : 'Create Account'}
         </button>
 
         {/* Alternative sign-up methods */}
-        <div className="alternative-signup">
-          <div className="divider">
+        <div className='alternative-signup'>
+          <div className='divider'>
             <span>or</span>
           </div>
 
           {showPasskeyOption && (
             <button
-              type="button"
-              className="btn btn-outline btn-full"
+              type='button'
+              className='btn btn-outline btn-full'
               onClick={handlePasskeySignUp}
               disabled={isLoading}
             >
@@ -447,8 +418,8 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
 
           {showOTPOption && (
             <button
-              type="button"
-              className="btn btn-outline btn-full"
+              type='button'
+              className='btn btn-outline btn-full'
               onClick={handleOTPSignUp}
               disabled={isLoading}
             >
@@ -458,19 +429,15 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
         </div>
 
         {/* OTP Container */}
-        <div id="otp-container" className="otp-container" style={{ display: 'none' }}>
+        <div id='otp-container' className='otp-container' style={{ display: 'none' }}>
           {/* OTP form will be inserted here */}
         </div>
       </form>
 
-      <div className="form-footer">
+      <div className='form-footer'>
         <p>
           Already have an account?{' '}
-          <button
-            type="button"
-            className="link-button"
-            onClick={onSignIn}
-          >
+          <button type='button' className='link-button' onClick={onSignIn}>
             Sign in
           </button>
         </p>

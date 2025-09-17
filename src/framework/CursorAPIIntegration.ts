@@ -77,14 +77,26 @@ export interface AutomationRule {
 }
 
 export interface AutomationCondition {
-  type: 'file_size' | 'code_quality' | 'performance' | 'error_rate' | 'storage_usage' | 'mining_completion';
+  type:
+    | 'file_size'
+    | 'code_quality'
+    | 'performance'
+    | 'error_rate'
+    | 'storage_usage'
+    | 'mining_completion';
   operator: 'greater_than' | 'less_than' | 'equals' | 'contains' | 'matches';
   value: any;
   threshold?: number;
 }
 
 export interface AutomationAction {
-  type: 'optimize_code' | 'cleanup_files' | 'restart_service' | 'scale_resources' | 'send_notification' | 'deploy_update';
+  type:
+    | 'optimize_code'
+    | 'cleanup_files'
+    | 'restart_service'
+    | 'scale_resources'
+    | 'send_notification'
+    | 'deploy_update';
   config: any;
   priority: 'low' | 'medium' | 'high' | 'critical';
 }
@@ -151,18 +163,18 @@ export class CursorAPIIntegration extends EventEmitter {
 
   constructor(config: CursorAPIConfig) {
     super();
-    
+
     this.config = config;
     this.api = axios.create({
       baseURL: config.baseUrl,
       timeout: config.timeout,
       headers: {
-        'Authorization': `Bearer ${config.apiKey}`,
+        Authorization: `Bearer ${config.apiKey}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'LightDom-Framework/1.0.0'
-      }
+        'User-Agent': 'LightDom-Framework/1.0.0',
+      },
     });
-    
+
     this.setupInterceptors();
     this.setupEventHandlers();
   }
@@ -172,21 +184,21 @@ export class CursorAPIIntegration extends EventEmitter {
    */
   async initialize(): Promise<void> {
     console.log('🔌 Initializing Cursor API Integration...');
-    
+
     try {
       // Test API connection
       await this.testConnection();
-      
+
       // Load existing workflows and rules
       await this.loadWorkflows();
       await this.loadAutomationRules();
-      
+
       // Start monitoring
       this.startMonitoring();
-      
+
       this.isRunning = true;
       this.emit('initialized');
-      
+
       console.log('✅ Cursor API Integration initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize Cursor API Integration:', error);
@@ -213,14 +225,16 @@ export class CursorAPIIntegration extends EventEmitter {
   /**
    * Create a new workflow
    */
-  async createWorkflow(workflow: Omit<CursorWorkflow, 'id' | 'executionCount' | 'successCount' | 'failureCount'>): Promise<CursorWorkflow> {
+  async createWorkflow(
+    workflow: Omit<CursorWorkflow, 'id' | 'executionCount' | 'successCount' | 'failureCount'>
+  ): Promise<CursorWorkflow> {
     try {
       const response = await this.api.post('/workflows', workflow);
       const createdWorkflow = response.data;
-      
+
       this.workflows.set(createdWorkflow.id, createdWorkflow);
       this.emit('workflowCreated', createdWorkflow);
-      
+
       console.log(`✅ Created workflow: ${createdWorkflow.name}`);
       return createdWorkflow;
     } catch (error) {
@@ -232,18 +246,20 @@ export class CursorAPIIntegration extends EventEmitter {
   /**
    * Create an automation rule
    */
-  async createAutomationRule(rule: Omit<AutomationRule, 'id' | 'triggerCount' | 'createdAt'>): Promise<AutomationRule> {
+  async createAutomationRule(
+    rule: Omit<AutomationRule, 'id' | 'triggerCount' | 'createdAt'>
+  ): Promise<AutomationRule> {
     try {
       const automationRule: AutomationRule = {
         ...rule,
         id: `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         triggerCount: 0,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
-      
+
       this.automationRules.set(automationRule.id, automationRule);
       this.emit('automationRuleCreated', automationRule);
-      
+
       console.log(`✅ Created automation rule: ${automationRule.name}`);
       return automationRule;
     } catch (error) {
@@ -267,7 +283,7 @@ export class CursorAPIIntegration extends EventEmitter {
       workflowId,
       status: 'running',
       startedAt: new Date().toISOString(),
-      logs: []
+      logs: [],
     };
 
     this.executions.set(executionId, execution);
@@ -275,36 +291,37 @@ export class CursorAPIIntegration extends EventEmitter {
 
     try {
       console.log(`🚀 Executing workflow: ${workflow.name}`);
-      
+
       // Execute workflow actions in order
       for (const action of workflow.actions.sort((a, b) => a.order - b.order)) {
         if (!action.enabled) continue;
-        
+
         await this.executeAction(action, input, execution);
       }
 
       execution.status = 'completed';
       execution.completedAt = new Date().toISOString();
-      execution.duration = new Date(execution.completedAt).getTime() - new Date(execution.startedAt).getTime();
-      
+      execution.duration =
+        new Date(execution.completedAt).getTime() - new Date(execution.startedAt).getTime();
+
       // Update workflow statistics
       workflow.executionCount++;
       workflow.successCount++;
       workflow.lastRun = execution.completedAt;
-      
+
       this.emit('workflowExecutionCompleted', execution);
       console.log(`✅ Workflow execution completed: ${workflow.name}`);
-      
     } catch (error) {
       execution.status = 'failed';
       execution.error = error instanceof Error ? error.message : String(error);
       execution.completedAt = new Date().toISOString();
-      execution.duration = new Date(execution.completedAt).getTime() - new Date(execution.startedAt).getTime();
-      
+      execution.duration =
+        new Date(execution.completedAt).getTime() - new Date(execution.startedAt).getTime();
+
       // Update workflow statistics
       workflow.executionCount++;
       workflow.failureCount++;
-      
+
       this.emit('workflowExecutionFailed', execution);
       console.error(`❌ Workflow execution failed: ${workflow.name} - ${execution.error}`);
     }
@@ -315,9 +332,13 @@ export class CursorAPIIntegration extends EventEmitter {
   /**
    * Execute a workflow action
    */
-  private async executeAction(action: WorkflowAction, input: any, execution: WorkflowExecution): Promise<void> {
+  private async executeAction(
+    action: WorkflowAction,
+    input: any,
+    execution: WorkflowExecution
+  ): Promise<void> {
     execution.logs.push(`Executing action: ${action.name} (${action.type})`);
-    
+
     try {
       switch (action.type) {
         case 'code_execution':
@@ -338,7 +359,7 @@ export class CursorAPIIntegration extends EventEmitter {
         default:
           throw new Error(`Unknown action type: ${action.type}`);
       }
-      
+
       execution.logs.push(`Action completed: ${action.name}`);
     } catch (error) {
       execution.logs.push(`Action failed: ${action.name} - ${error}`);
@@ -349,9 +370,13 @@ export class CursorAPIIntegration extends EventEmitter {
   /**
    * Execute code action
    */
-  private async executeCodeAction(action: WorkflowAction, input: any, execution: WorkflowExecution): Promise<void> {
+  private async executeCodeAction(
+    action: WorkflowAction,
+    input: any,
+    execution: WorkflowExecution
+  ): Promise<void> {
     const { code, language, context } = action.config;
-    
+
     // Execute code based on language
     switch (language) {
       case 'javascript':
@@ -372,7 +397,12 @@ export class CursorAPIIntegration extends EventEmitter {
   /**
    * Execute JavaScript/TypeScript code
    */
-  private async executeJavaScriptCode(code: string, context: any, input: any, execution: WorkflowExecution): Promise<void> {
+  private async executeJavaScriptCode(
+    code: string,
+    context: any,
+    input: any,
+    execution: WorkflowExecution
+  ): Promise<void> {
     // Create execution context
     const executionContext = {
       lightDomFramework,
@@ -381,14 +411,14 @@ export class CursorAPIIntegration extends EventEmitter {
       console: {
         log: (message: string) => execution.logs.push(`[LOG] ${message}`),
         error: (message: string) => execution.logs.push(`[ERROR] ${message}`),
-        warn: (message: string) => execution.logs.push(`[WARN] ${message}`)
+        warn: (message: string) => execution.logs.push(`[WARN] ${message}`),
       },
       setTimeout: (fn: Function, delay: number) => setTimeout(fn, delay),
-      setInterval: (fn: Function, delay: number) => setInterval(fn, delay)
+      setInterval: (fn: Function, delay: number) => setInterval(fn, delay),
     };
 
     // Execute code in safe context
-    const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
     const fn = new AsyncFunction(...Object.keys(executionContext), code);
     await fn(...Object.values(executionContext));
   }
@@ -396,11 +426,16 @@ export class CursorAPIIntegration extends EventEmitter {
   /**
    * Execute Python code
    */
-  private async executePythonCode(code: string, context: any, input: any, execution: WorkflowExecution): Promise<void> {
+  private async executePythonCode(
+    code: string,
+    context: any,
+    input: any,
+    execution: WorkflowExecution
+  ): Promise<void> {
     // For now, we'll use a simplified approach
     // In production, you'd want to use a proper Python execution environment
     execution.logs.push(`[PYTHON] Executing Python code: ${code.substring(0, 100)}...`);
-    
+
     // Simulate Python execution
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
@@ -408,24 +443,29 @@ export class CursorAPIIntegration extends EventEmitter {
   /**
    * Execute shell code
    */
-  private async executeShellCode(code: string, context: any, input: any, execution: WorkflowExecution): Promise<void> {
+  private async executeShellCode(
+    code: string,
+    context: any,
+    input: any,
+    execution: WorkflowExecution
+  ): Promise<void> {
     const { spawn } = require('child_process');
     const { promisify } = require('util');
-    
+
     execution.logs.push(`[SHELL] Executing: ${code}`);
-    
+
     return new Promise((resolve, reject) => {
       const child = spawn('sh', ['-c', code], { stdio: 'pipe' });
-      
-      child.stdout.on('data', (data) => {
+
+      child.stdout.on('data', data => {
         execution.logs.push(`[STDOUT] ${data.toString()}`);
       });
-      
-      child.stderr.on('data', (data) => {
+
+      child.stderr.on('data', data => {
         execution.logs.push(`[STDERR] ${data.toString()}`);
       });
-      
-      child.on('close', (code) => {
+
+      child.on('close', code => {
         if (code === 0) {
           resolve();
         } else {
@@ -438,11 +478,15 @@ export class CursorAPIIntegration extends EventEmitter {
   /**
    * Execute file action
    */
-  private async executeFileAction(action: WorkflowAction, input: any, execution: WorkflowExecution): Promise<void> {
+  private async executeFileAction(
+    action: WorkflowAction,
+    input: any,
+    execution: WorkflowExecution
+  ): Promise<void> {
     const { operation, path, content, options } = action.config;
-    
+
     const fs = require('fs/promises');
-    
+
     switch (operation) {
       case 'read':
         const data = await fs.readFile(path, 'utf8');
@@ -468,30 +512,38 @@ export class CursorAPIIntegration extends EventEmitter {
   /**
    * Execute API action
    */
-  private async executeAPIAction(action: WorkflowAction, input: any, execution: WorkflowExecution): Promise<void> {
+  private async executeAPIAction(
+    action: WorkflowAction,
+    input: any,
+    execution: WorkflowExecution
+  ): Promise<void> {
     const { method, url, headers, body, timeout } = action.config;
-    
+
     execution.logs.push(`[API] ${method.toUpperCase()} ${url}`);
-    
+
     const response = await axios({
       method,
       url,
       headers,
       data: body,
-      timeout: timeout || 30000
+      timeout: timeout || 30000,
     });
-    
+
     execution.logs.push(`[API] Response: ${response.status} ${response.statusText}`);
   }
 
   /**
    * Execute notification action
    */
-  private async executeNotificationAction(action: WorkflowAction, input: any, execution: WorkflowExecution): Promise<void> {
+  private async executeNotificationAction(
+    action: WorkflowAction,
+    input: any,
+    execution: WorkflowExecution
+  ): Promise<void> {
     const { type, message, recipients, options } = action.config;
-    
+
     execution.logs.push(`[NOTIFICATION] Sending ${type} notification`);
-    
+
     // Implement notification logic based on type
     switch (type) {
       case 'email':
@@ -511,11 +563,15 @@ export class CursorAPIIntegration extends EventEmitter {
   /**
    * Execute deployment action
    */
-  private async executeDeploymentAction(action: WorkflowAction, input: any, execution: WorkflowExecution): Promise<void> {
+  private async executeDeploymentAction(
+    action: WorkflowAction,
+    input: any,
+    execution: WorkflowExecution
+  ): Promise<void> {
     const { type, target, options } = action.config;
-    
+
     execution.logs.push(`[DEPLOYMENT] Deploying to ${target}`);
-    
+
     // Implement deployment logic based on type
     switch (type) {
       case 'docker':
@@ -538,7 +594,7 @@ export class CursorAPIIntegration extends EventEmitter {
   private async checkAutomationRules(): Promise<void> {
     for (const rule of this.automationRules.values()) {
       if (!rule.enabled) continue;
-      
+
       try {
         const shouldTrigger = await this.evaluateRuleConditions(rule);
         if (shouldTrigger) {
@@ -557,12 +613,12 @@ export class CursorAPIIntegration extends EventEmitter {
     for (const condition of rule.conditions) {
       const value = await this.getConditionValue(condition);
       const threshold = condition.threshold || condition.value;
-      
+
       if (!this.evaluateCondition(condition.operator, value, threshold)) {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -620,10 +676,10 @@ export class CursorAPIIntegration extends EventEmitter {
    */
   private async executeAutomationRule(rule: AutomationRule): Promise<void> {
     console.log(`🤖 Executing automation rule: ${rule.name}`);
-    
+
     rule.triggerCount++;
     rule.lastTriggered = new Date().toISOString();
-    
+
     for (const action of rule.actions) {
       try {
         await this.executeAutomationAction(action);
@@ -631,7 +687,7 @@ export class CursorAPIIntegration extends EventEmitter {
         console.error(`Error executing automation action ${action.type}:`, error);
       }
     }
-    
+
     this.emit('automationRuleTriggered', rule);
   }
 
@@ -733,7 +789,7 @@ export class CursorAPIIntegration extends EventEmitter {
   private startMonitoring(): void {
     this.monitoringInterval = setInterval(async () => {
       if (!this.isRunning) return;
-      
+
       try {
         await this.checkAutomationRules();
       } catch (error) {
@@ -747,22 +803,22 @@ export class CursorAPIIntegration extends EventEmitter {
    */
   private setupInterceptors(): void {
     this.api.interceptors.request.use(
-      (config) => {
+      config => {
         console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },
-      (error) => {
+      error => {
         console.error('[API] Request error:', error);
         return Promise.reject(error);
       }
     );
 
     this.api.interceptors.response.use(
-      (response) => {
+      response => {
         console.log(`[API] Response: ${response.status} ${response.statusText}`);
         return response;
       },
-      (error) => {
+      error => {
         console.error('[API] Response error:', error);
         return Promise.reject(error);
       }
@@ -773,27 +829,27 @@ export class CursorAPIIntegration extends EventEmitter {
    * Setup event handlers
    */
   private setupEventHandlers(): void {
-    this.on('workflowCreated', (workflow) => {
+    this.on('workflowCreated', workflow => {
       console.log(`📋 Workflow created: ${workflow.name}`);
     });
-    
-    this.on('automationRuleCreated', (rule) => {
+
+    this.on('automationRuleCreated', rule => {
       console.log(`🤖 Automation rule created: ${rule.name}`);
     });
-    
-    this.on('workflowExecutionStarted', (execution) => {
+
+    this.on('workflowExecutionStarted', execution => {
       console.log(`🚀 Workflow execution started: ${execution.id}`);
     });
-    
-    this.on('workflowExecutionCompleted', (execution) => {
+
+    this.on('workflowExecutionCompleted', execution => {
       console.log(`✅ Workflow execution completed: ${execution.id}`);
     });
-    
-    this.on('workflowExecutionFailed', (execution) => {
+
+    this.on('workflowExecutionFailed', execution => {
       console.error(`❌ Workflow execution failed: ${execution.id} - ${execution.error}`);
     });
-    
-    this.on('automationRuleTriggered', (rule) => {
+
+    this.on('automationRuleTriggered', rule => {
       console.log(`🤖 Automation rule triggered: ${rule.name}`);
     });
   }
@@ -845,14 +901,14 @@ export class CursorAPIIntegration extends EventEmitter {
    */
   async stop(): Promise<void> {
     console.log('🛑 Stopping Cursor API Integration...');
-    
+
     this.isRunning = false;
-    
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
-    
+
     this.emit('stopped');
     console.log('✅ Cursor API Integration stopped');
   }
@@ -865,7 +921,7 @@ export class CursorAPIIntegration extends EventEmitter {
       running: this.isRunning,
       workflows: this.workflows.size,
       rules: this.automationRules.size,
-      executions: this.executions.size
+      executions: this.executions.size,
     };
   }
 }
@@ -876,5 +932,5 @@ export const cursorAPIIntegration = new CursorAPIIntegration({
   baseUrl: process.env.CURSOR_API_URL || 'https://api.cursor.com',
   timeout: 30000,
   retryAttempts: 3,
-  retryDelay: 1000
+  retryDelay: 1000,
 });

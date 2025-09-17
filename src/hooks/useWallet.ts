@@ -61,7 +61,7 @@ export const useWallet = () => {
       const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/wallet', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -85,7 +85,7 @@ export const useWallet = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -96,11 +96,7 @@ export const useWallet = () => {
         setTransactions(prev => [result.transaction, ...prev]);
         // Update token balance
         setTokens(prev =>
-          prev.map(t =>
-            t.symbol === data.token
-              ? { ...t, balance: t.balance - data.amount }
-              : t
-          )
+          prev.map(t => (t.symbol === data.token ? { ...t, balance: t.balance - data.amount } : t))
         );
         return result;
       } else {
@@ -119,7 +115,7 @@ export const useWallet = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ amount, token }),
       });
@@ -130,11 +126,7 @@ export const useWallet = () => {
         setTransactions(prev => [result.transaction, ...prev]);
         // Update token balance
         setTokens(prev =>
-          prev.map(t =>
-            t.symbol === token
-              ? { ...t, balance: t.balance + amount }
-              : t
-          )
+          prev.map(t => (t.symbol === token ? { ...t, balance: t.balance + amount } : t))
         );
         return result;
       } else {
@@ -153,7 +145,7 @@ export const useWallet = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ amount }),
       });
@@ -161,19 +153,23 @@ export const useWallet = () => {
       if (response.ok) {
         const result = await response.json();
         // Update wallet state
-        setWallet(prev => prev ? {
-          ...prev,
-          pendingRewards: prev.pendingRewards - amount,
-          totalEarned: prev.totalEarned + amount,
-          rewardHistory: [
-            ...prev.rewardHistory,
-            {
-              type: 'Claimed Rewards',
-              amount,
-              date: new Date().toISOString(),
-            }
-          ]
-        } : null);
+        setWallet(prev =>
+          prev
+            ? {
+                ...prev,
+                pendingRewards: prev.pendingRewards - amount,
+                totalEarned: prev.totalEarned + amount,
+                rewardHistory: [
+                  ...prev.rewardHistory,
+                  {
+                    type: 'Claimed Rewards',
+                    amount,
+                    date: new Date().toISOString(),
+                  },
+                ],
+              }
+            : null
+        );
         // Add transaction to local state
         setTransactions(prev => [result.transaction, ...prev]);
         return result;
@@ -193,7 +189,7 @@ export const useWallet = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ fromToken, toToken, amount }),
       });
@@ -230,7 +226,7 @@ export const useWallet = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ amount, token, duration }),
       });
@@ -239,11 +235,7 @@ export const useWallet = () => {
         const result = await response.json();
         // Update token balance
         setTokens(prev =>
-          prev.map(t =>
-            t.symbol === token
-              ? { ...t, balance: t.balance - amount }
-              : t
-          )
+          prev.map(t => (t.symbol === token ? { ...t, balance: t.balance - amount } : t))
         );
         // Add transaction to local state
         setTransactions(prev => [result.transaction, ...prev]);
@@ -262,7 +254,7 @@ export const useWallet = () => {
       const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/wallet/transactions?page=${page}&limit=${limit}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 

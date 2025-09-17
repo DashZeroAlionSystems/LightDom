@@ -87,7 +87,7 @@ export class StorageOptimizer extends EventEmitter {
 
   constructor(policy?: Partial<StoragePolicy>) {
     super();
-    
+
     this.policy = {
       maxStorageUsage: 85,
       cleanupThreshold: 75,
@@ -100,9 +100,9 @@ export class StorageOptimizer extends EventEmitter {
       enableMigration: false,
       compressionLevel: 6,
       archivalFormat: 'zip',
-      ...policy
+      ...policy,
     };
-    
+
     this.cleanupStrategies = this.initializeCleanupStrategies();
     this.setupEventHandlers();
   }
@@ -112,14 +112,14 @@ export class StorageOptimizer extends EventEmitter {
    */
   async initialize(): Promise<void> {
     console.log('🔧 Initializing Storage Optimizer...');
-    
+
     try {
       // Start optimization monitoring
       this.startOptimizationMonitoring();
-      
+
       this.isRunning = true;
       this.emit('initialized');
-      
+
       console.log('✅ Storage Optimizer initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize Storage Optimizer:', error);
@@ -133,7 +133,7 @@ export class StorageOptimizer extends EventEmitter {
   private startOptimizationMonitoring(): void {
     this.optimizationInterval = setInterval(async () => {
       if (!this.isRunning) return;
-      
+
       try {
         await this.checkAndOptimizeNodes();
       } catch (error) {
@@ -147,12 +147,12 @@ export class StorageOptimizer extends EventEmitter {
    */
   private async checkAndOptimizeNodes(): Promise<void> {
     const nodes = storageNodeManager.getAllNodes();
-    
+
     for (const node of nodes) {
       if (node.status !== 'active') continue;
-      
+
       const utilizationRate = (node.used / node.capacity) * 100;
-      
+
       // Check if node needs optimization
       if (utilizationRate >= this.policy.cleanupThreshold) {
         await this.optimizeNode(node);
@@ -165,7 +165,7 @@ export class StorageOptimizer extends EventEmitter {
    */
   async optimizeNode(node: StorageNode): Promise<StorageOptimization> {
     const optimizationId = `opt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const optimization: StorageOptimization = {
       id: optimizationId,
       nodeId: node.id,
@@ -183,23 +183,23 @@ export class StorageOptimizer extends EventEmitter {
         archivesCreated: 0,
         migrationsCompleted: 0,
         performanceImpact: 'low',
-        estimatedTimeRemaining: 0
-      }
+        estimatedTimeRemaining: 0,
+      },
     };
-    
+
     this.optimizations.set(optimizationId, optimization);
-    
+
     try {
       optimization.status = 'running';
       optimization.startedAt = new Date();
-      
+
       this.emit('optimizationStarted', optimization);
       console.log(`🔧 Starting optimization for node ${node.name} (${node.id})`);
-      
+
       // Determine optimization strategy based on utilization
       const utilizationRate = (node.used / node.capacity) * 100;
       let optimizationType: StorageOptimization['type'];
-      
+
       if (utilizationRate >= this.policy.archivalThreshold) {
         optimizationType = 'archival';
       } else if (utilizationRate >= this.policy.compressionThreshold) {
@@ -207,44 +207,48 @@ export class StorageOptimizer extends EventEmitter {
       } else {
         optimizationType = 'cleanup';
       }
-      
+
       optimization.type = optimizationType;
-      
+
       // Execute optimization
       const results = await this.executeOptimization(node, optimizationType);
-      
+
       // Update optimization results
       optimization.spaceSaved = results.spaceSaved;
       optimization.spaceAfter = node.used - results.spaceSaved;
-      optimization.optimizationRate = results.spaceSaved > 0 ? 
-        (results.spaceSaved / optimization.spaceBefore) * 100 : 0;
+      optimization.optimizationRate =
+        results.spaceSaved > 0 ? (results.spaceSaved / optimization.spaceBefore) * 100 : 0;
       optimization.details = results.details;
       optimization.status = 'completed';
       optimization.completedAt = new Date();
-      
+
       // Update node storage
       node.used = optimization.spaceAfter;
       node.available = node.capacity - node.used;
-      
+
       this.emit('optimizationCompleted', optimization);
-      console.log(`✅ Optimization completed for node ${node.name}: ${optimization.spaceSaved}MB saved`);
-      
+      console.log(
+        `✅ Optimization completed for node ${node.name}: ${optimization.spaceSaved}MB saved`
+      );
     } catch (error) {
       optimization.status = 'failed';
       optimization.error = error instanceof Error ? error.message : String(error);
       optimization.completedAt = new Date();
-      
+
       this.emit('optimizationFailed', optimization);
       console.error(`❌ Optimization failed for node ${node.name}: ${optimization.error}`);
     }
-    
+
     return optimization;
   }
 
   /**
    * Execute optimization based on type
    */
-  private async executeOptimization(node: StorageNode, type: StorageOptimization['type']): Promise<{
+  private async executeOptimization(
+    node: StorageNode,
+    type: StorageOptimization['type']
+  ): Promise<{
     spaceSaved: number;
     details: OptimizationDetails;
   }> {
@@ -272,30 +276,27 @@ export class StorageOptimizer extends EventEmitter {
     details: OptimizationDetails;
   }> {
     console.log(`🧹 Executing cleanup for node ${node.name}`);
-    
+
     const spaceBefore = node.used;
     let targetsProcessed = 0;
     let spaceSaved = 0;
-    
+
     // Clean up old completed targets
     const cutoffTime = new Date(Date.now() - this.policy.retentionPeriod * 24 * 60 * 60 * 1000);
-    const oldTargets = node.miningTargets.filter(target => 
-      target.status === 'completed' && 
-      target.completedAt && 
-      target.completedAt < cutoffTime
+    const oldTargets = node.miningTargets.filter(
+      target =>
+        target.status === 'completed' && target.completedAt && target.completedAt < cutoffTime
     );
-    
+
     for (const target of oldTargets) {
       // Remove target data (simplified)
       spaceSaved += target.spaceSaved / 1024; // Convert KB to MB
       targetsProcessed++;
     }
-    
+
     // Remove old targets from node
-    node.miningTargets = node.miningTargets.filter(target => 
-      !oldTargets.includes(target)
-    );
-    
+    node.miningTargets = node.miningTargets.filter(target => !oldTargets.includes(target));
+
     return {
       spaceSaved,
       details: {
@@ -305,8 +306,8 @@ export class StorageOptimizer extends EventEmitter {
         archivesCreated: 0,
         migrationsCompleted: 0,
         performanceImpact: 'low',
-        estimatedTimeRemaining: 0
-      }
+        estimatedTimeRemaining: 0,
+      },
     };
   }
 
@@ -318,10 +319,10 @@ export class StorageOptimizer extends EventEmitter {
     details: OptimizationDetails;
   }> {
     console.log(`🗜️ Executing compression for node ${node.name}`);
-    
+
     let spaceSaved = 0;
     let filesCompressed = 0;
-    
+
     // Simulate compression of mining targets
     for (const target of node.miningTargets) {
       if (target.status === 'completed' && target.spaceSaved > 0) {
@@ -332,7 +333,7 @@ export class StorageOptimizer extends EventEmitter {
         filesCompressed++;
       }
     }
-    
+
     return {
       spaceSaved,
       details: {
@@ -342,8 +343,8 @@ export class StorageOptimizer extends EventEmitter {
         archivesCreated: 0,
         migrationsCompleted: 0,
         performanceImpact: 'medium',
-        estimatedTimeRemaining: 0
-      }
+        estimatedTimeRemaining: 0,
+      },
     };
   }
 
@@ -355,13 +356,13 @@ export class StorageOptimizer extends EventEmitter {
     details: OptimizationDetails;
   }> {
     console.log(`🔄 Executing deduplication for node ${node.name}`);
-    
+
     let spaceSaved = 0;
     let duplicatesRemoved = 0;
-    
+
     // Find duplicate targets based on domain
     const domainGroups = new Map<string, MiningTarget[]>();
-    
+
     for (const target of node.miningTargets) {
       const domain = target.domain;
       if (!domainGroups.has(domain)) {
@@ -369,7 +370,7 @@ export class StorageOptimizer extends EventEmitter {
       }
       domainGroups.get(domain)!.push(target);
     }
-    
+
     // Remove duplicates (keep the most recent one)
     for (const [domain, targets] of domainGroups) {
       if (targets.length > 1) {
@@ -379,19 +380,19 @@ export class StorageOptimizer extends EventEmitter {
           const bTime = b.completedAt?.getTime() || 0;
           return bTime - aTime;
         });
-        
+
         // Keep the first (most recent) and remove the rest
         const duplicates = targets.slice(1);
         for (const duplicate of duplicates) {
           spaceSaved += duplicate.spaceSaved / 1024; // Convert KB to MB
           duplicatesRemoved++;
         }
-        
+
         // Remove duplicates from node
         node.miningTargets = node.miningTargets.filter(target => !duplicates.includes(target));
       }
     }
-    
+
     return {
       spaceSaved,
       details: {
@@ -401,8 +402,8 @@ export class StorageOptimizer extends EventEmitter {
         archivesCreated: 0,
         migrationsCompleted: 0,
         performanceImpact: 'low',
-        estimatedTimeRemaining: 0
-      }
+        estimatedTimeRemaining: 0,
+      },
     };
   }
 
@@ -414,32 +415,33 @@ export class StorageOptimizer extends EventEmitter {
     details: OptimizationDetails;
   }> {
     console.log(`📦 Executing archival for node ${node.name}`);
-    
+
     let spaceSaved = 0;
     let archivesCreated = 0;
-    
+
     // Archive old completed targets
     const cutoffTime = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
-    const oldTargets = node.miningTargets.filter(target => 
-      target.status === 'completed' && 
-      target.completedAt && 
-      target.completedAt < cutoffTime
+    const oldTargets = node.miningTargets.filter(
+      target =>
+        target.status === 'completed' && target.completedAt && target.completedAt < cutoffTime
     );
-    
+
     if (oldTargets.length > 0) {
       // Simulate archival (50-70% space savings)
       const archivalRate = 0.5 + Math.random() * 0.2;
-      spaceSaved = oldTargets.reduce((total, target) => 
-        total + (target.spaceSaved / 1024) * archivalRate, 0);
-      
+      spaceSaved = oldTargets.reduce(
+        (total, target) => total + (target.spaceSaved / 1024) * archivalRate,
+        0
+      );
+
       archivesCreated = Math.ceil(oldTargets.length / 10); // Group into archives
-      
+
       // Mark targets as archived (simplified)
       for (const target of oldTargets) {
         target.metadata.biomeType = 'archived';
       }
     }
-    
+
     return {
       spaceSaved,
       details: {
@@ -449,8 +451,8 @@ export class StorageOptimizer extends EventEmitter {
         archivesCreated,
         migrationsCompleted: 0,
         performanceImpact: 'high',
-        estimatedTimeRemaining: 0
-      }
+        estimatedTimeRemaining: 0,
+      },
     };
   }
 
@@ -462,11 +464,11 @@ export class StorageOptimizer extends EventEmitter {
     details: OptimizationDetails;
   }> {
     console.log(`🚚 Executing migration for node ${node.name}`);
-    
+
     // Migration would move data to more efficient storage
     // For now, simulate minimal space savings
     const spaceSaved = Math.random() * 10; // 0-10MB
-    
+
     return {
       spaceSaved,
       details: {
@@ -476,8 +478,8 @@ export class StorageOptimizer extends EventEmitter {
         archivesCreated: 0,
         migrationsCompleted: 1,
         performanceImpact: 'medium',
-        estimatedTimeRemaining: 0
-      }
+        estimatedTimeRemaining: 0,
+      },
     };
   }
 
@@ -487,37 +489,42 @@ export class StorageOptimizer extends EventEmitter {
   getStorageMetrics(): StorageMetrics {
     const nodes = storageNodeManager.getAllNodes();
     const optimizations = Array.from(this.optimizations.values());
-    
+
     const totalCapacity = nodes.reduce((total, node) => total + node.capacity, 0);
     const totalUsed = nodes.reduce((total, node) => total + node.used, 0);
     const totalAvailable = totalCapacity - totalUsed;
     const utilizationRate = totalCapacity > 0 ? (totalUsed / totalCapacity) * 100 : 0;
-    
+
     const completedOptimizations = optimizations.filter(opt => opt.status === 'completed');
-    const optimizationRate = completedOptimizations.length > 0 ? 
-      completedOptimizations.reduce((total, opt) => total + opt.optimizationRate, 0) / completedOptimizations.length : 0;
-    
+    const optimizationRate =
+      completedOptimizations.length > 0
+        ? completedOptimizations.reduce((total, opt) => total + opt.optimizationRate, 0) /
+          completedOptimizations.length
+        : 0;
+
     const spaceSaved = completedOptimizations.reduce((total, opt) => total + opt.spaceSaved, 0);
     const nodesOptimized = new Set(completedOptimizations.map(opt => opt.nodeId)).size;
-    
-    const averageOptimizationTime = completedOptimizations.length > 0 ? 
-      completedOptimizations.reduce((total, opt) => {
-        if (opt.startedAt && opt.completedAt) {
-          return total + (opt.completedAt.getTime() - opt.startedAt.getTime()) / (1000 * 60);
-        }
-        return total;
-      }, 0) / completedOptimizations.length : 0;
-    
+
+    const averageOptimizationTime =
+      completedOptimizations.length > 0
+        ? completedOptimizations.reduce((total, opt) => {
+            if (opt.startedAt && opt.completedAt) {
+              return total + (opt.completedAt.getTime() - opt.startedAt.getTime()) / (1000 * 60);
+            }
+            return total;
+          }, 0) / completedOptimizations.length
+        : 0;
+
     const topOptimizations = completedOptimizations
       .sort((a, b) => b.spaceSaved - a.spaceSaved)
       .slice(0, 10);
-    
+
     const nodeUtilization = new Map<string, number>();
     for (const node of nodes) {
       const utilization = (node.used / node.capacity) * 100;
       nodeUtilization.set(node.id, utilization);
     }
-    
+
     return {
       totalCapacity,
       totalUsed,
@@ -529,7 +536,7 @@ export class StorageOptimizer extends EventEmitter {
       optimizationsCompleted: completedOptimizations.length,
       averageOptimizationTime,
       topOptimizations,
-      nodeUtilization
+      nodeUtilization,
     };
   }
 
@@ -578,9 +585,9 @@ export class StorageOptimizer extends EventEmitter {
             type: 'age',
             operator: 'greater_than',
             value: this.policy.retentionPeriod,
-            unit: 'days'
-          }
-        ]
+            unit: 'days',
+          },
+        ],
       },
       {
         name: 'Duplicate Removal',
@@ -593,9 +600,9 @@ export class StorageOptimizer extends EventEmitter {
           {
             type: 'duplicate',
             operator: 'equals',
-            value: true
-          }
-        ]
+            value: true,
+          },
+        ],
       },
       {
         name: 'Compression',
@@ -609,9 +616,9 @@ export class StorageOptimizer extends EventEmitter {
             type: 'size',
             operator: 'greater_than',
             value: 1000,
-            unit: 'mb'
-          }
-        ]
+            unit: 'mb',
+          },
+        ],
       },
       {
         name: 'Archival',
@@ -625,10 +632,10 @@ export class StorageOptimizer extends EventEmitter {
             type: 'age',
             operator: 'greater_than',
             value: 7,
-            unit: 'days'
-          }
-        ]
-      }
+            unit: 'days',
+          },
+        ],
+      },
     ];
   }
 
@@ -659,19 +666,19 @@ export class StorageOptimizer extends EventEmitter {
    * Setup event handlers
    */
   private setupEventHandlers(): void {
-    this.on('optimizationStarted', (optimization) => {
+    this.on('optimizationStarted', optimization => {
       console.log(`🔧 Optimization started: ${optimization.type} for node ${optimization.nodeId}`);
     });
-    
-    this.on('optimizationCompleted', (optimization) => {
+
+    this.on('optimizationCompleted', optimization => {
       console.log(`✅ Optimization completed: ${optimization.spaceSaved}MB saved`);
     });
-    
-    this.on('optimizationFailed', (optimization) => {
+
+    this.on('optimizationFailed', optimization => {
       console.error(`❌ Optimization failed: ${optimization.error}`);
     });
-    
-    this.on('policyUpdated', (policy) => {
+
+    this.on('policyUpdated', policy => {
       console.log('📋 Storage policy updated');
     });
   }
@@ -681,14 +688,14 @@ export class StorageOptimizer extends EventEmitter {
    */
   async stop(): Promise<void> {
     console.log('🛑 Stopping Storage Optimizer...');
-    
+
     this.isRunning = false;
-    
+
     if (this.optimizationInterval) {
       clearInterval(this.optimizationInterval);
       this.optimizationInterval = null;
     }
-    
+
     this.emit('stopped');
     console.log('✅ Storage Optimizer stopped');
   }
@@ -699,11 +706,11 @@ export class StorageOptimizer extends EventEmitter {
   getStatus(): { running: boolean; totalOptimizations: number; activeOptimizations: number } {
     const allOptimizations = Array.from(this.optimizations.values());
     const activeOptimizations = allOptimizations.filter(opt => opt.status === 'running');
-    
+
     return {
       running: this.isRunning,
       totalOptimizations: allOptimizations.length,
-      activeOptimizations: activeOptimizations.length
+      activeOptimizations: activeOptimizations.length,
     };
   }
 }

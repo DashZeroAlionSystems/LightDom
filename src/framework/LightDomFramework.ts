@@ -86,7 +86,7 @@ export class LightDomFramework extends EventEmitter {
       maxConcurrentOptimizations: 10,
       enableMetrics: true,
       enableWebhook: false,
-      ...config
+      ...config,
     };
 
     this.initializeOptimizationPerks();
@@ -99,21 +99,21 @@ export class LightDomFramework extends EventEmitter {
   async initialize(): Promise<void> {
     try {
       console.log(`🚀 Initializing ${this.config.name} v${this.config.version}`);
-      
+
       // Initialize core components
       await this.initializeCoreComponents();
-      
+
       // Start simulation if enabled
       if (this.config.enableSimulation) {
         this.startSimulation();
       }
-      
+
       // Start processing queue
       this.startQueueProcessing();
-      
+
       this.isRunning = true;
       this.emit('initialized', { config: this.config });
-      
+
       console.log('✅ LightDom Framework initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize LightDom Framework:', error);
@@ -125,7 +125,7 @@ export class LightDomFramework extends EventEmitter {
    * Add URL to optimization queue
    */
   async addURLToQueue(
-    url: string, 
+    url: string,
     priority: 'high' | 'medium' | 'low' = 'medium',
     siteType: URLQueueItem['siteType'] = 'other'
   ): Promise<string> {
@@ -138,14 +138,14 @@ export class LightDomFramework extends EventEmitter {
       retryCount: 0,
       maxRetries: 3,
       siteType,
-      expectedOptimization: this.calculateExpectedOptimization(siteType)
+      expectedOptimization: this.calculateExpectedOptimization(siteType),
     };
 
     this.urlQueue.set(queueItem.id, queueItem);
-    
+
     this.emit('urlAdded', queueItem);
     console.log(`📝 Added URL to queue: ${url} (Priority: ${priority})`);
-    
+
     return queueItem.id;
   }
 
@@ -162,7 +162,7 @@ export class LightDomFramework extends EventEmitter {
     bySiteType: Record<string, number>;
   } {
     const items = Array.from(this.urlQueue.values());
-    
+
     return {
       total: items.length,
       pending: items.filter(item => item.status === 'pending').length,
@@ -172,12 +172,15 @@ export class LightDomFramework extends EventEmitter {
       byPriority: {
         high: items.filter(item => item.priority === 'high').length,
         medium: items.filter(item => item.priority === 'medium').length,
-        low: items.filter(item => item.priority === 'low').length
+        low: items.filter(item => item.priority === 'low').length,
       },
-      bySiteType: items.reduce((acc, item) => {
-        acc[item.siteType] = (acc[item.siteType] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
+      bySiteType: items.reduce(
+        (acc, item) => {
+          acc[item.siteType] = (acc[item.siteType] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
     };
   }
 
@@ -200,19 +203,19 @@ export class LightDomFramework extends EventEmitter {
    */
   async runSimulation(): Promise<SimulationResult> {
     const startTime = Date.now();
-    
+
     try {
       // Get current network stats
       const systemStats = advancedNodeManager.getSystemStats();
       const optimizations = spaceOptimizationEngine.getOptimizations();
       const queueStatus = this.getQueueStatus();
-      
+
       // Calculate network efficiency
       const networkEfficiency = this.calculateNetworkEfficiency(systemStats, optimizations);
-      
+
       // Generate recommendations
       const recommendations = this.generateOptimizationRecommendations(systemStats, queueStatus);
-      
+
       const result: SimulationResult = {
         timestamp: Date.now(),
         networkEfficiency,
@@ -221,14 +224,14 @@ export class LightDomFramework extends EventEmitter {
         totalTokensDistributed: spaceOptimizationEngine.getTotalTokensDistributed(),
         activeNodes: systemStats.activeNodes,
         averageProcessingTime: Date.now() - startTime,
-        recommendations
+        recommendations,
       };
-      
+
       // Store metrics
       this.metrics.set('lastSimulation', result);
-      
+
       this.emit('simulationCompleted', result);
-      
+
       return result;
     } catch (error) {
       console.error('❌ Simulation failed:', error);
@@ -256,23 +259,24 @@ export class LightDomFramework extends EventEmitter {
     try {
       // Process the optimization
       const result = await this.processOptimization(nextItem);
-      
+
       nextItem.status = 'completed';
       nextItem.processedAt = Date.now();
       nextItem.optimizationResult = result;
-      
+
       this.emit('optimizationCompleted', { item: nextItem, result });
       console.log(`✅ Optimized: ${nextItem.url} (Saved: ${result.spaceSavedKB}KB)`);
-      
     } catch (error) {
       nextItem.status = 'failed';
       nextItem.error = error instanceof Error ? error.message : 'Unknown error';
       nextItem.retryCount++;
-      
+
       // Retry if under max retries
       if (nextItem.retryCount < nextItem.maxRetries) {
         nextItem.status = 'pending';
-        console.log(`🔄 Retrying optimization for: ${nextItem.url} (Attempt ${nextItem.retryCount + 1})`);
+        console.log(
+          `🔄 Retrying optimization for: ${nextItem.url} (Attempt ${nextItem.retryCount + 1})`
+        );
       } else {
         this.emit('optimizationFailed', { item: nextItem, error });
         console.log(`❌ Failed to optimize: ${nextItem.url}`);
@@ -288,19 +292,19 @@ export class LightDomFramework extends EventEmitter {
   private async processOptimization(item: URLQueueItem): Promise<OptimizationResult> {
     // Simulate optimization processing
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-    
+
     // Calculate space saved based on site type and expected optimization
     const baseSavings = this.calculateSpaceSavings(item.siteType, item.expectedOptimization);
-    
+
     // Create optimization result
     const optimization: Partial<OptimizationResult> = {
       url: item.url,
       spaceSavedBytes: baseSavings,
       optimizationType: item.expectedOptimization.type.join(','),
       biomeType: item.siteType,
-      harvesterAddress: '0x0000000000000000000000000000000000000000' // Framework address
+      harvesterAddress: '0x0000000000000000000000000000000000000000', // Framework address
     };
-    
+
     return await spaceOptimizationEngine.processOptimization(optimization);
   }
 
@@ -310,10 +314,10 @@ export class LightDomFramework extends EventEmitter {
   private async initializeCoreComponents(): Promise<void> {
     // Initialize space optimization engine
     console.log('🔧 Initializing Space Optimization Engine...');
-    
+
     // Initialize advanced node manager
     console.log('🔧 Initializing Advanced Node Manager...');
-    
+
     // Create initial optimization nodes
     const initialNodes = this.createInitialNodes();
     console.log(`🏗️ Created ${initialNodes.length} initial optimization nodes`);
@@ -324,23 +328,23 @@ export class LightDomFramework extends EventEmitter {
    */
   private createInitialNodes(): NodeConfig[] {
     const nodes: NodeConfig[] = [];
-    
+
     // Create AI consensus node
     const aiNode = advancedNodeManager.createNode('ai_consensus', 1000, 'digital', []);
     nodes.push(aiNode);
-    
+
     // Create storage shards
     for (let i = 0; i < 3; i++) {
       const storageNode = advancedNodeManager.createNode('storage_shard', 500, 'digital', []);
       nodes.push(storageNode);
     }
-    
+
     // Create optimization nodes
     for (let i = 0; i < 5; i++) {
       const optNode = advancedNodeManager.createNode('optimization', 100, 'digital', []);
       nodes.push(optNode);
     }
-    
+
     return nodes;
   }
 
@@ -357,30 +361,30 @@ export class LightDomFramework extends EventEmitter {
           description: 'Automatic compression and WebP conversion for product images',
           value: '30-50% size reduction',
           category: 'performance',
-          tier: 'basic'
+          tier: 'basic',
         },
         {
           name: 'Checkout Flow Optimization',
           description: 'Streamlined checkout process with reduced DOM complexity',
           value: '25% faster checkout',
           category: 'performance',
-          tier: 'premium'
+          tier: 'premium',
         },
         {
           name: 'SEO Enhancement',
           description: 'Automatic meta tag optimization and structured data',
           value: '15% SEO score improvement',
           category: 'seo',
-          tier: 'basic'
+          tier: 'basic',
         },
         {
           name: 'Security Headers',
           description: 'Automatic security header implementation',
           value: 'A+ security rating',
           category: 'security',
-          tier: 'basic'
-        }
-      ]
+          tier: 'basic',
+        },
+      ],
     });
 
     // Blog perks
@@ -392,23 +396,23 @@ export class LightDomFramework extends EventEmitter {
           description: 'Automatic text compression and lazy loading',
           value: '40% faster load times',
           category: 'performance',
-          tier: 'basic'
+          tier: 'basic',
         },
         {
           name: 'Reading Experience',
           description: 'Optimized typography and spacing',
           value: 'Improved readability',
           category: 'performance',
-          tier: 'premium'
+          tier: 'premium',
         },
         {
           name: 'Social Media Integration',
           description: 'Optimized social sharing buttons and meta tags',
           value: '20% more shares',
           category: 'seo',
-          tier: 'basic'
-        }
-      ]
+          tier: 'basic',
+        },
+      ],
     });
 
     // Corporate perks
@@ -420,23 +424,23 @@ export class LightDomFramework extends EventEmitter {
           description: 'Consistent branding and color optimization',
           value: 'Enhanced brand presence',
           category: 'performance',
-          tier: 'enterprise'
+          tier: 'enterprise',
         },
         {
           name: 'Analytics Integration',
           description: 'Advanced analytics and performance monitoring',
           value: 'Detailed insights',
           category: 'analytics',
-          tier: 'enterprise'
+          tier: 'enterprise',
         },
         {
           name: 'Security Compliance',
           description: 'GDPR compliance and security hardening',
           value: 'Full compliance',
           category: 'security',
-          tier: 'enterprise'
-        }
-      ]
+          tier: 'enterprise',
+        },
+      ],
     });
 
     // Add more site types as needed...
@@ -447,42 +451,46 @@ export class LightDomFramework extends EventEmitter {
    */
   private calculateExpectedOptimization(siteType: string): URLQueueItem['expectedOptimization'] {
     const perks = this.optimizationPerks.get(siteType);
-    
+
     if (!perks) {
       return {
         type: ['general'],
         estimatedSavings: 50,
-        perks: ['basic_optimization']
+        perks: ['basic_optimization'],
       };
     }
 
     return {
       type: perks.perks.map(p => p.category),
-      estimatedSavings: perks.perks.reduce((sum, p) => {
-        const value = parseInt(p.value.match(/\d+/)?.[0] || '0');
-        return sum + value;
-      }, 0) / perks.perks.length,
-      perks: perks.perks.map(p => p.name)
+      estimatedSavings:
+        perks.perks.reduce((sum, p) => {
+          const value = parseInt(p.value.match(/\d+/)?.[0] || '0');
+          return sum + value;
+        }, 0) / perks.perks.length,
+      perks: perks.perks.map(p => p.name),
     };
   }
 
   /**
    * Calculate space savings based on site type
    */
-  private calculateSpaceSavings(siteType: string, expected: URLQueueItem['expectedOptimization']): number {
+  private calculateSpaceSavings(
+    siteType: string,
+    expected: URLQueueItem['expectedOptimization']
+  ): number {
     const baseRates: Record<string, number> = {
       ecommerce: 150, // 150KB average
-      blog: 80,       // 80KB average
+      blog: 80, // 80KB average
       corporate: 120, // 120KB average
-      portfolio: 60,  // 60KB average
-      news: 100,      // 100KB average
-      social: 200,    // 200KB average
-      other: 50       // 50KB average
+      portfolio: 60, // 60KB average
+      news: 100, // 100KB average
+      social: 200, // 200KB average
+      other: 50, // 50KB average
     };
 
     const baseSavings = baseRates[siteType] || 50;
-    const multiplier = 1 + (expected.estimatedSavings / 100);
-    
+    const multiplier = 1 + expected.estimatedSavings / 100;
+
     return Math.floor(baseSavings * multiplier * 1024); // Convert to bytes
   }
 
@@ -508,11 +516,14 @@ export class LightDomFramework extends EventEmitter {
   /**
    * Calculate network efficiency
    */
-  private calculateNetworkEfficiency(systemStats: any, optimizations: OptimizationResult[]): number {
+  private calculateNetworkEfficiency(
+    systemStats: any,
+    optimizations: OptimizationResult[]
+  ): number {
     const utilization = systemStats.storageUtilization || 0;
     const uptime = systemStats.activeNodes > 0 ? 100 : 0;
     const throughput = optimizations.length / Math.max(1, systemStats.totalNodes);
-    
+
     return Math.min(100, (utilization + uptime + throughput) / 3);
   }
 
@@ -521,23 +532,25 @@ export class LightDomFramework extends EventEmitter {
    */
   private generateOptimizationRecommendations(systemStats: any, queueStatus: any): string[] {
     const recommendations: string[] = [];
-    
+
     if (systemStats.storageUtilization < 50) {
-      recommendations.push('Consider adding more optimization nodes to increase storage utilization');
+      recommendations.push(
+        'Consider adding more optimization nodes to increase storage utilization'
+      );
     }
-    
+
     if (queueStatus.pending > 20) {
       recommendations.push('High queue backlog detected - consider scaling up processing capacity');
     }
-    
+
     if (systemStats.activeNodes < 5) {
       recommendations.push('Low node count - consider creating more optimization nodes');
     }
-    
+
     if (queueStatus.failed > queueStatus.completed * 0.1) {
       recommendations.push('High failure rate detected - check node health and retry failed items');
     }
-    
+
     return recommendations;
   }
 
@@ -545,19 +558,19 @@ export class LightDomFramework extends EventEmitter {
    * Setup event handlers
    */
   private setupEventHandlers(): void {
-    this.on('urlAdded', (item) => {
+    this.on('urlAdded', item => {
       console.log(`📝 URL added to queue: ${item.url}`);
     });
-    
+
     this.on('optimizationCompleted', ({ item, result }) => {
       console.log(`✅ Optimization completed: ${item.url} (${result.spaceSavedKB}KB saved)`);
     });
-    
+
     this.on('optimizationFailed', ({ item, error }) => {
       console.log(`❌ Optimization failed: ${item.url} - ${error}`);
     });
-    
-    this.on('simulationCompleted', (result) => {
+
+    this.on('simulationCompleted', result => {
       console.log(`🔄 Simulation completed - Efficiency: ${result.networkEfficiency.toFixed(2)}%`);
     });
   }
@@ -573,7 +586,7 @@ export class LightDomFramework extends EventEmitter {
         console.error('Simulation error:', error);
       }
     }, this.config.simulationInterval);
-    
+
     console.log('🔄 Started continuous simulation');
   }
 
@@ -588,7 +601,7 @@ export class LightDomFramework extends EventEmitter {
         console.error('Queue processing error:', error);
       }
     }, 1000); // Process every second
-    
+
     console.log('⚡ Started queue processing');
   }
 
@@ -607,7 +620,7 @@ export class LightDomFramework extends EventEmitter {
       config: this.config,
       queueStatus: this.getQueueStatus(),
       systemStats: advancedNodeManager.getSystemStats(),
-      metrics: Object.fromEntries(this.metrics)
+      metrics: Object.fromEntries(this.metrics),
     };
   }
 
@@ -616,11 +629,11 @@ export class LightDomFramework extends EventEmitter {
    */
   async stop(): Promise<void> {
     this.isRunning = false;
-    
+
     if (this.simulationInterval) {
       clearInterval(this.simulationInterval);
     }
-    
+
     this.emit('stopped');
     console.log('🛑 LightDom Framework stopped');
   }
@@ -679,7 +692,9 @@ export class LightDomFramework extends EventEmitter {
   /**
    * Add multiple web addresses to mining queue
    */
-  async addMiningJobs(urls: Array<{ url: string; priority?: 'high' | 'medium' | 'low' }>): Promise<string[]> {
+  async addMiningJobs(
+    urls: Array<{ url: string; priority?: 'high' | 'medium' | 'low' }>
+  ): Promise<string[]> {
     return await webAddressMiner.addMiningJobs(urls);
   }
 
@@ -748,17 +763,19 @@ export class LightDomFramework extends EventEmitter {
   /**
    * Update storage policy
    */
-  updateStoragePolicy(policy: Partial<{
-    maxStorageUsage: number;
-    cleanupThreshold: number;
-    compressionThreshold: number;
-    archivalThreshold: number;
-    retentionPeriod: number;
-    enableCompression: boolean;
-    enableDeduplication: boolean;
-    enableArchival: boolean;
-    compressionLevel: number;
-  }>): void {
+  updateStoragePolicy(
+    policy: Partial<{
+      maxStorageUsage: number;
+      cleanupThreshold: number;
+      compressionThreshold: number;
+      archivalThreshold: number;
+      retentionPeriod: number;
+      enableCompression: boolean;
+      enableDeduplication: boolean;
+      enableArchival: boolean;
+      compressionLevel: number;
+    }>
+  ): void {
     storageOptimizer.updatePolicy(policy);
   }
 
@@ -776,13 +793,13 @@ export class LightDomFramework extends EventEmitter {
    */
   async startMiningWorkflow(): Promise<void> {
     console.log('🚀 Starting integrated mining workflow...');
-    
+
     try {
       // Initialize storage services
       await storageNodeManager.initialize();
       await webAddressMiner.initialize();
       await storageOptimizer.initialize();
-      
+
       // Create default storage node if none exist
       const nodes = storageNodeManager.getAllNodes();
       if (nodes.length === 0) {
@@ -790,13 +807,12 @@ export class LightDomFramework extends EventEmitter {
           name: 'Default Mining Node',
           capacity: 10000, // 10GB
           location: 'us-east-1',
-          priority: 'high'
+          priority: 'high',
         });
       }
-      
+
       this.emit('miningWorkflowStarted');
       console.log('✅ Integrated mining workflow started');
-      
     } catch (error) {
       console.error('❌ Failed to start mining workflow:', error);
       throw error;
@@ -808,15 +824,14 @@ export class LightDomFramework extends EventEmitter {
    */
   async stopMiningWorkflow(): Promise<void> {
     console.log('🛑 Stopping integrated mining workflow...');
-    
+
     try {
       await webAddressMiner.stop();
       await storageOptimizer.stop();
       await storageNodeManager.stop();
-      
+
       this.emit('miningWorkflowStopped');
       console.log('✅ Integrated mining workflow stopped');
-      
     } catch (error) {
       console.error('❌ Failed to stop mining workflow:', error);
       throw error;
@@ -836,26 +851,26 @@ export class LightDomFramework extends EventEmitter {
     const miningStats = this.getMiningStats();
     const storageNodes = this.getStorageNodes();
     const activeNodes = this.getActiveStorageNodes();
-    
+
     return {
       storageNodes: {
         total: storageNodes.length,
         active: activeNodes.length,
         capacity: storageMetrics.totalCapacity,
-        used: storageMetrics.totalUsed
+        used: storageMetrics.totalUsed,
       },
       miningJobs: {
         total: miningStats.totalJobs,
         active: miningStats.totalJobs - miningStats.completedJobs - miningStats.failedJobs,
         completed: miningStats.completedJobs,
-        failed: miningStats.failedJobs
+        failed: miningStats.failedJobs,
       },
       storageOptimizations: {
         total: storageMetrics.optimizationsCompleted,
         active: storageOptimizer.getStatus().activeOptimizations,
-        completed: storageMetrics.optimizationsCompleted
+        completed: storageMetrics.optimizationsCompleted,
       },
-      metrics: storageMetrics
+      metrics: storageMetrics,
     };
   }
 
@@ -866,7 +881,7 @@ export class LightDomFramework extends EventEmitter {
    */
   async initializeAutomation(): Promise<void> {
     console.log('🎭 Initializing Automation Orchestrator...');
-    
+
     try {
       await automationOrchestrator.initialize();
       this.emit('automationInitialized');
@@ -880,7 +895,9 @@ export class LightDomFramework extends EventEmitter {
   /**
    * Create Cursor API workflow
    */
-  async createCursorWorkflow(workflow: Omit<CursorWorkflow, 'id' | 'executionCount' | 'successCount' | 'failureCount'>): Promise<CursorWorkflow> {
+  async createCursorWorkflow(
+    workflow: Omit<CursorWorkflow, 'id' | 'executionCount' | 'successCount' | 'failureCount'>
+  ): Promise<CursorWorkflow> {
     return await cursorAPIIntegration.createWorkflow(workflow);
   }
 
@@ -901,7 +918,9 @@ export class LightDomFramework extends EventEmitter {
   /**
    * Create automation rule
    */
-  async createAutomationRule(rule: Omit<AutomationRule, 'id' | 'triggerCount' | 'createdAt'>): Promise<AutomationRule> {
+  async createAutomationRule(
+    rule: Omit<AutomationRule, 'id' | 'triggerCount' | 'createdAt'>
+  ): Promise<AutomationRule> {
     return await cursorAPIIntegration.createAutomationRule(rule);
   }
 
@@ -915,7 +934,10 @@ export class LightDomFramework extends EventEmitter {
   /**
    * Deploy N8N workflow
    */
-  async deployN8NWorkflow(templateId: string, variables?: Record<string, any>): Promise<N8NWorkflow> {
+  async deployN8NWorkflow(
+    templateId: string,
+    variables?: Record<string, any>
+  ): Promise<N8NWorkflow> {
     return await n8nWorkflowManager.deployWorkflow(templateId, variables);
   }
 
@@ -967,7 +989,7 @@ export class LightDomFramework extends EventEmitter {
       orchestrator: automationOrchestrator.getStatus(),
       cursorAPI: cursorAPIIntegration.getStatus(),
       n8n: n8nWorkflowManager.getStatus(),
-      events: automationOrchestrator.getAllEvents()
+      events: automationOrchestrator.getAllEvents(),
     };
   }
 

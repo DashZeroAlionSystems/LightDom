@@ -4,10 +4,13 @@
  */
 
 import { Request, Response } from 'express';
-import { spaceOptimizationEngine, OptimizationResult, HarvesterStats } from '../core/SpaceOptimizationEngine';
+import {
+  spaceOptimizationEngine,
+  OptimizationResult,
+  HarvesterStats,
+} from '../core/SpaceOptimizationEngine';
 
 export class OptimizationAPI {
-  
   /**
    * Submit a new space optimization
    * POST /api/optimization/submit
@@ -21,14 +24,14 @@ export class OptimizationAPI {
         biomeType,
         harvesterAddress,
         beforeHash,
-        afterHash
+        afterHash,
       } = req.body;
 
       // Validate required fields
       if (!url || !spaceSavedBytes || spaceSavedBytes < 1024) {
         res.status(400).json({
           error: 'Invalid optimization data',
-          message: 'URL and spaceSavedBytes (minimum 1KB) are required'
+          message: 'URL and spaceSavedBytes (minimum 1KB) are required',
         });
         return;
       }
@@ -41,20 +44,19 @@ export class OptimizationAPI {
         biomeType: biomeType || 'digital',
         harvesterAddress: harvesterAddress || '0x0000000000000000000000000000000000000000',
         beforeHash,
-        afterHash
+        afterHash,
       });
 
       res.status(201).json({
         success: true,
         data: result,
-        message: `Optimization processed: ${result.spaceSavedKB}KB saved, ${result.tokenReward.toFixed(6)} DSH earned`
+        message: `Optimization processed: ${result.spaceSavedKB}KB saved, ${result.tokenReward.toFixed(6)} DSH earned`,
       });
-
     } catch (error) {
       console.error('Error submitting optimization:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -66,39 +68,38 @@ export class OptimizationAPI {
   async getOptimizations(req: Request, res: Response): Promise<void> {
     try {
       const { limit = 50, offset = 0, harvesterAddress } = req.query;
-      
+
       let optimizations = spaceOptimizationEngine.getOptimizations();
-      
+
       // Filter by harvester if specified
       if (harvesterAddress) {
-        optimizations = optimizations.filter(opt => 
-          opt.harvesterAddress.toLowerCase() === (harvesterAddress as string).toLowerCase()
+        optimizations = optimizations.filter(
+          opt => opt.harvesterAddress.toLowerCase() === (harvesterAddress as string).toLowerCase()
         );
       }
-      
+
       // Sort by timestamp (newest first)
       optimizations.sort((a, b) => b.timestamp - a.timestamp);
-      
+
       // Apply pagination
       const start = Number(offset);
       const end = start + Number(limit);
       const paginatedOptimizations = optimizations.slice(start, end);
-      
+
       res.json({
         success: true,
         data: {
           optimizations: paginatedOptimizations,
           total: optimizations.length,
           limit: Number(limit),
-          offset: Number(offset)
-        }
+          offset: Number(offset),
+        },
       });
-
     } catch (error) {
       console.error('Error fetching optimizations:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -110,27 +111,26 @@ export class OptimizationAPI {
   async getOptimization(req: Request, res: Response): Promise<void> {
     try {
       const { proofHash } = req.params;
-      
+
       const optimization = spaceOptimizationEngine.getOptimization(proofHash);
-      
+
       if (!optimization) {
         res.status(404).json({
           error: 'Optimization not found',
-          message: `No optimization found with proof hash: ${proofHash}`
+          message: `No optimization found with proof hash: ${proofHash}`,
         });
         return;
       }
-      
+
       res.json({
         success: true,
-        data: optimization
+        data: optimization,
       });
-
     } catch (error) {
       console.error('Error fetching optimization:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -142,27 +142,26 @@ export class OptimizationAPI {
   async getHarvesterStats(req: Request, res: Response): Promise<void> {
     try {
       const { address } = req.params;
-      
+
       const stats = spaceOptimizationEngine.getHarvesterStats(address);
-      
+
       if (!stats) {
         res.status(404).json({
           error: 'Harvester not found',
-          message: `No harvester found with address: ${address}`
+          message: `No harvester found with address: ${address}`,
         });
         return;
       }
-      
+
       res.json({
         success: true,
-        data: stats
+        data: stats,
       });
-
     } catch (error) {
       console.error('Error fetching harvester stats:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -174,9 +173,9 @@ export class OptimizationAPI {
   async getHarvesters(req: Request, res: Response): Promise<void> {
     try {
       const { limit = 50, offset = 0, sortBy = 'reputation' } = req.query;
-      
+
       let harvesters = spaceOptimizationEngine.getAllHarvesters();
-      
+
       // Sort harvesters
       switch (sortBy) {
         case 'reputation':
@@ -192,27 +191,26 @@ export class OptimizationAPI {
           harvesters.sort((a, b) => b.optimizationCount - a.optimizationCount);
           break;
       }
-      
+
       // Apply pagination
       const start = Number(offset);
       const end = start + Number(limit);
       const paginatedHarvesters = harvesters.slice(start, end);
-      
+
       res.json({
         success: true,
         data: {
           harvesters: paginatedHarvesters,
           total: harvesters.length,
           limit: Number(limit),
-          offset: Number(offset)
-        }
+          offset: Number(offset),
+        },
       });
-
     } catch (error) {
       console.error('Error fetching harvesters:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -226,7 +224,7 @@ export class OptimizationAPI {
       const stats = spaceOptimizationEngine.getMetaverseStats();
       const totalSpace = spaceOptimizationEngine.getTotalSpaceHarvested();
       const totalTokens = spaceOptimizationEngine.getTotalTokensDistributed();
-      
+
       res.json({
         success: true,
         data: {
@@ -234,15 +232,14 @@ export class OptimizationAPI {
           totalSpaceHarvested: totalSpace,
           totalSpaceHarvestedKB: Math.floor(totalSpace / 1024),
           totalTokensDistributed: totalTokens,
-          totalOptimizations: spaceOptimizationEngine.getOptimizations().length
-        }
+          totalOptimizations: spaceOptimizationEngine.getOptimizations().length,
+        },
       });
-
     } catch (error) {
       console.error('Error fetching metaverse stats:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -254,39 +251,38 @@ export class OptimizationAPI {
   async getMetaverseAssets(req: Request, res: Response): Promise<void> {
     try {
       const { type, biomeType, limit = 50, offset = 0 } = req.query;
-      
+
       let assets = spaceOptimizationEngine.getMetaverseAssets();
-      
+
       // Filter by type if specified
       if (type) {
         assets = assets.filter(asset => asset.type === type);
       }
-      
+
       // Filter by biome type if specified
       if (biomeType) {
         assets = assets.filter(asset => asset.biomeType === biomeType);
       }
-      
+
       // Apply pagination
       const start = Number(offset);
       const end = start + Number(limit);
       const paginatedAssets = assets.slice(start, end);
-      
+
       res.json({
         success: true,
         data: {
           assets: paginatedAssets,
           total: assets.length,
           limit: Number(limit),
-          offset: Number(offset)
-        }
+          offset: Number(offset),
+        },
       });
-
     } catch (error) {
       console.error('Error fetching metaverse assets:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -298,10 +294,10 @@ export class OptimizationAPI {
   async getOptimizationAnalytics(req: Request, res: Response): Promise<void> {
     try {
       const { period = '24h' } = req.query;
-      
+
       const optimizations = spaceOptimizationEngine.getOptimizations();
       const now = Date.now();
-      
+
       // Calculate period in milliseconds
       let periodMs = 24 * 60 * 60 * 1000; // 24 hours default
       switch (period) {
@@ -318,17 +314,17 @@ export class OptimizationAPI {
           periodMs = 30 * 24 * 60 * 60 * 1000;
           break;
       }
-      
+
       // Filter optimizations by period
-      const recentOptimizations = optimizations.filter(opt => 
-        now - opt.timestamp <= periodMs
-      );
-      
+      const recentOptimizations = optimizations.filter(opt => now - opt.timestamp <= periodMs);
+
       // Calculate analytics
       const totalSpace = recentOptimizations.reduce((sum, opt) => sum + opt.spaceSavedBytes, 0);
       const totalTokens = recentOptimizations.reduce((sum, opt) => sum + opt.tokenReward, 0);
-      const avgQuality = recentOptimizations.reduce((sum, opt) => sum + opt.qualityScore, 0) / recentOptimizations.length || 0;
-      
+      const avgQuality =
+        recentOptimizations.reduce((sum, opt) => sum + opt.qualityScore, 0) /
+          recentOptimizations.length || 0;
+
       // Group by biome type
       const biomeStats: { [key: string]: { count: number; space: number; tokens: number } } = {};
       recentOptimizations.forEach(opt => {
@@ -339,7 +335,7 @@ export class OptimizationAPI {
         biomeStats[opt.biomeType].space += opt.spaceSavedBytes;
         biomeStats[opt.biomeType].tokens += opt.tokenReward;
       });
-      
+
       // Group by optimization type
       const typeStats: { [key: string]: { count: number; space: number; tokens: number } } = {};
       recentOptimizations.forEach(opt => {
@@ -350,7 +346,7 @@ export class OptimizationAPI {
         typeStats[opt.optimizationType].space += opt.spaceSavedBytes;
         typeStats[opt.optimizationType].tokens += opt.tokenReward;
       });
-      
+
       res.json({
         success: true,
         data: {
@@ -362,17 +358,17 @@ export class OptimizationAPI {
           averageQualityScore: Math.round(avgQuality * 100) / 100,
           biomeStats,
           typeStats,
-          topHarvesters: spaceOptimizationEngine.getAllHarvesters()
+          topHarvesters: spaceOptimizationEngine
+            .getAllHarvesters()
             .sort((a, b) => b.totalSpaceHarvested - a.totalSpaceHarvested)
-            .slice(0, 10)
-        }
+            .slice(0, 10),
+        },
       });
-
     } catch (error) {
       console.error('Error fetching optimization analytics:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -384,11 +380,12 @@ export class OptimizationAPI {
   async getOptimizationFeed(req: Request, res: Response): Promise<void> {
     try {
       const { limit = 20 } = req.query;
-      
-      const optimizations = spaceOptimizationEngine.getOptimizations()
+
+      const optimizations = spaceOptimizationEngine
+        .getOptimizations()
         .sort((a, b) => b.timestamp - a.timestamp)
         .slice(0, Number(limit));
-      
+
       // Format for feed display
       const feedItems = optimizations.map(opt => ({
         id: opt.proofHash,
@@ -400,22 +397,21 @@ export class OptimizationAPI {
         qualityScore: opt.qualityScore,
         timestamp: opt.timestamp,
         harvesterAddress: opt.harvesterAddress,
-        metaverseAssets: opt.metaverseAssets.length
+        metaverseAssets: opt.metaverseAssets.length,
       }));
-      
+
       res.json({
         success: true,
         data: {
           feed: feedItems,
-          total: spaceOptimizationEngine.getOptimizations().length
-        }
+          total: spaceOptimizationEngine.getOptimizations().length,
+        },
       });
-
     } catch (error) {
       console.error('Error fetching optimization feed:', error);
       res.status(500).json({
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }

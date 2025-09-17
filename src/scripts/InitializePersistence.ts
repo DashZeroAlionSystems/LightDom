@@ -56,7 +56,6 @@ export class PersistenceInitializer {
 
       // Log system status
       await this.logSystemStatus();
-
     } catch (error) {
       console.error('❌ Error initializing persistence system:', error);
       throw error;
@@ -68,14 +67,14 @@ export class PersistenceInitializer {
    */
   private async initializeBlockchainStorage(): Promise<void> {
     console.log('📦 Initializing blockchain storage...');
-    
+
     // Load persistent data
     await persistentBlockchainStorage.loadPersistentData();
-    
+
     // Get Chrome limits
     const chromeLimits = persistentBlockchainStorage.getChromeUploadLimits();
     console.log('Chrome upload limits:', chromeLimits);
-    
+
     console.log('✅ Blockchain storage initialized');
   }
 
@@ -84,10 +83,10 @@ export class PersistenceInitializer {
    */
   private async initializeBrowserRefresh(): Promise<void> {
     console.log('🔄 Initializing browser refresh handling...');
-    
+
     // Setup automatic refresh handling
     browserRefreshHandler.setupAutomaticRefresh();
-    
+
     console.log('✅ Browser refresh handling initialized');
   }
 
@@ -96,7 +95,7 @@ export class PersistenceInitializer {
    */
   private async initializeBlockchainIntegration(): Promise<void> {
     console.log('🔗 Initializing blockchain integration...');
-    
+
     // The integration is already initialized in its constructor
     console.log('✅ Blockchain integration initialized');
   }
@@ -106,11 +105,11 @@ export class PersistenceInitializer {
    */
   private async initializeLightDomStorage(): Promise<void> {
     console.log('💾 Initializing Light DOM storage API...');
-    
+
     // Get Chrome limits for display
     const chromeLimits = lightDomStorageAPI.getChromeLimits();
     console.log('Chrome limits configured:', chromeLimits);
-    
+
     console.log('✅ Light DOM storage API initialized');
   }
 
@@ -121,13 +120,13 @@ export class PersistenceInitializer {
     console.log('🛡️ Setting up global error handling...');
 
     // Handle uncaught errors
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', event => {
       console.error('Uncaught error:', event.error);
       this.handleError(event.error);
     });
 
     // Handle unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener('unhandledrejection', event => {
       console.error('Unhandled promise rejection:', event.reason);
       this.handleError(event.reason);
     });
@@ -149,7 +148,7 @@ export class PersistenceInitializer {
           console.log('Memory usage:', {
             used: Math.round(memory.usedJSHeapSize / 1024 / 1024) + ' MB',
             total: Math.round(memory.totalJSHeapSize / 1024 / 1024) + ' MB',
-            limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024) + ' MB'
+            limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024) + ' MB',
           });
         }
       }, 30000); // Every 30 seconds
@@ -179,14 +178,13 @@ export class PersistenceInitializer {
         message: error.message || 'Unknown error',
         stack: error.stack || '',
         userAgent: navigator.userAgent,
-        url: window.location.href
+        url: window.location.href,
       };
 
       localStorage.setItem('lightdom_error', JSON.stringify(errorData));
 
       // Attempt to save current state
       await persistentBlockchainStorage.saveCurrentState();
-
     } catch (saveError) {
       console.error('Error saving error state:', saveError);
     }
@@ -237,7 +235,7 @@ export class PersistenceInitializer {
       initialized: this.isInitialized,
       storage: storageStats,
       sync: syncStatus,
-      errors: errorData ? JSON.parse(errorData) : null
+      errors: errorData ? JSON.parse(errorData) : null,
     };
   }
 }

@@ -5,7 +5,9 @@ This directory contains a comprehensive Material Design 3 implementation for the
 ## Files Overview
 
 ### 1. `material-design-tokens.css`
+
 Contains all Material Design 3 design tokens including:
+
 - **Color System**: Primary, secondary, tertiary, error, surface, and outline colors
 - **Typography Scale**: Display, headline, title, body, and label text styles
 - **Spacing Tokens**: Consistent spacing values from 0-80px
@@ -15,7 +17,9 @@ Contains all Material Design 3 design tokens including:
 - **State Layer Opacity**: Hover, focus, pressed, and dragged states
 
 ### 2. `material-components.css`
+
 Pre-built Material Design 3 component styles including:
+
 - **Buttons**: Filled, filled tonal, outlined, text, and elevated variants
 - **Cards**: Standard, elevated, and outlined variants
 - **Inputs**: Text fields with floating labels and validation states
@@ -26,7 +30,9 @@ Pre-built Material Design 3 component styles including:
 - **Icons**: Consistent icon styling with color variants
 
 ### 3. `material-tailwind.css`
+
 Tailwind CSS utilities that integrate Material Design 3 tokens:
+
 - **Color Utilities**: `.md-primary`, `.md-surface`, etc.
 - **Typography Utilities**: `.md-headline-large`, `.md-body-medium`, etc.
 - **Spacing Utilities**: `.md-spacing-*`, `.md-margin-*`, `.md-gap-*`
@@ -37,20 +43,20 @@ Tailwind CSS utilities that integrate Material Design 3 tokens:
 ## Usage Examples
 
 ### Basic Component Styling
+
 ```tsx
 // Using Material Design 3 classes
-<div className="md-card md-elevation-1 md-surface-container">
-  <div className="md-card-content">
-    <h2 className="md-headline-small md-on-surface">Title</h2>
-    <p className="md-body-medium md-on-surface-variant">Description</p>
-    <button className="md-button md-button-filled md-state-layer">
-      Action
-    </button>
+<div className='md-card md-elevation-1 md-surface-container'>
+  <div className='md-card-content'>
+    <h2 className='md-headline-small md-on-surface'>Title</h2>
+    <p className='md-body-medium md-on-surface-variant'>Description</p>
+    <button className='md-button md-button-filled md-state-layer'>Action</button>
   </div>
 </div>
 ```
 
 ### Typography Hierarchy
+
 ```tsx
 <h1 className="md-display-large md-on-surface">Main Heading</h1>
 <h2 className="md-headline-medium md-on-surface">Section Heading</h2>
@@ -60,6 +66,7 @@ Tailwind CSS utilities that integrate Material Design 3 tokens:
 ```
 
 ### Color System
+
 ```tsx
 // Primary colors
 <div className="md-primary">Primary background</div>
@@ -76,6 +83,7 @@ Tailwind CSS utilities that integrate Material Design 3 tokens:
 ```
 
 ### Spacing and Layout
+
 ```tsx
 // Using Material Design spacing tokens
 <div className="md-spacing-6">Padding 24px</div>
@@ -88,6 +96,7 @@ Tailwind CSS utilities that integrate Material Design 3 tokens:
 ```
 
 ### Elevation and Shadows
+
 ```tsx
 // Different elevation levels
 <div className="md-elevation-0">No shadow</div>
@@ -97,6 +106,7 @@ Tailwind CSS utilities that integrate Material Design 3 tokens:
 ```
 
 ### Interactive States
+
 ```tsx
 // State layer for interactive elements
 <button className="md-button md-button-filled md-state-layer">
@@ -114,8 +124,8 @@ The implementation automatically supports dark theme through CSS custom properti
 ```css
 @media (prefers-color-scheme: dark) {
   :root {
-    --md-sys-color-primary: #D0BCFF;
-    --md-sys-color-on-primary: #381E72;
+    --md-sys-color-primary: #d0bcff;
+    --md-sys-color-on-primary: #381e72;
     /* ... other dark theme colors */
   }
 }
@@ -124,6 +134,7 @@ The implementation automatically supports dark theme through CSS custom properti
 ## Component Examples
 
 ### Material Design 3 Button
+
 ```tsx
 // Filled button
 <button className="md-button md-button-filled md-state-layer">
@@ -145,61 +156,69 @@ The implementation automatically supports dark theme through CSS custom properti
 ```
 
 ### Material Design 3 Card
+
 ```tsx
-<div className="md-card md-elevation-1">
-  <div className="md-card-header">
-    <h3 className="md-title-large md-on-surface">Card Title</h3>
+<div className='md-card md-elevation-1'>
+  <div className='md-card-header'>
+    <h3 className='md-title-large md-on-surface'>Card Title</h3>
   </div>
-  <div className="md-card-content">
-    <p className="md-body-medium md-on-surface-variant">Card content</p>
+  <div className='md-card-content'>
+    <p className='md-body-medium md-on-surface-variant'>Card content</p>
   </div>
-  <div className="md-card-actions">
-    <button className="md-button md-button-text md-state-layer">Action</button>
+  <div className='md-card-actions'>
+    <button className='md-button md-button-text md-state-layer'>Action</button>
   </div>
 </div>
 ```
 
 ### Material Design 3 Input
+
 ```tsx
-<div className="md-input">
-  <div className="md-input-field">
-    <Icon size={20} className="md-on-surface-variant" />
-    <input type="text" placeholder="Enter text" />
-    <label className="md-input-label">Label</label>
+<div className='md-input'>
+  <div className='md-input-field'>
+    <Icon size={20} className='md-on-surface-variant' />
+    <input type='text' placeholder='Enter text' />
+    <label className='md-input-label'>Label</label>
   </div>
-  <div className="md-input-helper">Helper text</div>
+  <div className='md-input-helper'>Helper text</div>
 </div>
 ```
 
 ## Best Practices
 
 ### 1. Color Usage
+
 - Use semantic color tokens (primary, secondary, error) for meaning
 - Use surface tokens for backgrounds and containers
 - Use on-surface tokens for text colors
 - Maintain proper contrast ratios
 
 ### 2. Typography
+
 - Use the appropriate text style for the content hierarchy
 - Maintain consistent line heights and letter spacing
 - Use label styles for form elements and UI labels
 
 ### 3. Spacing
+
 - Use Material Design spacing tokens for consistent layouts
 - Maintain 8px grid system for alignment
 - Use appropriate spacing for different component sizes
 
 ### 4. Elevation
+
 - Use elevation to show hierarchy and depth
 - Higher elevation for more important content
 - Use elevation changes for interactive feedback
 
 ### 5. Motion
+
 - Use Material Design motion tokens for consistent animations
 - Respect user preferences for reduced motion
 - Provide meaningful transitions that enhance UX
 
 ### 6. Accessibility
+
 - Always include focus rings for keyboard navigation
 - Use proper color contrast ratios
 - Provide alternative text for icons and images
@@ -219,12 +238,14 @@ When migrating existing components to Material Design 3:
 ## Browser Support
 
 This implementation uses modern CSS features including:
+
 - CSS Custom Properties (CSS Variables)
 - CSS Grid and Flexbox
 - CSS Transitions and Animations
 - Media Queries for responsive design
 
 Supported browsers:
+
 - Chrome 49+
 - Firefox 31+
 - Safari 9.1+

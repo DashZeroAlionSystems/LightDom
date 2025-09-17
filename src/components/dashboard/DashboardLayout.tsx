@@ -17,7 +17,7 @@ import {
   Alert,
   Drawer,
   List,
-  Divider
+  Divider,
 } from 'antd';
 import {
   DashboardOutlined,
@@ -32,7 +32,7 @@ import {
   HistoryOutlined,
   UserOutlined,
   MenuOutlined,
-  CloseOutlined
+  CloseOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { useOptimization } from '../../hooks/useOptimization';
@@ -145,11 +145,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   };
 
   const userMenu = (
-    <Menu
-      items={userMenuItems}
-      onClick={handleMenuClick}
-      className="user-dropdown-menu"
-    />
+    <Menu items={userMenuItems} onClick={handleMenuClick} className='user-dropdown-menu' />
   );
 
   const notificationItems = notifications.map((notification, index) => ({
@@ -161,32 +157,24 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }));
 
   return (
-    <Layout className="dashboard-layout">
+    <Layout className='dashboard-layout'>
       {/* Mobile Header */}
-      <div className="mobile-header">
+      <div className='mobile-header'>
         <Button
-          type="text"
+          type='text'
           icon={<MenuOutlined />}
           onClick={() => setMobileMenuVisible(true)}
-          className="mobile-menu-button"
+          className='mobile-menu-button'
         />
-        <Title level={4} className="mobile-title">
+        <Title level={4} className='mobile-title'>
           LightDom Dashboard
         </Title>
         <Space>
-          <Badge count={unreadCount} size="small">
-            <Button
-              type="text"
-              icon={<BellOutlined />}
-              className="notification-button"
-            />
+          <Badge count={unreadCount} size='small'>
+            <Button type='text' icon={<BellOutlined />} className='notification-button' />
           </Badge>
-          <Dropdown overlay={userMenu} placement="bottomRight">
-            <Avatar
-              src={user?.avatar}
-              icon={<UserOutlined />}
-              className="user-avatar"
-            />
+          <Dropdown overlay={userMenu} placement='bottomRight'>
+            <Avatar src={user?.avatar} icon={<UserOutlined />} className='user-avatar' />
           </Dropdown>
         </Space>
       </div>
@@ -196,37 +184,33 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         trigger={null}
         collapsible
         collapsed={collapsed}
-        className="dashboard-sidebar"
+        className='dashboard-sidebar'
         width={280}
         collapsedWidth={80}
       >
-        <div className="sidebar-header">
-          <div className="logo">
-            <OptimizationOutlined className="logo-icon" />
-            {!collapsed && <span className="logo-text">LightDom</span>}
+        <div className='sidebar-header'>
+          <div className='logo'>
+            <OptimizationOutlined className='logo-icon' />
+            {!collapsed && <span className='logo-text'>LightDom</span>}
           </div>
         </div>
 
         <Menu
-          mode="inline"
+          mode='inline'
           selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={handleSidebarClick}
-          className="sidebar-menu"
+          className='sidebar-menu'
         />
 
-        <div className="sidebar-footer">
-          <Card size="small" className="user-info-card">
-            <div className="user-info">
-              <Avatar
-                src={user?.avatar}
-                icon={<UserOutlined />}
-                size="small"
-              />
+        <div className='sidebar-footer'>
+          <Card size='small' className='user-info-card'>
+            <div className='user-info'>
+              <Avatar src={user?.avatar} icon={<UserOutlined />} size='small' />
               {!collapsed && (
-                <div className="user-details">
+                <div className='user-details'>
                   <Text strong>{user?.name}</Text>
-                  <Text type="secondary" className="user-email">
+                  <Text type='secondary' className='user-email'>
                     {user?.email}
                   </Text>
                 </div>
@@ -236,44 +220,36 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
       </Sider>
 
-      <Layout className="dashboard-main">
+      <Layout className='dashboard-main'>
         {/* Desktop Header */}
-        <Header className="dashboard-header">
-          <div className="header-left">
+        <Header className='dashboard-header'>
+          <div className='header-left'>
             <Button
-              type="text"
+              type='text'
               icon={collapsed ? <MenuOutlined /> : <CloseOutlined />}
               onClick={() => setCollapsed(!collapsed)}
-              className="sidebar-toggle"
+              className='sidebar-toggle'
             />
           </div>
 
-          <div className="header-center">
-            <Title level={3} className="page-title">
+          <div className='header-center'>
+            <Title level={3} className='page-title'>
               {menuItems.find(item => item.key === location.pathname)?.label || 'Dashboard'}
             </Title>
           </div>
 
-          <div className="header-right">
-            <Space size="middle">
-              <Badge count={unreadCount} size="small">
-                <Button
-                  type="text"
-                  icon={<BellOutlined />}
-                  className="notification-button"
-                />
+          <div className='header-right'>
+            <Space size='middle'>
+              <Badge count={unreadCount} size='small'>
+                <Button type='text' icon={<BellOutlined />} className='notification-button' />
               </Badge>
 
-              <Dropdown overlay={userMenu} placement="bottomRight">
-                <div className="user-profile">
-                  <Avatar
-                    src={user?.avatar}
-                    icon={<UserOutlined />}
-                    className="user-avatar"
-                  />
-                  <div className="user-info">
+              <Dropdown overlay={userMenu} placement='bottomRight'>
+                <div className='user-profile'>
+                  <Avatar src={user?.avatar} icon={<UserOutlined />} className='user-avatar' />
+                  <div className='user-info'>
                     <Text strong>{user?.name}</Text>
-                    <Text type="secondary" className="user-email">
+                    <Text type='secondary' className='user-email'>
                       {user?.email}
                     </Text>
                   </div>
@@ -284,12 +260,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </Header>
 
         {/* Quick Stats Bar */}
-        <div className="quick-stats-bar">
+        <div className='quick-stats-bar'>
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
-              <Card size="small" className="stat-card">
+              <Card size='small' className='stat-card'>
                 <Statistic
-                  title="Websites Optimized"
+                  title='Websites Optimized'
                   value={optimizationStats?.websitesOptimized || 0}
                   loading={statsLoading}
                   prefix={<GlobalOutlined />}
@@ -297,20 +273,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-              <Card size="small" className="stat-card">
+              <Card size='small' className='stat-card'>
                 <Statistic
-                  title="Performance Score"
+                  title='Performance Score'
                   value={optimizationStats?.averageScore || 0}
-                  suffix="%"
+                  suffix='%'
                   loading={statsLoading}
                   prefix={<TrophyOutlined />}
                 />
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-              <Card size="small" className="stat-card">
+              <Card size='small' className='stat-card'>
                 <Statistic
-                  title="Tokens Earned"
+                  title='Tokens Earned'
                   value={optimizationStats?.tokensEarned || 0}
                   loading={statsLoading}
                   prefix={<WalletOutlined />}
@@ -318,9 +294,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               </Card>
             </Col>
             <Col xs={24} sm={12} md={6}>
-              <Card size="small" className="stat-card">
+              <Card size='small' className='stat-card'>
                 <Statistic
-                  title="Optimizations Today"
+                  title='Optimizations Today'
                   value={optimizationStats?.optimizationsToday || 0}
                   loading={statsLoading}
                   prefix={<OptimizationOutlined />}
@@ -331,59 +307,52 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
 
         {/* Main Content */}
-        <Content className="dashboard-content">
-          {children || <Outlet />}
-        </Content>
+        <Content className='dashboard-content'>{children || <Outlet />}</Content>
       </Layout>
 
       {/* Mobile Sidebar Drawer */}
       <Drawer
-        title="LightDom Dashboard"
-        placement="left"
+        title='LightDom Dashboard'
+        placement='left'
         onClose={() => setMobileMenuVisible(false)}
         open={mobileMenuVisible}
-        className="mobile-drawer"
+        className='mobile-drawer'
         width={280}
       >
         <Menu
-          mode="inline"
+          mode='inline'
           selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={handleSidebarClick}
-          className="mobile-sidebar-menu"
+          className='mobile-sidebar-menu'
         />
       </Drawer>
 
       {/* Notifications Drawer */}
       <Drawer
         title={
-          <div className="notification-header">
+          <div className='notification-header'>
             <BellOutlined />
             <span>Notifications</span>
-            <Badge count={unreadCount} size="small" />
+            <Badge count={unreadCount} size='small' />
           </div>
         }
-        placement="right"
+        placement='right'
         onClose={() => {}}
         open={false}
-        className="notification-drawer"
+        className='notification-drawer'
         width={400}
       >
         <List
           dataSource={notificationItems}
-          renderItem={(item) => (
-            <List.Item className="notification-item">
+          renderItem={item => (
+            <List.Item className='notification-item'>
               <List.Item.Meta
                 title={item.title}
                 description={item.description}
-                avatar={
-                  <Badge
-                    status={item.type === 'success' ? 'success' : 'default'}
-                    dot
-                  />
-                }
+                avatar={<Badge status={item.type === 'success' ? 'success' : 'default'} dot />}
               />
-              <Text type="secondary" className="notification-time">
+              <Text type='secondary' className='notification-time'>
                 {item.time}
               </Text>
             </List.Item>

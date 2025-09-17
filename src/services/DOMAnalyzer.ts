@@ -1,5 +1,12 @@
 import { Logger } from '../utils/Logger';
-import { DOMAnalysis, PerformanceMetrics, ImageAnalysis, ScriptAnalysis, CSSAnalysis, ResourceAnalysis } from '../types/HeadlessTypes';
+import {
+  DOMAnalysis,
+  PerformanceMetrics,
+  ImageAnalysis,
+  ScriptAnalysis,
+  CSSAnalysis,
+  ResourceAnalysis,
+} from '../types/HeadlessTypes';
 import { OptimizationOpportunity } from '../types/CrawlerTypes';
 
 export class DOMAnalyzer {
@@ -14,28 +21,28 @@ export class DOMAnalyzer {
    */
   async analyzeDOM(page: any): Promise<DOMAnalysis> {
     const startTime = Date.now();
-    
+
     try {
       this.logger.info('Starting DOM analysis');
 
       // Get basic page information
       const pageInfo = await this.getPageInfo(page);
-      
+
       // Analyze images
       const imageAnalysis = await this.analyzeImages(page);
-      
+
       // Analyze scripts
       const scriptAnalysis = await this.analyzeScripts(page);
-      
+
       // Analyze CSS
       const cssAnalysis = await this.analyzeCSS(page);
-      
+
       // Analyze resources
       const resourceAnalysis = await this.analyzeResources(page);
-      
+
       // Get performance metrics
       const performanceMetrics = await this.getPerformanceMetrics(page);
-      
+
       // Calculate total elements
       const totalElements = await this.getTotalElements(page);
 
@@ -49,7 +56,7 @@ export class DOMAnalyzer {
         performanceMetrics,
         resourceAnalysis,
         analysisTime,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       this.logger.info(`DOM analysis completed in ${analysisTime}ms`);
@@ -80,8 +87,9 @@ export class DOMAnalyzer {
         ogImage: document.querySelector('meta[property="og:image"]')?.content || '',
         twitterCard: document.querySelector('meta[name="twitter:card"]')?.content || '',
         twitterTitle: document.querySelector('meta[name="twitter:title"]')?.content || '',
-        twitterDescription: document.querySelector('meta[name="twitter:description"]')?.content || '',
-        twitterImage: document.querySelector('meta[name="twitter:image"]')?.content || ''
+        twitterDescription:
+          document.querySelector('meta[name="twitter:description"]')?.content || '',
+        twitterImage: document.querySelector('meta[name="twitter:image"]')?.content || '',
       };
     });
   }
@@ -113,7 +121,7 @@ export class DOMAnalyzer {
         const rect = img.getBoundingClientRect();
         const naturalWidth = img.naturalWidth;
         const naturalHeight = img.naturalHeight;
-        
+
         if (naturalWidth > rect.width * 2 || naturalHeight > rect.height * 2) {
           oversized++;
         }
@@ -138,7 +146,7 @@ export class DOMAnalyzer {
         lazyLoaded,
         webpSupported,
         totalSize,
-        averageSize: images.length > 0 ? totalSize / images.length : 0
+        averageSize: images.length > 0 ? totalSize / images.length : 0,
       };
     });
   }
@@ -176,7 +184,7 @@ export class DOMAnalyzer {
         async,
         defer,
         totalSize,
-        averageSize: scripts.length > 0 ? totalSize / scripts.length : 0
+        averageSize: scripts.length > 0 ? totalSize / scripts.length : 0,
       };
     });
   }
@@ -201,7 +209,7 @@ export class DOMAnalyzer {
       inlineStyles.forEach(style => {
         const content = style.textContent || '';
         totalSize += content.length;
-        
+
         // Count rules (rough estimate)
         const rules = content.split('}').length - 1;
         criticalCSS += rules;
@@ -216,8 +224,10 @@ export class DOMAnalyzer {
         unusedRules,
         criticalCSS,
         totalSize,
-        averageSize: (stylesheets.length + inlineStyles.length) > 0 ? 
-          totalSize / (stylesheets.length + inlineStyles.length) : 0
+        averageSize:
+          stylesheets.length + inlineStyles.length > 0
+            ? totalSize / (stylesheets.length + inlineStyles.length)
+            : 0,
       };
     });
   }
@@ -230,8 +240,10 @@ export class DOMAnalyzer {
       const images = document.querySelectorAll('img').length;
       const scripts = document.querySelectorAll('script').length;
       const stylesheets = document.querySelectorAll('link[rel="stylesheet"]').length;
-      const fonts = document.querySelectorAll('link[href*="font"], link[href*="woff"], link[href*="ttf"]').length;
-      
+      const fonts = document.querySelectorAll(
+        'link[href*="font"], link[href*="woff"], link[href*="ttf"]'
+      ).length;
+
       const total = images + scripts + stylesheets + fonts;
       let totalSize = 0;
 
@@ -248,7 +260,7 @@ export class DOMAnalyzer {
         stylesheets,
         fonts,
         totalSize,
-        averageSize: total > 0 ? totalSize / total : 0
+        averageSize: total > 0 ? totalSize / total : 0,
       };
     });
   }
@@ -259,25 +271,29 @@ export class DOMAnalyzer {
   private async getPerformanceMetrics(page: any): Promise<PerformanceMetrics> {
     return await page.evaluate(() => {
       const performance = window.performance;
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
+
       // Get paint metrics
       const paintEntries = performance.getEntriesByType('paint');
       const firstPaint = paintEntries.find(entry => entry.name === 'first-paint')?.startTime || 0;
-      const firstContentfulPaint = paintEntries.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0;
-      
+      const firstContentfulPaint =
+        paintEntries.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0;
+
       // Get LCP
       const lcpEntries = performance.getEntriesByType('largest-contentful-paint');
-      const largestContentfulPaint = lcpEntries.length > 0 ? lcpEntries[lcpEntries.length - 1].startTime : 0;
-      
+      const largestContentfulPaint =
+        lcpEntries.length > 0 ? lcpEntries[lcpEntries.length - 1].startTime : 0;
+
       // Get CLS
       const clsEntries = performance.getEntriesByType('layout-shift');
       const cumulativeLayoutShift = clsEntries.reduce((sum, entry) => sum + entry.value, 0);
-      
+
       // Get TBT
       const longTasks = performance.getEntriesByType('longtask');
       const totalBlockingTime = longTasks.reduce((sum, entry) => sum + entry.duration, 0);
-      
+
       return {
         domContentLoaded: navigation.domContentLoadedEventEnd - navigation.navigationStart,
         loadComplete: navigation.loadEventEnd - navigation.navigationStart,
@@ -287,7 +303,7 @@ export class DOMAnalyzer {
         cumulativeLayoutShift,
         totalBlockingTime,
         firstInputDelay: 0, // Would need to be measured separately
-        timeToInteractive: 0 // Would need to be calculated
+        timeToInteractive: 0, // Would need to be calculated
       };
     });
   }
@@ -304,22 +320,25 @@ export class DOMAnalyzer {
   /**
    * Find optimization opportunities
    */
-  async findOptimizationOpportunities(page: any, analysis: DOMAnalysis): Promise<OptimizationOpportunity[]> {
+  async findOptimizationOpportunities(
+    page: any,
+    analysis: DOMAnalysis
+  ): Promise<OptimizationOpportunity[]> {
     const opportunities: OptimizationOpportunity[] = [];
 
     try {
       // Image optimization opportunities
       opportunities.push(...this.findImageOpportunities(analysis.imageAnalysis));
-      
+
       // Script optimization opportunities
       opportunities.push(...this.findScriptOpportunities(analysis.scriptAnalysis));
-      
+
       // CSS optimization opportunities
       opportunities.push(...this.findCSSOpportunities(analysis.cssAnalysis));
-      
+
       // Performance optimization opportunities
       opportunities.push(...this.findPerformanceOpportunities(analysis.performanceMetrics));
-      
+
       // Resource optimization opportunities
       opportunities.push(...this.findResourceOpportunities(analysis.resourceAnalysis));
 
@@ -348,10 +367,10 @@ export class DOMAnalyzer {
         impact: 'Improves accessibility for screen readers',
         effort: 'low',
         savings: {
-          accessibility: 20
+          accessibility: 20,
         },
         elements: ['img:not([alt])'],
-        selectors: ['img:not([alt])']
+        selectors: ['img:not([alt])'],
       });
     }
 
@@ -367,10 +386,10 @@ export class DOMAnalyzer {
         effort: 'medium',
         savings: {
           performance: 15,
-          bandwidth: 30
+          bandwidth: 30,
         },
         elements: ['img[width], img[height]'],
-        selectors: ['img[width], img[height]']
+        selectors: ['img[width], img[height]'],
       });
     }
 
@@ -386,10 +405,10 @@ export class DOMAnalyzer {
         impact: 'Improves initial page load performance',
         effort: 'low',
         savings: {
-          performance: 10
+          performance: 10,
         },
         elements: ['img:not([loading="lazy"])'],
-        selectors: ['img:not([loading="lazy"])']
+        selectors: ['img:not([loading="lazy"])'],
       });
     }
 
@@ -406,10 +425,10 @@ export class DOMAnalyzer {
         effort: 'medium',
         savings: {
           performance: 20,
-          bandwidth: 30
+          bandwidth: 30,
         },
         elements: ['img[src$=".jpg"], img[src$=".jpeg"], img[src$=".png"]'],
-        selectors: ['img[src$=".jpg"], img[src$=".jpeg"], img[src$=".png"]']
+        selectors: ['img[src$=".jpg"], img[src$=".jpeg"], img[src$=".png"]'],
       });
     }
 
@@ -434,10 +453,10 @@ export class DOMAnalyzer {
         effort: 'medium',
         savings: {
           performance: 10,
-          caching: 15
+          caching: 15,
         },
         elements: ['script:not([src])'],
-        selectors: ['script:not([src])']
+        selectors: ['script:not([src])'],
       });
     }
 
@@ -453,10 +472,10 @@ export class DOMAnalyzer {
         impact: 'Improves page load performance',
         effort: 'low',
         savings: {
-          performance: 25
+          performance: 25,
         },
         elements: ['script[src]:not([async]):not([defer])'],
-        selectors: ['script[src]:not([async]):not([defer])']
+        selectors: ['script[src]:not([async]):not([defer])'],
       });
     }
 
@@ -481,10 +500,10 @@ export class DOMAnalyzer {
         effort: 'high',
         savings: {
           performance: 15,
-          bandwidth: 20
+          bandwidth: 20,
         },
         elements: ['link[rel="stylesheet"]', 'style'],
-        selectors: ['link[rel="stylesheet"]', 'style']
+        selectors: ['link[rel="stylesheet"]', 'style'],
       });
     }
 
@@ -499,10 +518,10 @@ export class DOMAnalyzer {
         impact: 'Improves first paint and first contentful paint',
         effort: 'medium',
         savings: {
-          performance: 30
+          performance: 30,
         },
         elements: ['link[rel="stylesheet"]'],
-        selectors: ['link[rel="stylesheet"]']
+        selectors: ['link[rel="stylesheet"]'],
       });
     }
 
@@ -512,7 +531,9 @@ export class DOMAnalyzer {
   /**
    * Find performance optimization opportunities
    */
-  private findPerformanceOpportunities(performanceMetrics: PerformanceMetrics): OptimizationOpportunity[] {
+  private findPerformanceOpportunities(
+    performanceMetrics: PerformanceMetrics
+  ): OptimizationOpportunity[] {
     const opportunities: OptimizationOpportunity[] = [];
 
     // Slow load time
@@ -527,10 +548,10 @@ export class DOMAnalyzer {
         effort: 'high',
         savings: {
           performance: 40,
-          userExperience: 30
+          userExperience: 30,
         },
         elements: ['*'],
-        selectors: ['*']
+        selectors: ['*'],
       });
     }
 
@@ -545,10 +566,10 @@ export class DOMAnalyzer {
         impact: 'Improves perceived performance',
         effort: 'medium',
         savings: {
-          performance: 25
+          performance: 25,
         },
         elements: ['*'],
-        selectors: ['*']
+        selectors: ['*'],
       });
     }
 
@@ -563,10 +584,10 @@ export class DOMAnalyzer {
         impact: 'Improves Core Web Vitals score',
         effort: 'medium',
         savings: {
-          performance: 20
+          performance: 20,
         },
         elements: ['*'],
-        selectors: ['*']
+        selectors: ['*'],
       });
     }
 
@@ -582,10 +603,10 @@ export class DOMAnalyzer {
         effort: 'medium',
         savings: {
           performance: 15,
-          userExperience: 20
+          userExperience: 20,
         },
         elements: ['*'],
-        selectors: ['*']
+        selectors: ['*'],
       });
     }
 
@@ -609,15 +630,16 @@ export class DOMAnalyzer {
         impact: 'Reduces HTTP requests and improves load times',
         effort: 'high',
         savings: {
-          performance: 20
+          performance: 20,
         },
         elements: ['*'],
-        selectors: ['*']
+        selectors: ['*'],
       });
     }
 
     // Large total size
-    if (resourceAnalysis.totalSize > 2000000) { // 2MB
+    if (resourceAnalysis.totalSize > 2000000) {
+      // 2MB
       opportunities.push({
         type: 'performance',
         category: 'performance',
@@ -628,10 +650,10 @@ export class DOMAnalyzer {
         effort: 'high',
         savings: {
           performance: 30,
-          bandwidth: 40
+          bandwidth: 40,
         },
         elements: ['*'],
-        selectors: ['*']
+        selectors: ['*'],
       });
     }
 

@@ -124,17 +124,13 @@ export class BlockchainModelStorage {
   private schemas: Map<string, ModelSchema> = new Map();
   private adminAccess: Map<string, AdminAccess> = new Map();
 
-  constructor(
-    provider: ethers.Provider,
-    wallet: ethers.Wallet,
-    contractAddress: string
-  ) {
+  constructor(provider: ethers.Provider, wallet: ethers.Wallet, contractAddress: string) {
     this.provider = provider;
     this.wallet = wallet;
-    
+
     // Initialize contract with ABI
     this.contract = new ethers.Contract(contractAddress, this.getContractABI(), wallet);
-    
+
     this.initializeAdminAccess();
   }
 
@@ -143,22 +139,22 @@ export class BlockchainModelStorage {
    */
   private getContractABI(): any[] {
     return [
-      "function storeModelData(bytes32 modelId, string memory dataHash, string memory metadataHash, string memory schemaHash, string memory connectionsHash, address[] memory adminAddresses) external",
-      "function getModelData(bytes32 modelId) external view returns (string memory, string memory, string memory, string memory, address[] memory)",
-      "function updateModelData(bytes32 modelId, string memory dataHash, string memory metadataHash, string memory schemaHash, string memory connectionsHash) external",
-      "function deleteModelData(bytes32 modelId) external",
-      "function addAdmin(address adminAddress, uint8 role) external",
-      "function removeAdmin(address adminAddress) external",
-      "function isAdmin(address adminAddress) external view returns (bool)",
-      "function getAdminRole(address adminAddress) external view returns (uint8)",
-      "function getModelCount() external view returns (uint256)",
-      "function getModelIds() external view returns (bytes32[])",
-      "function getModelByIndex(uint256 index) external view returns (bytes32, string memory, string memory, string memory, string memory, address[] memory)",
-      "event ModelDataStored(bytes32 indexed modelId, address indexed admin, uint256 timestamp)",
-      "event ModelDataUpdated(bytes32 indexed modelId, address indexed admin, uint256 timestamp)",
-      "event ModelDataDeleted(bytes32 indexed modelId, address indexed admin, uint256 timestamp)",
-      "event AdminAdded(address indexed adminAddress, uint8 role, address indexed addedBy)",
-      "event AdminRemoved(address indexed adminAddress, address indexed removedBy)"
+      'function storeModelData(bytes32 modelId, string memory dataHash, string memory metadataHash, string memory schemaHash, string memory connectionsHash, address[] memory adminAddresses) external',
+      'function getModelData(bytes32 modelId) external view returns (string memory, string memory, string memory, string memory, address[] memory)',
+      'function updateModelData(bytes32 modelId, string memory dataHash, string memory metadataHash, string memory schemaHash, string memory connectionsHash) external',
+      'function deleteModelData(bytes32 modelId) external',
+      'function addAdmin(address adminAddress, uint8 role) external',
+      'function removeAdmin(address adminAddress) external',
+      'function isAdmin(address adminAddress) external view returns (bool)',
+      'function getAdminRole(address adminAddress) external view returns (uint8)',
+      'function getModelCount() external view returns (uint256)',
+      'function getModelIds() external view returns (bytes32[])',
+      'function getModelByIndex(uint256 index) external view returns (bytes32, string memory, string memory, string memory, string memory, address[] memory)',
+      'event ModelDataStored(bytes32 indexed modelId, address indexed admin, uint256 timestamp)',
+      'event ModelDataUpdated(bytes32 indexed modelId, address indexed admin, uint256 timestamp)',
+      'event ModelDataDeleted(bytes32 indexed modelId, address indexed admin, uint256 timestamp)',
+      'event AdminAdded(address indexed adminAddress, uint8 role, address indexed addedBy)',
+      'event AdminRemoved(address indexed adminAddress, address indexed removedBy)',
     ];
   }
 
@@ -177,11 +173,11 @@ export class BlockchainModelStorage {
         delete: true,
         manageAccess: true,
         deployModels: true,
-        accessTrainingData: true
+        accessTrainingData: true,
       },
       createdAt: Date.now(),
       lastActive: Date.now(),
-      isActive: true
+      isActive: true,
     });
   }
 
@@ -201,13 +197,16 @@ export class BlockchainModelStorage {
   /**
    * Add admin address
    */
-  public async addAdmin(address: string, role: 'super_admin' | 'admin' | 'data_admin' | 'model_admin'): Promise<boolean> {
+  public async addAdmin(
+    address: string,
+    role: 'super_admin' | 'admin' | 'data_admin' | 'model_admin'
+  ): Promise<boolean> {
     try {
       const roleMap = {
-        'super_admin': 0,
-        'admin': 1,
-        'data_admin': 2,
-        'model_admin': 3
+        super_admin: 0,
+        admin: 1,
+        data_admin: 2,
+        model_admin: 3,
       };
 
       const tx = await this.contract.addAdmin(address, roleMap[role]);
@@ -220,7 +219,7 @@ export class BlockchainModelStorage {
         permissions: this.getPermissionsForRole(role),
         createdAt: Date.now(),
         lastActive: Date.now(),
-        isActive: true
+        isActive: true,
       });
 
       return true;
@@ -259,7 +258,7 @@ export class BlockchainModelStorage {
         delete: true,
         manageAccess: true,
         deployModels: true,
-        accessTrainingData: true
+        accessTrainingData: true,
       },
       admin: {
         read: true,
@@ -267,7 +266,7 @@ export class BlockchainModelStorage {
         delete: true,
         manageAccess: false,
         deployModels: true,
-        accessTrainingData: true
+        accessTrainingData: true,
       },
       data_admin: {
         read: true,
@@ -275,7 +274,7 @@ export class BlockchainModelStorage {
         delete: false,
         manageAccess: false,
         deployModels: false,
-        accessTrainingData: true
+        accessTrainingData: true,
       },
       model_admin: {
         read: true,
@@ -283,8 +282,8 @@ export class BlockchainModelStorage {
         delete: false,
         manageAccess: false,
         deployModels: true,
-        accessTrainingData: false
-      }
+        accessTrainingData: false,
+      },
     };
 
     return permissions[role as keyof typeof permissions] || permissions.data_admin;
@@ -298,15 +297,17 @@ export class BlockchainModelStorage {
     adminAddress: string
   ): Promise<ModelTrainingData> {
     // Verify admin access
-    if (!await this.isAdmin(adminAddress)) {
+    if (!(await this.isAdmin(adminAddress))) {
       throw new Error('Access denied: Admin privileges required');
     }
 
-    const modelId = ethers.keccak256(ethers.toUtf8Bytes(`${modelData.modelName}_${modelData.version}_${Date.now()}`));
-    
+    const modelId = ethers.keccak256(
+      ethers.toUtf8Bytes(`${modelData.modelName}_${modelData.version}_${Date.now()}`)
+    );
+
     // Upload data to IPFS (simulated)
     const ipfsData = await this.uploadToIPFS(modelData);
-    
+
     // Prepare data for blockchain storage
     const dataHash = ipfsData.dataCID;
     const metadataHash = ipfsData.metadataCID;
@@ -323,7 +324,7 @@ export class BlockchainModelStorage {
       connectionsHash,
       adminAddresses
     );
-    
+
     const receipt = await tx.wait();
     const blockNumber = receipt.blockNumber;
     const gasUsed = receipt.gasUsed;
@@ -337,15 +338,15 @@ export class BlockchainModelStorage {
         blockNumber,
         gasUsed: Number(gasUsed),
         timestamp: Date.now(),
-        contractAddress: await this.contract.getAddress()
+        contractAddress: await this.contract.getAddress(),
       },
       ipfs: ipfsData,
       lifecycle: {
         created: Date.now(),
         lastUpdated: Date.now(),
         status: 'active',
-        versionHistory: [modelData.version]
-      }
+        versionHistory: [modelData.version],
+      },
     };
 
     // Store locally
@@ -357,22 +358,26 @@ export class BlockchainModelStorage {
   /**
    * Get model training data from blockchain
    */
-  public async getModelData(modelId: string, requesterAddress: string): Promise<ModelTrainingData | null> {
+  public async getModelData(
+    modelId: string,
+    requesterAddress: string
+  ): Promise<ModelTrainingData | null> {
     // Verify admin access
-    if (!await this.isAdmin(requesterAddress)) {
+    if (!(await this.isAdmin(requesterAddress))) {
       throw new Error('Access denied: Admin privileges required');
     }
 
     try {
       // Get from blockchain
-      const [dataHash, metadataHash, schemaHash, connectionsHash, adminAddresses] = await this.contract.getModelData(modelId);
-      
+      const [dataHash, metadataHash, schemaHash, connectionsHash, adminAddresses] =
+        await this.contract.getModelData(modelId);
+
       // Download from IPFS (simulated)
       const ipfsData = await this.downloadFromIPFS({
         dataCID: dataHash,
         metadataCID: metadataHash,
         schemaCID: schemaHash,
-        connectionsCID: connectionsHash
+        connectionsCID: connectionsHash,
       });
 
       // Create model data object
@@ -389,27 +394,27 @@ export class BlockchainModelStorage {
           adminAddresses: adminAddresses,
           readPermissions: [],
           writePermissions: [],
-          encrypted: false
+          encrypted: false,
         },
         blockchain: {
           transactionHash: '', // Would need to get from transaction
           blockNumber: 0, // Would need to get from transaction
           gasUsed: 0,
           timestamp: Date.now(),
-          contractAddress: await this.contract.getAddress()
+          contractAddress: await this.contract.getAddress(),
         },
         ipfs: {
           dataCID: dataHash,
           metadataCID: metadataHash,
           schemaCID: schemaHash,
-          connectionsCID: connectionsHash
+          connectionsCID: connectionsHash,
         },
         lifecycle: {
           created: Date.now(),
           lastUpdated: Date.now(),
           status: 'active',
-          versionHistory: [ipfsData.metadata.version]
-        }
+          versionHistory: [ipfsData.metadata.version],
+        },
       };
 
       return modelData;
@@ -428,7 +433,7 @@ export class BlockchainModelStorage {
     adminAddress: string
   ): Promise<boolean> {
     // Verify admin access
-    if (!await this.isAdmin(adminAddress)) {
+    if (!(await this.isAdmin(adminAddress))) {
       throw new Error('Access denied: Admin privileges required');
     }
 
@@ -472,7 +477,7 @@ export class BlockchainModelStorage {
    */
   public async deleteModelData(modelId: string, adminAddress: string): Promise<boolean> {
     // Verify admin access
-    if (!await this.isAdmin(adminAddress)) {
+    if (!(await this.isAdmin(adminAddress))) {
       throw new Error('Access denied: Admin privileges required');
     }
 
@@ -501,7 +506,7 @@ export class BlockchainModelStorage {
    */
   public async getAllModelIds(requesterAddress: string): Promise<string[]> {
     // Verify admin access
-    if (!await this.isAdmin(requesterAddress)) {
+    if (!(await this.isAdmin(requesterAddress))) {
       throw new Error('Access denied: Admin privileges required');
     }
 
@@ -519,7 +524,7 @@ export class BlockchainModelStorage {
    */
   public async getModelCount(requesterAddress: string): Promise<number> {
     // Verify admin access
-    if (!await this.isAdmin(requesterAddress)) {
+    if (!(await this.isAdmin(requesterAddress))) {
       throw new Error('Access denied: Admin privileges required');
     }
 
@@ -546,16 +551,19 @@ export class BlockchainModelStorage {
     requesterAddress: string
   ): Promise<ModelTrainingData[]> {
     // Verify admin access
-    if (!await this.isAdmin(requesterAddress)) {
+    if (!(await this.isAdmin(requesterAddress))) {
       throw new Error('Access denied: Admin privileges required');
     }
 
     const results: ModelTrainingData[] = [];
-    
+
     for (const [modelId, modelData] of this.modelData) {
       let matches = true;
 
-      if (criteria.modelName && !modelData.modelName.toLowerCase().includes(criteria.modelName.toLowerCase())) {
+      if (
+        criteria.modelName &&
+        !modelData.modelName.toLowerCase().includes(criteria.modelName.toLowerCase())
+      ) {
         matches = false;
       }
 
@@ -591,7 +599,7 @@ export class BlockchainModelStorage {
    */
   public async getModelStatistics(requesterAddress: string): Promise<any> {
     // Verify admin access
-    if (!await this.isAdmin(requesterAddress)) {
+    if (!(await this.isAdmin(requesterAddress))) {
       throw new Error('Access denied: Admin privileges required');
     }
 
@@ -604,13 +612,17 @@ export class BlockchainModelStorage {
       totalModels: models.length,
       algorithms: algorithms.length,
       frameworks: frameworks.length,
-      statusDistribution: statuses.reduce((acc, status) => {
-        acc[status] = models.filter(m => m.lifecycle.status === status).length;
-        return acc;
-      }, {} as Record<string, number>),
+      statusDistribution: statuses.reduce(
+        (acc, status) => {
+          acc[status] = models.filter(m => m.lifecycle.status === status).length;
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
       averageAccuracy: models.reduce((sum, m) => sum + m.metadata.accuracy, 0) / models.length,
       totalDataSize: models.reduce((sum, m) => sum + m.metadata.dataSize, 0),
-      averageTrainingTime: models.reduce((sum, m) => sum + m.metadata.trainingTime, 0) / models.length
+      averageTrainingTime:
+        models.reduce((sum, m) => sum + m.metadata.trainingTime, 0) / models.length,
     };
   }
 
@@ -672,8 +684,8 @@ export class BlockchainModelStorage {
         hyperparameters: {
           hidden_layers: 3,
           neurons_per_layer: 128,
-          dropout_rate: 0.2
-        }
+          dropout_rate: 0.2,
+        },
       },
       schema: {
         inputSchema: {
@@ -681,40 +693,40 @@ export class BlockchainModelStorage {
           properties: {
             feature1: { type: 'number' },
             feature2: { type: 'number' },
-            feature3: { type: 'number' }
-          }
+            feature3: { type: 'number' },
+          },
         },
         outputSchema: {
           type: 'object',
           properties: {
             prediction: { type: 'number' },
-            confidence: { type: 'number' }
-          }
+            confidence: { type: 'number' },
+          },
         },
         dataTypes: {
           feature1: 'float32',
           feature2: 'float32',
           feature3: 'float32',
-          target: 'int32'
+          target: 'int32',
         },
         constraints: {
           feature1: { min: 0, max: 1 },
           feature2: { min: -1, max: 1 },
-          feature3: { min: 0, max: 100 }
+          feature3: { min: 0, max: 100 },
         },
         validationRules: [
           'feature1 must be between 0 and 1',
           'feature2 must be between -1 and 1',
-          'feature3 must be between 0 and 100'
-        ]
+          'feature3 must be between 0 and 100',
+        ],
       },
       connections: {
         parentModels: ['parent_model_1', 'parent_model_2'],
         childModels: ['child_model_1'],
         dependencies: ['tensorflow', 'numpy', 'pandas'],
         integrations: ['api_1', 'api_2'],
-        apis: ['rest_api', 'graphql_api']
-      }
+        apis: ['rest_api', 'graphql_api'],
+      },
     };
   }
 

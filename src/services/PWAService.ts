@@ -117,7 +117,7 @@ export class PWAService {
     if ('serviceWorker' in navigator) {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js', {
-          scope: '/'
+          scope: '/',
         });
 
         this.logger.info('Service worker registered successfully');
@@ -134,7 +134,6 @@ export class PWAService {
             });
           }
         });
-
       } catch (error) {
         this.logger.error('Service worker registration failed:', error);
         throw error;
@@ -148,7 +147,7 @@ export class PWAService {
    * Setup install prompt
    */
   private setupInstallPrompt(): void {
-    window.addEventListener('beforeinstallprompt', (e) => {
+    window.addEventListener('beforeinstallprompt', e => {
       e.preventDefault();
       this.installPrompt = e as PWAInstallPrompt;
       this.logger.info('Install prompt available');
@@ -167,8 +166,9 @@ export class PWAService {
    */
   private checkInstallationStatus(): void {
     // Check if running in standalone mode
-    this.isInstalled = window.matchMedia('(display-mode: standalone)').matches ||
-                      (window.navigator as any).standalone === true;
+    this.isInstalled =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
 
     if (this.isInstalled) {
       this.logger.info('PWA is already installed');
@@ -225,7 +225,7 @@ export class PWAService {
     try {
       await this.installPrompt.prompt();
       const choiceResult = await this.installPrompt.userChoice;
-      
+
       if (choiceResult.outcome === 'accepted') {
         this.logger.info('User accepted PWA installation');
       } else {

@@ -60,7 +60,7 @@ export class CursorN8nIntegrationService extends EventEmitter {
     this.headlessChromeService = headlessChromeService;
     this.config = config;
     this.logger = new Logger('CursorN8nIntegrationService');
-    
+
     this.initializeCursorFunctions();
     this.setupTaskEventHandlers();
   }
@@ -87,7 +87,6 @@ export class CursorN8nIntegrationService extends EventEmitter {
       this.isInitialized = true;
       this.logger.info('Cursor-N8n integration service initialized successfully');
       this.emit('initialized');
-
     } catch (error) {
       this.logger.error('Failed to initialize integration service:', error);
       throw error;
@@ -104,7 +103,12 @@ export class CursorN8nIntegrationService extends EventEmitter {
         description: 'Analyze DOM structure and performance metrics',
         parameters: [
           { name: 'url', type: 'string', required: true, description: 'URL to analyze' },
-          { name: 'analysisType', type: 'string', required: false, description: 'Type of analysis (full, performance, structure, resources)' }
+          {
+            name: 'analysisType',
+            type: 'string',
+            required: false,
+            description: 'Type of analysis (full, performance, structure, resources)',
+          },
         ],
         returnType: 'object',
         implementation: `
@@ -135,35 +139,40 @@ export class CursorN8nIntegrationService extends EventEmitter {
             }
           };
           return analysis;
-        `
+        `,
       },
       {
         name: 'extractText',
         description: 'Extract all text content from the page',
         parameters: [
-          { name: 'url', type: 'string', required: true, description: 'URL to extract text from' }
+          { name: 'url', type: 'string', required: true, description: 'URL to extract text from' },
         ],
         returnType: 'string',
         implementation: `
           return document.body.innerText;
-        `
+        `,
       },
       {
         name: 'getTitle',
         description: 'Get the page title',
         parameters: [
-          { name: 'url', type: 'string', required: true, description: 'URL to get title from' }
+          { name: 'url', type: 'string', required: true, description: 'URL to get title from' },
         ],
         returnType: 'string',
         implementation: `
           return document.title;
-        `
+        `,
       },
       {
         name: 'getMetaTags',
         description: 'Extract all meta tags from the page',
         parameters: [
-          { name: 'url', type: 'string', required: true, description: 'URL to extract meta tags from' }
+          {
+            name: 'url',
+            type: 'string',
+            required: true,
+            description: 'URL to extract meta tags from',
+          },
         ],
         returnType: 'object',
         implementation: `
@@ -175,8 +184,8 @@ export class CursorN8nIntegrationService extends EventEmitter {
             }
           });
           return metas;
-        `
-      }
+        `,
+      },
     ];
 
     // Register all functions
@@ -201,7 +210,7 @@ export class CursorN8nIntegrationService extends EventEmitter {
           description: 'Comprehensive DOM analysis for optimization',
           webhookUrl: `${this.config.n8n.baseUrl}/webhook/dom-analysis`,
           status: 'active',
-          executionCount: 0
+          executionCount: 0,
         },
         {
           id: 'javascript-execution-workflow',
@@ -209,14 +218,13 @@ export class CursorN8nIntegrationService extends EventEmitter {
           description: 'Execute custom JavaScript functions in headless Chrome',
           webhookUrl: `${this.config.n8n.baseUrl}/webhook/execute-js`,
           status: 'active',
-          executionCount: 0
-        }
+          executionCount: 0,
+        },
       ];
 
       workflows.forEach(workflow => {
         this.n8nWorkflows.set(workflow.id, workflow);
       });
-
     } catch (error) {
       this.logger.error('Failed to load n8n workflows:', error);
     }
@@ -251,15 +259,14 @@ export class CursorN8nIntegrationService extends EventEmitter {
         pageId: options.pageId,
         url: options.url,
         timeout: options.timeout || this.config.headlessChrome.defaultTimeout,
-        priority: 8
+        priority: 8,
       });
 
       // Wait for task completion
       const result = await this.waitForTaskCompletion(taskId);
-      
+
       this.logger.info(`Cursor function ${functionName} executed successfully`);
       return result;
-
     } catch (error) {
       this.logger.error(`Failed to execute Cursor function ${functionName}:`, error);
       throw error;
@@ -298,9 +305,9 @@ export class CursorN8nIntegrationService extends EventEmitter {
         headers: {
           'Content-Type': 'application/json',
           ...(this.config.n8n.webhookSecret && {
-            'X-Webhook-Secret': this.config.n8n.webhookSecret
-          })
-        }
+            'X-Webhook-Secret': this.config.n8n.webhookSecret,
+          }),
+        },
       });
 
       // Update workflow execution count
@@ -309,7 +316,6 @@ export class CursorN8nIntegrationService extends EventEmitter {
 
       this.logger.info(`N8n workflow ${workflowId} executed successfully`);
       return response.data;
-
     } catch (error) {
       this.logger.error(`Failed to execute n8n workflow ${workflowId}:`, error);
       throw error;
@@ -322,10 +328,10 @@ export class CursorN8nIntegrationService extends EventEmitter {
   private async waitForTaskCompletion(taskId: string, timeout: number = 30000): Promise<any> {
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
-      
+
       const checkTask = () => {
         const task = this.taskManager.getTask(taskId);
-        
+
         if (!task) {
           reject(new Error('Task not found'));
           return;
@@ -364,23 +370,23 @@ export class CursorN8nIntegrationService extends EventEmitter {
    * Setup task event handlers
    */
   private setupTaskEventHandlers(): void {
-    this.taskManager.on('taskCreated', (task) => {
+    this.taskManager.on('taskCreated', task => {
       this.emit('taskCreated', task);
     });
 
-    this.taskManager.on('taskStarted', (task) => {
+    this.taskManager.on('taskStarted', task => {
       this.emit('taskStarted', task);
     });
 
-    this.taskManager.on('taskCompleted', (task) => {
+    this.taskManager.on('taskCompleted', task => {
       this.emit('taskCompleted', task);
     });
 
-    this.taskManager.on('taskFailed', (task) => {
+    this.taskManager.on('taskFailed', task => {
       this.emit('taskFailed', task);
     });
 
-    this.taskManager.on('taskCancelled', (task) => {
+    this.taskManager.on('taskCancelled', task => {
       this.emit('taskCancelled', task);
     });
   }
@@ -407,20 +413,21 @@ export class CursorN8nIntegrationService extends EventEmitter {
       initialized: this.isInitialized,
       cursorAPI: {
         enabled: this.config.cursorAPI.enabled,
-        functionsAvailable: this.cursorFunctions.size
+        functionsAvailable: this.cursorFunctions.size,
       },
       n8n: {
         enabled: this.config.n8n.enabled,
         workflowsAvailable: this.n8nWorkflows.size,
-        activeWorkflows: Array.from(this.n8nWorkflows.values()).filter(w => w.status === 'active').length
+        activeWorkflows: Array.from(this.n8nWorkflows.values()).filter(w => w.status === 'active')
+          .length,
       },
       headlessChrome: {
         enabled: this.config.headlessChrome.enabled,
-        status: this.headlessChromeService.getStatus()
+        status: this.headlessChromeService.getStatus(),
       },
       taskManager: {
-        stats: this.taskManager.getStats()
-      }
+        stats: this.taskManager.getStats(),
+      },
     };
   }
 
@@ -429,14 +436,13 @@ export class CursorN8nIntegrationService extends EventEmitter {
    */
   async shutdown(): Promise<void> {
     this.logger.info('Shutting down Cursor-N8n integration service...');
-    
+
     try {
       await this.taskManager.shutdown();
       await this.headlessChromeService.cleanup();
-      
+
       this.isInitialized = false;
       this.logger.info('Cursor-N8n integration service shutdown complete');
-      
     } catch (error) {
       this.logger.error('Error during shutdown:', error);
       throw error;

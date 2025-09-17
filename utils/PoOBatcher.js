@@ -19,7 +19,7 @@ class PoOBatcher {
     this.pendingBatch.push({
       ...pooData,
       timestamp: Date.now(),
-      nonce: crypto.randomBytes(16).toString('hex')
+      nonce: crypto.randomBytes(16).toString('hex'),
     });
 
     // If batch is full, submit immediately
@@ -41,7 +41,7 @@ class PoOBatcher {
 
     const batch = [...this.pendingBatch];
     this.pendingBatch = [];
-    
+
     if (this.batchTimer) {
       clearTimeout(this.batchTimer);
       this.batchTimer = null;
@@ -51,20 +51,20 @@ class PoOBatcher {
       // Create EIP-712 signature for batch
       const batchHash = this.createBatchHash(batch);
       const signature = this.signBatch(batchHash);
-      
+
       const payload = {
         batch: batch,
         batchHash,
         signature,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const response = await fetch(`${this.apiUrl}/api/blockchain/submit-batch-poo`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -90,12 +90,10 @@ class PoOBatcher {
       bytesSaved: poo.bytesSaved,
       backlinksCount: poo.backlinksCount,
       artifactCID: poo.artifactCID,
-      timestamp: poo.timestamp
+      timestamp: poo.timestamp,
     }));
 
-    return crypto.createHash('sha256')
-      .update(JSON.stringify(batchData))
-      .digest('hex');
+    return crypto.createHash('sha256').update(JSON.stringify(batchData)).digest('hex');
   }
 
   // Sign batch with EIP-712
@@ -109,26 +107,27 @@ class PoOBatcher {
       name: 'DOMSpaceHarvester',
       version: '1',
       chainId: 1, // Will be set based on network
-      verifyingContract: '0x0000000000000000000000000000000000000000' // Will be set to actual contract
+      verifyingContract: '0x0000000000000000000000000000000000000000', // Will be set to actual contract
     };
 
     // EIP-712 types
     const types = {
       BatchSubmission: [
         { name: 'batchHash', type: 'bytes32' },
-        { name: 'timestamp', type: 'uint256' }
-      ]
+        { name: 'timestamp', type: 'uint256' },
+      ],
     };
 
     // Create message
     const message = {
       batchHash: '0x' + batchHash,
-      timestamp: Math.floor(Date.now() / 1000)
+      timestamp: Math.floor(Date.now() / 1000),
     };
 
     // For now, return a simple signature
     // In production, use proper EIP-712 signing
-    return crypto.createHmac('sha256', this.privateKey)
+    return crypto
+      .createHmac('sha256', this.privateKey)
       .update(JSON.stringify({ domain, types, message }))
       .digest('hex');
   }
@@ -146,7 +145,7 @@ class PoOBatcher {
       pendingCount: this.pendingBatch.length,
       batchSize: this.batchSize,
       batchTimeout: this.batchTimeout,
-      hasTimer: !!this.batchTimer
+      hasTimer: !!this.batchTimer,
     };
   }
 }

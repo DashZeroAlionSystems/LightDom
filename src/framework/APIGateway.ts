@@ -63,7 +63,7 @@ export class APIGateway extends EventEmitter {
       enableSwagger: true,
       apiVersion: 'v1',
       basePath: '/api',
-      ...config
+      ...config,
     };
 
     this.app = express();
@@ -85,7 +85,9 @@ export class APIGateway extends EventEmitter {
       this.server = this.app.listen(this.config.port, () => {
         this.isRunning = true;
         console.log(`🚀 API Gateway started on port ${this.config.port}`);
-        console.log(`📚 API Documentation: http://localhost:${this.config.port}${this.config.basePath}/docs`);
+        console.log(
+          `📚 API Documentation: http://localhost:${this.config.port}${this.config.basePath}/docs`
+        );
         this.emit('started', { port: this.config.port });
       });
     } catch (error) {
@@ -102,7 +104,7 @@ export class APIGateway extends EventEmitter {
       return;
     }
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (this.server) {
         this.server.close(() => {
           this.isRunning = false;
@@ -125,11 +127,13 @@ export class APIGateway extends EventEmitter {
 
     // CORS middleware
     if (this.config.enableCORS) {
-      this.app.use(cors({
-        origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
-      }));
+      this.app.use(
+        cors({
+          origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+          methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+          allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+        })
+      );
     }
 
     // Rate limiting
@@ -140,8 +144,8 @@ export class APIGateway extends EventEmitter {
         message: {
           success: false,
           error: 'Too many requests from this IP, please try again later.',
-          timestamp: Date.now()
-        }
+          timestamp: Date.now(),
+        },
       });
       this.app.use(limiter);
     }
@@ -226,7 +230,7 @@ export class APIGateway extends EventEmitter {
       this.sendResponse(res, 404, {
         success: false,
         error: 'Endpoint not found',
-        message: `The requested endpoint ${req.originalUrl} does not exist`
+        message: `The requested endpoint ${req.originalUrl} does not exist`,
       });
     });
 
@@ -236,7 +240,7 @@ export class APIGateway extends EventEmitter {
       this.sendResponse(res, 500, {
         success: false,
         error: 'Internal server error',
-        message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : error.message
+        message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : error.message,
       });
     });
   }
@@ -253,8 +257,8 @@ export class APIGateway extends EventEmitter {
       framework: {
         running: lightDomFramework.getStatus().running,
         queueSize: urlQueueManager.getStatus().total,
-        simulationRunning: simulationEngine.isSimulationRunning()
-      }
+        simulationRunning: simulationEngine.isSimulationRunning(),
+      },
     };
 
     this.sendResponse(res, 200, { success: true, data: health });
@@ -285,11 +289,11 @@ export class APIGateway extends EventEmitter {
       }
 
       const queueId = await lightDomFramework.addURLToQueue(url, priority, siteType);
-      
+
       this.sendResponse(res, 201, {
         success: true,
         data: { queueId, url, priority, siteType },
-        message: 'URL added to optimization queue'
+        message: 'URL added to optimization queue',
       });
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to add URL to queue' });
@@ -303,10 +307,10 @@ export class APIGateway extends EventEmitter {
     try {
       const status = urlQueueManager.getStatus();
       const metrics = urlQueueManager.getMetrics();
-      
+
       this.sendResponse(res, 200, {
         success: true,
-        data: { status, metrics }
+        data: { status, metrics },
       });
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to get queue status' });
@@ -319,28 +323,28 @@ export class APIGateway extends EventEmitter {
   private async getQueueItems(req: Request, res: Response): Promise<void> {
     try {
       const { status, priority, siteType, limit = 50, offset = 0 } = req.query;
-      
+
       let items = urlQueueManager.getAllItems();
-      
+
       // Filter by status
       if (status) {
         items = items.filter(item => item.status === status);
       }
-      
+
       // Filter by priority
       if (priority) {
         items = items.filter(item => item.priority === priority);
       }
-      
+
       // Filter by site type
       if (siteType) {
         items = items.filter(item => item.siteType === siteType);
       }
-      
+
       // Pagination
       const total = items.length;
       items = items.slice(Number(offset), Number(offset) + Number(limit));
-      
+
       this.sendResponse(res, 200, {
         success: true,
         data: {
@@ -349,9 +353,9 @@ export class APIGateway extends EventEmitter {
             total,
             limit: Number(limit),
             offset: Number(offset),
-            hasMore: Number(offset) + Number(limit) < total
-          }
-        }
+            hasMore: Number(offset) + Number(limit) < total,
+          },
+        },
       });
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to get queue items' });
@@ -365,7 +369,7 @@ export class APIGateway extends EventEmitter {
     try {
       const { id } = req.params;
       const success = urlQueueManager.removeItem(id);
-      
+
       if (success) {
         this.sendResponse(res, 200, { success: true, message: 'Item removed from queue' });
       } else {
@@ -383,11 +387,14 @@ export class APIGateway extends EventEmitter {
     try {
       const { id } = req.params;
       const success = urlQueueManager.retryItem(id);
-      
+
       if (success) {
         this.sendResponse(res, 200, { success: true, message: 'Item scheduled for retry' });
       } else {
-        this.sendResponse(res, 404, { success: false, error: 'Item not found or cannot be retried' });
+        this.sendResponse(res, 404, {
+          success: false,
+          error: 'Item not found or cannot be retried',
+        });
       }
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to retry queue item' });
@@ -413,9 +420,12 @@ export class APIGateway extends EventEmitter {
     try {
       const { limit = 50, offset = 0 } = req.query;
       const optimizations = spaceOptimizationEngine.getOptimizations();
-      
-      const paginatedOptimizations = optimizations.slice(Number(offset), Number(offset) + Number(limit));
-      
+
+      const paginatedOptimizations = optimizations.slice(
+        Number(offset),
+        Number(offset) + Number(limit)
+      );
+
       this.sendResponse(res, 200, {
         success: true,
         data: {
@@ -424,9 +434,9 @@ export class APIGateway extends EventEmitter {
             total: optimizations.length,
             limit: Number(limit),
             offset: Number(offset),
-            hasMore: Number(offset) + Number(limit) < optimizations.length
-          }
-        }
+            hasMore: Number(offset) + Number(limit) < optimizations.length,
+          },
+        },
       });
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to get optimizations' });
@@ -440,7 +450,7 @@ export class APIGateway extends EventEmitter {
     try {
       const { id } = req.params;
       const optimization = spaceOptimizationEngine.getOptimization(id);
-      
+
       if (optimization) {
         this.sendResponse(res, 200, { success: true, data: optimization });
       } else {
@@ -460,9 +470,9 @@ export class APIGateway extends EventEmitter {
         totalSpaceHarvested: spaceOptimizationEngine.getTotalSpaceHarvested(),
         totalTokensDistributed: spaceOptimizationEngine.getTotalTokensDistributed(),
         metaverseStats: spaceOptimizationEngine.getMetaverseStats(),
-        totalOptimizations: spaceOptimizationEngine.getOptimizations().length
+        totalOptimizations: spaceOptimizationEngine.getOptimizations().length,
       };
-      
+
       this.sendResponse(res, 200, { success: true, data: stats });
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to get optimization stats' });
@@ -475,10 +485,10 @@ export class APIGateway extends EventEmitter {
   private async getNodes(req: Request, res: Response): Promise<void> {
     try {
       const { type } = req.query;
-      const nodes = type 
+      const nodes = type
         ? advancedNodeManager.getNodesByType(type as any)
         : advancedNodeManager.getAllNodes();
-      
+
       this.sendResponse(res, 200, { success: true, data: nodes });
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to get nodes' });
@@ -492,7 +502,7 @@ export class APIGateway extends EventEmitter {
     try {
       const { id } = req.params;
       const stats = advancedNodeManager.getNodeStats(id);
-      
+
       if (stats) {
         this.sendResponse(res, 200, { success: true, data: stats });
       } else {
@@ -521,17 +531,20 @@ export class APIGateway extends EventEmitter {
   private async scaleNodes(req: Request, res: Response): Promise<void> {
     try {
       const { nodeIds, additionalStorage } = req.body;
-      
+
       if (!nodeIds || !Array.isArray(nodeIds) || !additionalStorage) {
-        this.sendResponse(res, 400, { success: false, error: 'nodeIds and additionalStorage are required' });
+        this.sendResponse(res, 400, {
+          success: false,
+          error: 'nodeIds and additionalStorage are required',
+        });
         return;
       }
-      
+
       const results = nodeIds.map((nodeId: string) => ({
         nodeId,
-        success: advancedNodeManager.scaleUpNode(nodeId, additionalStorage)
+        success: advancedNodeManager.scaleUpNode(nodeId, additionalStorage),
       }));
-      
+
       this.sendResponse(res, 200, { success: true, data: results });
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to scale nodes' });
@@ -546,9 +559,9 @@ export class APIGateway extends EventEmitter {
       const status = {
         running: simulationEngine.isSimulationRunning(),
         currentSimulation: simulationEngine.getCurrentSimulation(),
-        statistics: simulationEngine.getSimulationStatistics()
+        statistics: simulationEngine.getSimulationStatistics(),
       };
-      
+
       this.sendResponse(res, 200, { success: true, data: status });
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to get simulation status' });
@@ -574,9 +587,9 @@ export class APIGateway extends EventEmitter {
     try {
       const { limit = 50, offset = 0 } = req.query;
       const history = simulationEngine.getSimulationHistory();
-      
+
       const paginatedHistory = history.slice(Number(offset), Number(offset) + Number(limit));
-      
+
       this.sendResponse(res, 200, {
         success: true,
         data: {
@@ -585,9 +598,9 @@ export class APIGateway extends EventEmitter {
             total: history.length,
             limit: Number(limit),
             offset: Number(offset),
-            hasMore: Number(offset) + Number(limit) < history.length
-          }
-        }
+            hasMore: Number(offset) + Number(limit) < history.length,
+          },
+        },
       });
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to get simulation history' });
@@ -601,7 +614,7 @@ export class APIGateway extends EventEmitter {
     try {
       const currentSimulation = simulationEngine.getCurrentSimulation();
       const recommendations = currentSimulation?.recommendations || [];
-      
+
       this.sendResponse(res, 200, { success: true, data: recommendations });
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to get recommendations' });
@@ -627,7 +640,7 @@ export class APIGateway extends EventEmitter {
     try {
       const { siteType } = req.params;
       const perks = lightDomFramework.getOptimizationPerks(siteType);
-      
+
       if (perks) {
         this.sendResponse(res, 200, { success: true, data: perks });
       } else {
@@ -644,7 +657,7 @@ export class APIGateway extends EventEmitter {
   private async handleWebhook(req: Request, res: Response): Promise<void> {
     try {
       const payload: WebhookPayload = req.body;
-      
+
       // Verify webhook signature if secret is configured
       if (this.config.webhookSecret && payload.signature) {
         // Implement signature verification here
@@ -654,7 +667,7 @@ export class APIGateway extends EventEmitter {
         //   return;
         // }
       }
-      
+
       this.emit('webhookReceived', payload);
       this.sendResponse(res, 200, { success: true, message: 'Webhook received' });
     } catch (error) {
@@ -674,10 +687,10 @@ export class APIGateway extends EventEmitter {
         nodes: advancedNodeManager.getSystemStats(),
         optimizations: {
           totalSpaceHarvested: spaceOptimizationEngine.getTotalSpaceHarvested(),
-          totalTokensDistributed: spaceOptimizationEngine.getTotalTokensDistributed()
-        }
+          totalTokensDistributed: spaceOptimizationEngine.getTotalTokensDistributed(),
+        },
       };
-      
+
       this.sendResponse(res, 200, { success: true, data: metrics });
     } catch (error) {
       this.sendResponse(res, 500, { success: false, error: 'Failed to get metrics' });
@@ -702,32 +715,32 @@ export class APIGateway extends EventEmitter {
           getItems: 'GET /queue/items - Get queue items',
           removeItem: 'DELETE /queue/items/:id - Remove queue item',
           retryItem: 'POST /queue/retry/:id - Retry failed item',
-          clearQueue: 'DELETE /queue/clear - Clear entire queue'
+          clearQueue: 'DELETE /queue/clear - Clear entire queue',
         },
         optimizations: {
           list: 'GET /optimizations - Get optimizations',
           get: 'GET /optimizations/:id - Get specific optimization',
-          stats: 'GET /optimizations/stats - Get optimization statistics'
+          stats: 'GET /optimizations/stats - Get optimization statistics',
         },
         nodes: {
           list: 'GET /nodes - Get nodes',
           get: 'GET /nodes/:id - Get specific node',
           stats: 'GET /nodes/stats - Get node statistics',
-          scale: 'POST /nodes/scale - Scale nodes'
+          scale: 'POST /nodes/scale - Scale nodes',
         },
         simulation: {
           status: 'GET /simulation/status - Get simulation status',
           run: 'POST /simulation/run - Run simulation',
           history: 'GET /simulation/history - Get simulation history',
-          recommendations: 'GET /simulation/recommendations - Get recommendations'
+          recommendations: 'GET /simulation/recommendations - Get recommendations',
         },
         perks: {
           list: 'GET /perks - Get all optimization perks',
-          getByType: 'GET /perks/:siteType - Get perks by site type'
-        }
-      }
+          getByType: 'GET /perks/:siteType - Get perks by site type',
+        },
+      },
     };
-    
+
     this.sendResponse(res, 200, { success: true, data: documentation });
   }
 
@@ -738,9 +751,9 @@ export class APIGateway extends EventEmitter {
     const response: APIResponse = {
       ...data,
       timestamp: Date.now(),
-      requestId: res.req.requestId || this.generateRequestId()
+      requestId: res.req.requestId || this.generateRequestId(),
     };
-    
+
     res.status(statusCode).json(response);
   }
 
@@ -762,7 +775,7 @@ export class APIGateway extends EventEmitter {
     return {
       running: this.isRunning,
       port: this.config.port,
-      config: this.config
+      config: this.config,
     };
   }
 }

@@ -111,20 +111,20 @@ export class StorageNodeManager extends EventEmitter {
    */
   async initialize(): Promise<void> {
     console.log('🔧 Initializing Storage Node Manager...');
-    
+
     try {
       // Load existing nodes from storage
       await this.loadNodes();
-      
+
       // Start mining process
       await this.startMining();
-      
+
       // Start health checks
       this.startHealthChecks();
-      
+
       this.isRunning = true;
       this.emit('initialized');
-      
+
       console.log('✅ Storage Node Manager initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize Storage Node Manager:', error);
@@ -143,7 +143,7 @@ export class StorageNodeManager extends EventEmitter {
     configuration?: Partial<NodeConfiguration>;
   }): Promise<StorageNode> {
     const nodeId = `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const defaultConfig: NodeConfiguration = {
       maxConcurrentMining: 5,
       maxStorageUsage: 80,
@@ -154,7 +154,7 @@ export class StorageNodeManager extends EventEmitter {
       enableCaching: true,
       cacheSize: 100,
       enableCompression: true,
-      compressionLevel: 6
+      compressionLevel: 6,
     };
 
     const node: StorageNode = {
@@ -178,28 +178,31 @@ export class StorageNodeManager extends EventEmitter {
         totalSpaceHarvested: 0,
         totalTokensEarned: 0,
         uptime: 100,
-        lastHealthCheck: new Date()
+        lastHealthCheck: new Date(),
       },
-      configuration: { ...defaultConfig, ...config.configuration }
+      configuration: { ...defaultConfig, ...config.configuration },
     };
 
     this.nodes.set(nodeId, node);
     await this.saveNodes();
-    
+
     this.emit('nodeCreated', node);
     console.log(`✅ Created mining node: ${node.name} (${nodeId})`);
-    
+
     return node;
   }
 
   /**
    * Add a web address to mining queue
    */
-  async addMiningTarget(nodeId: string, target: {
-    url: string;
-    priority?: 'high' | 'medium' | 'low';
-    metadata?: Partial<MiningMetadata>;
-  }): Promise<MiningTarget> {
+  async addMiningTarget(
+    nodeId: string,
+    target: {
+      url: string;
+      priority?: 'high' | 'medium' | 'low';
+      metadata?: Partial<MiningMetadata>;
+    }
+  ): Promise<MiningTarget> {
     const node = this.nodes.get(nodeId);
     if (!node) {
       throw new Error(`Node ${nodeId} not found`);
@@ -226,16 +229,16 @@ export class StorageNodeManager extends EventEmitter {
         estimatedOptimizations: [],
         biomeType: 'digital',
         complexity: 5,
-        ...target.metadata
-      }
+        ...target.metadata,
+      },
     };
 
     // Add to node's mining targets
     node.miningTargets.push(miningTarget);
-    
+
     // Add to global mining queue
     this.miningQueue.push(miningTarget);
-    
+
     // Sort queue by priority
     this.miningQueue.sort((a, b) => {
       const priorityOrder = { high: 3, medium: 2, low: 1 };
@@ -243,10 +246,10 @@ export class StorageNodeManager extends EventEmitter {
     });
 
     await this.saveNodes();
-    
+
     this.emit('miningTargetAdded', { nodeId, target: miningTarget });
     console.log(`✅ Added mining target: ${target.url} to node ${node.name}`);
-    
+
     return miningTarget;
   }
 
@@ -265,7 +268,7 @@ export class StorageNodeManager extends EventEmitter {
 
     // Find pending targets for this node
     const pendingTargets = node.miningTargets.filter(t => t.status === 'pending');
-    
+
     for (const target of pendingTargets.slice(0, node.configuration.maxConcurrentMining)) {
       await this.processMiningTarget(nodeId, target);
     }
@@ -281,52 +284,55 @@ export class StorageNodeManager extends EventEmitter {
     try {
       target.status = 'mining';
       target.startedAt = new Date();
-      
+
       this.emit('miningStarted', { nodeId, target });
-      
+
       // Simulate mining process (in real implementation, this would use headless browser)
       await this.simulateMiningProcess(target);
-      
+
       // Calculate space saved and tokens earned
       const spaceSaved = Math.floor(target.actualSize * 0.3); // 30% optimization
       const tokensEarned = spaceSaved * 0.001; // 1 token per KB
-      
+
       target.spaceSaved = spaceSaved;
       target.tokensEarned = tokensEarned;
       target.status = 'completed';
       target.completedAt = new Date();
-      
+
       // Update node performance
       node.performance.totalSpaceHarvested += spaceSaved;
       node.performance.totalTokensEarned += tokensEarned;
       node.performance.miningRate = this.calculateMiningRate(node);
       node.performance.successRate = this.calculateSuccessRate(node);
       node.lastActivity = new Date();
-      
+
       // Update storage usage
       node.used += spaceSaved / 1024; // Convert KB to MB
       node.available = node.capacity - node.used;
-      
+
       // Check if cleanup is needed
-      if (node.configuration.autoCleanup && 
-          (node.used / node.capacity) * 100 > node.configuration.cleanupThreshold) {
+      if (
+        node.configuration.autoCleanup &&
+        (node.used / node.capacity) * 100 > node.configuration.cleanupThreshold
+      ) {
         await this.cleanupNodeStorage(nodeId);
       }
-      
+
       // Log activity
       this.logActivity(nodeId, 'mining_completed', target, {
         spaceSaved,
         tokensEarned,
-        processingTime: target.completedAt.getTime() - target.startedAt!.getTime()
+        processingTime: target.completedAt.getTime() - target.startedAt!.getTime(),
       });
-      
+
       this.emit('miningCompleted', { nodeId, target });
-      console.log(`✅ Mining completed: ${target.url} - ${spaceSaved}KB saved, ${tokensEarned} tokens earned`);
-      
+      console.log(
+        `✅ Mining completed: ${target.url} - ${spaceSaved}KB saved, ${tokensEarned} tokens earned`
+      );
     } catch (error) {
       target.status = 'failed';
       target.error = error instanceof Error ? error.message : String(error);
-      
+
       this.logActivity(nodeId, 'error_occurred', target, { error: target.error });
       this.emit('miningFailed', { nodeId, target, error });
       console.error(`❌ Mining failed: ${target.url} - ${target.error}`);
@@ -340,21 +346,22 @@ export class StorageNodeManager extends EventEmitter {
     // Simulate processing time based on complexity
     const processingTime = target.metadata.complexity * 1000 + Math.random() * 2000;
     await new Promise(resolve => setTimeout(resolve, processingTime));
-    
+
     // Simulate DOM size analysis
     target.actualSize = Math.floor(Math.random() * 5000) + 1000; // 1-6MB
     target.estimatedSize = Math.floor(target.actualSize * 0.8); // 20% estimation error
-    
+
     // Simulate technology detection
     const technologies = ['React', 'Vue', 'Angular', 'jQuery', 'Bootstrap', 'Tailwind'];
-    target.metadata.technologies = technologies
-      .filter(() => Math.random() > 0.5)
-      .slice(0, 3);
-    
+    target.metadata.technologies = technologies.filter(() => Math.random() > 0.5).slice(0, 3);
+
     // Simulate optimization potential
-    const potential = ['high', 'medium', 'low'][Math.floor(Math.random() * 3)] as 'high' | 'medium' | 'low';
+    const potential = ['high', 'medium', 'low'][Math.floor(Math.random() * 3)] as
+      | 'high'
+      | 'medium'
+      | 'low';
     target.metadata.optimizationPotential = potential;
-    
+
     // Simulate estimated optimizations
     const optimizations = [
       'Image optimization',
@@ -362,7 +369,7 @@ export class StorageNodeManager extends EventEmitter {
       'JavaScript bundling',
       'HTML compression',
       'Resource caching',
-      'Lazy loading'
+      'Lazy loading',
     ];
     target.metadata.estimatedOptimizations = optimizations
       .filter(() => Math.random() > 0.6)
@@ -379,22 +386,22 @@ export class StorageNodeManager extends EventEmitter {
     // Remove completed targets older than 24 hours
     const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const initialCount = node.miningTargets.length;
-    
+
     node.miningTargets = node.miningTargets.filter(target => {
       if (target.status === 'completed' && target.completedAt && target.completedAt < cutoffTime) {
         return false;
       }
       return true;
     });
-    
+
     const removedCount = initialCount - node.miningTargets.length;
-    
+
     // Recalculate storage usage
-    node.used = node.miningTargets.reduce((total, target) => total + (target.spaceSaved / 1024), 0);
+    node.used = node.miningTargets.reduce((total, target) => total + target.spaceSaved / 1024, 0);
     node.available = node.capacity - node.used;
-    
+
     await this.saveNodes();
-    
+
     this.emit('storageCleanup', { nodeId, removedCount });
     console.log(`🧹 Cleaned up ${removedCount} old targets from node ${node.name}`);
   }
@@ -426,30 +433,46 @@ export class StorageNodeManager extends EventEmitter {
   getStorageMetrics(): StorageMetrics {
     const allNodes = this.getAllNodes();
     const activeNodes = this.getActiveNodes();
-    
+
     const totalCapacity = allNodes.reduce((total, node) => total + node.capacity, 0);
     const totalUsed = allNodes.reduce((total, node) => total + node.used, 0);
     const totalAvailable = totalCapacity - totalUsed;
-    
+
     const averagePerformance: NodePerformance = {
-      miningRate: activeNodes.reduce((sum, node) => sum + node.performance.miningRate, 0) / activeNodes.length || 0,
-      optimizationRate: activeNodes.reduce((sum, node) => sum + node.performance.optimizationRate, 0) / activeNodes.length || 0,
-      successRate: activeNodes.reduce((sum, node) => sum + node.performance.successRate, 0) / activeNodes.length || 0,
-      averageProcessingTime: activeNodes.reduce((sum, node) => sum + node.performance.averageProcessingTime, 0) / activeNodes.length || 0,
-      totalSpaceHarvested: activeNodes.reduce((sum, node) => sum + node.performance.totalSpaceHarvested, 0),
-      totalTokensEarned: activeNodes.reduce((sum, node) => sum + node.performance.totalTokensEarned, 0),
-      uptime: activeNodes.reduce((sum, node) => sum + node.performance.uptime, 0) / activeNodes.length || 0,
-      lastHealthCheck: new Date()
+      miningRate:
+        activeNodes.reduce((sum, node) => sum + node.performance.miningRate, 0) /
+          activeNodes.length || 0,
+      optimizationRate:
+        activeNodes.reduce((sum, node) => sum + node.performance.optimizationRate, 0) /
+          activeNodes.length || 0,
+      successRate:
+        activeNodes.reduce((sum, node) => sum + node.performance.successRate, 0) /
+          activeNodes.length || 0,
+      averageProcessingTime:
+        activeNodes.reduce((sum, node) => sum + node.performance.averageProcessingTime, 0) /
+          activeNodes.length || 0,
+      totalSpaceHarvested: activeNodes.reduce(
+        (sum, node) => sum + node.performance.totalSpaceHarvested,
+        0
+      ),
+      totalTokensEarned: activeNodes.reduce(
+        (sum, node) => sum + node.performance.totalTokensEarned,
+        0
+      ),
+      uptime:
+        activeNodes.reduce((sum, node) => sum + node.performance.uptime, 0) / activeNodes.length ||
+        0,
+      lastHealthCheck: new Date(),
     };
-    
+
     const topPerformers = allNodes
       .sort((a, b) => b.performance.totalSpaceHarvested - a.performance.totalSpaceHarvested)
       .slice(0, 5);
-    
+
     const recentActivity = this.activityLog
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
       .slice(0, 50);
-    
+
     return {
       totalNodes: allNodes.length,
       activeNodes: activeNodes.length,
@@ -459,7 +482,7 @@ export class StorageNodeManager extends EventEmitter {
       utilizationRate: totalCapacity > 0 ? (totalUsed / totalCapacity) * 100 : 0,
       averagePerformance,
       topPerformers,
-      recentActivity
+      recentActivity,
     };
   }
 
@@ -469,9 +492,9 @@ export class StorageNodeManager extends EventEmitter {
   private async startMining(): Promise<void> {
     this.miningInterval = setInterval(async () => {
       if (!this.isRunning) return;
-      
+
       const activeNodes = this.getActiveNodes();
-      
+
       for (const node of activeNodes) {
         if (node.miningTargets.some(t => t.status === 'pending')) {
           await this.startMiningForNode(node.id);
@@ -486,9 +509,9 @@ export class StorageNodeManager extends EventEmitter {
   private startHealthChecks(): void {
     this.healthCheckInterval = setInterval(async () => {
       if (!this.isRunning) return;
-      
+
       const nodes = this.getAllNodes();
-      
+
       for (const node of nodes) {
         await this.performHealthCheck(node);
       }
@@ -501,7 +524,7 @@ export class StorageNodeManager extends EventEmitter {
   private async performHealthCheck(node: StorageNode): Promise<void> {
     const now = new Date();
     const timeSinceLastActivity = now.getTime() - node.lastActivity.getTime();
-    
+
     // Check if node is responsive (last activity within 5 minutes)
     if (timeSinceLastActivity > 5 * 60 * 1000) {
       node.status = 'error';
@@ -510,7 +533,7 @@ export class StorageNodeManager extends EventEmitter {
       node.status = 'active';
       this.emit('nodeRecovered', { nodeId: node.id });
     }
-    
+
     node.performance.lastHealthCheck = now;
     await this.saveNodes();
   }
@@ -521,10 +544,10 @@ export class StorageNodeManager extends EventEmitter {
   private calculateMiningRate(node: StorageNode): number {
     const completedTargets = node.miningTargets.filter(t => t.status === 'completed');
     if (completedTargets.length === 0) return 0;
-    
+
     const oldestCompleted = Math.min(...completedTargets.map(t => t.completedAt!.getTime()));
     const hoursElapsed = (Date.now() - oldestCompleted) / (1000 * 60 * 60);
-    
+
     return hoursElapsed > 0 ? completedTargets.length / hoursElapsed : 0;
   }
 
@@ -534,7 +557,7 @@ export class StorageNodeManager extends EventEmitter {
   private calculateSuccessRate(node: StorageNode): number {
     const totalTargets = node.miningTargets.length;
     if (totalTargets === 0) return 0;
-    
+
     const successfulTargets = node.miningTargets.filter(t => t.status === 'completed').length;
     return (successfulTargets / totalTargets) * 100;
   }
@@ -542,17 +565,22 @@ export class StorageNodeManager extends EventEmitter {
   /**
    * Log mining activity
    */
-  private logActivity(nodeId: string, action: MiningActivity['action'], target: MiningTarget, details: any): void {
+  private logActivity(
+    nodeId: string,
+    action: MiningActivity['action'],
+    target: MiningTarget,
+    details: any
+  ): void {
     const activity: MiningActivity = {
       nodeId,
       action,
       target,
       timestamp: new Date(),
-      details
+      details,
     };
-    
+
     this.activityLog.push(activity);
-    
+
     // Keep only last 1000 activities
     if (this.activityLog.length > 1000) {
       this.activityLog = this.activityLog.slice(-1000);
@@ -563,26 +591,26 @@ export class StorageNodeManager extends EventEmitter {
    * Setup event handlers
    */
   private setupEventHandlers(): void {
-    this.on('nodeCreated', (node) => {
+    this.on('nodeCreated', node => {
       console.log(`📦 Node created: ${node.name} (${node.id})`);
     });
-    
+
     this.on('miningStarted', ({ nodeId, target }) => {
       console.log(`⛏️ Mining started: ${target.url} on node ${nodeId}`);
     });
-    
+
     this.on('miningCompleted', ({ nodeId, target }) => {
       console.log(`✅ Mining completed: ${target.url} - ${target.spaceSaved}KB saved`);
     });
-    
+
     this.on('miningFailed', ({ nodeId, target, error }) => {
       console.error(`❌ Mining failed: ${target.url} - ${error}`);
     });
-    
+
     this.on('nodeError', ({ nodeId, reason }) => {
       console.error(`⚠️ Node error: ${nodeId} - ${reason}`);
     });
-    
+
     this.on('nodeRecovered', ({ nodeId }) => {
       console.log(`🔄 Node recovered: ${nodeId}`);
     });
@@ -611,21 +639,21 @@ export class StorageNodeManager extends EventEmitter {
    */
   async stop(): Promise<void> {
     console.log('🛑 Stopping Storage Node Manager...');
-    
+
     this.isRunning = false;
-    
+
     if (this.miningInterval) {
       clearInterval(this.miningInterval);
       this.miningInterval = null;
     }
-    
+
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
       this.healthCheckInterval = null;
     }
-    
+
     await this.saveNodes();
-    
+
     this.emit('stopped');
     console.log('✅ Storage Node Manager stopped');
   }
@@ -638,7 +666,7 @@ export class StorageNodeManager extends EventEmitter {
       running: this.isRunning,
       nodeCount: this.nodes.size,
       activeNodes: this.getActiveNodes().length,
-      miningQueue: this.miningQueue.length
+      miningQueue: this.miningQueue.length,
     };
   }
 }

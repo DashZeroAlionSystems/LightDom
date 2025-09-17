@@ -61,7 +61,7 @@ export class ErrorHandler {
       details: typeof error === 'object' ? error : undefined,
       timestamp: Date.now(),
       stack: typeof error === 'object' && error.stack ? error.stack : undefined,
-      context
+      context,
     };
 
     this.logError(errorDetails);
@@ -73,7 +73,7 @@ export class ErrorHandler {
    */
   private logError(error: ErrorDetails): void {
     this.errorLog.push(error);
-    
+
     // Keep only the most recent errors
     if (this.errorLog.length > this.maxLogSize) {
       this.errorLog = this.errorLog.slice(-this.maxLogSize);
@@ -88,28 +88,21 @@ export class ErrorHandler {
   /**
    * Create API error response
    */
-  public createApiError(
-    message: string,
-    code: string = 'API_ERROR',
-    details?: any
-  ): ApiError {
+  public createApiError(message: string, code: string = 'API_ERROR', details?: any): ApiError {
     return {
       success: false,
       error: code,
       message,
       code,
       details,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
   /**
    * Validate required fields
    */
-  public validateRequiredFields(
-    data: any,
-    requiredFields: string[]
-  ): ValidationError[] {
+  public validateRequiredFields(data: any, requiredFields: string[]): ValidationError[] {
     const errors: ValidationError[] = [];
 
     for (const field of requiredFields) {
@@ -117,7 +110,7 @@ export class ErrorHandler {
         errors.push({
           field,
           message: `${field} is required`,
-          rule: 'required'
+          rule: 'required',
         });
       }
     }
@@ -137,7 +130,7 @@ export class ErrorHandler {
         field: 'email',
         message: 'Invalid email format',
         value: email,
-        rule: 'email_format'
+        rule: 'email_format',
       });
     }
 
@@ -156,7 +149,7 @@ export class ErrorHandler {
         field: 'address',
         message: 'Invalid Ethereum address format',
         value: address,
-        rule: 'ethereum_address'
+        rule: 'ethereum_address',
       });
     }
 
@@ -176,7 +169,7 @@ export class ErrorHandler {
         field: 'url',
         message: 'Invalid URL format',
         value: url,
-        rule: 'url_format'
+        rule: 'url_format',
       });
     }
 
@@ -199,7 +192,7 @@ export class ErrorHandler {
         field,
         message: `${field} must be at least ${min}`,
         value,
-        rule: 'min_value'
+        rule: 'min_value',
       });
     }
 
@@ -208,7 +201,7 @@ export class ErrorHandler {
         field,
         message: `${field} must be at most ${max}`,
         value,
-        rule: 'max_value'
+        rule: 'max_value',
       });
     }
 
@@ -231,7 +224,7 @@ export class ErrorHandler {
         field,
         message: `${field} must be at least ${minLength} characters`,
         value,
-        rule: 'min_length'
+        rule: 'min_length',
       });
     }
 
@@ -240,7 +233,7 @@ export class ErrorHandler {
         field,
         message: `${field} must be at most ${maxLength} characters`,
         value,
-        rule: 'max_length'
+        rule: 'max_length',
       });
     }
 
@@ -263,7 +256,7 @@ export class ErrorHandler {
         field,
         message: `${field} must have at least ${minLength} items`,
         value: array.length,
-        rule: 'min_array_length'
+        rule: 'min_array_length',
       });
     }
 
@@ -272,7 +265,7 @@ export class ErrorHandler {
         field,
         message: `${field} must have at most ${maxLength} items`,
         value: array.length,
-        rule: 'max_array_length'
+        rule: 'max_array_length',
       });
     }
 
@@ -282,11 +275,7 @@ export class ErrorHandler {
   /**
    * Validate enum value
    */
-  public validateEnum(
-    value: any,
-    field: string,
-    allowedValues: any[]
-  ): ValidationError[] {
+  public validateEnum(value: any, field: string, allowedValues: any[]): ValidationError[] {
     const errors: ValidationError[] = [];
 
     if (!allowedValues.includes(value)) {
@@ -294,7 +283,7 @@ export class ErrorHandler {
         field,
         message: `${field} must be one of: ${allowedValues.join(', ')}`,
         value,
-        rule: 'enum_value'
+        rule: 'enum_value',
       });
     }
 
@@ -313,7 +302,14 @@ export class ErrorHandler {
 
     // Validate metadata
     if (data.metadata) {
-      const metadataRequired = ['algorithm', 'framework', 'accuracy', 'precision', 'recall', 'f1Score'];
+      const metadataRequired = [
+        'algorithm',
+        'framework',
+        'accuracy',
+        'precision',
+        'recall',
+        'f1Score',
+      ];
       errors.push(...this.validateRequiredFields(data.metadata, metadataRequired));
 
       // Validate accuracy range
@@ -403,14 +399,26 @@ export class ErrorHandler {
 
       // Validate language
       if (data.context.language) {
-        const allowedLanguages = ['javascript', 'typescript', 'python', 'solidity', 'java', 'csharp'];
+        const allowedLanguages = [
+          'javascript',
+          'typescript',
+          'python',
+          'solidity',
+          'java',
+          'csharp',
+        ];
         errors.push(...this.validateEnum(data.context.language, 'language', allowedLanguages));
       }
     }
 
     // Validate options
     if (data.options) {
-      const optionsRequired = ['includeComments', 'includeTests', 'optimizeForPerformance', 'followBestPractices'];
+      const optionsRequired = [
+        'includeComments',
+        'includeTests',
+        'optimizeForPerformance',
+        'followBestPractices',
+      ];
       errors.push(...this.validateRequiredFields(data.options, optionsRequired));
     }
 
@@ -422,23 +430,26 @@ export class ErrorHandler {
    */
   public getErrorStats(): any {
     const now = Date.now();
-    const last24Hours = now - (24 * 60 * 60 * 1000);
-    const last7Days = now - (7 * 24 * 60 * 60 * 1000);
+    const last24Hours = now - 24 * 60 * 60 * 1000;
+    const last7Days = now - 7 * 24 * 60 * 60 * 1000;
 
     const recentErrors = this.errorLog.filter(error => error.timestamp > last24Hours);
     const weeklyErrors = this.errorLog.filter(error => error.timestamp > last7Days);
 
-    const errorCodes = this.errorLog.reduce((acc, error) => {
-      acc[error.code] = (acc[error.code] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const errorCodes = this.errorLog.reduce(
+      (acc, error) => {
+        acc[error.code] = (acc[error.code] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     return {
       totalErrors: this.errorLog.length,
       recentErrors: recentErrors.length,
       weeklyErrors: weeklyErrors.length,
       errorCodes,
-      mostCommonError: Object.entries(errorCodes).sort(([,a], [,b]) => b - a)[0]?.[0] || 'None'
+      mostCommonError: Object.entries(errorCodes).sort(([, a], [, b]) => b - a)[0]?.[0] || 'None',
     };
   }
 
@@ -446,9 +457,7 @@ export class ErrorHandler {
    * Get recent errors
    */
   public getRecentErrors(limit: number = 10): ErrorDetails[] {
-    return this.errorLog
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, limit);
+    return this.errorLog.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit);
   }
 
   /**

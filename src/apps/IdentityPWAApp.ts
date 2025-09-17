@@ -92,23 +92,16 @@ export class IdentityPWAApp {
   constructor(config: IdentityPWAConfig) {
     this.logger = new Logger('IdentityPWAApp');
     this.config = config;
-    
+
     // Initialize services
     this.webAuthnService = new WebAuthnService(config.webAuthn);
     this.webOTPService = new WebOTPService();
     this.pwaService = new PWAService(config.pwa, {
       cacheName: 'lightdom-cache',
       cacheVersion: '1.0.0',
-      urlsToCache: [
-        '/',
-        '/dashboard',
-        '/optimize',
-        '/wallet',
-        '/settings',
-        '/manifest.json'
-      ],
+      urlsToCache: ['/', '/dashboard', '/optimize', '/wallet', '/settings', '/manifest.json'],
       offlinePage: '/offline.html',
-      updateInterval: 24 * 60 * 60 * 1000 // 24 hours
+      updateInterval: 24 * 60 * 60 * 1000, // 24 hours
     });
     this.passwordManagerService = new PasswordManagerService(config.passwordManager);
     this.twoFactorAuthService = new TwoFactorAuthService(config.twoFactorAuth);
@@ -217,17 +210,17 @@ export class IdentityPWAApp {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, rememberMe })
+        body: JSON.stringify({ email, password, rememberMe }),
       });
 
       if (response.ok) {
         const userData = await response.json();
         this.currentUser = userData.user;
         this.saveUserSession();
-        
+
         // Log login attempt
         this.logLoginAttempt(email, true, 'password');
-        
+
         this.logger.info('Sign in successful');
         return true;
       } else {
@@ -259,16 +252,16 @@ export class IdentityPWAApp {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ credential })
+        body: JSON.stringify({ credential }),
       });
 
       if (response.ok) {
         const userData = await response.json();
         this.currentUser = userData.user;
         this.saveUserSession();
-        
+
         this.logLoginAttempt(userData.user.email, true, 'passkey');
-        
+
         this.logger.info('Passkey sign in successful');
         return true;
       } else {
@@ -300,14 +293,14 @@ export class IdentityPWAApp {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userData),
       });
 
       if (response.ok) {
         const newUser = await response.json();
         this.currentUser = newUser.user;
         this.saveUserSession();
-        
+
         this.logger.info('Sign up successful');
         return true;
       } else {
@@ -334,7 +327,7 @@ export class IdentityPWAApp {
         id: crypto.randomUUID(),
         name: userData.email,
         displayName: `${userData.firstName} ${userData.lastName}`,
-        icon: undefined
+        icon: undefined,
       };
 
       const credential = await this.webAuthnService.registerPasskey(user);
@@ -347,14 +340,14 @@ export class IdentityPWAApp {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ user: userData, credential })
+        body: JSON.stringify({ user: userData, credential }),
       });
 
       if (response.ok) {
         const newUser = await response.json();
         this.currentUser = newUser.user;
         this.saveUserSession();
-        
+
         this.logger.info('Passkey sign up successful');
         return true;
       } else {
@@ -378,13 +371,13 @@ export class IdentityPWAApp {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
       });
 
       // Clear user session
       this.currentUser = null;
       localStorage.removeItem('user-session');
-      
+
       this.logger.info('Sign out successful');
     } catch (error) {
       this.logger.error('Sign out failed:', error);
@@ -399,12 +392,12 @@ export class IdentityPWAApp {
       this.logger.info(`Enabling 2FA with method: ${method}`);
 
       const success = await this.twoFactorAuthService.enable2FA(method, data);
-      
+
       if (success && this.currentUser) {
         this.currentUser.security.twoFactorEnabled = true;
         this.saveUserSession();
       }
-      
+
       return success;
     } catch (error) {
       this.logger.error('Failed to enable 2FA:', error);
@@ -420,12 +413,12 @@ export class IdentityPWAApp {
       this.logger.info('Disabling 2FA');
 
       const success = await this.twoFactorAuthService.disable2FA();
-      
+
       if (success && this.currentUser) {
         this.currentUser.security.twoFactorEnabled = false;
         this.saveUserSession();
       }
-      
+
       return success;
     } catch (error) {
       this.logger.error('Failed to disable 2FA:', error);
@@ -441,7 +434,7 @@ export class IdentityPWAApp {
       this.logger.info(`Verifying 2FA code with method: ${method}`);
 
       let success = false;
-      
+
       switch (method) {
         case 'totp':
           success = await this.twoFactorAuthService.verifyTOTPCode('', code);
@@ -459,7 +452,7 @@ export class IdentityPWAApp {
           this.logger.error(`Unknown 2FA method: ${method}`);
           return false;
       }
-      
+
       return success;
     } catch (error) {
       this.logger.error('Failed to verify 2FA code:', error);
@@ -478,16 +471,16 @@ export class IdentityPWAApp {
       ip: 'unknown', // In real implementation, get from request
       userAgent: navigator.userAgent,
       success,
-      method: method as any
+      method: method as any,
     };
 
     this.currentUser.security.loginHistory.unshift(attempt);
-    
+
     // Keep only last 10 attempts
     if (this.currentUser.security.loginHistory.length > 10) {
       this.currentUser.security.loginHistory = this.currentUser.security.loginHistory.slice(0, 10);
     }
-    
+
     this.saveUserSession();
   }
 
@@ -500,8 +493,8 @@ export class IdentityPWAApp {
     try {
       const response = await fetch('/api/user/profile', {
         headers: {
-          'Authorization': `Bearer ${this.getAuthToken()}`
-        }
+          Authorization: `Bearer ${this.getAuthToken()}`,
+        },
       });
 
       if (response.ok) {
@@ -561,7 +554,7 @@ export class IdentityPWAApp {
       pwaStatus: this.pwaService.getPWAStatus(),
       webAuthnStatus: this.webAuthnService.getSupportStatus(),
       twoFactorStatus: this.twoFactorAuthService.getStatus(),
-      passwordManagerStatus: this.passwordManagerService.getStatus()
+      passwordManagerStatus: this.passwordManagerService.getStatus(),
     };
   }
 

@@ -11,7 +11,7 @@ import { DOMSpaceHarvesterAPI } from './api-server-express.js';
 const config = {
   port: process.env.PORT || 3001,
   blockchainEnabled: process.env.BLOCKCHAIN_ENABLED !== 'false',
-  dbDisabled: process.env.DB_DISABLED === 'true'
+  dbDisabled: process.env.DB_DISABLED === 'true',
 };
 
 let apiServer = null;
@@ -34,16 +34,15 @@ async function main() {
 
     // Create API server
     apiServer = new DOMSpaceHarvesterAPI(config);
-    
+
     // Start the server
     await apiServer.start(config.port);
-    
+
     console.log('✅ System started successfully!');
     console.log(`🌐 API Server: http://localhost:${config.port}`);
     console.log(`📊 Health Check: http://localhost:${config.port}/api/health`);
     console.log('');
     console.log('🔄 System is running. Press Ctrl+C to stop.');
-    
   } catch (error) {
     console.error('❌ Fatal error during startup:', error);
     process.exit(1);
@@ -55,15 +54,14 @@ async function main() {
  */
 async function handleShutdown(signal) {
   console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`);
-  
+
   try {
     if (apiServer) {
       await apiServer.shutdown();
     }
-    
+
     console.log('✅ Shutdown completed successfully');
     process.exit(0);
-    
   } catch (error) {
     console.error('❌ Error during shutdown:', error);
     process.exit(1);
@@ -71,7 +69,7 @@ async function handleShutdown(signal) {
 }
 
 // Start the application
-main().catch((error) => {
+main().catch(error => {
   console.error('❌ Fatal error:', error);
   process.exit(1);
 });

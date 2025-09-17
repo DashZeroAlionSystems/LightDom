@@ -24,19 +24,19 @@ const config = {
     port: 3000,
     enableSimulation: true,
     simulationInterval: 30000, // 30 seconds
-    maxConcurrentOptimizations: 20
+    maxConcurrentOptimizations: 20,
   },
   simulation: {
     enabled: true,
     interval: 30000,
     enableNetworkOptimization: true,
-    simulationDepth: 'deep'
+    simulationDepth: 'deep',
   },
   api: {
     port: 3000,
     enableCORS: true,
-    enableSwagger: true
-  }
+    enableSwagger: true,
+  },
 };
 
 const runner = await initializeLightDomFramework(config);
@@ -60,7 +60,7 @@ const queueId = await frameworkRunner.addURL(
 const urls = [
   { url: 'https://shop.example.com', priority: 'high', siteType: 'ecommerce' },
   { url: 'https://blog.example.com', priority: 'medium', siteType: 'blog' },
-  { url: 'https://about.example.com', priority: 'low', siteType: 'corporate' }
+  { url: 'https://about.example.com', priority: 'low', siteType: 'corporate' },
 ];
 
 const queueIds = await frameworkRunner.addURLs(urls);
@@ -110,7 +110,7 @@ simulationEngine.updateConfig({
   interval: 30000, // 30 seconds
   enableNetworkOptimization: true,
   enableTokenOptimization: true,
-  simulationDepth: 'deep'
+  simulationDepth: 'deep',
 });
 ```
 
@@ -152,11 +152,11 @@ const addURL = async (url, priority, siteType) => {
   const response = await fetch('http://localhost:3000/api/v1/queue/urls', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ url, priority, siteType })
+    body: JSON.stringify({ url, priority, siteType }),
   });
-  
+
   const result = await response.json();
   return result.data.queueId;
 };
@@ -165,12 +165,14 @@ const addURL = async (url, priority, siteType) => {
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api/v1'
+  baseURL: 'http://localhost:3000/api/v1',
 });
 
 const addURL = async (url, priority, siteType) => {
   const response = await api.post('/queue/urls', {
-    url, priority, siteType
+    url,
+    priority,
+    siteType,
   });
   return response.data.data.queueId;
 };
@@ -204,16 +206,16 @@ const customPerks = {
       description: 'Optimize game assets and resources',
       value: '40% faster loading',
       category: 'performance',
-      tier: 'premium'
+      tier: 'premium',
     },
     {
       name: 'Real-time Optimization',
       description: 'Optimize real-time game performance',
       value: '60% better FPS',
       category: 'performance',
-      tier: 'enterprise'
-    }
-  ]
+      tier: 'enterprise',
+    },
+  ],
 };
 
 // Register custom perks
@@ -240,16 +242,16 @@ console.log('Simulation efficiency:', status.metrics.simulationEfficiency);
 
 ```javascript
 // Listen to framework events
-frameworkRunner.on('urlAdded', (item) => {
+frameworkRunner.on('urlAdded', item => {
   console.log('URL added:', item.url);
 });
 
-frameworkRunner.on('optimizationCompleted', (data) => {
+frameworkRunner.on('optimizationCompleted', data => {
   console.log('Optimization completed:', data.item.url);
   console.log('Space saved:', data.result.spaceSavedKB, 'KB');
 });
 
-frameworkRunner.on('simulationCompleted', (result) => {
+frameworkRunner.on('simulationCompleted', result => {
   console.log('Simulation completed:', result.networkEfficiency);
 });
 ```
@@ -285,7 +287,7 @@ services:
   lightdom:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - LIGHTDOM_PORT=3000
       - LIGHTDOM_SIMULATION_ENABLED=true
@@ -316,20 +318,20 @@ spec:
         app: lightdom-framework
     spec:
       containers:
-      - name: lightdom
-        image: lightdom-framework:latest
-        ports:
-        - containerPort: 3000
-        env:
-        - name: LIGHTDOM_PORT
-          value: "3000"
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
-          limits:
-            memory: "1Gi"
-            cpu: "1000m"
+        - name: lightdom
+          image: lightdom-framework:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: LIGHTDOM_PORT
+              value: '3000'
+          resources:
+            requests:
+              memory: '512Mi'
+              cpu: '500m'
+            limits:
+              memory: '1Gi'
+              cpu: '1000m'
 ```
 
 ## 🔧 CLI Usage
@@ -391,7 +393,7 @@ import { MonitoringDashboard } from './src/framework/MonitoringDashboard';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className='min-h-screen bg-gray-100'>
       <MonitoringDashboard />
     </div>
   );
@@ -431,21 +433,21 @@ function CustomDashboard() {
   if (!status) return <div>Error loading status</div>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">LightDom Framework</h1>
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="font-semibold">Status</h3>
+    <div className='p-6'>
+      <h1 className='text-2xl font-bold mb-4'>LightDom Framework</h1>
+      <div className='grid grid-cols-3 gap-4'>
+        <div className='bg-white p-4 rounded shadow'>
+          <h3 className='font-semibold'>Status</h3>
           <p className={status.running ? 'text-green-600' : 'text-red-600'}>
             {status.running ? 'Running' : 'Stopped'}
           </p>
         </div>
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="font-semibold">Active Nodes</h3>
+        <div className='bg-white p-4 rounded shadow'>
+          <h3 className='font-semibold'>Active Nodes</h3>
           <p>{status.metrics.activeNodes}</p>
         </div>
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="font-semibold">Queue Size</h3>
+        <div className='bg-white p-4 rounded shadow'>
+          <h3 className='font-semibold'>Queue Size</h3>
           <p>{status.metrics.queueSize}</p>
         </div>
       </div>
@@ -464,30 +466,30 @@ export default CustomDashboard;
 import { frameworkRunner } from './src/framework';
 
 // Listen to all framework events
-frameworkRunner.on('urlAdded', (item) => {
+frameworkRunner.on('urlAdded', item => {
   console.log('New URL added:', item.url);
 });
 
-frameworkRunner.on('optimizationCompleted', (data) => {
+frameworkRunner.on('optimizationCompleted', data => {
   console.log('Optimization completed:', {
     url: data.item.url,
     spaceSaved: data.result.spaceSavedKB,
-    tokensEarned: data.result.tokenReward
+    tokensEarned: data.result.tokenReward,
   });
 });
 
-frameworkRunner.on('optimizationFailed', (data) => {
+frameworkRunner.on('optimizationFailed', data => {
   console.error('Optimization failed:', {
     url: data.item.url,
-    error: data.error
+    error: data.error,
   });
 });
 
-frameworkRunner.on('simulationCompleted', (result) => {
+frameworkRunner.on('simulationCompleted', result => {
   console.log('Simulation completed:', {
     efficiency: result.networkEfficiency,
     health: result.networkHealth,
-    recommendations: result.recommendations.length
+    recommendations: result.recommendations.length,
   });
 });
 ```
@@ -496,13 +498,13 @@ frameworkRunner.on('simulationCompleted', (result) => {
 
 ```javascript
 // Create custom event handler
-const handleOptimizationComplete = (data) => {
+const handleOptimizationComplete = data => {
   // Send notification
   sendNotification(`Optimization completed for ${data.item.url}`);
-  
+
   // Update database
   updateOptimizationRecord(data.item.id, data.result);
-  
+
   // Trigger webhook
   sendWebhook('optimization.completed', data);
 };
@@ -528,19 +530,15 @@ describe('LightDom Framework', () => {
   });
 
   test('should add URL to queue', async () => {
-    const queueId = await frameworkRunner.addURL(
-      'https://example.com',
-      'high',
-      'ecommerce'
-    );
-    
+    const queueId = await frameworkRunner.addURL('https://example.com', 'high', 'ecommerce');
+
     expect(queueId).toBeDefined();
     expect(typeof queueId).toBe('string');
   });
 
   test('should get framework status', () => {
     const status = frameworkRunner.getStatus();
-    
+
     expect(status).toBeDefined();
     expect(status.running).toBe(true);
     expect(status.metrics).toBeDefined();
@@ -561,7 +559,7 @@ describe('API Integration', () => {
       .send({
         url: 'https://example.com',
         priority: 'high',
-        siteType: 'ecommerce'
+        siteType: 'ecommerce',
       })
       .expect(201);
 
@@ -570,9 +568,7 @@ describe('API Integration', () => {
   });
 
   test('should get queue status', async () => {
-    const response = await request(apiGateway.app)
-      .get('/api/v1/queue/status')
-      .expect(200);
+    const response = await request(apiGateway.app).get('/api/v1/queue/status').expect(200);
 
     expect(response.body.success).toBe(true);
     expect(response.body.data.status).toBeDefined();
@@ -590,7 +586,7 @@ const rateLimit = require('express-rate-limit');
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 100, // limit each IP to 100 requests per windowMs
 });
 
 app.use('/api/', limiter);
@@ -598,11 +594,13 @@ app.use('/api/', limiter);
 // CORS configuration
 const cors = require('cors');
 
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
-}));
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+  })
+);
 
 // Input validation
 const Joi = require('joi');
@@ -610,7 +608,9 @@ const Joi = require('joi');
 const urlSchema = Joi.object({
   url: Joi.string().uri().required(),
   priority: Joi.string().valid('high', 'medium', 'low').required(),
-  siteType: Joi.string().valid('ecommerce', 'blog', 'corporate', 'portfolio', 'news', 'social', 'other').required()
+  siteType: Joi.string()
+    .valid('ecommerce', 'blog', 'corporate', 'portfolio', 'news', 'social', 'other')
+    .required(),
 });
 ```
 
@@ -640,7 +640,7 @@ const monitorMemory = () => {
     rss: Math.round(usage.rss / 1024 / 1024) + ' MB',
     heapTotal: Math.round(usage.heapTotal / 1024 / 1024) + ' MB',
     heapUsed: Math.round(usage.heapUsed / 1024 / 1024) + ' MB',
-    external: Math.round(usage.external / 1024 / 1024) + ' MB'
+    external: Math.round(usage.external / 1024 / 1024) + ' MB',
   });
 };
 
@@ -657,13 +657,13 @@ const getCachedData = async (key, fetchFunction) => {
   if (cache.has(key)) {
     return cache.get(key);
   }
-  
+
   const data = await fetchFunction();
   cache.set(key, data);
-  
+
   // Set TTL
   setTimeout(() => cache.delete(key), 300000); // 5 minutes
-  
+
   return data;
 };
 ```
