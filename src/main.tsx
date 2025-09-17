@@ -16,7 +16,7 @@ import TestingDashboard from './components/TestingDashboard';
 import WalletDashboard from './components/dashboard/WalletDashboard';
 import BridgeChatPage from './BridgeChatPage';
 import RealWebCrawlerDashboard from '../dom-space-harvester';
-import './index.css';
+import './simple.css';
 
 // Simple routing based on URL path
 const App = () => {
