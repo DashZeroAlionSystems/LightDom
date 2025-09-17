@@ -561,15 +561,15 @@ const RealWebCrawlerDashboard = () => {
 
   return (
     <>
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-4">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+      <div className="max-w-7xl mx-auto mb-6">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
             Real Web Crawler & DOM Space Harvester
           </h1>
-          <p className="text-slate-300 text-lg">Production-Scale Web Mining with PostgreSQL & Schema.org Integration</p>
-          <div className="mt-4 flex justify-center items-center gap-6 text-sm text-slate-400">
+          <p className="text-slate-300 text-base">Production-Scale Web Mining with PostgreSQL & Schema.org Integration</p>
+          <div className="mt-3 flex justify-center items-center gap-4 text-sm text-slate-400">
             <span>🕷️ Auto-Discovery Crawling</span>
             <span>🗄️ PostgreSQL Backend</span>
             <span>🔗 Schema.org Extraction</span>
@@ -578,29 +578,29 @@ const RealWebCrawlerDashboard = () => {
         </div>
 
         {/* Controls */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex justify-center gap-3 mb-6">
           <button
             onClick={toggleCrawling}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
+            className={`px-5 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 text-sm ${
               isCrawling 
                 ? 'bg-red-600 hover:bg-red-700' 
                 : 'bg-green-600 hover:bg-green-700'
             }`}
           >
-            {isCrawling ? <Pause size={20} /> : <Play size={20} />}
+            {isCrawling ? <Pause size={18} /> : <Play size={18} />}
             {isCrawling ? 'Stop Real Crawling' : 'Start Real Crawling'}
           </button>
           
           <button
             onClick={resetStats}
-            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2"
+            className="px-5 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 text-sm"
           >
-            <RotateCcw size={20} />
+            <RotateCcw size={18} />
             Reset Database
           </button>
           
           <div className="flex items-center gap-2">
-            <Settings size={20} />
+            <Settings size={18} />
             <input
               type="range"
               min="0.5"
@@ -608,7 +608,7 @@ const RealWebCrawlerDashboard = () => {
               step="0.5"
               value={crawlSpeed}
               onChange={(e) => setCrawlSpeed(parseFloat(e.target.value))}
-              className="w-24"
+              className="w-20"
             />
             <span className="text-sm">{crawlSpeed}x Speed</span>
           </div>
@@ -688,13 +688,13 @@ const RealWebCrawlerDashboard = () => {
         </div>
 
         {/* Real Web Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <Database className="text-blue-400" size={24} />
-              <span className="text-2xl">🗄️</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-5 border border-slate-700">
+            <div className="flex items-center justify-between mb-3">
+              <Database className="text-blue-400" size={20} />
+              <span className="text-xl">🗄️</span>
             </div>
-            <div className="text-3xl font-bold text-blue-400 mb-1">
+            <div className="text-2xl font-bold text-blue-400 mb-1">
               {crawlerStats.totalSpaceHarvested.toFixed(1)} KB
             </div>
             <div className="text-slate-400 text-sm">Real Space Harvested</div>
@@ -703,27 +703,27 @@ const RealWebCrawlerDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <Search className="text-green-400" size={24} />
-              <span className="text-2xl">🔍</span>
+          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-5 border border-slate-700">
+            <div className="flex items-center justify-between mb-3">
+              <Search className="text-green-400" size={20} />
+              <span className="text-xl">🔍</span>
             </div>
-            <div className="text-3xl font-bold text-green-400 mb-1">
-              {schemaStats.totalSchemas.toLocaleString()}
+            <div className="text-2xl font-bold text-green-400 mb-1">
+              {crawlerStats.sitesAnalyzed}
             </div>
-            <div className="text-slate-400 text-sm">Schema.org Extracted</div>
+            <div className="text-slate-400 text-sm">Optimizing Simulated</div>
             <div className="mt-2 text-xs text-slate-500">
-              {(schemaStats.confidence * 100).toFixed(1)}% avg confidence
+              Start mining to see DOM optimizations
             </div>
           </div>
 
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <Link className="text-purple-400" size={24} />
-              <span className="text-2xl">🔗</span>
+          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-5 border border-slate-700">
+            <div className="flex items-center justify-between mb-3">
+              <Link className="text-purple-400" size={20} />
+              <span className="text-xl">🔗</span>
             </div>
-            <div className="text-3xl font-bold text-purple-400 mb-1">
-              {backlinkNetwork.totalLinks.toLocaleString()}
+            <div className="text-2xl font-bold text-purple-400 mb-1">
+              {backlinkNetwork.totalLinks}
             </div>
             <div className="text-slate-400 text-sm">Backlinks Mapped</div>
             <div className="mt-2 text-xs text-slate-500">
@@ -731,12 +731,12 @@ const RealWebCrawlerDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <Zap className="text-yellow-400" size={24} />
-              <span className="text-2xl">⚡</span>
+          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-5 border border-slate-700">
+            <div className="flex items-center justify-between mb-3">
+              <Zap className="text-yellow-400" size={20} />
+              <span className="text-xl">⚡</span>
             </div>
-            <div className="text-3xl font-bold text-yellow-400 mb-1">
+            <div className="text-2xl font-bold text-yellow-400 mb-1">
               {crawlerStats.tokensEarned.toFixed(2)} DSH
             </div>
             <div className="text-slate-400 text-sm">Tokens Earned</div>
@@ -746,82 +746,9 @@ const RealWebCrawlerDashboard = () => {
           </div>
         </div>
 
-        {/* Blockchain Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <Award className="text-orange-400" size={24} />
-              <span className="text-2xl">🏆</span>
-            </div>
-            <div className="text-3xl font-bold text-orange-400 mb-1">
-              {blockchainStats.totalProofs.toLocaleString()}
-            </div>
-            <div className="text-slate-400 text-sm">PoO Submissions</div>
-            <div className="mt-2 text-xs text-slate-500">
-              Contract: {blockchainStats.contractAddress ? `${blockchainStats.contractAddress.slice(0, 6)}...${blockchainStats.contractAddress.slice(-4)}` : 'Not connected'}
-            </div>
-          </div>
-
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <HardDrive className="text-cyan-400" size={24} />
-              <span className="text-2xl">💾</span>
-            </div>
-            <div className="text-3xl font-bold text-cyan-400 mb-1">
-              {(blockchainStats.totalBytesSaved / 1024 / 1024).toFixed(1)} MB
-            </div>
-            <div className="text-slate-400 text-sm">Bytes Saved</div>
-            <div className="mt-2 text-xs text-slate-500">
-              Network ID: {blockchainStats.networkId || 'Unknown'}
-            </div>
-          </div>
-
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <Network className="text-pink-400" size={24} />
-              <span className="text-2xl">🌐</span>
-            </div>
-            <div className="text-3xl font-bold text-pink-400 mb-1">
-              {blockchainStats.totalBacklinks.toLocaleString()}
-            </div>
-            <div className="text-slate-400 text-sm">Backlinks Mined</div>
-            <div className="mt-2 text-xs text-slate-500">
-              From PoO submissions
-            </div>
-          </div>
-
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <Activity className="text-emerald-400" size={24} />
-              <span className="text-2xl">⚡</span>
-            </div>
-            <div className="text-3xl font-bold text-emerald-400 mb-1">
-              {liveOptimizations.length}
-            </div>
-            <div className="text-slate-400 text-sm">Live Optimizations</div>
-            <div className="mt-2 text-xs text-slate-500">
-              Real-time updates
-            </div>
-          </div>
-
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <Brain className="text-violet-400" size={24} />
-              <span className="text-2xl">🧠</span>
-            </div>
-            <div className="text-3xl font-bold text-violet-400 mb-1">
-              {metaverseEvents.length}
-            </div>
-            <div className="text-slate-400 text-sm">Metaverse Events</div>
-            <div className="mt-2 text-xs text-slate-500">
-              Infrastructure building
-            </div>
-          </div>
-        </div>
-
         {/* Current Crawl Status */}
         {isCrawling && currentCrawlTarget && (
-          <div className="bg-gradient-to-r from-slate-800/30 via-green-800/30 to-slate-800/30 backdrop-blur rounded-xl p-4 mb-8 border border-green-500/30">
+          <div className="bg-gradient-to-r from-slate-800/30 via-green-800/30 to-slate-800/30 backdrop-blur rounded-xl p-3 mb-6 border border-green-500/30">
             <div className="flex items-center justify-center gap-3">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-400"></div>
               <span className="text-green-400 font-semibold">Real-time crawling:</span>
@@ -832,11 +759,11 @@ const RealWebCrawlerDashboard = () => {
         )}
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           
           {/* Active Crawlers */}
-          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700">
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <div className="bg-slate-800/50 backdrop-blur rounded-xl p-5 border border-slate-700">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <Cpu className="text-blue-400" />
               Distributed Crawlers ({activeCrawlers.filter(c => c.status === 'active').length}/6 active)
             </h3>
