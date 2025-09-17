@@ -1,0 +1,190 @@
+0 verbose cli /usr/local/bin/node /usr/local/bin/npm
+1 info using npm@10.8.2
+2 info using node@v20.19.5
+3 silly config load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/runner/work/LightDom/LightDom/.npmrc
+5 silly config load:file:/home/runner/.npmrc
+6 silly config load:file:/usr/local/etc/npmrc
+7 verbose title npm list
+8 verbose argv "list" "--depth" "0"
+9 verbose logfile logs-max:10 dir:/home/runner/work/LightDom/LightDom/.npm-cache/_logs/2025-09-17T16_32_05_703Z-
+10 verbose logfile /home/runner/work/LightDom/LightDom/.npm-cache/_logs/2025-09-17T16_32_05_703Z-debug-0.log
+11 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+12 silly logfile done cleaning log files
+13 verbose stack Error: missing: @ant-design/icons@^6.0.2, required by lightdom@1.0.0
+13 verbose stack missing: @modelcontextprotocol/sdk@^1.18.0, required by lightdom@1.0.0
+13 verbose stack missing: @nomicfoundation/hardhat-toolbox@^6.1.0, required by lightdom@1.0.0
+13 verbose stack missing: @openzeppelin/contracts@^4.9.3, required by lightdom@1.0.0
+13 verbose stack missing: @playwright/test@^1.36.2, required by lightdom@1.0.0
+13 verbose stack missing: @puppeteer/browsers@^2.10.10, required by lightdom@1.0.0
+13 verbose stack missing: @testing-library/dom@^10.4.1, required by lightdom@1.0.0
+13 verbose stack missing: @testing-library/jest-dom@^6.8.0, required by lightdom@1.0.0
+13 verbose stack missing: @testing-library/react@^16.3.0, required by lightdom@1.0.0
+13 verbose stack missing: @testing-library/user-event@^14.6.1, required by lightdom@1.0.0
+13 verbose stack missing: @types/bcryptjs@^2.4.2, required by lightdom@1.0.0
+13 verbose stack missing: @types/cors@^2.8.13, required by lightdom@1.0.0
+13 verbose stack missing: @types/express@^4.17.17, required by lightdom@1.0.0
+13 verbose stack missing: @types/jest@^29.5.3, required by lightdom@1.0.0
+13 verbose stack missing: @types/jsonwebtoken@^9.0.2, required by lightdom@1.0.0
+13 verbose stack missing: @types/morgan@^1.9.4, required by lightdom@1.0.0
+13 verbose stack missing: @types/multer@^1.4.7, required by lightdom@1.0.0
+13 verbose stack missing: @types/node@^20.4.5, required by lightdom@1.0.0
+13 verbose stack missing: @types/pg@^8.10.2, required by lightdom@1.0.0
+13 verbose stack missing: @types/react-dom@^18.2.7, required by lightdom@1.0.0
+13 verbose stack missing: @types/react@^18.2.15, required by lightdom@1.0.0
+13 verbose stack missing: @types/supertest@^2.0.12, required by lightdom@1.0.0
+13 verbose stack missing: @typescript-eslint/eslint-plugin@^6.0.0, required by lightdom@1.0.0
+13 verbose stack missing: @typescript-eslint/parser@^6.0.0, required by lightdom@1.0.0
+13 verbose stack missing: @vitejs/plugin-react@^4.0.3, required by lightdom@1.0.0
+13 verbose stack missing: @vitest/coverage-v8@^3.2.4, required by lightdom@1.0.0
+13 verbose stack missing: antd@^5.27.4, required by lightdom@1.0.0
+13 verbose stack missing: artillery@^2.0.0, required by lightdom@1.0.0
+13 verbose stack missing: autoprefixer@^10.4.14, required by lightdom@1.0.0
+13 verbose stack missing: axios@^1.12.2, required by lightdom@1.0.0
+13 verbose stack missing: bcryptjs@^2.4.3, required by lightdom@1.0.0
+13 verbose stack missing: bull@^4.16.5, required by lightdom@1.0.0
+13 verbose stack missing: chai@^6.0.1, required by lightdom@1.0.0
+13 verbose stack missing: chalk@^5.6.2, required by lightdom@1.0.0
+13 verbose stack missing: cheerio@^1.0.0-rc.12, required by lightdom@1.0.0
+13 verbose stack missing: commander@^11.1.0, required by lightdom@1.0.0
+13 verbose stack missing: compression@^1.7.4, required by lightdom@1.0.0
+13 verbose stack missing: cors@^2.8.5, required by lightdom@1.0.0
+13 verbose stack missing: dotenv@^16.3.1, required by lightdom@1.0.0
+13 verbose stack missing: eslint-plugin-react-hooks@^4.6.0, required by lightdom@1.0.0
+13 verbose stack missing: eslint-plugin-react-refresh@^0.4.3, required by lightdom@1.0.0
+13 verbose stack missing: eslint-plugin-security@^1.7.1, required by lightdom@1.0.0
+13 verbose stack missing: eslint@^8.45.0, required by lightdom@1.0.0
+13 verbose stack missing: ethers@^6.7.1, required by lightdom@1.0.0
+13 verbose stack missing: express-rate-limit@^7.1.5, required by lightdom@1.0.0
+13 verbose stack missing: express@^4.18.2, required by lightdom@1.0.0
+13 verbose stack missing: hardhat@^2.17.1, required by lightdom@1.0.0
+13 verbose stack missing: helmet@^7.0.0, required by lightdom@1.0.0
+13 verbose stack missing: husky@^8.0.3, required by lightdom@1.0.0
+13 verbose stack missing: jest-environment-jsdom@^29.6.1, required by lightdom@1.0.0
+13 verbose stack missing: jest@^29.6.1, required by lightdom@1.0.0
+13 verbose stack missing: joi@^17.9.2, required by lightdom@1.0.0
+13 verbose stack missing: jsdom@^27.0.0, required by lightdom@1.0.0
+13 verbose stack missing: jsonwebtoken@^9.0.2, required by lightdom@1.0.0
+13 verbose stack missing: lighthouse@^11.0.0, required by lightdom@1.0.0
+13 verbose stack missing: lint-staged@^13.2.3, required by lightdom@1.0.0
+13 verbose stack missing: lucide-react@^0.544.0, required by lightdom@1.0.0
+13 verbose stack missing: mocha@^11.7.2, required by lightdom@1.0.0
+13 verbose stack missing: morgan@^1.10.0, required by lightdom@1.0.0
+13 verbose stack missing: multer@^1.4.5-lts.1, required by lightdom@1.0.0
+13 verbose stack missing: ora@^9.0.0, required by lightdom@1.0.0
+13 verbose stack missing: pg@^8.11.3, required by lightdom@1.0.0
+13 verbose stack missing: postcss@^8.4.27, required by lightdom@1.0.0
+13 verbose stack missing: prettier@^3.0.0, required by lightdom@1.0.0
+13 verbose stack missing: prom-client@^15.0.0, required by lightdom@1.0.0
+13 verbose stack missing: prometheus-api-metrics@^3.2.2, required by lightdom@1.0.0
+13 verbose stack missing: puppeteer@^21.0.3, required by lightdom@1.0.0
+13 verbose stack missing: react-dom@^18.2.0, required by lightdom@1.0.0
+13 verbose stack missing: react@^18.2.0, required by lightdom@1.0.0
+13 verbose stack missing: redis@^4.6.7, required by lightdom@1.0.0
+13 verbose stack missing: sharp@^0.32.1, required by lightdom@1.0.0
+13 verbose stack missing: socket.io@^4.8.1, required by lightdom@1.0.0
+13 verbose stack missing: stripe@^14.7.0, required by lightdom@1.0.0
+13 verbose stack missing: supertest@^7.1.4, required by lightdom@1.0.0
+13 verbose stack missing: tailwindcss@^3.3.3, required by lightdom@1.0.0
+13 verbose stack missing: ts-jest@^29.1.1, required by lightdom@1.0.0
+13 verbose stack missing: tsx@^4.0.0, required by lightdom@1.0.0
+13 verbose stack missing: typescript@^5.0.2, required by lightdom@1.0.0
+13 verbose stack missing: uuid@^9.0.0, required by lightdom@1.0.0
+13 verbose stack missing: vite@^4.4.5, required by lightdom@1.0.0
+13 verbose stack missing: vitest@^3.2.4, required by lightdom@1.0.0
+13 verbose stack missing: web3@^4.1.1, required by lightdom@1.0.0
+13 verbose stack missing: winston@^3.10.0, required by lightdom@1.0.0
+13 verbose stack     at LS.exec (/usr/local/lib/node_modules/npm/lib/commands/ls.js:206:9)
+13 verbose stack     at async Npm.exec (/usr/local/lib/node_modules/npm/lib/npm.js:207:9)
+13 verbose stack     at async module.exports (/usr/local/lib/node_modules/npm/lib/cli/entry.js:74:5)
+14 error code ELSPROBLEMS
+15 error missing: @ant-design/icons@^6.0.2, required by lightdom@1.0.0
+15 error missing: @modelcontextprotocol/sdk@^1.18.0, required by lightdom@1.0.0
+15 error missing: @nomicfoundation/hardhat-toolbox@^6.1.0, required by lightdom@1.0.0
+15 error missing: @openzeppelin/contracts@^4.9.3, required by lightdom@1.0.0
+15 error missing: @playwright/test@^1.36.2, required by lightdom@1.0.0
+15 error missing: @puppeteer/browsers@^2.10.10, required by lightdom@1.0.0
+15 error missing: @testing-library/dom@^10.4.1, required by lightdom@1.0.0
+15 error missing: @testing-library/jest-dom@^6.8.0, required by lightdom@1.0.0
+15 error missing: @testing-library/react@^16.3.0, required by lightdom@1.0.0
+15 error missing: @testing-library/user-event@^14.6.1, required by lightdom@1.0.0
+15 error missing: @types/bcryptjs@^2.4.2, required by lightdom@1.0.0
+15 error missing: @types/cors@^2.8.13, required by lightdom@1.0.0
+15 error missing: @types/express@^4.17.17, required by lightdom@1.0.0
+15 error missing: @types/jest@^29.5.3, required by lightdom@1.0.0
+15 error missing: @types/jsonwebtoken@^9.0.2, required by lightdom@1.0.0
+15 error missing: @types/morgan@^1.9.4, required by lightdom@1.0.0
+15 error missing: @types/multer@^1.4.7, required by lightdom@1.0.0
+15 error missing: @types/node@^20.4.5, required by lightdom@1.0.0
+15 error missing: @types/pg@^8.10.2, required by lightdom@1.0.0
+15 error missing: @types/react-dom@^18.2.7, required by lightdom@1.0.0
+15 error missing: @types/react@^18.2.15, required by lightdom@1.0.0
+15 error missing: @types/supertest@^2.0.12, required by lightdom@1.0.0
+15 error missing: @typescript-eslint/eslint-plugin@^6.0.0, required by lightdom@1.0.0
+15 error missing: @typescript-eslint/parser@^6.0.0, required by lightdom@1.0.0
+15 error missing: @vitejs/plugin-react@^4.0.3, required by lightdom@1.0.0
+15 error missing: @vitest/coverage-v8@^3.2.4, required by lightdom@1.0.0
+15 error missing: antd@^5.27.4, required by lightdom@1.0.0
+15 error missing: artillery@^2.0.0, required by lightdom@1.0.0
+15 error missing: autoprefixer@^10.4.14, required by lightdom@1.0.0
+15 error missing: axios@^1.12.2, required by lightdom@1.0.0
+15 error missing: bcryptjs@^2.4.3, required by lightdom@1.0.0
+15 error missing: bull@^4.16.5, required by lightdom@1.0.0
+15 error missing: chai@^6.0.1, required by lightdom@1.0.0
+15 error missing: chalk@^5.6.2, required by lightdom@1.0.0
+15 error missing: cheerio@^1.0.0-rc.12, required by lightdom@1.0.0
+15 error missing: commander@^11.1.0, required by lightdom@1.0.0
+15 error missing: compression@^1.7.4, required by lightdom@1.0.0
+15 error missing: cors@^2.8.5, required by lightdom@1.0.0
+15 error missing: dotenv@^16.3.1, required by lightdom@1.0.0
+15 error missing: eslint-plugin-react-hooks@^4.6.0, required by lightdom@1.0.0
+15 error missing: eslint-plugin-react-refresh@^0.4.3, required by lightdom@1.0.0
+15 error missing: eslint-plugin-security@^1.7.1, required by lightdom@1.0.0
+15 error missing: eslint@^8.45.0, required by lightdom@1.0.0
+15 error missing: ethers@^6.7.1, required by lightdom@1.0.0
+15 error missing: express-rate-limit@^7.1.5, required by lightdom@1.0.0
+15 error missing: express@^4.18.2, required by lightdom@1.0.0
+15 error missing: hardhat@^2.17.1, required by lightdom@1.0.0
+15 error missing: helmet@^7.0.0, required by lightdom@1.0.0
+15 error missing: husky@^8.0.3, required by lightdom@1.0.0
+15 error missing: jest-environment-jsdom@^29.6.1, required by lightdom@1.0.0
+15 error missing: jest@^29.6.1, required by lightdom@1.0.0
+15 error missing: joi@^17.9.2, required by lightdom@1.0.0
+15 error missing: jsdom@^27.0.0, required by lightdom@1.0.0
+15 error missing: jsonwebtoken@^9.0.2, required by lightdom@1.0.0
+15 error missing: lighthouse@^11.0.0, required by lightdom@1.0.0
+15 error missing: lint-staged@^13.2.3, required by lightdom@1.0.0
+15 error missing: lucide-react@^0.544.0, required by lightdom@1.0.0
+15 error missing: mocha@^11.7.2, required by lightdom@1.0.0
+15 error missing: morgan@^1.10.0, required by lightdom@1.0.0
+15 error missing: multer@^1.4.5-lts.1, required by lightdom@1.0.0
+15 error missing: ora@^9.0.0, required by lightdom@1.0.0
+15 error missing: pg@^8.11.3, required by lightdom@1.0.0
+15 error missing: postcss@^8.4.27, required by lightdom@1.0.0
+15 error missing: prettier@^3.0.0, required by lightdom@1.0.0
+15 error missing: prom-client@^15.0.0, required by lightdom@1.0.0
+15 error missing: prometheus-api-metrics@^3.2.2, required by lightdom@1.0.0
+15 error missing: puppeteer@^21.0.3, required by lightdom@1.0.0
+15 error missing: react-dom@^18.2.0, required by lightdom@1.0.0
+15 error missing: react@^18.2.0, required by lightdom@1.0.0
+15 error missing: redis@^4.6.7, required by lightdom@1.0.0
+15 error missing: sharp@^0.32.1, required by lightdom@1.0.0
+15 error missing: socket.io@^4.8.1, required by lightdom@1.0.0
+15 error missing: stripe@^14.7.0, required by lightdom@1.0.0
+15 error missing: supertest@^7.1.4, required by lightdom@1.0.0
+15 error missing: tailwindcss@^3.3.3, required by lightdom@1.0.0
+15 error missing: ts-jest@^29.1.1, required by lightdom@1.0.0
+15 error missing: tsx@^4.0.0, required by lightdom@1.0.0
+15 error missing: typescript@^5.0.2, required by lightdom@1.0.0
+15 error missing: uuid@^9.0.0, required by lightdom@1.0.0
+15 error missing: vite@^4.4.5, required by lightdom@1.0.0
+15 error missing: vitest@^3.2.4, required by lightdom@1.0.0
+15 error missing: web3@^4.1.1, required by lightdom@1.0.0
+15 error missing: winston@^3.10.0, required by lightdom@1.0.0
+16 verbose cwd /home/runner/work/LightDom/LightDom
+17 verbose os Linux 6.11.0-1018-azure
+18 verbose node v20.19.5
+19 verbose npm  v10.8.2
+20 verbose exit 1
+21 verbose code 1
+22 error A complete log of this run can be found in: /home/runner/work/LightDom/LightDom/.npm-cache/_logs/2025-09-17T16_32_05_703Z-debug-0.log
