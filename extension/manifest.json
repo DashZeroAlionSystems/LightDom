@@ -1,15 +1,23 @@
 {
   "manifest_version": 3,
   "name": "LightDom DOM Space Miner",
-  "version": "1.0.0",
-  "description": "Mine DOM space optimizations and earn DSH tokens",
+  "version": "2.0.0",
+  "description": "Advanced DOM optimization and blockchain mining extension",
   "permissions": [
     "activeTab",
     "storage",
-    "notifications"
+    "notifications",
+    "sidePanel",
+    "offscreen",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "contextMenus",
+    "alarms",
+    "tabs"
   ],
   "host_permissions": [
     "http://localhost:3001/*",
+    "http://localhost:3000/*",
     "<all_urls>"
   ],
   "background": {
@@ -22,7 +30,8 @@
         "<all_urls>"
       ],
       "js": [
-        "content.js"
+        "content.js",
+        "blockchain-miner.js"
       ],
       "run_at": "document_idle"
     }
@@ -31,9 +40,39 @@
     "default_popup": "popup.html",
     "default_title": "LightDom Miner"
   },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "options_page": "options.html",
+  "offline_enabled": false,
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "declarative-rules.json"
+      }
+    ]
+  },
+  "commands": {
+    "toggle-mining": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "Toggle DOM mining"
+    },
+    "open-sidepanel": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+D",
+        "mac": "Command+Shift+D"
+      },
+      "description": "Open side panel"
+    }
+  },
   "icons": {
-    "16": "icon16.png",
-    "48": "icon48.png",
-    "128": "icon128.png"
+    "16": "icon16.svg",
+    "48": "icon48.svg",
+    "128": "icon128.svg"
   }
 }
