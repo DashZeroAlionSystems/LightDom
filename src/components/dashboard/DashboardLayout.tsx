@@ -96,6 +96,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       icon: <SettingOutlined />,
       label: 'Settings',
     },
+    {
+      key: '/admin',
+      icon: <SettingOutlined />,
+      label: 'Admin Dashboard',
+    },
   ];
 
   const userMenuItems = [
