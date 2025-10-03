@@ -137,6 +137,45 @@ class DOMSpaceHarvesterAPI {
     // Setup all routes
     this.setupRoutes();
     
+    // Setup blockchain API routes
+    this.setupBlockchainRoutes();
+    
+    // Setup optimization API routes
+    this.setupOptimizationRoutes();
+    
+    // Setup website API routes
+    this.setupWebsiteRoutes();
+    
+    // Setup analytics API routes
+    this.setupAnalyticsRoutes();
+    
+    // Setup authentication API routes
+    this.setupAuthRoutes();
+    
+    // Setup mining API routes
+    this.setupMiningRoutes();
+    
+    // Setup space mining API routes
+    this.setupSpaceMiningRoutes();
+    
+    // Setup metaverse mining API routes
+    this.setupMetaverseMiningRoutes();
+    
+    // Setup metaverse marketplace API routes
+    this.setupMetaverseMarketplaceRoutes();
+    
+    // Setup metaverse mining rewards API routes
+    this.setupMetaverseMiningRewardsRoutes();
+    
+    // Setup workflow simulation API routes
+    this.setupWorkflowRoutes();
+    
+    // Setup testing API routes
+    this.setupTestingRoutes();
+    
+    // Setup advanced node API routes
+    this.setupAdvancedNodeRoutes();
+    
     // Statistics cache
     this.statsCache = {
       lastUpdate: 0,
@@ -1183,6 +1222,394 @@ class DOMSpaceHarvesterAPI {
       }
     });
 
+    // Create a new bridge
+    this.app.post('/api/metaverse/bridges', async (req, res) => {
+      try {
+        const { source_chain, target_chain, bridge_capacity = 1000000 } = req.body;
+        
+        if (!source_chain || !target_chain) {
+          return res.status(400).json({ error: 'Source chain and target chain are required' });
+        }
+
+        const bridgeId = `bridge_${source_chain.toLowerCase()}_${target_chain.toLowerCase()}`;
+        
+        const result = await this.db.query(`
+          INSERT INTO dimensional_bridges (bridge_id, source_chain, target_chain, bridge_capacity)
+          VALUES ($1, $2, $3, $4)
+          RETURNING *
+        `, [bridgeId, source_chain, target_chain, bridge_capacity]);
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error creating bridge:', error);
+        res.status(500).json({ error: 'Failed to create bridge' });
+      }
+    });
+
+    // Connect space mining to bridge
+    this.app.post('/api/metaverse/connect-space-to-bridge', async (req, res) => {
+      try {
+        const { optimization_id, bridge_id, space_mined_kb, biome_type } = req.body;
+        
+        if (!optimization_id || !bridge_id || !space_mined_kb) {
+          return res.status(400).json({ error: 'Optimization ID, bridge ID, and space mined are required' });
+        }
+
+        const result = await this.db.query(`
+          INSERT INTO space_bridge_connections (optimization_id, bridge_id, space_mined_kb, biome_type)
+          VALUES ($1, $2, $3, $4)
+          RETURNING *
+        `, [optimization_id, bridge_id, space_mined_kb, biome_type]);
+        
+        // Update bridge volume
+        await this.db.query(`
+          UPDATE dimensional_bridges 
+          SET current_volume = current_volume + $1, updated_at = NOW()
+          WHERE bridge_id = $2
+        `, [space_mined_kb * 1000, bridge_id]); // Convert KB to bytes
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error connecting space to bridge:', error);
+        res.status(500).json({ error: 'Failed to connect space to bridge' });
+      }
+    });
+
+    // Get space-bridge connections
+    this.app.get('/api/metaverse/space-bridge-connections', async (req, res) => {
+      try {
+        const { bridge_id } = req.query;
+        
+        let query = `
+          SELECT sbc.*, o.url, o.optimization_type
+          FROM space_bridge_connections sbc
+          LEFT JOIN optimizations o ON sbc.optimization_id = o.id
+        `;
+        let params = [];
+        
+        if (bridge_id) {
+          query += ' WHERE sbc.bridge_id = $1';
+          params.push(bridge_id);
+        }
+        
+        query += ' ORDER BY sbc.created_at DESC LIMIT 100';
+        
+        const result = await this.db.query(query, params);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching space-bridge connections:', error);
+        res.status(500).json({ error: 'Failed to fetch space-bridge connections' });
+      }
+    });
+
+    // Get bridge statistics
+    this.app.get('/api/metaverse/bridge/:bridgeId/stats', async (req, res) => {
+      try {
+        const { bridgeId } = req.params;
+        
+        const result = await this.db.query(`
+          SELECT 
+            COUNT(bm.id) as total_messages,
+            COUNT(DISTINCT bp.user_id) as active_participants,
+            COALESCE(SUM(sbc.space_mined_kb), 0) as total_space_connected,
+            MAX(bm.created_at) as last_message_at,
+            db.bridge_capacity,
+            db.current_volume
+          FROM dimensional_bridges db
+          LEFT JOIN bridge_messages bm ON db.bridge_id = bm.bridge_id
+          LEFT JOIN bridge_participants bp ON db.bridge_id = bp.bridge_id AND bp.is_active = TRUE
+          LEFT JOIN space_bridge_connections sbc ON db.bridge_id = sbc.bridge_id
+          WHERE db.bridge_id = $1
+          GROUP BY db.bridge_id, db.bridge_capacity, db.current_volume
+        `, [bridgeId]);
+        
+        if (result.rows.length === 0) {
+          return res.status(404).json({ error: 'Bridge not found' });
+        }
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error fetching bridge stats:', error);
+        res.status(500).json({ error: 'Failed to fetch bridge stats' });
+      }
+    });
+
+    // Add bridge participant
+    this.app.post('/api/metaverse/bridge/:bridgeId/join', async (req, res) => {
+      try {
+        const { bridgeId } = req.params;
+        const { user_id, user_name } = req.body;
+        
+        if (!user_id || !user_name) {
+          return res.status(400).json({ error: 'User ID and user name are required' });
+        }
+
+        // Check if user is already a participant
+        const existingParticipant = await this.db.query(`
+          SELECT id FROM bridge_participants 
+          WHERE bridge_id = $1 AND user_id = $2
+        `, [bridgeId, user_id]);
+        
+        if (existingParticipant.rows.length > 0) {
+          // Update last active time
+          await this.db.query(`
+            UPDATE bridge_participants 
+            SET last_active = NOW(), is_active = TRUE
+            WHERE bridge_id = $1 AND user_id = $2
+          `, [bridgeId, user_id]);
+        } else {
+          // Add new participant
+          await this.db.query(`
+            INSERT INTO bridge_participants (bridge_id, user_id, user_name)
+            VALUES ($1, $2, $3)
+          `, [bridgeId, user_id, user_name]);
+        }
+        
+        res.json({ success: true, message: 'Joined bridge successfully' });
+      } catch (error) {
+        console.error('Error joining bridge:', error);
+        res.status(500).json({ error: 'Failed to join bridge' });
+      }
+    });
+
+    // Leave bridge
+    this.app.post('/api/metaverse/bridge/:bridgeId/leave', async (req, res) => {
+      try {
+        const { bridgeId } = req.params;
+        const { user_id } = req.body;
+        
+        if (!user_id) {
+          return res.status(400).json({ error: 'User ID is required' });
+        }
+
+        await this.db.query(`
+          UPDATE bridge_participants 
+          SET is_active = FALSE, last_active = NOW()
+          WHERE bridge_id = $1 AND user_id = $2
+        `, [bridgeId, user_id]);
+        
+        res.json({ success: true, message: 'Left bridge successfully' });
+      } catch (error) {
+        console.error('Error leaving bridge:', error);
+        res.status(500).json({ error: 'Failed to leave bridge' });
+      }
+    });
+
+    // =====================================================
+    // ANALYTICS ENDPOINTS
+    // =====================================================
+
+    // Get bridge analytics
+    this.app.get('/api/analytics/bridges', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT 
+            db.bridge_id,
+            db.source_chain,
+            db.target_chain,
+            COUNT(bm.id) as total_messages,
+            COUNT(DISTINCT bp.user_id) as active_participants,
+            COALESCE(SUM(sbc.space_mined_kb), 0) as total_space_connected,
+            COALESCE(AVG(sbc.space_mined_kb), 0) as avg_space_per_connection,
+            EXTRACT(HOUR FROM MAX(bm.created_at)) as most_active_hour,
+            TO_CHAR(MAX(bm.created_at), 'Day') as peak_activity_day,
+            COALESCE(SUM(sbc.space_mined_kb) / NULLIF(COUNT(DISTINCT DATE(bm.created_at)), 0), 0) as space_growth_rate,
+            COALESCE(COUNT(DISTINCT bp.user_id) / NULLIF(COUNT(DISTINCT bp.user_id), 0), 0) as participant_retention_rate,
+            COALESCE(COUNT(bm.id) / NULLIF(EXTRACT(EPOCH FROM (MAX(bm.created_at) - MIN(bm.created_at))) / 3600, 0), 0) as message_frequency,
+            CASE 
+              WHEN COALESCE(SUM(sbc.space_mined_kb), 0) > 0 AND COUNT(DISTINCT bp.user_id) > 0 
+              THEN LEAST(100, (COALESCE(SUM(sbc.space_mined_kb), 0) / 1000 * 30 + COUNT(DISTINCT bp.user_id) * 10 + COUNT(bm.id) / 100 * 20))
+              ELSE 0 
+            END as bridge_efficiency_score
+          FROM dimensional_bridges db
+          LEFT JOIN bridge_messages bm ON db.bridge_id = bm.bridge_id
+          LEFT JOIN bridge_participants bp ON db.bridge_id = bp.bridge_id AND bp.is_active = TRUE
+          LEFT JOIN space_bridge_connections sbc ON db.bridge_id = sbc.bridge_id
+          WHERE db.is_operational = TRUE
+          GROUP BY db.bridge_id, db.source_chain, db.target_chain
+          ORDER BY total_space_connected DESC
+        `);
+        
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching bridge analytics:', error);
+        res.status(500).json({ error: 'Failed to fetch bridge analytics' });
+      }
+    });
+
+    // Get space mining analytics
+    this.app.get('/api/analytics/space-mining', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT 
+            COALESCE(SUM(sbc.space_mined_kb), 0) as total_space_mined,
+            COUNT(DISTINCT sbc.optimization_id) as total_optimizations,
+            COALESCE(AVG(sbc.space_mined_kb), 0) as avg_space_per_optimization,
+            COALESCE(SUM(sbc.space_mined_kb) / NULLIF(COUNT(DISTINCT DATE(sbc.created_at)), 0), 0) as mining_efficiency,
+            ARRAY_AGG(
+              JSON_BUILD_OBJECT(
+                'biome', sbc.biome_type,
+                'count', COUNT(*),
+                'total_space', SUM(sbc.space_mined_kb)
+              ) ORDER BY SUM(sbc.space_mined_kb) DESC
+            ) FILTER (WHERE sbc.biome_type IS NOT NULL) as top_biomes,
+            ARRAY_AGG(
+              JSON_BUILD_OBJECT(
+                'date', DATE(sbc.created_at),
+                'space_mined', SUM(sbc.space_mined_kb)
+              ) ORDER BY DATE(sbc.created_at) DESC
+            ) FILTER (WHERE sbc.created_at IS NOT NULL) as space_growth_trend
+          FROM space_bridge_connections sbc
+        `);
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error fetching space mining analytics:', error);
+        res.status(500).json({ error: 'Failed to fetch space mining analytics' });
+      }
+    });
+
+    // Get user engagement analytics
+    this.app.get('/api/analytics/user-engagement', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT 
+            COUNT(DISTINCT bp.user_id) as total_users,
+            COUNT(DISTINCT bp.user_id) FILTER (WHERE bp.is_active = TRUE) as active_users,
+            COUNT(DISTINCT bp.user_id) FILTER (WHERE bp.joined_at >= CURRENT_DATE) as new_users_today,
+            COALESCE(COUNT(DISTINCT bp.user_id) FILTER (WHERE bp.is_active = TRUE) / NULLIF(COUNT(DISTINCT bp.user_id), 0), 0) as user_retention_rate,
+            COALESCE(AVG(EXTRACT(EPOCH FROM (bp.last_active - bp.joined_at))), 0) as avg_session_duration,
+            ARRAY_AGG(
+              JSON_BUILD_OBJECT(
+                'bridge_id', bp.bridge_id,
+                'participants', COUNT(DISTINCT bp.user_id),
+                'messages', COUNT(bm.id)
+              ) ORDER BY COUNT(DISTINCT bp.user_id) DESC
+            ) as most_active_bridges,
+            ARRAY_AGG(
+              JSON_BUILD_OBJECT(
+                'hour', EXTRACT(HOUR FROM bm.created_at),
+                'activity', COUNT(*)
+              ) ORDER BY EXTRACT(HOUR FROM bm.created_at)
+            ) FILTER (WHERE bm.created_at IS NOT NULL) as user_activity_patterns
+          FROM bridge_participants bp
+          LEFT JOIN bridge_messages bm ON bp.bridge_id = bm.bridge_id
+        `);
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error fetching user engagement analytics:', error);
+        res.status(500).json({ error: 'Failed to fetch user engagement analytics' });
+      }
+    });
+
+    // Get bridge comparison
+    this.app.get('/api/analytics/bridge-comparison', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT 
+            db.bridge_id,
+            db.source_chain,
+            db.target_chain,
+            COALESCE(SUM(sbc.space_mined_kb), 0) as total_space,
+            COUNT(DISTINCT bp.user_id) as participant_count,
+            COUNT(bm.id) as message_count,
+            CASE 
+              WHEN COALESCE(SUM(sbc.space_mined_kb), 0) > 0 AND COUNT(DISTINCT bp.user_id) > 0 
+              THEN LEAST(100, (COALESCE(SUM(sbc.space_mined_kb), 0) / 1000 * 30 + COUNT(DISTINCT bp.user_id) * 10 + COUNT(bm.id) / 100 * 20))
+              ELSE 0 
+            END as efficiency_score,
+            COALESCE(SUM(sbc.space_mined_kb) / NULLIF(COUNT(DISTINCT DATE(sbc.created_at)), 0), 0) as growth_rate
+          FROM dimensional_bridges db
+          LEFT JOIN space_bridge_connections sbc ON db.bridge_id = sbc.bridge_id
+          LEFT JOIN bridge_participants bp ON db.bridge_id = bp.bridge_id AND bp.is_active = TRUE
+          LEFT JOIN bridge_messages bm ON db.bridge_id = bm.bridge_id
+          WHERE db.is_operational = TRUE
+          GROUP BY db.bridge_id, db.source_chain, db.target_chain
+          ORDER BY efficiency_score DESC
+        `);
+        
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching bridge comparison:', error);
+        res.status(500).json({ error: 'Failed to fetch bridge comparison' });
+      }
+    });
+
+    // Get real-time analytics
+    this.app.get('/api/analytics/real-time', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT 
+            COUNT(DISTINCT db.bridge_id) as active_bridges,
+            COUNT(DISTINCT bp.user_id) as active_users,
+            COUNT(bm.id) FILTER (WHERE bm.created_at >= NOW() - INTERVAL '1 hour') as messages_last_hour,
+            COALESCE(SUM(sbc.space_mined_kb), 0) FILTER (WHERE sbc.created_at >= NOW() - INTERVAL '1 hour') as space_mined_last_hour,
+            COUNT(DISTINCT bp.user_id) FILTER (WHERE bp.joined_at >= NOW() - INTERVAL '1 hour') as new_users_last_hour
+          FROM dimensional_bridges db
+          LEFT JOIN bridge_participants bp ON db.bridge_id = bp.bridge_id AND bp.is_active = TRUE
+          LEFT JOIN bridge_messages bm ON db.bridge_id = bm.bridge_id
+          LEFT JOIN space_bridge_connections sbc ON db.bridge_id = sbc.bridge_id
+          WHERE db.is_operational = TRUE
+        `);
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error fetching real-time analytics:', error);
+        res.status(500).json({ error: 'Failed to fetch real-time analytics' });
+      }
+    });
+
+    // Get analytics summary
+    this.app.get('/api/analytics/summary', async (req, res) => {
+      try {
+        const [bridgeResult, spaceResult, userResult] = await Promise.all([
+          this.db.query(`
+            SELECT 
+              COUNT(*) as total_bridges,
+              COALESCE(SUM(sbc.space_mined_kb), 0) as total_space_connected,
+              COUNT(bm.id) as total_messages,
+              AVG(CASE 
+                WHEN COALESCE(SUM(sbc.space_mined_kb), 0) > 0 AND COUNT(DISTINCT bp.user_id) > 0 
+                THEN LEAST(100, (COALESCE(SUM(sbc.space_mined_kb), 0) / 1000 * 30 + COUNT(DISTINCT bp.user_id) * 10 + COUNT(bm.id) / 100 * 20))
+                ELSE 0 
+              END) as avg_efficiency
+            FROM dimensional_bridges db
+            LEFT JOIN space_bridge_connections sbc ON db.bridge_id = sbc.bridge_id
+            LEFT JOIN bridge_participants bp ON db.bridge_id = bp.bridge_id AND bp.is_active = TRUE
+            LEFT JOIN bridge_messages bm ON db.bridge_id = bm.bridge_id
+            WHERE db.is_operational = TRUE
+          `),
+          this.db.query(`
+            SELECT COALESCE(SUM(space_mined_kb), 0) as total_space_mined
+            FROM space_bridge_connections
+          `),
+          this.db.query(`
+            SELECT COUNT(DISTINCT user_id) FILTER (WHERE is_active = TRUE) as active_users
+            FROM bridge_participants
+          `)
+        ]);
+
+        const summary = {
+          total_bridges: bridgeResult.rows[0].total_bridges,
+          total_space_connected: bridgeResult.rows[0].total_space_connected,
+          total_participants: userResult.rows[0].active_users,
+          total_messages: bridgeResult.rows[0].total_messages,
+          avg_efficiency: bridgeResult.rows[0].avg_efficiency || 0,
+          top_insights: [
+            `Total space connected: ${bridgeResult.rows[0].total_space_connected.toFixed(1)}KB`,
+            `Active participants: ${userResult.rows[0].active_users}`,
+            `Average efficiency: ${(bridgeResult.rows[0].avg_efficiency || 0).toFixed(1)}%`
+          ]
+        };
+        
+        res.json(summary);
+      } catch (error) {
+        console.error('Error fetching analytics summary:', error);
+        res.status(500).json({ error: 'Failed to fetch analytics summary' });
+      }
+    });
+
     // =====================================================
     // SEARCH AND QUERY ENDPOINTS
     // =====================================================
@@ -2099,6 +2526,3289 @@ class DOMSpaceHarvesterAPI {
     this.server.close();
     
     console.log('✅ Server shutdown complete');
+  }
+
+  setupBlockchainRoutes() {
+    // =====================================================
+    // BLOCKCHAIN API ENDPOINTS
+    // =====================================================
+
+    // Get blockchain status
+    this.app.get('/api/blockchain/status', async (req, res) => {
+      try {
+        res.json({
+          success: true,
+          data: {
+            connected: this.blockchainEnabled,
+            network: {
+              chainId: process.env.CHAIN_ID || '1337',
+              name: process.env.NETWORK || 'localhost',
+              rpcUrl: process.env.RPC_URL || 'http://localhost:8545'
+            },
+            contracts: {
+              token: process.env.LIGHTDOM_TOKEN_ADDRESS || '',
+              registry: process.env.OPTIMIZATION_REGISTRY_ADDRESS || '',
+              nft: process.env.VIRTUAL_LAND_NFT_ADDRESS || ''
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Blockchain status error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get blockchain status'
+        });
+      }
+    });
+
+    // Get harvester stats
+    this.app.get('/api/blockchain/harvester-stats/:address', async (req, res) => {
+      try {
+        const { address } = req.params;
+        
+        // Mock data for now - in production this would call the smart contract
+        const mockStats = {
+          reputation: 1250,
+          spaceHarvested: 1024000, // 1MB in bytes
+          optimizations: 15,
+          successfulOptimizations: 12,
+          streak: 5,
+          tokensEarned: '1250.5',
+          stakedAmount: '500.0',
+          stakingRewards: '25.0'
+        };
+        
+        res.json({
+          success: true,
+          data: mockStats
+        });
+      } catch (error) {
+        console.error('Harvester stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get harvester stats'
+        });
+      }
+    });
+
+    // Get metaverse stats
+    this.app.get('/api/blockchain/metaverse-stats', async (req, res) => {
+      try {
+        // Mock data for now
+        const mockStats = {
+          land: 25,
+          nodes: 8,
+          shards: 12,
+          bridges: 3
+        };
+        
+        res.json({
+          success: true,
+          data: mockStats
+        });
+      } catch (error) {
+        console.error('Metaverse stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get metaverse stats'
+        });
+      }
+    });
+
+    // Get token balance
+    this.app.get('/api/blockchain/token-balance/:address', async (req, res) => {
+      try {
+        const { address } = req.params;
+        
+        // Mock data for now
+        const mockBalance = '1250.5';
+        
+        res.json({
+          success: true,
+          data: { balance: mockBalance }
+        });
+      } catch (error) {
+        console.error('Token balance error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get token balance'
+        });
+      }
+    });
+
+    // Get staking rewards
+    this.app.get('/api/blockchain/staking-rewards/:address', async (req, res) => {
+      try {
+        const { address } = req.params;
+        
+        // Mock data for now
+        const mockRewards = '25.0';
+        
+        res.json({
+          success: true,
+          data: { rewards: mockRewards }
+        });
+      } catch (error) {
+        console.error('Staking rewards error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get staking rewards'
+        });
+      }
+    });
+
+    // Submit optimization
+    this.app.post('/api/blockchain/submit-optimization', async (req, res) => {
+      try {
+        const { url, spaceBytes, proofHash, biomeType, metadata } = req.body;
+        
+        // Validate required fields
+        if (!url || !spaceBytes || !proofHash || !biomeType) {
+          return res.status(400).json({
+            success: false,
+            error: 'Missing required fields'
+          });
+        }
+
+        // Mock response for now
+        res.json({
+          success: true,
+          data: {
+            message: 'Optimization submitted successfully',
+            txHash: '0x' + Math.random().toString(16).substr(2, 64),
+            optimizationId: 'opt_' + Date.now()
+          }
+        });
+      } catch (error) {
+        console.error('Submit optimization error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to submit optimization'
+        });
+      }
+    });
+
+    // Get network info
+    this.app.get('/api/blockchain/network-info', async (req, res) => {
+      try {
+        const networkInfo = {
+          chainId: parseInt(process.env.CHAIN_ID || '1337'),
+          name: process.env.NETWORK || 'localhost',
+          blockNumber: Math.floor(Math.random() * 1000000),
+          gasPrice: '20'
+        };
+        
+        res.json({
+          success: true,
+          data: networkInfo
+        });
+      } catch (error) {
+        console.error('Network info error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get network info'
+        });
+      }
+    });
+
+    console.log('✅ Blockchain API routes configured');
+  }
+
+  setupOptimizationRoutes() {
+    // =====================================================
+    // OPTIMIZATION API ENDPOINTS
+    // =====================================================
+
+    // Get all optimizations
+    this.app.get('/api/optimizations', async (req, res) => {
+      try {
+        // Mock data for now
+        const mockOptimizations = [
+          {
+            id: '1',
+            website: 'example.com',
+            url: 'https://example.com',
+            type: 'Image Optimization',
+            status: 'completed',
+            progress: 100,
+            scoreImprovement: 24,
+            createdAt: '2024-01-15T10:30:00Z',
+            completedAt: '2024-01-15T10:45:00Z',
+            beforeScore: 65,
+            afterScore: 89,
+            details: {
+              imagesOptimized: 12,
+              cssOptimized: 3,
+              jsOptimized: 2,
+              htmlOptimized: 1,
+              totalSavings: 1024
+            }
+          },
+          {
+            id: '2',
+            website: 'test-site.org',
+            url: 'https://test-site.org',
+            type: 'CSS Optimization',
+            status: 'running',
+            progress: 65,
+            scoreImprovement: 0,
+            createdAt: '2024-01-16T09:15:00Z',
+            beforeScore: 45,
+            afterScore: 45,
+            details: {
+              imagesOptimized: 0,
+              cssOptimized: 0,
+              jsOptimized: 0,
+              htmlOptimized: 0,
+              totalSavings: 0
+            }
+          },
+          {
+            id: '3',
+            website: 'demo.net',
+            url: 'https://demo.net',
+            type: 'JavaScript Optimization',
+            status: 'failed',
+            progress: 30,
+            scoreImprovement: 0,
+            createdAt: '2024-01-14T15:45:00Z',
+            beforeScore: 72,
+            afterScore: 72,
+            details: {
+              imagesOptimized: 0,
+              cssOptimized: 0,
+              jsOptimized: 0,
+              htmlOptimized: 0,
+              totalSavings: 0
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          optimizations: mockOptimizations
+        });
+      } catch (error) {
+        console.error('Optimizations error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get optimizations'
+        });
+      }
+    });
+
+    // Get optimization stats
+    this.app.get('/api/optimizations/stats', async (req, res) => {
+      try {
+        const mockStats = {
+          totalWebsites: 12,
+          websitesOptimized: 8,
+          averageScore: 78,
+          tokensEarned: 4250,
+          optimizationsToday: 3,
+          totalOptimizations: 45,
+          alerts: [
+            {
+              title: 'High Performance Improvement',
+              description: 'Your average score improvement is 23% above the platform average.',
+              type: 'success'
+            },
+            {
+              title: 'Optimization Queue',
+              description: 'You have 2 optimizations pending in your queue.',
+              type: 'info'
+            }
+          ]
+        };
+
+        res.json(mockStats);
+      } catch (error) {
+        console.error('Optimization stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get optimization stats'
+        });
+      }
+    });
+
+    // Create optimization
+    this.app.post('/api/optimizations', async (req, res) => {
+      try {
+        const { website, type, priority, description } = req.body;
+        
+        const newOptimization = {
+          id: Date.now().toString(),
+          website,
+          url: `https://${website}`,
+          type,
+          status: 'pending',
+          progress: 0,
+          scoreImprovement: 0,
+          createdAt: new Date().toISOString(),
+          beforeScore: Math.floor(Math.random() * 40) + 30, // Random score between 30-70
+          afterScore: 0,
+          details: {
+            imagesOptimized: 0,
+            cssOptimized: 0,
+            jsOptimized: 0,
+            htmlOptimized: 0,
+            totalSavings: 0
+          }
+        };
+
+        res.json(newOptimization);
+      } catch (error) {
+        console.error('Create optimization error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to create optimization'
+        });
+      }
+    });
+
+    // Run optimization
+    this.app.post('/api/optimizations/:id/run', async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        // Mock optimization process
+        const updatedOptimization = {
+          id,
+          status: 'running',
+          progress: 0,
+          startedAt: new Date().toISOString()
+        };
+
+        res.json(updatedOptimization);
+      } catch (error) {
+        console.error('Run optimization error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to run optimization'
+        });
+      }
+    });
+
+    // Delete optimization
+    this.app.delete('/api/optimizations/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        res.json({
+          success: true,
+          message: 'Optimization deleted successfully'
+        });
+      } catch (error) {
+        console.error('Delete optimization error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to delete optimization'
+        });
+      }
+    });
+
+    console.log('✅ Optimization API routes configured');
+  }
+
+  setupWebsiteRoutes() {
+    // =====================================================
+    // WEBSITE API ENDPOINTS
+    // =====================================================
+
+    // Get all websites
+    this.app.get('/api/websites', async (req, res) => {
+      try {
+        const mockWebsites = [
+          {
+            id: '1',
+            domain: 'example.com',
+            url: 'https://example.com',
+            beforeScore: 65,
+            afterScore: 89,
+            status: 'active',
+            lastOptimized: '2024-01-15T10:30:00Z',
+            totalOptimizations: 12,
+            tokensEarned: 1250,
+            createdAt: '2024-01-01T00:00:00Z',
+            metadata: {
+              title: 'Example Website',
+              description: 'A sample website for testing',
+              category: 'Business'
+            }
+          },
+          {
+            id: '2',
+            domain: 'test-site.org',
+            url: 'https://test-site.org',
+            beforeScore: 45,
+            afterScore: 78,
+            status: 'active',
+            lastOptimized: '2024-01-14T15:45:00Z',
+            totalOptimizations: 8,
+            tokensEarned: 890,
+            createdAt: '2024-01-05T00:00:00Z',
+            metadata: {
+              title: 'Test Site',
+              description: 'Another test website',
+              category: 'Technology'
+            }
+          }
+        ];
+
+        res.json(mockWebsites);
+      } catch (error) {
+        console.error('Websites error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get websites'
+        });
+      }
+    });
+
+    // Create website
+    this.app.post('/api/websites', async (req, res) => {
+      try {
+        const { domain, url, category, description } = req.body;
+        
+        const newWebsite = {
+          id: Date.now().toString(),
+          domain,
+          url,
+          beforeScore: Math.floor(Math.random() * 40) + 30,
+          afterScore: 0,
+          status: 'active',
+          lastOptimized: null,
+          totalOptimizations: 0,
+          tokensEarned: 0,
+          createdAt: new Date().toISOString(),
+          metadata: {
+            title: domain,
+            description: description || '',
+            category: category || 'General'
+          }
+        };
+
+        res.json(newWebsite);
+      } catch (error) {
+        console.error('Create website error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to create website'
+        });
+      }
+    });
+
+    // Optimize website
+    this.app.post('/api/websites/:id/optimize', async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        // Mock optimization result
+        const result = {
+          success: true,
+          newScore: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
+          tokensEarned: Math.floor(Math.random() * 200) + 50,
+          optimizationsApplied: [
+            'Image compression',
+            'CSS minification',
+            'JavaScript optimization'
+          ]
+        };
+
+        res.json(result);
+      } catch (error) {
+        console.error('Optimize website error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to optimize website'
+        });
+      }
+    });
+
+    console.log('✅ Website API routes configured');
+  }
+
+  setupAnalyticsRoutes() {
+    // =====================================================
+    // ANALYTICS API ENDPOINTS
+    // =====================================================
+
+    // Get analytics data
+    this.app.get('/api/analytics', async (req, res) => {
+      try {
+        const mockAnalytics = {
+          overview: {
+            totalWebsites: 12,
+            totalOptimizations: 45,
+            averageScoreImprovement: 23.5,
+            totalTokensEarned: 4250,
+            activeOptimizations: 3
+          },
+          performance: {
+            daily: [
+              { date: '2024-01-10', optimizations: 2, scoreImprovement: 15, tokensEarned: 150 },
+              { date: '2024-01-11', optimizations: 3, scoreImprovement: 22, tokensEarned: 220 },
+              { date: '2024-01-12', optimizations: 1, scoreImprovement: 18, tokensEarned: 180 },
+              { date: '2024-01-13', optimizations: 4, scoreImprovement: 28, tokensEarned: 280 },
+              { date: '2024-01-14', optimizations: 2, scoreImprovement: 12, tokensEarned: 120 },
+              { date: '2024-01-15', optimizations: 3, scoreImprovement: 25, tokensEarned: 250 },
+              { date: '2024-01-16', optimizations: 2, scoreImprovement: 20, tokensEarned: 200 }
+            ]
+          },
+          topWebsites: [
+            { id: '1', domain: 'example.com', scoreImprovement: 35, optimizations: 12, tokensEarned: 1250 },
+            { id: '2', domain: 'demo.net', scoreImprovement: 28, optimizations: 15, tokensEarned: 2100 },
+            { id: '3', domain: 'test-site.org', scoreImprovement: 22, optimizations: 8, tokensEarned: 890 }
+          ],
+          optimizationTypes: [
+            { type: 'Image Optimization', count: 18, averageImprovement: 12.5, tokensEarned: 1800 },
+            { type: 'CSS Optimization', count: 12, averageImprovement: 8.3, tokensEarned: 1200 },
+            { type: 'JavaScript Optimization', count: 8, averageImprovement: 15.2, tokensEarned: 950 }
+          ]
+        };
+
+        res.json(mockAnalytics);
+      } catch (error) {
+        console.error('Analytics error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get analytics'
+        });
+      }
+    });
+
+    console.log('✅ Analytics API routes configured');
+  }
+
+  setupAuthRoutes() {
+    // =====================================================
+    // AUTHENTICATION API ENDPOINTS
+    // =====================================================
+
+    // User signup
+    this.app.post('/api/auth/signup', async (req, res) => {
+      try {
+        const { name, email, password, walletAddress, agreeToTerms } = req.body;
+
+        // Validate required fields
+        if (!name || !email || !password || !agreeToTerms) {
+          return res.status(400).json({
+            success: false,
+            error: 'Missing required fields'
+          });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid email format'
+          });
+        }
+
+        // Validate password strength
+        if (password.length < 8) {
+          return res.status(400).json({
+            success: false,
+            error: 'Password must be at least 8 characters'
+          });
+        }
+
+        // Check if user already exists (mock check)
+        const existingUser = await this.checkUserExists(email);
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            error: 'User already exists with this email'
+          });
+        }
+
+        // Create new user
+        const newUser = {
+          id: Date.now().toString(),
+          name,
+          email,
+          walletAddress: walletAddress || null,
+          createdAt: new Date().toISOString(),
+          isVerified: false,
+          profile: {
+            avatar: null,
+            bio: '',
+            location: '',
+            website: ''
+          },
+          stats: {
+            totalOptimizations: 0,
+            tokensEarned: 0,
+            spaceSaved: 0,
+            reputation: 0,
+            level: 1
+          },
+          preferences: {
+            notifications: true,
+            emailUpdates: true,
+            darkMode: false
+          }
+        };
+
+        // Generate JWT token (mock)
+        const token = this.generateJWT(newUser);
+
+        // Send verification email (mock)
+        await this.sendVerificationEmail(email, newUser.id);
+
+        res.json({
+          success: true,
+          message: 'Account created successfully',
+          token,
+          user: newUser
+        });
+      } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to create account'
+        });
+      }
+    });
+
+    // User login
+    this.app.post('/api/auth/login', async (req, res) => {
+      try {
+        const { email, password, remember } = req.body;
+
+        // Validate required fields
+        if (!email || !password) {
+          return res.status(400).json({
+            success: false,
+            error: 'Email and password are required'
+          });
+        }
+
+        // Mock user authentication
+        const user = await this.authenticateUser(email, password);
+        if (!user) {
+          return res.status(401).json({
+            success: false,
+            error: 'Invalid credentials'
+          });
+        }
+
+        // Generate JWT token
+        const token = this.generateJWT(user);
+
+        // Update last login
+        user.lastLogin = new Date().toISOString();
+
+        res.json({
+          success: true,
+          message: 'Login successful',
+          token,
+          user
+        });
+      } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to login'
+        });
+      }
+    });
+
+    // Forgot password
+    this.app.post('/api/auth/forgot-password', async (req, res) => {
+      try {
+        const { email } = req.body;
+
+        if (!email) {
+          return res.status(400).json({
+            success: false,
+            error: 'Email is required'
+          });
+        }
+
+        // Check if user exists
+        const user = await this.checkUserExists(email);
+        if (!user) {
+          return res.status(404).json({
+            success: false,
+            error: 'User not found'
+          });
+        }
+
+        // Generate reset token (mock)
+        const resetToken = this.generateResetToken(user.id);
+
+        // Send reset email (mock)
+        await this.sendPasswordResetEmail(email, resetToken);
+
+        res.json({
+          success: true,
+          message: 'Password reset email sent'
+        });
+      } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to send reset email'
+        });
+      }
+    });
+
+    // Reset password
+    this.app.post('/api/auth/reset-password', async (req, res) => {
+      try {
+        const { token, password } = req.body;
+
+        if (!token || !password) {
+          return res.status(400).json({
+            success: false,
+            error: 'Token and password are required'
+          });
+        }
+
+        // Validate reset token (mock)
+        const userId = await this.validateResetToken(token);
+        if (!userId) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid or expired reset token'
+          });
+        }
+
+        // Update password (mock)
+        await this.updateUserPassword(userId, password);
+
+        res.json({
+          success: true,
+          message: 'Password reset successfully'
+        });
+      } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to reset password'
+        });
+      }
+    });
+
+    // Verify email
+    this.app.post('/api/auth/verify-email', async (req, res) => {
+      try {
+        const { token } = req.body;
+
+        if (!token) {
+          return res.status(400).json({
+            success: false,
+            error: 'Verification token is required'
+          });
+        }
+
+        // Validate verification token (mock)
+        const userId = await this.validateVerificationToken(token);
+        if (!userId) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid or expired verification token'
+          });
+        }
+
+        // Mark user as verified (mock)
+        await this.verifyUser(userId);
+
+        res.json({
+          success: true,
+          message: 'Email verified successfully'
+        });
+      } catch (error) {
+        console.error('Verify email error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to verify email'
+        });
+      }
+    });
+
+    // Get user profile
+    this.app.get('/api/auth/profile', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await this.getUserProfile(userId);
+
+        if (!user) {
+          return res.status(404).json({
+            success: false,
+            error: 'User not found'
+          });
+        }
+
+        res.json({
+          success: true,
+          user
+        });
+      } catch (error) {
+        console.error('Get profile error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get profile'
+        });
+      }
+    });
+
+    // Update user profile
+    this.app.put('/api/auth/profile', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const updates = req.body;
+
+        const updatedUser = await this.updateUserProfile(userId, updates);
+
+        res.json({
+          success: true,
+          message: 'Profile updated successfully',
+          user: updatedUser
+        });
+      } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to update profile'
+        });
+      }
+    });
+
+    console.log('✅ Authentication API routes configured');
+  }
+
+  setupMiningRoutes() {
+    // =====================================================
+    // MINING API ENDPOINTS
+    // =====================================================
+
+    // Start mining session
+    this.app.post('/api/mining/start', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const { config } = req.body;
+
+        // Validate config
+        if (!config || !config.startUrl) {
+          return res.status(400).json({
+            success: false,
+            error: 'Mining configuration is required'
+          });
+        }
+
+        // Start mining session
+        const session = await this.startMiningSession(userId, config);
+
+        res.json({
+          success: true,
+          message: 'Mining session started',
+          session
+        });
+      } catch (error) {
+        console.error('Start mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to start mining session'
+        });
+      }
+    });
+
+    // Get mining session status
+    this.app.get('/api/mining/session/:sessionId', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const userId = req.user.id;
+
+        const session = await this.getMiningSession(sessionId, userId);
+        if (!session) {
+          return res.status(404).json({
+            success: false,
+            error: 'Mining session not found'
+          });
+        }
+
+        res.json({
+          success: true,
+          session
+        });
+      } catch (error) {
+        console.error('Get mining session error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining session'
+        });
+      }
+    });
+
+    // Pause mining session
+    this.app.post('/api/mining/session/:sessionId/pause', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const userId = req.user.id;
+
+        const success = await this.pauseMiningSession(sessionId, userId);
+        if (!success) {
+          return res.status(404).json({
+            success: false,
+            error: 'Mining session not found or cannot be paused'
+          });
+        }
+
+        res.json({
+          success: true,
+          message: 'Mining session paused'
+        });
+      } catch (error) {
+        console.error('Pause mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to pause mining session'
+        });
+      }
+    });
+
+    // Resume mining session
+    this.app.post('/api/mining/session/:sessionId/resume', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const userId = req.user.id;
+
+        const success = await this.resumeMiningSession(sessionId, userId);
+        if (!success) {
+          return res.status(404).json({
+            success: false,
+            error: 'Mining session not found or cannot be resumed'
+          });
+        }
+
+        res.json({
+          success: true,
+          message: 'Mining session resumed'
+        });
+      } catch (error) {
+        console.error('Resume mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to resume mining session'
+        });
+      }
+    });
+
+    // Stop mining session
+    this.app.post('/api/mining/session/:sessionId/stop', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const userId = req.user.id;
+
+        const success = await this.stopMiningSession(sessionId, userId);
+        if (!success) {
+          return res.status(404).json({
+            success: false,
+            error: 'Mining session not found'
+          });
+        }
+
+        res.json({
+          success: true,
+          message: 'Mining session stopped'
+        });
+      } catch (error) {
+        console.error('Stop mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to stop mining session'
+        });
+      }
+    });
+
+    // Get user's mining sessions
+    this.app.get('/api/mining/sessions', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const sessions = await this.getUserMiningSessions(userId);
+
+        res.json({
+          success: true,
+          sessions
+        });
+      } catch (error) {
+        console.error('Get mining sessions error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining sessions'
+        });
+      }
+    });
+
+    // Get mining statistics
+    this.app.get('/api/mining/stats', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const stats = await this.getMiningStats(userId);
+
+        res.json({
+          success: true,
+          stats
+        });
+      } catch (error) {
+        console.error('Get mining stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining statistics'
+        });
+      }
+    });
+
+    // Download mining results
+    this.app.get('/api/mining/session/:sessionId/download', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const { format = 'json' } = req.query;
+        const userId = req.user.id;
+
+        const session = await this.getMiningSession(sessionId, userId);
+        if (!session) {
+          return res.status(404).json({
+            success: false,
+            error: 'Mining session not found'
+          });
+        }
+
+        const results = await this.generateMiningReport(session, format);
+
+        res.setHeader('Content-Type', format === 'csv' ? 'text/csv' : 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="mining-results-${sessionId}.${format}"`);
+        res.send(results);
+      } catch (error) {
+        console.error('Download mining results error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to download mining results'
+        });
+      }
+    });
+
+    console.log('✅ Mining API routes configured');
+  }
+
+  // Mining service methods
+  async startMiningSession(userId, config) {
+    // Mock mining session creation
+    const sessionId = `mining_${userId}_${Date.now()}`;
+    
+    const session = {
+      id: sessionId,
+      userId,
+      status: 'mining',
+      startTime: new Date().toISOString(),
+      totalPages: 0,
+      pagesProcessed: 0,
+      optimizationsFound: 0,
+      spaceSaved: 0,
+      tokensEarned: 0,
+      progress: 0,
+      config,
+      results: []
+    };
+
+    // Store session (in production, use database)
+    this.miningSessions = this.miningSessions || new Map();
+    this.miningSessions.set(sessionId, session);
+
+    // Simulate mining process
+    this.simulateMiningProcess(session);
+
+    return session;
+  }
+
+  async getMiningSession(sessionId, userId) {
+    this.miningSessions = this.miningSessions || new Map();
+    const session = this.miningSessions.get(sessionId);
+    
+    if (!session || session.userId !== userId) {
+      return null;
+    }
+
+    return session;
+  }
+
+  async pauseMiningSession(sessionId, userId) {
+    const session = await this.getMiningSession(sessionId, userId);
+    if (session && session.status === 'mining') {
+      session.status = 'paused';
+      return true;
+    }
+    return false;
+  }
+
+  async resumeMiningSession(sessionId, userId) {
+    const session = await this.getMiningSession(sessionId, userId);
+    if (session && session.status === 'paused') {
+      session.status = 'mining';
+      this.simulateMiningProcess(session);
+      return true;
+    }
+    return false;
+  }
+
+  async stopMiningSession(sessionId, userId) {
+    const session = await this.getMiningSession(sessionId, userId);
+    if (session) {
+      session.status = 'completed';
+      session.endTime = new Date().toISOString();
+      session.progress = 100;
+      return true;
+    }
+    return false;
+  }
+
+  async getUserMiningSessions(userId) {
+    this.miningSessions = this.miningSessions || new Map();
+    return Array.from(this.miningSessions.values())
+      .filter(session => session.userId === userId)
+      .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+  }
+
+  async getMiningStats(userId) {
+    const sessions = await this.getUserMiningSessions(userId);
+    
+    const totalSessions = sessions.length;
+    const completedSessions = sessions.filter(s => s.status === 'completed').length;
+    const totalPagesMined = sessions.reduce((sum, s) => sum + s.pagesProcessed, 0);
+    const totalOptimizations = sessions.reduce((sum, s) => sum + s.optimizationsFound, 0);
+    const totalSpaceSaved = sessions.reduce((sum, s) => sum + s.spaceSaved, 0);
+    const totalTokensEarned = sessions.reduce((sum, s) => sum + s.tokensEarned, 0);
+
+    return {
+      totalSessions,
+      completedSessions,
+      totalPagesMined,
+      totalOptimizations,
+      totalSpaceSaved,
+      totalTokensEarned,
+      averageSpacePerPage: totalPagesMined > 0 ? Math.round(totalSpaceSaved / totalPagesMined) : 0,
+      averageTokensPerSession: totalSessions > 0 ? Math.round(totalTokensEarned / totalSessions) : 0
+    };
+  }
+
+  async generateMiningReport(session, format) {
+    if (format === 'csv') {
+      const csvHeader = 'URL,Domain,Timestamp,Optimizations,Space Saved,Tokens Earned,Status\n';
+      const csvRows = session.results.map(result => 
+        `"${result.url}","${result.domain}","${result.timestamp}",${result.optimizations.length},${result.spaceSaved},${result.tokensEarned},"${result.status}"`
+      ).join('\n');
+      return csvHeader + csvRows;
+    } else {
+      return JSON.stringify({
+        session: {
+          id: session.id,
+          startTime: session.startTime,
+          endTime: session.endTime,
+          status: session.status,
+          totalPages: session.totalPages,
+          pagesProcessed: session.pagesProcessed,
+          optimizationsFound: session.optimizationsFound,
+          spaceSaved: session.spaceSaved,
+          tokensEarned: session.tokensEarned
+        },
+        results: session.results
+      }, null, 2);
+    }
+  }
+
+  simulateMiningProcess(session) {
+    // Simulate mining progress
+    const interval = setInterval(() => {
+      if (session.status !== 'mining') {
+        clearInterval(interval);
+        return;
+      }
+
+      // Simulate processing a page
+      if (session.pagesProcessed < session.totalPages) {
+        session.pagesProcessed++;
+        session.progress = Math.round((session.pagesProcessed / session.totalPages) * 100);
+        
+        // Simulate finding optimizations
+        const optimizationsFound = Math.floor(Math.random() * 5) + 1;
+        const spaceSaved = Math.floor(Math.random() * 50000) + 10000;
+        const tokensEarned = Math.floor(spaceSaved / 1000);
+
+        session.optimizationsFound += optimizationsFound;
+        session.spaceSaved += spaceSaved;
+        session.tokensEarned += tokensEarned;
+
+        // Add result
+        session.results.push({
+          url: `https://example.com/page${session.pagesProcessed}`,
+          domain: 'example.com',
+          timestamp: new Date().toISOString(),
+          optimizations: Array.from({ length: optimizationsFound }, (_, i) => ({
+            type: ['Image', 'CSS', 'JavaScript', 'HTML'][i % 4],
+            spaceSaved: Math.floor(spaceSaved / optimizationsFound),
+            tokensEarned: Math.floor(tokensEarned / optimizationsFound)
+          })),
+          spaceSaved,
+          tokensEarned,
+          status: 'success'
+        });
+
+        // Complete session if all pages processed
+        if (session.pagesProcessed >= session.totalPages) {
+          session.status = 'completed';
+          session.endTime = new Date().toISOString();
+          session.progress = 100;
+          clearInterval(interval);
+        }
+      }
+    }, 2000); // Update every 2 seconds
+  }
+
+  setupSpaceMiningRoutes() {
+    // =====================================================
+    // SPACE MINING API ENDPOINTS
+    // =====================================================
+
+    // Start space mining
+    this.app.post('/api/space-mining/mine', async (req, res) => {
+      try {
+        const { url, priority = 1, type = 'full' } = req.body;
+
+        if (!url) {
+          return res.status(400).json({
+            success: false,
+            error: 'URL is required for space mining'
+          });
+        }
+
+        // Mock space mining result
+        const result = {
+          spatialStructures: [
+            {
+              id: 'spatial_1',
+              url,
+              domPath: '/html/body/div[1]',
+              spatialData: {
+                dimensions: { width: 1200, height: 800, depth: 50 },
+                volume: 48000000,
+                complexity: 75
+              },
+              domMetadata: {
+                elementType: 'container',
+                tagName: 'div',
+                classNames: ['main-content'],
+                children: 15,
+                nestingLevel: 3
+              },
+              optimization: {
+                potentialSavings: 25600,
+                compressionRatio: 0.3,
+                lightDomCandidate: true,
+                isolationScore: 85
+              },
+              metaverseMapping: {
+                biomeType: 'content_forest',
+                bridgeCompatible: true,
+                routingPotential: 90
+              }
+            }
+          ],
+          isolatedDOMs: [
+            {
+              id: 'isolated_1',
+              sourceStructure: 'spatial_1',
+              metadata: {
+                originalSize: 25600,
+                optimizedSize: 17920,
+                compressionRatio: 0.3,
+                isolationQuality: 85
+              },
+              metaverseBridge: {
+                bridgeId: 'bridge_1',
+                bridgeURL: '/bridge/spatial_1',
+                status: 'active',
+                routingRules: ['content', 'optimization', 'metaverse']
+              }
+            }
+          ],
+          generatedBridges: [
+            {
+              id: 'bridge_1',
+              sourceChain: 'web_dom',
+              targetChain: 'metaverse_content',
+              bridgeURL: '/bridge/spatial_1',
+              status: 'active',
+              connectedDOMs: ['isolated_1'],
+              performance: {
+                throughput: 150,
+                latency: 45,
+                reliability: 98
+              },
+              capabilities: {
+                chatEnabled: true,
+                dataTransfer: true,
+                assetSharing: true,
+                crossChainComputing: true
+              }
+            }
+          ]
+        };
+
+        res.json({
+          success: true,
+          data: result,
+          message: `Space mining completed for ${url}. Found ${result.spatialStructures.length} structures, isolated ${result.isolatedDOMs.length} DOM components, created ${result.generatedBridges.length} bridges.`
+        });
+      } catch (error) {
+        console.error('Space mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to mine space'
+        });
+      }
+    });
+
+    // Get spatial structures
+    this.app.get('/api/space-mining/spatial-structures', async (req, res) => {
+      try {
+        const mockStructures = [
+          {
+            id: 'spatial_1',
+            url: 'https://example.com',
+            domPath: '/html/body/div[1]',
+            spatialData: {
+              dimensions: { width: 1200, height: 800, depth: 50 },
+              volume: 48000000,
+              complexity: 75
+            },
+            domMetadata: {
+              elementType: 'container',
+              tagName: 'div',
+              classNames: ['main-content'],
+              children: 15,
+              nestingLevel: 3
+            },
+            optimization: {
+              potentialSavings: 25600,
+              compressionRatio: 0.3,
+              lightDomCandidate: true,
+              isolationScore: 85
+            },
+            metaverseMapping: {
+              biomeType: 'content_forest',
+              bridgeCompatible: true,
+              routingPotential: 90
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          data: { spatialStructures: mockStructures }
+        });
+      } catch (error) {
+        console.error('Get spatial structures error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get spatial structures'
+        });
+      }
+    });
+
+    // Get isolated DOMs
+    this.app.get('/api/space-mining/isolated-doms', async (req, res) => {
+      try {
+        const mockIsolatedDOMs = [
+          {
+            id: 'isolated_1',
+            sourceStructure: 'spatial_1',
+            metadata: {
+              originalSize: 25600,
+              optimizedSize: 17920,
+              compressionRatio: 0.3,
+              isolationQuality: 85
+            },
+            metaverseBridge: {
+              bridgeId: 'bridge_1',
+              bridgeURL: '/bridge/spatial_1',
+              status: 'active',
+              routingRules: ['content', 'optimization', 'metaverse']
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          data: { isolatedDOMs: mockIsolatedDOMs }
+        });
+      } catch (error) {
+        console.error('Get isolated DOMs error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get isolated DOMs'
+        });
+      }
+    });
+
+    // Get metaverse bridges
+    this.app.get('/api/space-mining/bridges', async (req, res) => {
+      try {
+        const mockBridges = [
+          {
+            id: 'bridge_1',
+            sourceChain: 'web_dom',
+            targetChain: 'metaverse_content',
+            bridgeURL: '/bridge/spatial_1',
+            status: 'active',
+            connectedDOMs: ['isolated_1'],
+            performance: {
+              throughput: 150,
+              latency: 45,
+              reliability: 98
+            },
+            capabilities: {
+              chatEnabled: true,
+              dataTransfer: true,
+              assetSharing: true,
+              crossChainComputing: true
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          data: { bridges: mockBridges }
+        });
+      } catch (error) {
+        console.error('Get bridges error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get bridges'
+        });
+      }
+    });
+
+    // Get mining stats
+    this.app.get('/api/space-mining/stats', async (req, res) => {
+      try {
+        const mockStats = {
+          totalStructures: 12,
+          isolatedDOMs: 8,
+          activeBridges: 5,
+          queueLength: 3
+        };
+
+        res.json({
+          success: true,
+          data: mockStats
+        });
+      } catch (error) {
+        console.error('Get mining stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining stats'
+        });
+      }
+    });
+
+    console.log('✅ Space Mining API routes configured');
+  }
+
+  setupMetaverseMiningRoutes() {
+    // =====================================================
+    // METAVERSE MINING API ENDPOINTS
+    // =====================================================
+
+    // Get mining data
+    this.app.get('/api/metaverse/mining-data', async (req, res) => {
+      try {
+        const mockData = {
+          algorithms: [
+            {
+              id: 'algo_1',
+              name: 'CSS Compression Pro',
+              type: 'css_compression',
+              version: '2.1.0',
+              performance: {
+                speedMultiplier: 3.2,
+                efficiency: 87,
+                spaceSaved: 45,
+                successRate: 94
+              },
+              source: {
+                minedFrom: 'https://example.com',
+                biomeType: 'css_garden',
+                authority: 85,
+                discoveryTime: Date.now() - 3600000
+              },
+              implementation: {
+                code: 'function compressCSS(css) { /* compression logic */ }',
+                dependencies: ['css-tree', 'postcss'],
+                complexity: 7,
+                gasCost: 15000
+              },
+              rewards: {
+                discoveryReward: 250,
+                performanceReward: 50,
+                upgradeReward: 100
+              },
+              status: 'validated',
+              validationResults: {
+                testsPassed: 9,
+                totalTests: 10,
+                performanceGain: 320,
+                compatibilityScore: 92
+              }
+            }
+          ],
+          dataMining: [
+            {
+              id: 'data_1',
+              type: 'pattern',
+              data: { pattern: 'css-grid-optimization', frequency: 0.85 },
+              source: {
+                url: 'https://example.com',
+                domain: 'example.com',
+                biomeType: 'layout_plains',
+                authority: 78
+              },
+              value: {
+                utility: 85,
+                rarity: 65,
+                upgradePotential: 90
+              },
+              extraction: {
+                method: 'pattern_recognition',
+                confidence: 92,
+                timestamp: Date.now() - 1800000
+              },
+              rewards: {
+                extractionReward: 75,
+                utilityReward: 30,
+                upgradeReward: 45
+              }
+            }
+          ],
+          upgrades: [
+            {
+              id: 'upgrade_1',
+              type: 'gas_optimization',
+              version: '1.5.0',
+              description: 'Optimized gas usage for DOM operations',
+              source: {
+                algorithms: ['algo_1'],
+                dataMining: ['data_1'],
+                totalValue: 500
+              },
+              implementation: {
+                smartContract: 'contract OptimizedDOM { /* contract code */ }',
+                gasOptimization: 35,
+                performanceGain: 25
+              },
+              deployment: {
+                status: 'active',
+                testResults: { gasOptimization: 35, performanceGain: 25 },
+                deploymentCost: 200,
+                estimatedSavings: 1000
+              },
+              rewards: {
+                upgradeReward: 200,
+                performanceReward: 75,
+                adoptionReward: 125
+              }
+            }
+          ],
+          biomes: [
+            {
+              id: 'biome_1',
+              name: 'CSS Garden',
+              type: 'stylesheet_biome',
+              characteristics: {
+                algorithmDiscoveryRate: 2.5,
+                dataMiningEfficiency: 88,
+                optimizationPotential: 92,
+                authority: 85
+              },
+              resources: {
+                totalSpace: 1000000,
+                usedSpace: 750000,
+                availableSpace: 250000,
+                miningPower: 150
+              },
+              discoveries: {
+                algorithms: ['algo_1'],
+                dataMining: ['data_1'],
+                upgrades: ['upgrade_1']
+              }
+            }
+          ],
+          stats: {
+            algorithms: { total: 15, validated: 12 },
+            dataMining: { total: 45, patterns: 20 },
+            upgrades: { total: 8, active: 6 },
+            mining: { totalRewards: 2500, queueLength: 5 }
+          }
+        };
+
+        res.json({
+          success: true,
+          data: mockData
+        });
+      } catch (error) {
+        console.error('Get mining data error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining data'
+        });
+      }
+    });
+
+    // Toggle mining
+    this.app.post('/api/metaverse/toggle-mining', async (req, res) => {
+      try {
+        const { isMining } = req.body;
+
+        res.json({
+          success: true,
+          message: `Mining ${isMining ? 'started' : 'stopped'}`
+        });
+      } catch (error) {
+        console.error('Toggle mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to toggle mining'
+        });
+      }
+    });
+
+    console.log('✅ Metaverse Mining API routes configured');
+  }
+
+  setupMetaverseMarketplaceRoutes() {
+    // =====================================================
+    // METAVERSE MARKETPLACE API ENDPOINTS
+    // =====================================================
+
+    // Get marketplace items
+    this.app.get('/api/metaverse/marketplace', async (req, res) => {
+      try {
+        const mockItems = [
+          {
+            id: 'land_1',
+            name: 'Crystal Forest Plot',
+            description: 'A mystical forest land with crystal formations and magical properties',
+            type: 'land',
+            rarity: 'epic',
+            price: 1500,
+            currency: 'LDOM',
+            image: '/api/placeholder/300/200',
+            icon: '🌲',
+            stats: { power: 85, speed: 20, durability: 100, special: 90 },
+            effects: ['+20% mining efficiency', '+15% token generation', 'Crystal resonance'],
+            biome: 'forest',
+            requirements: { level: 5, tokens: 1000, achievements: ['forest_explorer'] },
+            forSale: true,
+            createdAt: new Date().toISOString(),
+            metadata: {
+              dimensions: { width: 100, height: 100, depth: 50 },
+              weight: 1000,
+              materials: ['crystal', 'wood', 'magic'],
+              origin: 'metaverse_forest'
+            }
+          },
+          {
+            id: 'building_1',
+            name: 'Quantum Lab',
+            description: 'Advanced research facility for algorithm development and optimization',
+            type: 'building',
+            rarity: 'legendary',
+            price: 5000,
+            currency: 'LDOM',
+            image: '/api/placeholder/300/200',
+            icon: '🏗️',
+            stats: { power: 95, speed: 60, durability: 80, special: 100 },
+            effects: ['+50% algorithm discovery', '+30% research speed', 'Quantum processing'],
+            biome: 'tech',
+            requirements: { level: 10, tokens: 3000, achievements: ['researcher', 'quantum_master'] },
+            forSale: true,
+            createdAt: new Date().toISOString(),
+            metadata: {
+              dimensions: { width: 200, height: 150, depth: 100 },
+              weight: 5000,
+              materials: ['quantum_crystal', 'tech_metal', 'energy_core'],
+              origin: 'metaverse_tech'
+            }
+          },
+          {
+            id: 'vehicle_1',
+            name: 'Lightning Speeder',
+            description: 'High-speed vehicle for rapid DOM traversal and optimization',
+            type: 'vehicle',
+            rarity: 'rare',
+            price: 800,
+            currency: 'LDOM',
+            image: '/api/placeholder/300/200',
+            icon: '⚡',
+            stats: { power: 70, speed: 95, durability: 60, special: 75 },
+            effects: ['+40% traversal speed', '+25% optimization range', 'Lightning boost'],
+            biome: 'speed',
+            requirements: { level: 3, tokens: 500, achievements: ['speed_demon'] },
+            forSale: true,
+            createdAt: new Date().toISOString(),
+            metadata: {
+              dimensions: { width: 50, height: 30, depth: 20 },
+              weight: 200,
+              materials: ['lightning_crystal', 'speed_metal', 'energy_core'],
+              origin: 'metaverse_speed'
+            }
+          },
+          {
+            id: 'avatar_1',
+            name: 'DOM Guardian',
+            description: 'Powerful avatar with enhanced optimization abilities',
+            type: 'avatar',
+            rarity: 'mythic',
+            price: 10000,
+            currency: 'LDOM',
+            image: '/api/placeholder/300/200',
+            icon: '🛡️',
+            stats: { power: 100, speed: 50, durability: 100, special: 100 },
+            effects: ['+100% optimization power', '+50% damage resistance', 'Guardian aura'],
+            biome: 'guardian',
+            requirements: { level: 15, tokens: 8000, achievements: ['guardian', 'optimization_master'] },
+            forSale: true,
+            createdAt: new Date().toISOString(),
+            metadata: {
+              dimensions: { width: 40, height: 80, depth: 30 },
+              weight: 100,
+              materials: ['guardian_crystal', 'divine_metal', 'power_core'],
+              origin: 'metaverse_guardian'
+            }
+          },
+          {
+            id: 'tool_1',
+            name: 'Optimization Hammer',
+            description: 'Powerful tool for DOM optimization and space mining',
+            type: 'tool',
+            rarity: 'epic',
+            price: 1200,
+            currency: 'LDOM',
+            image: '/api/placeholder/300/200',
+            icon: '🔨',
+            stats: { power: 80, speed: 40, durability: 90, special: 85 },
+            effects: ['+35% optimization efficiency', '+20% space savings', 'Hammer strike'],
+            biome: 'tools',
+            requirements: { level: 7, tokens: 800, achievements: ['craftsman'] },
+            forSale: true,
+            createdAt: new Date().toISOString(),
+            metadata: {
+              dimensions: { width: 30, height: 60, depth: 15 },
+              weight: 300,
+              materials: ['optimization_crystal', 'heavy_metal', 'power_core'],
+              origin: 'metaverse_tools'
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          items: mockItems
+        });
+      } catch (error) {
+        console.error('Get marketplace items error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get marketplace items'
+        });
+      }
+    });
+
+    // Get user inventory
+    this.app.get('/api/metaverse/inventory', async (req, res) => {
+      try {
+        const mockInventory = {
+          items: [
+            {
+              id: 'owned_1',
+              name: 'Basic Land Plot',
+              description: 'A simple land plot for beginners',
+              type: 'land',
+              rarity: 'common',
+              price: 100,
+              currency: 'LDOM',
+              image: '/api/placeholder/300/200',
+              icon: '🏞️',
+              stats: { power: 30, speed: 10, durability: 50, special: 20 },
+              effects: ['+5% mining efficiency'],
+              biome: 'basic',
+              requirements: { level: 1, tokens: 0, achievements: [] },
+              owner: 'user_1',
+              forSale: false,
+              createdAt: new Date(Date.now() - 86400000).toISOString(),
+              metadata: {
+                dimensions: { width: 50, height: 50, depth: 25 },
+                weight: 500,
+                materials: ['basic_soil', 'simple_stone'],
+                origin: 'metaverse_basic'
+              }
+            }
+          ],
+          totalValue: 100,
+          categories: {
+            land: 1,
+            buildings: 0,
+            vehicles: 0,
+            avatars: 0,
+            tools: 0,
+            decorations: 0,
+            powerups: 0
+          }
+        };
+
+        res.json({
+          success: true,
+          inventory: mockInventory
+        });
+      } catch (error) {
+        console.error('Get inventory error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get inventory'
+        });
+      }
+    });
+
+    // Purchase item
+    this.app.post('/api/metaverse/purchase', async (req, res) => {
+      try {
+        const { itemId, price, currency } = req.body;
+
+        // Mock purchase logic
+        const purchaseResult = {
+          success: true,
+          transactionId: `tx_${Date.now()}`,
+          itemId,
+          price,
+          currency,
+          timestamp: new Date().toISOString(),
+          newBalance: 1000 - price
+        };
+
+        res.json({
+          success: true,
+          message: 'Purchase successful',
+          data: purchaseResult
+        });
+      } catch (error) {
+        console.error('Purchase item error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Purchase failed'
+        });
+      }
+    });
+
+    // Mine for items
+    this.app.post('/api/metaverse/mine-items', async (req, res) => {
+      try {
+        const { miningType, duration } = req.body;
+
+        // Simulate mining process
+        const itemsFound = Math.floor(Math.random() * 3) + 1;
+        const tokensEarned = Math.floor(Math.random() * 100) + 50;
+        
+        const miningResult = {
+          success: true,
+          itemsFound,
+          tokensEarned,
+          duration,
+          miningType,
+          timestamp: new Date().toISOString(),
+          items: [
+            {
+              id: `mined_${Date.now()}`,
+              name: 'Mined Crystal',
+              description: 'A rare crystal found during mining',
+              type: 'powerup',
+              rarity: 'rare',
+              icon: '💎',
+              stats: { power: 25, speed: 15, durability: 40, special: 30 },
+              effects: ['+10% mining speed'],
+              biome: 'crystal_cave'
+            }
+          ]
+        };
+
+        res.json({
+          success: true,
+          message: 'Mining completed successfully',
+          data: miningResult
+        });
+      } catch (error) {
+        console.error('Mine items error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Mining failed'
+        });
+      }
+    });
+
+    // Get item details
+    this.app.get('/api/metaverse/item/:itemId', async (req, res) => {
+      try {
+        const { itemId } = req.params;
+        
+        // Mock item details
+        const itemDetails = {
+          id: itemId,
+          name: 'Detailed Item',
+          description: 'Detailed description of the item',
+          type: 'land',
+          rarity: 'epic',
+          price: 1500,
+          currency: 'LDOM',
+          image: '/api/placeholder/300/200',
+          icon: '🌲',
+          stats: { power: 85, speed: 20, durability: 100, special: 90 },
+          effects: ['+20% mining efficiency', '+15% token generation'],
+          biome: 'forest',
+          requirements: { level: 5, tokens: 1000, achievements: ['forest_explorer'] },
+          forSale: true,
+          createdAt: new Date().toISOString(),
+          metadata: {
+            dimensions: { width: 100, height: 100, depth: 50 },
+            weight: 1000,
+            materials: ['crystal', 'wood', 'magic'],
+            origin: 'metaverse_forest'
+          },
+          history: [
+            {
+              event: 'created',
+              timestamp: new Date().toISOString(),
+              description: 'Item created in metaverse'
+            }
+          ],
+          owner: null,
+          previousOwners: []
+        };
+
+        res.json({
+          success: true,
+          item: itemDetails
+        });
+      } catch (error) {
+        console.error('Get item details error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get item details'
+        });
+      }
+    });
+
+    // Sell item
+    this.app.post('/api/metaverse/sell', async (req, res) => {
+      try {
+        const { itemId, price, currency } = req.body;
+
+        const sellResult = {
+          success: true,
+          transactionId: `sell_${Date.now()}`,
+          itemId,
+          price,
+          currency,
+          timestamp: new Date().toISOString(),
+          listingId: `listing_${Date.now()}`
+        };
+
+        res.json({
+          success: true,
+          message: 'Item listed for sale',
+          data: sellResult
+        });
+      } catch (error) {
+        console.error('Sell item error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to sell item'
+        });
+      }
+    });
+
+    console.log('✅ Metaverse Marketplace API routes configured');
+  }
+
+  setupMetaverseMiningRewardsRoutes() {
+    // =====================================================
+    // METAVERSE MINING REWARDS API ENDPOINTS
+    // =====================================================
+
+    // Get available mining rewards
+    this.app.get('/api/metaverse/mining-rewards', async (req, res) => {
+      try {
+        const mockRewards = [
+          {
+            id: 'reward_1',
+            name: 'Crystal Fragment',
+            description: 'A small crystal fragment with magical properties',
+            type: 'powerup',
+            rarity: 'common',
+            icon: '💎',
+            stats: { power: 15, speed: 10, durability: 20, special: 25 },
+            effects: ['+5% mining speed'],
+            biome: 'crystal_cave',
+            dropRate: 0.3,
+            value: 50,
+            currency: 'LDOM',
+            requirements: { level: 1, miningPower: 50, achievements: [] }
+          },
+          {
+            id: 'reward_2',
+            name: 'Forest Spirit',
+            description: 'A mystical spirit from the ancient forests',
+            type: 'avatar',
+            rarity: 'rare',
+            icon: '🌿',
+            stats: { power: 45, speed: 30, durability: 40, special: 60 },
+            effects: ['+15% nature affinity', '+10% forest mining bonus'],
+            biome: 'forest',
+            dropRate: 0.1,
+            value: 300,
+            currency: 'LDOM',
+            requirements: { level: 5, miningPower: 150, achievements: ['forest_explorer'] }
+          },
+          {
+            id: 'reward_3',
+            name: 'Quantum Core',
+            description: 'A powerful energy core from the quantum realm',
+            type: 'powerup',
+            rarity: 'epic',
+            icon: '⚛️',
+            stats: { power: 70, speed: 50, durability: 80, special: 90 },
+            effects: ['+25% optimization power', '+20% algorithm discovery'],
+            biome: 'quantum',
+            dropRate: 0.05,
+            value: 800,
+            currency: 'LDOM',
+            requirements: { level: 10, miningPower: 300, achievements: ['quantum_researcher'] }
+          },
+          {
+            id: 'reward_4',
+            name: 'Dragon Scale',
+            description: 'A legendary scale from an ancient dragon',
+            type: 'decoration',
+            rarity: 'legendary',
+            icon: '🐉',
+            stats: { power: 90, speed: 60, durability: 95, special: 100 },
+            effects: ['+50% fire resistance', '+30% dragon affinity'],
+            biome: 'dragon_lair',
+            dropRate: 0.01,
+            value: 2000,
+            currency: 'LDOM',
+            requirements: { level: 15, miningPower: 500, achievements: ['dragon_slayer'] }
+          },
+          {
+            id: 'reward_5',
+            name: 'Cosmic Essence',
+            description: 'Pure essence from the cosmic void',
+            type: 'powerup',
+            rarity: 'mythic',
+            icon: '🌌',
+            stats: { power: 100, speed: 80, durability: 100, special: 100 },
+            effects: ['+100% cosmic power', '+50% void resistance', 'Reality manipulation'],
+            biome: 'cosmic_void',
+            dropRate: 0.001,
+            value: 10000,
+            currency: 'LDOM',
+            requirements: { level: 20, miningPower: 1000, achievements: ['cosmic_explorer', 'reality_bender'] }
+          }
+        ];
+
+        res.json({
+          success: true,
+          rewards: mockRewards
+        });
+      } catch (error) {
+        console.error('Get mining rewards error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining rewards'
+        });
+      }
+    });
+
+    // Get mining session
+    this.app.get('/api/metaverse/mining-session', async (req, res) => {
+      try {
+        // Mock session data
+        const session = {
+          id: 'session_1',
+          type: 'metaverse_items',
+          status: 'active',
+          startTime: new Date(Date.now() - 120000).toISOString(), // 2 minutes ago
+          duration: 300000, // 5 minutes
+          progress: 40,
+          rewards: [],
+          totalValue: 0,
+          miningPower: 150,
+          efficiency: 85
+        };
+
+        res.json({
+          success: true,
+          session: session
+        });
+      } catch (error) {
+        console.error('Get mining session error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining session'
+        });
+      }
+    });
+
+    // Start mining session
+    this.app.post('/api/metaverse/start-mining', async (req, res) => {
+      try {
+        const { type, miningPower, duration } = req.body;
+
+        const session = {
+          id: `session_${Date.now()}`,
+          type,
+          status: 'active',
+          startTime: new Date().toISOString(),
+          duration,
+          progress: 0,
+          rewards: [],
+          totalValue: 0,
+          miningPower,
+          efficiency: Math.min(100, miningPower / 10)
+        };
+
+        res.json({
+          success: true,
+          message: 'Mining session started',
+          session
+        });
+      } catch (error) {
+        console.error('Start mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to start mining'
+        });
+      }
+    });
+
+    // Pause mining session
+    this.app.post('/api/metaverse/pause-mining', async (req, res) => {
+      try {
+        const { sessionId } = req.body;
+
+        const session = {
+          id: sessionId,
+          type: 'metaverse_items',
+          status: 'paused',
+          startTime: new Date(Date.now() - 120000).toISOString(),
+          duration: 300000,
+          progress: 40,
+          rewards: [],
+          totalValue: 0,
+          miningPower: 150,
+          efficiency: 85
+        };
+
+        res.json({
+          success: true,
+          message: 'Mining session paused',
+          session
+        });
+      } catch (error) {
+        console.error('Pause mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to pause mining'
+        });
+      }
+    });
+
+    // Resume mining session
+    this.app.post('/api/metaverse/resume-mining', async (req, res) => {
+      try {
+        const { sessionId } = req.body;
+
+        const session = {
+          id: sessionId,
+          type: 'metaverse_items',
+          status: 'active',
+          startTime: new Date(Date.now() - 120000).toISOString(),
+          duration: 300000,
+          progress: 40,
+          rewards: [],
+          totalValue: 0,
+          miningPower: 150,
+          efficiency: 85
+        };
+
+        res.json({
+          success: true,
+          message: 'Mining session resumed',
+          session
+        });
+      } catch (error) {
+        console.error('Resume mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to resume mining'
+        });
+      }
+    });
+
+    // Stop mining session
+    this.app.post('/api/metaverse/stop-mining', async (req, res) => {
+      try {
+        const { sessionId } = req.body;
+
+        // Simulate completed mining with rewards
+        const rewards = [
+          {
+            id: 'reward_1',
+            name: 'Crystal Fragment',
+            description: 'A small crystal fragment with magical properties',
+            type: 'powerup',
+            rarity: 'common',
+            icon: '💎',
+            stats: { power: 15, speed: 10, durability: 20, special: 25 },
+            effects: ['+5% mining speed'],
+            biome: 'crystal_cave',
+            dropRate: 0.3,
+            value: 50,
+            currency: 'LDOM',
+            requirements: { level: 1, miningPower: 50, achievements: [] }
+          }
+        ];
+
+        const session = {
+          id: sessionId,
+          type: 'metaverse_items',
+          status: 'completed',
+          startTime: new Date(Date.now() - 300000).toISOString(),
+          duration: 300000,
+          progress: 100,
+          rewards,
+          totalValue: rewards.reduce((sum, reward) => sum + reward.value, 0),
+          miningPower: 150,
+          efficiency: 85
+        };
+
+        res.json({
+          success: true,
+          message: 'Mining session completed',
+          session
+        });
+      } catch (error) {
+        console.error('Stop mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to stop mining'
+        });
+      }
+    });
+
+    // Claim reward
+    this.app.post('/api/metaverse/claim-reward', async (req, res) => {
+      try {
+        const { rewardId, sessionId } = req.body;
+
+        const claimResult = {
+          success: true,
+          rewardId,
+          sessionId,
+          timestamp: new Date().toISOString(),
+          transactionId: `claim_${Date.now()}`
+        };
+
+        res.json({
+          success: true,
+          message: 'Reward claimed successfully',
+          data: claimResult
+        });
+      } catch (error) {
+        console.error('Claim reward error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to claim reward'
+        });
+      }
+    });
+
+    console.log('✅ Metaverse Mining Rewards API routes configured');
+  }
+
+  setupWorkflowRoutes() {
+    // =====================================================
+    // WORKFLOW SIMULATION API ENDPOINTS
+    // =====================================================
+
+    // Get workflow simulations
+    this.app.get('/api/workflow/simulations', async (req, res) => {
+      try {
+        const mockSimulations = [
+          {
+            id: 'sim_1',
+            name: 'Complete User Journey',
+            description: 'End-to-end user workflow simulation',
+            steps: [
+              {
+                id: 'step_1',
+                name: 'User Registration',
+                description: 'Create new user account',
+                type: 'client',
+                status: 'completed',
+                duration: 1500,
+                dependencies: [],
+                result: { userId: 'user_123', email: 'test@example.com' }
+              },
+              {
+                id: 'step_2',
+                name: 'DOM Analysis',
+                description: 'Analyze website DOM structure',
+                type: 'cursor',
+                status: 'completed',
+                duration: 3000,
+                dependencies: ['step_1'],
+                result: { elementsAnalyzed: 150, spaceFound: 2048 }
+              },
+              {
+                id: 'step_3',
+                name: 'Optimization Submission',
+                description: 'Submit optimization to blockchain',
+                type: 'blockchain',
+                status: 'completed',
+                duration: 2000,
+                dependencies: ['step_2'],
+                result: { txHash: '0x123...', tokensEarned: 100 }
+              },
+              {
+                id: 'step_4',
+                name: 'Metaverse Generation',
+                description: 'Generate metaverse infrastructure',
+                type: 'integration',
+                status: 'in_progress',
+                duration: 0,
+                dependencies: ['step_3']
+              }
+            ],
+            totalDuration: 6500,
+            status: 'running',
+            createdAt: Date.now() - 300000,
+            completedAt: null
+          }
+        ];
+
+        const currentSimulation = mockSimulations.find(sim => sim.status === 'running') || null;
+
+        res.json({
+          success: true,
+          data: {
+            simulations: mockSimulations,
+            currentSimulation
+          }
+        });
+      } catch (error) {
+        console.error('Get workflow simulations error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get workflow simulations'
+        });
+      }
+    });
+
+    // Start workflow simulation
+    this.app.post('/api/workflow/start', async (req, res) => {
+      try {
+        const simulation = {
+          id: `sim_${Date.now()}`,
+          name: 'New Workflow Simulation',
+          description: 'Automated workflow simulation',
+          steps: [
+            {
+              id: 'step_1',
+              name: 'Initialize System',
+              description: 'Initialize all system components',
+              type: 'client',
+              status: 'pending',
+              duration: 0,
+              dependencies: []
+            },
+            {
+              id: 'step_2',
+              name: 'Load Test Data',
+              description: 'Load test data and configurations',
+              type: 'cursor',
+              status: 'pending',
+              duration: 0,
+              dependencies: ['step_1']
+            },
+            {
+              id: 'step_3',
+              name: 'Run Optimizations',
+              description: 'Execute DOM optimizations',
+              type: 'blockchain',
+              status: 'pending',
+              duration: 0,
+              dependencies: ['step_2']
+            },
+            {
+              id: 'step_4',
+              name: 'Generate Reports',
+              description: 'Generate optimization reports',
+              type: 'integration',
+              status: 'pending',
+              duration: 0,
+              dependencies: ['step_3']
+            }
+          ],
+          totalDuration: 0,
+          status: 'running',
+          createdAt: Date.now(),
+          completedAt: null
+        };
+
+        res.json({
+          success: true,
+          message: 'Workflow simulation started',
+          data: { simulation }
+        });
+      } catch (error) {
+        console.error('Start workflow simulation error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to start workflow simulation'
+        });
+      }
+    });
+
+    // Stop workflow simulation
+    this.app.post('/api/workflow/stop', async (req, res) => {
+      try {
+        res.json({
+          success: true,
+          message: 'Workflow simulation stopped'
+        });
+      } catch (error) {
+        console.error('Stop workflow simulation error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to stop workflow simulation'
+        });
+      }
+    });
+
+    // Reset workflow simulation
+    this.app.post('/api/workflow/reset', async (req, res) => {
+      try {
+        res.json({
+          success: true,
+          message: 'Workflow simulation reset'
+        });
+      } catch (error) {
+        console.error('Reset workflow simulation error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to reset workflow simulation'
+        });
+      }
+    });
+
+    // Get workflow statistics
+    this.app.get('/api/workflow/stats', async (req, res) => {
+      try {
+        const stats = {
+          totalSimulations: 15,
+          completedSimulations: 12,
+          failedSimulations: 2,
+          runningSimulations: 1,
+          averageDuration: 45000,
+          successRate: 85.7,
+          totalSteps: 60,
+          completedSteps: 48,
+          failedSteps: 5,
+          skippedSteps: 7
+        };
+
+        res.json({
+          success: true,
+          data: stats
+        });
+      } catch (error) {
+        console.error('Get workflow stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get workflow statistics'
+        });
+      }
+    });
+
+    console.log('✅ Workflow Simulation API routes configured');
+  }
+
+  setupTestingRoutes() {
+    // =====================================================
+    // TESTING API ENDPOINTS
+    // =====================================================
+
+    // Get test results
+    this.app.get('/api/tests/results', async (req, res) => {
+      try {
+        const mockTestSuites = [
+          {
+            name: 'Client Management Tests',
+            tests: [
+              {
+                name: 'Client Creation Test',
+                status: 'passed',
+                duration: 1200,
+                details: { clientsCreated: 5, successRate: 100 }
+              },
+              {
+                name: 'Client Authentication Test',
+                status: 'passed',
+                duration: 800,
+                details: { authAttempts: 10, successRate: 100 }
+              },
+              {
+                name: 'Client Billing Test',
+                status: 'failed',
+                duration: 1500,
+                error: 'Payment gateway timeout',
+                details: { billingAttempts: 3, successRate: 0 }
+              }
+            ],
+            totalDuration: 3500,
+            passed: 2,
+            failed: 1,
+            skipped: 0
+          },
+          {
+            name: 'Cursor AI Tests',
+            tests: [
+              {
+                name: 'Code Generation Test',
+                status: 'passed',
+                duration: 2000,
+                details: { codeGenerated: 15, qualityScore: 95 }
+              },
+              {
+                name: 'Merge Conflict Resolution Test',
+                status: 'passed',
+                duration: 1800,
+                details: { conflictsResolved: 8, accuracy: 100 }
+              },
+              {
+                name: 'AI Model Performance Test',
+                status: 'passed',
+                duration: 3000,
+                details: { responseTime: 1.2, accuracy: 98.5 }
+              }
+            ],
+            totalDuration: 6800,
+            passed: 3,
+            failed: 0,
+            skipped: 0
+          },
+          {
+            name: 'Blockchain Integration Tests',
+            tests: [
+              {
+                name: 'Smart Contract Deployment Test',
+                status: 'passed',
+                duration: 5000,
+                details: { contractsDeployed: 3, gasUsed: 2500000 }
+              },
+              {
+                name: 'Token Transfer Test',
+                status: 'passed',
+                duration: 1200,
+                details: { transfers: 50, successRate: 100 }
+              },
+              {
+                name: 'Optimization Submission Test',
+                status: 'skipped',
+                duration: 0,
+                details: { reason: 'Network congestion' }
+              }
+            ],
+            totalDuration: 6200,
+            passed: 2,
+            failed: 0,
+            skipped: 1
+          },
+          {
+            name: 'End-to-End Integration Tests',
+            tests: [
+              {
+                name: 'Complete User Workflow Test',
+                status: 'passed',
+                duration: 15000,
+                details: { workflowsCompleted: 5, successRate: 100 }
+              },
+              {
+                name: 'Performance Load Test',
+                status: 'passed',
+                duration: 30000,
+                details: { concurrentUsers: 100, responseTime: 2.1 }
+              },
+              {
+                name: 'Security Penetration Test',
+                status: 'failed',
+                duration: 25000,
+                error: 'SQL injection vulnerability detected',
+                details: { vulnerabilities: 1, severity: 'high' }
+              }
+            ],
+            totalDuration: 70000,
+            passed: 2,
+            failed: 1,
+            skipped: 0
+          }
+        ];
+
+        const allTests = mockTestSuites.flatMap(suite => suite.tests);
+
+        res.json({
+          success: true,
+          data: {
+            suites: mockTestSuites,
+            results: allTests
+          }
+        });
+      } catch (error) {
+        console.error('Get test results error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get test results'
+        });
+      }
+    });
+
+    // Run all tests
+    this.app.post('/api/tests/run', async (req, res) => {
+      try {
+        // Simulate test execution
+        const testSuites = [
+          {
+            name: 'Client Management Tests',
+            tests: [
+              {
+                name: 'Client Creation Test',
+                status: 'passed',
+                duration: 1200,
+                details: { clientsCreated: 5, successRate: 100 }
+              },
+              {
+                name: 'Client Authentication Test',
+                status: 'passed',
+                duration: 800,
+                details: { authAttempts: 10, successRate: 100 }
+              }
+            ],
+            totalDuration: 2000,
+            passed: 2,
+            failed: 0,
+            skipped: 0
+          },
+          {
+            name: 'Cursor AI Tests',
+            tests: [
+              {
+                name: 'Code Generation Test',
+                status: 'passed',
+                duration: 2000,
+                details: { codeGenerated: 15, qualityScore: 95 }
+              },
+              {
+                name: 'Merge Conflict Resolution Test',
+                status: 'passed',
+                duration: 1800,
+                details: { conflictsResolved: 8, accuracy: 100 }
+              }
+            ],
+            totalDuration: 3800,
+            passed: 2,
+            failed: 0,
+            skipped: 0
+          },
+          {
+            name: 'Blockchain Integration Tests',
+            tests: [
+              {
+                name: 'Smart Contract Deployment Test',
+                status: 'passed',
+                duration: 5000,
+                details: { contractsDeployed: 3, gasUsed: 2500000 }
+              },
+              {
+                name: 'Token Transfer Test',
+                status: 'passed',
+                duration: 1200,
+                details: { transfers: 50, successRate: 100 }
+              }
+            ],
+            totalDuration: 6200,
+            passed: 2,
+            failed: 0,
+            skipped: 0
+          }
+        ];
+
+        res.json({
+          success: true,
+          message: 'All tests completed successfully',
+          data: { testSuites }
+        });
+      } catch (error) {
+        console.error('Run tests error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to run tests'
+        });
+      }
+    });
+
+    // Export test results
+    this.app.get('/api/tests/export', async (req, res) => {
+      try {
+        const exportData = {
+          timestamp: new Date().toISOString(),
+          testResults: {
+            totalTests: 12,
+            passed: 10,
+            failed: 1,
+            skipped: 1,
+            successRate: 83.3,
+            totalDuration: 12000
+          },
+          suites: [
+            {
+              name: 'Client Management Tests',
+              passed: 2,
+              failed: 0,
+              skipped: 0,
+              duration: 2000
+            },
+            {
+              name: 'Cursor AI Tests',
+              passed: 2,
+              failed: 0,
+              skipped: 0,
+              duration: 3800
+            },
+            {
+              name: 'Blockchain Integration Tests',
+              passed: 2,
+              failed: 0,
+              skipped: 0,
+              duration: 6200
+            }
+          ]
+        };
+
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename=test-results.json');
+        res.json(exportData);
+      } catch (error) {
+        console.error('Export test results error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to export test results'
+        });
+      }
+    });
+
+    // Get test statistics
+    this.app.get('/api/tests/stats', async (req, res) => {
+      try {
+        const stats = {
+          totalTests: 25,
+          passed: 22,
+          failed: 2,
+          skipped: 1,
+          successRate: 88.0,
+          averageDuration: 2500,
+          totalDuration: 62500,
+          lastRun: new Date(Date.now() - 3600000).toISOString(),
+          coverage: {
+            statements: 85.5,
+            branches: 78.2,
+            functions: 92.1,
+            lines: 87.8
+          }
+        };
+
+        res.json({
+          success: true,
+          data: stats
+        });
+      } catch (error) {
+        console.error('Get test stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get test statistics'
+        });
+      }
+    });
+
+    console.log('✅ Testing API routes configured');
+  }
+
+  setupAdvancedNodeRoutes() {
+    // =====================================================
+    // ADVANCED NODE API ENDPOINTS
+    // =====================================================
+
+    // Get nodes
+    this.app.get('/api/nodes/list', async (req, res) => {
+      try {
+        const mockNodes = [
+          {
+            id: 'node_1',
+            type: 'ai_consensus',
+            status: 'active',
+            storageCapacity: 1000000000,
+            usedStorage: 250000000,
+            availableStorage: 750000000,
+            computePower: 95,
+            rewardRate: 0.15,
+            biomeType: 'E-commerce',
+            sourceOptimizations: ['opt_1', 'opt_2', 'opt_3'],
+            createdAt: Date.now() - 86400000,
+            lastActivity: Date.now() - 300000,
+            performance: {
+              uptime: 99.8,
+              efficiency: 92.5,
+              tasksCompleted: 1250,
+              rewardsEarned: 187.5
+            }
+          },
+          {
+            id: 'node_2',
+            type: 'storage_shard',
+            status: 'active',
+            storageCapacity: 5000000000,
+            usedStorage: 1200000000,
+            availableStorage: 3800000000,
+            computePower: 75,
+            rewardRate: 0.08,
+            biomeType: 'Media',
+            sourceOptimizations: ['opt_4', 'opt_5'],
+            createdAt: Date.now() - 172800000,
+            lastActivity: Date.now() - 600000,
+            performance: {
+              uptime: 99.5,
+              efficiency: 88.2,
+              tasksCompleted: 850,
+              rewardsEarned: 68.0
+            }
+          },
+          {
+            id: 'node_3',
+            type: 'bridge',
+            status: 'maintenance',
+            storageCapacity: 2000000000,
+            usedStorage: 500000000,
+            availableStorage: 1500000000,
+            computePower: 85,
+            rewardRate: 0.12,
+            biomeType: 'Cross-chain',
+            sourceOptimizations: ['opt_6', 'opt_7', 'opt_8'],
+            createdAt: Date.now() - 259200000,
+            lastActivity: Date.now() - 1800000,
+            performance: {
+              uptime: 98.9,
+              efficiency: 90.1,
+              tasksCompleted: 2100,
+              rewardsEarned: 252.0
+            }
+          },
+          {
+            id: 'node_4',
+            type: 'optimization',
+            status: 'idle',
+            storageCapacity: 800000000,
+            usedStorage: 200000000,
+            availableStorage: 600000000,
+            computePower: 70,
+            rewardRate: 0.10,
+            biomeType: 'Development',
+            sourceOptimizations: ['opt_9'],
+            createdAt: Date.now() - 432000000,
+            lastActivity: Date.now() - 3600000,
+            performance: {
+              uptime: 99.2,
+              efficiency: 85.7,
+              tasksCompleted: 650,
+              rewardsEarned: 65.0
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          data: { nodes: mockNodes }
+        });
+      } catch (error) {
+        console.error('Get nodes error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get nodes'
+        });
+      }
+    });
+
+    // Create new node
+    this.app.post('/api/nodes/create', async (req, res) => {
+      try {
+        const { type, biomeType, storageCapacity, computePower } = req.body;
+
+        const newNode = {
+          id: `node_${Date.now()}`,
+          type,
+          status: 'active',
+          storageCapacity: storageCapacity || 1000000000,
+          usedStorage: 0,
+          availableStorage: storageCapacity || 1000000000,
+          computePower: computePower || 80,
+          rewardRate: 0.10,
+          biomeType: biomeType || 'General',
+          sourceOptimizations: [],
+          createdAt: Date.now(),
+          lastActivity: Date.now(),
+          performance: {
+            uptime: 100.0,
+            efficiency: 0,
+            tasksCompleted: 0,
+            rewardsEarned: 0
+          }
+        };
+
+        res.json({
+          success: true,
+          message: 'Node created successfully',
+          data: { node: newNode }
+        });
+      } catch (error) {
+        console.error('Create node error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to create node'
+        });
+      }
+    });
+
+    // Scale node
+    this.app.post('/api/nodes/scale', async (req, res) => {
+      try {
+        const { nodeId, scaleFactor } = req.body;
+
+        const scaledNode = {
+          id: nodeId,
+          scaleFactor,
+          newCapacity: 1000000000 * scaleFactor,
+          newComputePower: 80 * scaleFactor,
+          timestamp: Date.now()
+        };
+
+        res.json({
+          success: true,
+          message: 'Node scaled successfully',
+          data: { scaledNode }
+        });
+      } catch (error) {
+        console.error('Scale node error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to scale node'
+        });
+      }
+    });
+
+    // Merge nodes
+    this.app.post('/api/nodes/merge', async (req, res) => {
+      try {
+        const { nodeIds, mergeType } = req.body;
+
+        const mergedNode = {
+          id: `merged_${Date.now()}`,
+          sourceNodes: nodeIds,
+          mergeType,
+          combinedCapacity: 2000000000,
+          combinedComputePower: 160,
+          timestamp: Date.now()
+        };
+
+        res.json({
+          success: true,
+          message: 'Nodes merged successfully',
+          data: { mergedNode }
+        });
+      } catch (error) {
+        console.error('Merge nodes error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to merge nodes'
+        });
+      }
+    });
+
+    // Get node tasks
+    this.app.get('/api/nodes/tasks', async (req, res) => {
+      try {
+        const mockTasks = [
+          {
+            id: 'task_1',
+            nodeId: 'node_1',
+            type: 'dom_analysis',
+            targetUrl: 'https://example.com',
+            status: 'completed',
+            spaceSaved: 2048,
+            tokensEarned: 15.5,
+            createdAt: Date.now() - 1800000,
+            completedAt: Date.now() - 1200000
+          },
+          {
+            id: 'task_2',
+            nodeId: 'node_1',
+            type: 'css_optimization',
+            targetUrl: 'https://example.com/styles.css',
+            status: 'processing',
+            spaceSaved: 0,
+            tokensEarned: 0,
+            createdAt: Date.now() - 300000
+          },
+          {
+            id: 'task_3',
+            nodeId: 'node_2',
+            type: 'js_minification',
+            targetUrl: 'https://example.com/script.js',
+            status: 'completed',
+            spaceSaved: 5120,
+            tokensEarned: 25.0,
+            createdAt: Date.now() - 2400000,
+            completedAt: Date.now() - 1800000
+          },
+          {
+            id: 'task_4',
+            nodeId: 'node_3',
+            type: 'image_compression',
+            targetUrl: 'https://example.com/image.jpg',
+            status: 'failed',
+            spaceSaved: 0,
+            tokensEarned: 0,
+            createdAt: Date.now() - 3600000,
+            error: 'Image format not supported'
+          }
+        ];
+
+        res.json({
+          success: true,
+          data: { tasks: mockTasks }
+        });
+      } catch (error) {
+        console.error('Get node tasks error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get node tasks'
+        });
+      }
+    });
+
+    // Get system statistics
+    this.app.get('/api/nodes/stats', async (req, res) => {
+      try {
+        const stats = {
+          totalNodes: 4,
+          activeNodes: 2,
+          idleNodes: 1,
+          maintenanceNodes: 1,
+          totalStorageCapacity: 8800000000,
+          usedStorage: 2150000000,
+          availableStorage: 6650000000,
+          totalComputePower: 325,
+          averageEfficiency: 89.1,
+          totalTasksCompleted: 4850,
+          totalRewardsEarned: 572.5,
+          averageUptime: 99.35
+        };
+
+        res.json({
+          success: true,
+          data: stats
+        });
+      } catch (error) {
+        console.error('Get node stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get node statistics'
+        });
+      }
+    });
+
+    console.log('✅ Advanced Node API routes configured');
+  }
+
+  // Helper methods for authentication
+  async checkUserExists(email) {
+    // Mock database check
+    return null; // User doesn't exist
+  }
+
+  async authenticateUser(email, password) {
+    // Mock authentication - in production, check against database
+    const mockUsers = [
+      {
+        id: '1',
+        name: 'John Doe',
+        email: 'john@example.com',
+        password: 'password123', // In production, this would be hashed
+        walletAddress: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+        createdAt: '2024-01-01T00:00:00Z',
+        isVerified: true,
+        profile: {
+          avatar: null,
+          bio: 'DOM optimization enthusiast',
+          location: 'San Francisco, CA',
+          website: 'https://johndoe.com'
+        },
+        stats: {
+          totalOptimizations: 45,
+          tokensEarned: 4250,
+          spaceSaved: 1024000,
+          reputation: 850,
+          level: 5
+        }
+      }
+    ];
+
+    return mockUsers.find(user => user.email === email && user.password === password);
+  }
+
+  generateJWT(user) {
+    // Mock JWT generation - in production, use proper JWT library
+    const payload = {
+      id: user.id,
+      email: user.email,
+      name: user.name
+    };
+    
+    // Simple base64 encoding (not secure for production)
+    return Buffer.from(JSON.stringify(payload)).toString('base64');
+  }
+
+  generateResetToken(userId) {
+    // Mock reset token generation
+    return `reset_${userId}_${Date.now()}`;
+  }
+
+  generateVerificationToken(userId) {
+    // Mock verification token generation
+    return `verify_${userId}_${Date.now()}`;
+  }
+
+  async validateResetToken(token) {
+    // Mock token validation
+    const parts = token.split('_');
+    if (parts.length === 3 && parts[0] === 'reset') {
+      return parts[1];
+    }
+    return null;
+  }
+
+  async validateVerificationToken(token) {
+    // Mock token validation
+    const parts = token.split('_');
+    if (parts.length === 3 && parts[0] === 'verify') {
+      return parts[1];
+    }
+    return null;
+  }
+
+  async sendVerificationEmail(email, userId) {
+    // Mock email sending
+    console.log(`📧 Verification email sent to ${email} for user ${userId}`);
+  }
+
+  async sendPasswordResetEmail(email, resetToken) {
+    // Mock email sending
+    console.log(`📧 Password reset email sent to ${email} with token ${resetToken}`);
+  }
+
+  async updateUserPassword(userId, password) {
+    // Mock password update
+    console.log(`🔒 Password updated for user ${userId}`);
+  }
+
+  async verifyUser(userId) {
+    // Mock user verification
+    console.log(`✅ User ${userId} verified`);
+  }
+
+  async getUserProfile(userId) {
+    // Mock user profile retrieval
+    return {
+      id: userId,
+      name: 'John Doe',
+      email: 'john@example.com',
+      walletAddress: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+      createdAt: '2024-01-01T00:00:00Z',
+      isVerified: true,
+      profile: {
+        avatar: null,
+        bio: 'DOM optimization enthusiast',
+        location: 'San Francisco, CA',
+        website: 'https://johndoe.com'
+      },
+      stats: {
+        totalOptimizations: 45,
+        tokensEarned: 4250,
+        spaceSaved: 1024000,
+        reputation: 850,
+        level: 5
+      }
+    };
+  }
+
+  async updateUserProfile(userId, updates) {
+    // Mock profile update
+    const user = await this.getUserProfile(userId);
+    return { ...user, ...updates };
+  }
+
+  // JWT Authentication middleware
+  authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'Access token required'
+      });
+    }
+
+    try {
+      // Mock JWT verification - in production, use proper JWT library
+      const payload = JSON.parse(Buffer.from(token, 'base64').toString());
+      req.user = payload;
+      next();
+    } catch (error) {
+      return res.status(403).json({
+        success: false,
+        error: 'Invalid token'
+      });
+    }
   }
 }
 

@@ -15,7 +15,12 @@ import {
   Alert,
   Spin,
   Empty,
-  Tooltip
+  Tooltip,
+  Form,
+  Modal,
+  Input,
+  Select,
+  message
 } from 'antd';
 import {
   TrophyOutlined,
@@ -27,16 +32,20 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  BarChartOutlined
 } from '@ant-design/icons';
 import { Line, Bar, Pie } from '@ant-design/plots';
 import { useOptimization } from '../../hooks/useOptimization';
 import { useAuth } from '../../hooks/useAuth';
 import { useWebsites } from '../../hooks/useWebsites';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { useNotifications } from '../../hooks/useNotifications';
+import { useCrawler } from '../../hooks/useCrawler';
 import './DashboardOverview.css';
 
 const { Title, Text, Paragraph } = Typography;
+const { Option } = Select;
 
 interface DashboardOverviewProps {
   className?: string;
@@ -47,7 +56,9 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
   const { optimizationStats, recentOptimizations, loading: optimizationLoading } = useOptimization();
   const { websites, loading: websitesLoading } = useWebsites();
   const { analytics, loading: analyticsLoading } = useAnalytics();
+  const { session, loading: crawlerLoading, startCrawling, stopCrawling, resumeCrawling } = useCrawler();
   const [timeRange, setTimeRange] = useState('7d');
+  const [showCrawlerModal, setShowCrawlerModal] = useState(false);
 
   // Performance metrics data for charts
   const performanceData = [
@@ -137,6 +148,39 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
     return 'Poor';
   };
 
+  const handleStartCrawling = async (values: any) => {
+    try {
+      await startCrawling({
+        startUrl: values.startUrl,
+        maxDepth: values.maxDepth || 2,
+        maxPages: values.maxPages || 10,
+        optimizationTypes: values.optimizationTypes || ['image', 'css', 'js', 'html']
+      });
+      setShowCrawlerModal(false);
+      message.success('Crawling started successfully!');
+    } catch (error) {
+      message.error('Failed to start crawling');
+    }
+  };
+
+  const handleStopCrawling = async () => {
+    try {
+      await stopCrawling();
+      message.success('Crawling stopped');
+    } catch (error) {
+      message.error('Failed to stop crawling');
+    }
+  };
+
+  const handleResumeCrawling = async () => {
+    try {
+      await resumeCrawling();
+      message.success('Crawling resumed');
+    } catch (error) {
+      message.error('Failed to resume crawling');
+    }
+  };
+
   if (optimizationLoading || websitesLoading || analyticsLoading) {
     return (
       <div className="dashboard-overview-loading">
@@ -161,9 +205,14 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
           </Col>
           <Col>
             <Space>
-              <Button type="primary" size="large">
+              <Button 
+                type="primary" 
+                size="large"
+                onClick={() => setShowCrawlerModal(true)}
+                loading={crawlerLoading}
+              >
                 <OptimizationOutlined />
-                New Optimization
+                Start Crawling
               </Button>
               <Button size="large">
                 <GlobalOutlined />
@@ -376,6 +425,136 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
           </Col>
         </Row>
       )}
+
+      {/* Crawler Status */}
+      {session && (
+        <Row gutter={[24, 24]} className="crawler-status-row">
+          <Col span={24}>
+            <Card title="Crawling Session" className="crawler-status-card">
+              <Row gutter={[16, 16]} align="middle">
+                <Col xs={24} sm={12} md={6}>
+                  <Statistic
+                    title="Status"
+                    value={session.status}
+                    valueStyle={{ 
+                      color: session.status === 'running' ? '#52c41a' : 
+                             session.status === 'completed' ? '#1890ff' : '#faad14'
+                    }}
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                  <Statistic
+                    title="Progress"
+                    value={session.progress}
+                    suffix="%"
+                    prefix={<OptimizationOutlined />}
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                  <Statistic
+                    title="Pages Processed"
+                    value={session.urlsProcessed}
+                    suffix={`/ ${session.totalUrls}`}
+                    prefix={<GlobalOutlined />}
+                  />
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                  <Space>
+                    {session.status === 'running' && (
+                      <Button onClick={handleStopCrawling} danger>
+                        Stop
+                      </Button>
+                    )}
+                    {session.status === 'paused' && (
+                      <Button onClick={handleResumeCrawling} type="primary">
+                        Resume
+                      </Button>
+                    )}
+                  </Space>
+                </Col>
+              </Row>
+              {session.status === 'running' && (
+                <Progress 
+                  percent={session.progress} 
+                  status="active"
+                  style={{ marginTop: 16 }}
+                />
+              )}
+            </Card>
+          </Col>
+        </Row>
+      )}
+
+      {/* Crawler Modal */}
+      <Modal
+        title="Start Web Crawling"
+        open={showCrawlerModal}
+        onCancel={() => setShowCrawlerModal(false)}
+        footer={null}
+        width={600}
+      >
+        <Form
+          layout="vertical"
+          onFinish={handleStartCrawling}
+        >
+          <Form.Item
+            name="startUrl"
+            label="Starting URL"
+            rules={[{ required: true, message: 'Please enter a starting URL' }]}
+          >
+            <Input placeholder="https://example.com" />
+          </Form.Item>
+
+          <Form.Item
+            name="maxDepth"
+            label="Maximum Depth"
+            initialValue={2}
+          >
+            <Input type="number" min={1} max={5} />
+          </Form.Item>
+
+          <Form.Item
+            name="maxPages"
+            label="Maximum Pages"
+            initialValue={10}
+          >
+            <Input type="number" min={1} max={100} />
+          </Form.Item>
+
+          <Form.Item
+            name="optimizationTypes"
+            label="Optimization Types"
+            initialValue={['image', 'css', 'js', 'html']}
+          >
+            <Select mode="multiple" placeholder="Select optimization types">
+              <Option value="image">Image Optimization</Option>
+              <Option value="css">CSS Optimization</Option>
+              <Option value="js">JavaScript Optimization</Option>
+              <Option value="html">HTML Optimization</Option>
+              <Option value="performance">Performance Optimization</Option>
+            </Select>
+          </Form.Item>
+
+          <Alert
+            message="Crawling Information"
+            description="The crawler will analyze websites for optimization opportunities and generate tokens based on space saved."
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" loading={crawlerLoading}>
+                Start Crawling
+              </Button>
+              <Button onClick={() => setShowCrawlerModal(false)}>
+                Cancel
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
