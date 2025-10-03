@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import BridgeChatPage from './src/BridgeChatPage';
 import SpaceBridgeIntegration from './src/components/SpaceBridgeIntegration';
-import { Activity, Cpu, HardDrive, Zap, Globe, TrendingUp, Award, Settings, Play, Pause, RotateCcw, Database, Network, Link, Search, Map, Brain, Layers } from 'lucide-react';
+import BridgeNotificationCenter from './src/components/BridgeNotificationCenter';
+import BridgeAnalyticsDashboard from './src/components/BridgeAnalyticsDashboard';
+import { Activity, Cpu, HardDrive, Zap, Globe, TrendingUp, Award, Settings, Play, Pause, RotateCcw, Database, Network, Link, Search, Map, Brain, Layers, BarChart3, Bell } from 'lucide-react';
 
 const RealWebCrawlerDashboard = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'bridge-chat'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'bridge-chat' | 'analytics'>('dashboard');
   const [selectedBridgeId, setSelectedBridgeId] = useState<string>('');
   const [isCrawling, setIsCrawling] = useState(false);
   const [crawlerStats, setCrawlerStats] = useState({
@@ -488,6 +490,11 @@ const RealWebCrawlerDashboard = () => {
     return <BridgeChatPage bridgeId={selectedBridgeId} />;
   }
 
+  // Render analytics dashboard if in analytics view
+  if (currentView === 'analytics') {
+    return <BridgeAnalyticsDashboard />;
+  }
+
   const refreshUsage = async () => {
     if (!apiKey) return;
     const res = await fetch('/api/usage', { headers: { 'x-api-key': apiKey } });
@@ -564,20 +571,37 @@ const RealWebCrawlerDashboard = () => {
   return (
     <>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-6">
-      {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-            Real Web Crawler & DOM Space Harvester
-          </h1>
-          <p className="text-slate-300 text-lg">Production-Scale Web Mining with PostgreSQL & Schema.org Integration</p>
-          <div className="mt-4 flex justify-center items-center gap-6 text-sm text-slate-400">
-            <span>🕷️ Auto-Discovery Crawling</span>
-            <span>🗄️ PostgreSQL Backend</span>
-            <span>🔗 Schema.org Extraction</span>
-            <span>🌐 Backlink Network Mapping</span>
+        {/* Header */}
+        <div className="max-w-7xl mx-auto mb-8">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex-1"></div>
+              <div className="flex-1 text-center">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                  Real Web Crawler & DOM Space Harvester
+                </h1>
+                <p className="text-slate-300 text-lg">Production-Scale Web Mining with PostgreSQL & Schema.org Integration</p>
+              </div>
+              <div className="flex-1 flex justify-end">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setCurrentView('analytics')}
+                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg flex items-center gap-2"
+                  >
+                    <BarChart3 size={16} />
+                    Analytics
+                  </button>
+                  <BridgeNotificationCenter />
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 flex justify-center items-center gap-6 text-sm text-slate-400">
+              <span>🕷️ Auto-Discovery Crawling</span>
+              <span>🗄️ PostgreSQL Backend</span>
+              <span>🔗 Schema.org Extraction</span>
+              <span>🌐 Backlink Network Mapping</span>
+            </div>
           </div>
-        </div>
 
         {/* Controls */}
         <div className="flex justify-center gap-4 mb-8">

@@ -1396,6 +1396,221 @@ class DOMSpaceHarvesterAPI {
     });
 
     // =====================================================
+    // ANALYTICS ENDPOINTS
+    // =====================================================
+
+    // Get bridge analytics
+    this.app.get('/api/analytics/bridges', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT 
+            db.bridge_id,
+            db.source_chain,
+            db.target_chain,
+            COUNT(bm.id) as total_messages,
+            COUNT(DISTINCT bp.user_id) as active_participants,
+            COALESCE(SUM(sbc.space_mined_kb), 0) as total_space_connected,
+            COALESCE(AVG(sbc.space_mined_kb), 0) as avg_space_per_connection,
+            EXTRACT(HOUR FROM MAX(bm.created_at)) as most_active_hour,
+            TO_CHAR(MAX(bm.created_at), 'Day') as peak_activity_day,
+            COALESCE(SUM(sbc.space_mined_kb) / NULLIF(COUNT(DISTINCT DATE(bm.created_at)), 0), 0) as space_growth_rate,
+            COALESCE(COUNT(DISTINCT bp.user_id) / NULLIF(COUNT(DISTINCT bp.user_id), 0), 0) as participant_retention_rate,
+            COALESCE(COUNT(bm.id) / NULLIF(EXTRACT(EPOCH FROM (MAX(bm.created_at) - MIN(bm.created_at))) / 3600, 0), 0) as message_frequency,
+            CASE 
+              WHEN COALESCE(SUM(sbc.space_mined_kb), 0) > 0 AND COUNT(DISTINCT bp.user_id) > 0 
+              THEN LEAST(100, (COALESCE(SUM(sbc.space_mined_kb), 0) / 1000 * 30 + COUNT(DISTINCT bp.user_id) * 10 + COUNT(bm.id) / 100 * 20))
+              ELSE 0 
+            END as bridge_efficiency_score
+          FROM dimensional_bridges db
+          LEFT JOIN bridge_messages bm ON db.bridge_id = bm.bridge_id
+          LEFT JOIN bridge_participants bp ON db.bridge_id = bp.bridge_id AND bp.is_active = TRUE
+          LEFT JOIN space_bridge_connections sbc ON db.bridge_id = sbc.bridge_id
+          WHERE db.is_operational = TRUE
+          GROUP BY db.bridge_id, db.source_chain, db.target_chain
+          ORDER BY total_space_connected DESC
+        `);
+        
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching bridge analytics:', error);
+        res.status(500).json({ error: 'Failed to fetch bridge analytics' });
+      }
+    });
+
+    // Get space mining analytics
+    this.app.get('/api/analytics/space-mining', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT 
+            COALESCE(SUM(sbc.space_mined_kb), 0) as total_space_mined,
+            COUNT(DISTINCT sbc.optimization_id) as total_optimizations,
+            COALESCE(AVG(sbc.space_mined_kb), 0) as avg_space_per_optimization,
+            COALESCE(SUM(sbc.space_mined_kb) / NULLIF(COUNT(DISTINCT DATE(sbc.created_at)), 0), 0) as mining_efficiency,
+            ARRAY_AGG(
+              JSON_BUILD_OBJECT(
+                'biome', sbc.biome_type,
+                'count', COUNT(*),
+                'total_space', SUM(sbc.space_mined_kb)
+              ) ORDER BY SUM(sbc.space_mined_kb) DESC
+            ) FILTER (WHERE sbc.biome_type IS NOT NULL) as top_biomes,
+            ARRAY_AGG(
+              JSON_BUILD_OBJECT(
+                'date', DATE(sbc.created_at),
+                'space_mined', SUM(sbc.space_mined_kb)
+              ) ORDER BY DATE(sbc.created_at) DESC
+            ) FILTER (WHERE sbc.created_at IS NOT NULL) as space_growth_trend
+          FROM space_bridge_connections sbc
+        `);
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error fetching space mining analytics:', error);
+        res.status(500).json({ error: 'Failed to fetch space mining analytics' });
+      }
+    });
+
+    // Get user engagement analytics
+    this.app.get('/api/analytics/user-engagement', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT 
+            COUNT(DISTINCT bp.user_id) as total_users,
+            COUNT(DISTINCT bp.user_id) FILTER (WHERE bp.is_active = TRUE) as active_users,
+            COUNT(DISTINCT bp.user_id) FILTER (WHERE bp.joined_at >= CURRENT_DATE) as new_users_today,
+            COALESCE(COUNT(DISTINCT bp.user_id) FILTER (WHERE bp.is_active = TRUE) / NULLIF(COUNT(DISTINCT bp.user_id), 0), 0) as user_retention_rate,
+            COALESCE(AVG(EXTRACT(EPOCH FROM (bp.last_active - bp.joined_at))), 0) as avg_session_duration,
+            ARRAY_AGG(
+              JSON_BUILD_OBJECT(
+                'bridge_id', bp.bridge_id,
+                'participants', COUNT(DISTINCT bp.user_id),
+                'messages', COUNT(bm.id)
+              ) ORDER BY COUNT(DISTINCT bp.user_id) DESC
+            ) as most_active_bridges,
+            ARRAY_AGG(
+              JSON_BUILD_OBJECT(
+                'hour', EXTRACT(HOUR FROM bm.created_at),
+                'activity', COUNT(*)
+              ) ORDER BY EXTRACT(HOUR FROM bm.created_at)
+            ) FILTER (WHERE bm.created_at IS NOT NULL) as user_activity_patterns
+          FROM bridge_participants bp
+          LEFT JOIN bridge_messages bm ON bp.bridge_id = bm.bridge_id
+        `);
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error fetching user engagement analytics:', error);
+        res.status(500).json({ error: 'Failed to fetch user engagement analytics' });
+      }
+    });
+
+    // Get bridge comparison
+    this.app.get('/api/analytics/bridge-comparison', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT 
+            db.bridge_id,
+            db.source_chain,
+            db.target_chain,
+            COALESCE(SUM(sbc.space_mined_kb), 0) as total_space,
+            COUNT(DISTINCT bp.user_id) as participant_count,
+            COUNT(bm.id) as message_count,
+            CASE 
+              WHEN COALESCE(SUM(sbc.space_mined_kb), 0) > 0 AND COUNT(DISTINCT bp.user_id) > 0 
+              THEN LEAST(100, (COALESCE(SUM(sbc.space_mined_kb), 0) / 1000 * 30 + COUNT(DISTINCT bp.user_id) * 10 + COUNT(bm.id) / 100 * 20))
+              ELSE 0 
+            END as efficiency_score,
+            COALESCE(SUM(sbc.space_mined_kb) / NULLIF(COUNT(DISTINCT DATE(sbc.created_at)), 0), 0) as growth_rate
+          FROM dimensional_bridges db
+          LEFT JOIN space_bridge_connections sbc ON db.bridge_id = sbc.bridge_id
+          LEFT JOIN bridge_participants bp ON db.bridge_id = bp.bridge_id AND bp.is_active = TRUE
+          LEFT JOIN bridge_messages bm ON db.bridge_id = bm.bridge_id
+          WHERE db.is_operational = TRUE
+          GROUP BY db.bridge_id, db.source_chain, db.target_chain
+          ORDER BY efficiency_score DESC
+        `);
+        
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching bridge comparison:', error);
+        res.status(500).json({ error: 'Failed to fetch bridge comparison' });
+      }
+    });
+
+    // Get real-time analytics
+    this.app.get('/api/analytics/real-time', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT 
+            COUNT(DISTINCT db.bridge_id) as active_bridges,
+            COUNT(DISTINCT bp.user_id) as active_users,
+            COUNT(bm.id) FILTER (WHERE bm.created_at >= NOW() - INTERVAL '1 hour') as messages_last_hour,
+            COALESCE(SUM(sbc.space_mined_kb), 0) FILTER (WHERE sbc.created_at >= NOW() - INTERVAL '1 hour') as space_mined_last_hour,
+            COUNT(DISTINCT bp.user_id) FILTER (WHERE bp.joined_at >= NOW() - INTERVAL '1 hour') as new_users_last_hour
+          FROM dimensional_bridges db
+          LEFT JOIN bridge_participants bp ON db.bridge_id = bp.bridge_id AND bp.is_active = TRUE
+          LEFT JOIN bridge_messages bm ON db.bridge_id = bm.bridge_id
+          LEFT JOIN space_bridge_connections sbc ON db.bridge_id = sbc.bridge_id
+          WHERE db.is_operational = TRUE
+        `);
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error fetching real-time analytics:', error);
+        res.status(500).json({ error: 'Failed to fetch real-time analytics' });
+      }
+    });
+
+    // Get analytics summary
+    this.app.get('/api/analytics/summary', async (req, res) => {
+      try {
+        const [bridgeResult, spaceResult, userResult] = await Promise.all([
+          this.db.query(`
+            SELECT 
+              COUNT(*) as total_bridges,
+              COALESCE(SUM(sbc.space_mined_kb), 0) as total_space_connected,
+              COUNT(bm.id) as total_messages,
+              AVG(CASE 
+                WHEN COALESCE(SUM(sbc.space_mined_kb), 0) > 0 AND COUNT(DISTINCT bp.user_id) > 0 
+                THEN LEAST(100, (COALESCE(SUM(sbc.space_mined_kb), 0) / 1000 * 30 + COUNT(DISTINCT bp.user_id) * 10 + COUNT(bm.id) / 100 * 20))
+                ELSE 0 
+              END) as avg_efficiency
+            FROM dimensional_bridges db
+            LEFT JOIN space_bridge_connections sbc ON db.bridge_id = sbc.bridge_id
+            LEFT JOIN bridge_participants bp ON db.bridge_id = bp.bridge_id AND bp.is_active = TRUE
+            LEFT JOIN bridge_messages bm ON db.bridge_id = bm.bridge_id
+            WHERE db.is_operational = TRUE
+          `),
+          this.db.query(`
+            SELECT COALESCE(SUM(space_mined_kb), 0) as total_space_mined
+            FROM space_bridge_connections
+          `),
+          this.db.query(`
+            SELECT COUNT(DISTINCT user_id) FILTER (WHERE is_active = TRUE) as active_users
+            FROM bridge_participants
+          `)
+        ]);
+
+        const summary = {
+          total_bridges: bridgeResult.rows[0].total_bridges,
+          total_space_connected: bridgeResult.rows[0].total_space_connected,
+          total_participants: userResult.rows[0].active_users,
+          total_messages: bridgeResult.rows[0].total_messages,
+          avg_efficiency: bridgeResult.rows[0].avg_efficiency || 0,
+          top_insights: [
+            `Total space connected: ${bridgeResult.rows[0].total_space_connected.toFixed(1)}KB`,
+            `Active participants: ${userResult.rows[0].active_users}`,
+            `Average efficiency: ${(bridgeResult.rows[0].avg_efficiency || 0).toFixed(1)}%`
+          ]
+        };
+        
+        res.json(summary);
+      } catch (error) {
+        console.error('Error fetching analytics summary:', error);
+        res.status(500).json({ error: 'Failed to fetch analytics summary' });
+      }
+    });
+
+    // =====================================================
     // SEARCH AND QUERY ENDPOINTS
     // =====================================================
 
