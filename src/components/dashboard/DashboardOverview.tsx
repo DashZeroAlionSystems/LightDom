@@ -34,6 +34,7 @@ import { useOptimization } from '../../hooks/useOptimization';
 import { useAuth } from '../../hooks/useAuth';
 import { useWebsites } from '../../hooks/useWebsites';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import SettingsOverview from '../admin/SettingsOverview';
 import './DashboardOverview.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -348,6 +349,15 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
                 Manage Tokens
               </Button>
             </Space>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Settings Overview */}
+      <Row gutter={[24, 24]} className="settings-row">
+        <Col span={24}>
+          <Card className="settings-overview-card">
+            <SettingsOverview />
           </Card>
         </Col>
       </Row>
