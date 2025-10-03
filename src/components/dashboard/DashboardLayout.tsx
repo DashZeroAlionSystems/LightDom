@@ -32,7 +32,8 @@ import {
   HistoryOutlined,
   UserOutlined,
   MenuOutlined,
-  CloseOutlined
+  CloseOutlined,
+  ShoppingCartOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { useOptimization } from '../../hooks/useOptimization';
@@ -80,6 +81,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       key: '/dashboard/metaverse-mining',
       icon: <TrophyOutlined />,
       label: 'Metaverse Mining',
+    },
+    {
+      key: '/dashboard/metaverse-marketplace',
+      icon: <ShoppingCartOutlined />,
+      label: 'Metaverse Marketplace',
+    },
+    {
+      key: '/dashboard/metaverse-mining-rewards',
+      icon: <TrophyOutlined />,
+      label: 'Mining Rewards',
     },
     {
       key: '/dashboard/analytics',

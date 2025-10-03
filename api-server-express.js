@@ -161,6 +161,12 @@ class DOMSpaceHarvesterAPI {
     // Setup metaverse mining API routes
     this.setupMetaverseMiningRoutes();
     
+    // Setup metaverse marketplace API routes
+    this.setupMetaverseMarketplaceRoutes();
+    
+    // Setup metaverse mining rewards API routes
+    this.setupMetaverseMiningRewardsRoutes();
+    
     // Statistics cache
     this.statsCache = {
       lastUpdate: 0,
@@ -3783,6 +3789,665 @@ class DOMSpaceHarvesterAPI {
     });
 
     console.log('✅ Metaverse Mining API routes configured');
+  }
+
+  setupMetaverseMarketplaceRoutes() {
+    // =====================================================
+    // METAVERSE MARKETPLACE API ENDPOINTS
+    // =====================================================
+
+    // Get marketplace items
+    this.app.get('/api/metaverse/marketplace', async (req, res) => {
+      try {
+        const mockItems = [
+          {
+            id: 'land_1',
+            name: 'Crystal Forest Plot',
+            description: 'A mystical forest land with crystal formations and magical properties',
+            type: 'land',
+            rarity: 'epic',
+            price: 1500,
+            currency: 'LDOM',
+            image: '/api/placeholder/300/200',
+            icon: '🌲',
+            stats: { power: 85, speed: 20, durability: 100, special: 90 },
+            effects: ['+20% mining efficiency', '+15% token generation', 'Crystal resonance'],
+            biome: 'forest',
+            requirements: { level: 5, tokens: 1000, achievements: ['forest_explorer'] },
+            forSale: true,
+            createdAt: new Date().toISOString(),
+            metadata: {
+              dimensions: { width: 100, height: 100, depth: 50 },
+              weight: 1000,
+              materials: ['crystal', 'wood', 'magic'],
+              origin: 'metaverse_forest'
+            }
+          },
+          {
+            id: 'building_1',
+            name: 'Quantum Lab',
+            description: 'Advanced research facility for algorithm development and optimization',
+            type: 'building',
+            rarity: 'legendary',
+            price: 5000,
+            currency: 'LDOM',
+            image: '/api/placeholder/300/200',
+            icon: '🏗️',
+            stats: { power: 95, speed: 60, durability: 80, special: 100 },
+            effects: ['+50% algorithm discovery', '+30% research speed', 'Quantum processing'],
+            biome: 'tech',
+            requirements: { level: 10, tokens: 3000, achievements: ['researcher', 'quantum_master'] },
+            forSale: true,
+            createdAt: new Date().toISOString(),
+            metadata: {
+              dimensions: { width: 200, height: 150, depth: 100 },
+              weight: 5000,
+              materials: ['quantum_crystal', 'tech_metal', 'energy_core'],
+              origin: 'metaverse_tech'
+            }
+          },
+          {
+            id: 'vehicle_1',
+            name: 'Lightning Speeder',
+            description: 'High-speed vehicle for rapid DOM traversal and optimization',
+            type: 'vehicle',
+            rarity: 'rare',
+            price: 800,
+            currency: 'LDOM',
+            image: '/api/placeholder/300/200',
+            icon: '⚡',
+            stats: { power: 70, speed: 95, durability: 60, special: 75 },
+            effects: ['+40% traversal speed', '+25% optimization range', 'Lightning boost'],
+            biome: 'speed',
+            requirements: { level: 3, tokens: 500, achievements: ['speed_demon'] },
+            forSale: true,
+            createdAt: new Date().toISOString(),
+            metadata: {
+              dimensions: { width: 50, height: 30, depth: 20 },
+              weight: 200,
+              materials: ['lightning_crystal', 'speed_metal', 'energy_core'],
+              origin: 'metaverse_speed'
+            }
+          },
+          {
+            id: 'avatar_1',
+            name: 'DOM Guardian',
+            description: 'Powerful avatar with enhanced optimization abilities',
+            type: 'avatar',
+            rarity: 'mythic',
+            price: 10000,
+            currency: 'LDOM',
+            image: '/api/placeholder/300/200',
+            icon: '🛡️',
+            stats: { power: 100, speed: 50, durability: 100, special: 100 },
+            effects: ['+100% optimization power', '+50% damage resistance', 'Guardian aura'],
+            biome: 'guardian',
+            requirements: { level: 15, tokens: 8000, achievements: ['guardian', 'optimization_master'] },
+            forSale: true,
+            createdAt: new Date().toISOString(),
+            metadata: {
+              dimensions: { width: 40, height: 80, depth: 30 },
+              weight: 100,
+              materials: ['guardian_crystal', 'divine_metal', 'power_core'],
+              origin: 'metaverse_guardian'
+            }
+          },
+          {
+            id: 'tool_1',
+            name: 'Optimization Hammer',
+            description: 'Powerful tool for DOM optimization and space mining',
+            type: 'tool',
+            rarity: 'epic',
+            price: 1200,
+            currency: 'LDOM',
+            image: '/api/placeholder/300/200',
+            icon: '🔨',
+            stats: { power: 80, speed: 40, durability: 90, special: 85 },
+            effects: ['+35% optimization efficiency', '+20% space savings', 'Hammer strike'],
+            biome: 'tools',
+            requirements: { level: 7, tokens: 800, achievements: ['craftsman'] },
+            forSale: true,
+            createdAt: new Date().toISOString(),
+            metadata: {
+              dimensions: { width: 30, height: 60, depth: 15 },
+              weight: 300,
+              materials: ['optimization_crystal', 'heavy_metal', 'power_core'],
+              origin: 'metaverse_tools'
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          items: mockItems
+        });
+      } catch (error) {
+        console.error('Get marketplace items error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get marketplace items'
+        });
+      }
+    });
+
+    // Get user inventory
+    this.app.get('/api/metaverse/inventory', async (req, res) => {
+      try {
+        const mockInventory = {
+          items: [
+            {
+              id: 'owned_1',
+              name: 'Basic Land Plot',
+              description: 'A simple land plot for beginners',
+              type: 'land',
+              rarity: 'common',
+              price: 100,
+              currency: 'LDOM',
+              image: '/api/placeholder/300/200',
+              icon: '🏞️',
+              stats: { power: 30, speed: 10, durability: 50, special: 20 },
+              effects: ['+5% mining efficiency'],
+              biome: 'basic',
+              requirements: { level: 1, tokens: 0, achievements: [] },
+              owner: 'user_1',
+              forSale: false,
+              createdAt: new Date(Date.now() - 86400000).toISOString(),
+              metadata: {
+                dimensions: { width: 50, height: 50, depth: 25 },
+                weight: 500,
+                materials: ['basic_soil', 'simple_stone'],
+                origin: 'metaverse_basic'
+              }
+            }
+          ],
+          totalValue: 100,
+          categories: {
+            land: 1,
+            buildings: 0,
+            vehicles: 0,
+            avatars: 0,
+            tools: 0,
+            decorations: 0,
+            powerups: 0
+          }
+        };
+
+        res.json({
+          success: true,
+          inventory: mockInventory
+        });
+      } catch (error) {
+        console.error('Get inventory error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get inventory'
+        });
+      }
+    });
+
+    // Purchase item
+    this.app.post('/api/metaverse/purchase', async (req, res) => {
+      try {
+        const { itemId, price, currency } = req.body;
+
+        // Mock purchase logic
+        const purchaseResult = {
+          success: true,
+          transactionId: `tx_${Date.now()}`,
+          itemId,
+          price,
+          currency,
+          timestamp: new Date().toISOString(),
+          newBalance: 1000 - price
+        };
+
+        res.json({
+          success: true,
+          message: 'Purchase successful',
+          data: purchaseResult
+        });
+      } catch (error) {
+        console.error('Purchase item error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Purchase failed'
+        });
+      }
+    });
+
+    // Mine for items
+    this.app.post('/api/metaverse/mine-items', async (req, res) => {
+      try {
+        const { miningType, duration } = req.body;
+
+        // Simulate mining process
+        const itemsFound = Math.floor(Math.random() * 3) + 1;
+        const tokensEarned = Math.floor(Math.random() * 100) + 50;
+        
+        const miningResult = {
+          success: true,
+          itemsFound,
+          tokensEarned,
+          duration,
+          miningType,
+          timestamp: new Date().toISOString(),
+          items: [
+            {
+              id: `mined_${Date.now()}`,
+              name: 'Mined Crystal',
+              description: 'A rare crystal found during mining',
+              type: 'powerup',
+              rarity: 'rare',
+              icon: '💎',
+              stats: { power: 25, speed: 15, durability: 40, special: 30 },
+              effects: ['+10% mining speed'],
+              biome: 'crystal_cave'
+            }
+          ]
+        };
+
+        res.json({
+          success: true,
+          message: 'Mining completed successfully',
+          data: miningResult
+        });
+      } catch (error) {
+        console.error('Mine items error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Mining failed'
+        });
+      }
+    });
+
+    // Get item details
+    this.app.get('/api/metaverse/item/:itemId', async (req, res) => {
+      try {
+        const { itemId } = req.params;
+        
+        // Mock item details
+        const itemDetails = {
+          id: itemId,
+          name: 'Detailed Item',
+          description: 'Detailed description of the item',
+          type: 'land',
+          rarity: 'epic',
+          price: 1500,
+          currency: 'LDOM',
+          image: '/api/placeholder/300/200',
+          icon: '🌲',
+          stats: { power: 85, speed: 20, durability: 100, special: 90 },
+          effects: ['+20% mining efficiency', '+15% token generation'],
+          biome: 'forest',
+          requirements: { level: 5, tokens: 1000, achievements: ['forest_explorer'] },
+          forSale: true,
+          createdAt: new Date().toISOString(),
+          metadata: {
+            dimensions: { width: 100, height: 100, depth: 50 },
+            weight: 1000,
+            materials: ['crystal', 'wood', 'magic'],
+            origin: 'metaverse_forest'
+          },
+          history: [
+            {
+              event: 'created',
+              timestamp: new Date().toISOString(),
+              description: 'Item created in metaverse'
+            }
+          ],
+          owner: null,
+          previousOwners: []
+        };
+
+        res.json({
+          success: true,
+          item: itemDetails
+        });
+      } catch (error) {
+        console.error('Get item details error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get item details'
+        });
+      }
+    });
+
+    // Sell item
+    this.app.post('/api/metaverse/sell', async (req, res) => {
+      try {
+        const { itemId, price, currency } = req.body;
+
+        const sellResult = {
+          success: true,
+          transactionId: `sell_${Date.now()}`,
+          itemId,
+          price,
+          currency,
+          timestamp: new Date().toISOString(),
+          listingId: `listing_${Date.now()}`
+        };
+
+        res.json({
+          success: true,
+          message: 'Item listed for sale',
+          data: sellResult
+        });
+      } catch (error) {
+        console.error('Sell item error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to sell item'
+        });
+      }
+    });
+
+    console.log('✅ Metaverse Marketplace API routes configured');
+  }
+
+  setupMetaverseMiningRewardsRoutes() {
+    // =====================================================
+    // METAVERSE MINING REWARDS API ENDPOINTS
+    // =====================================================
+
+    // Get available mining rewards
+    this.app.get('/api/metaverse/mining-rewards', async (req, res) => {
+      try {
+        const mockRewards = [
+          {
+            id: 'reward_1',
+            name: 'Crystal Fragment',
+            description: 'A small crystal fragment with magical properties',
+            type: 'powerup',
+            rarity: 'common',
+            icon: '💎',
+            stats: { power: 15, speed: 10, durability: 20, special: 25 },
+            effects: ['+5% mining speed'],
+            biome: 'crystal_cave',
+            dropRate: 0.3,
+            value: 50,
+            currency: 'LDOM',
+            requirements: { level: 1, miningPower: 50, achievements: [] }
+          },
+          {
+            id: 'reward_2',
+            name: 'Forest Spirit',
+            description: 'A mystical spirit from the ancient forests',
+            type: 'avatar',
+            rarity: 'rare',
+            icon: '🌿',
+            stats: { power: 45, speed: 30, durability: 40, special: 60 },
+            effects: ['+15% nature affinity', '+10% forest mining bonus'],
+            biome: 'forest',
+            dropRate: 0.1,
+            value: 300,
+            currency: 'LDOM',
+            requirements: { level: 5, miningPower: 150, achievements: ['forest_explorer'] }
+          },
+          {
+            id: 'reward_3',
+            name: 'Quantum Core',
+            description: 'A powerful energy core from the quantum realm',
+            type: 'powerup',
+            rarity: 'epic',
+            icon: '⚛️',
+            stats: { power: 70, speed: 50, durability: 80, special: 90 },
+            effects: ['+25% optimization power', '+20% algorithm discovery'],
+            biome: 'quantum',
+            dropRate: 0.05,
+            value: 800,
+            currency: 'LDOM',
+            requirements: { level: 10, miningPower: 300, achievements: ['quantum_researcher'] }
+          },
+          {
+            id: 'reward_4',
+            name: 'Dragon Scale',
+            description: 'A legendary scale from an ancient dragon',
+            type: 'decoration',
+            rarity: 'legendary',
+            icon: '🐉',
+            stats: { power: 90, speed: 60, durability: 95, special: 100 },
+            effects: ['+50% fire resistance', '+30% dragon affinity'],
+            biome: 'dragon_lair',
+            dropRate: 0.01,
+            value: 2000,
+            currency: 'LDOM',
+            requirements: { level: 15, miningPower: 500, achievements: ['dragon_slayer'] }
+          },
+          {
+            id: 'reward_5',
+            name: 'Cosmic Essence',
+            description: 'Pure essence from the cosmic void',
+            type: 'powerup',
+            rarity: 'mythic',
+            icon: '🌌',
+            stats: { power: 100, speed: 80, durability: 100, special: 100 },
+            effects: ['+100% cosmic power', '+50% void resistance', 'Reality manipulation'],
+            biome: 'cosmic_void',
+            dropRate: 0.001,
+            value: 10000,
+            currency: 'LDOM',
+            requirements: { level: 20, miningPower: 1000, achievements: ['cosmic_explorer', 'reality_bender'] }
+          }
+        ];
+
+        res.json({
+          success: true,
+          rewards: mockRewards
+        });
+      } catch (error) {
+        console.error('Get mining rewards error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining rewards'
+        });
+      }
+    });
+
+    // Get mining session
+    this.app.get('/api/metaverse/mining-session', async (req, res) => {
+      try {
+        // Mock session data
+        const session = {
+          id: 'session_1',
+          type: 'metaverse_items',
+          status: 'active',
+          startTime: new Date(Date.now() - 120000).toISOString(), // 2 minutes ago
+          duration: 300000, // 5 minutes
+          progress: 40,
+          rewards: [],
+          totalValue: 0,
+          miningPower: 150,
+          efficiency: 85
+        };
+
+        res.json({
+          success: true,
+          session: session
+        });
+      } catch (error) {
+        console.error('Get mining session error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining session'
+        });
+      }
+    });
+
+    // Start mining session
+    this.app.post('/api/metaverse/start-mining', async (req, res) => {
+      try {
+        const { type, miningPower, duration } = req.body;
+
+        const session = {
+          id: `session_${Date.now()}`,
+          type,
+          status: 'active',
+          startTime: new Date().toISOString(),
+          duration,
+          progress: 0,
+          rewards: [],
+          totalValue: 0,
+          miningPower,
+          efficiency: Math.min(100, miningPower / 10)
+        };
+
+        res.json({
+          success: true,
+          message: 'Mining session started',
+          session
+        });
+      } catch (error) {
+        console.error('Start mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to start mining'
+        });
+      }
+    });
+
+    // Pause mining session
+    this.app.post('/api/metaverse/pause-mining', async (req, res) => {
+      try {
+        const { sessionId } = req.body;
+
+        const session = {
+          id: sessionId,
+          type: 'metaverse_items',
+          status: 'paused',
+          startTime: new Date(Date.now() - 120000).toISOString(),
+          duration: 300000,
+          progress: 40,
+          rewards: [],
+          totalValue: 0,
+          miningPower: 150,
+          efficiency: 85
+        };
+
+        res.json({
+          success: true,
+          message: 'Mining session paused',
+          session
+        });
+      } catch (error) {
+        console.error('Pause mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to pause mining'
+        });
+      }
+    });
+
+    // Resume mining session
+    this.app.post('/api/metaverse/resume-mining', async (req, res) => {
+      try {
+        const { sessionId } = req.body;
+
+        const session = {
+          id: sessionId,
+          type: 'metaverse_items',
+          status: 'active',
+          startTime: new Date(Date.now() - 120000).toISOString(),
+          duration: 300000,
+          progress: 40,
+          rewards: [],
+          totalValue: 0,
+          miningPower: 150,
+          efficiency: 85
+        };
+
+        res.json({
+          success: true,
+          message: 'Mining session resumed',
+          session
+        });
+      } catch (error) {
+        console.error('Resume mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to resume mining'
+        });
+      }
+    });
+
+    // Stop mining session
+    this.app.post('/api/metaverse/stop-mining', async (req, res) => {
+      try {
+        const { sessionId } = req.body;
+
+        // Simulate completed mining with rewards
+        const rewards = [
+          {
+            id: 'reward_1',
+            name: 'Crystal Fragment',
+            description: 'A small crystal fragment with magical properties',
+            type: 'powerup',
+            rarity: 'common',
+            icon: '💎',
+            stats: { power: 15, speed: 10, durability: 20, special: 25 },
+            effects: ['+5% mining speed'],
+            biome: 'crystal_cave',
+            dropRate: 0.3,
+            value: 50,
+            currency: 'LDOM',
+            requirements: { level: 1, miningPower: 50, achievements: [] }
+          }
+        ];
+
+        const session = {
+          id: sessionId,
+          type: 'metaverse_items',
+          status: 'completed',
+          startTime: new Date(Date.now() - 300000).toISOString(),
+          duration: 300000,
+          progress: 100,
+          rewards,
+          totalValue: rewards.reduce((sum, reward) => sum + reward.value, 0),
+          miningPower: 150,
+          efficiency: 85
+        };
+
+        res.json({
+          success: true,
+          message: 'Mining session completed',
+          session
+        });
+      } catch (error) {
+        console.error('Stop mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to stop mining'
+        });
+      }
+    });
+
+    // Claim reward
+    this.app.post('/api/metaverse/claim-reward', async (req, res) => {
+      try {
+        const { rewardId, sessionId } = req.body;
+
+        const claimResult = {
+          success: true,
+          rewardId,
+          sessionId,
+          timestamp: new Date().toISOString(),
+          transactionId: `claim_${Date.now()}`
+        };
+
+        res.json({
+          success: true,
+          message: 'Reward claimed successfully',
+          data: claimResult
+        });
+      } catch (error) {
+        console.error('Claim reward error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to claim reward'
+        });
+      }
+    });
+
+    console.log('✅ Metaverse Mining Rewards API routes configured');
   }
 
   // Helper methods for authentication
