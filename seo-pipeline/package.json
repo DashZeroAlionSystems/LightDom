@@ -1,0 +1,57 @@
+{
+  "name": "seo-pipeline",
+  "version": "1.0.0",
+  "description": "AI-powered SEO data pipeline for website optimization and performance enhancement",
+  "main": "seo-api-service.js",
+  "type": "module",
+  "scripts": {
+    "start": "node seo-api-service.js",
+    "dev": "nodemon seo-api-service.js",
+    "test": "node integration-tests.js",
+    "train-model": "node -e \"import('./ai-training-model.js').then(m => new m.SEOTrainingModel().trainModel())\"",
+    "setup-db": "psql -d dom_space_harvester -f seo-database-schema.sql",
+    "dashboard": "open seo-dashboard.html",
+    "lint": "eslint *.js",
+    "format": "prettier --write *.js *.html *.sql"
+  },
+  "keywords": [
+    "seo",
+    "ai",
+    "machine-learning",
+    "website-optimization",
+    "performance",
+    "analytics",
+    "pipeline"
+  ],
+  "author": "LightDom Enterprise",
+  "license": "MIT",
+  "dependencies": {
+    "@tensorflow/tfjs-node": "^4.15.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4",
+    "express-rate-limit": "^7.1.5",
+    "pg": "^8.11.3",
+    "axios": "^1.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "puppeteer": "^21.6.1",
+    "crypto": "^1.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lightdom/seo-pipeline.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lightdom/seo-pipeline/issues"
+  },
+  "homepage": "https://github.com/lightdom/seo-pipeline#readme"
+}

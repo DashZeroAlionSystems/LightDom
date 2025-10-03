@@ -34,6 +34,7 @@ import { useOptimization } from '../../hooks/useOptimization';
 import { useAuth } from '../../hooks/useAuth';
 import { useWebsites } from '../../hooks/useWebsites';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import SEOIntegrationTest from './SEOIntegrationTest';
 import './DashboardOverview.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -349,6 +350,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
               </Button>
             </Space>
           </Card>
+        </Col>
+      </Row>
+
+      {/* SEO Pipeline Integration Test */}
+      <Row gutter={[24, 24]} className="seo-integration-row">
+        <Col span={24}>
+          <SEOIntegrationTest />
         </Col>
       </Row>
 
