@@ -155,6 +155,12 @@ class DOMSpaceHarvesterAPI {
     // Setup mining API routes
     this.setupMiningRoutes();
     
+    // Setup space mining API routes
+    this.setupSpaceMiningRoutes();
+    
+    // Setup metaverse mining API routes
+    this.setupMetaverseMiningRoutes();
+    
     // Statistics cache
     this.statsCache = {
       lastUpdate: 0,
@@ -3357,6 +3363,426 @@ class DOMSpaceHarvesterAPI {
         }
       }
     }, 2000); // Update every 2 seconds
+  }
+
+  setupSpaceMiningRoutes() {
+    // =====================================================
+    // SPACE MINING API ENDPOINTS
+    // =====================================================
+
+    // Start space mining
+    this.app.post('/api/space-mining/mine', async (req, res) => {
+      try {
+        const { url, priority = 1, type = 'full' } = req.body;
+
+        if (!url) {
+          return res.status(400).json({
+            success: false,
+            error: 'URL is required for space mining'
+          });
+        }
+
+        // Mock space mining result
+        const result = {
+          spatialStructures: [
+            {
+              id: 'spatial_1',
+              url,
+              domPath: '/html/body/div[1]',
+              spatialData: {
+                dimensions: { width: 1200, height: 800, depth: 50 },
+                volume: 48000000,
+                complexity: 75
+              },
+              domMetadata: {
+                elementType: 'container',
+                tagName: 'div',
+                classNames: ['main-content'],
+                children: 15,
+                nestingLevel: 3
+              },
+              optimization: {
+                potentialSavings: 25600,
+                compressionRatio: 0.3,
+                lightDomCandidate: true,
+                isolationScore: 85
+              },
+              metaverseMapping: {
+                biomeType: 'content_forest',
+                bridgeCompatible: true,
+                routingPotential: 90
+              }
+            }
+          ],
+          isolatedDOMs: [
+            {
+              id: 'isolated_1',
+              sourceStructure: 'spatial_1',
+              metadata: {
+                originalSize: 25600,
+                optimizedSize: 17920,
+                compressionRatio: 0.3,
+                isolationQuality: 85
+              },
+              metaverseBridge: {
+                bridgeId: 'bridge_1',
+                bridgeURL: '/bridge/spatial_1',
+                status: 'active',
+                routingRules: ['content', 'optimization', 'metaverse']
+              }
+            }
+          ],
+          generatedBridges: [
+            {
+              id: 'bridge_1',
+              sourceChain: 'web_dom',
+              targetChain: 'metaverse_content',
+              bridgeURL: '/bridge/spatial_1',
+              status: 'active',
+              connectedDOMs: ['isolated_1'],
+              performance: {
+                throughput: 150,
+                latency: 45,
+                reliability: 98
+              },
+              capabilities: {
+                chatEnabled: true,
+                dataTransfer: true,
+                assetSharing: true,
+                crossChainComputing: true
+              }
+            }
+          ]
+        };
+
+        res.json({
+          success: true,
+          data: result,
+          message: `Space mining completed for ${url}. Found ${result.spatialStructures.length} structures, isolated ${result.isolatedDOMs.length} DOM components, created ${result.generatedBridges.length} bridges.`
+        });
+      } catch (error) {
+        console.error('Space mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to mine space'
+        });
+      }
+    });
+
+    // Get spatial structures
+    this.app.get('/api/space-mining/spatial-structures', async (req, res) => {
+      try {
+        const mockStructures = [
+          {
+            id: 'spatial_1',
+            url: 'https://example.com',
+            domPath: '/html/body/div[1]',
+            spatialData: {
+              dimensions: { width: 1200, height: 800, depth: 50 },
+              volume: 48000000,
+              complexity: 75
+            },
+            domMetadata: {
+              elementType: 'container',
+              tagName: 'div',
+              classNames: ['main-content'],
+              children: 15,
+              nestingLevel: 3
+            },
+            optimization: {
+              potentialSavings: 25600,
+              compressionRatio: 0.3,
+              lightDomCandidate: true,
+              isolationScore: 85
+            },
+            metaverseMapping: {
+              biomeType: 'content_forest',
+              bridgeCompatible: true,
+              routingPotential: 90
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          data: { spatialStructures: mockStructures }
+        });
+      } catch (error) {
+        console.error('Get spatial structures error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get spatial structures'
+        });
+      }
+    });
+
+    // Get isolated DOMs
+    this.app.get('/api/space-mining/isolated-doms', async (req, res) => {
+      try {
+        const mockIsolatedDOMs = [
+          {
+            id: 'isolated_1',
+            sourceStructure: 'spatial_1',
+            metadata: {
+              originalSize: 25600,
+              optimizedSize: 17920,
+              compressionRatio: 0.3,
+              isolationQuality: 85
+            },
+            metaverseBridge: {
+              bridgeId: 'bridge_1',
+              bridgeURL: '/bridge/spatial_1',
+              status: 'active',
+              routingRules: ['content', 'optimization', 'metaverse']
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          data: { isolatedDOMs: mockIsolatedDOMs }
+        });
+      } catch (error) {
+        console.error('Get isolated DOMs error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get isolated DOMs'
+        });
+      }
+    });
+
+    // Get metaverse bridges
+    this.app.get('/api/space-mining/bridges', async (req, res) => {
+      try {
+        const mockBridges = [
+          {
+            id: 'bridge_1',
+            sourceChain: 'web_dom',
+            targetChain: 'metaverse_content',
+            bridgeURL: '/bridge/spatial_1',
+            status: 'active',
+            connectedDOMs: ['isolated_1'],
+            performance: {
+              throughput: 150,
+              latency: 45,
+              reliability: 98
+            },
+            capabilities: {
+              chatEnabled: true,
+              dataTransfer: true,
+              assetSharing: true,
+              crossChainComputing: true
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          data: { bridges: mockBridges }
+        });
+      } catch (error) {
+        console.error('Get bridges error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get bridges'
+        });
+      }
+    });
+
+    // Get mining stats
+    this.app.get('/api/space-mining/stats', async (req, res) => {
+      try {
+        const mockStats = {
+          totalStructures: 12,
+          isolatedDOMs: 8,
+          activeBridges: 5,
+          queueLength: 3
+        };
+
+        res.json({
+          success: true,
+          data: mockStats
+        });
+      } catch (error) {
+        console.error('Get mining stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining stats'
+        });
+      }
+    });
+
+    console.log('✅ Space Mining API routes configured');
+  }
+
+  setupMetaverseMiningRoutes() {
+    // =====================================================
+    // METAVERSE MINING API ENDPOINTS
+    // =====================================================
+
+    // Get mining data
+    this.app.get('/api/metaverse/mining-data', async (req, res) => {
+      try {
+        const mockData = {
+          algorithms: [
+            {
+              id: 'algo_1',
+              name: 'CSS Compression Pro',
+              type: 'css_compression',
+              version: '2.1.0',
+              performance: {
+                speedMultiplier: 3.2,
+                efficiency: 87,
+                spaceSaved: 45,
+                successRate: 94
+              },
+              source: {
+                minedFrom: 'https://example.com',
+                biomeType: 'css_garden',
+                authority: 85,
+                discoveryTime: Date.now() - 3600000
+              },
+              implementation: {
+                code: 'function compressCSS(css) { /* compression logic */ }',
+                dependencies: ['css-tree', 'postcss'],
+                complexity: 7,
+                gasCost: 15000
+              },
+              rewards: {
+                discoveryReward: 250,
+                performanceReward: 50,
+                upgradeReward: 100
+              },
+              status: 'validated',
+              validationResults: {
+                testsPassed: 9,
+                totalTests: 10,
+                performanceGain: 320,
+                compatibilityScore: 92
+              }
+            }
+          ],
+          dataMining: [
+            {
+              id: 'data_1',
+              type: 'pattern',
+              data: { pattern: 'css-grid-optimization', frequency: 0.85 },
+              source: {
+                url: 'https://example.com',
+                domain: 'example.com',
+                biomeType: 'layout_plains',
+                authority: 78
+              },
+              value: {
+                utility: 85,
+                rarity: 65,
+                upgradePotential: 90
+              },
+              extraction: {
+                method: 'pattern_recognition',
+                confidence: 92,
+                timestamp: Date.now() - 1800000
+              },
+              rewards: {
+                extractionReward: 75,
+                utilityReward: 30,
+                upgradeReward: 45
+              }
+            }
+          ],
+          upgrades: [
+            {
+              id: 'upgrade_1',
+              type: 'gas_optimization',
+              version: '1.5.0',
+              description: 'Optimized gas usage for DOM operations',
+              source: {
+                algorithms: ['algo_1'],
+                dataMining: ['data_1'],
+                totalValue: 500
+              },
+              implementation: {
+                smartContract: 'contract OptimizedDOM { /* contract code */ }',
+                gasOptimization: 35,
+                performanceGain: 25
+              },
+              deployment: {
+                status: 'active',
+                testResults: { gasOptimization: 35, performanceGain: 25 },
+                deploymentCost: 200,
+                estimatedSavings: 1000
+              },
+              rewards: {
+                upgradeReward: 200,
+                performanceReward: 75,
+                adoptionReward: 125
+              }
+            }
+          ],
+          biomes: [
+            {
+              id: 'biome_1',
+              name: 'CSS Garden',
+              type: 'stylesheet_biome',
+              characteristics: {
+                algorithmDiscoveryRate: 2.5,
+                dataMiningEfficiency: 88,
+                optimizationPotential: 92,
+                authority: 85
+              },
+              resources: {
+                totalSpace: 1000000,
+                usedSpace: 750000,
+                availableSpace: 250000,
+                miningPower: 150
+              },
+              discoveries: {
+                algorithms: ['algo_1'],
+                dataMining: ['data_1'],
+                upgrades: ['upgrade_1']
+              }
+            }
+          ],
+          stats: {
+            algorithms: { total: 15, validated: 12 },
+            dataMining: { total: 45, patterns: 20 },
+            upgrades: { total: 8, active: 6 },
+            mining: { totalRewards: 2500, queueLength: 5 }
+          }
+        };
+
+        res.json({
+          success: true,
+          data: mockData
+        });
+      } catch (error) {
+        console.error('Get mining data error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining data'
+        });
+      }
+    });
+
+    // Toggle mining
+    this.app.post('/api/metaverse/toggle-mining', async (req, res) => {
+      try {
+        const { isMining } = req.body;
+
+        res.json({
+          success: true,
+          message: `Mining ${isMining ? 'started' : 'stopped'}`
+        });
+      } catch (error) {
+        console.error('Toggle mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to toggle mining'
+        });
+      }
+    });
+
+    console.log('✅ Metaverse Mining API routes configured');
   }
 
   // Helper methods for authentication

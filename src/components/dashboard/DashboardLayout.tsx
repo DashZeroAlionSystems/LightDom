@@ -72,6 +72,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       label: 'Blockchain',
     },
     {
+      key: '/dashboard/space-mining',
+      icon: <GlobalOutlined />,
+      label: 'Space Mining',
+    },
+    {
+      key: '/dashboard/metaverse-mining',
+      icon: <TrophyOutlined />,
+      label: 'Metaverse Mining',
+    },
+    {
       key: '/dashboard/analytics',
       icon: <BarChartOutlined />,
       label: 'Analytics',

@@ -8,6 +8,8 @@ import DashboardOverview from './components/dashboard/DashboardOverview';
 import OptimizationDashboard from './components/dashboard/OptimizationDashboard';
 import WalletDashboard from './components/dashboard/WalletDashboard';
 import BlockchainDashboard from './components/BlockchainDashboard';
+import SpaceMiningDashboard from './components/SpaceMiningDashboard';
+import MetaverseMiningDashboard from './components/MetaverseMiningDashboard';
 import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import PaymentPage from './components/payment/PaymentPage';
@@ -53,6 +55,8 @@ const AppContent: React.FC = () => {
           <Route path="optimization" element={<OptimizationDashboard />} />
           <Route path="wallet" element={<WalletDashboard />} />
           <Route path="blockchain" element={<BlockchainDashboard />} />
+          <Route path="space-mining" element={<SpaceMiningDashboard />} />
+          <Route path="metaverse-mining" element={<MetaverseMiningDashboard />} />
           <Route path="analytics" element={<div>Analytics Coming Soon</div>} />
           <Route path="websites" element={<div>Websites Coming Soon</div>} />
           <Route path="history" element={<div>History Coming Soon</div>} />
