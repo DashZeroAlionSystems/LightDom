@@ -32,19 +32,23 @@ export const useCrawler = () => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/crawler/start', {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/mining/start', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          startUrl: config.startUrl,
-          maxDepth: config.maxDepth || 2,
-          maxPages: config.maxPages || 10,
-          optimizationTypes: config.optimizationTypes || ['image', 'css', 'js', 'html'],
-          maxConcurrency: 3,
-          requestDelay: 1000,
-          respectRobots: true
+          config: {
+            startUrl: config.startUrl,
+            maxDepth: config.maxDepth || 2,
+            maxPages: config.maxPages || 10,
+            optimizationTypes: config.optimizationTypes || ['image', 'css', 'js', 'html'],
+            maxConcurrency: 3,
+            requestDelay: 1000,
+            respectRobots: true
+          }
         }),
       });
 
@@ -73,8 +77,12 @@ export const useCrawler = () => {
     try {
       if (!session) return;
 
-      const response = await fetch(`/api/crawler/stop/${session.id}`, {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/mining/session/${session.id}/stop`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -90,8 +98,12 @@ export const useCrawler = () => {
     try {
       if (!session) return;
 
-      const response = await fetch(`/api/crawler/resume/${session.id}`, {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/mining/session/${session.id}/resume`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -106,12 +118,17 @@ export const useCrawler = () => {
   const pollCrawlingStatus = (sessionId: string) => {
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`/api/crawler/status/${sessionId}`);
+        const token = localStorage.getItem('auth_token');
+        const response = await fetch(`/api/mining/session/${sessionId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
         if (response.ok) {
           const status = await response.json();
-          setSession(status);
+          setSession(status.session);
           
-          if (status.status === 'completed' || status.status === 'error') {
+          if (status.session.status === 'completed' || status.session.status === 'error') {
             clearInterval(interval);
           }
         }
@@ -127,7 +144,7 @@ export const useCrawler = () => {
 
   const getCrawlingResults = async (sessionId: string) => {
     try {
-      const response = await fetch(`/api/crawler/results/${sessionId}`);
+      const response = await fetch(`/api/mining/session/${sessionId}/download`);
       if (response.ok) {
         return await response.json();
       }
@@ -138,7 +155,7 @@ export const useCrawler = () => {
 
   const downloadResults = async (sessionId: string, format: 'json' | 'csv' = 'json') => {
     try {
-      const response = await fetch(`/api/crawler/download/${sessionId}?format=${format}`);
+      const response = await fetch(`/api/mining/session/${sessionId}/download?format=${format}`);
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
