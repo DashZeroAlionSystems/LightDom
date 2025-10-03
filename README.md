@@ -1,361 +1,367 @@
-# LightDom Enterprise Platform
+# Decentralized Storage Platform
 
-A comprehensive blockchain-based DOM optimization platform with AI-powered coding abilities, metaverse mining, and advanced client management.
+A comprehensive decentralized storage platform similar to Sia.tech, built with modern web technologies and blockchain integration.
 
 ## 🚀 Features
 
-### Core Platform
-- **DOM Space Optimization**: Detect and quantify unused elements, dead code, and optimization opportunities
-- **Tokenization (DSH Token)**: ERC20 token for rewarding space optimization
-- **Metaverse Infrastructure**: Virtual Land Parcels, AI Consensus Nodes, Storage Shards, and Cross-Chain Bridges
-- **Real-time Web Crawling**: Advanced web crawler with schema.org extraction and backlink analysis
-- **PostgreSQL Integration**: Comprehensive database for storing crawl data and optimization records
+### Core Functionality
+- **Decentralized Storage**: Store files across multiple hosts without central authority
+- **Data Encryption**: End-to-end encryption with automatic sharding
+- **Smart Contracts**: Automated storage agreements and payments
+- **Host Management**: Comprehensive host registration and reputation system
+- **File Management**: Advanced file operations with sharing and access control
+- **Governance**: Decentralized decision-making and platform management
+- **Token Economy**: Native token for payments and incentives
 
-### AI & Automation
-- **Cursor Background Agent**: AI-powered coding assistance with code generation, refactoring, and debugging
-- **Merge Conflict Resolution**: Intelligent automatic detection and resolution of git merge conflicts
-- **Metaverse Mining Engine**: Continuous discovery of optimization algorithms and data mining
-- **Blockchain Integration**: Smart contract deployment and token management
-- **Advanced Node Management**: Creation, scaling, and merging of optimization nodes
-
-### Client Management
-- **Automatic Client Creation**: Plan-based client onboarding with API key generation
-- **Usage Tracking**: Comprehensive monitoring of client usage and limits
-- **Billing Integration**: Automated billing and subscription management
-- **Admin Controls**: Role-based access control and permissions
-
-### Testing & Quality Assurance
-- **Integration Testing**: Comprehensive test suite for all platform components
-- **Workflow Simulation**: End-to-end user workflow testing
-- **Error Handling**: Centralized error management and validation
-- **Performance Monitoring**: Real-time performance metrics and alerts
+### Technical Features
+- **Blockchain Integration**: Ethereum-compatible smart contracts
+- **Modern Frontend**: React 18 with TypeScript and Tailwind CSS
+- **RESTful API**: Express.js backend with comprehensive endpoints
+- **Real-time Updates**: WebSocket integration for live updates
+- **Progressive Web App**: PWA support with offline capabilities
+- **Responsive Design**: Mobile-first approach with modern UI/UX
 
 ## 🏗️ Architecture
 
-### Frontend
-- **React 18** with TypeScript
-- **Vite** for build tooling
-- **Tailwind CSS** for styling
-- **Lucide React** for icons
-- **Socket.IO** for real-time updates
+### Smart Contracts
+- **StorageToken**: ERC20 token for payments and governance
+- **StorageContract**: Core storage agreement management
+- **StorageGovernance**: Decentralized platform governance
+- **DataEncryption**: File encryption and sharding logic
+- **HostManager**: Host registration and reputation system
+- **FileManager**: File metadata and access control
 
-### Backend
-- **Node.js** with Express.js
-- **TypeScript** for type safety
-- **PostgreSQL** for data persistence
-- **Socket.IO** for real-time communication
-- **Ethers.js** for blockchain integration
+### Backend Services
+- **API Server**: Express.js with TypeScript
+- **Database**: PostgreSQL for data persistence
+- **Cache**: Redis for performance optimization
+- **Blockchain**: Ethereum integration with ethers.js
+- **Encryption**: Advanced cryptographic operations
+- **Storage**: File upload and management
+- **Notifications**: Real-time user notifications
 
-### Blockchain
-- **Ethereum** smart contracts
-- **Solidity 0.8.19** for contract development
-- **Hardhat** for development and testing
-- **IPFS** for decentralized storage
+### Frontend Application
+- **React 18**: Modern React with hooks and concurrent features
+- **TypeScript**: Full type safety and developer experience
+- **Tailwind CSS**: Utility-first CSS framework
+- **React Query**: Server state management and caching
+- **React Router**: Client-side routing
+- **Framer Motion**: Smooth animations and transitions
+- **PWA**: Progressive Web App capabilities
 
-### AI & ML
-- **Cursor AI** integration for code generation
-- **Custom optimization algorithms**
-- **Machine learning models** for pattern recognition
-- **Data mining** for continuous improvement
-
-## 📁 Project Structure
-
-```
-LightDom/
-├── src/
-│   ├── components/           # React components
-│   │   ├── SpaceOptimizationDashboard.tsx
-│   │   ├── AdvancedNodeDashboard.tsx
-│   │   ├── MetaverseMiningDashboard.tsx
-│   │   ├── BlockchainModelStorageDashboard.tsx
-│   │   ├── WorkflowSimulationDashboard.tsx
-│   │   └── TestingDashboard.tsx
-│   ├── core/                 # Core business logic
-│   │   ├── SpaceOptimizationEngine.ts
-│   │   ├── AdvancedNodeManager.ts
-│   │   ├── MetaverseMiningEngine.ts
-│   │   ├── ClientManagementSystem.ts
-│   │   ├── CursorBackgroundAgent.ts
-│   │   ├── BlockchainModelStorage.ts
-│   │   ├── UserWorkflowSimulator.ts
-│   │   └── ErrorHandler.ts
-│   ├── api/                  # API endpoints
-│   │   ├── optimizationApi.ts
-│   │   ├── advancedNodeApi.ts
-│   │   ├── metaverseMiningApi.ts
-│   │   └── blockchainModelStorageApi.ts
-│   ├── server/               # Server configuration
-│   │   └── optimizationServer.ts
-│   └── tests/                # Test suites
-│       └── IntegrationTests.ts
-├── contracts/                # Smart contracts
-│   ├── DOMSpaceToken.sol
-│   ├── OptimizationRegistry.sol
-│   ├── ProofOfOptimization.sol
-│   ├── VirtualLandNFT.sol
-│   └── ModelStorageContract.sol
-├── crawler/                  # Web crawling system
-│   └── RealWebCrawlerSystem.js
-├── optimizer/                # DOM optimization algorithms
-│   └── light-dom-v1.js
-└── database/                 # Database schemas
-    └── optimization_schema.sql
-```
-
-## 🚀 Getting Started
+## 🛠️ Installation & Setup
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 18+ and npm/yarn
 - PostgreSQL 13+
-- Ethereum node (local or remote)
+- Redis 6+
 - Git
 
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-org/lightdom.git
-   cd lightdom
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-4. **Set up the database**
-   ```bash
-   # Create PostgreSQL database
-   createdb lightdom
-   
-   # Run database migrations
-   psql -d lightdom -f database/optimization_schema.sql
-   ```
-
-5. **Deploy smart contracts**
-   ```bash
-   # Install Hardhat dependencies
-   npm install --save-dev hardhat @nomiclabs/hardhat-ethers ethers
-   
-   # Deploy contracts
-   npx hardhat run scripts/deploy.ts --network localhost
-   ```
-
-6. **Start the development server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-
-### Environment Variables
-
-```env
-# Database
-DATABASE_URL=postgresql://username:password@localhost:5432/lightdom
-
-# Ethereum
-ETHEREUM_RPC_URL=http://localhost:8545
-ADMIN_PRIVATE_KEY=0x...
-MODEL_STORAGE_CONTRACT_ADDRESS=0x...
-
-# API
-API_KEY=your-api-key
-CURSOR_API_KEY=your-cursor-api-key
-
-# Server
-PORT=3000
-NODE_ENV=development
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd decentralized-storage-platform
 ```
 
-## 🎯 Usage
+### 2. Install Dependencies
+```bash
+# Install root dependencies
+npm install
 
-### 1. Space Optimization Dashboard
-- Navigate to `/` for the main dashboard
-- Start/stop web crawling
-- Monitor optimization results
-- View metaverse asset generation
+# Install smart contract dependencies
+cd contracts
+npm install
 
-### 2. Advanced Node Management
-- Navigate to `/advanced-nodes`
-- Create and manage optimization nodes
-- Allocate storage for different purposes
-- Monitor node performance
+# Install backend dependencies
+cd ../backend
+npm install
 
-### 3. Metaverse Mining
-- Navigate to `/metaverse-mining`
-- Start continuous mining
-- View discovered algorithms
-- Monitor data mining results
+# Install frontend dependencies
+cd ../frontend
+npm install
+```
 
-### 4. Blockchain Model Storage
-- Navigate to `/blockchain-models`
-- Store model training data
-- Manage admin access
-- View blockchain statistics
+### 3. Environment Configuration
 
-### 5. Workflow Simulation
-- Navigate to `/workflow-simulation`
-- Run complete user workflows
-- Monitor simulation progress
-- View workflow history
+#### Backend Environment (.env)
+```bash
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=decentralized_storage
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_SSL=false
+DB_MAX_CONNECTIONS=20
 
-### 6. Testing Dashboard
-- Navigate to `/testing`
-- Run integration tests
-- View test results
-- Export test reports
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=0
 
-## 🔧 API Endpoints
+# Blockchain
+BLOCKCHAIN_RPC_URL=http://localhost:8545
+PRIVATE_KEY=your_private_key
+STORAGE_TOKEN_ADDRESS=
+STORAGE_CONTRACT_ADDRESS=
+STORAGE_GOVERNANCE_ADDRESS=
+DATA_ENCRYPTION_ADDRESS=
+HOST_MANAGER_ADDRESS=
+FILE_MANAGER_ADDRESS=
 
-### Optimization API
-- `POST /api/optimization/submit` - Submit optimization results
-- `GET /api/optimization/harvester/:address` - Get harvester stats
-- `GET /api/optimization/recent` - Get recent optimizations
-- `GET /api/metaverse/stats` - Get metaverse statistics
+# JWT
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=24h
 
-### Advanced Node API
-- `POST /api/nodes/create` - Create new node
-- `GET /api/nodes/list` - List all nodes
-- `POST /api/nodes/scale` - Scale node
-- `POST /api/nodes/merge` - Merge nodes
+# Encryption
+ENCRYPTION_ALGORITHM=aes-256-gcm
+ENCRYPTION_KEY_LENGTH=32
 
-### Metaverse Mining API
-- `GET /api/metaverse/mining-data` - Get mining data
-- `POST /api/metaverse/toggle-mining` - Toggle mining
-- `GET /api/metaverse/algorithms` - Get discovered algorithms
-- `GET /api/metaverse/upgrades` - Get blockchain upgrades
+# Storage
+UPLOAD_PATH=./uploads
+MAX_FILE_SIZE=104857600
+ALLOWED_MIME_TYPES=image/*,video/*,audio/*,application/pdf,text/*
 
-### Blockchain Model Storage API
-- `POST /api/blockchain-models/store` - Store model data
-- `GET /api/blockchain-models/:modelId` - Get model data
-- `PUT /api/blockchain-models/:modelId` - Update model data
-- `DELETE /api/blockchain-models/:modelId` - Delete model data
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100
 
-### Workflow Simulation API
-- `POST /api/workflow/start` - Start simulation
-- `POST /api/workflow/stop` - Stop simulation
-- `GET /api/workflow/simulations` - Get simulations
-- `GET /api/workflow/stats` - Get simulation stats
+# CORS
+CORS_ORIGIN=http://localhost:3000
+```
 
-### Testing API
-- `POST /api/tests/run` - Run all tests
-- `GET /api/tests/results` - Get test results
-- `GET /api/tests/export` - Export test results
+#### Frontend Environment (.env)
+```bash
+VITE_API_URL=http://localhost:3001
+VITE_BLOCKCHAIN_RPC_URL=http://localhost:8545
+VITE_CONTRACT_ADDRESSES={"storageToken":"","storageContract":"","storageGovernance":"","dataEncryption":"","hostManager":"","fileManager":""}
+```
+
+### 4. Database Setup
+```bash
+# Create PostgreSQL database
+createdb decentralized_storage
+
+# Run migrations (if available)
+cd backend
+npm run migrate
+```
+
+### 5. Smart Contract Deployment
+```bash
+# Compile contracts
+cd contracts
+npx hardhat compile
+
+# Deploy to local network
+npx hardhat run scripts/deploy.js --network localhost
+
+# Deploy to testnet
+npx hardhat run scripts/deploy.js --network testnet
+
+# Deploy to mainnet
+npx hardhat run scripts/deploy.js --network mainnet
+```
+
+### 6. Start Development Servers
+```bash
+# Start all services
+npm run dev
+
+# Or start individually
+npm run dev:frontend  # Frontend on :3000
+npm run dev:backend   # Backend on :3001
+```
+
+## 📚 Usage
+
+### For Users (Renters)
+1. **Connect Wallet**: Connect your Ethereum wallet
+2. **Upload Files**: Drag and drop files to upload
+3. **Manage Storage**: View and manage your stored files
+4. **Share Files**: Share files with other users
+5. **Monitor Contracts**: Track storage agreements and payments
+
+### For Hosts
+1. **Register as Host**: Complete host registration process
+2. **Set Pricing**: Configure storage pricing and capacity
+3. **Manage Storage**: Monitor available storage space
+4. **Track Performance**: View reputation and metrics
+5. **Earn Tokens**: Receive payments for storage services
+
+### For Governance
+1. **Create Proposals**: Submit governance proposals
+2. **Vote on Proposals**: Participate in platform decisions
+3. **Monitor Platform**: Track platform metrics and health
+4. **Manage Parameters**: Update platform parameters
+
+## 🔧 Development
+
+### Smart Contracts
+```bash
+cd contracts
+
+# Compile
+npx hardhat compile
+
+# Test
+npx hardhat test
+
+# Coverage
+npx hardhat coverage
+
+# Deploy
+npx hardhat run scripts/deploy.js
+```
+
+### Backend API
+```bash
+cd backend
+
+# Development
+npm run dev
+
+# Build
+npm run build
+
+# Start
+npm start
+
+# Test
+npm test
+
+# Lint
+npm run lint
+```
+
+### Frontend
+```bash
+cd frontend
+
+# Development
+npm run dev
+
+# Build
+npm run build
+
+# Preview
+npm run preview
+
+# Test
+npm test
+
+# Lint
+npm run lint
+```
 
 ## 🧪 Testing
 
-### Run Integration Tests
+### Smart Contract Tests
 ```bash
-# Run all tests
-npm run test
-
-# Run specific test suite
-npm run test:client
-npm run test:cursor
-npm run test:blockchain
-npm run test:workflow
+cd contracts
+npx hardhat test
+npx hardhat coverage
 ```
 
-### Test Coverage
+### Backend Tests
 ```bash
-# Generate coverage report
+cd backend
+npm test
 npm run test:coverage
 ```
 
-### Manual Testing
-1. Navigate to `/testing`
-2. Click "Run All Tests"
-3. View results and export reports
-
-## 🔀 Merge Conflict Resolution
-
-The platform includes intelligent merge conflict detection and resolution capabilities:
-
-### Quick Commands
+### Frontend Tests
 ```bash
-# Detect merge conflicts
-node scripts/agent-runner.js merge-conflicts detect
-
-# Automatically resolve conflicts
-node scripts/agent-runner.js merge-conflicts resolve
-
-# Analyze specific file conflicts
-node scripts/agent-runner.js merge-conflicts analyze path/to/file.js
-
-# Generate detailed report
-node scripts/agent-runner.js merge-conflicts report
+cd frontend
+npm test
+npm run test:coverage
 ```
 
-### Automated Workflow
+### End-to-End Tests
 ```bash
-# Run complete merge conflict resolution workflow
-node scripts/agent-runner.js workflow MergeConflictWorkflow
+npm run test:e2e
 ```
-
-**📖 For detailed documentation, see [MERGE_CONFLICT_GUIDE.md](MERGE_CONFLICT_GUIDE.md)**
-
-## 🔒 Security
-
-### Authentication
-- API key authentication for all endpoints
-- Role-based access control for admin functions
-- JWT tokens for session management
-
-### Data Protection
-- All sensitive data encrypted at rest
-- Secure API key generation and storage
-- Input validation and sanitization
-
-### Blockchain Security
-- Smart contract audits
-- Multi-signature requirements
-- Access control modifiers
-
-## 📊 Monitoring
-
-### Performance Metrics
-- Response times and throughput
-- Error rates and availability
-- Database performance
-- Smart contract gas usage
-
-### Logging
-- Structured logging with correlation IDs
-- Error tracking and alerting
-- Performance monitoring
-- Security event logging
 
 ## 🚀 Deployment
 
 ### Production Build
 ```bash
+# Build all components
 npm run build
+
+# Start production servers
+npm start
 ```
 
 ### Docker Deployment
 ```bash
-# Build Docker image
-docker build -t lightdom .
+# Build Docker images
+docker-compose build
 
-# Run with Docker Compose
+# Start services
 docker-compose up -d
 ```
 
-### Environment Setup
-1. Set up production database
-2. Deploy smart contracts to mainnet
-3. Configure environment variables
-4. Set up monitoring and logging
-5. Configure load balancing
+### Cloud Deployment
+- **Frontend**: Deploy to Vercel, Netlify, or AWS S3
+- **Backend**: Deploy to AWS EC2, Google Cloud, or Azure
+- **Database**: Use managed PostgreSQL (AWS RDS, Google Cloud SQL)
+- **Blockchain**: Deploy to Ethereum mainnet or testnets
+
+## 📖 API Documentation
+
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/me` - Get current user
+
+### Files
+- `GET /api/files` - List user files
+- `POST /api/files/upload` - Upload file
+- `GET /api/files/:id` - Get file details
+- `PUT /api/files/:id` - Update file
+- `DELETE /api/files/:id` - Delete file
+- `POST /api/files/:id/share` - Share file
+
+### Hosts
+- `GET /api/hosts` - List hosts
+- `POST /api/hosts/register` - Register as host
+- `PUT /api/hosts/:id` - Update host info
+- `GET /api/hosts/:id` - Get host details
+
+### Contracts
+- `GET /api/contracts` - List contracts
+- `POST /api/contracts/create` - Create contract
+- `GET /api/contracts/:id` - Get contract details
+- `PUT /api/contracts/:id` - Update contract
+
+### Governance
+- `GET /api/governance/proposals` - List proposals
+- `POST /api/governance/proposals` - Create proposal
+- `POST /api/governance/vote` - Vote on proposal
+- `GET /api/governance/parameters` - Get platform parameters
+
+## 🔒 Security
+
+### Smart Contract Security
+- OpenZeppelin libraries for security patterns
+- Reentrancy guards and access controls
+- Comprehensive testing and auditing
+- Formal verification where applicable
+
+### API Security
+- JWT authentication and authorization
+- Rate limiting and CORS protection
+- Input validation and sanitization
+- SQL injection prevention
+
+### Frontend Security
+- XSS protection and content security policy
+- Secure token storage and handling
+- Input validation and sanitization
+- HTTPS enforcement
 
 ## 🤝 Contributing
 
@@ -363,57 +369,59 @@ docker-compose up -d
 2. Create a feature branch
 3. Make your changes
 4. Add tests for new functionality
-5. Submit a pull request
+5. Ensure all tests pass
+6. Submit a pull request
 
-### Development Guidelines
+### Code Style
 - Follow TypeScript best practices
+- Use Prettier for code formatting
+- Follow ESLint rules
 - Write comprehensive tests
-- Document all public APIs
-- Follow the coding standards
-- Ensure security best practices
+- Document your code
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 🙏 Acknowledgments
+
+- [Sia.tech](https://sia.tech/) for inspiration
+- [OpenZeppelin](https://openzeppelin.com/) for smart contract libraries
+- [React](https://reactjs.org/) for the frontend framework
+- [Express.js](https://expressjs.com/) for the backend framework
+- [Tailwind CSS](https://tailwindcss.com/) for styling
+
+## 📞 Support
 
 For support and questions:
 - Create an issue on GitHub
-- Contact the development team
+- Join our Discord community
 - Check the documentation
-- Review the API reference
+- Contact the development team
 
 ## 🔮 Roadmap
 
-### Phase 1 (Current)
-- ✅ Core DOM optimization
-- ✅ Tokenization system
-- ✅ Basic metaverse infrastructure
-- ✅ Client management
-- ✅ Cursor AI integration
+### Phase 1: Core Platform (Current)
+- [x] Smart contract development
+- [x] Basic API backend
+- [x] React frontend
+- [x] File upload and storage
+- [x] Host management
 
-### Phase 2 (Next)
-- 🔄 Advanced AI models
-- 🔄 Cross-chain bridges
-- 🔄 Mobile applications
-- 🔄 Advanced analytics
-- 🔄 Enterprise features
+### Phase 2: Advanced Features
+- [ ] Mobile applications
+- [ ] Advanced file sharing
+- [ ] Content delivery network
+- [ ] Advanced analytics
+- [ ] Multi-chain support
 
-### Phase 3 (Future)
-- ⏳ Decentralized governance
-- ⏳ Advanced metaverse features
-- ⏳ Machine learning optimization
-- ⏳ Global scaling
-- ⏳ Enterprise partnerships
-
-## 🙏 Acknowledgments
-
-- OpenZeppelin for smart contract libraries
-- React team for the frontend framework
-- Ethereum community for blockchain infrastructure
-- All contributors and supporters
+### Phase 3: Enterprise Features
+- [ ] Enterprise dashboard
+- [ ] Advanced security features
+- [ ] Compliance tools
+- [ ] Advanced monitoring
+- [ ] Custom integrations
 
 ---
 
-**LightDom Enterprise Platform** - Optimizing the web, one DOM element at a time.
+**Built with ❤️ for the decentralized future**
