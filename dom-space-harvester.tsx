@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import BridgeChatPage from './src/BridgeChatPage';
+import SpaceBridgeIntegration from './src/components/SpaceBridgeIntegration';
 import { Activity, Cpu, HardDrive, Zap, Globe, TrendingUp, Award, Settings, Play, Pause, RotateCcw, Database, Network, Link, Search, Map, Brain, Layers } from 'lucide-react';
 
 const RealWebCrawlerDashboard = () => {
@@ -71,6 +72,7 @@ const RealWebCrawlerDashboard = () => {
   const [landParcels, setLandParcels] = useState<any[]>([]);
   const [biomes, setBiomes] = useState<any[]>([]);
   const [biodomeAnimation, setBiodomeAnimation] = useState(0);
+  const [showSpaceBridgeIntegration, setShowSpaceBridgeIntegration] = useState(false);
   const socketRef = useRef<any>(null);
   const animationRef = useRef<number>();
   
@@ -597,6 +599,18 @@ const RealWebCrawlerDashboard = () => {
           >
             <RotateCcw size={20} />
             Reset Database
+          </button>
+          
+          <button
+            onClick={() => setShowSpaceBridgeIntegration(!showSpaceBridgeIntegration)}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
+              showSpaceBridgeIntegration 
+                ? 'bg-purple-600 hover:bg-purple-700' 
+                : 'bg-purple-500 hover:bg-purple-600'
+            }`}
+          >
+            <Link size={20} />
+            {showSpaceBridgeIntegration ? 'Hide' : 'Show'} Space-Bridge
           </button>
           
           <div className="flex items-center gap-2">
@@ -1252,6 +1266,25 @@ const RealWebCrawlerDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Space-Bridge Integration */}
+        {showSpaceBridgeIntegration && (
+          <div className="mt-8">
+            <SpaceBridgeIntegration 
+              optimizationResults={recentOptimizations.map(opt => ({
+                id: opt.id.toString(),
+                url: opt.url,
+                space_saved_kb: parseFloat(opt.spaceSaved),
+                biome_type: opt.biome,
+                optimization_type: opt.optimizationType,
+                timestamp: new Date()
+              }))}
+              onSpaceMined={(result) => {
+                console.log('Space mined and connected to bridge:', result);
+              }}
+            />
+          </div>
+        )}
 
         {/* How Real Web Crawling Works */}
         <div className="mt-8 bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700">

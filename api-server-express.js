@@ -1222,6 +1222,179 @@ class DOMSpaceHarvesterAPI {
       }
     });
 
+    // Create a new bridge
+    this.app.post('/api/metaverse/bridges', async (req, res) => {
+      try {
+        const { source_chain, target_chain, bridge_capacity = 1000000 } = req.body;
+        
+        if (!source_chain || !target_chain) {
+          return res.status(400).json({ error: 'Source chain and target chain are required' });
+        }
+
+        const bridgeId = `bridge_${source_chain.toLowerCase()}_${target_chain.toLowerCase()}`;
+        
+        const result = await this.db.query(`
+          INSERT INTO dimensional_bridges (bridge_id, source_chain, target_chain, bridge_capacity)
+          VALUES ($1, $2, $3, $4)
+          RETURNING *
+        `, [bridgeId, source_chain, target_chain, bridge_capacity]);
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error creating bridge:', error);
+        res.status(500).json({ error: 'Failed to create bridge' });
+      }
+    });
+
+    // Connect space mining to bridge
+    this.app.post('/api/metaverse/connect-space-to-bridge', async (req, res) => {
+      try {
+        const { optimization_id, bridge_id, space_mined_kb, biome_type } = req.body;
+        
+        if (!optimization_id || !bridge_id || !space_mined_kb) {
+          return res.status(400).json({ error: 'Optimization ID, bridge ID, and space mined are required' });
+        }
+
+        const result = await this.db.query(`
+          INSERT INTO space_bridge_connections (optimization_id, bridge_id, space_mined_kb, biome_type)
+          VALUES ($1, $2, $3, $4)
+          RETURNING *
+        `, [optimization_id, bridge_id, space_mined_kb, biome_type]);
+        
+        // Update bridge volume
+        await this.db.query(`
+          UPDATE dimensional_bridges 
+          SET current_volume = current_volume + $1, updated_at = NOW()
+          WHERE bridge_id = $2
+        `, [space_mined_kb * 1000, bridge_id]); // Convert KB to bytes
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error connecting space to bridge:', error);
+        res.status(500).json({ error: 'Failed to connect space to bridge' });
+      }
+    });
+
+    // Get space-bridge connections
+    this.app.get('/api/metaverse/space-bridge-connections', async (req, res) => {
+      try {
+        const { bridge_id } = req.query;
+        
+        let query = `
+          SELECT sbc.*, o.url, o.optimization_type
+          FROM space_bridge_connections sbc
+          LEFT JOIN optimizations o ON sbc.optimization_id = o.id
+        `;
+        let params = [];
+        
+        if (bridge_id) {
+          query += ' WHERE sbc.bridge_id = $1';
+          params.push(bridge_id);
+        }
+        
+        query += ' ORDER BY sbc.created_at DESC LIMIT 100';
+        
+        const result = await this.db.query(query, params);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching space-bridge connections:', error);
+        res.status(500).json({ error: 'Failed to fetch space-bridge connections' });
+      }
+    });
+
+    // Get bridge statistics
+    this.app.get('/api/metaverse/bridge/:bridgeId/stats', async (req, res) => {
+      try {
+        const { bridgeId } = req.params;
+        
+        const result = await this.db.query(`
+          SELECT 
+            COUNT(bm.id) as total_messages,
+            COUNT(DISTINCT bp.user_id) as active_participants,
+            COALESCE(SUM(sbc.space_mined_kb), 0) as total_space_connected,
+            MAX(bm.created_at) as last_message_at,
+            db.bridge_capacity,
+            db.current_volume
+          FROM dimensional_bridges db
+          LEFT JOIN bridge_messages bm ON db.bridge_id = bm.bridge_id
+          LEFT JOIN bridge_participants bp ON db.bridge_id = bp.bridge_id AND bp.is_active = TRUE
+          LEFT JOIN space_bridge_connections sbc ON db.bridge_id = sbc.bridge_id
+          WHERE db.bridge_id = $1
+          GROUP BY db.bridge_id, db.bridge_capacity, db.current_volume
+        `, [bridgeId]);
+        
+        if (result.rows.length === 0) {
+          return res.status(404).json({ error: 'Bridge not found' });
+        }
+        
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error fetching bridge stats:', error);
+        res.status(500).json({ error: 'Failed to fetch bridge stats' });
+      }
+    });
+
+    // Add bridge participant
+    this.app.post('/api/metaverse/bridge/:bridgeId/join', async (req, res) => {
+      try {
+        const { bridgeId } = req.params;
+        const { user_id, user_name } = req.body;
+        
+        if (!user_id || !user_name) {
+          return res.status(400).json({ error: 'User ID and user name are required' });
+        }
+
+        // Check if user is already a participant
+        const existingParticipant = await this.db.query(`
+          SELECT id FROM bridge_participants 
+          WHERE bridge_id = $1 AND user_id = $2
+        `, [bridgeId, user_id]);
+        
+        if (existingParticipant.rows.length > 0) {
+          // Update last active time
+          await this.db.query(`
+            UPDATE bridge_participants 
+            SET last_active = NOW(), is_active = TRUE
+            WHERE bridge_id = $1 AND user_id = $2
+          `, [bridgeId, user_id]);
+        } else {
+          // Add new participant
+          await this.db.query(`
+            INSERT INTO bridge_participants (bridge_id, user_id, user_name)
+            VALUES ($1, $2, $3)
+          `, [bridgeId, user_id, user_name]);
+        }
+        
+        res.json({ success: true, message: 'Joined bridge successfully' });
+      } catch (error) {
+        console.error('Error joining bridge:', error);
+        res.status(500).json({ error: 'Failed to join bridge' });
+      }
+    });
+
+    // Leave bridge
+    this.app.post('/api/metaverse/bridge/:bridgeId/leave', async (req, res) => {
+      try {
+        const { bridgeId } = req.params;
+        const { user_id } = req.body;
+        
+        if (!user_id) {
+          return res.status(400).json({ error: 'User ID is required' });
+        }
+
+        await this.db.query(`
+          UPDATE bridge_participants 
+          SET is_active = FALSE, last_active = NOW()
+          WHERE bridge_id = $1 AND user_id = $2
+        `, [bridgeId, user_id]);
+        
+        res.json({ success: true, message: 'Left bridge successfully' });
+      } catch (error) {
+        console.error('Error leaving bridge:', error);
+        res.status(500).json({ error: 'Failed to leave bridge' });
+      }
+    });
+
     // =====================================================
     // SEARCH AND QUERY ENDPOINTS
     // =====================================================
