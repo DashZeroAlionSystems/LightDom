@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { Contract } from 'ethers';
+import { getContractABI } from './ContractABIs';
 
 export interface BlockchainConfig {
   rpcUrl: string;
@@ -334,9 +335,7 @@ export class BlockchainService {
    */
   private async loadABI(contractName: string): Promise<any[]> {
     try {
-      // In a real implementation, you would load from compiled artifacts
-      // For now, return empty array - you'll need to add the actual ABIs
-      return [];
+      return getContractABI(contractName);
     } catch (error) {
       console.error(`❌ Failed to load ABI for ${contractName}:`, error);
       throw error;

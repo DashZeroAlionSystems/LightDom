@@ -67,6 +67,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       label: 'DOM Optimization',
     },
     {
+      key: '/dashboard/blockchain',
+      icon: <WalletOutlined />,
+      label: 'Blockchain',
+    },
+    {
       key: '/dashboard/analytics',
       icon: <BarChartOutlined />,
       label: 'Analytics',

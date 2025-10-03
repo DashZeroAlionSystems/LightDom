@@ -137,6 +137,9 @@ class DOMSpaceHarvesterAPI {
     // Setup all routes
     this.setupRoutes();
     
+    // Setup blockchain API routes
+    this.setupBlockchainRoutes();
+    
     // Statistics cache
     this.statsCache = {
       lastUpdate: 0,
@@ -2099,6 +2102,192 @@ class DOMSpaceHarvesterAPI {
     this.server.close();
     
     console.log('✅ Server shutdown complete');
+  }
+
+  setupBlockchainRoutes() {
+    // =====================================================
+    // BLOCKCHAIN API ENDPOINTS
+    // =====================================================
+
+    // Get blockchain status
+    this.app.get('/api/blockchain/status', async (req, res) => {
+      try {
+        res.json({
+          success: true,
+          data: {
+            connected: this.blockchainEnabled,
+            network: {
+              chainId: process.env.CHAIN_ID || '1337',
+              name: process.env.NETWORK || 'localhost',
+              rpcUrl: process.env.RPC_URL || 'http://localhost:8545'
+            },
+            contracts: {
+              token: process.env.LIGHTDOM_TOKEN_ADDRESS || '',
+              registry: process.env.OPTIMIZATION_REGISTRY_ADDRESS || '',
+              nft: process.env.VIRTUAL_LAND_NFT_ADDRESS || ''
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Blockchain status error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get blockchain status'
+        });
+      }
+    });
+
+    // Get harvester stats
+    this.app.get('/api/blockchain/harvester-stats/:address', async (req, res) => {
+      try {
+        const { address } = req.params;
+        
+        // Mock data for now - in production this would call the smart contract
+        const mockStats = {
+          reputation: 1250,
+          spaceHarvested: 1024000, // 1MB in bytes
+          optimizations: 15,
+          successfulOptimizations: 12,
+          streak: 5,
+          tokensEarned: '1250.5',
+          stakedAmount: '500.0',
+          stakingRewards: '25.0'
+        };
+        
+        res.json({
+          success: true,
+          data: mockStats
+        });
+      } catch (error) {
+        console.error('Harvester stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get harvester stats'
+        });
+      }
+    });
+
+    // Get metaverse stats
+    this.app.get('/api/blockchain/metaverse-stats', async (req, res) => {
+      try {
+        // Mock data for now
+        const mockStats = {
+          land: 25,
+          nodes: 8,
+          shards: 12,
+          bridges: 3
+        };
+        
+        res.json({
+          success: true,
+          data: mockStats
+        });
+      } catch (error) {
+        console.error('Metaverse stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get metaverse stats'
+        });
+      }
+    });
+
+    // Get token balance
+    this.app.get('/api/blockchain/token-balance/:address', async (req, res) => {
+      try {
+        const { address } = req.params;
+        
+        // Mock data for now
+        const mockBalance = '1250.5';
+        
+        res.json({
+          success: true,
+          data: { balance: mockBalance }
+        });
+      } catch (error) {
+        console.error('Token balance error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get token balance'
+        });
+      }
+    });
+
+    // Get staking rewards
+    this.app.get('/api/blockchain/staking-rewards/:address', async (req, res) => {
+      try {
+        const { address } = req.params;
+        
+        // Mock data for now
+        const mockRewards = '25.0';
+        
+        res.json({
+          success: true,
+          data: { rewards: mockRewards }
+        });
+      } catch (error) {
+        console.error('Staking rewards error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get staking rewards'
+        });
+      }
+    });
+
+    // Submit optimization
+    this.app.post('/api/blockchain/submit-optimization', async (req, res) => {
+      try {
+        const { url, spaceBytes, proofHash, biomeType, metadata } = req.body;
+        
+        // Validate required fields
+        if (!url || !spaceBytes || !proofHash || !biomeType) {
+          return res.status(400).json({
+            success: false,
+            error: 'Missing required fields'
+          });
+        }
+
+        // Mock response for now
+        res.json({
+          success: true,
+          data: {
+            message: 'Optimization submitted successfully',
+            txHash: '0x' + Math.random().toString(16).substr(2, 64),
+            optimizationId: 'opt_' + Date.now()
+          }
+        });
+      } catch (error) {
+        console.error('Submit optimization error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to submit optimization'
+        });
+      }
+    });
+
+    // Get network info
+    this.app.get('/api/blockchain/network-info', async (req, res) => {
+      try {
+        const networkInfo = {
+          chainId: parseInt(process.env.CHAIN_ID || '1337'),
+          name: process.env.NETWORK || 'localhost',
+          blockNumber: Math.floor(Math.random() * 1000000),
+          gasPrice: '20'
+        };
+        
+        res.json({
+          success: true,
+          data: networkInfo
+        });
+      } catch (error) {
+        console.error('Network info error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get network info'
+        });
+      }
+    });
+
+    console.log('✅ Blockchain API routes configured');
   }
 }
 

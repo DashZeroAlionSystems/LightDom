@@ -2,10 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { BlockchainProvider } from './hooks/useBlockchain';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import DashboardOverview from './components/dashboard/DashboardOverview';
 import OptimizationDashboard from './components/dashboard/OptimizationDashboard';
 import WalletDashboard from './components/dashboard/WalletDashboard';
+import BlockchainDashboard from './components/BlockchainDashboard';
 import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import PaymentPage from './components/payment/PaymentPage';
@@ -50,6 +52,7 @@ const AppContent: React.FC = () => {
           <Route index element={<DashboardOverview />} />
           <Route path="optimization" element={<OptimizationDashboard />} />
           <Route path="wallet" element={<WalletDashboard />} />
+          <Route path="blockchain" element={<BlockchainDashboard />} />
           <Route path="analytics" element={<div>Analytics Coming Soon</div>} />
           <Route path="websites" element={<div>Websites Coming Soon</div>} />
           <Route path="history" element={<div>History Coming Soon</div>} />
@@ -108,7 +111,9 @@ const App: React.FC = () => {
       }}
     >
       <AuthProvider>
-        <AppContent />
+        <BlockchainProvider>
+          <AppContent />
+        </BlockchainProvider>
       </AuthProvider>
     </ConfigProvider>
   );

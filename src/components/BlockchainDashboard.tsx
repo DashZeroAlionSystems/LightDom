@@ -35,65 +35,40 @@ import {
   CheckCircleOutlined,
   ExclamationCircleOutlined
 } from '@ant-design/icons';
-import { BlockchainService, HarvesterStats, MetaverseStats, OptimizationData } from '../services/BlockchainService';
+import { useBlockchain } from '../hooks/useBlockchain';
+import { OptimizationData } from '../services/BlockchainService';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
 const { TextArea } = Input;
 
-interface BlockchainDashboardProps {
-  blockchainService: BlockchainService;
-  userAddress: string;
-}
-
-const BlockchainDashboard: React.FC<BlockchainDashboardProps> = ({
-  blockchainService,
-  userAddress
-}) => {
-  const [loading, setLoading] = useState(false);
-  const [harvesterStats, setHarvesterStats] = useState<HarvesterStats | null>(null);
-  const [metaverseStats, setMetaverseStats] = useState<MetaverseStats | null>(null);
-  const [networkInfo, setNetworkInfo] = useState<any>(null);
-  const [tokenBalance, setTokenBalance] = useState<string>('0');
-  const [stakingRewards, setStakingRewards] = useState<string>('0');
+const BlockchainDashboard: React.FC = () => {
+  const {
+    blockchainService,
+    userAddress,
+    isConnected,
+    loading,
+    error,
+    harvesterStats,
+    metaverseStats,
+    tokenBalance,
+    stakingRewards,
+    networkInfo,
+    connectWallet,
+    disconnectWallet,
+    submitOptimization,
+    stakeTokens,
+    unstakeTokens,
+    claimStakingRewards,
+    refreshData
+  } = useBlockchain();
   const [optimizationForm] = Form.useForm();
   const [stakeForm] = Form.useForm();
   const [showOptimizationModal, setShowOptimizationModal] = useState(false);
   const [showStakeModal, setShowStakeModal] = useState(false);
   const [recentOptimizations, setRecentOptimizations] = useState<any[]>([]);
 
-  useEffect(() => {
-    loadDashboardData();
-    const interval = setInterval(loadDashboardData, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, [userAddress]);
-
-  const loadDashboardData = async () => {
-    setLoading(true);
-    try {
-      const [stats, metaverse, network, balance, rewards] = await Promise.all([
-        blockchainService.getHarvesterStats(userAddress),
-        blockchainService.getMetaverseStats(),
-        blockchainService.getNetworkInfo(),
-        blockchainService.getTokenBalance(userAddress),
-        blockchainService.getStakingRewards(userAddress)
-      ]);
-
-      setHarvesterStats(stats);
-      setMetaverseStats(metaverse);
-      setNetworkInfo(network);
-      setTokenBalance(balance);
-      setStakingRewards(rewards);
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error);
-      message.error('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmitOptimization = async (values: any) => {
-    setLoading(true);
     try {
       const optimizationData: OptimizationData = {
         url: values.url,
@@ -103,60 +78,45 @@ const BlockchainDashboard: React.FC<BlockchainDashboardProps> = ({
         metadata: values.metadata
       };
 
-      const txHash = await blockchainService.submitOptimization(optimizationData);
+      const txHash = await submitOptimization(optimizationData);
       message.success(`Optimization submitted! Transaction: ${txHash}`);
       setShowOptimizationModal(false);
       optimizationForm.resetFields();
-      loadDashboardData();
     } catch (error) {
       console.error('Failed to submit optimization:', error);
       message.error('Failed to submit optimization');
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleStakeTokens = async (values: any) => {
-    setLoading(true);
     try {
-      const txHash = await blockchainService.stakeTokens(values.amount);
+      const txHash = await stakeTokens(values.amount);
       message.success(`Tokens staked! Transaction: ${txHash}`);
       setShowStakeModal(false);
       stakeForm.resetFields();
-      loadDashboardData();
     } catch (error) {
       console.error('Failed to stake tokens:', error);
       message.error('Failed to stake tokens');
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleUnstakeTokens = async (values: any) => {
-    setLoading(true);
     try {
-      const txHash = await blockchainService.unstakeTokens(values.amount);
+      const txHash = await unstakeTokens(values.amount);
       message.success(`Tokens unstaked! Transaction: ${txHash}`);
-      loadDashboardData();
     } catch (error) {
       console.error('Failed to unstake tokens:', error);
       message.error('Failed to unstake tokens');
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleClaimRewards = async () => {
-    setLoading(true);
     try {
-      const txHash = await blockchainService.claimStakingRewards();
+      const txHash = await claimStakingRewards();
       message.success(`Rewards claimed! Transaction: ${txHash}`);
-      loadDashboardData();
     } catch (error) {
       console.error('Failed to claim rewards:', error);
       message.error('Failed to claim rewards');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -217,6 +177,52 @@ const BlockchainDashboard: React.FC<BlockchainDashboardProps> = ({
     }
   ];
 
+  // Show wallet connection if not connected
+  if (!isConnected) {
+    return (
+      <div style={{ padding: '24px', textAlign: 'center' }}>
+        <Title level={2}>
+          <WalletOutlined /> Blockchain Dashboard
+        </Title>
+        
+        <Card style={{ maxWidth: 500, margin: '0 auto' }}>
+          <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <div>
+              <WalletOutlined style={{ fontSize: '48px', color: '#1890ff' }} />
+              <Title level={3}>Connect Your Wallet</Title>
+              <Text type="secondary">
+                Connect your MetaMask wallet to access blockchain features
+              </Text>
+            </div>
+            
+            {error && (
+              <Alert
+                message="Connection Error"
+                description={error}
+                type="error"
+                showIcon
+              />
+            )}
+            
+            <Button
+              type="primary"
+              size="large"
+              onClick={connectWallet}
+              loading={loading}
+              icon={<WalletOutlined />}
+            >
+              Connect MetaMask
+            </Button>
+            
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              Make sure you have MetaMask installed and unlocked
+            </Text>
+          </Space>
+        </Card>
+      </div>
+    );
+  }
+
   if (loading && !harvesterStats) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
@@ -228,9 +234,20 @@ const BlockchainDashboard: React.FC<BlockchainDashboardProps> = ({
 
   return (
     <div style={{ padding: '24px' }}>
-      <Title level={2}>
-        <WalletOutlined /> Blockchain Dashboard
-      </Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <Title level={2}>
+          <WalletOutlined /> Blockchain Dashboard
+        </Title>
+        
+        <Space>
+          <Text type="secondary">
+            {userAddress?.slice(0, 6)}...{userAddress?.slice(-4)}
+          </Text>
+          <Button onClick={disconnectWallet} size="small">
+            Disconnect
+          </Button>
+        </Space>
+      </div>
       
       <Alert
         message="Blockchain Integration Active"
@@ -239,6 +256,16 @@ const BlockchainDashboard: React.FC<BlockchainDashboardProps> = ({
         showIcon
         style={{ marginBottom: '24px' }}
       />
+      
+      {error && (
+        <Alert
+          message="Blockchain Error"
+          description={error}
+          type="error"
+          showIcon
+          style={{ marginBottom: '24px' }}
+        />
+      )}
 
       <Row gutter={[16, 16]}>
         {/* Token Balance */}
