@@ -1,14 +1,58 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DOM Space Harvester</title>
+    <meta name="theme-color" content="#4285f4" />
+    <meta name="description" content="Advanced web optimization platform with blockchain integration for DOM optimization and performance enhancement" />
+    
+    <title>LightDom - Web Optimization Platform</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="LightDom" />
+    <meta name="msapplication-TileColor" content="#4285f4" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- PWA Install Button -->
+    <button id="pwa-install-button" style="display: none; position: fixed; bottom: 20px; right: 20px; background: #4285f4; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; z-index: 1000;">
+      Install App
+    </button>
+    
+    <!-- PWA Update Notification -->
+    <div id="pwa-update-notification" style="display: none; position: fixed; top: 20px; right: 20px; background: white; border: 1px solid #ddd; border-radius: 8px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000;">
+      <div style="margin-bottom: 12px;">
+        <h3 style="margin: 0 0 8px 0; font-size: 16px;">Update Available</h3>
+        <p style="margin: 0; font-size: 14px; color: #666;">A new version of the app is available.</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button id="update-button" style="background: #4285f4; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">Update Now</button>
+        <button id="dismiss-update" style="background: #f5f5f5; color: #333; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">Later</button>
+      </div>
+    </div>
+    
+    <!-- PWA Status Notification -->
+    <div id="pwa-status-notification" style="display: none; position: fixed; top: 20px; right: 20px; background: white; border: 1px solid #ddd; border-radius: 8px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000;">
+      <p id="pwa-status-message" style="margin: 0; font-size: 14px;"></p>
+    </div>
   </body>
-  </html>
+</html>
 
 
