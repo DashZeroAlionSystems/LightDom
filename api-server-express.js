@@ -149,6 +149,12 @@ class DOMSpaceHarvesterAPI {
     // Setup analytics API routes
     this.setupAnalyticsRoutes();
     
+    // Setup authentication API routes
+    this.setupAuthRoutes();
+    
+    // Setup mining API routes
+    this.setupMiningRoutes();
+    
     // Statistics cache
     this.statsCache = {
       lastUpdate: 0,
@@ -2663,6 +2669,846 @@ class DOMSpaceHarvesterAPI {
     });
 
     console.log('✅ Analytics API routes configured');
+  }
+
+  setupAuthRoutes() {
+    // =====================================================
+    // AUTHENTICATION API ENDPOINTS
+    // =====================================================
+
+    // User signup
+    this.app.post('/api/auth/signup', async (req, res) => {
+      try {
+        const { name, email, password, walletAddress, agreeToTerms } = req.body;
+
+        // Validate required fields
+        if (!name || !email || !password || !agreeToTerms) {
+          return res.status(400).json({
+            success: false,
+            error: 'Missing required fields'
+          });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid email format'
+          });
+        }
+
+        // Validate password strength
+        if (password.length < 8) {
+          return res.status(400).json({
+            success: false,
+            error: 'Password must be at least 8 characters'
+          });
+        }
+
+        // Check if user already exists (mock check)
+        const existingUser = await this.checkUserExists(email);
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            error: 'User already exists with this email'
+          });
+        }
+
+        // Create new user
+        const newUser = {
+          id: Date.now().toString(),
+          name,
+          email,
+          walletAddress: walletAddress || null,
+          createdAt: new Date().toISOString(),
+          isVerified: false,
+          profile: {
+            avatar: null,
+            bio: '',
+            location: '',
+            website: ''
+          },
+          stats: {
+            totalOptimizations: 0,
+            tokensEarned: 0,
+            spaceSaved: 0,
+            reputation: 0,
+            level: 1
+          },
+          preferences: {
+            notifications: true,
+            emailUpdates: true,
+            darkMode: false
+          }
+        };
+
+        // Generate JWT token (mock)
+        const token = this.generateJWT(newUser);
+
+        // Send verification email (mock)
+        await this.sendVerificationEmail(email, newUser.id);
+
+        res.json({
+          success: true,
+          message: 'Account created successfully',
+          token,
+          user: newUser
+        });
+      } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to create account'
+        });
+      }
+    });
+
+    // User login
+    this.app.post('/api/auth/login', async (req, res) => {
+      try {
+        const { email, password, remember } = req.body;
+
+        // Validate required fields
+        if (!email || !password) {
+          return res.status(400).json({
+            success: false,
+            error: 'Email and password are required'
+          });
+        }
+
+        // Mock user authentication
+        const user = await this.authenticateUser(email, password);
+        if (!user) {
+          return res.status(401).json({
+            success: false,
+            error: 'Invalid credentials'
+          });
+        }
+
+        // Generate JWT token
+        const token = this.generateJWT(user);
+
+        // Update last login
+        user.lastLogin = new Date().toISOString();
+
+        res.json({
+          success: true,
+          message: 'Login successful',
+          token,
+          user
+        });
+      } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to login'
+        });
+      }
+    });
+
+    // Forgot password
+    this.app.post('/api/auth/forgot-password', async (req, res) => {
+      try {
+        const { email } = req.body;
+
+        if (!email) {
+          return res.status(400).json({
+            success: false,
+            error: 'Email is required'
+          });
+        }
+
+        // Check if user exists
+        const user = await this.checkUserExists(email);
+        if (!user) {
+          return res.status(404).json({
+            success: false,
+            error: 'User not found'
+          });
+        }
+
+        // Generate reset token (mock)
+        const resetToken = this.generateResetToken(user.id);
+
+        // Send reset email (mock)
+        await this.sendPasswordResetEmail(email, resetToken);
+
+        res.json({
+          success: true,
+          message: 'Password reset email sent'
+        });
+      } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to send reset email'
+        });
+      }
+    });
+
+    // Reset password
+    this.app.post('/api/auth/reset-password', async (req, res) => {
+      try {
+        const { token, password } = req.body;
+
+        if (!token || !password) {
+          return res.status(400).json({
+            success: false,
+            error: 'Token and password are required'
+          });
+        }
+
+        // Validate reset token (mock)
+        const userId = await this.validateResetToken(token);
+        if (!userId) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid or expired reset token'
+          });
+        }
+
+        // Update password (mock)
+        await this.updateUserPassword(userId, password);
+
+        res.json({
+          success: true,
+          message: 'Password reset successfully'
+        });
+      } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to reset password'
+        });
+      }
+    });
+
+    // Verify email
+    this.app.post('/api/auth/verify-email', async (req, res) => {
+      try {
+        const { token } = req.body;
+
+        if (!token) {
+          return res.status(400).json({
+            success: false,
+            error: 'Verification token is required'
+          });
+        }
+
+        // Validate verification token (mock)
+        const userId = await this.validateVerificationToken(token);
+        if (!userId) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid or expired verification token'
+          });
+        }
+
+        // Mark user as verified (mock)
+        await this.verifyUser(userId);
+
+        res.json({
+          success: true,
+          message: 'Email verified successfully'
+        });
+      } catch (error) {
+        console.error('Verify email error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to verify email'
+        });
+      }
+    });
+
+    // Get user profile
+    this.app.get('/api/auth/profile', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const user = await this.getUserProfile(userId);
+
+        if (!user) {
+          return res.status(404).json({
+            success: false,
+            error: 'User not found'
+          });
+        }
+
+        res.json({
+          success: true,
+          user
+        });
+      } catch (error) {
+        console.error('Get profile error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get profile'
+        });
+      }
+    });
+
+    // Update user profile
+    this.app.put('/api/auth/profile', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const updates = req.body;
+
+        const updatedUser = await this.updateUserProfile(userId, updates);
+
+        res.json({
+          success: true,
+          message: 'Profile updated successfully',
+          user: updatedUser
+        });
+      } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to update profile'
+        });
+      }
+    });
+
+    console.log('✅ Authentication API routes configured');
+  }
+
+  setupMiningRoutes() {
+    // =====================================================
+    // MINING API ENDPOINTS
+    // =====================================================
+
+    // Start mining session
+    this.app.post('/api/mining/start', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const { config } = req.body;
+
+        // Validate config
+        if (!config || !config.startUrl) {
+          return res.status(400).json({
+            success: false,
+            error: 'Mining configuration is required'
+          });
+        }
+
+        // Start mining session
+        const session = await this.startMiningSession(userId, config);
+
+        res.json({
+          success: true,
+          message: 'Mining session started',
+          session
+        });
+      } catch (error) {
+        console.error('Start mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to start mining session'
+        });
+      }
+    });
+
+    // Get mining session status
+    this.app.get('/api/mining/session/:sessionId', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const userId = req.user.id;
+
+        const session = await this.getMiningSession(sessionId, userId);
+        if (!session) {
+          return res.status(404).json({
+            success: false,
+            error: 'Mining session not found'
+          });
+        }
+
+        res.json({
+          success: true,
+          session
+        });
+      } catch (error) {
+        console.error('Get mining session error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining session'
+        });
+      }
+    });
+
+    // Pause mining session
+    this.app.post('/api/mining/session/:sessionId/pause', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const userId = req.user.id;
+
+        const success = await this.pauseMiningSession(sessionId, userId);
+        if (!success) {
+          return res.status(404).json({
+            success: false,
+            error: 'Mining session not found or cannot be paused'
+          });
+        }
+
+        res.json({
+          success: true,
+          message: 'Mining session paused'
+        });
+      } catch (error) {
+        console.error('Pause mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to pause mining session'
+        });
+      }
+    });
+
+    // Resume mining session
+    this.app.post('/api/mining/session/:sessionId/resume', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const userId = req.user.id;
+
+        const success = await this.resumeMiningSession(sessionId, userId);
+        if (!success) {
+          return res.status(404).json({
+            success: false,
+            error: 'Mining session not found or cannot be resumed'
+          });
+        }
+
+        res.json({
+          success: true,
+          message: 'Mining session resumed'
+        });
+      } catch (error) {
+        console.error('Resume mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to resume mining session'
+        });
+      }
+    });
+
+    // Stop mining session
+    this.app.post('/api/mining/session/:sessionId/stop', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const userId = req.user.id;
+
+        const success = await this.stopMiningSession(sessionId, userId);
+        if (!success) {
+          return res.status(404).json({
+            success: false,
+            error: 'Mining session not found'
+          });
+        }
+
+        res.json({
+          success: true,
+          message: 'Mining session stopped'
+        });
+      } catch (error) {
+        console.error('Stop mining error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to stop mining session'
+        });
+      }
+    });
+
+    // Get user's mining sessions
+    this.app.get('/api/mining/sessions', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const sessions = await this.getUserMiningSessions(userId);
+
+        res.json({
+          success: true,
+          sessions
+        });
+      } catch (error) {
+        console.error('Get mining sessions error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining sessions'
+        });
+      }
+    });
+
+    // Get mining statistics
+    this.app.get('/api/mining/stats', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const userId = req.user.id;
+        const stats = await this.getMiningStats(userId);
+
+        res.json({
+          success: true,
+          stats
+        });
+      } catch (error) {
+        console.error('Get mining stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get mining statistics'
+        });
+      }
+    });
+
+    // Download mining results
+    this.app.get('/api/mining/session/:sessionId/download', this.authenticateToken.bind(this), async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const { format = 'json' } = req.query;
+        const userId = req.user.id;
+
+        const session = await this.getMiningSession(sessionId, userId);
+        if (!session) {
+          return res.status(404).json({
+            success: false,
+            error: 'Mining session not found'
+          });
+        }
+
+        const results = await this.generateMiningReport(session, format);
+
+        res.setHeader('Content-Type', format === 'csv' ? 'text/csv' : 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="mining-results-${sessionId}.${format}"`);
+        res.send(results);
+      } catch (error) {
+        console.error('Download mining results error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to download mining results'
+        });
+      }
+    });
+
+    console.log('✅ Mining API routes configured');
+  }
+
+  // Mining service methods
+  async startMiningSession(userId, config) {
+    // Mock mining session creation
+    const sessionId = `mining_${userId}_${Date.now()}`;
+    
+    const session = {
+      id: sessionId,
+      userId,
+      status: 'mining',
+      startTime: new Date().toISOString(),
+      totalPages: 0,
+      pagesProcessed: 0,
+      optimizationsFound: 0,
+      spaceSaved: 0,
+      tokensEarned: 0,
+      progress: 0,
+      config,
+      results: []
+    };
+
+    // Store session (in production, use database)
+    this.miningSessions = this.miningSessions || new Map();
+    this.miningSessions.set(sessionId, session);
+
+    // Simulate mining process
+    this.simulateMiningProcess(session);
+
+    return session;
+  }
+
+  async getMiningSession(sessionId, userId) {
+    this.miningSessions = this.miningSessions || new Map();
+    const session = this.miningSessions.get(sessionId);
+    
+    if (!session || session.userId !== userId) {
+      return null;
+    }
+
+    return session;
+  }
+
+  async pauseMiningSession(sessionId, userId) {
+    const session = await this.getMiningSession(sessionId, userId);
+    if (session && session.status === 'mining') {
+      session.status = 'paused';
+      return true;
+    }
+    return false;
+  }
+
+  async resumeMiningSession(sessionId, userId) {
+    const session = await this.getMiningSession(sessionId, userId);
+    if (session && session.status === 'paused') {
+      session.status = 'mining';
+      this.simulateMiningProcess(session);
+      return true;
+    }
+    return false;
+  }
+
+  async stopMiningSession(sessionId, userId) {
+    const session = await this.getMiningSession(sessionId, userId);
+    if (session) {
+      session.status = 'completed';
+      session.endTime = new Date().toISOString();
+      session.progress = 100;
+      return true;
+    }
+    return false;
+  }
+
+  async getUserMiningSessions(userId) {
+    this.miningSessions = this.miningSessions || new Map();
+    return Array.from(this.miningSessions.values())
+      .filter(session => session.userId === userId)
+      .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+  }
+
+  async getMiningStats(userId) {
+    const sessions = await this.getUserMiningSessions(userId);
+    
+    const totalSessions = sessions.length;
+    const completedSessions = sessions.filter(s => s.status === 'completed').length;
+    const totalPagesMined = sessions.reduce((sum, s) => sum + s.pagesProcessed, 0);
+    const totalOptimizations = sessions.reduce((sum, s) => sum + s.optimizationsFound, 0);
+    const totalSpaceSaved = sessions.reduce((sum, s) => sum + s.spaceSaved, 0);
+    const totalTokensEarned = sessions.reduce((sum, s) => sum + s.tokensEarned, 0);
+
+    return {
+      totalSessions,
+      completedSessions,
+      totalPagesMined,
+      totalOptimizations,
+      totalSpaceSaved,
+      totalTokensEarned,
+      averageSpacePerPage: totalPagesMined > 0 ? Math.round(totalSpaceSaved / totalPagesMined) : 0,
+      averageTokensPerSession: totalSessions > 0 ? Math.round(totalTokensEarned / totalSessions) : 0
+    };
+  }
+
+  async generateMiningReport(session, format) {
+    if (format === 'csv') {
+      const csvHeader = 'URL,Domain,Timestamp,Optimizations,Space Saved,Tokens Earned,Status\n';
+      const csvRows = session.results.map(result => 
+        `"${result.url}","${result.domain}","${result.timestamp}",${result.optimizations.length},${result.spaceSaved},${result.tokensEarned},"${result.status}"`
+      ).join('\n');
+      return csvHeader + csvRows;
+    } else {
+      return JSON.stringify({
+        session: {
+          id: session.id,
+          startTime: session.startTime,
+          endTime: session.endTime,
+          status: session.status,
+          totalPages: session.totalPages,
+          pagesProcessed: session.pagesProcessed,
+          optimizationsFound: session.optimizationsFound,
+          spaceSaved: session.spaceSaved,
+          tokensEarned: session.tokensEarned
+        },
+        results: session.results
+      }, null, 2);
+    }
+  }
+
+  simulateMiningProcess(session) {
+    // Simulate mining progress
+    const interval = setInterval(() => {
+      if (session.status !== 'mining') {
+        clearInterval(interval);
+        return;
+      }
+
+      // Simulate processing a page
+      if (session.pagesProcessed < session.totalPages) {
+        session.pagesProcessed++;
+        session.progress = Math.round((session.pagesProcessed / session.totalPages) * 100);
+        
+        // Simulate finding optimizations
+        const optimizationsFound = Math.floor(Math.random() * 5) + 1;
+        const spaceSaved = Math.floor(Math.random() * 50000) + 10000;
+        const tokensEarned = Math.floor(spaceSaved / 1000);
+
+        session.optimizationsFound += optimizationsFound;
+        session.spaceSaved += spaceSaved;
+        session.tokensEarned += tokensEarned;
+
+        // Add result
+        session.results.push({
+          url: `https://example.com/page${session.pagesProcessed}`,
+          domain: 'example.com',
+          timestamp: new Date().toISOString(),
+          optimizations: Array.from({ length: optimizationsFound }, (_, i) => ({
+            type: ['Image', 'CSS', 'JavaScript', 'HTML'][i % 4],
+            spaceSaved: Math.floor(spaceSaved / optimizationsFound),
+            tokensEarned: Math.floor(tokensEarned / optimizationsFound)
+          })),
+          spaceSaved,
+          tokensEarned,
+          status: 'success'
+        });
+
+        // Complete session if all pages processed
+        if (session.pagesProcessed >= session.totalPages) {
+          session.status = 'completed';
+          session.endTime = new Date().toISOString();
+          session.progress = 100;
+          clearInterval(interval);
+        }
+      }
+    }, 2000); // Update every 2 seconds
+  }
+
+  // Helper methods for authentication
+  async checkUserExists(email) {
+    // Mock database check
+    return null; // User doesn't exist
+  }
+
+  async authenticateUser(email, password) {
+    // Mock authentication - in production, check against database
+    const mockUsers = [
+      {
+        id: '1',
+        name: 'John Doe',
+        email: 'john@example.com',
+        password: 'password123', // In production, this would be hashed
+        walletAddress: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+        createdAt: '2024-01-01T00:00:00Z',
+        isVerified: true,
+        profile: {
+          avatar: null,
+          bio: 'DOM optimization enthusiast',
+          location: 'San Francisco, CA',
+          website: 'https://johndoe.com'
+        },
+        stats: {
+          totalOptimizations: 45,
+          tokensEarned: 4250,
+          spaceSaved: 1024000,
+          reputation: 850,
+          level: 5
+        }
+      }
+    ];
+
+    return mockUsers.find(user => user.email === email && user.password === password);
+  }
+
+  generateJWT(user) {
+    // Mock JWT generation - in production, use proper JWT library
+    const payload = {
+      id: user.id,
+      email: user.email,
+      name: user.name
+    };
+    
+    // Simple base64 encoding (not secure for production)
+    return Buffer.from(JSON.stringify(payload)).toString('base64');
+  }
+
+  generateResetToken(userId) {
+    // Mock reset token generation
+    return `reset_${userId}_${Date.now()}`;
+  }
+
+  generateVerificationToken(userId) {
+    // Mock verification token generation
+    return `verify_${userId}_${Date.now()}`;
+  }
+
+  async validateResetToken(token) {
+    // Mock token validation
+    const parts = token.split('_');
+    if (parts.length === 3 && parts[0] === 'reset') {
+      return parts[1];
+    }
+    return null;
+  }
+
+  async validateVerificationToken(token) {
+    // Mock token validation
+    const parts = token.split('_');
+    if (parts.length === 3 && parts[0] === 'verify') {
+      return parts[1];
+    }
+    return null;
+  }
+
+  async sendVerificationEmail(email, userId) {
+    // Mock email sending
+    console.log(`📧 Verification email sent to ${email} for user ${userId}`);
+  }
+
+  async sendPasswordResetEmail(email, resetToken) {
+    // Mock email sending
+    console.log(`📧 Password reset email sent to ${email} with token ${resetToken}`);
+  }
+
+  async updateUserPassword(userId, password) {
+    // Mock password update
+    console.log(`🔒 Password updated for user ${userId}`);
+  }
+
+  async verifyUser(userId) {
+    // Mock user verification
+    console.log(`✅ User ${userId} verified`);
+  }
+
+  async getUserProfile(userId) {
+    // Mock user profile retrieval
+    return {
+      id: userId,
+      name: 'John Doe',
+      email: 'john@example.com',
+      walletAddress: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+      createdAt: '2024-01-01T00:00:00Z',
+      isVerified: true,
+      profile: {
+        avatar: null,
+        bio: 'DOM optimization enthusiast',
+        location: 'San Francisco, CA',
+        website: 'https://johndoe.com'
+      },
+      stats: {
+        totalOptimizations: 45,
+        tokensEarned: 4250,
+        spaceSaved: 1024000,
+        reputation: 850,
+        level: 5
+      }
+    };
+  }
+
+  async updateUserProfile(userId, updates) {
+    // Mock profile update
+    const user = await this.getUserProfile(userId);
+    return { ...user, ...updates };
+  }
+
+  // JWT Authentication middleware
+  authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'Access token required'
+      });
+    }
+
+    try {
+      // Mock JWT verification - in production, use proper JWT library
+      const payload = JSON.parse(Buffer.from(token, 'base64').toString());
+      req.user = payload;
+      next();
+    } catch (error) {
+      return res.status(403).json({
+        success: false,
+        error: 'Invalid token'
+      });
+    }
   }
 }
 
