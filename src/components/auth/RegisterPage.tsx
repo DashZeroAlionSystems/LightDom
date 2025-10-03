@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import SignUpForm from './SignUpForm';
+import SignupForm from './SignupForm';
 import './AuthForms.css';
 
 const RegisterPage: React.FC = () => {
@@ -36,9 +36,8 @@ const RegisterPage: React.FC = () => {
           <p>Join the DOM optimization revolution</p>
         </div>
         
-        <SignUpForm
-          onSignUp={handleSignUp}
-          onSignIn={handleSignIn}
+        <SignupForm
+          onSuccess={() => navigate('/dashboard')}
         />
         
         {error && (

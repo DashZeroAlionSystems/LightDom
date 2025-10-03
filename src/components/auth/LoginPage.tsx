@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import SignInForm from './SignInForm';
+import LoginForm from './LoginForm';
 import './AuthForms.css';
 
 const LoginPage: React.FC = () => {
@@ -36,10 +36,8 @@ const LoginPage: React.FC = () => {
           <p>DOM Optimization & Mining Platform</p>
         </div>
         
-        <SignInForm
-          onSignIn={handleSignIn}
-          onSignUp={handleSignUp}
-          onForgotPassword={handleForgotPassword}
+        <LoginForm
+          onSuccess={() => navigate('/dashboard')}
         />
         
         {error && (

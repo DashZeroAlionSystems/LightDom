@@ -33,7 +33,8 @@ import {
   UserOutlined,
   MenuOutlined,
   CloseOutlined,
-  ShoppingCartOutlined
+  ShoppingCartOutlined,
+  GiftOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { useOptimization } from '../../hooks/useOptimization';
@@ -89,7 +90,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     },
     {
       key: '/dashboard/metaverse-mining-rewards',
-      icon: <TrophyOutlined />,
+      icon: <GiftOutlined />,
       label: 'Mining Rewards',
     },
     {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider, theme, Spin, Typography } from 'antd';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { BlockchainProvider } from './hooks/useBlockchain';
 import DashboardLayout from './components/dashboard/DashboardLayout';
@@ -26,7 +26,21 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <Spin size="large" />
+        <Typography.Text style={{ color: 'white', marginTop: 16, fontSize: 16 }}>
+          Loading LightDom Platform...
+        </Typography.Text>
+      </div>
+    );
   }
 
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;

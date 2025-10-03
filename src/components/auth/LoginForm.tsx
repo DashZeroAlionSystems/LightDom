@@ -205,7 +205,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             <div className="auth-footer">
               <Text>
                 Don't have an account?{' '}
-                <Link to="/signup">
+                <Link to="/register">
                   <Text strong>Sign up</Text>
                 </Link>
               </Text>
