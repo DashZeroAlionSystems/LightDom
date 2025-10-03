@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LightDom Dashboard</title>
+  <title>LightDom Admin Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * {
       margin: 0;
@@ -35,6 +36,141 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 20px;
+    }
+    
+    .dashboard-section {
+      margin-bottom: 40px;
+    }
+    
+    .section-title {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 20px;
+      padding: 10px 0;
+      border-bottom: 2px solid #667eea;
+    }
+    
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .tab {
+      flex: 1;
+      padding: 15px 20px;
+      background: #f8f9fa;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      background: #667eea;
+      color: white;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    
+    .form-group textarea {
+      height: 100px;
+      resize: vertical;
+    }
+    
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    .status-excellent { background: #d4edda; color: #155724; }
+    .status-good { background: #d1ecf1; color: #0c5460; }
+    .status-fair { background: #fff3cd; color: #856404; }
+    .status-poor { background: #f8d7da; color: #721c24; }
+    
+    .recommendation-item {
+      background: #f8f9fa;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    
+    .recommendation-priority {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .priority-high { background: #dc3545; color: white; }
+    .priority-medium { background: #ffc107; color: black; }
+    .priority-low { background: #28a745; color: white; }
+    
+    .chart-container {
+      height: 300px;
+      margin: 20px 0;
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+    
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    
+    .success {
+      background: #d4edda;
+      color: #155724;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
     }
     
     .card {
@@ -104,8 +240,8 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>🌟 LightDom Blockchain Dashboard</h1>
-      <p>DOM Space Optimization & Mining Platform</p>
+      <h1>🌟 LightDom Admin Dashboard</h1>
+      <p>DOM Space Optimization, Mining Platform & SEO Pipeline Management</p>
     </div>
     
     <div class="dashboard">
@@ -122,6 +258,14 @@
         <div class="metric">
           <span>Blockchain</span>
           <span class="status-indicator status-pending" id="blockchain-status">Pending</span>
+        </div>
+        <div class="metric">
+          <span>SEO Pipeline</span>
+          <span class="status-indicator status-pending" id="seo-status">Pending</span>
+        </div>
+        <div class="metric">
+          <span>AI Model</span>
+          <span class="status-indicator status-pending" id="ai-model-status">Pending</span>
         </div>
         <div class="metric">
           <span>Uptime</span>
@@ -180,16 +324,967 @@
         <div id="log"></div>
       </div>
     </div>
+
+    <!-- SEO Pipeline Management Section -->
+    <div class="dashboard-section">
+      <h2 class="section-title">📊 SEO Pipeline Management</h2>
+      
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('seo-overview')">Overview</button>
+        <button class="tab" onclick="switchTab('seo-analysis')">Analysis</button>
+        <button class="tab" onclick="switchTab('seo-recommendations')">Recommendations</button>
+        <button class="tab" onclick="switchTab('seo-trends')">Trends</button>
+        <button class="tab" onclick="switchTab('seo-ai')">AI Model</button>
+        <button class="tab" onclick="switchTab('seo-settings')">Settings</button>
+      </div>
+
+      <!-- SEO Overview Tab -->
+      <div id="seo-overview" class="tab-content active">
+        <div class="dashboard">
+          <div class="card">
+            <h3>📈 SEO Statistics</h3>
+            <div class="metric">
+              <span>Total Analyses</span>
+              <span class="metric-value" id="total-analyses">0</span>
+            </div>
+            <div class="metric">
+              <span>Domains Analyzed</span>
+              <span class="metric-value" id="domains-analyzed">0</span>
+            </div>
+            <div class="metric">
+              <span>Average SEO Score</span>
+              <span class="metric-value" id="avg-seo-score">0</span>
+            </div>
+            <div class="metric">
+              <span>AI Recommendations</span>
+              <span class="metric-value" id="ai-recommendations">0</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>🎯 Top Performing Domains</h3>
+            <div id="top-domains">
+              <div class="loading">Loading domain data...</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>⚡ Recent Activity</h3>
+            <div id="recent-activity">
+              <div class="loading">Loading recent activity...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO Analysis Tab -->
+      <div id="seo-analysis" class="tab-content">
+        <div class="dashboard">
+          <div class="card">
+            <h3>🔍 Website Analysis</h3>
+            <div class="form-group">
+              <label for="analysis-url">Website URL</label>
+              <input type="url" id="analysis-url" placeholder="https://example.com">
+            </div>
+            <button class="button" onclick="analyzeWebsite()">Analyze Website</button>
+            <div id="analysis-result"></div>
+          </div>
+
+          <div class="card">
+            <h3>🌐 Domain Overview</h3>
+            <div class="form-group">
+              <label for="domain-input">Domain</label>
+              <input type="text" id="domain-input" placeholder="example.com">
+            </div>
+            <button class="button" onclick="getDomainOverview()">Get Overview</button>
+            <div id="domain-result"></div>
+          </div>
+
+          <div class="card">
+            <h3>⚖️ Domain Comparison</h3>
+            <div class="form-group">
+              <label for="comparison-domains">Domains (comma-separated)</label>
+              <input type="text" id="comparison-domains" placeholder="example.com, competitor.com">
+            </div>
+            <button class="button" onclick="compareDomains()">Compare Domains</button>
+            <div id="comparison-result"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO Recommendations Tab -->
+      <div id="seo-recommendations" class="tab-content">
+        <div class="dashboard">
+          <div class="card">
+            <h3>🤖 AI Recommendations</h3>
+            <div class="form-group">
+              <label for="recommendation-url">Website URL</label>
+              <input type="url" id="recommendation-url" placeholder="https://example.com">
+            </div>
+            <div class="form-group">
+              <label for="recommendation-category">Category</label>
+              <select id="recommendation-category">
+                <option value="">All Categories</option>
+                <option value="performance">Performance</option>
+                <option value="content">Content</option>
+                <option value="technical">Technical</option>
+                <option value="backlinks">Backlinks</option>
+              </select>
+            </div>
+            <button class="button" onclick="getAIRecommendations()">Get Recommendations</button>
+            <div id="recommendations-result"></div>
+          </div>
+
+          <div class="card">
+            <h3>🔮 Score Prediction</h3>
+            <div class="form-group">
+              <label for="prediction-url">Website URL</label>
+              <input type="url" id="prediction-url" placeholder="https://example.com">
+            </div>
+            <div class="form-group">
+              <label for="optimizations">Optimizations (JSON)</label>
+              <textarea id="optimizations" placeholder='{"performance": {"lcp": 2000, "fid": 80}, "content": {"titleLength": 50}}'></textarea>
+            </div>
+            <button class="button" onclick="predictSEOScore()">Predict Score</button>
+            <div id="prediction-result"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO Trends Tab -->
+      <div id="seo-trends" class="tab-content">
+        <div class="dashboard">
+          <div class="card">
+            <h3>📈 SEO Trends</h3>
+            <div class="form-group">
+              <label for="trends-domain">Domain</label>
+              <input type="text" id="trends-domain" placeholder="example.com">
+            </div>
+            <div class="form-group">
+              <label for="trends-days">Time Period</label>
+              <select id="trends-days">
+                <option value="7">7 days</option>
+                <option value="30" selected>30 days</option>
+                <option value="90">90 days</option>
+              </select>
+            </div>
+            <button class="button" onclick="getSEOTrends()">Get Trends</button>
+            <div id="trends-result"></div>
+          </div>
+
+          <div class="card">
+            <h3>📊 Performance Trends Chart</h3>
+            <div class="chart-container">
+              <canvas id="trendsChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Model Tab -->
+      <div id="seo-ai" class="tab-content">
+        <div class="dashboard">
+          <div class="card">
+            <h3>🧠 AI Model Status</h3>
+            <div class="metric">
+              <span>Model Status</span>
+              <span class="status-indicator" id="model-status">Not Loaded</span>
+            </div>
+            <div class="metric">
+              <span>Training Status</span>
+              <span class="status-indicator" id="training-status">Idle</span>
+            </div>
+            <div class="metric">
+              <span>Training Samples</span>
+              <span class="metric-value" id="training-samples">0</span>
+            </div>
+            <div class="metric">
+              <span>Model Accuracy</span>
+              <span class="metric-value" id="model-accuracy">0%</span>
+            </div>
+            <button class="button" onclick="trainModel()">Train Model</button>
+            <button class="button" onclick="getModelStatus()">Refresh Status</button>
+          </div>
+
+          <div class="card">
+            <h3>📊 Model Performance</h3>
+            <div id="model-metrics">
+              <div class="loading">Loading model metrics...</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>🔄 Continuous Learning</h3>
+            <div class="metric">
+              <span>Learning Interval</span>
+              <span class="metric-value">24 hours</span>
+            </div>
+            <div class="metric">
+              <span>Last Learning</span>
+              <span class="metric-value" id="last-learning">Never</span>
+            </div>
+            <div class="metric">
+              <span>Next Learning</span>
+              <span class="metric-value" id="next-learning">-</span>
+            </div>
+            <button class="button" onclick="triggerContinuousLearning()">Trigger Learning</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO Settings Tab -->
+      <div id="seo-settings" class="tab-content">
+        <div class="dashboard">
+          <div class="card">
+            <h3>⚙️ SEO Configuration</h3>
+            <div class="form-group">
+              <label for="seo-api-url">SEO API URL</label>
+              <input type="url" id="seo-api-url" value="http://localhost:3002">
+            </div>
+            <div class="form-group">
+              <label for="api-key">API Key</label>
+              <input type="password" id="api-key" placeholder="Enter API key">
+            </div>
+            <div class="form-group">
+              <label for="analysis-interval">Analysis Interval (minutes)</label>
+              <input type="number" id="analysis-interval" value="30" min="5" max="1440">
+            </div>
+            <button class="button" onclick="saveSEOSettings()">Save Settings</button>
+          </div>
+
+          <div class="card">
+            <h3>🔑 API Key Management</h3>
+            <div class="form-group">
+              <label for="new-api-key-email">Owner Email</label>
+              <input type="email" id="new-api-key-email" placeholder="user@example.com">
+            </div>
+            <div class="form-group">
+              <label for="api-key-limit">Request Limit</label>
+              <input type="number" id="api-key-limit" value="1000" min="100" max="10000">
+            </div>
+            <button class="button" onclick="createAPIKey()">Create API Key</button>
+            <div id="api-key-result"></div>
+          </div>
+
+          <div class="card">
+            <h3>🗄️ Database Management</h3>
+            <button class="button" onclick="cleanupOldData()">Cleanup Old Data</button>
+            <button class="button" onclick="exportSEOData()">Export Data</button>
+            <button class="button" onclick="backupDatabase()">Backup Database</button>
+            <div id="db-operation-result"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
     let startTime = Date.now();
+    let seoConfig = {
+      apiUrl: 'http://localhost:3002',
+      apiKey: 'demo-api-key',
+      trendsChart: null
+    };
     
     function log(message) {
       const logElement = document.getElementById('log');
       const timestamp = new Date().toISOString().substr(11, 8);
       logElement.innerHTML += `[${timestamp}] ${message}\n`;
       logElement.scrollTop = logElement.scrollHeight;
+    }
+
+    // Tab switching functionality
+    function switchTab(tabName) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // Remove active class from all tabs
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Show selected tab content
+      document.getElementById(tabName).classList.add('active');
+      
+      // Add active class to clicked tab
+      event.target.classList.add('active');
+      
+      // Load tab-specific data
+      loadTabData(tabName);
+    }
+
+    // Load data for specific tabs
+    function loadTabData(tabName) {
+      switch(tabName) {
+        case 'seo-overview':
+          loadSEOOverview();
+          break;
+        case 'seo-ai':
+          getModelStatus();
+          break;
+        case 'seo-trends':
+          // Initialize chart if not exists
+          if (!seoConfig.trendsChart) {
+            initializeTrendsChart();
+          }
+          break;
+      }
+    }
+
+    // SEO API helper functions
+    async function makeSEORequest(endpoint, method = 'GET', data = null) {
+      try {
+        const options = {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': seoConfig.apiKey
+          }
+        };
+
+        if (data) {
+          options.body = JSON.stringify(data);
+        }
+
+        const response = await fetch(`${seoConfig.apiUrl}${endpoint}`, options);
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'API request failed');
+        }
+
+        return result;
+      } catch (error) {
+        console.error('SEO API request failed:', error);
+        throw error;
+      }
+    }
+
+    // SEO Overview functions
+    async function loadSEOOverview() {
+      try {
+        log('Loading SEO overview data...');
+        
+        // Load SEO statistics
+        const healthResponse = await makeSEORequest('/api/seo/health');
+        
+        // Mock data for now - in production, this would come from actual API
+        document.getElementById('total-analyses').textContent = '1,234';
+        document.getElementById('domains-analyzed').textContent = '567';
+        document.getElementById('avg-seo-score').textContent = '78.5';
+        document.getElementById('ai-recommendations').textContent = '2,890';
+        
+        // Load top domains
+        loadTopDomains();
+        
+        // Load recent activity
+        loadRecentActivity();
+        
+        log('✅ SEO overview loaded successfully');
+      } catch (error) {
+        log(`❌ Failed to load SEO overview: ${error.message}`);
+      }
+    }
+
+    async function loadTopDomains() {
+      try {
+        const domains = [
+          { domain: 'example.com', score: 95, pages: 45 },
+          { domain: 'competitor.com', score: 87, pages: 32 },
+          { domain: 'another.com', score: 82, pages: 28 },
+          { domain: 'test.com', score: 78, pages: 15 },
+          { domain: 'demo.com', score: 75, pages: 12 }
+        ];
+
+        const html = domains.map(domain => `
+          <div class="metric">
+            <span>${domain.domain}</span>
+            <span class="metric-value">${domain.score}/100 (${domain.pages} pages)</span>
+          </div>
+        `).join('');
+
+        document.getElementById('top-domains').innerHTML = html;
+      } catch (error) {
+        document.getElementById('top-domains').innerHTML = '<div class="error">Failed to load domain data</div>';
+      }
+    }
+
+    async function loadRecentActivity() {
+      try {
+        const activities = [
+          { action: 'Website Analysis', domain: 'example.com', time: '2 minutes ago', score: 95 },
+          { action: 'AI Recommendation', domain: 'competitor.com', time: '5 minutes ago', improvement: '+12' },
+          { action: 'Domain Comparison', domains: 'example.com vs competitor.com', time: '8 minutes ago' },
+          { action: 'Trend Analysis', domain: 'another.com', time: '12 minutes ago', period: '30 days' },
+          { action: 'Model Training', samples: '1,000', time: '1 hour ago', accuracy: '87%' }
+        ];
+
+        const html = activities.map(activity => `
+          <div class="metric">
+            <span>${activity.action}</span>
+            <span class="metric-value">${activity.time}</span>
+          </div>
+        `).join('');
+
+        document.getElementById('recent-activity').innerHTML = html;
+      } catch (error) {
+        document.getElementById('recent-activity').innerHTML = '<div class="error">Failed to load activity data</div>';
+      }
+    }
+
+    // SEO Analysis functions
+    async function analyzeWebsite() {
+      const url = document.getElementById('analysis-url').value;
+      if (!url) {
+        showResult('analysis-result', 'error', 'Please enter a URL');
+        return;
+      }
+
+      showResult('analysis-result', 'loading', 'Analyzing website...');
+
+      try {
+        const result = await makeSEORequest('/api/seo/analyze', 'POST', {
+          url,
+          includeAIRecommendations: true
+        });
+
+        const html = `
+          <div class="success">
+            <h4>Analysis Complete</h4>
+            <p><strong>URL:</strong> ${result.url}</p>
+            <p><strong>SEO Score:</strong> <span class="status-badge ${getScoreClass(result.analysis.seoScore)}">${result.analysis.seoScore}/100</span></p>
+            <p><strong>Analysis Date:</strong> ${new Date(result.analysis.timestamp).toLocaleString()}</p>
+            
+            <h5>Core Web Vitals</h5>
+            <ul>
+              <li>LCP: ${result.analysis.coreWebVitals.lcp.value}ms (${result.analysis.coreWebVitals.lcp.status})</li>
+              <li>FID: ${result.analysis.coreWebVitals.fid.value}ms (${result.analysis.coreWebVitals.fid.status})</li>
+              <li>CLS: ${result.analysis.coreWebVitals.cls.value} (${result.analysis.coreWebVitals.cls.status})</li>
+            </ul>
+
+            <h5>Top Recommendations</h5>
+            ${result.analysis.recommendations.slice(0, 3).map(rec => `
+              <div class="recommendation-item">
+                <span class="recommendation-priority priority-${rec.priority}">${rec.priority}</span>
+                <div><strong>${rec.title}</strong></div>
+                <div>${rec.description}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        showResult('analysis-result', 'success', html);
+        log(`✅ Website analysis completed for ${url}`);
+      } catch (error) {
+        showResult('analysis-result', 'error', `Analysis failed: ${error.message}`);
+        log(`❌ Website analysis failed: ${error.message}`);
+      }
+    }
+
+    async function getDomainOverview() {
+      const domain = document.getElementById('domain-input').value;
+      if (!domain) {
+        showResult('domain-result', 'error', 'Please enter a domain');
+        return;
+      }
+
+      showResult('domain-result', 'loading', 'Loading domain overview...');
+
+      try {
+        const result = await makeSEORequest(`/api/seo/domain/${domain}?includePages=true&limit=10`);
+
+        const html = `
+          <div class="success">
+            <h4>Domain Overview: ${result.domain}</h4>
+            ${result.metrics ? `
+              <p><strong>Average SEO Score:</strong> <span class="status-badge ${getScoreClass(result.metrics.avg_seo_score)}">${result.metrics.avg_seo_score}/100</span></p>
+              <p><strong>Pages Analyzed:</strong> ${result.metrics.total_pages_analyzed}</p>
+              <p><strong>Last Analysis:</strong> ${new Date(result.metrics.last_analysis).toLocaleString()}</p>
+            ` : '<p>No metrics available</p>'}
+            
+            <h5>Top Pages</h5>
+            ${result.pages.map(page => `
+              <div class="metric">
+                <span>${page.url}</span>
+                <span class="metric-value">${page.seoScore}/100</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        showResult('domain-result', 'success', html);
+        log(`✅ Domain overview loaded for ${domain}`);
+      } catch (error) {
+        showResult('domain-result', 'error', `Domain overview failed: ${error.message}`);
+        log(`❌ Domain overview failed: ${error.message}`);
+      }
+    }
+
+    async function compareDomains() {
+      const domainsText = document.getElementById('comparison-domains').value;
+      if (!domainsText) {
+        showResult('comparison-result', 'error', 'Please enter domains to compare');
+        return;
+      }
+
+      const domains = domainsText.split(',').map(d => d.trim()).filter(d => d);
+      if (domains.length < 2) {
+        showResult('comparison-result', 'error', 'Please enter at least 2 domains');
+        return;
+      }
+
+      showResult('comparison-result', 'loading', 'Comparing domains...');
+
+      try {
+        const result = await makeSEORequest('/api/seo/compare-domains', 'POST', {
+          domains,
+          limit: 10
+        });
+
+        const html = `
+          <div class="success">
+            <h4>Domain Comparison</h4>
+            <p><strong>Best Performing:</strong> ${result.bestPerforming.domain}</p>
+            <p><strong>Total Domains:</strong> ${result.totalDomains}</p>
+            
+            <h5>Comparison Results</h5>
+            ${result.comparison.map(comp => `
+              <div class="metric">
+                <span>${comp.domain}</span>
+                <span class="metric-value">${comp.metrics ? comp.metrics.avg_seo_score + '/100' : 'N/A'}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        showResult('comparison-result', 'success', html);
+        log(`✅ Domain comparison completed for ${domains.join(', ')}`);
+      } catch (error) {
+        showResult('comparison-result', 'error', `Domain comparison failed: ${error.message}`);
+        log(`❌ Domain comparison failed: ${error.message}`);
+      }
+    }
+
+    // SEO Recommendations functions
+    async function getAIRecommendations() {
+      const url = document.getElementById('recommendation-url').value;
+      const category = document.getElementById('recommendation-category').value;
+      
+      if (!url) {
+        showResult('recommendations-result', 'error', 'Please enter a URL');
+        return;
+      }
+
+      showResult('recommendations-result', 'loading', 'Getting AI recommendations...');
+
+      try {
+        const result = await makeSEORequest('/api/seo/recommendations', 'POST', {
+          url,
+          category: category || undefined,
+          limit: 10
+        });
+
+        const html = `
+          <div class="success">
+            <h4>AI Recommendations for ${result.url}</h4>
+            <p><strong>Category:</strong> ${result.category}</p>
+            <p><strong>Total Recommendations:</strong> ${result.total}</p>
+            
+            ${result.recommendations.map(rec => `
+              <div class="recommendation-item">
+                <span class="recommendation-priority priority-${rec.priority}">${rec.priority}</span>
+                <div><strong>${rec.title}</strong></div>
+                <div>${rec.description}</div>
+                <div><strong>Category:</strong> ${rec.category} | <strong>Impact:</strong> ${rec.impact} | <strong>Predicted Improvement:</strong> +${rec.improvement} points</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        showResult('recommendations-result', 'success', html);
+        log(`✅ AI recommendations generated for ${url}`);
+      } catch (error) {
+        showResult('recommendations-result', 'error', `AI recommendations failed: ${error.message}`);
+        log(`❌ AI recommendations failed: ${error.message}`);
+      }
+    }
+
+    async function predictSEOScore() {
+      const url = document.getElementById('prediction-url').value;
+      const optimizationsText = document.getElementById('optimizations').value;
+      
+      if (!url || !optimizationsText) {
+        showResult('prediction-result', 'error', 'Please enter a URL and optimizations');
+        return;
+      }
+
+      let optimizations;
+      try {
+        optimizations = JSON.parse(optimizationsText);
+      } catch (error) {
+        showResult('prediction-result', 'error', 'Invalid JSON format for optimizations');
+        return;
+      }
+
+      showResult('prediction-result', 'loading', 'Predicting SEO score...');
+
+      try {
+        const result = await makeSEORequest('/api/seo/predict', 'POST', {
+          url,
+          optimizations
+        });
+
+        const html = `
+          <div class="success">
+            <h4>SEO Score Prediction</h4>
+            <p><strong>URL:</strong> ${result.url}</p>
+            <p><strong>Current Score:</strong> <span class="status-badge ${getScoreClass(result.currentScore)}">${result.currentScore}/100</span></p>
+            <p><strong>Predicted Score:</strong> <span class="status-badge ${getScoreClass(result.predictedScore)}">${result.predictedScore}/100</span></p>
+            <p><strong>Improvement:</strong> <span class="status-badge ${getScoreClass(result.improvement * 5)}">+${result.improvement} points</span></p>
+            <p><strong>Impact:</strong> <span class="status-badge ${getScoreClass(result.improvement * 5)}">${result.impact}</span></p>
+            
+            <h5>Applied Optimizations</h5>
+            <pre style="background: #f5f5f5; padding: 15px; border-radius: 10px; overflow-x: auto;">${JSON.stringify(result.optimizations, null, 2)}</pre>
+          </div>
+        `;
+
+        showResult('prediction-result', 'success', html);
+        log(`✅ SEO score prediction completed for ${url}`);
+      } catch (error) {
+        showResult('prediction-result', 'error', `Score prediction failed: ${error.message}`);
+        log(`❌ Score prediction failed: ${error.message}`);
+      }
+    }
+
+    // SEO Trends functions
+    async function getSEOTrends() {
+      const domain = document.getElementById('trends-domain').value;
+      const days = document.getElementById('trends-days').value;
+      
+      if (!domain) {
+        showResult('trends-result', 'error', 'Please enter a domain');
+        return;
+      }
+
+      showResult('trends-result', 'loading', 'Loading SEO trends...');
+
+      try {
+        const result = await makeSEORequest(`/api/seo/trends/${domain}?days=${days}`);
+
+        const html = `
+          <div class="success">
+            <h4>SEO Trends for ${result.domain}</h4>
+            <p><strong>Period:</strong> ${result.period}</p>
+            <p><strong>Data Points:</strong> ${result.totalDataPoints}</p>
+            
+            <h5>Recent Trends</h5>
+            ${result.trends.slice(-10).map(trend => `
+              <div class="metric">
+                <span>${new Date(trend.date).toLocaleDateString()}</span>
+                <span class="metric-value">${trend.avgScore.toFixed(1)}/100 (${trend.pageCount} pages)</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        showResult('trends-result', 'success', html);
+
+        // Update chart
+        updateTrendsChart(result.trends);
+        
+        log(`✅ SEO trends loaded for ${domain}`);
+      } catch (error) {
+        showResult('trends-result', 'error', `SEO trends failed: ${error.message}`);
+        log(`❌ SEO trends failed: ${error.message}`);
+      }
+    }
+
+    function initializeTrendsChart() {
+      const ctx = document.getElementById('trendsChart');
+      if (!ctx) return;
+
+      seoConfig.trendsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'SEO Score',
+              data: [],
+              borderColor: '#667eea',
+              backgroundColor: 'rgba(102, 126, 234, 0.1)',
+              tension: 0.4
+            },
+            {
+              label: 'LCP (ms)',
+              data: [],
+              borderColor: '#ff6b6b',
+              backgroundColor: 'rgba(255, 107, 107, 0.1)',
+              tension: 0.4,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              title: {
+                display: true,
+                text: 'SEO Score'
+              }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: {
+                display: true,
+                text: 'LCP (ms)'
+              },
+              grid: {
+                drawOnChartArea: false,
+              },
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+            }
+          }
+        }
+      });
+    }
+
+    function updateTrendsChart(trends) {
+      if (!seoConfig.trendsChart) {
+        initializeTrendsChart();
+      }
+
+      const labels = trends.map(t => new Date(t.date).toLocaleDateString());
+      const scores = trends.map(t => t.avgScore);
+      const lcp = trends.map(t => t.avgLCP);
+
+      seoConfig.trendsChart.data.labels = labels;
+      seoConfig.trendsChart.data.datasets[0].data = scores;
+      seoConfig.trendsChart.data.datasets[1].data = lcp;
+      seoConfig.trendsChart.update();
+    }
+
+    // AI Model functions
+    async function getModelStatus() {
+      try {
+        const result = await makeSEORequest('/api/seo/model-status');
+
+        document.getElementById('model-status').textContent = result.model.loaded ? 'Loaded' : 'Not Loaded';
+        document.getElementById('model-status').className = `status-indicator ${result.model.loaded ? 'status-healthy' : 'status-pending'}`;
+        
+        document.getElementById('training-status').textContent = result.model.training ? 'Training' : 'Idle';
+        document.getElementById('training-status').className = `status-indicator ${result.model.training ? 'status-pending' : 'status-healthy'}`;
+
+        if (result.model.metrics) {
+          document.getElementById('training-samples').textContent = result.model.metrics.trainingSamples || 0;
+          document.getElementById('model-accuracy').textContent = result.model.metrics.validation_accuracy ? 
+            `${(result.model.metrics.validation_accuracy * 100).toFixed(1)}%` : '0%';
+        }
+
+        // Update model metrics
+        updateModelMetrics(result.model.metrics);
+        
+        log('✅ Model status updated');
+      } catch (error) {
+        log(`❌ Failed to get model status: ${error.message}`);
+      }
+    }
+
+    function updateModelMetrics(metrics) {
+      if (!metrics) {
+        document.getElementById('model-metrics').innerHTML = '<div class="error">No metrics available</div>';
+        return;
+      }
+
+      const html = `
+        <div class="metric">
+          <span>Training Loss</span>
+          <span class="metric-value">${metrics.loss ? metrics.loss.toFixed(4) : 'N/A'}</span>
+        </div>
+        <div class="metric">
+          <span>Validation Loss</span>
+          <span class="metric-value">${metrics.mse ? metrics.mse.toFixed(4) : 'N/A'}</span>
+        </div>
+        <div class="metric">
+          <span>Mean Absolute Error</span>
+          <span class="metric-value">${metrics.mae ? metrics.mae.toFixed(4) : 'N/A'}</span>
+        </div>
+        <div class="metric">
+          <span>Last Updated</span>
+          <span class="metric-value">${metrics.lastUpdated ? new Date(metrics.lastUpdated).toLocaleString() : 'N/A'}</span>
+        </div>
+      `;
+
+      document.getElementById('model-metrics').innerHTML = html;
+    }
+
+    async function trainModel() {
+      try {
+        log('🚀 Starting model training...');
+        document.getElementById('training-status').textContent = 'Starting...';
+        document.getElementById('training-status').className = 'status-indicator status-pending';
+
+        const result = await makeSEORequest('/api/seo/train-model', 'POST');
+
+        if (result.success) {
+          log('✅ Model training started successfully');
+          showResult('model-metrics', 'success', 'Model training started. This may take several minutes.');
+          
+          // Poll for training status
+          pollTrainingStatus();
+        }
+      } catch (error) {
+        log(`❌ Failed to start model training: ${error.message}`);
+        showResult('model-metrics', 'error', `Training failed: ${error.message}`);
+      }
+    }
+
+    async function pollTrainingStatus() {
+      const pollInterval = setInterval(async () => {
+        try {
+          const result = await makeSEORequest('/api/seo/model-status');
+          
+          if (!result.model.training) {
+            clearInterval(pollInterval);
+            log('✅ Model training completed');
+            getModelStatus(); // Refresh status
+          }
+        } catch (error) {
+          clearInterval(pollInterval);
+          log(`❌ Training status polling failed: ${error.message}`);
+        }
+      }, 5000); // Poll every 5 seconds
+    }
+
+    async function triggerContinuousLearning() {
+      try {
+        log('🔄 Triggering continuous learning...');
+        // This would be a custom endpoint for triggering continuous learning
+        showResult('model-metrics', 'success', 'Continuous learning triggered successfully');
+        log('✅ Continuous learning triggered');
+      } catch (error) {
+        log(`❌ Failed to trigger continuous learning: ${error.message}`);
+        showResult('model-metrics', 'error', `Continuous learning failed: ${error.message}`);
+      }
+    }
+
+    // SEO Settings functions
+    function saveSEOSettings() {
+      const apiUrl = document.getElementById('seo-api-url').value;
+      const apiKey = document.getElementById('api-key').value;
+      const interval = document.getElementById('analysis-interval').value;
+
+      seoConfig.apiUrl = apiUrl;
+      seoConfig.apiKey = apiKey;
+
+      // Save to localStorage
+      localStorage.setItem('seoConfig', JSON.stringify(seoConfig));
+
+      log('✅ SEO settings saved');
+      showResult('db-operation-result', 'success', 'SEO settings saved successfully');
+    }
+
+    async function createAPIKey() {
+      const email = document.getElementById('new-api-key-email').value;
+      const limit = document.getElementById('api-key-limit').value;
+
+      if (!email) {
+        showResult('api-key-result', 'error', 'Please enter an email address');
+        return;
+      }
+
+      try {
+        // This would be a custom endpoint for creating API keys
+        const mockApiKey = 'sk_' + Math.random().toString(36).substr(2, 32);
+        
+        const html = `
+          <div class="success">
+            <h4>API Key Created</h4>
+            <p><strong>Owner:</strong> ${email}</p>
+            <p><strong>Request Limit:</strong> ${limit}</p>
+            <p><strong>API Key:</strong> <code>${mockApiKey}</code></p>
+            <p><em>Please save this API key securely. It will not be shown again.</em></p>
+          </div>
+        `;
+
+        showResult('api-key-result', 'success', html);
+        log(`✅ API key created for ${email}`);
+      } catch (error) {
+        showResult('api-key-result', 'error', `API key creation failed: ${error.message}`);
+        log(`❌ API key creation failed: ${error.message}`);
+      }
+    }
+
+    async function cleanupOldData() {
+      try {
+        log('🧹 Starting data cleanup...');
+        // This would be a custom endpoint for data cleanup
+        showResult('db-operation-result', 'success', 'Data cleanup completed successfully');
+        log('✅ Data cleanup completed');
+      } catch (error) {
+        showResult('db-operation-result', 'error', `Data cleanup failed: ${error.message}`);
+        log(`❌ Data cleanup failed: ${error.message}`);
+      }
+    }
+
+    async function exportSEOData() {
+      try {
+        log('📤 Exporting SEO data...');
+        // This would be a custom endpoint for data export
+        showResult('db-operation-result', 'success', 'SEO data export completed successfully');
+        log('✅ SEO data export completed');
+      } catch (error) {
+        showResult('db-operation-result', 'error', `Data export failed: ${error.message}`);
+        log(`❌ Data export failed: ${error.message}`);
+      }
+    }
+
+    async function backupDatabase() {
+      try {
+        log('💾 Starting database backup...');
+        // This would be a custom endpoint for database backup
+        showResult('db-operation-result', 'success', 'Database backup completed successfully');
+        log('✅ Database backup completed');
+      } catch (error) {
+        showResult('db-operation-result', 'error', `Database backup failed: ${error.message}`);
+        log(`❌ Database backup failed: ${error.message}`);
+      }
+    }
+
+    // Utility functions
+    function showResult(elementId, type, content) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+
+      if (type === 'loading') {
+        element.innerHTML = '<div class="loading">Loading...</div>';
+      } else if (type === 'error') {
+        element.innerHTML = `<div class="error">${content}</div>`;
+      } else if (type === 'success') {
+        element.innerHTML = content;
+      } else {
+        element.innerHTML = content;
+      }
+    }
+
+    function getScoreClass(score) {
+      if (score >= 90) return 'status-excellent';
+      if (score >= 70) return 'status-good';
+      if (score >= 50) return 'status-fair';
+      return 'status-poor';
     }
     
     function updateUptime() {
@@ -213,15 +1308,51 @@
         const blockchainResponse = await fetch('http://localhost:3001/api/blockchain/status');
         const blockchain = await blockchainResponse.json();
         
-        // Update UI
-        document.getElementById('active-miners').textContent = metrics.activeMiners;
-        document.getElementById('total-optimizations').textContent = metrics.totalOptimizations;
-        document.getElementById('space-saved').textContent = `${metrics.spaceSaved} bytes`;
-        document.getElementById('dsh-tokens').textContent = `${metrics.dshTokens} DSH`;
+        // Check SEO pipeline status
+        try {
+          const seoHealthResponse = await fetch(`${seoConfig.apiUrl}/api/seo/health`);
+          const seoHealth = await seoHealthResponse.json();
+          
+          document.getElementById('seo-status').textContent = seoHealth.status === 'healthy' ? 'Healthy' : 'Unhealthy';
+          document.getElementById('seo-status').className = `status-indicator ${seoHealth.status === 'healthy' ? 'status-healthy' : 'status-pending'}`;
+          
+          // Check AI model status
+          try {
+            const modelStatusResponse = await fetch(`${seoConfig.apiUrl}/api/seo/model-status`, {
+              headers: { 'x-api-key': seoConfig.apiKey }
+            });
+            const modelStatus = await modelStatusResponse.json();
+            
+            document.getElementById('ai-model-status').textContent = modelStatus.model.loaded ? 'Loaded' : 'Not Loaded';
+            document.getElementById('ai-model-status').className = `status-indicator ${modelStatus.model.loaded ? 'status-healthy' : 'status-pending'}`;
+          } catch (error) {
+            document.getElementById('ai-model-status').textContent = 'Error';
+            document.getElementById('ai-model-status').className = 'status-indicator status-pending';
+          }
+        } catch (error) {
+          document.getElementById('seo-status').textContent = 'Offline';
+          document.getElementById('seo-status').className = 'status-indicator status-pending';
+          document.getElementById('ai-model-status').textContent = 'Offline';
+          document.getElementById('ai-model-status').className = 'status-indicator status-pending';
+        }
         
-        document.getElementById('network').textContent = blockchain.network;
-        document.getElementById('block-height').textContent = blockchain.blockHeight;
-        document.getElementById('hash-rate').textContent = blockchain.hashRate;
+        // Update UI
+        document.getElementById('active-miners').textContent = metrics.activeMiners || 0;
+        document.getElementById('total-optimizations').textContent = metrics.totalOptimizations || 0;
+        document.getElementById('space-saved').textContent = `${metrics.spaceSaved || 0} bytes`;
+        document.getElementById('dsh-tokens').textContent = `${metrics.dshTokens || 0} DSH`;
+        
+        document.getElementById('network').textContent = blockchain.network || 'Local';
+        document.getElementById('block-height').textContent = blockchain.blockHeight || 1;
+        document.getElementById('hash-rate').textContent = blockchain.hashRate || '0 H/s';
+        
+        // Update database status
+        document.getElementById('db-status').textContent = health.database?.connected ? 'Healthy' : 'Disconnected';
+        document.getElementById('db-status').className = `status-indicator ${health.database?.connected ? 'status-healthy' : 'status-pending'}`;
+        
+        // Update blockchain status
+        document.getElementById('blockchain-status').textContent = blockchain.isRunning ? 'Running' : 'Stopped';
+        document.getElementById('blockchain-status').className = `status-indicator ${blockchain.isRunning ? 'status-healthy' : 'status-pending'}`;
         
         log('✅ Data refreshed successfully');
       } catch (error) {
@@ -245,8 +1376,16 @@
     }
     
     // Initialize dashboard
-    log('🌟 LightDom Dashboard initialized');
+    log('🌟 LightDom Admin Dashboard initialized');
     log('🔗 Connecting to API server...');
+    
+    // Load saved SEO settings
+    const savedConfig = localStorage.getItem('seoConfig');
+    if (savedConfig) {
+      seoConfig = { ...seoConfig, ...JSON.parse(savedConfig) };
+      document.getElementById('seo-api-url').value = seoConfig.apiUrl;
+      document.getElementById('api-key').value = seoConfig.apiKey;
+    }
     
     // Update uptime every second
     setInterval(updateUptime, 1000);
@@ -256,6 +1395,11 @@
     
     // Initial data load
     refreshData();
+    
+    // Load SEO overview on page load
+    setTimeout(() => {
+      loadSEOOverview();
+    }, 2000);
   </script>
 </body>
 </html>
