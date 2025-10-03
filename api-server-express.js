@@ -140,6 +140,15 @@ class DOMSpaceHarvesterAPI {
     // Setup blockchain API routes
     this.setupBlockchainRoutes();
     
+    // Setup optimization API routes
+    this.setupOptimizationRoutes();
+    
+    // Setup website API routes
+    this.setupWebsiteRoutes();
+    
+    // Setup analytics API routes
+    this.setupAnalyticsRoutes();
+    
     // Statistics cache
     this.statsCache = {
       lastUpdate: 0,
@@ -2288,6 +2297,372 @@ class DOMSpaceHarvesterAPI {
     });
 
     console.log('✅ Blockchain API routes configured');
+  }
+
+  setupOptimizationRoutes() {
+    // =====================================================
+    // OPTIMIZATION API ENDPOINTS
+    // =====================================================
+
+    // Get all optimizations
+    this.app.get('/api/optimizations', async (req, res) => {
+      try {
+        // Mock data for now
+        const mockOptimizations = [
+          {
+            id: '1',
+            website: 'example.com',
+            url: 'https://example.com',
+            type: 'Image Optimization',
+            status: 'completed',
+            progress: 100,
+            scoreImprovement: 24,
+            createdAt: '2024-01-15T10:30:00Z',
+            completedAt: '2024-01-15T10:45:00Z',
+            beforeScore: 65,
+            afterScore: 89,
+            details: {
+              imagesOptimized: 12,
+              cssOptimized: 3,
+              jsOptimized: 2,
+              htmlOptimized: 1,
+              totalSavings: 1024
+            }
+          },
+          {
+            id: '2',
+            website: 'test-site.org',
+            url: 'https://test-site.org',
+            type: 'CSS Optimization',
+            status: 'running',
+            progress: 65,
+            scoreImprovement: 0,
+            createdAt: '2024-01-16T09:15:00Z',
+            beforeScore: 45,
+            afterScore: 45,
+            details: {
+              imagesOptimized: 0,
+              cssOptimized: 0,
+              jsOptimized: 0,
+              htmlOptimized: 0,
+              totalSavings: 0
+            }
+          },
+          {
+            id: '3',
+            website: 'demo.net',
+            url: 'https://demo.net',
+            type: 'JavaScript Optimization',
+            status: 'failed',
+            progress: 30,
+            scoreImprovement: 0,
+            createdAt: '2024-01-14T15:45:00Z',
+            beforeScore: 72,
+            afterScore: 72,
+            details: {
+              imagesOptimized: 0,
+              cssOptimized: 0,
+              jsOptimized: 0,
+              htmlOptimized: 0,
+              totalSavings: 0
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          optimizations: mockOptimizations
+        });
+      } catch (error) {
+        console.error('Optimizations error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get optimizations'
+        });
+      }
+    });
+
+    // Get optimization stats
+    this.app.get('/api/optimizations/stats', async (req, res) => {
+      try {
+        const mockStats = {
+          totalWebsites: 12,
+          websitesOptimized: 8,
+          averageScore: 78,
+          tokensEarned: 4250,
+          optimizationsToday: 3,
+          totalOptimizations: 45,
+          alerts: [
+            {
+              title: 'High Performance Improvement',
+              description: 'Your average score improvement is 23% above the platform average.',
+              type: 'success'
+            },
+            {
+              title: 'Optimization Queue',
+              description: 'You have 2 optimizations pending in your queue.',
+              type: 'info'
+            }
+          ]
+        };
+
+        res.json(mockStats);
+      } catch (error) {
+        console.error('Optimization stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get optimization stats'
+        });
+      }
+    });
+
+    // Create optimization
+    this.app.post('/api/optimizations', async (req, res) => {
+      try {
+        const { website, type, priority, description } = req.body;
+        
+        const newOptimization = {
+          id: Date.now().toString(),
+          website,
+          url: `https://${website}`,
+          type,
+          status: 'pending',
+          progress: 0,
+          scoreImprovement: 0,
+          createdAt: new Date().toISOString(),
+          beforeScore: Math.floor(Math.random() * 40) + 30, // Random score between 30-70
+          afterScore: 0,
+          details: {
+            imagesOptimized: 0,
+            cssOptimized: 0,
+            jsOptimized: 0,
+            htmlOptimized: 0,
+            totalSavings: 0
+          }
+        };
+
+        res.json(newOptimization);
+      } catch (error) {
+        console.error('Create optimization error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to create optimization'
+        });
+      }
+    });
+
+    // Run optimization
+    this.app.post('/api/optimizations/:id/run', async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        // Mock optimization process
+        const updatedOptimization = {
+          id,
+          status: 'running',
+          progress: 0,
+          startedAt: new Date().toISOString()
+        };
+
+        res.json(updatedOptimization);
+      } catch (error) {
+        console.error('Run optimization error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to run optimization'
+        });
+      }
+    });
+
+    // Delete optimization
+    this.app.delete('/api/optimizations/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        res.json({
+          success: true,
+          message: 'Optimization deleted successfully'
+        });
+      } catch (error) {
+        console.error('Delete optimization error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to delete optimization'
+        });
+      }
+    });
+
+    console.log('✅ Optimization API routes configured');
+  }
+
+  setupWebsiteRoutes() {
+    // =====================================================
+    // WEBSITE API ENDPOINTS
+    // =====================================================
+
+    // Get all websites
+    this.app.get('/api/websites', async (req, res) => {
+      try {
+        const mockWebsites = [
+          {
+            id: '1',
+            domain: 'example.com',
+            url: 'https://example.com',
+            beforeScore: 65,
+            afterScore: 89,
+            status: 'active',
+            lastOptimized: '2024-01-15T10:30:00Z',
+            totalOptimizations: 12,
+            tokensEarned: 1250,
+            createdAt: '2024-01-01T00:00:00Z',
+            metadata: {
+              title: 'Example Website',
+              description: 'A sample website for testing',
+              category: 'Business'
+            }
+          },
+          {
+            id: '2',
+            domain: 'test-site.org',
+            url: 'https://test-site.org',
+            beforeScore: 45,
+            afterScore: 78,
+            status: 'active',
+            lastOptimized: '2024-01-14T15:45:00Z',
+            totalOptimizations: 8,
+            tokensEarned: 890,
+            createdAt: '2024-01-05T00:00:00Z',
+            metadata: {
+              title: 'Test Site',
+              description: 'Another test website',
+              category: 'Technology'
+            }
+          }
+        ];
+
+        res.json(mockWebsites);
+      } catch (error) {
+        console.error('Websites error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get websites'
+        });
+      }
+    });
+
+    // Create website
+    this.app.post('/api/websites', async (req, res) => {
+      try {
+        const { domain, url, category, description } = req.body;
+        
+        const newWebsite = {
+          id: Date.now().toString(),
+          domain,
+          url,
+          beforeScore: Math.floor(Math.random() * 40) + 30,
+          afterScore: 0,
+          status: 'active',
+          lastOptimized: null,
+          totalOptimizations: 0,
+          tokensEarned: 0,
+          createdAt: new Date().toISOString(),
+          metadata: {
+            title: domain,
+            description: description || '',
+            category: category || 'General'
+          }
+        };
+
+        res.json(newWebsite);
+      } catch (error) {
+        console.error('Create website error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to create website'
+        });
+      }
+    });
+
+    // Optimize website
+    this.app.post('/api/websites/:id/optimize', async (req, res) => {
+      try {
+        const { id } = req.params;
+        
+        // Mock optimization result
+        const result = {
+          success: true,
+          newScore: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
+          tokensEarned: Math.floor(Math.random() * 200) + 50,
+          optimizationsApplied: [
+            'Image compression',
+            'CSS minification',
+            'JavaScript optimization'
+          ]
+        };
+
+        res.json(result);
+      } catch (error) {
+        console.error('Optimize website error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to optimize website'
+        });
+      }
+    });
+
+    console.log('✅ Website API routes configured');
+  }
+
+  setupAnalyticsRoutes() {
+    // =====================================================
+    // ANALYTICS API ENDPOINTS
+    // =====================================================
+
+    // Get analytics data
+    this.app.get('/api/analytics', async (req, res) => {
+      try {
+        const mockAnalytics = {
+          overview: {
+            totalWebsites: 12,
+            totalOptimizations: 45,
+            averageScoreImprovement: 23.5,
+            totalTokensEarned: 4250,
+            activeOptimizations: 3
+          },
+          performance: {
+            daily: [
+              { date: '2024-01-10', optimizations: 2, scoreImprovement: 15, tokensEarned: 150 },
+              { date: '2024-01-11', optimizations: 3, scoreImprovement: 22, tokensEarned: 220 },
+              { date: '2024-01-12', optimizations: 1, scoreImprovement: 18, tokensEarned: 180 },
+              { date: '2024-01-13', optimizations: 4, scoreImprovement: 28, tokensEarned: 280 },
+              { date: '2024-01-14', optimizations: 2, scoreImprovement: 12, tokensEarned: 120 },
+              { date: '2024-01-15', optimizations: 3, scoreImprovement: 25, tokensEarned: 250 },
+              { date: '2024-01-16', optimizations: 2, scoreImprovement: 20, tokensEarned: 200 }
+            ]
+          },
+          topWebsites: [
+            { id: '1', domain: 'example.com', scoreImprovement: 35, optimizations: 12, tokensEarned: 1250 },
+            { id: '2', domain: 'demo.net', scoreImprovement: 28, optimizations: 15, tokensEarned: 2100 },
+            { id: '3', domain: 'test-site.org', scoreImprovement: 22, optimizations: 8, tokensEarned: 890 }
+          ],
+          optimizationTypes: [
+            { type: 'Image Optimization', count: 18, averageImprovement: 12.5, tokensEarned: 1800 },
+            { type: 'CSS Optimization', count: 12, averageImprovement: 8.3, tokensEarned: 1200 },
+            { type: 'JavaScript Optimization', count: 8, averageImprovement: 15.2, tokensEarned: 950 }
+          ]
+        };
+
+        res.json(mockAnalytics);
+      } catch (error) {
+        console.error('Analytics error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get analytics'
+        });
+      }
+    });
+
+    console.log('✅ Analytics API routes configured');
   }
 }
 
