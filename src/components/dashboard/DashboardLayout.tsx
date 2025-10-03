@@ -32,7 +32,8 @@ import {
   HistoryOutlined,
   UserOutlined,
   MenuOutlined,
-  CloseOutlined
+  CloseOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { useOptimization } from '../../hooks/useOptimization';
@@ -65,6 +66,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       key: '/dashboard/optimization',
       icon: <OptimizationOutlined />,
       label: 'DOM Optimization',
+    },
+    {
+      key: '/dashboard/seo',
+      icon: <SearchOutlined />,
+      label: 'SEO Pipeline',
     },
     {
       key: '/dashboard/analytics',

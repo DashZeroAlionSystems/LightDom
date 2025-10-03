@@ -6,6 +6,7 @@ import DashboardLayout from './components/dashboard/DashboardLayout';
 import DashboardOverview from './components/dashboard/DashboardOverview';
 import OptimizationDashboard from './components/dashboard/OptimizationDashboard';
 import WalletDashboard from './components/dashboard/WalletDashboard';
+import SEODashboard from './components/dashboard/SEODashboard';
 import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import PaymentPage from './components/payment/PaymentPage';
@@ -49,6 +50,7 @@ const AppContent: React.FC = () => {
         >
           <Route index element={<DashboardOverview />} />
           <Route path="optimization" element={<OptimizationDashboard />} />
+          <Route path="seo" element={<SEODashboard />} />
           <Route path="wallet" element={<WalletDashboard />} />
           <Route path="analytics" element={<div>Analytics Coming Soon</div>} />
           <Route path="websites" element={<div>Websites Coming Soon</div>} />
