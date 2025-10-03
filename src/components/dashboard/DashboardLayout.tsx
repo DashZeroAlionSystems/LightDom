@@ -34,7 +34,12 @@ import {
   MenuOutlined,
   CloseOutlined,
   ShoppingCartOutlined,
-  GiftOutlined
+  GiftOutlined,
+  ExperimentOutlined,
+  BugOutlined,
+  ClusterOutlined,
+  DatabaseOutlined,
+  RocketOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { useOptimization } from '../../hooks/useOptimization';
@@ -92,6 +97,31 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       key: '/dashboard/metaverse-mining-rewards',
       icon: <GiftOutlined />,
       label: 'Mining Rewards',
+    },
+    {
+      key: '/dashboard/workflow-simulation',
+      icon: <ExperimentOutlined />,
+      label: 'Workflow Simulation',
+    },
+    {
+      key: '/dashboard/testing',
+      icon: <BugOutlined />,
+      label: 'Testing',
+    },
+    {
+      key: '/dashboard/advanced-nodes',
+      icon: <ClusterOutlined />,
+      label: 'Advanced Nodes',
+    },
+    {
+      key: '/dashboard/blockchain-models',
+      icon: <DatabaseOutlined />,
+      label: 'Blockchain Models',
+    },
+    {
+      key: '/dashboard/space-optimization',
+      icon: <RocketOutlined />,
+      label: 'Space Optimization',
     },
     {
       key: '/dashboard/analytics',

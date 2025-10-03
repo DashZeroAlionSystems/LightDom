@@ -167,6 +167,15 @@ class DOMSpaceHarvesterAPI {
     // Setup metaverse mining rewards API routes
     this.setupMetaverseMiningRewardsRoutes();
     
+    // Setup workflow simulation API routes
+    this.setupWorkflowRoutes();
+    
+    // Setup testing API routes
+    this.setupTestingRoutes();
+    
+    // Setup advanced node API routes
+    this.setupAdvancedNodeRoutes();
+    
     // Statistics cache
     this.statsCache = {
       lastUpdate: 0,
@@ -4448,6 +4457,818 @@ class DOMSpaceHarvesterAPI {
     });
 
     console.log('✅ Metaverse Mining Rewards API routes configured');
+  }
+
+  setupWorkflowRoutes() {
+    // =====================================================
+    // WORKFLOW SIMULATION API ENDPOINTS
+    // =====================================================
+
+    // Get workflow simulations
+    this.app.get('/api/workflow/simulations', async (req, res) => {
+      try {
+        const mockSimulations = [
+          {
+            id: 'sim_1',
+            name: 'Complete User Journey',
+            description: 'End-to-end user workflow simulation',
+            steps: [
+              {
+                id: 'step_1',
+                name: 'User Registration',
+                description: 'Create new user account',
+                type: 'client',
+                status: 'completed',
+                duration: 1500,
+                dependencies: [],
+                result: { userId: 'user_123', email: 'test@example.com' }
+              },
+              {
+                id: 'step_2',
+                name: 'DOM Analysis',
+                description: 'Analyze website DOM structure',
+                type: 'cursor',
+                status: 'completed',
+                duration: 3000,
+                dependencies: ['step_1'],
+                result: { elementsAnalyzed: 150, spaceFound: 2048 }
+              },
+              {
+                id: 'step_3',
+                name: 'Optimization Submission',
+                description: 'Submit optimization to blockchain',
+                type: 'blockchain',
+                status: 'completed',
+                duration: 2000,
+                dependencies: ['step_2'],
+                result: { txHash: '0x123...', tokensEarned: 100 }
+              },
+              {
+                id: 'step_4',
+                name: 'Metaverse Generation',
+                description: 'Generate metaverse infrastructure',
+                type: 'integration',
+                status: 'in_progress',
+                duration: 0,
+                dependencies: ['step_3']
+              }
+            ],
+            totalDuration: 6500,
+            status: 'running',
+            createdAt: Date.now() - 300000,
+            completedAt: null
+          }
+        ];
+
+        const currentSimulation = mockSimulations.find(sim => sim.status === 'running') || null;
+
+        res.json({
+          success: true,
+          data: {
+            simulations: mockSimulations,
+            currentSimulation
+          }
+        });
+      } catch (error) {
+        console.error('Get workflow simulations error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get workflow simulations'
+        });
+      }
+    });
+
+    // Start workflow simulation
+    this.app.post('/api/workflow/start', async (req, res) => {
+      try {
+        const simulation = {
+          id: `sim_${Date.now()}`,
+          name: 'New Workflow Simulation',
+          description: 'Automated workflow simulation',
+          steps: [
+            {
+              id: 'step_1',
+              name: 'Initialize System',
+              description: 'Initialize all system components',
+              type: 'client',
+              status: 'pending',
+              duration: 0,
+              dependencies: []
+            },
+            {
+              id: 'step_2',
+              name: 'Load Test Data',
+              description: 'Load test data and configurations',
+              type: 'cursor',
+              status: 'pending',
+              duration: 0,
+              dependencies: ['step_1']
+            },
+            {
+              id: 'step_3',
+              name: 'Run Optimizations',
+              description: 'Execute DOM optimizations',
+              type: 'blockchain',
+              status: 'pending',
+              duration: 0,
+              dependencies: ['step_2']
+            },
+            {
+              id: 'step_4',
+              name: 'Generate Reports',
+              description: 'Generate optimization reports',
+              type: 'integration',
+              status: 'pending',
+              duration: 0,
+              dependencies: ['step_3']
+            }
+          ],
+          totalDuration: 0,
+          status: 'running',
+          createdAt: Date.now(),
+          completedAt: null
+        };
+
+        res.json({
+          success: true,
+          message: 'Workflow simulation started',
+          data: { simulation }
+        });
+      } catch (error) {
+        console.error('Start workflow simulation error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to start workflow simulation'
+        });
+      }
+    });
+
+    // Stop workflow simulation
+    this.app.post('/api/workflow/stop', async (req, res) => {
+      try {
+        res.json({
+          success: true,
+          message: 'Workflow simulation stopped'
+        });
+      } catch (error) {
+        console.error('Stop workflow simulation error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to stop workflow simulation'
+        });
+      }
+    });
+
+    // Reset workflow simulation
+    this.app.post('/api/workflow/reset', async (req, res) => {
+      try {
+        res.json({
+          success: true,
+          message: 'Workflow simulation reset'
+        });
+      } catch (error) {
+        console.error('Reset workflow simulation error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to reset workflow simulation'
+        });
+      }
+    });
+
+    // Get workflow statistics
+    this.app.get('/api/workflow/stats', async (req, res) => {
+      try {
+        const stats = {
+          totalSimulations: 15,
+          completedSimulations: 12,
+          failedSimulations: 2,
+          runningSimulations: 1,
+          averageDuration: 45000,
+          successRate: 85.7,
+          totalSteps: 60,
+          completedSteps: 48,
+          failedSteps: 5,
+          skippedSteps: 7
+        };
+
+        res.json({
+          success: true,
+          data: stats
+        });
+      } catch (error) {
+        console.error('Get workflow stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get workflow statistics'
+        });
+      }
+    });
+
+    console.log('✅ Workflow Simulation API routes configured');
+  }
+
+  setupTestingRoutes() {
+    // =====================================================
+    // TESTING API ENDPOINTS
+    // =====================================================
+
+    // Get test results
+    this.app.get('/api/tests/results', async (req, res) => {
+      try {
+        const mockTestSuites = [
+          {
+            name: 'Client Management Tests',
+            tests: [
+              {
+                name: 'Client Creation Test',
+                status: 'passed',
+                duration: 1200,
+                details: { clientsCreated: 5, successRate: 100 }
+              },
+              {
+                name: 'Client Authentication Test',
+                status: 'passed',
+                duration: 800,
+                details: { authAttempts: 10, successRate: 100 }
+              },
+              {
+                name: 'Client Billing Test',
+                status: 'failed',
+                duration: 1500,
+                error: 'Payment gateway timeout',
+                details: { billingAttempts: 3, successRate: 0 }
+              }
+            ],
+            totalDuration: 3500,
+            passed: 2,
+            failed: 1,
+            skipped: 0
+          },
+          {
+            name: 'Cursor AI Tests',
+            tests: [
+              {
+                name: 'Code Generation Test',
+                status: 'passed',
+                duration: 2000,
+                details: { codeGenerated: 15, qualityScore: 95 }
+              },
+              {
+                name: 'Merge Conflict Resolution Test',
+                status: 'passed',
+                duration: 1800,
+                details: { conflictsResolved: 8, accuracy: 100 }
+              },
+              {
+                name: 'AI Model Performance Test',
+                status: 'passed',
+                duration: 3000,
+                details: { responseTime: 1.2, accuracy: 98.5 }
+              }
+            ],
+            totalDuration: 6800,
+            passed: 3,
+            failed: 0,
+            skipped: 0
+          },
+          {
+            name: 'Blockchain Integration Tests',
+            tests: [
+              {
+                name: 'Smart Contract Deployment Test',
+                status: 'passed',
+                duration: 5000,
+                details: { contractsDeployed: 3, gasUsed: 2500000 }
+              },
+              {
+                name: 'Token Transfer Test',
+                status: 'passed',
+                duration: 1200,
+                details: { transfers: 50, successRate: 100 }
+              },
+              {
+                name: 'Optimization Submission Test',
+                status: 'skipped',
+                duration: 0,
+                details: { reason: 'Network congestion' }
+              }
+            ],
+            totalDuration: 6200,
+            passed: 2,
+            failed: 0,
+            skipped: 1
+          },
+          {
+            name: 'End-to-End Integration Tests',
+            tests: [
+              {
+                name: 'Complete User Workflow Test',
+                status: 'passed',
+                duration: 15000,
+                details: { workflowsCompleted: 5, successRate: 100 }
+              },
+              {
+                name: 'Performance Load Test',
+                status: 'passed',
+                duration: 30000,
+                details: { concurrentUsers: 100, responseTime: 2.1 }
+              },
+              {
+                name: 'Security Penetration Test',
+                status: 'failed',
+                duration: 25000,
+                error: 'SQL injection vulnerability detected',
+                details: { vulnerabilities: 1, severity: 'high' }
+              }
+            ],
+            totalDuration: 70000,
+            passed: 2,
+            failed: 1,
+            skipped: 0
+          }
+        ];
+
+        const allTests = mockTestSuites.flatMap(suite => suite.tests);
+
+        res.json({
+          success: true,
+          data: {
+            suites: mockTestSuites,
+            results: allTests
+          }
+        });
+      } catch (error) {
+        console.error('Get test results error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get test results'
+        });
+      }
+    });
+
+    // Run all tests
+    this.app.post('/api/tests/run', async (req, res) => {
+      try {
+        // Simulate test execution
+        const testSuites = [
+          {
+            name: 'Client Management Tests',
+            tests: [
+              {
+                name: 'Client Creation Test',
+                status: 'passed',
+                duration: 1200,
+                details: { clientsCreated: 5, successRate: 100 }
+              },
+              {
+                name: 'Client Authentication Test',
+                status: 'passed',
+                duration: 800,
+                details: { authAttempts: 10, successRate: 100 }
+              }
+            ],
+            totalDuration: 2000,
+            passed: 2,
+            failed: 0,
+            skipped: 0
+          },
+          {
+            name: 'Cursor AI Tests',
+            tests: [
+              {
+                name: 'Code Generation Test',
+                status: 'passed',
+                duration: 2000,
+                details: { codeGenerated: 15, qualityScore: 95 }
+              },
+              {
+                name: 'Merge Conflict Resolution Test',
+                status: 'passed',
+                duration: 1800,
+                details: { conflictsResolved: 8, accuracy: 100 }
+              }
+            ],
+            totalDuration: 3800,
+            passed: 2,
+            failed: 0,
+            skipped: 0
+          },
+          {
+            name: 'Blockchain Integration Tests',
+            tests: [
+              {
+                name: 'Smart Contract Deployment Test',
+                status: 'passed',
+                duration: 5000,
+                details: { contractsDeployed: 3, gasUsed: 2500000 }
+              },
+              {
+                name: 'Token Transfer Test',
+                status: 'passed',
+                duration: 1200,
+                details: { transfers: 50, successRate: 100 }
+              }
+            ],
+            totalDuration: 6200,
+            passed: 2,
+            failed: 0,
+            skipped: 0
+          }
+        ];
+
+        res.json({
+          success: true,
+          message: 'All tests completed successfully',
+          data: { testSuites }
+        });
+      } catch (error) {
+        console.error('Run tests error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to run tests'
+        });
+      }
+    });
+
+    // Export test results
+    this.app.get('/api/tests/export', async (req, res) => {
+      try {
+        const exportData = {
+          timestamp: new Date().toISOString(),
+          testResults: {
+            totalTests: 12,
+            passed: 10,
+            failed: 1,
+            skipped: 1,
+            successRate: 83.3,
+            totalDuration: 12000
+          },
+          suites: [
+            {
+              name: 'Client Management Tests',
+              passed: 2,
+              failed: 0,
+              skipped: 0,
+              duration: 2000
+            },
+            {
+              name: 'Cursor AI Tests',
+              passed: 2,
+              failed: 0,
+              skipped: 0,
+              duration: 3800
+            },
+            {
+              name: 'Blockchain Integration Tests',
+              passed: 2,
+              failed: 0,
+              skipped: 0,
+              duration: 6200
+            }
+          ]
+        };
+
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename=test-results.json');
+        res.json(exportData);
+      } catch (error) {
+        console.error('Export test results error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to export test results'
+        });
+      }
+    });
+
+    // Get test statistics
+    this.app.get('/api/tests/stats', async (req, res) => {
+      try {
+        const stats = {
+          totalTests: 25,
+          passed: 22,
+          failed: 2,
+          skipped: 1,
+          successRate: 88.0,
+          averageDuration: 2500,
+          totalDuration: 62500,
+          lastRun: new Date(Date.now() - 3600000).toISOString(),
+          coverage: {
+            statements: 85.5,
+            branches: 78.2,
+            functions: 92.1,
+            lines: 87.8
+          }
+        };
+
+        res.json({
+          success: true,
+          data: stats
+        });
+      } catch (error) {
+        console.error('Get test stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get test statistics'
+        });
+      }
+    });
+
+    console.log('✅ Testing API routes configured');
+  }
+
+  setupAdvancedNodeRoutes() {
+    // =====================================================
+    // ADVANCED NODE API ENDPOINTS
+    // =====================================================
+
+    // Get nodes
+    this.app.get('/api/nodes/list', async (req, res) => {
+      try {
+        const mockNodes = [
+          {
+            id: 'node_1',
+            type: 'ai_consensus',
+            status: 'active',
+            storageCapacity: 1000000000,
+            usedStorage: 250000000,
+            availableStorage: 750000000,
+            computePower: 95,
+            rewardRate: 0.15,
+            biomeType: 'E-commerce',
+            sourceOptimizations: ['opt_1', 'opt_2', 'opt_3'],
+            createdAt: Date.now() - 86400000,
+            lastActivity: Date.now() - 300000,
+            performance: {
+              uptime: 99.8,
+              efficiency: 92.5,
+              tasksCompleted: 1250,
+              rewardsEarned: 187.5
+            }
+          },
+          {
+            id: 'node_2',
+            type: 'storage_shard',
+            status: 'active',
+            storageCapacity: 5000000000,
+            usedStorage: 1200000000,
+            availableStorage: 3800000000,
+            computePower: 75,
+            rewardRate: 0.08,
+            biomeType: 'Media',
+            sourceOptimizations: ['opt_4', 'opt_5'],
+            createdAt: Date.now() - 172800000,
+            lastActivity: Date.now() - 600000,
+            performance: {
+              uptime: 99.5,
+              efficiency: 88.2,
+              tasksCompleted: 850,
+              rewardsEarned: 68.0
+            }
+          },
+          {
+            id: 'node_3',
+            type: 'bridge',
+            status: 'maintenance',
+            storageCapacity: 2000000000,
+            usedStorage: 500000000,
+            availableStorage: 1500000000,
+            computePower: 85,
+            rewardRate: 0.12,
+            biomeType: 'Cross-chain',
+            sourceOptimizations: ['opt_6', 'opt_7', 'opt_8'],
+            createdAt: Date.now() - 259200000,
+            lastActivity: Date.now() - 1800000,
+            performance: {
+              uptime: 98.9,
+              efficiency: 90.1,
+              tasksCompleted: 2100,
+              rewardsEarned: 252.0
+            }
+          },
+          {
+            id: 'node_4',
+            type: 'optimization',
+            status: 'idle',
+            storageCapacity: 800000000,
+            usedStorage: 200000000,
+            availableStorage: 600000000,
+            computePower: 70,
+            rewardRate: 0.10,
+            biomeType: 'Development',
+            sourceOptimizations: ['opt_9'],
+            createdAt: Date.now() - 432000000,
+            lastActivity: Date.now() - 3600000,
+            performance: {
+              uptime: 99.2,
+              efficiency: 85.7,
+              tasksCompleted: 650,
+              rewardsEarned: 65.0
+            }
+          }
+        ];
+
+        res.json({
+          success: true,
+          data: { nodes: mockNodes }
+        });
+      } catch (error) {
+        console.error('Get nodes error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get nodes'
+        });
+      }
+    });
+
+    // Create new node
+    this.app.post('/api/nodes/create', async (req, res) => {
+      try {
+        const { type, biomeType, storageCapacity, computePower } = req.body;
+
+        const newNode = {
+          id: `node_${Date.now()}`,
+          type,
+          status: 'active',
+          storageCapacity: storageCapacity || 1000000000,
+          usedStorage: 0,
+          availableStorage: storageCapacity || 1000000000,
+          computePower: computePower || 80,
+          rewardRate: 0.10,
+          biomeType: biomeType || 'General',
+          sourceOptimizations: [],
+          createdAt: Date.now(),
+          lastActivity: Date.now(),
+          performance: {
+            uptime: 100.0,
+            efficiency: 0,
+            tasksCompleted: 0,
+            rewardsEarned: 0
+          }
+        };
+
+        res.json({
+          success: true,
+          message: 'Node created successfully',
+          data: { node: newNode }
+        });
+      } catch (error) {
+        console.error('Create node error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to create node'
+        });
+      }
+    });
+
+    // Scale node
+    this.app.post('/api/nodes/scale', async (req, res) => {
+      try {
+        const { nodeId, scaleFactor } = req.body;
+
+        const scaledNode = {
+          id: nodeId,
+          scaleFactor,
+          newCapacity: 1000000000 * scaleFactor,
+          newComputePower: 80 * scaleFactor,
+          timestamp: Date.now()
+        };
+
+        res.json({
+          success: true,
+          message: 'Node scaled successfully',
+          data: { scaledNode }
+        });
+      } catch (error) {
+        console.error('Scale node error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to scale node'
+        });
+      }
+    });
+
+    // Merge nodes
+    this.app.post('/api/nodes/merge', async (req, res) => {
+      try {
+        const { nodeIds, mergeType } = req.body;
+
+        const mergedNode = {
+          id: `merged_${Date.now()}`,
+          sourceNodes: nodeIds,
+          mergeType,
+          combinedCapacity: 2000000000,
+          combinedComputePower: 160,
+          timestamp: Date.now()
+        };
+
+        res.json({
+          success: true,
+          message: 'Nodes merged successfully',
+          data: { mergedNode }
+        });
+      } catch (error) {
+        console.error('Merge nodes error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to merge nodes'
+        });
+      }
+    });
+
+    // Get node tasks
+    this.app.get('/api/nodes/tasks', async (req, res) => {
+      try {
+        const mockTasks = [
+          {
+            id: 'task_1',
+            nodeId: 'node_1',
+            type: 'dom_analysis',
+            targetUrl: 'https://example.com',
+            status: 'completed',
+            spaceSaved: 2048,
+            tokensEarned: 15.5,
+            createdAt: Date.now() - 1800000,
+            completedAt: Date.now() - 1200000
+          },
+          {
+            id: 'task_2',
+            nodeId: 'node_1',
+            type: 'css_optimization',
+            targetUrl: 'https://example.com/styles.css',
+            status: 'processing',
+            spaceSaved: 0,
+            tokensEarned: 0,
+            createdAt: Date.now() - 300000
+          },
+          {
+            id: 'task_3',
+            nodeId: 'node_2',
+            type: 'js_minification',
+            targetUrl: 'https://example.com/script.js',
+            status: 'completed',
+            spaceSaved: 5120,
+            tokensEarned: 25.0,
+            createdAt: Date.now() - 2400000,
+            completedAt: Date.now() - 1800000
+          },
+          {
+            id: 'task_4',
+            nodeId: 'node_3',
+            type: 'image_compression',
+            targetUrl: 'https://example.com/image.jpg',
+            status: 'failed',
+            spaceSaved: 0,
+            tokensEarned: 0,
+            createdAt: Date.now() - 3600000,
+            error: 'Image format not supported'
+          }
+        ];
+
+        res.json({
+          success: true,
+          data: { tasks: mockTasks }
+        });
+      } catch (error) {
+        console.error('Get node tasks error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get node tasks'
+        });
+      }
+    });
+
+    // Get system statistics
+    this.app.get('/api/nodes/stats', async (req, res) => {
+      try {
+        const stats = {
+          totalNodes: 4,
+          activeNodes: 2,
+          idleNodes: 1,
+          maintenanceNodes: 1,
+          totalStorageCapacity: 8800000000,
+          usedStorage: 2150000000,
+          availableStorage: 6650000000,
+          totalComputePower: 325,
+          averageEfficiency: 89.1,
+          totalTasksCompleted: 4850,
+          totalRewardsEarned: 572.5,
+          averageUptime: 99.35
+        };
+
+        res.json({
+          success: true,
+          data: stats
+        });
+      } catch (error) {
+        console.error('Get node stats error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get node statistics'
+        });
+      }
+    });
+
+    console.log('✅ Advanced Node API routes configured');
   }
 
   // Helper methods for authentication

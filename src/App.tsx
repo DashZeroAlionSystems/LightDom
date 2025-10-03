@@ -12,6 +12,11 @@ import SpaceMiningDashboard from './components/SpaceMiningDashboard';
 import MetaverseMiningDashboard from './components/MetaverseMiningDashboard';
 import MetaverseMarketplace from './components/MetaverseMarketplace';
 import MetaverseMiningRewards from './components/MetaverseMiningRewards';
+import WorkflowSimulationDashboard from './components/WorkflowSimulationDashboard';
+import TestingDashboard from './components/TestingDashboard';
+import AdvancedNodeDashboard from './components/AdvancedNodeDashboard';
+import BlockchainModelStorageDashboard from './components/BlockchainModelStorageDashboard';
+import SpaceOptimizationDashboard from './components/SpaceOptimizationDashboard';
 import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import PaymentPage from './components/payment/PaymentPage';
@@ -75,6 +80,11 @@ const AppContent: React.FC = () => {
           <Route path="metaverse-mining" element={<MetaverseMiningDashboard />} />
           <Route path="metaverse-marketplace" element={<MetaverseMarketplace />} />
           <Route path="metaverse-mining-rewards" element={<MetaverseMiningRewards />} />
+          <Route path="workflow-simulation" element={<WorkflowSimulationDashboard />} />
+          <Route path="testing" element={<TestingDashboard />} />
+          <Route path="advanced-nodes" element={<AdvancedNodeDashboard />} />
+          <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
+          <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />
           <Route path="analytics" element={<div>Analytics Coming Soon</div>} />
           <Route path="websites" element={<div>Websites Coming Soon</div>} />
           <Route path="history" element={<div>History Coming Soon</div>} />
