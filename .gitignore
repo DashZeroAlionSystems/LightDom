@@ -1,5 +1,6 @@
 # Dependencies
 node_modules
+<<<<<<< HEAD
 .npm-cache/
 
 # Build outputs
@@ -11,10 +12,20 @@ build/
 logs/
 
 # Environment files
+=======
+.npm-cache
+*.log
+.cache
+dist/
+build/
+coverage/
+.DS_Store
+>>>>>>> ac3b5a6e (Clean up .gitignore and remove npm cache from tracking)
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+<<<<<<< HEAD
 
 # IDE files
 .vscode/settings.json
@@ -96,3 +107,5 @@ artifacts/
 # Hardhat files
 cache
 artifacts
+=======
+>>>>>>> ac3b5a6e (Clean up .gitignore and remove npm cache from tracking)
