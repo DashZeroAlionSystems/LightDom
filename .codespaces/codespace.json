@@ -1,0 +1,92 @@
+{
+  "name": "LightDom Development",
+  "description": "LightDom blockchain-based DOM optimization platform development environment",
+  "ports": [
+    {
+      "port": 3000,
+      "label": "Frontend (Vite)",
+      "onAutoForward": "notify"
+    },
+    {
+      "port": 3001,
+      "label": "API Server",
+      "onAutoForward": "notify"
+    },
+    {
+      "port": 5432,
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    {
+      "port": 8545,
+      "label": "Anvil (Local Blockchain)",
+      "onAutoForward": "silent"
+    },
+    {
+      "port": 8080,
+      "label": "Electron DevTools",
+      "onAutoForward": "silent"
+    }
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-eslint",
+        "JuanBlanco.solidity",
+        "ms-vscode.vscode-docker",
+        "ms-vscode.vscode-postgresql",
+        "ms-vscode.vscode-thunder-client",
+        "ms-vscode.vscode-git-graph",
+        "ms-vscode.vscode-gitlens",
+        "ms-vscode.vscode-github-pullrequest"
+      ],
+      "settings": {
+        "typescript.preferences.importModuleSpecifier": "relative",
+        "typescript.suggest.autoImports": true,
+        "typescript.updateImportsOnFileMove.enabled": "always",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit",
+          "source.organizeImports": "explicit"
+        },
+        "files.associations": {
+          "*.sol": "solidity"
+        },
+        "solidity.defaultCompiler": "remote",
+        "solidity.compileUsingRemoteVersion": "v0.8.19+commit.7dd6d404",
+        "emmet.includeLanguages": {
+          "typescript": "html",
+          "typescriptreact": "html"
+        },
+        "tailwindCSS.includeLanguages": {
+          "typescript": "html",
+          "typescriptreact": "html"
+        },
+        "git.enableSmartCommit": true,
+        "git.confirmSync": false,
+        "git.autofetch": true,
+        "github.copilot.enable": {
+          "*": true,
+          "yaml": false,
+          "plaintext": false,
+          "markdown": false
+        }
+      }
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+  "environmentVariables": {
+    "NODE_ENV": "development",
+    "CI": "false"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  }
+}

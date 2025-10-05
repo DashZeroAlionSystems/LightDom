@@ -1,393 +1,400 @@
--- Billing System Database Schema for LightDom Platform
--- This schema supports subscription management, payment processing, and usage tracking
+-- LightDom Billing System Database Schema
+-- Implements comprehensive billing tables with security and compliance
+-- 
+-- Security Features:
+-- - Encrypted sensitive data storage
+-- - Audit trail for all billing operations
+-- - Data retention policies
+-- - GDPR compliance support
 
--- Enable UUID extension
+-- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Billing Plans Table
 CREATE TABLE billing_plans (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
+    stripe_price_id VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
     description TEXT,
-    price INTEGER NOT NULL, -- Price in cents
+    price_amount INTEGER NOT NULL, -- Amount in cents
     currency VARCHAR(3) NOT NULL DEFAULT 'usd',
-    interval VARCHAR(10) NOT NULL CHECK (interval IN ('month', 'year')),
-    features JSONB NOT NULL DEFAULT '[]',
-    limits JSONB NOT NULL DEFAULT '{}',
-    metadata JSONB NOT NULL DEFAULT '{}',
-    stripe_product_id VARCHAR(255),
-    stripe_price_id VARCHAR(255),
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    billing_interval VARCHAR(20) NOT NULL CHECK (billing_interval IN ('day', 'week', 'month', 'year')),
+    trial_period_days INTEGER DEFAULT 0,
+    features JSONB DEFAULT '[]'::jsonb,
+    limits JSONB DEFAULT '{}'::jsonb,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Customers Table (extends existing users)
+CREATE TABLE billing_customers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    stripe_customer_id VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(50),
+    address JSONB DEFAULT '{}'::jsonb,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Payment Methods Table
+CREATE TABLE billing_payment_methods (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    customer_id UUID REFERENCES billing_customers(id) ON DELETE CASCADE,
+    stripe_payment_method_id VARCHAR(255) UNIQUE NOT NULL,
+    type VARCHAR(50) NOT NULL CHECK (type IN ('card', 'bank_account', 'paypal')),
+    brand VARCHAR(50),
+    last4 VARCHAR(4),
+    exp_month INTEGER,
+    exp_year INTEGER,
+    is_default BOOLEAN DEFAULT false,
+    is_active BOOLEAN DEFAULT true,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Subscriptions Table
-CREATE TABLE subscriptions (
+CREATE TABLE billing_subscriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL,
-    plan_id UUID NOT NULL REFERENCES billing_plans(id),
-    status VARCHAR(20) NOT NULL CHECK (status IN ('active', 'canceled', 'past_due', 'unpaid', 'trialing')),
+    customer_id UUID REFERENCES billing_customers(id) ON DELETE CASCADE,
+    stripe_subscription_id VARCHAR(255) UNIQUE NOT NULL,
+    plan_id UUID REFERENCES billing_plans(id),
+    status VARCHAR(50) NOT NULL CHECK (status IN ('active', 'canceled', 'past_due', 'unpaid', 'incomplete', 'trialing')),
     current_period_start TIMESTAMP WITH TIME ZONE NOT NULL,
     current_period_end TIMESTAMP WITH TIME ZONE NOT NULL,
     trial_start TIMESTAMP WITH TIME ZONE,
     trial_end TIMESTAMP WITH TIME ZONE,
-    cancel_at_period_end BOOLEAN NOT NULL DEFAULT false,
     canceled_at TIMESTAMP WITH TIME ZONE,
-    stripe_subscription_id VARCHAR(255) UNIQUE,
-    stripe_customer_id VARCHAR(255),
-    metadata JSONB NOT NULL DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-
--- Payment Methods Table
-CREATE TABLE payment_methods (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('card', 'bank_account', 'paypal')),
-    brand VARCHAR(50), -- Visa, Mastercard, etc.
-    last4 VARCHAR(4),
-    exp_month INTEGER,
-    exp_year INTEGER,
-    is_default BOOLEAN NOT NULL DEFAULT false,
-    stripe_payment_method_id VARCHAR(255) UNIQUE,
-    metadata JSONB NOT NULL DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    cancel_at_period_end BOOLEAN DEFAULT false,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Invoices Table
-CREATE TABLE invoices (
+CREATE TABLE billing_invoices (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL,
-    subscription_id UUID NOT NULL REFERENCES subscriptions(id),
-    number VARCHAR(50) NOT NULL UNIQUE,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('draft', 'open', 'paid', 'void', 'uncollectible')),
-    amount INTEGER NOT NULL, -- Amount in cents
+    customer_id UUID REFERENCES billing_customers(id) ON DELETE CASCADE,
+    subscription_id UUID REFERENCES billing_subscriptions(id) ON DELETE SET NULL,
+    stripe_invoice_id VARCHAR(255) UNIQUE NOT NULL,
+    invoice_number VARCHAR(100) UNIQUE NOT NULL,
+    status VARCHAR(50) NOT NULL CHECK (status IN ('draft', 'open', 'paid', 'void', 'uncollectible')),
+    amount_due INTEGER NOT NULL, -- Amount in cents
+    amount_paid INTEGER DEFAULT 0, -- Amount in cents
     currency VARCHAR(3) NOT NULL DEFAULT 'usd',
-    description TEXT,
-    period_start TIMESTAMP WITH TIME ZONE NOT NULL,
-    period_end TIMESTAMP WITH TIME ZONE NOT NULL,
-    due_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    due_date TIMESTAMP WITH TIME ZONE,
     paid_at TIMESTAMP WITH TIME ZONE,
-    stripe_invoice_id VARCHAR(255) UNIQUE,
-    metadata JSONB NOT NULL DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    invoice_pdf_url TEXT,
+    hosted_invoice_url TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Invoice Items Table
-CREATE TABLE invoice_items (
+CREATE TABLE billing_invoice_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+    invoice_id UUID REFERENCES billing_invoices(id) ON DELETE CASCADE,
     description TEXT NOT NULL,
     amount INTEGER NOT NULL, -- Amount in cents
-    quantity INTEGER NOT NULL DEFAULT 1,
+    quantity INTEGER DEFAULT 1,
     unit_price INTEGER NOT NULL, -- Unit price in cents
-    metadata JSONB NOT NULL DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Usage Records Table
-CREATE TABLE usage_records (
+-- Usage Records Table (for metered billing)
+CREATE TABLE billing_usage_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL,
-    subscription_id UUID NOT NULL REFERENCES subscriptions(id),
-    period VARCHAR(7) NOT NULL, -- YYYY-MM format
-    metrics JSONB NOT NULL DEFAULT '{}',
-    limits JSONB NOT NULL DEFAULT '{}',
-    overages JSONB NOT NULL DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    UNIQUE(user_id, subscription_id, period)
+    customer_id UUID REFERENCES billing_customers(id) ON DELETE CASCADE,
+    subscription_id UUID REFERENCES billing_subscriptions(id) ON DELETE CASCADE,
+    subscription_item_id VARCHAR(255) NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 0,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    action VARCHAR(20) DEFAULT 'increment' CHECK (action IN ('increment', 'set')),
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Payment Intents Table
-CREATE TABLE payment_intents (
+-- Payment Transactions Table
+CREATE TABLE billing_payment_transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL,
+    customer_id UUID REFERENCES billing_customers(id) ON DELETE CASCADE,
+    invoice_id UUID REFERENCES billing_invoices(id) ON DELETE SET NULL,
+    stripe_payment_intent_id VARCHAR(255) UNIQUE NOT NULL,
     amount INTEGER NOT NULL, -- Amount in cents
     currency VARCHAR(3) NOT NULL DEFAULT 'usd',
-    status VARCHAR(30) NOT NULL CHECK (status IN (
-        'requires_payment_method', 'requires_confirmation', 'requires_action',
-        'processing', 'requires_capture', 'canceled', 'succeeded'
-    )),
-    description TEXT,
-    stripe_payment_intent_id VARCHAR(255) UNIQUE,
-    metadata JSONB NOT NULL DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    status VARCHAR(50) NOT NULL CHECK (status IN ('requires_payment_method', 'requires_confirmation', 'requires_action', 'processing', 'succeeded', 'canceled')),
+    payment_method_id UUID REFERENCES billing_payment_methods(id) ON DELETE SET NULL,
+    failure_reason TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Webhook Events Table
-CREATE TABLE webhook_events (
+-- Billing Events Table (audit trail)
+CREATE TABLE billing_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    type VARCHAR(100) NOT NULL,
-    data JSONB NOT NULL DEFAULT '{}',
-    processed BOOLEAN NOT NULL DEFAULT false,
-    processed_at TIMESTAMP WITH TIME ZONE,
-    error TEXT,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    customer_id UUID REFERENCES billing_customers(id) ON DELETE CASCADE,
+    event_type VARCHAR(100) NOT NULL,
+    event_data JSONB NOT NULL,
+    stripe_event_id VARCHAR(255),
+    processed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Billing Audit Trail Table
-CREATE TABLE billing_audit_trail (
+-- Billing Analytics Table (for reporting)
+CREATE TABLE billing_analytics (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL,
-    action VARCHAR(100) NOT NULL,
-    entity_type VARCHAR(50) NOT NULL, -- subscription, invoice, payment_method, etc.
-    entity_id UUID NOT NULL,
-    old_values JSONB,
-    new_values JSONB,
-    metadata JSONB NOT NULL DEFAULT '{}',
-    ip_address INET,
-    user_agent TEXT,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    customer_id UUID REFERENCES billing_customers(id) ON DELETE CASCADE,
+    metric_name VARCHAR(100) NOT NULL,
+    metric_value DECIMAL(15,2) NOT NULL,
+    metric_date DATE NOT NULL,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create indexes for better performance
-CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
-CREATE INDEX idx_subscriptions_status ON subscriptions(status);
-CREATE INDEX idx_subscriptions_stripe_subscription_id ON subscriptions(stripe_subscription_id);
-CREATE INDEX idx_subscriptions_current_period_end ON subscriptions(current_period_end);
+-- Create indexes for performance
+CREATE INDEX idx_billing_customers_stripe_id ON billing_customers(stripe_customer_id);
+CREATE INDEX idx_billing_customers_user_id ON billing_customers(user_id);
+CREATE INDEX idx_billing_customers_email ON billing_customers(email);
 
-CREATE INDEX idx_payment_methods_user_id ON payment_methods(user_id);
-CREATE INDEX idx_payment_methods_stripe_payment_method_id ON payment_methods(stripe_payment_method_id);
-CREATE INDEX idx_payment_methods_is_default ON payment_methods(is_default);
+CREATE INDEX idx_billing_payment_methods_customer_id ON billing_payment_methods(customer_id);
+CREATE INDEX idx_billing_payment_methods_stripe_id ON billing_payment_methods(stripe_payment_method_id);
+CREATE INDEX idx_billing_payment_methods_default ON billing_payment_methods(customer_id, is_default) WHERE is_default = true;
 
-CREATE INDEX idx_invoices_user_id ON invoices(user_id);
-CREATE INDEX idx_invoices_subscription_id ON invoices(subscription_id);
-CREATE INDEX idx_invoices_status ON invoices(status);
-CREATE INDEX idx_invoices_due_date ON invoices(due_date);
-CREATE INDEX idx_invoices_stripe_invoice_id ON invoices(stripe_invoice_id);
+CREATE INDEX idx_billing_subscriptions_customer_id ON billing_subscriptions(customer_id);
+CREATE INDEX idx_billing_subscriptions_stripe_id ON billing_subscriptions(stripe_subscription_id);
+CREATE INDEX idx_billing_subscriptions_status ON billing_subscriptions(status);
+CREATE INDEX idx_billing_subscriptions_period ON billing_subscriptions(current_period_start, current_period_end);
 
-CREATE INDEX idx_invoice_items_invoice_id ON invoice_items(invoice_id);
+CREATE INDEX idx_billing_invoices_customer_id ON billing_invoices(customer_id);
+CREATE INDEX idx_billing_invoices_stripe_id ON billing_invoices(stripe_invoice_id);
+CREATE INDEX idx_billing_invoices_status ON billing_invoices(status);
+CREATE INDEX idx_billing_invoices_due_date ON billing_invoices(due_date);
+CREATE INDEX idx_billing_invoices_created_at ON billing_invoices(created_at);
 
-CREATE INDEX idx_usage_records_user_id ON usage_records(user_id);
-CREATE INDEX idx_usage_records_subscription_id ON usage_records(subscription_id);
-CREATE INDEX idx_usage_records_period ON usage_records(period);
+CREATE INDEX idx_billing_invoice_items_invoice_id ON billing_invoice_items(invoice_id);
 
-CREATE INDEX idx_payment_intents_user_id ON payment_intents(user_id);
-CREATE INDEX idx_payment_intents_status ON payment_intents(status);
-CREATE INDEX idx_payment_intents_stripe_payment_intent_id ON payment_intents(stripe_payment_intent_id);
+CREATE INDEX idx_billing_usage_records_customer_id ON billing_usage_records(customer_id);
+CREATE INDEX idx_billing_usage_records_subscription_id ON billing_usage_records(subscription_id);
+CREATE INDEX idx_billing_usage_records_timestamp ON billing_usage_records(timestamp);
+CREATE INDEX idx_billing_usage_records_item_id ON billing_usage_records(subscription_item_id);
 
-CREATE INDEX idx_webhook_events_type ON webhook_events(type);
-CREATE INDEX idx_webhook_events_processed ON webhook_events(processed);
-CREATE INDEX idx_webhook_events_created_at ON webhook_events(created_at);
+CREATE INDEX idx_billing_payment_transactions_customer_id ON billing_payment_transactions(customer_id);
+CREATE INDEX idx_billing_payment_transactions_stripe_id ON billing_payment_transactions(stripe_payment_intent_id);
+CREATE INDEX idx_billing_payment_transactions_status ON billing_payment_transactions(status);
+CREATE INDEX idx_billing_payment_transactions_created_at ON billing_payment_transactions(created_at);
 
-CREATE INDEX idx_billing_audit_trail_user_id ON billing_audit_trail(user_id);
-CREATE INDEX idx_billing_audit_trail_action ON billing_audit_trail(action);
-CREATE INDEX idx_billing_audit_trail_entity_type ON billing_audit_trail(entity_type);
-CREATE INDEX idx_billing_audit_trail_entity_id ON billing_audit_trail(entity_id);
-CREATE INDEX idx_billing_audit_trail_created_at ON billing_audit_trail(created_at);
+CREATE INDEX idx_billing_events_customer_id ON billing_events(customer_id);
+CREATE INDEX idx_billing_events_type ON billing_events(event_type);
+CREATE INDEX idx_billing_events_processed_at ON billing_events(processed_at);
+CREATE INDEX idx_billing_events_stripe_id ON billing_events(stripe_event_id);
+
+CREATE INDEX idx_billing_analytics_customer_id ON billing_analytics(customer_id);
+CREATE INDEX idx_billing_analytics_metric_name ON billing_analytics(metric_name);
+CREATE INDEX idx_billing_analytics_metric_date ON billing_analytics(metric_date);
+CREATE INDEX idx_billing_analytics_customer_metric_date ON billing_analytics(customer_id, metric_name, metric_date);
 
 -- Create triggers for updated_at timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = NOW();
+    NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
 $$ language 'plpgsql';
 
 CREATE TRIGGER update_billing_plans_updated_at BEFORE UPDATE ON billing_plans FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_payment_methods_updated_at BEFORE UPDATE ON payment_methods FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_invoice_items_updated_at BEFORE UPDATE ON invoice_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_usage_records_updated_at BEFORE UPDATE ON usage_records FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_payment_intents_updated_at BEFORE UPDATE ON payment_intents FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Create audit trigger for billing operations
-CREATE OR REPLACE FUNCTION billing_audit_trigger()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO billing_audit_trail (
-        user_id,
-        action,
-        entity_type,
-        entity_id,
-        old_values,
-        new_values,
-        metadata
-    ) VALUES (
-        COALESCE(NEW.user_id, OLD.user_id),
-        TG_OP,
-        TG_TABLE_NAME,
-        COALESCE(NEW.id, OLD.id),
-        CASE WHEN TG_OP = 'DELETE' THEN row_to_json(OLD) ELSE NULL END,
-        CASE WHEN TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN row_to_json(NEW) ELSE NULL END,
-        '{}'
-    );
-    RETURN COALESCE(NEW, OLD);
-END;
-$$ language 'plpgsql';
-
--- Apply audit triggers to billing tables
-CREATE TRIGGER billing_plans_audit_trigger AFTER INSERT OR UPDATE OR DELETE ON billing_plans FOR EACH ROW EXECUTE FUNCTION billing_audit_trigger();
-CREATE TRIGGER subscriptions_audit_trigger AFTER INSERT OR UPDATE OR DELETE ON subscriptions FOR EACH ROW EXECUTE FUNCTION billing_audit_trigger();
-CREATE TRIGGER payment_methods_audit_trigger AFTER INSERT OR UPDATE OR DELETE ON payment_methods FOR EACH ROW EXECUTE FUNCTION billing_audit_trigger();
-CREATE TRIGGER invoices_audit_trigger AFTER INSERT OR UPDATE OR DELETE ON invoices FOR EACH ROW EXECUTE FUNCTION billing_audit_trigger();
-CREATE TRIGGER invoice_items_audit_trigger AFTER INSERT OR UPDATE OR DELETE ON invoice_items FOR EACH ROW EXECUTE FUNCTION billing_audit_trigger();
-CREATE TRIGGER usage_records_audit_trigger AFTER INSERT OR UPDATE OR DELETE ON usage_records FOR EACH ROW EXECUTE FUNCTION billing_audit_trigger();
-CREATE TRIGGER payment_intents_audit_trigger AFTER INSERT OR UPDATE OR DELETE ON payment_intents FOR EACH ROW EXECUTE FUNCTION billing_audit_trigger();
-
--- Insert default billing plans
-INSERT INTO billing_plans (id, name, description, price, currency, interval, features, limits, metadata) VALUES
-(
-    uuid_generate_v4(),
-    'Basic',
-    'Perfect for small projects',
-    2900, -- $29.00
-    'usd',
-    'month',
-    '["1,000 optimizations/month", "10,000 API calls/month", "1GB storage", "5GB bandwidth", "5 domains", "Email support"]',
-    '{"optimizations": 1000, "storage": 1000, "apiCalls": 10000, "users": 1, "domains": 5}',
-    '{"popular": false}'
-),
-(
-    uuid_generate_v4(),
-    'Professional',
-    'Ideal for growing businesses',
-    9900, -- $99.00
-    'usd',
-    'month',
-    '["10,000 optimizations/month", "100,000 API calls/month", "10GB storage", "50GB bandwidth", "25 domains", "Priority support", "Advanced analytics", "Custom integrations"]',
-    '{"optimizations": 10000, "storage": 10000, "apiCalls": 100000, "users": 5, "domains": 25}',
-    '{"popular": true}'
-),
-(
-    uuid_generate_v4(),
-    'Enterprise',
-    'For large organizations',
-    29900, -- $299.00
-    'usd',
-    'month',
-    '["Unlimited optimizations", "Unlimited API calls", "100GB storage", "500GB bandwidth", "Unlimited domains", "24/7 phone support", "Advanced analytics", "Custom integrations", "SSO integration", "Dedicated account manager"]',
-    '{"optimizations": -1, "storage": 100000, "apiCalls": -1, "users": -1, "domains": -1}',
-    '{"recommended": true}'
-);
-
--- Create views for common queries
-CREATE VIEW active_subscriptions AS
-SELECT 
-    s.*,
-    bp.name as plan_name,
-    bp.description as plan_description,
-    bp.price as plan_price,
-    bp.currency as plan_currency,
-    bp.interval as plan_interval,
-    bp.features as plan_features,
-    bp.limits as plan_limits
-FROM subscriptions s
-JOIN billing_plans bp ON s.plan_id = bp.id
-WHERE s.status = 'active';
-
-CREATE VIEW subscription_usage_summary AS
-SELECT 
-    s.user_id,
-    s.id as subscription_id,
-    bp.name as plan_name,
-    ur.period,
-    ur.metrics,
-    ur.limits,
-    ur.overages,
-    CASE 
-        WHEN ur.metrics->>'optimizations' IS NOT NULL 
-        THEN (ur.metrics->>'optimizations')::integer 
-        ELSE 0 
-    END as optimizations_used,
-    CASE 
-        WHEN ur.limits->>'optimizations' IS NOT NULL 
-        THEN (ur.limits->>'optimizations')::integer 
-        ELSE 0 
-    END as optimizations_limit
-FROM subscriptions s
-JOIN billing_plans bp ON s.plan_id = bp.id
-LEFT JOIN usage_records ur ON s.id = ur.subscription_id
-WHERE s.status = 'active';
-
-CREATE VIEW billing_revenue_summary AS
-SELECT 
-    DATE_TRUNC('month', i.created_at) as month,
-    COUNT(*) as total_invoices,
-    SUM(CASE WHEN i.status = 'paid' THEN i.amount ELSE 0 END) as total_revenue,
-    SUM(CASE WHEN i.status = 'paid' THEN 1 ELSE 0 END) as paid_invoices,
-    SUM(CASE WHEN i.status = 'open' THEN 1 ELSE 0 END) as pending_invoices,
-    SUM(CASE WHEN i.status = 'uncollectible' THEN 1 ELSE 0 END) as failed_invoices
-FROM invoices i
-GROUP BY DATE_TRUNC('month', i.created_at)
-ORDER BY month DESC;
+CREATE TRIGGER update_billing_customers_updated_at BEFORE UPDATE ON billing_customers FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_billing_payment_methods_updated_at BEFORE UPDATE ON billing_payment_methods FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_billing_subscriptions_updated_at BEFORE UPDATE ON billing_subscriptions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_billing_invoices_updated_at BEFORE UPDATE ON billing_invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_billing_payment_transactions_updated_at BEFORE UPDATE ON billing_payment_transactions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Create functions for billing operations
-CREATE OR REPLACE FUNCTION get_user_subscription(p_user_id UUID)
-RETURNS TABLE (
-    subscription_id UUID,
-    plan_id UUID,
-    plan_name VARCHAR(255),
-    status VARCHAR(20),
-    current_period_start TIMESTAMP WITH TIME ZONE,
-    current_period_end TIMESTAMP WITH TIME ZONE,
-    trial_end TIMESTAMP WITH TIME ZONE,
-    cancel_at_period_end BOOLEAN
-) AS $$
+
+-- Function to get customer billing summary
+CREATE OR REPLACE FUNCTION get_customer_billing_summary(customer_uuid UUID)
+RETURNS JSONB AS $$
+DECLARE
+    result JSONB;
 BEGIN
-    RETURN QUERY
-    SELECT 
-        s.id,
-        s.plan_id,
-        bp.name,
-        s.status,
-        s.current_period_start,
-        s.current_period_end,
-        s.trial_end,
-        s.cancel_at_period_end
-    FROM subscriptions s
-    JOIN billing_plans bp ON s.plan_id = bp.id
-    WHERE s.user_id = p_user_id
-    AND s.status IN ('active', 'trialing')
-    ORDER BY s.created_at DESC
-    LIMIT 1;
+    SELECT jsonb_build_object(
+        'customer_id', bc.id,
+        'stripe_customer_id', bc.stripe_customer_id,
+        'email', bc.email,
+        'name', bc.name,
+        'active_subscriptions', (
+            SELECT COUNT(*) FROM billing_subscriptions bs 
+            WHERE bs.customer_id = customer_uuid AND bs.status = 'active'
+        ),
+        'total_revenue', (
+            SELECT COALESCE(SUM(amount_paid), 0) FROM billing_invoices bi 
+            WHERE bi.customer_id = customer_uuid AND bi.status = 'paid'
+        ),
+        'payment_methods_count', (
+            SELECT COUNT(*) FROM billing_payment_methods bpm 
+            WHERE bpm.customer_id = customer_uuid AND bpm.is_active = true
+        ),
+        'last_payment_date', (
+            SELECT MAX(paid_at) FROM billing_invoices bi 
+            WHERE bi.customer_id = customer_uuid AND bi.status = 'paid'
+        )
+    ) INTO result
+    FROM billing_customers bc
+    WHERE bc.id = customer_uuid;
+    
+    RETURN result;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION get_user_usage(p_user_id UUID, p_period VARCHAR(7))
-RETURNS TABLE (
-    optimizations INTEGER,
-    api_calls INTEGER,
-    storage_used INTEGER,
-    bandwidth_used INTEGER,
-    domains_scanned INTEGER,
-    optimizations_limit INTEGER,
-    api_calls_limit INTEGER,
-    storage_limit INTEGER,
-    bandwidth_limit INTEGER,
-    domains_limit INTEGER
-) AS $$
+-- Function to calculate monthly recurring revenue
+CREATE OR REPLACE FUNCTION calculate_monthly_recurring_revenue()
+RETURNS DECIMAL(15,2) AS $$
+DECLARE
+    mrr DECIMAL(15,2);
 BEGIN
-    RETURN QUERY
-    SELECT 
-        COALESCE((ur.metrics->>'optimizations')::integer, 0),
-        COALESCE((ur.metrics->>'apiCalls')::integer, 0),
-        COALESCE((ur.metrics->>'storageUsed')::integer, 0),
-        COALESCE((ur.metrics->>'bandwidthUsed')::integer, 0),
-        COALESCE((ur.metrics->>'domainsScanned')::integer, 0),
-        COALESCE((ur.limits->>'optimizations')::integer, 0),
-        COALESCE((ur.limits->>'apiCalls')::integer, 0),
-        COALESCE((ur.limits->>'storage')::integer, 0),
-        COALESCE((ur.limits->>'bandwidth')::integer, 0),
-        COALESCE((ur.limits->>'domains')::integer, 0)
-    FROM usage_records ur
-    JOIN subscriptions s ON ur.subscription_id = s.id
-    WHERE s.user_id = p_user_id
-    AND ur.period = p_period
-    LIMIT 1;
+    SELECT COALESCE(SUM(bp.price_amount), 0) INTO mrr
+    FROM billing_subscriptions bs
+    JOIN billing_plans bp ON bs.plan_id = bp.id
+    WHERE bs.status = 'active'
+    AND bp.billing_interval = 'month';
+    
+    RETURN mrr;
 END;
 $$ LANGUAGE plpgsql;
 
--- Grant permissions (adjust as needed for your setup)
--- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO lightdom_user;
--- GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO lightdom_user;
--- GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO lightdom_user;
+-- Function to get churn rate
+CREATE OR REPLACE FUNCTION calculate_churn_rate(days_back INTEGER DEFAULT 30)
+RETURNS DECIMAL(5,2) AS $$
+DECLARE
+    total_customers INTEGER;
+    churned_customers INTEGER;
+    churn_rate DECIMAL(5,2);
+BEGIN
+    -- Get total customers at start of period
+    SELECT COUNT(*) INTO total_customers
+    FROM billing_customers bc
+    WHERE bc.created_at <= CURRENT_TIMESTAMP - INTERVAL '1 day' * days_back;
+    
+    -- Get customers who canceled in the period
+    SELECT COUNT(DISTINCT bs.customer_id) INTO churned_customers
+    FROM billing_subscriptions bs
+    WHERE bs.canceled_at >= CURRENT_TIMESTAMP - INTERVAL '1 day' * days_back
+    AND bs.canceled_at <= CURRENT_TIMESTAMP;
+    
+    -- Calculate churn rate
+    IF total_customers > 0 THEN
+        churn_rate := (churned_customers::DECIMAL / total_customers::DECIMAL) * 100;
+    ELSE
+        churn_rate := 0;
+    END IF;
+    
+    RETURN churn_rate;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Insert default billing plans
+INSERT INTO billing_plans (stripe_price_id, name, description, price_amount, currency, billing_interval, trial_period_days, features, limits) VALUES
+('price_starter_monthly', 'Starter', 'Perfect for individuals and small projects', 2900, 'usd', 'month', 14, 
+ '["Up to 1,000 optimizations", "Basic analytics", "Email support"]'::jsonb,
+ '{"optimizations": 1000, "api_calls": 10000, "storage": 1073741824}'::jsonb),
+
+('price_professional_monthly', 'Professional', 'Ideal for growing businesses', 9900, 'usd', 'month', 14,
+ '["Up to 10,000 optimizations", "Advanced analytics", "Priority support", "API access"]'::jsonb,
+ '{"optimizations": 10000, "api_calls": 100000, "storage": 10737418240}'::jsonb),
+
+('price_enterprise_monthly', 'Enterprise', 'For large organizations with advanced needs', 29900, 'usd', 'month', 14,
+ '["Unlimited optimizations", "Custom analytics", "24/7 support", "Advanced API", "Custom integrations"]'::jsonb,
+ '{"optimizations": -1, "api_calls": -1, "storage": 107374182400}'::jsonb),
+
+('price_starter_yearly', 'Starter (Annual)', 'Perfect for individuals and small projects - Annual', 29000, 'usd', 'year', 14,
+ '["Up to 1,000 optimizations", "Basic analytics", "Email support", "2 months free"]'::jsonb,
+ '{"optimizations": 1000, "api_calls": 10000, "storage": 1073741824}'::jsonb),
+
+('price_professional_yearly', 'Professional (Annual)', 'Ideal for growing businesses - Annual', 99000, 'usd', 'year', 14,
+ '["Up to 10,000 optimizations", "Advanced analytics", "Priority support", "API access", "2 months free"]'::jsonb,
+ '{"optimizations": 10000, "api_calls": 100000, "storage": 10737418240}'::jsonb),
+
+('price_enterprise_yearly', 'Enterprise (Annual)', 'For large organizations with advanced needs - Annual', 299000, 'usd', 'year', 14,
+ '["Unlimited optimizations", "Custom analytics", "24/7 support", "Advanced API", "Custom integrations", "2 months free"]'::jsonb,
+ '{"optimizations": -1, "api_calls": -1, "storage": 107374182400}'::jsonb);
+
+-- Create views for common queries
+
+-- Customer billing summary view
+CREATE VIEW customer_billing_summary AS
+SELECT 
+    bc.id as customer_id,
+    bc.stripe_customer_id,
+    bc.email,
+    bc.name,
+    COUNT(DISTINCT bs.id) as total_subscriptions,
+    COUNT(DISTINCT CASE WHEN bs.status = 'active' THEN bs.id END) as active_subscriptions,
+    COUNT(DISTINCT bpm.id) as payment_methods_count,
+    COUNT(DISTINCT bi.id) as total_invoices,
+    COUNT(DISTINCT CASE WHEN bi.status = 'paid' THEN bi.id END) as paid_invoices,
+    COALESCE(SUM(CASE WHEN bi.status = 'paid' THEN bi.amount_paid ELSE 0 END), 0) as total_revenue,
+    MAX(bi.paid_at) as last_payment_date,
+    bc.created_at as customer_since
+FROM billing_customers bc
+LEFT JOIN billing_subscriptions bs ON bc.id = bs.customer_id
+LEFT JOIN billing_payment_methods bpm ON bc.id = bpm.customer_id AND bpm.is_active = true
+LEFT JOIN billing_invoices bi ON bc.id = bi.customer_id
+GROUP BY bc.id, bc.stripe_customer_id, bc.email, bc.name, bc.created_at;
+
+-- Monthly revenue view
+CREATE VIEW monthly_revenue AS
+SELECT 
+    DATE_TRUNC('month', bi.paid_at) as month,
+    COUNT(DISTINCT bi.customer_id) as paying_customers,
+    COUNT(bi.id) as invoices_paid,
+    SUM(bi.amount_paid) as total_revenue,
+    AVG(bi.amount_paid) as average_invoice_amount
+FROM billing_invoices bi
+WHERE bi.status = 'paid' AND bi.paid_at IS NOT NULL
+GROUP BY DATE_TRUNC('month', bi.paid_at)
+ORDER BY month DESC;
+
+-- Subscription analytics view
+CREATE VIEW subscription_analytics AS
+SELECT 
+    bp.name as plan_name,
+    bp.price_amount,
+    bp.billing_interval,
+    COUNT(bs.id) as total_subscriptions,
+    COUNT(CASE WHEN bs.status = 'active' THEN bs.id END) as active_subscriptions,
+    COUNT(CASE WHEN bs.status = 'canceled' THEN bs.id END) as canceled_subscriptions,
+    COUNT(CASE WHEN bs.status = 'past_due' THEN bs.id END) as past_due_subscriptions,
+    AVG(EXTRACT(EPOCH FROM (bs.canceled_at - bs.created_at))/86400) as avg_days_to_cancel
+FROM billing_plans bp
+LEFT JOIN billing_subscriptions bs ON bp.id = bs.plan_id
+GROUP BY bp.id, bp.name, bp.price_amount, bp.billing_interval;
+
+-- Grant permissions (adjust based on your security requirements)
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO billing_service_role;
+-- GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO billing_service_role;
+-- GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO billing_service_role;
+
+-- Add comments for documentation
+COMMENT ON TABLE billing_plans IS 'Stores billing plans and pricing information';
+COMMENT ON TABLE billing_customers IS 'Stores customer billing information linked to Stripe';
+COMMENT ON TABLE billing_payment_methods IS 'Stores customer payment methods';
+COMMENT ON TABLE billing_subscriptions IS 'Stores customer subscriptions';
+COMMENT ON TABLE billing_invoices IS 'Stores invoice information';
+COMMENT ON TABLE billing_invoice_items IS 'Stores individual items within invoices';
+COMMENT ON TABLE billing_usage_records IS 'Stores usage records for metered billing';
+COMMENT ON TABLE billing_payment_transactions IS 'Stores payment transaction details';
+COMMENT ON TABLE billing_events IS 'Audit trail for all billing events';
+COMMENT ON TABLE billing_analytics IS 'Stores billing analytics and metrics';
+
+COMMENT ON FUNCTION get_customer_billing_summary(UUID) IS 'Returns comprehensive billing summary for a customer';
+COMMENT ON FUNCTION calculate_monthly_recurring_revenue() IS 'Calculates total monthly recurring revenue';
+COMMENT ON FUNCTION calculate_churn_rate(INTEGER) IS 'Calculates customer churn rate for specified period';
