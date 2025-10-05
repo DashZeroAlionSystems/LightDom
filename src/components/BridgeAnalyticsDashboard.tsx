@@ -1,8 +1,5 @@
 import React from 'react';
 
-/**
- * BridgeAnalyticsDashboard - Analytics for bridge operations
- */
 const BridgeAnalyticsDashboard: React.FC = () => {
   return (
     <div className="discord-card">
@@ -13,5 +10,3 @@ const BridgeAnalyticsDashboard: React.FC = () => {
 };
 
 export default BridgeAnalyticsDashboard;
-
-

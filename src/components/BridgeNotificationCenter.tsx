@@ -1,8 +1,5 @@
 import React from 'react';
 
-/**
- * BridgeNotificationCenter - Notification center for bridge events
- */
 const BridgeNotificationCenter: React.FC = () => {
   return (
     <div className="discord-card">
@@ -13,5 +10,3 @@ const BridgeNotificationCenter: React.FC = () => {
 };
 
 export default BridgeNotificationCenter;
-
-
