@@ -36,6 +36,7 @@ import {
   BarChartOutlined
 } from '@ant-design/icons';
 import { Line, Bar, Pie } from '@ant-design/plots';
+import InteractiveChart, { ChartConfig } from '../charts/InteractiveChart';
 import { useOptimization } from '../../hooks/useOptimization';
 import { useAuth } from '../../hooks/useAuth';
 import { useWebsites } from '../../hooks/useWebsites';
@@ -59,6 +60,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
   const { session, loading: crawlerLoading, startCrawling, stopCrawling, resumeCrawling } = useCrawler();
   const [timeRange, setTimeRange] = useState('7d');
   const [showCrawlerModal, setShowCrawlerModal] = useState(false);
+  const [useInteractiveCharts, setUseInteractiveCharts] = useState(true);
 
   // Performance metrics data for charts
   const performanceData = [
@@ -133,6 +135,60 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
       shared: true,
       showMarkers: false,
     },
+  };
+
+  // Interactive chart configurations
+  const performanceChartConfig: ChartConfig = {
+    type: 'line',
+    data: performanceData,
+    xField: 'time',
+    yField: 'score',
+    title: 'Performance Trends',
+    description: 'Track your website performance improvements over time',
+    showGrid: true,
+    showLegend: true,
+    showTooltip: true,
+    showBrush: true,
+    enableZoom: true,
+    enableNotes: true,
+    enableAnnotations: true,
+    theme: 'auto',
+    height: 400
+  };
+
+  const optimizationTypesChartConfig: ChartConfig = {
+    type: 'pie',
+    data: optimizationTypesData,
+    xField: 'type',
+    yField: 'value',
+    colorField: 'type',
+    title: 'Optimization Types Distribution',
+    description: 'See which optimization types are most effective',
+    showLegend: true,
+    showTooltip: true,
+    enableNotes: true,
+    enableAnnotations: true,
+    theme: 'auto',
+    height: 400
+  };
+
+  const websiteComparisonChartConfig: ChartConfig = {
+    type: 'bar',
+    data: websiteOptimizationData,
+    xField: 'website',
+    yField: 'beforeScore',
+    colorField: 'website',
+    title: 'Website Performance Comparison',
+    description: 'Compare performance scores across different websites',
+    showGrid: true,
+    showLegend: true,
+    showTooltip: true,
+    showBrush: true,
+    enableZoom: true,
+    enableNotes: true,
+    enableAnnotations: true,
+    theme: 'auto',
+    height: 400
   };
 
   const getScoreColor = (score: number) => {

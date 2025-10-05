@@ -177,7 +177,13 @@
     "requireDocumentation": true,
     "enforceSecurity": true,
     "enforcePerformance": true,
-    "enforceAccessibility": true
+    "enforceAccessibility": true,
+    "preventRedundantWork": true,
+    "validateBeforeStart": true,
+    "consolidateDocumentation": true,
+    "maxNewFilesPerSession": 3,
+    "checkExistingWork": true,
+    "forbidDuplicateFiles": true
   },
   "integrations": {
     "github": {

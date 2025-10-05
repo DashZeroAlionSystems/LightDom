@@ -1,0 +1,83 @@
+{
+  "cursorMemory": {
+    "enabled": true,
+    "maxMemorySize": "50MB",
+    "persistenceStrategy": "file-based",
+    "compressionEnabled": true,
+    "retentionPeriod": "30 days"
+  },
+  "projectState": {
+    "lastUpdated": "2024-01-15T10:00:00Z",
+    "version": "1.0.0",
+    "status": "PRODUCTION_READY",
+    "completionPercentage": 95,
+    "keyMilestones": [
+      "Authentication system complete",
+      "Mining system functional", 
+      "Dashboard fully integrated",
+      "API endpoints working",
+      "Real-time updates implemented"
+    ]
+  },
+  "workValidation": {
+    "enabled": true,
+    "checkBeforeStart": true,
+    "validationTimeout": 30000,
+    "requiredChecks": [
+      "checkExistingFiles",
+      "checkDocumentationStatus",
+      "checkImplementationStatus",
+      "checkAPIEndpoints",
+      "checkComponentStatus"
+    ]
+  },
+  "fileCreation": {
+    "enabled": true,
+    "maxNewFilesPerSession": 3,
+    "requireJustification": true,
+    "duplicateDetection": true,
+    "consolidationRequired": true,
+    "forbiddenPatterns": [
+      "README-*.md",
+      "*_COMPLETE.md",
+      "*_STATUS.md",
+      "*_SUMMARY.md",
+      "*_INTEGRATION.md",
+      "*_AUDIT.md",
+      "*_TRACKER.md",
+      "*_GUIDE.md"
+    ]
+  },
+  "documentation": {
+    "consolidationRequired": true,
+    "maxDocumentationFiles": 10,
+    "preferredStructure": {
+      "main": "README.md",
+      "setup": "SETUP_GUIDE.md", 
+      "architecture": "ARCHITECTURE.md",
+      "api": "API_DOCUMENTATION.md",
+      "deployment": "DEPLOYMENT.md"
+    },
+    "duplicatePrevention": true,
+    "contentValidation": true
+  },
+  "taskManagement": {
+    "enabled": true,
+    "checkExistingWork": true,
+    "preventRedundancy": true,
+    "validationSteps": [
+      "searchExistingImplementation",
+      "checkDocumentationStatus", 
+      "verifyAPIEndpoints",
+      "validateComponentStatus",
+      "checkTestCoverage"
+    ]
+  },
+  "memoryEnhancement": {
+    "contextRetention": "extended",
+    "sessionPersistence": true,
+    "crossSessionMemory": true,
+    "workHistoryTracking": true,
+    "achievementTracking": true
+  }
+}
