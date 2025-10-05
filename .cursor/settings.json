@@ -189,7 +189,7 @@
     "github": {
       "enabled": true,
       "token": "${GITHUB_TOKEN}",
-      "repository": "lightdom/LightDom",
+      "repository": "DashZeroAlionSystems/LightDom",
       "branchProtection": true
     },
     "jira": {

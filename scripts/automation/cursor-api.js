@@ -32,7 +32,7 @@ export async function launchAgentWithPrompt(promptPath) {
   const body = {
     prompt: { text },
     source: {
-      repository: `file://${process.cwd()}`,
+      repository: 'https://github.com/DashZeroAlionSystems/LightDom',
       ref: 'main'
     }
   };
