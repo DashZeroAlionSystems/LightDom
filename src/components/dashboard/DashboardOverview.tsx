@@ -137,6 +137,60 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
     },
   };
 
+  // Interactive chart configurations
+  const performanceChartConfig: ChartConfig = {
+    type: 'line',
+    data: performanceData,
+    xField: 'time',
+    yField: 'score',
+    title: 'Performance Trends',
+    description: 'Track your website performance improvements over time',
+    showGrid: true,
+    showLegend: true,
+    showTooltip: true,
+    showBrush: true,
+    enableZoom: true,
+    enableNotes: true,
+    enableAnnotations: true,
+    theme: 'auto',
+    height: 400
+  };
+
+  const optimizationTypesChartConfig: ChartConfig = {
+    type: 'pie',
+    data: optimizationTypesData,
+    xField: 'type',
+    yField: 'value',
+    colorField: 'type',
+    title: 'Optimization Types Distribution',
+    description: 'See which optimization types are most effective',
+    showLegend: true,
+    showTooltip: true,
+    enableNotes: true,
+    enableAnnotations: true,
+    theme: 'auto',
+    height: 400
+  };
+
+  const websiteComparisonChartConfig: ChartConfig = {
+    type: 'bar',
+    data: websiteOptimizationData,
+    xField: 'website',
+    yField: 'beforeScore',
+    colorField: 'website',
+    title: 'Website Performance Comparison',
+    description: 'Compare performance scores across different websites',
+    showGrid: true,
+    showLegend: true,
+    showTooltip: true,
+    showBrush: true,
+    enableZoom: true,
+    enableNotes: true,
+    enableAnnotations: true,
+    theme: 'auto',
+    height: 400
+  };
+
   const getScoreColor = (score: number) => {
     if (score >= 90) return '#52c41a';
     if (score >= 70) return '#faad14';
