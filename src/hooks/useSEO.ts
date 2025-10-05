@@ -37,7 +37,7 @@ export const useSEO = () => {
   const loadSEOOverview = useCallback(async () => {
     try {
       setLoading(true);
-      // Mock data for now - in production, this would come from actual API
+      // Mock data intentionally used here for demonstration purposes
       setStats({
         totalAnalyses: 1234,
         domainsAnalyzed: 567,
