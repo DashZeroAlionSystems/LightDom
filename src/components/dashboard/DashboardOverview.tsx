@@ -36,6 +36,7 @@ import {
   BarChartOutlined
 } from '@ant-design/icons';
 import { Line, Bar, Pie } from '@ant-design/plots';
+import InteractiveChart, { ChartConfig } from '../charts/InteractiveChart';
 import { useOptimization } from '../../hooks/useOptimization';
 import { useAuth } from '../../hooks/useAuth';
 import { useWebsites } from '../../hooks/useWebsites';
@@ -59,6 +60,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
   const { session, loading: crawlerLoading, startCrawling, stopCrawling, resumeCrawling } = useCrawler();
   const [timeRange, setTimeRange] = useState('7d');
   const [showCrawlerModal, setShowCrawlerModal] = useState(false);
+  const [useInteractiveCharts, setUseInteractiveCharts] = useState(true);
 
   // Performance metrics data for charts
   const performanceData = [
