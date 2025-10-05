@@ -1,41 +1,30 @@
-import winston from 'winston';
-
+// Browser-compatible logger (replaces winston for frontend)
 export class Logger {
-  private logger: winston.Logger;
+  private service: string;
 
   constructor(service: string) {
-    this.logger = winston.createLogger({
-      level: process.env.LOG_LEVEL || 'info',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.errors({ stack: true }),
-        winston.format.json()
-      ),
-      defaultMeta: { service },
-      transports: [
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.simple()
-          )
-        })
-      ]
-    });
+    this.service = service;
+  }
+
+  private formatMessage(level: string, message: string, meta?: any): string {
+    const timestamp = new Date().toISOString();
+    const metaStr = meta ? ` ${JSON.stringify(meta)}` : '';
+    return `[${timestamp}] [${level.toUpperCase()}] [${this.service}] ${message}${metaStr}`;
   }
 
   info(message: string, meta?: any): void {
-    this.logger.info(message, meta);
+    console.log(this.formatMessage('info', message, meta));
   }
 
   error(message: string, error?: any): void {
-    this.logger.error(message, error);
+    console.error(this.formatMessage('error', message, error));
   }
 
   warn(message: string, meta?: any): void {
-    this.logger.warn(message, meta);
+    console.warn(this.formatMessage('warn', message, meta));
   }
 
   debug(message: string, meta?: any): void {
-    this.logger.debug(message, meta);
+    console.debug(this.formatMessage('debug', message, meta));
   }
 }
