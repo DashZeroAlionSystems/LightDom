@@ -21,6 +21,7 @@ import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import PaymentPage from './components/payment/PaymentPage';
 import { FileUploadSettings } from './components/FileUploadSettings';
+import AdminDashboard from './components/admin/AdminDashboard';
 import './App.css';
 
 // Initialize persistence system
@@ -62,6 +63,16 @@ const AppContent: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/payment" element={<PaymentPage />} />
+        
+        {/* Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
         
         {/* Protected Routes */}
         <Route

@@ -401,6 +401,15 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
         </Col>
       </Row>
 
+      {/* Settings Overview */}
+      <Row gutter={[24, 24]} className="settings-row">
+        <Col span={24}>
+          <Card className="settings-overview-card">
+            <SettingsOverview />
+          </Card>
+        </Col>
+      </Row>
+
       {/* Alerts and Notifications */}
       {optimizationStats?.alerts && optimizationStats.alerts.length > 0 && (
         <Row gutter={[24, 24]} className="alerts-row">
