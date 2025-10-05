@@ -19,7 +19,7 @@ import BridgeChatPage from './BridgeChatPage';
 import RealWebCrawlerDashboard from '../dom-space-harvester';
 import Navigation from './components/ui/Navigation';
 import BackButton from './components/ui/BackButton';
-import PWAInitializer from './utils/PWAInitializer';
+import PWAInitializer from './utils/validation/PWAInitializer';
 import './index.css';
 
 // Simple routing based on URL path

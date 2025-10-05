@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { lightDomSlotSystem, SlotConfig, SlotContent, SlotOptimization } from '../core/LightDomSlotSystem';
+import { lightDomSlotSystem, SlotConfig, SlotContent, SlotOptimization } from '../../core/LightDomSlotSystem';
 
 interface LightDomSlotProps {
   slotId: string;
