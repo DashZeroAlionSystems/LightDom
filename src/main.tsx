@@ -17,6 +17,7 @@ import WalletDashboard from './components/dashboard/WalletDashboard';
 import { LightDomSlotDashboard } from './components/LightDomSlotDashboard';
 import BridgeChatPage from './BridgeChatPage';
 import RealWebCrawlerDashboard from '../dom-space-harvester';
+import PWAInitializer from './utils/PWAInitializer';
 import './simple.css';
 
 // Simple routing based on URL path
@@ -50,6 +51,42 @@ const App = () => {
     return <DiscordStyleDashboard />;
   }
 };
+
+// Initialize PWA functionality
+const initializePWA = async () => {
+  try {
+    const pwaConfig = {
+      cacheName: 'lightdom-cache',
+      cacheVersion: '1.0.0',
+      urlsToCache: [
+        '/',
+        '/dashboard',
+        '/optimize',
+        '/wallet',
+        '/settings',
+        '/manifest.json',
+        '/icons/icon-192x192.png',
+        '/icons/icon-512x512.png',
+        '/offline.html'
+      ],
+      offlinePage: '/offline.html'
+    };
+
+    const pwaInitializer = new PWAInitializer(pwaConfig);
+    await pwaInitializer.initialize();
+    
+    console.log('PWA initialized successfully');
+  } catch (error) {
+    console.error('PWA initialization failed:', error);
+  }
+};
+
+// Initialize PWA when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePWA);
+} else {
+  initializePWA();
+}
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

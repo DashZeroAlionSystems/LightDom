@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # Test Database
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: lightdom-postgres-test
+    environment:
+      POSTGRES_DB: lightdom_test
+      POSTGRES_USER: lightdom_user
+      POSTGRES_PASSWORD: lightdom_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
+    ports:
+      - "5434:5432"
+    networks:
+      - lightdom-test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lightdom_user -d lightdom_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test Redis
+  redis-test:
+    image: redis:7-alpine
+    container_name: lightdom-redis-test
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_test_data:/data
+    ports:
+      - "6381:6379"
+    networks:
+      - lightdom-test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test Application
+  app-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: lightdom-app-test
+    environment:
+      # Test Database Configuration
+      DATABASE_URL: postgresql://lightdom_user:lightdom_password@postgres-test:5432/lightdom_test
+      DB_HOST: postgres-test
+      DB_PORT: 5432
+      DB_NAME: lightdom_test
+      DB_USER: lightdom_user
+      DB_PASSWORD: lightdom_password
+      
+      # Test Redis Configuration
+      REDIS_URL: redis://redis-test:6379
+      REDIS_HOST: redis-test
+      REDIS_PORT: 6379
+      
+      # Test Application Configuration
+      NODE_ENV: test
+      PORT: 3001
+      FRONTEND_PORT: 3000
+      
+      # Test Settings
+      DEBUG: false
+      LOG_LEVEL: error
+      
+      # Test Blockchain Configuration
+      ETHEREUM_RPC_URL: https://goerli.infura.io/v3/test-key
+      POLYGON_RPC_URL: https://polygon-mumbai.infura.io/v3/test-key
+      
+      # Test Security
+      JWT_SECRET: test-jwt-secret-key
+      API_SECRET: test-api-secret-key
+      
+      # Puppeteer Configuration
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - app_test_logs:/app/logs
+      - app_test_artifacts:/app/artifacts
+      - app_test_temp:/app/temp
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    networks:
+      - lightdom-test-network
+    command: ["npm", "run", "test:ci"]
+
+volumes:
+  redis_test_data:
+    driver: local
+  app_test_logs:
+    driver: local
+  app_test_artifacts:
+    driver: local
+  app_test_temp:
+    driver: local
+
+networks:
+  lightdom-test-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16

@@ -8,6 +8,7 @@ interface Website {
   afterScore: number;
   status: 'active' | 'inactive' | 'optimizing' | 'error';
   lastOptimized: string;
+<<<<<<< HEAD
   createdAt: string;
   optimizationCount: number;
   totalSavings: number;
@@ -22,21 +23,48 @@ interface WebsiteStats {
   averageScore: number;
   totalOptimizations: number;
   totalSavings: number;
+=======
+  totalOptimizations: number;
+  tokensEarned: number;
+  createdAt: string;
+  metadata: {
+    title: string;
+    description: string;
+    favicon?: string;
+    category: string;
+  };
+}
+
+interface CreateWebsiteData {
+  domain: string;
+  url: string;
+  category?: string;
+  description?: string;
+>>>>>>> origin/main
 }
 
 export const useWebsites = () => {
   const [websites, setWebsites] = useState<Website[]>([]);
+<<<<<<< HEAD
   const [websiteStats, setWebsiteStats] = useState<WebsiteStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchWebsites();
     fetchWebsiteStats();
+=======
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchWebsites();
+>>>>>>> origin/main
   }, []);
 
   const fetchWebsites = async () => {
     try {
       setLoading(true);
+<<<<<<< HEAD
       const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/websites', {
         headers: {
@@ -101,6 +129,12 @@ export const useWebsites = () => {
       console.error('Failed to fetch websites:', error);
       // Set mock data on error
       setWebsites([
+=======
+      setError(null);
+      
+      // For now, use mock data since API endpoints don't exist yet
+      const mockWebsites: Website[] = [
+>>>>>>> origin/main
         {
           id: '1',
           domain: 'example.com',
@@ -109,6 +143,7 @@ export const useWebsites = () => {
           afterScore: 89,
           status: 'active',
           lastOptimized: '2024-01-15T10:30:00Z',
+<<<<<<< HEAD
           createdAt: '2024-01-01T00:00:00Z',
           optimizationCount: 5,
           totalSavings: 2.3,
@@ -117,11 +152,63 @@ export const useWebsites = () => {
           accessibilityScore: 78
         }
       ]);
+=======
+          totalOptimizations: 12,
+          tokensEarned: 1250,
+          createdAt: '2024-01-01T00:00:00Z',
+          metadata: {
+            title: 'Example Website',
+            description: 'A sample website for testing',
+            category: 'Business'
+          }
+        },
+        {
+          id: '2',
+          domain: 'test-site.org',
+          url: 'https://test-site.org',
+          beforeScore: 45,
+          afterScore: 78,
+          status: 'active',
+          lastOptimized: '2024-01-14T15:45:00Z',
+          totalOptimizations: 8,
+          tokensEarned: 890,
+          createdAt: '2024-01-05T00:00:00Z',
+          metadata: {
+            title: 'Test Site',
+            description: 'Another test website',
+            category: 'Technology'
+          }
+        },
+        {
+          id: '3',
+          domain: 'demo.net',
+          url: 'https://demo.net',
+          beforeScore: 72,
+          afterScore: 95,
+          status: 'optimizing',
+          lastOptimized: '2024-01-16T09:15:00Z',
+          totalOptimizations: 15,
+          tokensEarned: 2100,
+          createdAt: '2024-01-10T00:00:00Z',
+          metadata: {
+            title: 'Demo Site',
+            description: 'A demonstration website',
+            category: 'Education'
+          }
+        }
+      ];
+
+      setWebsites(mockWebsites);
+    } catch (error) {
+      console.error('Failed to fetch websites:', error);
+      setError('Failed to load websites');
+>>>>>>> origin/main
     } finally {
       setLoading(false);
     }
   };
 
+<<<<<<< HEAD
   const fetchWebsiteStats = async () => {
     try {
       const token = localStorage.getItem('auth_token');
@@ -157,6 +244,9 @@ export const useWebsites = () => {
   };
 
   const addWebsite = async (websiteData: { domain: string; url: string }) => {
+=======
+  const createWebsite = async (data: CreateWebsiteData) => {
+>>>>>>> origin/main
     try {
       const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/websites', {
@@ -165,7 +255,11 @@ export const useWebsites = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
+<<<<<<< HEAD
         body: JSON.stringify(websiteData),
+=======
+        body: JSON.stringify(data),
+>>>>>>> origin/main
       });
 
       if (response.ok) {
@@ -173,10 +267,17 @@ export const useWebsites = () => {
         setWebsites(prev => [newWebsite, ...prev]);
         return newWebsite;
       } else {
+<<<<<<< HEAD
         throw new Error('Failed to add website');
       }
     } catch (error) {
       console.error('Failed to add website:', error);
+=======
+        throw new Error('Failed to create website');
+      }
+    } catch (error) {
+      console.error('Failed to create website:', error);
+>>>>>>> origin/main
       throw error;
     }
   };
@@ -241,10 +342,25 @@ export const useWebsites = () => {
 
       if (response.ok) {
         const result = await response.json();
+<<<<<<< HEAD
         setWebsites(prev =>
           prev.map(website => 
             website.id === id 
               ? { ...website, status: 'optimizing' as const }
+=======
+        // Update the website with new optimization results
+        setWebsites(prev =>
+          prev.map(website => 
+            website.id === id 
+              ? { 
+                  ...website, 
+                  status: 'optimizing',
+                  afterScore: result.newScore || website.afterScore,
+                  lastOptimized: new Date().toISOString(),
+                  totalOptimizations: website.totalOptimizations + 1,
+                  tokensEarned: website.tokensEarned + (result.tokensEarned || 0)
+                }
+>>>>>>> origin/main
               : website
           )
         );
@@ -258,6 +374,7 @@ export const useWebsites = () => {
     }
   };
 
+<<<<<<< HEAD
   return {
     websites,
     websiteStats,
@@ -268,5 +385,37 @@ export const useWebsites = () => {
     optimizeWebsite,
     refreshWebsites: fetchWebsites,
     refreshStats: fetchWebsiteStats,
+=======
+  const getWebsiteAnalytics = async (id: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/websites/${id}/analytics`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error('Failed to get website analytics');
+      }
+    } catch (error) {
+      console.error('Failed to get website analytics:', error);
+      throw error;
+    }
+  };
+
+  return {
+    websites,
+    loading,
+    error,
+    createWebsite,
+    updateWebsite,
+    deleteWebsite,
+    optimizeWebsite,
+    getWebsiteAnalytics,
+    refreshWebsites: fetchWebsites,
+>>>>>>> origin/main
   };
 };

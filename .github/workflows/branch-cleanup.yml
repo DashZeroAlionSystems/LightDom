@@ -1,0 +1,112 @@
+name: Branch Cleanup
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  cleanup-branches:
+    name: Cleanup Merged Branches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cleanup merged branches
+        run: |
+          echo "🧹 Starting branch cleanup..."
+          
+          # Get all remote branches
+          git fetch --prune
+          
+          # Get merged branches (excluding main, develop, and protected branches)
+          MERGED_BRANCHES=$(git branch -r --merged main | grep -v -E "(main|develop|HEAD)" | sed 's/origin\///' | grep -E "^(feature|bugfix|hotfix)/" || true)
+          
+          if [ -z "$MERGED_BRANCHES" ]; then
+            echo "✅ No merged branches to clean up"
+            exit 0
+          fi
+          
+          echo "📋 Found merged branches:"
+          echo "$MERGED_BRANCHES"
+          
+          # Delete remote branches
+          for branch in $MERGED_BRANCHES; do
+            echo "🗑️ Deleting remote branch: $branch"
+            git push origin --delete "$branch" || echo "Failed to delete $branch"
+          done
+          
+          # Clean up local tracking branches
+          git remote prune origin
+          
+          echo "✅ Branch cleanup completed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup stale PRs
+        run: |
+          echo "🧹 Cleaning up stale PRs..."
+          
+          # Get stale PRs (older than 30 days, not updated, and closed)
+          STALE_PRS=$(gh pr list --state closed --limit 100 --json number,updatedAt,headRefName --jq '.[] | select(.updatedAt < (now - 30*24*3600 | strftime("%Y-%m-%dT%H:%M:%SZ"))) | .number' || true)
+          
+          if [ -z "$STALE_PRS" ]; then
+            echo "✅ No stale PRs to clean up"
+            exit 0
+          fi
+          
+          echo "📋 Found stale PRs:"
+          echo "$STALE_PRS"
+          
+          # Comment on stale PRs before closing
+          for pr in $STALE_PRS; do
+            echo "💬 Commenting on stale PR: #$pr"
+            gh pr comment "$pr" --body "🤖 **Automated cleanup**
+            
+            This PR has been closed for more than 30 days and appears to be stale. 
+            If this PR is still needed, please reopen it or create a new one.
+            
+            This is an automated cleanup process."
+          done
+          
+          echo "✅ Stale PR cleanup completed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify cleanup results
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#lightdom-deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          custom_payload: |
+            {
+              "text": "🧹 Branch cleanup completed",
+              "attachments": [{
+                "color": "good",
+                "fields": [
+                  {"title": "Action", "value": "Branch cleanup", "short": true},
+                  {"title": "Trigger", "value": "${{ github.event_name }}", "short": true}
+                ]
+              }]
+            }
+        if: always()
