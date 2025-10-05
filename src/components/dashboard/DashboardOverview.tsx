@@ -27,13 +27,16 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  SearchOutlined,
+  RobotOutlined
 } from '@ant-design/icons';
 import { Line, Bar, Pie } from '@ant-design/plots';
 import { useOptimization } from '../../hooks/useOptimization';
 import { useAuth } from '../../hooks/useAuth';
 import { useWebsites } from '../../hooks/useWebsites';
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { useSEO } from '../../hooks/useSEO';
 import SEOIntegrationTest from './SEOIntegrationTest';
 import './DashboardOverview.css';
 
@@ -48,6 +51,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
   const { optimizationStats, recentOptimizations, loading: optimizationLoading } = useOptimization();
   const { websites, loading: websitesLoading } = useWebsites();
   const { analytics, loading: analyticsLoading } = useAnalytics();
+  const { stats: seoStats, loading: seoLoading } = useSEO();
   const [timeRange, setTimeRange] = useState('7d');
 
   // Performance metrics data for charts
@@ -138,7 +142,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
     return 'Poor';
   };
 
-  if (optimizationLoading || websitesLoading || analyticsLoading) {
+  if (optimizationLoading || websitesLoading || analyticsLoading || seoLoading) {
     return (
       <div className="dashboard-overview-loading">
         <Spin size="large" />
@@ -231,6 +235,67 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
             <div className="metric-trend">
               <ArrowUpOutlined className="trend-up" />
               <Text type="secondary">+3 from yesterday</Text>
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* SEO Metrics Row */}
+      <Row gutter={[24, 24]} className="metrics-row" style={{ marginTop: 16 }}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="metric-card seo-metric">
+            <Statistic
+              title="SEO Analyses"
+              value={seoStats?.totalAnalyses || 0}
+              prefix={<SearchOutlined />}
+              valueStyle={{ color: '#722ed1' }}
+            />
+            <div className="metric-trend">
+              <ArrowUpOutlined className="trend-up" />
+              <Text type="secondary">+15% this week</Text>
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="metric-card seo-metric">
+            <Statistic
+              title="Domains Analyzed"
+              value={seoStats?.domainsAnalyzed || 0}
+              prefix={<GlobalOutlined />}
+              valueStyle={{ color: '#13c2c2' }}
+            />
+            <div className="metric-trend">
+              <ArrowUpOutlined className="trend-up" />
+              <Text type="secondary">+8% this month</Text>
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="metric-card seo-metric">
+            <Statistic
+              title="Average SEO Score"
+              value={seoStats?.avgSEOScore || 0}
+              suffix="/100"
+              prefix={<TrophyOutlined />}
+              valueStyle={{ color: getScoreColor(seoStats?.avgSEOScore || 0) }}
+            />
+            <div className="metric-trend">
+              <ArrowUpOutlined className="trend-up" />
+              <Text type="secondary">+3 points improvement</Text>
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card className="metric-card seo-metric">
+            <Statistic
+              title="AI Recommendations"
+              value={seoStats?.aiRecommendations || 0}
+              prefix={<RobotOutlined />}
+              valueStyle={{ color: '#eb2f96' }}
+            />
+            <div className="metric-trend">
+              <ArrowUpOutlined className="trend-up" />
+              <Text type="secondary">+22% this week</Text>
             </div>
           </Card>
         </Col>
@@ -335,6 +400,10 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
               <Button block size="large" type="primary">
                 <OptimizationOutlined />
                 Optimize New Website
+              </Button>
+              <Button block size="large">
+                <SearchOutlined />
+                SEO Analysis
               </Button>
               <Button block size="large">
                 <GlobalOutlined />

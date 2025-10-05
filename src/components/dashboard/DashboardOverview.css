@@ -1,0 +1,276 @@
+.dashboard-overview {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.dashboard-overview-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  gap: 16px;
+}
+
+.welcome-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  margin-bottom: 24px;
+}
+
+.welcome-card .ant-card-body {
+  padding: 32px;
+}
+
+.welcome-title {
+  color: white !important;
+  margin-bottom: 8px;
+}
+
+.welcome-subtitle {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 16px;
+  margin-bottom: 0;
+}
+
+.metrics-row {
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  text-align: center;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  border: 1px solid #f0f0f0;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.metric-card.seo-metric {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+  border: 1px solid #d6e4ff;
+}
+
+.metric-card .ant-statistic-title {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.metric-card .ant-statistic-content {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.metric-trend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.trend-up {
+  color: #52c41a;
+}
+
+.trend-down {
+  color: #ff4d4f;
+}
+
+.charts-row {
+  margin-bottom: 24px;
+}
+
+.chart-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.chart-card .ant-card-head-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.websites-row {
+  margin-bottom: 24px;
+}
+
+.websites-list-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.website-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.website-item:last-child {
+  border-bottom: none;
+}
+
+.website-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.website-description {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.activity-row {
+  margin-bottom: 24px;
+}
+
+.activity-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.quick-actions-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.quick-actions-card .ant-btn {
+  height: 48px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.timeline-item {
+  padding: 8px 0;
+}
+
+.timeline-time {
+  font-size: 12px;
+  color: #999;
+}
+
+.alerts-row {
+  margin-bottom: 24px;
+}
+
+.alerts-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.alert-item {
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
+
+.alert-item:last-child {
+  margin-bottom: 0;
+}
+
+.seo-integration-row {
+  margin-bottom: 24px;
+}
+
+.seo-integration-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+  border: 1px solid #d6e4ff;
+}
+
+.integration-status-card {
+  text-align: center;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.integration-status-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.integration-status-card .ant-statistic-title {
+  color: #666;
+  font-size: 12px;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.integration-status-card .ant-statistic-content {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-overview {
+    padding: 16px;
+  }
+  
+  .welcome-card .ant-card-body {
+    padding: 24px;
+  }
+  
+  .welcome-title {
+    font-size: 20px;
+  }
+  
+  .welcome-subtitle {
+    font-size: 14px;
+  }
+  
+  .metric-card .ant-statistic-content {
+    font-size: 24px;
+  }
+  
+  .website-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .quick-actions-card .ant-btn {
+    height: 44px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 576px) {
+  .dashboard-overview {
+    padding: 12px;
+  }
+  
+  .welcome-card .ant-card-body {
+    padding: 20px;
+  }
+  
+  .welcome-title {
+    font-size: 18px;
+  }
+  
+  .metric-card .ant-statistic-content {
+    font-size: 20px;
+  }
+  
+  .metric-card .ant-statistic-title {
+    font-size: 12px;
+  }
+  
+  .quick-actions-card .ant-btn {
+    height: 40px;
+    font-size: 12px;
+  }
+}
