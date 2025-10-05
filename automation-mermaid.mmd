@@ -1,0 +1,14 @@
+flowchart TD
+  Frontend["React/Vite Frontend"]
+  Electron["Electron Shell"]
+  API["Express API Server"]
+  DB[(PostgreSQL)]
+  Redis[(Redis)]
+  Chain["Hardhat + Contracts"]
+  Crawler["Web Crawler / Puppeteer"]
+  Frontend -->|REST/WebSocket| API
+  Electron -->|loads dev/prod| Frontend
+  API -->|cache| Redis
+  API -->|SQL| DB
+  API -->|ethers| Chain
+  API -->|controls| Crawler

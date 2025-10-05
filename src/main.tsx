@@ -3,9 +3,9 @@
  * LightDom Space Optimization System with Light DOM Slot Support
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import DiscordStyleDashboard from './components/DiscordStyleDashboard';
+import SimpleDashboard from './components/SimpleDashboard';
 import SpaceOptimizationDashboardMD3 from './components/SpaceOptimizationDashboardMD3';
 import MetaverseMiningDashboard from './components/MetaverseMiningDashboard';
 import SpaceMiningDashboard from './components/SpaceMiningDashboard';
@@ -17,39 +17,118 @@ import WalletDashboard from './components/dashboard/WalletDashboard';
 import { LightDomSlotDashboard } from './components/LightDomSlotDashboard';
 import BridgeChatPage from './BridgeChatPage';
 import RealWebCrawlerDashboard from '../dom-space-harvester';
+import Navigation from './components/Navigation';
+import BackButton from './components/BackButton';
 import PWAInitializer from './utils/PWAInitializer';
-import './simple.css';
+import './index.css';
 
 // Simple routing based on URL path
 const App = () => {
-  const path = window.location.pathname;
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
   
-  if (path.startsWith('/bridge/')) {
-    const bridgeId = path.split('/bridge/')[1] || '';
-    return <BridgeChatPage bridgeId={bridgeId} />;
-  } else if (path === '/space-mining') {
-    return <SpaceMiningDashboard />;
-  } else if (path === '/harvester') {
-    return <RealWebCrawlerDashboard />;
-  } else if (path === '/wallet') {
-    return <WalletDashboard />;
-  } else if (path === '/advanced-nodes') {
-    return <AdvancedNodeDashboardMD3 />;
-  } else if (path === '/optimization') {
-    return <SpaceOptimizationDashboardMD3 />;
-  } else if (path === '/metaverse-mining') {
-    return <MetaverseMiningDashboard />;
-  } else if (path === '/blockchain-models') {
-    return <BlockchainModelStorageDashboard />;
-  } else if (path === '/workflow-simulation') {
-    return <WorkflowSimulationDashboard />;
-  } else if (path === '/testing') {
-    return <TestingDashboard />;
-  } else if (path === '/lightdom-slots') {
-    return <LightDomSlotDashboard />;
-  } else {
-    return <DiscordStyleDashboard />;
-  }
+  const handleNavigate = (path: string) => {
+    setCurrentPath(path);
+    window.history.pushState({}, '', path);
+  };
+
+  const renderContent = () => {
+    const goBack = () => {
+      setCurrentPath('/');
+    };
+
+    if (currentPath.startsWith('/bridge/')) {
+      const bridgeId = currentPath.split('/bridge/')[1] || '';
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <BridgeChatPage bridgeId={bridgeId} />
+        </div>
+      );
+    } else if (currentPath === '/space-mining') {
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <SpaceMiningDashboard />
+        </div>
+      );
+    } else if (currentPath === '/harvester') {
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <RealWebCrawlerDashboard />
+        </div>
+      );
+    } else if (currentPath === '/wallet') {
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <WalletDashboard />
+        </div>
+      );
+    } else if (currentPath === '/advanced-nodes') {
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <AdvancedNodeDashboardMD3 />
+        </div>
+      );
+    } else if (currentPath === '/optimization') {
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <SpaceOptimizationDashboardMD3 />
+        </div>
+      );
+    } else if (currentPath === '/metaverse-mining') {
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <MetaverseMiningDashboard />
+        </div>
+      );
+    } else if (currentPath === '/blockchain-models') {
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <BlockchainModelStorageDashboard />
+        </div>
+      );
+    } else if (currentPath === '/workflow-simulation') {
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <WorkflowSimulationDashboard />
+        </div>
+      );
+    } else if (currentPath === '/testing') {
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <TestingDashboard />
+        </div>
+      );
+    } else if (currentPath === '/lightdom-slots') {
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <LightDomSlotDashboard />
+        </div>
+      );
+    } else {
+      return <SimpleDashboard />;
+    }
+  };
+
+  return (
+    <div className="discord-app">
+      <Navigation currentPath={currentPath} onNavigate={handleNavigate} />
+      <div className="discord-main">
+        <div className="discord-content discord-scrollbar">
+          {renderContent()}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 // Initialize PWA functionality

@@ -21,6 +21,18 @@ This is a blockchain-based DOM optimization platform that includes:
 - Use proper TypeScript interfaces and types, avoid `any` type
 - Implement proper null/undefined checking with optional chaining and nullish coalescing
 
+### Functionality Testing Requirements
+- ALL code must be tested for actual functionality, not just structure
+- Test that services can actually start and connect
+- Verify that APIs return real data, not mock responses
+- Ensure database connections work in practice
+- Test that Electron app can actually launch
+- Verify blockchain integration is real, not mocked
+- Check that all endpoints return actual data
+- Test that authentication actually works
+- Verify that mining functionality is real
+- Ensure all features work end-to-end
+
 ### React/UI Development
 - Use functional components with hooks exclusively
 - Implement proper prop types and interfaces with strict typing
@@ -555,6 +567,17 @@ This is a blockchain-based DOM optimization platform that includes:
 - Pre-commit hooks validation
 - Dependency vulnerability checks
 - Code complexity analysis
+- **FUNCTIONALITY TESTING** - Run `npm run compliance:check` to test actual functionality
+
+### Functionality Validation (CRITICAL)
+- Run enhanced validation: `npm run compliance:check`
+- Test Electron app can actually start
+- Verify API server returns real data (not mock)
+- Check database connectivity works
+- Test blockchain integration is real
+- Verify all services can start and connect
+- Ensure frontend is accessible
+- Test that all features work end-to-end
 
 ### Pre-merge
 - Full test suite execution with coverage requirements
