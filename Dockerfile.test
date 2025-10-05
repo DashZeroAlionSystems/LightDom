@@ -1,0 +1,60 @@
+# Test Dockerfile for LightDom Space-Bridge Platform
+FROM node:18-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    postgresql-client \
+    curl \
+    bash \
+    git
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S lightdom -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies (including dev dependencies for testing)
+RUN npm ci
+
+# Install Puppeteer dependencies
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Set Puppeteer environment variables
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/artifacts /app/temp && \
+    chown -R lightdom:nodejs /app
+
+# Switch to non-root user
+USER lightdom
+
+# Expose ports
+EXPOSE 3000 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3001/api/health || exit 1
+
+# Default command for testing
+CMD ["npm", "run", "test:ci"]

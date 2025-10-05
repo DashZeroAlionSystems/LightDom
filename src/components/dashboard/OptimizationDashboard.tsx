@@ -43,7 +43,8 @@ import {
   ExclamationCircleOutlined,
   InfoCircleOutlined,
   GlobalOutlined,
-  OptimizationOutlined
+  OptimizationOutlined,
+  BarChartOutlined
 } from '@ant-design/icons';
 import { useOptimization } from '../../hooks/useOptimization';
 import { useWebsites } from '../../hooks/useWebsites';

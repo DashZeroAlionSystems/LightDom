@@ -9,8 +9,15 @@ const urlsToCache = [
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
-  '/css/main.css',
-  '/js/main.js'
+  '/offline.html',
+  '/space-mining',
+  '/harvester',
+  '/advanced-nodes',
+  '/metaverse-mining',
+  '/blockchain-models',
+  '/workflow-simulation',
+  '/testing',
+  '/lightdom-slots'
 ];
 
 // Install event

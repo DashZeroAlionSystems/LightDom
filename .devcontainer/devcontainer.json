@@ -1,0 +1,103 @@
+{
+  "name": "LightDom Development Environment",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-eslint",
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "ms-vscode.vscode-markdown",
+        "ms-vscode.vscode-github-actions",
+        "JuanBlanco.solidity",
+        "ms-vscode.vscode-docker",
+        "ms-vscode.vscode-postgresql",
+        "ms-vscode.vscode-thunder-client",
+        "ms-vscode.vscode-git-graph",
+        "ms-vscode.vscode-gitlens",
+        "ms-vscode.vscode-github-pullrequest"
+      ],
+      "settings": {
+        "typescript.preferences.importModuleSpecifier": "relative",
+        "typescript.suggest.autoImports": true,
+        "typescript.updateImportsOnFileMove.enabled": "always",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit",
+          "source.organizeImports": "explicit"
+        },
+        "files.associations": {
+          "*.sol": "solidity"
+        },
+        "solidity.defaultCompiler": "remote",
+        "solidity.compileUsingRemoteVersion": "v0.8.19+commit.7dd6d404",
+        "emmet.includeLanguages": {
+          "typescript": "html",
+          "typescriptreact": "html"
+        },
+        "tailwindCSS.includeLanguages": {
+          "typescript": "html",
+          "typescriptreact": "html"
+        },
+        "git.enableSmartCommit": true,
+        "git.confirmSync": false,
+        "git.autofetch": true,
+        "github.copilot.enable": {
+          "*": true,
+          "yaml": false,
+          "plaintext": false,
+          "markdown": false
+        }
+      }
+    }
+  },
+  "forwardPorts": [3000, 3001, 5432, 8545, 8080],
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend (Vite)",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "API Server",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "8545": {
+      "label": "Anvil (Local Blockchain)",
+      "onAutoForward": "silent"
+    },
+    "8080": {
+      "label": "Electron DevTools",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+  "remoteUser": "node",
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    "source=${localWorkspaceFolder}/.devcontainer/scripts,target=/usr/local/share/scripts,type=bind,consistency=cached"
+  ],
+  "containerEnv": {
+    "NODE_ENV": "development",
+    "CI": "false",
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}"
+  },
+  "runArgs": [
+    "--init"
+  ],
+  "overrideCommand": false,
+  "shutdownAction": "stopContainer"
+}

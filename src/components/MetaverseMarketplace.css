@@ -1,0 +1,454 @@
+.metaverse-marketplace {
+  padding: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+.marketplace-header {
+  text-align: center;
+  margin-bottom: 32px;
+  color: white;
+}
+
+.marketplace-title {
+  color: white !important;
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 16px !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.marketplace-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 1.1rem !important;
+  max-width: 600px;
+  margin: 0 auto !important;
+}
+
+.marketplace-tabs {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.marketplace-tabs .ant-tabs-tab {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 24px;
+}
+
+.marketplace-tabs .ant-tabs-tab-active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+}
+
+.filters-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.items-grid {
+  margin-top: 24px;
+}
+
+.item-card {
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.item-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.item-card.rarity-common {
+  border-color: #95a5a6;
+}
+
+.item-card.rarity-rare {
+  border-color: #3498db;
+}
+
+.item-card.rarity-epic {
+  border-color: #9b59b6;
+}
+
+.item-card.rarity-legendary {
+  border-color: #f39c12;
+}
+
+.item-card.rarity-mythic {
+  border-color: #e74c3c;
+}
+
+.item-image {
+  height: 200px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.item-icon {
+  font-size: 4rem;
+  z-index: 1;
+}
+
+.item-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.item-card:hover .item-overlay {
+  opacity: 1;
+}
+
+.item-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.item-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.rarity-tag {
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+.item-description {
+  margin-bottom: 16px;
+}
+
+.item-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.item-price {
+  text-align: center;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.price-text {
+  font-size: 18px;
+  color: #1890ff;
+}
+
+/* Inventory Styles */
+.inventory-content {
+  padding: 24px 0;
+}
+
+.inventory-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.categories-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.category-card {
+  text-align: center;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.category-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  color: #1890ff;
+}
+
+.category-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.category-count {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Mining Styles */
+.mining-content {
+  padding: 24px 0;
+}
+
+.mining-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mining-info {
+  padding: 24px;
+}
+
+.mining-stats {
+  margin-top: 16px;
+}
+
+.mining-stats .stat-item {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.mining-actions {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Item Details Modal */
+.item-details {
+  padding: 24px 0;
+}
+
+.item-image-large {
+  text-align: center;
+  padding: 24px;
+}
+
+.item-icon-large {
+  font-size: 8rem;
+  color: #1890ff;
+}
+
+.item-info {
+  padding: 24px;
+}
+
+.rarity-tag-large {
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stats-grid .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.effects-list {
+  list-style: none;
+  padding: 0;
+}
+
+.effects-list li {
+  padding: 4px 0;
+  color: #52c41a;
+}
+
+.effects-list li:before {
+  content: "✨ ";
+  margin-right: 8px;
+}
+
+.item-price-large {
+  text-align: center;
+  padding: 16px;
+  background: #f0f9ff;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.price-text-large {
+  font-size: 24px;
+  color: #1890ff;
+}
+
+/* Purchase Modal */
+.purchase-confirmation {
+  padding: 24px 0;
+}
+
+.purchase-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.purchase-item .item-icon {
+  font-size: 3rem;
+}
+
+.purchase-item .item-details {
+  flex: 1;
+}
+
+.purchase-summary {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.summary-row.total {
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .metaverse-marketplace {
+    padding: 16px;
+  }
+  
+  .marketplace-title {
+    font-size: 2rem !important;
+  }
+  
+  .marketplace-tabs {
+    padding: 16px;
+  }
+  
+  .item-card {
+    margin-bottom: 16px;
+  }
+  
+  .item-stats {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Animation Effects */
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(102, 126, 234, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(102, 126, 234, 0.5); }
+}
+
+.item-card.rarity-legendary,
+.item-card.rarity-mythic {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Loading States */
+.ant-spin-container {
+  min-height: 200px;
+}
+
+/* Empty State */
+.ant-empty {
+  padding: 48px 0;
+}
+
+/* Button Styles */
+.ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+/* Card Hover Effects */
+.ant-card {
+  transition: all 0.3s ease;
+}
+
+.ant-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Tag Styles */
+.ant-tag {
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+}
+
+/* Modal Styles */
+.ant-modal-content {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.ant-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom: none;
+}
+
+.ant-modal-title {
+  color: white;
+  font-weight: 600;
+}
+
+.ant-modal-close {
+  color: white;
+}
+
+.ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
