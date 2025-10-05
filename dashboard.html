@@ -1265,6 +1265,16 @@
     }
 
     // Utility functions
+    function escapeHTML(str) {
+      if (typeof str !== "string") return str;
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
     function showResult(elementId, type, content) {
       const element = document.getElementById(elementId);
       if (!element) return;
@@ -1272,7 +1282,7 @@
       if (type === 'loading') {
         element.innerHTML = '<div class="loading">Loading...</div>';
       } else if (type === 'error') {
-        element.innerHTML = `<div class="error">${content}</div>`;
+        element.innerHTML = `<div class="error">${escapeHTML(content)}</div>`;
       } else if (type === 'success') {
         element.innerHTML = content;
       } else {
