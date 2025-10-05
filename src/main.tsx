@@ -5,20 +5,20 @@
 
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import SimpleDashboard from './components/SimpleDashboard';
-import SpaceOptimizationDashboardMD3 from './components/SpaceOptimizationDashboardMD3';
-import MetaverseMiningDashboard from './components/MetaverseMiningDashboard';
-import SpaceMiningDashboard from './components/SpaceMiningDashboard';
-import AdvancedNodeDashboardMD3 from './components/AdvancedNodeDashboardMD3';
-import BlockchainModelStorageDashboard from './components/BlockchainModelStorageDashboard';
-import WorkflowSimulationDashboard from './components/WorkflowSimulationDashboard';
-import TestingDashboard from './components/TestingDashboard';
-import WalletDashboard from './components/dashboard/WalletDashboard';
-import { LightDomSlotDashboard } from './components/LightDomSlotDashboard';
+import SimpleDashboard from './components/ui/SimpleDashboard';
+import SpaceOptimizationDashboardMD3 from './components/ui/SpaceOptimizationDashboardMD3';
+import MetaverseMiningDashboard from './components/ui/MetaverseMiningDashboard';
+import SpaceMiningDashboard from './components/ui/SpaceMiningDashboard';
+import AdvancedNodeDashboardMD3 from './components/ui/AdvancedNodeDashboardMD3';
+import BlockchainModelStorageDashboard from './components/ui/BlockchainModelStorageDashboard';
+import WorkflowSimulationDashboard from './components/ui/WorkflowSimulationDashboard';
+import TestingDashboard from './components/ui/TestingDashboard';
+import WalletDashboard from './components/ui/dashboard/WalletDashboard';
+import { LightDomSlotDashboard } from './components/ui/LightDomSlotDashboard';
 import BridgeChatPage from './BridgeChatPage';
 import RealWebCrawlerDashboard from '../dom-space-harvester';
-import Navigation from './components/Navigation';
-import BackButton from './components/BackButton';
+import Navigation from './components/ui/Navigation';
+import BackButton from './components/ui/BackButton';
 import PWAInitializer from './utils/PWAInitializer';
 import './index.css';
 
