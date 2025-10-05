@@ -1,6 +1,6 @@
-const { app, BrowserWindow, ipcMain, Menu } = require('electron');
-const path = require('path');
-const { spawn, fork } = require('child_process');
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
+import path from 'path';
+import { spawn, fork } from 'child_process';
 const isDev = process.env.NODE_ENV === 'development';
 
 // Keep a global reference of the window object
@@ -21,9 +21,9 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(import.meta.url.replace('file://', ''), 'preload.js')
     },
-    icon: path.join(__dirname, 'assets/icon.png'), // You can add an icon later
+    icon: path.join(path.dirname(import.meta.url.replace('file://', '')), 'assets/icon.png'), // You can add an icon later
     titleBarStyle: 'default',
     show: false // Don't show until ready
   });
@@ -34,7 +34,7 @@ function createWindow() {
     // Open DevTools in development
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    mainWindow.loadFile(path.join(path.dirname(import.meta.url.replace('file://', '')), '../dist/index.html'));
   }
 
   // Show window when ready to prevent visual flash
@@ -55,7 +55,7 @@ function startBackendServices() {
   try {
     // Start the main API server
     backendProcess = spawn('node', ['api-server-express.js'], {
-      cwd: path.join(__dirname, '..'),
+      cwd: path.join(path.dirname(import.meta.url.replace('file://', '')), '..'),
       stdio: 'pipe'
     });
 

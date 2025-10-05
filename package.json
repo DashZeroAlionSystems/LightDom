@@ -6,12 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "preview": "vite preview",
     "electron": "electron .",
-    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:dev": "electron .",
     "electron:build": "npm run build && electron-builder",
     "dist": "npm run build && electron-builder --publish=never",
+    "start": "node start-lightdom-complete.js",
+    "start:dev": "node start-dev.js",
+    "start:docker": "node start-docker.js",
+    "start:complete": "node start-complete-system.js",
+    "start:blockchain": "node start-blockchain-app.js",
     "test": "vitest",
     "test:unit": "vitest run --coverage",
     "test:unit:coverage": "vitest run --coverage --reporter=verbose",
@@ -24,7 +29,6 @@
     "test:coverage": "vitest run --coverage --reporter=verbose",
     "test:api": "vitest run --config vitest.config.js --testNamePattern=api",
     "test:frontend": "vitest run --config vitest.config.js --testNamePattern=frontend",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "lint:check": "eslint . --ext .ts,.tsx,.js,.jsx",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -33,7 +37,15 @@
     "security:audit": "npm audit",
     "security:pentest": "echo 'Security penetration testing would run here'",
     "analyze:bundle": "vite-bundle-analyzer",
-    "compliance:check": "echo 'Compliance check would run here'",
+    "compliance:check": "node scripts/functionality-test.js",
+    "automation:round": "node scripts/automation-round.js",
+    "automation:agent": "node scripts/cursor-agent.js",
+    "automation:master": "node scripts/automation-master.js",
+    "automation:enhanced": "node scripts/enhanced-automation-system.js",
+    "automation:app-test": "node scripts/app-startup-tester.js",
+    "automation:organize": "node scripts/enterprise-organizer.js",
+    "automation:git-safe": "node scripts/git-safe-automation.js",
+    "automation:master-full": "node scripts/master-automation.js",
     "architecture:validate": "echo 'Architecture validation would run here'",
     "docs:api:generate": "echo 'API documentation generation would run here'",
     "docs:architecture:generate": "echo 'Architecture documentation generation would run here'",
@@ -49,33 +61,53 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
+    "@tailwindcss/postcss": "^4.1.14",
     "antd": "^5.12.8",
+    "autoprefixer": "^10.4.21",
     "axios": "^1.6.2",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "ethers": "^6.8.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "lucide-react": "^0.544.0",
+    "morgan": "^1.10.1",
+    "pg": "^8.16.3",
+    "puppeteer": "^24.23.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
+    "redis": "^5.8.3",
+    "socket.io": "^4.8.1",
     "socket.io-client": "^4.7.4",
-    "uuid": "^9.0.1"
+    "tailwindcss": "^4.1.14",
+    "uuid": "^9.0.1",
+    "winston": "^3.18.3"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    "@vitest/coverage-v8": "^1.0.0",
+    "artillery": "^2.0.0",
     "concurrently": "^9.2.1",
     "electron": "^38.1.2",
     "electron-builder": "^26.0.12",
-    "wait-on": "^9.0.0",
-    "vitest": "^1.0.0",
-    "@vitest/coverage-v8": "^1.0.0",
     "eslint": "^8.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
     "prettier": "^3.0.0",
-    "artillery": "^2.0.0",
-    "vite-bundle-analyzer": "^0.7.0"
+    "vite": "^7.1.9",
+    "vite-bundle-analyzer": "^0.7.0",
+    "vitest": "^1.0.0",
+    "wait-on": "^9.0.0"
   },
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/src/setupTests.ts"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/setupTests.ts"
+    ],
     "testMatch": [
       "<rootDir>/tests/**/*.test.ts",
       "<rootDir>/tests/**/*.test.tsx",
@@ -101,7 +133,7 @@
       "^@/(.*)$": "<rootDir>/src/$1"
     }
   },
-  "main": "electron/main.js",
+  "main": "electron/main.cjs",
   "build": {
     "appId": "com.lightdom.space-bridge",
     "productName": "LightDom Space-Bridge Platform",
@@ -129,5 +161,6 @@
     "linux": {
       "target": "AppImage"
     }
-  }
+  },
+  "packageManager": "yarn@4.9.4+sha512.7b1cb0b62abba6a537b3a2ce00811a843bea02bcf53138581a6ae5b1bf563f734872bd47de49ce32a9ca9dcaff995aa789577ffb16811da7c603dcf69e73750b"
 }
