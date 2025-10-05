@@ -1,0 +1,573 @@
+/* Interactive Mermaid Chart Styles */
+
+.interactive-mermaid-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.interactive-mermaid-container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: #fff;
+  border-radius: 0;
+}
+
+.interactive-mermaid-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.interactive-mermaid-card .ant-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.interactive-mermaid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.interactive-mermaid-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.interactive-mermaid-toolbar .ant-btn-group {
+  margin-right: 8px;
+}
+
+.interactive-mermaid-content {
+  flex: 1;
+  position: relative;
+  padding: 24px;
+  min-height: 400px;
+  overflow: hidden;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+
+.interactive-mermaid-content:hover {
+  cursor: grab;
+}
+
+.interactive-mermaid-content:active {
+  cursor: grabbing;
+}
+
+.mermaid-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+}
+
+.mermaid-container svg {
+  max-width: 100%;
+  height: auto;
+  cursor: pointer;
+}
+
+.mermaid-container .node {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mermaid-container .node:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.mermaid-container .node.selected {
+  filter: drop-shadow(0 0 8px #1890ff);
+  stroke: #1890ff;
+  stroke-width: 2px;
+}
+
+.mermaid-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: #fafafa;
+}
+
+.mermaid-loading .ant-spin {
+  margin-bottom: 16px;
+}
+
+.mermaid-error {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.interactive-mermaid-notes-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.mermaid-note {
+  position: absolute;
+  min-width: 120px;
+  max-width: 200px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  pointer-events: all;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+
+.mermaid-note:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.note-content {
+  margin-bottom: 4px;
+  word-wrap: break-word;
+}
+
+.note-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.mermaid-note:hover .note-actions {
+  opacity: 1;
+}
+
+.note-actions .ant-btn {
+  padding: 2px 4px;
+  height: auto;
+  min-width: 20px;
+}
+
+.interactive-mermaid-summary {
+  padding: 16px 24px;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.summary-icon {
+  font-size: 20px;
+  color: #1890ff;
+}
+
+/* Notes and Annotations Lists */
+.notes-list,
+.annotations-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.note-card,
+.annotation-card {
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.note-card:hover,
+.annotation-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.note-card .ant-card-actions,
+.annotation-card .ant-card-actions {
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+
+.note-card .ant-card-actions .ant-btn,
+.annotation-card .ant-card-actions .ant-btn {
+  border: none;
+  box-shadow: none;
+}
+
+/* Mermaid Theme Customizations */
+.mermaid-container .node rect,
+.mermaid-container .node circle,
+.mermaid-container .node ellipse,
+.mermaid-container .node polygon {
+  transition: all 0.2s ease;
+}
+
+.mermaid-container .node:hover rect,
+.mermaid-container .node:hover circle,
+.mermaid-container .node:hover ellipse,
+.mermaid-container .node:hover polygon {
+  fill: #e6f7ff;
+  stroke: #1890ff;
+  stroke-width: 2px;
+}
+
+.mermaid-container .edgePath path {
+  transition: all 0.2s ease;
+}
+
+.mermaid-container .edgePath:hover path {
+  stroke: #1890ff;
+  stroke-width: 3px;
+}
+
+.mermaid-container .edgeLabel {
+  transition: all 0.2s ease;
+}
+
+.mermaid-container .edgeLabel:hover {
+  background: #e6f7ff;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .interactive-mermaid-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .interactive-mermaid-toolbar {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .interactive-mermaid-content {
+    padding: 16px;
+    min-height: 300px;
+  }
+  
+  .mermaid-note {
+    min-width: 100px;
+    max-width: 150px;
+    font-size: 12px;
+  }
+  
+  .mermaid-container svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .interactive-mermaid-toolbar {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .interactive-mermaid-toolbar .ant-btn-group {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .interactive-mermaid-toolbar .ant-btn {
+    flex: 1;
+  }
+  
+  .mermaid-note {
+    min-width: 80px;
+    max-width: 120px;
+    padding: 6px 8px;
+  }
+  
+  .note-actions {
+    opacity: 1;
+  }
+  
+  .summary-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 4px;
+  }
+}
+
+/* Dark Theme Support */
+.interactive-mermaid-container.dark {
+  background: #1f1f1f;
+  color: #fff;
+}
+
+.interactive-mermaid-container.dark .interactive-mermaid-header {
+  background: #2a2a2a;
+  border-bottom-color: #404040;
+}
+
+.interactive-mermaid-container.dark .interactive-mermaid-content {
+  background: #1f1f1f;
+}
+
+.interactive-mermaid-container.dark .interactive-mermaid-summary {
+  background: #2a2a2a;
+  border-top-color: #404040;
+}
+
+.interactive-mermaid-container.dark .mermaid-loading {
+  background: #2a2a2a;
+}
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Custom Scrollbar */
+.notes-list::-webkit-scrollbar,
+.annotations-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notes-list::-webkit-scrollbar-track,
+.annotations-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.notes-list::-webkit-scrollbar-thumb,
+.annotations-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.notes-list::-webkit-scrollbar-thumb:hover,
+.annotations-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Print Styles */
+@media print {
+  .interactive-mermaid-toolbar,
+  .interactive-mermaid-summary,
+  .note-actions,
+  .annotation-actions {
+    display: none !important;
+  }
+  
+  .interactive-mermaid-container {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .interactive-mermaid-content {
+    padding: 0;
+  }
+  
+  .mermaid-container {
+    transform: none !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .mermaid-note {
+    border: 2px solid #000;
+  }
+  
+  .interactive-mermaid-container {
+    border: 2px solid #000;
+  }
+  
+  .mermaid-container .node {
+    stroke: #000;
+    stroke-width: 2px;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .mermaid-note,
+  .note-card,
+  .annotation-card,
+  .interactive-mermaid-content,
+  .mermaid-container .node,
+  .mermaid-container .edgePath path,
+  .mermaid-container .edgeLabel,
+  .fade-in,
+  .slide-in,
+  .scale-in {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Mermaid-specific overrides */
+.mermaid-container .nodeLabel {
+  pointer-events: none;
+}
+
+.mermaid-container .edgeLabel {
+  pointer-events: none;
+}
+
+.mermaid-container .cluster rect {
+  fill: #f9f9f9;
+  stroke: #333;
+  stroke-width: 1px;
+}
+
+.mermaid-container .cluster text {
+  fill: #333;
+  font-weight: bold;
+}
+
+.mermaid-container .cluster:hover rect {
+  fill: #e6f7ff;
+  stroke: #1890ff;
+}
+
+/* Sequence diagram specific styles */
+.mermaid-container .actor {
+  fill: #e1f5fe;
+  stroke: #01579b;
+}
+
+.mermaid-container .actor:hover {
+  fill: #b3e5fc;
+  stroke: #0277bd;
+}
+
+.mermaid-container .messageLine0 {
+  stroke: #333;
+  stroke-width: 2px;
+}
+
+.mermaid-container .messageLine1 {
+  stroke: #333;
+  stroke-width: 2px;
+  stroke-dasharray: 3 3;
+}
+
+.mermaid-container .messageText {
+  fill: #333;
+  font-weight: bold;
+}
+
+/* Gantt chart specific styles */
+.mermaid-container .grid .tick {
+  stroke: #ccc;
+  opacity: 0.3;
+}
+
+.mermaid-container .grid path {
+  stroke-width: 0;
+}
+
+.mermaid-container .today {
+  fill: #ff6b6b;
+  stroke: #ff6b6b;
+}
+
+.mermaid-container .section0 {
+  fill: #e8f4fd;
+}
+
+.mermaid-container .section1 {
+  fill: #f0f8ff;
+}
+
+.mermaid-container .section2 {
+  fill: #f5f5f5;
+}
+
+.mermaid-container .section3 {
+  fill: #fafafa;
+}
+
+.mermaid-container .task0 {
+  fill: #4fc3f7;
+  stroke: #29b6f6;
+}
+
+.mermaid-container .task1 {
+  fill: #81c784;
+  stroke: #66bb6a;
+}
+
+.mermaid-container .task2 {
+  fill: #ffb74d;
+  stroke: #ffa726;
+}
+
+.mermaid-container .task3 {
+  fill: #f06292;
+  stroke: #ec407a;
+}
