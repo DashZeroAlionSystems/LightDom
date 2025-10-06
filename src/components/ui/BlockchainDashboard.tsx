@@ -35,7 +35,7 @@ import {
   CheckCircleOutlined,
   ExclamationCircleOutlined
 } from '@ant-design/icons';
-import { useBlockchain } from '../hooks/useBlockchain';
+import { useBlockchain } from '../../hooks/state/useBlockchain';
 import { OptimizationData } from '../services/BlockchainService';
 
 const { Title, Text, Paragraph } = Typography;

@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { LightDomSlot, useLightDomSlot } from './LightDomSlot';
 import { lightDomSlotSystem, SlotConfig, SlotOptimization } from '../../core/LightDomSlotSystem';
-import { useBlockchain } from '../hooks/useBlockchain';
+import { useBlockchain } from '../../hooks/state/useBlockchain';
 import { Activity, Zap, Database, TrendingUp, Settings, Play, Pause, RotateCcw, Layers, Monitor } from 'lucide-react';
 
 export const LightDomSlotDashboard: React.FC = () => {
