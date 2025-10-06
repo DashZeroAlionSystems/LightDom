@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
 
 interface SpatialStructure {
   id: string;
@@ -195,6 +196,15 @@ const SpaceMiningDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-900 text-white p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => window.history.back()}
+          className="mb-4 flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+        >
+          <ArrowLeft size={16} />
+          <span>Back to Dashboard</span>
+        </button>
+        
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">🚀 Space Mining Dashboard</h1>
