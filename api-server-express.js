@@ -303,6 +303,13 @@ class DOMSpaceHarvesterAPI {
   }
 
   setupRoutes() {
+    // Import and register SEO routes
+    import('./src/api/seo-analysis.js').then((seoModule) => {
+      this.app.use('/api/seo', seoModule.default);
+      console.log('SEO analysis routes registered');
+    }).catch(err => {
+      console.error('Failed to load SEO routes:', err);
+    });
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
