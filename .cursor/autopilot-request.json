@@ -1,0 +1,6 @@
+{
+  "type": "cursor-background-agent",
+  "action": "apply-fixes-round",
+  "promptPath": "automation-mermaid-prompt.txt",
+  "createdAt": "2025-10-05T21:12:35.497Z"
+}

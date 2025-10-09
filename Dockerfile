@@ -4,12 +4,14 @@ FROM node:18-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
-# Copy package files
+# Copy package files and config
 COPY package*.json ./
 COPY vite.config.ts ./
+COPY tsconfig.json ./
+COPY tsconfig.node.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev dependencies for build)
+RUN npm ci
 
 # Copy frontend source
 COPY src/ ./src/
