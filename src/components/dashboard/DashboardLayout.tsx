@@ -130,6 +130,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       label: 'SEO Optimization',
     },
     {
+      key: '/dashboard/seo-marketplace',
+      icon: <ShoppingCartOutlined />,
+      label: 'SEO Marketplace',
+    },
+    {
       key: '/dashboard/analytics',
       icon: <BarChartOutlined />,
       label: 'Analytics',
