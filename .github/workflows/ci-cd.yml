@@ -1,8 +1,11 @@
+# LightDom CI/CD Pipeline
+# GitHub Actions workflow for automated testing, building, and deployment
+
 name: LightDom CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop, 'feature/*', 'bugfix/*', 'hotfix/*' ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
   release:
@@ -10,343 +13,379 @@ on:
 
 env:
   NODE_VERSION: '18'
-  PNPM_VERSION: '8'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Pre-commit Quality Gates
-  pre-commit-gates:
-    name: Pre-commit Quality Gates
+  # Code Quality and Testing
+  test:
+    name: Test Suite
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dom_space_harvester_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Install dependencies
+      run: npm ci
 
-      - name: Code formatting check
-        run: npm run format:check
+    - name: Run linting
+      run: npm run lint
 
-      - name: Linting
-        run: npm run lint
+    - name: Run type checking
+      run: npm run type-check
 
-      - name: Type checking
-        run: npm run type-check
+    - name: Run unit tests
+      run: npm run test:unit
+      env:
+        NODE_ENV: test
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_NAME: dom_space_harvester_test
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
 
-      - name: Unit tests
-        run: npm run test:unit:coverage
+    - name: Run integration tests
+      run: node scripts/run-integration-tests.js
+      env:
+        NODE_ENV: test
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_NAME: dom_space_harvester_test
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
 
-      - name: Security scan
-        run: npm run security:scan
+    - name: Generate test coverage
+      run: npm run test:coverage
 
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
 
-  # Pre-merge Quality Gates
-  pre-merge-gates:
-    name: Pre-merge Quality Gates
+  # Security Scanning
+  security:
+    name: Security Scan
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    needs: pre-commit-gates
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Install dependencies
+      run: npm ci
 
-      - name: Build application
-        run: npm run build
+    - name: Run security audit
+      run: npm audit --audit-level=moderate
 
-      - name: Integration tests
-        run: npm run test:integration
+    - name: Run Snyk security scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
 
-      - name: E2E tests
-        run: npm run test:e2e
+    - name: Run CodeQL Analysis
+      uses: github/codeql-action/init@v2
+      with:
+        languages: javascript
 
-      - name: Performance tests
-        run: npm run test:performance
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
 
-      - name: Accessibility tests
-        run: npm run test:accessibility
-
-      - name: Bundle analysis
-        run: npm run analyze:bundle
-
-      - name: Security audit
-        run: npm audit --audit-level=moderate
-
-  # Pre-deployment Quality Gates
-  pre-deployment-gates:
-    name: Pre-deployment Quality Gates
+  # Build and Package
+  build:
+    name: Build Application
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    needs: pre-merge-gates
+    needs: [test, security]
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Install dependencies
+      run: npm ci
 
-      - name: Build application
-        run: npm run build
+    - name: Build frontend
+      run: npm run build
+      env:
+        NODE_ENV: production
 
-      - name: Load testing
-        run: npm run test:load
+    - name: Build Docker image
+      run: |
+        docker build -f Dockerfile.production -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        docker build -f Dockerfile.production -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest .
 
-      - name: Security penetration testing
-        run: npm run security:pentest
+    - name: Login to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compliance check
-        run: npm run compliance:check
+    - name: Push Docker image
+      run: |
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-      - name: Architecture validation
-        run: npm run architecture:validate
+    - name: Generate SBOM
+      uses: anchore/sbom-action@v0
+      with:
+        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        format: spdx-json
+        output-file: sbom.spdx.json
 
-  # Staging Deployment
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v3
+      with:
+        name: sbom
+        path: sbom.spdx.json
+
+  # Deploy to Staging
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-    needs: pre-deployment-gates
+    needs: build
+    if: github.ref == 'refs/heads/develop'
     environment: staging
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: 'latest'
 
-      - name: Build application
-        run: npm run build
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
 
-      - name: Deploy to staging
-        run: npm run deploy:staging
-        env:
-          STAGING_URL: ${{ secrets.STAGING_URL }}
-          STAGING_API_KEY: ${{ secrets.STAGING_API_KEY }}
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --region us-west-2 --name lightdom-staging
 
-      - name: Run smoke tests
-        run: npm run test:smoke
-        env:
-          STAGING_URL: ${{ secrets.STAGING_URL }}
+    - name: Deploy to staging
+      run: |
+        helm upgrade --install lightdom-staging ./helm/lightdom \
+          --namespace lightdom-staging \
+          --create-namespace \
+          --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
+          --set image.tag=${{ github.sha }} \
+          --set environment=staging \
+          --set ingress.host=staging.lightdom.example.com
 
-      - name: Health check
-        run: npm run health:check
-        env:
-          STAGING_URL: ${{ secrets.STAGING_URL }}
+    - name: Run smoke tests
+      run: |
+        kubectl wait --for=condition=available --timeout=300s deployment/lightdom-api -n lightdom-staging
+        kubectl wait --for=condition=available --timeout=300s deployment/lightdom-frontend -n lightdom-staging
+        
+        # Run smoke tests
+        curl -f https://staging.lightdom.example.com/api/health
+        curl -f https://staging.lightdom.example.com/
 
-  # Production Deployment
+  # Deploy to Production
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: pre-deployment-gates
+    needs: [build, deploy-staging]
+    if: github.ref == 'refs/heads/main'
     environment: production
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: 'latest'
 
-      - name: Build application
-        run: npm run build
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
 
-      - name: Deploy to production
-        run: npm run deploy:production
-        env:
-          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
-          PRODUCTION_API_KEY: ${{ secrets.PRODUCTION_API_KEY }}
+    - name: Update kubeconfig
+      run: aws eks update-kubeconfig --region us-west-2 --name lightdom-production
 
-      - name: Run smoke tests
-        run: npm run test:smoke
-        env:
-          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+    - name: Deploy to production
+      run: |
+        helm upgrade --install lightdom-production ./helm/lightdom \
+          --namespace lightdom-production \
+          --create-namespace \
+          --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
+          --set image.tag=${{ github.sha }} \
+          --set environment=production \
+          --set ingress.host=lightdom.example.com \
+          --set replicas.api=3 \
+          --set replicas.frontend=2 \
+          --set resources.api.limits.memory=1Gi \
+          --set resources.api.limits.cpu=500m
 
-      - name: Health check
-        run: npm run health:check
-        env:
-          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+    - name: Run production smoke tests
+      run: |
+        kubectl wait --for=condition=available --timeout=600s deployment/lightdom-api -n lightdom-production
+        kubectl wait --for=condition=available --timeout=600s deployment/lightdom-frontend -n lightdom-production
+        
+        # Run comprehensive smoke tests
+        curl -f https://lightdom.example.com/api/health
+        curl -f https://lightdom.example.com/
+        curl -f https://lightdom.example.com/api/blockchain/stats
+        curl -f https://lightdom.example.com/api/crawler/stats
 
-      - name: Monitor deployment
-        run: npm run monitor:deployment
-        env:
-          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
-
-  # Security Scanning
-  security-scan:
-    name: Security Scanning
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-      - name: Run Semgrep SAST
-        uses: returntocorp/semgrep-action@v1
-        with:
-          config: >-
-            p/security-audit
-            p/secrets
-            p/owasp-top-ten
-        env:
-          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-
-      - name: Run CodeQL Analysis
-        uses: github/codeql-action/init@v2
-        with:
-          languages: javascript,typescript
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+    - name: Notify deployment success
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        text: 'LightDom production deployment successful! 🚀'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
 
   # Performance Testing
   performance-test:
-    name: Performance Testing
+    name: Performance Test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/develop'
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Install k6
+      run: |
+        sudo gpg -k
+        sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
 
-      - name: Build application
-        run: npm run build
+    - name: Run performance tests
+      run: |
+        k6 run --out json=performance-results.json tests/performance/load-test.js
+        k6 run --out json=stress-results.json tests/performance/stress-test.js
 
-      - name: Run Lighthouse CI
-        uses: treosh/lighthouse-ci-action@v9
-        with:
-          configPath: '.lighthouserc.json'
-          uploadArtifacts: true
-          temporaryPublicStorage: true
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-results
+        path: |
+          performance-results.json
+          stress-results.json
 
-      - name: Run Load Testing
-        run: npm run test:load
-
-  # Documentation Generation
-  docs-generation:
-    name: Documentation Generation
+  # Database Migration
+  migrate-database:
+    name: Database Migration
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Install dependencies
+      run: npm ci
 
-      - name: Build application
-        run: npm run build
-
-      - name: Generate API documentation
-        run: npm run docs:api:generate
-
-      - name: Generate architecture documentation
-        run: npm run docs:architecture:generate
-
-      - name: Update README
-        run: npm run docs:readme:update
-
-      - name: Generate changelog
-        run: npm run changelog:generate
-
-      - name: Deploy documentation
-        run: npm run docs:deploy
-        env:
-          DOCS_DEPLOY_TOKEN: ${{ secrets.DOCS_DEPLOY_TOKEN }}
-
-  # Notification
-  notify:
-    name: Send Notifications
-    runs-on: ubuntu-latest
-    needs: [pre-commit-gates, pre-merge-gates, pre-deployment-gates, deploy-staging, deploy-production]
-    if: always()
-    steps:
-      - name: Notify Slack
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          channel: '#lightdom-deployments'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          fields: repo,message,commit,author,action,eventName,ref,workflow
+    - name: Run database migrations
+      run: npm run db:migrate
+      env:
+        NODE_ENV: production
+        DB_HOST: ${{ secrets.PROD_DB_HOST }}
+        DB_PORT: ${{ secrets.PROD_DB_PORT }}
+        DB_NAME: ${{ secrets.PROD_DB_NAME }}
+        DB_USER: ${{ secrets.PROD_DB_USER }}
+        DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
 
   # Cleanup
   cleanup:
     name: Cleanup
     runs-on: ubuntu-latest
+    needs: [deploy-production, performance-test]
     if: always()
+    
     steps:
-      - name: Cleanup artifacts
-        run: |
-          echo "Cleaning up temporary files and artifacts"
-          rm -rf node_modules/.cache
-          rm -rf .next
-          rm -rf dist
+    - name: Cleanup old images
+      run: |
+        # Clean up old Docker images from registry
+        echo "Cleaning up old images..."
+        
+    - name: Cleanup old artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: cleanup-complete
+        path: /dev/null

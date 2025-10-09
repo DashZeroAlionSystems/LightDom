@@ -1,6 +1,10 @@
 /* Import Discord Theme */
 @import './discord-theme.css';
 
+/* Import LightDom Design System */
+@import './styles/design-tokens.css';
+@import './styles/component-system.css';
+
 /* Keep Tailwind for utility classes */
 @tailwind base;
 @tailwind components;

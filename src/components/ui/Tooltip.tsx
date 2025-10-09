@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '../../utils/cn';
+import { cn } from '@/utils/validation/cn';
 
 const tooltipVariants = cva(
   'absolute z-tooltip px-2 py-1 text-xs font-medium text-white bg-neutral-900 rounded-md shadow-lg transition-opacity duration-200 pointer-events-none',

@@ -6,12 +6,8 @@
  */
 
 import { EventEmitter } from 'events';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { 
-  CallToolRequestSchema, 
-  ListToolsRequestSchema,
-  ReadResourceRequestSchema 
-} from '@modelcontextprotocol/sdk/types.js';
+// NOTE: Server-only dependency. Avoid static import so Vite doesn't bundle it in the browser.
+// We'll lazy-load the MCP Client at runtime in Node environments only.
 
 export interface BrowserSession {
   id: string;
@@ -77,7 +73,7 @@ export interface ExtractedData {
 }
 
 export class BrowserbaseService extends EventEmitter {
-  private mcpClient: Client;
+  private mcpClient: any;
   private sessions: Map<string, BrowserSession> = new Map();
   private isConnected: boolean = false;
   private config: {
@@ -101,18 +97,7 @@ export class BrowserbaseService extends EventEmitter {
   }) {
     super();
     this.config = config;
-    this.mcpClient = new Client(
-      {
-        name: 'lightdom-browserbase-client',
-        version: '1.0.0'
-      },
-      {
-        capabilities: {
-          tools: {},
-          resources: {}
-        }
-      }
-    );
+    this.mcpClient = null; // will be initialized in initialize() on server only
   }
 
   /**
@@ -121,8 +106,18 @@ export class BrowserbaseService extends EventEmitter {
   async initialize(): Promise<void> {
     try {
       console.log('🚀 Initializing Browserbase MCP Service...');
+      if (typeof window !== 'undefined') {
+        throw new Error('BrowserbaseService is server-only and cannot run in the browser');
+      }
+      // Lazy import to avoid bundling in browser
+      const { Client } = await import('@modelcontextprotocol/sdk/client/index.js');
       
       // Connect to MCP server
+      this.mcpClient = new Client(
+        { name: 'lightdom-browserbase-client', version: '1.0.0' },
+        { capabilities: { tools: {}, resources: {} } }
+      );
+
       await this.mcpClient.connect({
         command: 'npx',
         args: [

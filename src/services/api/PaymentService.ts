@@ -10,9 +10,10 @@
  * - Error handling with no sensitive data exposure
  */
 
-import Stripe from 'stripe';
-import { logger } from '../utils/Logger';
-import { ErrorHandler } from '../core/ErrorHandler';
+// Stripe is server-only; prevent client bundling by dynamic import on server
+let StripeCtor: any;
+import Logger from '../../utils/Logger';
+import { ErrorHandler } from '../../core/ErrorHandler';
 
 // Environment variables for secure configuration
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
@@ -24,12 +25,7 @@ if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET || !STRIPE_PUBLISHABLE_KEY) {
 }
 
 // Initialize Stripe with secure configuration
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-  typescript: true,
-  timeout: 10000,
-  maxNetworkRetries: 3,
-});
+let stripe: any;
 
 // Type definitions for type safety
 export interface PaymentMethod {
@@ -113,10 +109,30 @@ export interface UsageRecord {
 export class PaymentService {
   private errorHandler: ErrorHandler;
   private webhookSecret: string;
+  private logger: Logger;
 
   constructor() {
     this.errorHandler = new ErrorHandler();
     this.webhookSecret = STRIPE_WEBHOOK_SECRET;
+    this.logger = new Logger('PaymentService');
+  }
+
+  private async ensureStripe(): Promise<void> {
+    if (typeof window !== 'undefined') {
+      throw new Error('PaymentService is server-only');
+    }
+    if (!StripeCtor) {
+      const mod = await import('stripe');
+      StripeCtor = mod.default || (mod as any);
+    }
+    if (!stripe) {
+      stripe = new StripeCtor(STRIPE_SECRET_KEY, {
+        apiVersion: '2023-10-16',
+        typescript: true,
+        timeout: 10000,
+        maxNetworkRetries: 3,
+      });
+    }
   }
 
   /**
@@ -125,6 +141,7 @@ export class PaymentService {
    */
   async createCustomer(data: CreateCustomerData): Promise<Stripe.Customer> {
     try {
+      await this.ensureStripe();
       // Validate input data
       this.validateCustomerData(data);
 
@@ -141,7 +158,7 @@ export class PaymentService {
       });
 
       // Log successful creation (without sensitive data)
-      logger.info('Customer created successfully', {
+      this.logger.info('Customer created successfully', {
         customer_id: customer.id,
         email: customer.email,
         created_at: customer.created,
@@ -156,7 +173,7 @@ export class PaymentService {
         metadata: { email: data.email },
       });
 
-      logger.error('Failed to create customer', {
+      this.logger.error('Failed to create customer', {
         error_id: errorReport.id,
         error_type: errorReport.type,
       });
@@ -174,6 +191,7 @@ export class PaymentService {
     paymentMethodId: string
   ): Promise<Stripe.PaymentMethod> {
     try {
+      await this.ensureStripe();
       // Validate inputs
       if (!customerId || !paymentMethodId) {
         throw new Error('Customer ID and Payment Method ID are required');
@@ -198,7 +216,7 @@ export class PaymentService {
         });
       }
 
-      logger.info('Payment method created successfully', {
+      this.logger.info('Payment method created successfully', {
         customer_id: customerId,
         payment_method_id: paymentMethod.id,
         type: paymentMethod.type,
@@ -212,7 +230,7 @@ export class PaymentService {
         metadata: { customer_id: customerId },
       });
 
-      logger.error('Failed to create payment method', {
+      this.logger.error('Failed to create payment method', {
         error_id: errorReport.id,
         error_type: errorReport.type,
       });
@@ -227,6 +245,7 @@ export class PaymentService {
    */
   async createSubscription(data: CreateSubscriptionData): Promise<Stripe.Subscription> {
     try {
+      await this.ensureStripe();
       // Validate input data
       this.validateSubscriptionData(data);
 
@@ -239,7 +258,7 @@ export class PaymentService {
         expand: ['latest_invoice.payment_intent'],
       });
 
-      logger.info('Subscription created successfully', {
+      this.logger.info('Subscription created successfully', {
         customer_id: data.customer_id,
         subscription_id: subscription.id,
         status: subscription.status,
@@ -254,7 +273,7 @@ export class PaymentService {
         metadata: { customer_id: data.customer_id },
       });
 
-      logger.error('Failed to create subscription', {
+      this.logger.error('Failed to create subscription', {
         error_id: errorReport.id,
         error_type: errorReport.type,
       });
@@ -272,6 +291,7 @@ export class PaymentService {
     immediately: boolean = false
   ): Promise<Stripe.Subscription> {
     try {
+      await this.ensureStripe();
       if (!subscriptionId) {
         throw new Error('Subscription ID is required');
       }
@@ -281,7 +301,7 @@ export class PaymentService {
         ...(immediately && { status: 'canceled' }),
       });
 
-      logger.info('Subscription canceled successfully', {
+      this.logger.info('Subscription canceled successfully', {
         subscription_id: subscriptionId,
         canceled_at: subscription.canceled_at,
         cancel_at_period_end: subscription.cancel_at_period_end,
@@ -295,7 +315,7 @@ export class PaymentService {
         metadata: { subscription_id: subscriptionId },
       });
 
-      logger.error('Failed to cancel subscription', {
+      this.logger.error('Failed to cancel subscription', {
         error_id: errorReport.id,
         error_type: errorReport.type,
       });
@@ -315,6 +335,7 @@ export class PaymentService {
     metadata?: Record<string, string>
   ): Promise<PaymentIntent> {
     try {
+      await this.ensureStripe();
       // Validate amount
       if (amount <= 0) {
         throw new Error('Amount must be greater than 0');
@@ -333,7 +354,7 @@ export class PaymentService {
         },
       });
 
-      logger.info('Payment intent created successfully', {
+      this.logger.info('Payment intent created successfully', {
         payment_intent_id: paymentIntent.id,
         amount: amountInCents,
         currency: currency,
@@ -355,7 +376,7 @@ export class PaymentService {
         metadata: { amount, currency, customer_id: customerId },
       });
 
-      logger.error('Failed to create payment intent', {
+      this.logger.error('Failed to create payment intent', {
         error_id: errorReport.id,
         error_type: errorReport.type,
       });
@@ -370,6 +391,7 @@ export class PaymentService {
    */
   async recordUsage(data: UsageRecord): Promise<Stripe.UsageRecord> {
     try {
+      await this.ensureStripe();
       // Validate input data
       this.validateUsageData(data);
 
@@ -382,7 +404,7 @@ export class PaymentService {
         }
       );
 
-      logger.info('Usage recorded successfully', {
+      this.logger.info('Usage recorded successfully', {
         subscription_item_id: data.subscription_item_id,
         quantity: data.quantity,
         timestamp: data.timestamp,
@@ -396,7 +418,7 @@ export class PaymentService {
         metadata: { subscription_item_id: data.subscription_item_id },
       });
 
-      logger.error('Failed to record usage', {
+      this.logger.error('Failed to record usage', {
         error_id: errorReport.id,
         error_type: errorReport.type,
       });
@@ -411,6 +433,7 @@ export class PaymentService {
    */
   async getPaymentMethods(customerId: string): Promise<PaymentMethod[]> {
     try {
+      await this.ensureStripe();
       if (!customerId) {
         throw new Error('Customer ID is required');
       }
@@ -430,7 +453,7 @@ export class PaymentService {
         is_default: false, // Will be determined by customer's default payment method
       }));
 
-      logger.info('Payment methods retrieved successfully', {
+      this.logger.info('Payment methods retrieved successfully', {
         customer_id: customerId,
         count: formattedPaymentMethods.length,
       });
@@ -443,7 +466,7 @@ export class PaymentService {
         metadata: { customer_id: customerId },
       });
 
-      logger.error('Failed to get payment methods', {
+      this.logger.error('Failed to get payment methods', {
         error_id: errorReport.id,
         error_type: errorReport.type,
       });
@@ -458,6 +481,7 @@ export class PaymentService {
    */
   async getSubscriptions(customerId: string): Promise<Subscription[]> {
     try {
+      await this.ensureStripe();
       if (!customerId) {
         throw new Error('Customer ID is required');
       }
@@ -481,7 +505,7 @@ export class PaymentService {
         trial_end: sub.trial_end ? new Date(sub.trial_end * 1000) : undefined,
       }));
 
-      logger.info('Subscriptions retrieved successfully', {
+      this.logger.info('Subscriptions retrieved successfully', {
         customer_id: customerId,
         count: formattedSubscriptions.length,
       });
@@ -494,7 +518,7 @@ export class PaymentService {
         metadata: { customer_id: customerId },
       });
 
-      logger.error('Failed to get subscriptions', {
+      this.logger.error('Failed to get subscriptions', {
         error_id: errorReport.id,
         error_type: errorReport.type,
       });
@@ -509,6 +533,7 @@ export class PaymentService {
    */
   async getInvoices(customerId: string, limit: number = 10): Promise<Invoice[]> {
     try {
+      await this.ensureStripe();
       if (!customerId) {
         throw new Error('Customer ID is required');
       }
@@ -533,7 +558,7 @@ export class PaymentService {
         hosted_invoice_url: invoice.hosted_invoice_url || undefined,
       }));
 
-      logger.info('Invoices retrieved successfully', {
+      this.logger.info('Invoices retrieved successfully', {
         customer_id: customerId,
         count: formattedInvoices.length,
       });
@@ -546,7 +571,7 @@ export class PaymentService {
         metadata: { customer_id: customerId },
       });
 
-      logger.error('Failed to get invoices', {
+      this.logger.error('Failed to get invoices', {
         error_id: errorReport.id,
         error_type: errorReport.type,
       });
@@ -567,14 +592,14 @@ export class PaymentService {
         this.webhookSecret
       );
 
-      logger.info('Webhook signature verified successfully', {
+      this.logger.info('Webhook signature verified successfully', {
         event_id: event.id,
         event_type: event.type,
       });
 
       return event;
     } catch (error) {
-      logger.error('Webhook signature verification failed', {
+      this.logger.error('Webhook signature verification failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
 
@@ -588,7 +613,7 @@ export class PaymentService {
    */
   async handleWebhookEvent(event: Stripe.Event): Promise<void> {
     try {
-      logger.info('Processing webhook event', {
+      this.logger.info('Processing webhook event', {
         event_id: event.id,
         event_type: event.type,
       });
@@ -616,7 +641,7 @@ export class PaymentService {
           await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
           break;
         default:
-          logger.info('Unhandled webhook event type', {
+          this.logger.info('Unhandled webhook event type', {
             event_type: event.type,
             event_id: event.id,
           });
@@ -628,7 +653,7 @@ export class PaymentService {
         metadata: { event_id: event.id, event_type: event.type },
       });
 
-      logger.error('Failed to handle webhook event', {
+      this.logger.error('Failed to handle webhook event', {
         error_id: errorReport.id,
         error_type: errorReport.type,
       });
@@ -688,7 +713,7 @@ export class PaymentService {
   // Webhook event handlers
 
   private async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-    logger.info('Payment intent succeeded', {
+    this.logger.info('Payment intent succeeded', {
       payment_intent_id: paymentIntent.id,
       amount: paymentIntent.amount,
       currency: paymentIntent.currency,
@@ -697,7 +722,7 @@ export class PaymentService {
   }
 
   private async handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
-    logger.warn('Payment intent failed', {
+    this.logger.warn('Payment intent failed', {
       payment_intent_id: paymentIntent.id,
       amount: paymentIntent.amount,
       currency: paymentIntent.currency,
@@ -706,7 +731,7 @@ export class PaymentService {
   }
 
   private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
-    logger.info('Invoice payment succeeded', {
+    this.logger.info('Invoice payment succeeded', {
       invoice_id: invoice.id,
       customer_id: invoice.customer,
       amount_paid: invoice.amount_paid,
@@ -715,7 +740,7 @@ export class PaymentService {
   }
 
   private async handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
-    logger.warn('Invoice payment failed', {
+    this.logger.warn('Invoice payment failed', {
       invoice_id: invoice.id,
       customer_id: invoice.customer,
       amount_due: invoice.amount_due,
@@ -724,7 +749,7 @@ export class PaymentService {
   }
 
   private async handleSubscriptionCreated(subscription: Stripe.Subscription): Promise<void> {
-    logger.info('Subscription created', {
+    this.logger.info('Subscription created', {
       subscription_id: subscription.id,
       customer_id: subscription.customer,
       status: subscription.status,
@@ -733,7 +758,7 @@ export class PaymentService {
   }
 
   private async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
-    logger.info('Subscription updated', {
+    this.logger.info('Subscription updated', {
       subscription_id: subscription.id,
       customer_id: subscription.customer,
       status: subscription.status,
@@ -742,7 +767,7 @@ export class PaymentService {
   }
 
   private async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
-    logger.info('Subscription deleted', {
+    this.logger.info('Subscription deleted', {
       subscription_id: subscription.id,
       customer_id: subscription.customer,
       canceled_at: subscription.canceled_at,

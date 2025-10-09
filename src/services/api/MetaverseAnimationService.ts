@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { Logger } from '../utils/Logger';
+import { Logger } from '../../utils/Logger';
 import {
   MetaverseAssetAnimation,
   MetaverseAssetVisual,
@@ -12,7 +12,7 @@ import {
   MetaverseAnimationConfig,
   MetaverseAnimationEvents
 } from '../types/MetaverseAnimationTypes';
-import { metaverseAnimationConfig } from '../config/MetaverseAnimationPresets';
+import { metaverseAnimationConfig } from '../../config/MetaverseAnimationPresets';
 
 export class MetaverseAnimationService extends EventEmitter {
   private logger: Logger;

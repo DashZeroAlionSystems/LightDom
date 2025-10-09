@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightDom App Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>LightDom App Test</h1>
+        
+        <div class="test-section">
+            <h2>App Status</h2>
+            <button class="test-button" onclick="testAppStatus()">Test App Status</button>
+            <div id="app-status" class="status"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Component Tests</h2>
+            <button class="test-button" onclick="testComponents()">Test Components</button>
+            <div id="component-status" class="status"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Navigation</h2>
+            <button class="test-button" onclick="testNavigation()">Test Navigation</button>
+            <div id="navigation-status" class="status"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>API Connection</h2>
+            <button class="test-button" onclick="testAPI()">Test API</button>
+            <div id="api-status" class="status"></div>
+        </div>
+    </div>
+
+    <script>
+        async function testAppStatus() {
+            const statusDiv = document.getElementById('app-status');
+            try {
+                const response = await fetch('http://localhost:3000');
+                if (response.ok) {
+                    statusDiv.innerHTML = '<div class="success">✅ App is running successfully (Status: ' + response.status + ')</div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="error">❌ App returned error status: ' + response.status + '</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="error">❌ Failed to connect to app: ' + error.message + '</div>';
+            }
+        }
+
+        async function testComponents() {
+            const statusDiv = document.getElementById('component-status');
+            try {
+                // Test if the main page loads
+                const response = await fetch('http://localhost:3000');
+                const html = await response.text();
+                
+                if (html.includes('LightDom') || html.includes('react')) {
+                    statusDiv.innerHTML = '<div class="success">✅ React components are loading</div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="error">❌ React components not detected</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="error">❌ Failed to test components: ' + error.message + '</div>';
+            }
+        }
+
+        async function testNavigation() {
+            const statusDiv = document.getElementById('navigation-status');
+            try {
+                // Test different routes
+                const routes = ['/', '/space-mining', '/harvester', '/wallet'];
+                let workingRoutes = 0;
+                
+                for (const route of routes) {
+                    try {
+                        const response = await fetch('http://localhost:3000' + route);
+                        if (response.ok) {
+                            workingRoutes++;
+                        }
+                    } catch (e) {
+                        // Route might not exist, that's okay
+                    }
+                }
+                
+                statusDiv.innerHTML = '<div class="info">ℹ️ Tested ' + routes.length + ' routes, ' + workingRoutes + ' are accessible</div>';
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="error">❌ Failed to test navigation: ' + error.message + '</div>';
+            }
+        }
+
+        async function testAPI() {
+            const statusDiv = document.getElementById('api-status');
+            try {
+                // Test API endpoints
+                const apiEndpoints = ['/api/health', '/api/stats'];
+                let workingAPIs = 0;
+                
+                for (const endpoint of apiEndpoints) {
+                    try {
+                        const response = await fetch('http://localhost:3000' + endpoint);
+                        if (response.ok) {
+                            workingAPIs++;
+                        }
+                    } catch (e) {
+                        // API might not be running, that's okay
+                    }
+                }
+                
+                if (workingAPIs > 0) {
+                    statusDiv.innerHTML = '<div class="success">✅ ' + workingAPIs + ' API endpoints are working</div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="info">ℹ️ API endpoints not available (this is normal if API server is not running)</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="error">❌ Failed to test API: ' + error.message + '</div>';
+            }
+        }
+
+        // Auto-run tests on page load
+        window.onload = function() {
+            testAppStatus();
+            testComponents();
+            testNavigation();
+            testAPI();
+        };
+    </script>
+</body>
+</html>
+

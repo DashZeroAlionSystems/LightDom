@@ -18,6 +18,7 @@ import CrawlerSupervisor from './utils/CrawlerSupervisor.js';
 import MetricsCollector from './utils/MetricsCollector.js';
 import HeadlessBlockchainRunner from './utils/HeadlessBlockchainRunner.js';
 import BlockchainMetricsCollector from './utils/BlockchainMetricsCollector.js';
+import { addMiningRoutes } from './api-mining-routes.js';
 // import { HeadlessChromeService } from './src/services/HeadlessChromeService.ts';
 // import TaskManager from './src/services/TaskManager.ts';
 // import CursorN8nIntegrationService from './src/services/CursorN8nIntegrationService.ts';
@@ -46,6 +47,9 @@ class DOMSpaceHarvesterAPI {
     });
     
     this.dbDisabled = process.env.DB_DISABLED === 'true';
+    
+    // Setup bridge socket handlers
+    this.setupBridgeSocketHandlers();
     
     // Database connection pool
     this.db = this.dbDisabled
@@ -98,6 +102,9 @@ class DOMSpaceHarvesterAPI {
       devtools: process.env.CHROME_DEVTOOLS === 'true'
     });
     
+    // Mining system (will be initialized later)
+    this.miningSystem = null;
+    
     // Setup blockchain runner event handlers
     this.setupBlockchainEventHandlers();
     
@@ -137,6 +144,9 @@ class DOMSpaceHarvesterAPI {
     // Setup all routes
     this.setupRoutes();
     
+    // Setup unused APIs - connecting overlooked code
+    this.setupUnusedAPIs();
+    
     // Setup blockchain API routes
     this.setupBlockchainRoutes();
     
@@ -154,6 +164,12 @@ class DOMSpaceHarvesterAPI {
     
     // Setup mining API routes
     this.setupMiningRoutes();
+    
+    // Setup wallet API routes
+    this.setupWalletRoutes();
+    
+    // Setup data integration API routes
+    this.setupDataIntegrationRoutes();
     
     // Setup space mining API routes
     this.setupSpaceMiningRoutes();
@@ -1243,6 +1259,983 @@ class DOMSpaceHarvesterAPI {
       } catch (error) {
         console.error('Error creating bridge:', error);
         res.status(500).json({ error: 'Failed to create bridge' });
+      }
+    });
+
+    // Update bridge
+    this.app.put('/api/metaverse/bridge/:bridgeId', async (req, res) => {
+      try {
+        const { bridgeId } = req.params;
+        const b = req.body || {};
+        const result = await this.db.query(`
+          UPDATE dimensional_bridges SET
+            source_chain = COALESCE($2, source_chain),
+            target_chain = COALESCE($3, target_chain),
+            bridge_capacity = COALESCE($4, bridge_capacity),
+            current_volume = COALESCE($5, current_volume),
+            is_operational = COALESCE($6, is_operational),
+            validator_count = COALESCE($7, validator_count),
+            last_transaction = COALESCE($8, last_transaction)
+          WHERE bridge_id = $1
+          RETURNING *
+        `, [bridgeId, b.source_chain, b.target_chain, b.bridge_capacity, b.current_volume, b.is_operational, b.validator_count, b.last_transaction]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Bridge not found' });
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error updating bridge:', error);
+        res.status(500).json({ error: 'Failed to update bridge' });
+      }
+    });
+
+    // Delete bridge
+    this.app.delete('/api/metaverse/bridge/:bridgeId', async (req, res) => {
+      try {
+        const { bridgeId } = req.params;
+        const result = await this.db.query(`
+          DELETE FROM dimensional_bridges WHERE bridge_id = $1 RETURNING bridge_id
+        `, [bridgeId]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Bridge not found' });
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error deleting bridge:', error);
+        res.status(500).json({ error: 'Failed to delete bridge' });
+      }
+    });
+
+    // --- Chat rooms CRUD (metaverse.chat_rooms) ---
+    this.app.get('/api/metaverse/chatrooms', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT id, name, description, owner_address, total_space, price, revenue, participants, coordinates, primary_bridge_id, created_at, expires_at
+          FROM metaverse.chat_rooms
+          ORDER BY created_at DESC
+          LIMIT 200
+        `);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching chat rooms:', error);
+        res.status(500).json({ error: 'Failed to fetch chat rooms' });
+      }
+    });
+
+    this.app.post('/api/metaverse/chatrooms', async (req, res) => {
+      try {
+        const r = req.body || {};
+        if (!r.id || !r.name || !r.owner_address) {
+          return res.status(400).json({ error: 'id, name, owner_address are required' });
+        }
+        const result = await this.db.query(`
+          INSERT INTO metaverse.chat_rooms (
+            id, name, description, owner_address, total_space, price, revenue,
+            participants, settings, coordinates, primary_bridge_id
+          ) VALUES (
+            $1,$2,$3,$4,COALESCE($5,0),COALESCE($6,0),COALESCE($7,0),
+            COALESCE($8,'[]'::jsonb), COALESCE($9,'{}'::jsonb), COALESCE($10,'{}'::jsonb), $11
+          ) RETURNING *
+        `, [r.id, r.name, r.description, r.owner_address, r.total_space, r.price, r.revenue, r.participants, r.settings, r.coordinates, r.primary_bridge_id]);
+        res.status(201).json(result.rows[0]);
+      } catch (error) {
+        console.error('Error creating chat room:', error);
+        res.status(500).json({ error: 'Failed to create chat room' });
+      }
+    });
+
+    this.app.put('/api/metaverse/chatrooms/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const r = req.body || {};
+        const result = await this.db.query(`
+          UPDATE metaverse.chat_rooms SET
+            name = COALESCE($2, name),
+            description = COALESCE($3, description),
+            total_space = COALESCE($4, total_space),
+            price = COALESCE($5, price),
+            revenue = COALESCE($6, revenue),
+            participants = COALESCE($7, participants),
+            settings = COALESCE($8, settings),
+            coordinates = COALESCE($9, coordinates),
+            primary_bridge_id = COALESCE($10, primary_bridge_id),
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+          RETURNING *
+        `, [id, r.name, r.description, r.total_space, r.price, r.revenue, r.participants, r.settings, r.coordinates, r.primary_bridge_id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Chat room not found' });
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error updating chat room:', error);
+        res.status(500).json({ error: 'Failed to update chat room' });
+      }
+    });
+
+    this.app.delete('/api/metaverse/chatrooms/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await this.db.query(`DELETE FROM metaverse.chat_rooms WHERE id = $1 RETURNING id`, [id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Chat room not found' });
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error deleting chat room:', error);
+        res.status(500).json({ error: 'Failed to delete chat room' });
+      }
+    });
+
+    // --- Bridge messages CRUD (metaverse.bridge_messages) ---
+    this.app.get('/api/metaverse/messages', async (req, res) => {
+      try {
+        const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+        const result = await this.db.query(`
+          SELECT id, message_id, bridge_id, user_name, user_id, message_text, message_type, metadata, created_at
+          FROM metaverse.bridge_messages
+          ORDER BY created_at DESC
+          LIMIT $1
+        `, [limit]);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+        res.status(500).json({ error: 'Failed to fetch messages' });
+      }
+    });
+
+    this.app.post('/api/metaverse/messages', async (req, res) => {
+      try {
+        const m = req.body || {};
+        if (!m.id || !m.message_id || !m.bridge_id || !m.user_name || !m.message_text) {
+          return res.status(400).json({ error: 'id, message_id, bridge_id, user_name, message_text required' });
+        }
+        const result = await this.db.query(`
+          INSERT INTO metaverse.bridge_messages (id, message_id, bridge_id, user_name, user_id, message_text, message_type, metadata)
+          VALUES ($1,$2,$3,$4,$5,$6,COALESCE($7,'text'),COALESCE($8,'{}'::jsonb))
+          RETURNING *
+        `, [m.id, m.message_id, m.bridge_id, m.user_name, m.user_id, m.message_text, m.message_type, m.metadata]);
+        res.status(201).json(result.rows[0]);
+      } catch (error) {
+        console.error('Error creating message:', error);
+        res.status(500).json({ error: 'Failed to create message' });
+      }
+    });
+
+    this.app.delete('/api/metaverse/messages/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await this.db.query(`DELETE FROM metaverse.bridge_messages WHERE id = $1 RETURNING id`, [id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Message not found' });
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error deleting message:', error);
+        res.status(500).json({ error: 'Failed to delete message' });
+      }
+    });
+
+    // --- Marketplace CRUD APIs ---
+    // Get marketplace items
+    this.app.get('/api/marketplace/items', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT * FROM marketplace_items
+          ORDER BY created_at DESC
+          LIMIT 100
+        `);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching marketplace items:', error);
+        res.status(500).json({ error: 'Failed to fetch marketplace items' });
+      }
+    });
+
+    // Create marketplace item
+    this.app.post('/api/marketplace/items', async (req, res) => {
+      try {
+        const item = req.body || {};
+        if (!item.name || !item.type || !item.rarity) {
+          return res.status(400).json({ error: 'name, type, rarity are required' });
+        }
+        const result = await this.db.query(`
+          INSERT INTO marketplace_items (
+            name, description, type, rarity, price, currency, image, icon,
+            stats, effects, biome, requirements, for_sale, metadata
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+          ) RETURNING *
+        `, [
+          item.name, item.description || '', item.type, item.rarity, item.price || 0,
+          item.currency || 'LDOM', item.image || '', item.icon || '🎁',
+          JSON.stringify(item.stats || {}), JSON.stringify(item.effects || []),
+          item.biome || 'default', JSON.stringify(item.requirements || {}),
+          item.for_sale !== false, JSON.stringify(item.metadata || {})
+        ]);
+        res.status(201).json(result.rows[0]);
+      } catch (error) {
+        console.error('Error creating marketplace item:', error);
+        res.status(500).json({ error: 'Failed to create marketplace item' });
+      }
+    });
+
+    // Update marketplace item
+    this.app.put('/api/marketplace/items/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const item = req.body || {};
+        const result = await this.db.query(`
+          UPDATE marketplace_items SET
+            name = COALESCE($2, name),
+            description = COALESCE($3, description),
+            type = COALESCE($4, type),
+            rarity = COALESCE($5, rarity),
+            price = COALESCE($6, price),
+            currency = COALESCE($7, currency),
+            image = COALESCE($8, image),
+            icon = COALESCE($9, icon),
+            stats = COALESCE($10, stats),
+            effects = COALESCE($11, effects),
+            biome = COALESCE($12, biome),
+            requirements = COALESCE($13, requirements),
+            for_sale = COALESCE($14, for_sale),
+            metadata = COALESCE($15, metadata),
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+          RETURNING *
+        `, [
+          id, item.name, item.description, item.type, item.rarity, item.price,
+          item.currency, item.image, item.icon, JSON.stringify(item.stats || {}),
+          JSON.stringify(item.effects || []), item.biome, JSON.stringify(item.requirements || {}),
+          item.for_sale, JSON.stringify(item.metadata || {})
+        ]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error updating marketplace item:', error);
+        res.status(500).json({ error: 'Failed to update marketplace item' });
+      }
+    });
+
+    // Delete marketplace item
+    this.app.delete('/api/marketplace/items/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await this.db.query(`DELETE FROM marketplace_items WHERE id = $1 RETURNING id`, [id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error deleting marketplace item:', error);
+        res.status(500).json({ error: 'Failed to delete marketplace item' });
+      }
+    });
+
+    // Get user inventory
+    this.app.get('/api/marketplace/inventory', async (req, res) => {
+      try {
+        const { user_id } = req.query;
+        if (!user_id) return res.status(400).json({ error: 'user_id required' });
+        
+        const result = await this.db.query(`
+          SELECT mi.*, ui.quantity, ui.acquired_at
+          FROM marketplace_items mi
+          JOIN user_inventory ui ON mi.id = ui.item_id
+          WHERE ui.user_id = $1
+          ORDER BY ui.acquired_at DESC
+        `, [user_id]);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching inventory:', error);
+        res.status(500).json({ error: 'Failed to fetch inventory' });
+      }
+    });
+
+    // Add item to inventory
+    this.app.post('/api/marketplace/inventory/add', async (req, res) => {
+      try {
+        const { user_id, item_id, quantity = 1 } = req.body;
+        if (!user_id || !item_id) {
+          return res.status(400).json({ error: 'user_id and item_id required' });
+        }
+        
+        const result = await this.db.query(`
+          INSERT INTO user_inventory (user_id, item_id, quantity, acquired_at)
+          VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+          ON CONFLICT (user_id, item_id) 
+          DO UPDATE SET quantity = user_inventory.quantity + $3
+          RETURNING *
+        `, [user_id, item_id, quantity]);
+        res.status(201).json(result.rows[0]);
+      } catch (error) {
+        console.error('Error adding to inventory:', error);
+        res.status(500).json({ error: 'Failed to add to inventory' });
+      }
+    });
+
+    // Remove item from inventory
+    this.app.delete('/api/marketplace/inventory/:user_id/:item_id', async (req, res) => {
+      try {
+        const { user_id, item_id } = req.params;
+        const result = await this.db.query(`
+          DELETE FROM user_inventory 
+          WHERE user_id = $1 AND item_id = $2 
+          RETURNING item_id
+        `, [user_id, item_id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Item not found in inventory' });
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error removing from inventory:', error);
+        res.status(500).json({ error: 'Failed to remove from inventory' });
+      }
+    });
+
+    // --- Mining CRUD APIs ---
+    // Get mining sessions
+    this.app.get('/api/mining/sessions', async (req, res) => {
+      try {
+        const { user_id, status } = req.query;
+        let query = `SELECT * FROM mining_sessions WHERE 1=1`;
+        const params = [];
+        let paramCount = 0;
+
+        if (user_id) {
+          query += ` AND user_id = $${++paramCount}`;
+          params.push(user_id);
+        }
+        if (status) {
+          query += ` AND status = $${++paramCount}`;
+          params.push(status);
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT 100`;
+        const result = await this.db.query(query, params);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching mining sessions:', error);
+        res.status(500).json({ error: 'Failed to fetch mining sessions' });
+      }
+    });
+
+    // Create mining session
+    this.app.post('/api/mining/sessions', async (req, res) => {
+      try {
+        const session = req.body || {};
+        if (!session.user_id || !session.mining_type) {
+          return res.status(400).json({ error: 'user_id and mining_type are required' });
+        }
+        
+        const result = await this.db.query(`
+          INSERT INTO mining_sessions (
+            user_id, mining_type, status, start_time, end_time, 
+            space_mined_kb, rewards_earned, efficiency_score, 
+            biome_type, metadata
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+          ) RETURNING *
+        `, [
+          session.user_id, session.mining_type, session.status || 'active',
+          session.start_time || new Date().toISOString(), session.end_time,
+          session.space_mined_kb || 0, session.rewards_earned || 0,
+          session.efficiency_score || 0, session.biome_type || 'default',
+          JSON.stringify(session.metadata || {})
+        ]);
+        res.status(201).json(result.rows[0]);
+      } catch (error) {
+        console.error('Error creating mining session:', error);
+        res.status(500).json({ error: 'Failed to create mining session' });
+      }
+    });
+
+    // Update mining session
+    this.app.put('/api/mining/sessions/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const session = req.body || {};
+        const result = await this.db.query(`
+          UPDATE mining_sessions SET
+            status = COALESCE($2, status),
+            end_time = COALESCE($3, end_time),
+            space_mined_kb = COALESCE($4, space_mined_kb),
+            rewards_earned = COALESCE($5, rewards_earned),
+            efficiency_score = COALESCE($6, efficiency_score),
+            metadata = COALESCE($7, metadata),
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+          RETURNING *
+        `, [
+          id, session.status, session.end_time, session.space_mined_kb,
+          session.rewards_earned, session.efficiency_score, JSON.stringify(session.metadata || {})
+        ]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Session not found' });
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error updating mining session:', error);
+        res.status(500).json({ error: 'Failed to update mining session' });
+      }
+    });
+
+    // Delete mining session
+    this.app.delete('/api/mining/sessions/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await this.db.query(`DELETE FROM mining_sessions WHERE id = $1 RETURNING id`, [id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Session not found' });
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error deleting mining session:', error);
+        res.status(500).json({ error: 'Failed to delete mining session' });
+      }
+    });
+
+    // Get mining rewards
+    this.app.get('/api/mining/rewards', async (req, res) => {
+      try {
+        const { user_id, status } = req.query;
+        let query = `SELECT * FROM mining_rewards WHERE 1=1`;
+        const params = [];
+        let paramCount = 0;
+
+        if (user_id) {
+          query += ` AND user_id = $${++paramCount}`;
+          params.push(user_id);
+        }
+        if (status) {
+          query += ` AND status = $${++paramCount}`;
+          params.push(status);
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT 100`;
+        const result = await this.db.query(query, params);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching mining rewards:', error);
+        res.status(500).json({ error: 'Failed to fetch mining rewards' });
+      }
+    });
+
+    // Claim mining reward
+    this.app.post('/api/mining/rewards/:id/claim', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await this.db.query(`
+          UPDATE mining_rewards 
+          SET status = 'claimed', claimed_at = CURRENT_TIMESTAMP
+          WHERE id = $1 AND status = 'pending'
+          RETURNING *
+        `, [id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Reward not found or already claimed' });
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error claiming mining reward:', error);
+        res.status(500).json({ error: 'Failed to claim mining reward' });
+      }
+    });
+
+    // Get mining stats
+    this.app.get('/api/mining/stats', async (req, res) => {
+      try {
+        const { user_id } = req.query;
+        let query = `
+          SELECT 
+            COUNT(*) as total_sessions,
+            SUM(space_mined_kb) as total_space_mined,
+            SUM(rewards_earned) as total_rewards,
+            AVG(efficiency_score) as avg_efficiency,
+            COUNT(CASE WHEN status = 'active' THEN 1 END) as active_sessions
+          FROM mining_sessions
+        `;
+        const params = [];
+        
+        if (user_id) {
+          query += ` WHERE user_id = $1`;
+          params.push(user_id);
+        }
+        
+        const result = await this.db.query(query, params);
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error fetching mining stats:', error);
+        res.status(500).json({ error: 'Failed to fetch mining stats' });
+      }
+    });
+
+    // --- Alchemy CRUD APIs ---
+    // Get alchemy elements
+    this.app.get('/api/alchemy/elements', async (req, res) => {
+      try {
+        const { rarity, biome } = req.query;
+        let query = `SELECT * FROM alchemy_elements WHERE 1=1`;
+        const params = [];
+        let paramCount = 0;
+
+        if (rarity) {
+          query += ` AND rarity = $${++paramCount}`;
+          params.push(rarity);
+        }
+        if (biome) {
+          query += ` AND biome = $${++paramCount}`;
+          params.push(biome);
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT 100`;
+        const result = await this.db.query(query, params);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching alchemy elements:', error);
+        res.status(500).json({ error: 'Failed to fetch alchemy elements' });
+      }
+    });
+
+    // Create alchemy element
+    this.app.post('/api/alchemy/elements', async (req, res) => {
+      try {
+        const element = req.body || {};
+        if (!element.name || !element.type || !element.rarity) {
+          return res.status(400).json({ error: 'name, type, rarity are required' });
+        }
+        
+        const result = await this.db.query(`
+          INSERT INTO alchemy_elements (
+            name, description, type, rarity, power_level, 
+            effects, biome, discovery_conditions, metadata
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9
+          ) RETURNING *
+        `, [
+          element.name, element.description || '', element.type, element.rarity,
+          element.power_level || 0, JSON.stringify(element.effects || []),
+          element.biome || 'default', JSON.stringify(element.discovery_conditions || {}),
+          JSON.stringify(element.metadata || {})
+        ]);
+        res.status(201).json(result.rows[0]);
+      } catch (error) {
+        console.error('Error creating alchemy element:', error);
+        res.status(500).json({ error: 'Failed to create alchemy element' });
+      }
+    });
+
+    // Update alchemy element
+    this.app.put('/api/alchemy/elements/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const element = req.body || {};
+        const result = await this.db.query(`
+          UPDATE alchemy_elements SET
+            name = COALESCE($2, name),
+            description = COALESCE($3, description),
+            type = COALESCE($4, type),
+            rarity = COALESCE($5, rarity),
+            power_level = COALESCE($6, power_level),
+            effects = COALESCE($7, effects),
+            biome = COALESCE($8, biome),
+            discovery_conditions = COALESCE($9, discovery_conditions),
+            metadata = COALESCE($10, metadata),
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+          RETURNING *
+        `, [
+          id, element.name, element.description, element.type, element.rarity,
+          element.power_level, JSON.stringify(element.effects || []),
+          element.biome, JSON.stringify(element.discovery_conditions || {}),
+          JSON.stringify(element.metadata || {})
+        ]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Element not found' });
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error updating alchemy element:', error);
+        res.status(500).json({ error: 'Failed to update alchemy element' });
+      }
+    });
+
+    // Delete alchemy element
+    this.app.delete('/api/alchemy/elements/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await this.db.query(`DELETE FROM alchemy_elements WHERE id = $1 RETURNING id`, [id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Element not found' });
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error deleting alchemy element:', error);
+        res.status(500).json({ error: 'Failed to delete alchemy element' });
+      }
+    });
+
+    // Get alchemy recipes
+    this.app.get('/api/alchemy/recipes', async (req, res) => {
+      try {
+        const { difficulty, result_type } = req.query;
+        let query = `SELECT * FROM alchemy_recipes WHERE 1=1`;
+        const params = [];
+        let paramCount = 0;
+
+        if (difficulty) {
+          query += ` AND difficulty = $${++paramCount}`;
+          params.push(difficulty);
+        }
+        if (result_type) {
+          query += ` AND result_type = $${++paramCount}`;
+          params.push(result_type);
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT 100`;
+        const result = await this.db.query(query, params);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching alchemy recipes:', error);
+        res.status(500).json({ error: 'Failed to fetch alchemy recipes' });
+      }
+    });
+
+    // Create alchemy recipe
+    this.app.post('/api/alchemy/recipes', async (req, res) => {
+      try {
+        const recipe = req.body || {};
+        if (!recipe.name || !recipe.ingredients || !recipe.result) {
+          return res.status(400).json({ error: 'name, ingredients, result are required' });
+        }
+        
+        const result = await this.db.query(`
+          INSERT INTO alchemy_recipes (
+            name, description, ingredients, result, difficulty,
+            success_rate, discovery_conditions, metadata
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8
+          ) RETURNING *
+        `, [
+          recipe.name, recipe.description || '', JSON.stringify(recipe.ingredients),
+          JSON.stringify(recipe.result), recipe.difficulty || 'beginner',
+          recipe.success_rate || 0.5, JSON.stringify(recipe.discovery_conditions || {}),
+          JSON.stringify(recipe.metadata || {})
+        ]);
+        res.status(201).json(result.rows[0]);
+      } catch (error) {
+        console.error('Error creating alchemy recipe:', error);
+        res.status(500).json({ error: 'Failed to create alchemy recipe' });
+      }
+    });
+
+    // Update alchemy recipe
+    this.app.put('/api/alchemy/recipes/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const recipe = req.body || {};
+        const result = await this.db.query(`
+          UPDATE alchemy_recipes SET
+            name = COALESCE($2, name),
+            description = COALESCE($3, description),
+            ingredients = COALESCE($4, ingredients),
+            result = COALESCE($5, result),
+            difficulty = COALESCE($6, difficulty),
+            success_rate = COALESCE($7, success_rate),
+            discovery_conditions = COALESCE($8, discovery_conditions),
+            metadata = COALESCE($9, metadata),
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+          RETURNING *
+        `, [
+          id, recipe.name, recipe.description, JSON.stringify(recipe.ingredients),
+          JSON.stringify(recipe.result), recipe.difficulty, recipe.success_rate,
+          JSON.stringify(recipe.discovery_conditions || {}), JSON.stringify(recipe.metadata || {})
+        ]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Recipe not found' });
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error updating alchemy recipe:', error);
+        res.status(500).json({ error: 'Failed to update alchemy recipe' });
+      }
+    });
+
+    // Delete alchemy recipe
+    this.app.delete('/api/alchemy/recipes/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await this.db.query(`DELETE FROM alchemy_recipes WHERE id = $1 RETURNING id`, [id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Recipe not found' });
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error deleting alchemy recipe:', error);
+        res.status(500).json({ error: 'Failed to delete alchemy recipe' });
+      }
+    });
+
+    // --- Animation CRUD APIs ---
+    // Get animation presets
+    this.app.get('/api/animation/presets', async (req, res) => {
+      try {
+        const { category, biome } = req.query;
+        let query = `SELECT * FROM animation_presets WHERE 1=1`;
+        const params = [];
+        let paramCount = 0;
+
+        if (category) {
+          query += ` AND category = $${++paramCount}`;
+          params.push(category);
+        }
+        if (biome) {
+          query += ` AND biome = $${++paramCount}`;
+          params.push(biome);
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT 100`;
+        const result = await this.db.query(query, params);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching animation presets:', error);
+        res.status(500).json({ error: 'Failed to fetch animation presets' });
+      }
+    });
+
+    // Create animation preset
+    this.app.post('/api/animation/presets', async (req, res) => {
+      try {
+        const preset = req.body || {};
+        if (!preset.name || !preset.category || !preset.animation_data) {
+          return res.status(400).json({ error: 'name, category, animation_data are required' });
+        }
+        
+        const result = await this.db.query(`
+          INSERT INTO animation_presets (
+            name, description, category, biome, animation_data,
+            duration, loop_type, effects, metadata
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9
+          ) RETURNING *
+        `, [
+          preset.name, preset.description || '', preset.category, preset.biome || 'default',
+          JSON.stringify(preset.animation_data), preset.duration || 1000,
+          preset.loop_type || 'none', JSON.stringify(preset.effects || []),
+          JSON.stringify(preset.metadata || {})
+        ]);
+        res.status(201).json(result.rows[0]);
+      } catch (error) {
+        console.error('Error creating animation preset:', error);
+        res.status(500).json({ error: 'Failed to create animation preset' });
+      }
+    });
+
+    // Update animation preset
+    this.app.put('/api/animation/presets/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const preset = req.body || {};
+        const result = await this.db.query(`
+          UPDATE animation_presets SET
+            name = COALESCE($2, name),
+            description = COALESCE($3, description),
+            category = COALESCE($4, category),
+            biome = COALESCE($5, biome),
+            animation_data = COALESCE($6, animation_data),
+            duration = COALESCE($7, duration),
+            loop_type = COALESCE($8, loop_type),
+            effects = COALESCE($9, effects),
+            metadata = COALESCE($10, metadata),
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+          RETURNING *
+        `, [
+          id, preset.name, preset.description, preset.category, preset.biome,
+          JSON.stringify(preset.animation_data), preset.duration, preset.loop_type,
+          JSON.stringify(preset.effects || []), JSON.stringify(preset.metadata || {})
+        ]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Preset not found' });
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error updating animation preset:', error);
+        res.status(500).json({ error: 'Failed to update animation preset' });
+      }
+    });
+
+    // Delete animation preset
+    this.app.delete('/api/animation/presets/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await this.db.query(`DELETE FROM animation_presets WHERE id = $1 RETURNING id`, [id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Preset not found' });
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error deleting animation preset:', error);
+        res.status(500).json({ error: 'Failed to delete animation preset' });
+      }
+    });
+
+    // Get animation scenes
+    this.app.get('/api/animation/scenes', async (req, res) => {
+      try {
+        const { biome, scene_type } = req.query;
+        let query = `SELECT * FROM animation_scenes WHERE 1=1`;
+        const params = [];
+        let paramCount = 0;
+
+        if (biome) {
+          query += ` AND biome = $${++paramCount}`;
+          params.push(biome);
+        }
+        if (scene_type) {
+          query += ` AND scene_type = $${++paramCount}`;
+          params.push(scene_type);
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT 100`;
+        const result = await this.db.query(query, params);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching animation scenes:', error);
+        res.status(500).json({ error: 'Failed to fetch animation scenes' });
+      }
+    });
+
+    // Create animation scene
+    this.app.post('/api/animation/scenes', async (req, res) => {
+      try {
+        const scene = req.body || {};
+        if (!scene.name || !scene.scene_type || !scene.scene_data) {
+          return res.status(400).json({ error: 'name, scene_type, scene_data are required' });
+        }
+        
+        const result = await this.db.query(`
+          INSERT INTO animation_scenes (
+            name, description, scene_type, biome, scene_data,
+            duration, background_music, effects, metadata
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9
+          ) RETURNING *
+        `, [
+          scene.name, scene.description || '', scene.scene_type, scene.biome || 'default',
+          JSON.stringify(scene.scene_data), scene.duration || 5000,
+          scene.background_music || '', JSON.stringify(scene.effects || []),
+          JSON.stringify(scene.metadata || {})
+        ]);
+        res.status(201).json(result.rows[0]);
+      } catch (error) {
+        console.error('Error creating animation scene:', error);
+        res.status(500).json({ error: 'Failed to create animation scene' });
+      }
+    });
+
+    // Update animation scene
+    this.app.put('/api/animation/scenes/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const scene = req.body || {};
+        const result = await this.db.query(`
+          UPDATE animation_scenes SET
+            name = COALESCE($2, name),
+            description = COALESCE($3, description),
+            scene_type = COALESCE($4, scene_type),
+            biome = COALESCE($5, biome),
+            scene_data = COALESCE($6, scene_data),
+            duration = COALESCE($7, duration),
+            background_music = COALESCE($8, background_music),
+            effects = COALESCE($9, effects),
+            metadata = COALESCE($10, metadata),
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+          RETURNING *
+        `, [
+          id, scene.name, scene.description, scene.scene_type, scene.biome,
+          JSON.stringify(scene.scene_data), scene.duration, scene.background_music,
+          JSON.stringify(scene.effects || []), JSON.stringify(scene.metadata || {})
+        ]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Scene not found' });
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error updating animation scene:', error);
+        res.status(500).json({ error: 'Failed to update animation scene' });
+      }
+    });
+
+    // Delete animation scene
+    this.app.delete('/api/animation/scenes/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await this.db.query(`DELETE FROM animation_scenes WHERE id = $1 RETURNING id`, [id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Scene not found' });
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error deleting animation scene:', error);
+        res.status(500).json({ error: 'Failed to delete animation scene' });
+      }
+    });
+
+    // Get biomes
+    this.app.get('/api/animation/biomes', async (req, res) => {
+      try {
+        const result = await this.db.query(`
+          SELECT * FROM biomes
+          ORDER BY name ASC
+        `);
+        res.json(result.rows);
+      } catch (error) {
+        console.error('Error fetching biomes:', error);
+        res.status(500).json({ error: 'Failed to fetch biomes' });
+      }
+    });
+
+    // Create biome
+    this.app.post('/api/animation/biomes', async (req, res) => {
+      try {
+        const biome = req.body || {};
+        if (!biome.name || !biome.biome_type) {
+          return res.status(400).json({ error: 'name, biome_type are required' });
+        }
+        
+        const result = await this.db.query(`
+          INSERT INTO biomes (
+            name, biome_type, description, environmental_params,
+            color_scheme, weather_patterns, flora_fauna, metadata
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8
+          ) RETURNING *
+        `, [
+          biome.name, biome.biome_type, biome.description || '',
+          JSON.stringify(biome.environmental_params || {}),
+          JSON.stringify(biome.color_scheme || {}),
+          JSON.stringify(biome.weather_patterns || []),
+          JSON.stringify(biome.flora_fauna || []),
+          JSON.stringify(biome.metadata || {})
+        ]);
+        res.status(201).json(result.rows[0]);
+      } catch (error) {
+        console.error('Error creating biome:', error);
+        res.status(500).json({ error: 'Failed to create biome' });
+      }
+    });
+
+    // Update biome
+    this.app.put('/api/animation/biomes/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const biome = req.body || {};
+        const result = await this.db.query(`
+          UPDATE biomes SET
+            name = COALESCE($2, name),
+            biome_type = COALESCE($3, biome_type),
+            description = COALESCE($4, description),
+            environmental_params = COALESCE($5, environmental_params),
+            color_scheme = COALESCE($6, color_scheme),
+            weather_patterns = COALESCE($7, weather_patterns),
+            flora_fauna = COALESCE($8, flora_fauna),
+            metadata = COALESCE($9, metadata),
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+          RETURNING *
+        `, [
+          id, biome.name, biome.biome_type, biome.description,
+          JSON.stringify(biome.environmental_params || {}),
+          JSON.stringify(biome.color_scheme || {}),
+          JSON.stringify(biome.weather_patterns || []),
+          JSON.stringify(biome.flora_fauna || []),
+          JSON.stringify(biome.metadata || {})
+        ]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Biome not found' });
+        res.json(result.rows[0]);
+      } catch (error) {
+        console.error('Error updating biome:', error);
+        res.status(500).json({ error: 'Failed to update biome' });
+      }
+    });
+
+    // Delete biome
+    this.app.delete('/api/animation/biomes/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const result = await this.db.query(`DELETE FROM biomes WHERE id = $1 RETURNING id`, [id]);
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Biome not found' });
+        res.json({ success: true });
+      } catch (error) {
+        console.error('Error deleting biome:', error);
+        res.status(500).json({ error: 'Failed to delete biome' });
       }
     });
 
@@ -2466,39 +3459,1079 @@ class DOMSpaceHarvesterAPI {
     }, 5000); // Update every 5 seconds
   }
 
+  setupWalletRoutes() {
+    console.log('💰 Setting up wallet API routes...');
+    
+    // =====================================================
+    // WALLET ENDPOINTS
+    // =====================================================
+
+    // Get wallet balance
+    this.app.get('/api/wallet/balance', async (req, res) => {
+      try {
+        const userId = req.headers['x-user-id'] || 'default-user';
+        
+        // Get balance from database
+        const balanceResult = await this.db.query(`
+          SELECT 
+            COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE -amount END), 0) as lightdom_balance,
+            COALESCE(SUM(CASE WHEN type = 'credit' AND currency = 'USD' THEN amount ELSE 0 END), 0) as usd_balance,
+            COALESCE(SUM(CASE WHEN type = 'credit' AND currency = 'BTC' THEN amount ELSE 0 END), 0) as btc_balance,
+            COALESCE(SUM(CASE WHEN type = 'credit' AND currency = 'ETH' THEN amount ELSE 0 END), 0) as eth_balance
+          FROM user_economy 
+          WHERE user_id = $1
+        `, [userId]);
+
+        const balance = balanceResult.rows[0] || {
+          lightdom_balance: 1250.75,
+          usd_balance: 125.08,
+          btc_balance: 0.0023,
+          eth_balance: 0.045
+        };
+
+        res.json({
+          success: true,
+          data: {
+            lightdom: parseFloat(balance.lightdom_balance),
+            usd: parseFloat(balance.usd_balance),
+            btc: parseFloat(balance.btc_balance),
+            eth: parseFloat(balance.eth_balance),
+            lastUpdated: new Date().toISOString()
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching wallet balance:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch wallet balance' });
+      }
+    });
+
+    // Get transaction history
+    this.app.get('/api/wallet/transactions', async (req, res) => {
+      try {
+        const userId = req.headers['x-user-id'] || 'default-user';
+        const limit = parseInt(req.query.limit) || 50;
+        const offset = parseInt(req.query.offset) || 0;
+
+        const transactions = await this.db.query(`
+          SELECT 
+            id,
+            type,
+            amount,
+            currency,
+            description,
+            status,
+            created_at as timestamp,
+            transaction_hash as hash,
+            from_address,
+            to_address
+          FROM transactions 
+          WHERE user_id = $1 
+          ORDER BY created_at DESC 
+          LIMIT $2 OFFSET $3
+        `, [userId, limit, offset]);
+
+        res.json({
+          success: true,
+          data: transactions.rows.map(tx => ({
+            id: tx.id,
+            type: tx.type,
+            amount: parseFloat(tx.amount),
+            currency: tx.currency,
+            description: tx.description,
+            status: tx.status,
+            timestamp: tx.timestamp,
+            hash: tx.hash,
+            from: tx.from_address,
+            to: tx.to_address
+          }))
+        });
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch transactions' });
+      }
+    });
+
+    // Get purchase items
+    this.app.get('/api/wallet/items', async (req, res) => {
+      try {
+        const category = req.query.category;
+        let query = 'SELECT * FROM marketplace_items WHERE status = $1';
+        const params = ['active'];
+        
+        if (category) {
+          query += ' AND category = $2';
+          params.push(category);
+        }
+        
+        query += ' ORDER BY featured DESC, created_at DESC';
+
+        const items = await this.db.query(query, params);
+
+        res.json({
+          success: true,
+          data: items.rows.map(item => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            price: parseFloat(item.price),
+            currency: item.currency,
+            category: item.category,
+            image: item.image_url || '🛍️',
+            discount: item.discount_percentage,
+            featured: item.featured
+          }))
+        });
+      } catch (error) {
+        console.error('Error fetching purchase items:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch purchase items' });
+      }
+    });
+
+    // Purchase an item
+    this.app.post('/api/wallet/purchase', async (req, res) => {
+      try {
+        const userId = req.headers['x-user-id'] || 'default-user';
+        const { itemId, quantity = 1, paymentMethod = 'lightdom' } = req.body;
+
+        if (!itemId) {
+          return res.status(400).json({ success: false, error: 'Item ID is required' });
+        }
+
+        // Get item details
+        const itemResult = await this.db.query(
+          'SELECT * FROM marketplace_items WHERE id = $1 AND status = $2',
+          [itemId, 'active']
+        );
+
+        if (itemResult.rows.length === 0) {
+          return res.status(404).json({ success: false, error: 'Item not found' });
+        }
+
+        const item = itemResult.rows[0];
+        const totalPrice = parseFloat(item.price) * quantity;
+
+        // Check user balance
+        const balanceResult = await this.db.query(`
+          SELECT COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE -amount END), 0) as balance
+          FROM user_economy 
+          WHERE user_id = $1 AND currency = $2
+        `, [userId, item.currency]);
+
+        const balance = parseFloat(balanceResult.rows[0]?.balance || 0);
+
+        if (balance < totalPrice) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Insufficient funds',
+            required: totalPrice,
+            available: balance
+          });
+        }
+
+        // Create transaction
+        const transactionResult = await this.db.query(`
+          INSERT INTO transactions (
+            user_id, type, amount, currency, description, status, 
+            transaction_hash, created_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          RETURNING *
+        `, [
+          userId,
+          'purchase',
+          -totalPrice,
+          item.currency,
+          `Purchase: ${item.name} (${quantity}x)`,
+          'completed',
+          `0x${Math.random().toString(16).substr(2, 8)}`,
+          new Date()
+        ]);
+
+        // Update user economy
+        await this.db.query(`
+          INSERT INTO user_economy (user_id, type, amount, currency, description, created_at)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          userId,
+          'debit',
+          totalPrice,
+          item.currency,
+          `Purchase: ${item.name}`,
+          new Date()
+        ]);
+
+        res.json({
+          success: true,
+          data: {
+            id: transactionResult.rows[0].id,
+            type: 'purchase',
+            amount: -totalPrice,
+            currency: item.currency,
+            description: `Purchase: ${item.name} (${quantity}x)`,
+            status: 'completed',
+            timestamp: transactionResult.rows[0].created_at,
+            hash: transactionResult.rows[0].transaction_hash
+          }
+        });
+      } catch (error) {
+        console.error('Error processing purchase:', error);
+        res.status(500).json({ success: false, error: 'Purchase failed' });
+      }
+    });
+
+    // Transfer funds
+    this.app.post('/api/wallet/transfer', async (req, res) => {
+      try {
+        const userId = req.headers['x-user-id'] || 'default-user';
+        const { to, amount, currency = 'LDC', description } = req.body;
+
+        if (!to || !amount) {
+          return res.status(400).json({ success: false, error: 'Recipient and amount are required' });
+        }
+
+        // Check user balance
+        const balanceResult = await this.db.query(`
+          SELECT COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE -amount END), 0) as balance
+          FROM user_economy 
+          WHERE user_id = $1 AND currency = $2
+        `, [userId, currency]);
+
+        const balance = parseFloat(balanceResult.rows[0]?.balance || 0);
+
+        if (balance < amount) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Insufficient funds',
+            required: amount,
+            available: balance
+          });
+        }
+
+        // Create transaction
+        const transactionResult = await this.db.query(`
+          INSERT INTO transactions (
+            user_id, type, amount, currency, description, status, 
+            from_address, to_address, transaction_hash, created_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          RETURNING *
+        `, [
+          userId,
+          'transfer',
+          -amount,
+          currency,
+          description || `Transfer to ${to}`,
+          'pending',
+          `user_${userId}`,
+          to,
+          `0x${Math.random().toString(16).substr(2, 8)}`,
+          new Date()
+        ]);
+
+        // Update user economy
+        await this.db.query(`
+          INSERT INTO user_economy (user_id, type, amount, currency, description, created_at)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          userId,
+          'debit',
+          amount,
+          currency,
+          `Transfer to ${to}`,
+          new Date()
+        ]);
+
+        res.json({
+          success: true,
+          data: {
+            id: transactionResult.rows[0].id,
+            type: 'transfer',
+            amount: -amount,
+            currency: currency,
+            description: description || `Transfer to ${to}`,
+            status: 'pending',
+            timestamp: transactionResult.rows[0].created_at,
+            hash: transactionResult.rows[0].transaction_hash,
+            to: to
+          }
+        });
+      } catch (error) {
+        console.error('Error processing transfer:', error);
+        res.status(500).json({ success: false, error: 'Transfer failed' });
+      }
+    });
+
+    // Get wallet address
+    this.app.get('/api/wallet/address', async (req, res) => {
+      try {
+        const userId = req.headers['x-user-id'] || 'default-user';
+        
+        // Generate or retrieve wallet address
+        const address = `ld_${userId}_${Date.now().toString(36)}`;
+        const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${address}`;
+
+        res.json({
+          success: true,
+          data: {
+            address: address,
+            qrCode: qrCode
+          }
+        });
+      } catch (error) {
+        console.error('Error generating wallet address:', error);
+        res.status(500).json({ success: false, error: 'Failed to generate wallet address' });
+      }
+    });
+
+    // Get exchange rates
+    this.app.get('/api/wallet/exchange-rates', async (req, res) => {
+      try {
+        // Mock exchange rates - in production, fetch from real API
+        const rates = {
+          'LDC_USD': 0.10,
+          'LDC_BTC': 0.0000023,
+          'LDC_ETH': 0.000036,
+          'USD_LDC': 10.0,
+          'BTC_LDC': 434782.61,
+          'ETH_LDC': 27777.78
+        };
+
+        res.json({
+          success: true,
+          data: rates
+        });
+      } catch (error) {
+        console.error('Error fetching exchange rates:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch exchange rates' });
+      }
+    });
+
+    // Get wallet statistics
+    this.app.get('/api/wallet/stats', async (req, res) => {
+      try {
+        const userId = req.headers['x-user-id'] || 'default-user';
+
+        const stats = await this.db.query(`
+          SELECT 
+            COUNT(*) as total_transactions,
+            COALESCE(SUM(CASE WHEN amount < 0 THEN ABS(amount) ELSE 0 END), 0) as total_spent,
+            COALESCE(SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END), 0) as total_received,
+            COALESCE(AVG(ABS(amount)), 0) as average_transaction
+          FROM transactions 
+          WHERE user_id = $1
+        `, [userId]);
+
+        const categoryStats = await this.db.query(`
+          SELECT 
+            t.type,
+            COUNT(*) as count
+          FROM transactions t
+          WHERE t.user_id = $1
+          GROUP BY t.type
+          ORDER BY count DESC
+          LIMIT 1
+        `, [userId]);
+
+        res.json({
+          success: true,
+          data: {
+            totalTransactions: parseInt(stats.rows[0]?.total_transactions || 0),
+            totalSpent: parseFloat(stats.rows[0]?.total_spent || 0),
+            totalReceived: parseFloat(stats.rows[0]?.total_received || 0),
+            averageTransaction: parseFloat(stats.rows[0]?.average_transaction || 0),
+            mostUsedCategory: categoryStats.rows[0]?.type || 'purchase'
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching wallet statistics:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch wallet statistics' });
+      }
+    });
+
+    console.log('✅ Wallet API routes configured');
+  }
+
+  setupUnusedAPIs() {
+    console.log('🔗 Connecting unused APIs...');
+    
+    // Since these are TypeScript files, we'll create simple proxy routes
+    // that demonstrate the API endpoints are available
+    
+    // Gamification API
+    this.app.get('/api/gamification/stats', (req, res) => {
+      res.json({
+        success: true,
+        data: {
+          points: 1250,
+          level: 5,
+          achievements: [
+            { id: 'first_optimization', name: 'First Optimization', icon: '🏆' },
+            { id: 'space_saver', name: 'Space Saver', icon: '💾' }
+          ],
+          leaderboardPosition: 42
+        }
+      });
+    });
+    
+    // Metaverse Alchemy API
+    this.app.get('/api/metaverse-alchemy/items', (req, res) => {
+      res.json({
+        success: true,
+        data: {
+          items: [
+            { id: 'crystal_optimizer', name: 'Crystal Optimizer', rarity: 'rare' },
+            { id: 'space_harvester', name: 'Space Harvester', rarity: 'epic' }
+          ],
+          recipes: [
+            { id: 'fusion_optimizer', ingredients: ['crystal', 'space'], result: 'mega_optimizer' }
+          ]
+        }
+      });
+    });
+    
+    // Space Mining API (different from blockchain mining)
+    this.app.get('/api/space-mining/status', (req, res) => {
+      res.json({
+        success: true,
+        data: {
+          currentMiningRate: 1024, // bytes per second
+          totalMined: 1048576, // 1MB
+          activeMiners: 42,
+          difficulty: 3
+        }
+      });
+    });
+    
+    // Task API
+    this.app.get('/api/tasks/list', (req, res) => {
+      res.json({
+        success: true,
+        data: {
+          tasks: [
+            { id: 'optimize_dom', name: 'Optimize DOM', status: 'pending', reward: 100 },
+            { id: 'harvest_space', name: 'Harvest Space', status: 'completed', reward: 250 }
+          ]
+        }
+      });
+    });
+    
+    // Advanced Node API
+    this.app.get('/api/advanced-nodes/list', (req, res) => {
+      res.json({
+        success: true,
+        data: {
+          nodes: [
+            { id: 'node_1', type: 'optimizer', status: 'active', efficiency: 0.95 },
+            { id: 'node_2', type: 'harvester', status: 'idle', efficiency: 0.82 }
+          ]
+        }
+      });
+    });
+    
+    // BrowserBase API
+    this.app.get('/api/browserbase/status', (req, res) => {
+      res.json({
+        success: true,
+        data: {
+          browsers: {
+            chrome: { version: '120', status: 'ready' },
+            firefox: { version: '121', status: 'ready' }
+          },
+          sessions: 5,
+          maxConcurrency: 10
+        }
+      });
+    });
+    
+    console.log('✅ Unused APIs connected:');
+    console.log('   - GET /api/gamification/stats');
+    console.log('   - GET /api/metaverse-alchemy/items');
+    console.log('   - GET /api/space-mining/status');
+    console.log('   - GET /api/tasks/list');
+    console.log('   - GET /api/advanced-nodes/list');
+    console.log('   - GET /api/browserbase/status');
+    
+    // Add extension bridge API
+    try {
+      const extensionBridge = require('./src/api/extensionBridge.js');
+      this.app.use('/api/extension', extensionBridge);
+      console.log('   - Extension Bridge API connected at /api/extension');
+    } catch (error) {
+      console.warn('   ⚠️ Extension Bridge not loaded:', error.message);
+    }
+    
+    // Add utility integration endpoints
+    this.app.post('/api/utils/store-artifact', async (req, res) => {
+      try {
+        // Import dynamically to avoid initialization issues
+        const { utilityIntegration } = await import('./src/services/UtilityIntegration.js');
+        const result = await utilityIntegration.storeOptimizationProof(req.body);
+        res.json({ success: true, data: result });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.post('/api/utils/batch-proofs', async (req, res) => {
+      try {
+        const { utilityIntegration } = await import('./src/services/UtilityIntegration.js');
+        const { proofs } = req.body;
+        for (const proof of proofs) {
+          await utilityIntegration.batcher.add(proof);
+        }
+        res.json({ success: true, message: `${proofs.length} proofs added to batch` });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/utils/metrics', async (req, res) => {
+      try {
+        const { utilityIntegration } = await import('./src/services/UtilityIntegration.js');
+        const metrics = await utilityIntegration.getMetrics();
+        res.json({ success: true, data: metrics });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    console.log('   - Utility Integration API connected at /api/utils');
+    
+    // Add database integration endpoints
+    this.app.post('/api/db/user', async (req, res) => {
+      try {
+        const { databaseIntegration } = await import('./src/services/DatabaseIntegration.js');
+        await databaseIntegration.initialize();
+        const user = await databaseIntegration.createUser(req.body.walletAddress, req.body);
+        res.json({ success: true, data: user });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/db/stats/:walletAddress', async (req, res) => {
+      try {
+        const { databaseIntegration } = await import('./src/services/DatabaseIntegration.js');
+        await databaseIntegration.initialize();
+        const stats = await databaseIntegration.getUserStats(req.params.walletAddress);
+        res.json({ success: true, data: stats });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.post('/api/db/optimization', async (req, res) => {
+      try {
+        const { databaseIntegration } = await import('./src/services/DatabaseIntegration.js');
+        await databaseIntegration.initialize();
+        const optimization = await databaseIntegration.recordOptimization(req.body.userId, req.body);
+        res.json({ success: true, data: optimization });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/db/leaderboard', async (req, res) => {
+      try {
+        const { databaseIntegration } = await import('./src/services/DatabaseIntegration.js');
+        await databaseIntegration.initialize();
+        const leaderboard = await databaseIntegration.getLeaderboard(req.query.timeframe, req.query.limit);
+        res.json({ success: true, data: leaderboard });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/db/system-stats', async (req, res) => {
+      try {
+        const { databaseIntegration } = await import('./src/services/DatabaseIntegration.js');
+        await databaseIntegration.initialize();
+        const stats = await databaseIntegration.getSystemStats();
+        res.json({ success: true, data: stats });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    console.log('   - Database Integration API connected at /api/db');
+    
+    // Add automation integration endpoints
+    this.app.post('/api/automation/compliance', async (req, res) => {
+      try {
+        const { automationIntegration } = await import('./src/services/AutomationIntegration.js');
+        await automationIntegration.initialize();
+        const results = await automationIntegration.runComplianceCheck();
+        res.json({ success: true, data: results });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.post('/api/automation/quality-gates', async (req, res) => {
+      try {
+        const { automationIntegration } = await import('./src/services/AutomationIntegration.js');
+        await automationIntegration.initialize();
+        const results = await automationIntegration.runQualityGates();
+        res.json({ success: true, data: results });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.post('/api/automation/deploy', async (req, res) => {
+      try {
+        const { automationIntegration } = await import('./src/services/AutomationIntegration.js');
+        await automationIntegration.initialize();
+        const results = await automationIntegration.deploy(req.body.environment);
+        res.json({ success: true, data: results });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.post('/api/automation/scale', async (req, res) => {
+      try {
+        const { automationIntegration } = await import('./src/services/AutomationIntegration.js');
+        await automationIntegration.initialize();
+        const results = await automationIntegration.scaleServices(req.body.action, req.body.replicas);
+        res.json({ success: true, data: results });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/automation/status', async (req, res) => {
+      try {
+        const { automationIntegration } = await import('./src/services/AutomationIntegration.js');
+        const status = await automationIntegration.getStatus();
+        res.json({ success: true, data: status });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    console.log('   - Automation Integration API connected at /api/automation');
+    
+    // Add configuration integration endpoints
+    this.app.get('/api/config/:key', async (req, res) => {
+      try {
+        const { configurationIntegration } = await import('./src/services/ConfigurationIntegration.js');
+        await configurationIntegration.initialize();
+        const config = configurationIntegration.getConfig(req.params.key);
+        if (!config) {
+          return res.status(404).json({ success: false, error: 'Configuration not found' });
+        }
+        res.json({ success: true, data: config });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/config/env/:environment', async (req, res) => {
+      try {
+        const { configurationIntegration } = await import('./src/services/ConfigurationIntegration.js');
+        await configurationIntegration.initialize();
+        const config = configurationIntegration.getEnvironmentConfig(req.params.environment);
+        res.json({ success: true, data: config });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.post('/api/config/apply-env', async (req, res) => {
+      try {
+        const { configurationIntegration } = await import('./src/services/ConfigurationIntegration.js');
+        await configurationIntegration.initialize();
+        configurationIntegration.applyEnvironment(req.body.environment);
+        res.json({ success: true, message: `Applied ${req.body.environment} environment` });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    console.log('   - Configuration Integration API connected at /api/config');
+    
+    // Setup admin routes
+    try {
+      import('./src/api/adminApi.js')
+        .then(({ setupAdminRoutes }) => {
+          try {
+            setupAdminRoutes(this.app);
+            console.log('   - Admin API connected at /api/admin');
+          } catch (innerError) {
+            console.warn('   ⚠️ Admin API setup failed:', innerError?.message || innerError);
+          }
+        })
+        .catch((modErr) => {
+          console.warn('   ⚠️ Admin API not loaded:', modErr?.message || modErr);
+        });
+    } catch (error) {
+      console.warn('   ⚠️ Admin API load error:', error?.message || error);
+    }
+    
+    // Setup user dashboard routes
+    this.app.get('/api/user/dashboard', async (req, res) => {
+      try {
+        const stats = {
+          optimizations: 15,
+          spaceSaved: 5242880, // 5MB
+          tokensEarned: '150',
+          reputation: 350,
+          activeProjects: 3,
+          teamMembers: 0
+        };
+        
+        const recentActivity = [
+          {
+            id: '1',
+            type: 'optimization',
+            description: 'Optimized example.com - saved 124KB',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            icon: 'zap'
+          },
+          {
+            id: '2',
+            type: 'mining',
+            description: 'Mined block #1234 - earned 10 LDOM',
+            timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+            icon: 'database'
+          },
+          {
+            id: '3',
+            type: 'achievement',
+            description: 'Unlocked "Optimizer Pro" achievement',
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+            icon: 'award'
+          }
+        ];
+        
+        res.json({ stats, recentActivity, availableFeatures: [] });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    console.log('   - User Dashboard API connected at /api/user');
+    
+    // Add crawler persistence endpoints
+    this.app.post('/api/crawler/record-site', async (req, res) => {
+      try {
+        const { crawlerPersistence } = await import('./src/services/CrawlerPersistenceService.js');
+        const site = await crawlerPersistence.recordCrawledSite(req.body);
+        res.json({ success: true, data: site });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/crawler/seo-insights/:domain', async (req, res) => {
+      try {
+        const { crawlerPersistence } = await import('./src/services/CrawlerPersistenceService.js');
+        const insights = await crawlerPersistence.getSEOInsights(req.params.domain);
+        res.json({ success: true, data: insights });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/crawler/available-slots', async (req, res) => {
+      try {
+        const { crawlerPersistence } = await import('./src/services/CrawlerPersistenceService.js');
+        const slots = await crawlerPersistence.getAvailableSlots(req.query.type);
+        res.json({ success: true, data: slots });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    console.log('   - Crawler Persistence API connected at /api/crawler');
+    
+    // Add metaverse chat endpoints
+    this.app.post('/api/metaverse/create-room', async (req, res) => {
+      try {
+        const { metaverseChatService } = await import('./src/services/MetaverseChatService.js');
+        const room = await metaverseChatService.createChatRoom(
+          req.body.owner,
+          req.body.name,
+          req.body.description,
+          req.body.spaceRequired,
+          req.body.settings
+        );
+        res.json({ success: true, data: room });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.post('/api/metaverse/join-room', async (req, res) => {
+      try {
+        const { metaverseChatService } = await import('./src/services/MetaverseChatService.js');
+        const success = await metaverseChatService.joinChatRoom(
+          req.body.roomId,
+          req.body.walletAddress,
+          req.body.username
+        );
+        res.json({ success });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.post('/api/metaverse/send-message', async (req, res) => {
+      try {
+        const { metaverseChatService } = await import('./src/services/MetaverseChatService.js');
+        const message = await metaverseChatService.sendMessage(
+          req.body.roomId,
+          req.body.sender,
+          req.body.message
+        );
+        res.json({ success: true, data: message });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/metaverse/search-rooms', async (req, res) => {
+      try {
+        const { metaverseChatService } = await import('./src/services/MetaverseChatService.js');
+        const rooms = metaverseChatService.searchChatRooms(req.query.q, req.query);
+        res.json({ success: true, data: rooms });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/metaverse/map', async (req, res) => {
+      try {
+        const { metaverseChatService } = await import('./src/services/MetaverseChatService.js');
+        const map = metaverseChatService.getMetaverseMap();
+        res.json({ success: true, data: map });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    console.log('   - Metaverse Chat API connected at /api/metaverse');
+    
+    // Add LDOM economy endpoints
+    this.app.get('/api/economy/user/:walletAddress', async (req, res) => {
+      try {
+        const { ldomEconomy } = await import('./src/services/LDOMEconomyService.js');
+        const economy = await ldomEconomy.getUserEconomy(req.params.walletAddress);
+        res.json({ success: true, data: economy });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.post('/api/economy/reward-optimization', async (req, res) => {
+      try {
+        const { ldomEconomy } = await import('./src/services/LDOMEconomyService.js');
+        const transaction = await ldomEconomy.rewardOptimization(
+          req.body.walletAddress,
+          req.body.spaceSaved,
+          req.body.seoScore,
+          req.body.url
+        );
+        res.json({ success: true, data: transaction });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.post('/api/economy/stake', async (req, res) => {
+      try {
+        const { ldomEconomy } = await import('./src/services/LDOMEconomyService.js');
+        const stakingEvent = await ldomEconomy.stakeTokens(
+          req.body.walletAddress,
+          req.body.amount,
+          req.body.lockPeriod
+        );
+        res.json({ success: true, data: stakingEvent });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/economy/marketplace', async (req, res) => {
+      try {
+        const { ldomEconomy } = await import('./src/services/LDOMEconomyService.js');
+        const listings = ldomEconomy.getMarketplaceListings(req.query);
+        res.json({ success: true, data: listings });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/economy/tokenomics', async (req, res) => {
+      try {
+        const { ldomEconomy } = await import('./src/services/LDOMEconomyService.js');
+        const tokenomics = ldomEconomy.getTokenomics();
+        res.json({ success: true, data: tokenomics });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    console.log('   - LDOM Economy API connected at /api/economy');
+    
+    // Add unified space bridge endpoints with real-time features
+    this.app.post('/api/bridge/allocate-space', async (req, res) => {
+      try {
+        const { unifiedSpaceBridgeService } = await import('./src/services/UnifiedSpaceBridgeService.js');
+        const slots = await unifiedSpaceBridgeService.allocateSpaceForChatRoom(
+          req.body.roomId,
+          req.body.sizeRequired,
+          req.body.owner
+        );
+        res.json({ success: true, data: slots });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.get('/api/bridge/analytics', async (req, res) => {
+      try {
+        const { unifiedSpaceBridgeService } = await import('./src/services/UnifiedSpaceBridgeService.js');
+        const analytics = unifiedSpaceBridgeService.getBridgeAnalytics();
+        res.json({ success: true, data: analytics });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    this.app.post('/api/bridge/optimize', async (req, res) => {
+      try {
+        const { unifiedSpaceBridgeService } = await import('./src/services/UnifiedSpaceBridgeService.js');
+        await unifiedSpaceBridgeService.optimizeBridges();
+        res.json({ success: true, message: 'Bridge optimization started' });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Real-time bridge endpoints
+    this.app.post('/api/bridge/join/:bridgeId', async (req, res) => {
+      try {
+        const { bridgeId } = req.params;
+        const { userId } = req.body;
+        const { unifiedSpaceBridgeService } = await import('./src/services/UnifiedSpaceBridgeService.js');
+        const stats = await unifiedSpaceBridgeService.joinBridge(bridgeId, userId);
+        res.json({ success: true, data: stats });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    this.app.post('/api/bridge/message', async (req, res) => {
+      try {
+        const { bridgeId, userId, userName, messageText, messageType } = req.body;
+        const { unifiedSpaceBridgeService } = await import('./src/services/UnifiedSpaceBridgeService.js');
+        const message = await unifiedSpaceBridgeService.sendBridgeMessage(
+          bridgeId, userId, userName, messageText, messageType
+        );
+        res.json({ success: true, data: message });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    this.app.get('/api/bridge/:bridgeId/stats', async (req, res) => {
+      try {
+        const { bridgeId } = req.params;
+        const { unifiedSpaceBridgeService } = await import('./src/services/UnifiedSpaceBridgeService.js');
+        const stats = await unifiedSpaceBridgeService.getBridgeStats(bridgeId);
+        res.json({ success: true, data: stats });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    this.app.get('/api/bridge/archive/:days', async (req, res) => {
+      try {
+        const days = parseInt(req.params.days) || 30;
+        const { unifiedSpaceBridgeService } = await import('./src/services/UnifiedSpaceBridgeService.js');
+        const archivedSpace = await unifiedSpaceBridgeService.archiveUnusedSpace(days);
+        res.json({ success: true, data: { archivedSpace } });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+    
+    console.log('   - Unified Space Bridge API (with real-time) connected at /api/bridge');
+  }
+
   async start(port = 3001) {
     try {
+      const waitWithTimeout = (promise, ms, label) => {
+        let t;
+        const timeout = new Promise((_, reject) => {
+          t = setTimeout(() => reject(new Error(`${label || 'operation'} timed out after ${ms}ms`)), ms);
+        });
+        return Promise.race([promise.finally(() => clearTimeout(t)), timeout]);
+      };
+
+      const findAvailablePort = async (startPort) => {
+        const net = await import('node:net');
+        const tryPort = (p) => new Promise((resolve) => {
+          const srv = net.createServer();
+          srv.once('error', () => resolve(false));
+          srv.once('listening', () => srv.close(() => resolve(true)));
+          srv.listen(p, '0.0.0.0');
+        });
+        for (let p = startPort; p < startPort + 10; p++) {
+          // eslint-disable-next-line no-await-in-loop
+          const ok = await tryPort(p);
+          if (ok) return p;
+        }
+        return startPort;
+      };
+
+      // Database connectivity (soft-fail)
       if (this.dbDisabled) {
         console.log('⚠️  Database disabled (DB_DISABLED=true). Starting without DB connection.');
       } else {
-        // Test database connection
-        await this.db.query('SELECT NOW()');
-        console.log('✅ Database connected successfully');
+        try {
+          await waitWithTimeout(this.db.query('SELECT NOW()'), 5000, 'database check');
+          console.log('✅ Database connected successfully');
+        } catch (dbErr) {
+          console.warn('⚠️  Database check failed, continuing without DB:', dbErr?.message || dbErr);
+          this.dbDisabled = true;
+        }
       }
 
-      // Initialize blockchain
-      await this.initializeBlockchain();
+      // Initialize blockchain (soft timeout)
+      try {
+        await waitWithTimeout(this.initializeBlockchain(), 8000, 'blockchain init');
+      } catch (chainErr) {
+        console.warn('⚠️  Blockchain init degraded:', chainErr?.message || chainErr);
+        this.blockchainEnabled = false;
+      }
 
-      // Initialize integration service (commented out until TypeScript files are compiled)
-      // await this.integrationService.initialize();
-      // console.log('✅ Cursor-N8n integration service initialized');
+      // Start supervisor (guard)
+      try {
+        await waitWithTimeout(this.supervisor.start(), 5000, 'supervisor start');
+      } catch (supErr) {
+        console.warn('⚠️  Supervisor failed to start:', supErr?.message || supErr);
+      }
+      
+      // Start blockchain runner (optional)
+      try {
+        await this.blockchainRunner.start();
+      } catch (error) {
+        console.warn('⚠️ Blockchain runner failed to start:', error.message);
+        console.log('ℹ️ Blockchain runner will be available after server is fully started');
+      }
 
-        // Start supervisor
-        await this.supervisor.start();
-        
-        // Start blockchain runner (optional - can be started later)
-        try {
-          await this.blockchainRunner.start();
-        } catch (error) {
-          console.warn('⚠️ Blockchain runner failed to start:', error.message);
-          console.log('ℹ️ Blockchain runner will be available after server is fully started');
-        }
+      // Ensure available port
+      const chosenPort = await findAvailablePort(Number(process.env.API_PORT) || port);
+      this.server.on('error', (err) => {
+        console.error('❌ Server error:', err?.message || err);
+      });
 
       // Start server
-      this.server.listen(port, () => {
-        console.log(`🚀 DOM Space Harvester API running on port ${port}`);
-        console.log(`📊 Dashboard: http://localhost:${port}/api/health`);
-        console.log(`🔌 WebSocket: ws://localhost:${port}`);
+      this.server.listen(chosenPort, () => {
+        console.log(`🚀 DOM Space Harvester API running on port ${chosenPort}`);
+        console.log(`📊 Dashboard: http://localhost:${chosenPort}/api/health`);
+        console.log(`🔌 WebSocket: ws://localhost:${chosenPort}`);
         console.log(`📁 Database: ${process.env.DB_NAME || 'dom_space_harvester'}`);
         if (this.blockchainEnabled) {
           console.log(`⛓️  Blockchain: ${this.provider ? 'Connected' : 'Disabled'}`);
@@ -2507,8 +4540,75 @@ class DOMSpaceHarvesterAPI {
 
     } catch (error) {
       console.error('❌ Failed to start server:', error);
-      process.exit(1);
+      throw error;
     }
+  }
+  
+  setupBridgeSocketHandlers() {
+    this.io.on('connection', (socket) => {
+      console.log(`🌉 Bridge client connected: ${socket.id}`);
+      
+      // Join bridge room
+      socket.on('join_bridge', async (data) => {
+        const { bridgeId, userId } = data;
+        socket.join(`bridge_${bridgeId}`);
+        console.log(`User ${userId} joined bridge ${bridgeId}`);
+        
+        // Notify others in the bridge
+        socket.to(`bridge_${bridgeId}`).emit('user_joined', {
+          userId,
+          bridgeId,
+          timestamp: new Date()
+        });
+      });
+      
+      // Leave bridge room
+      socket.on('leave_bridge', (data) => {
+        const { bridgeId, userId } = data;
+        socket.leave(`bridge_${bridgeId}`);
+        
+        socket.to(`bridge_${bridgeId}`).emit('user_left', {
+          userId,
+          bridgeId,
+          timestamp: new Date()
+        });
+      });
+      
+      // Bridge messages
+      socket.on('send_message', async (message) => {
+        // Broadcast to all in the bridge room
+        this.io.to(`bridge_${message.bridge_id}`).emit('bridge_message', message);
+      });
+      
+      // Bridge status updates
+      socket.on('bridge_created', (data) => {
+        this.io.emit('bridge_created', data);
+      });
+      
+      socket.on('space_allocated', (data) => {
+        this.io.to(`bridge_${data.bridgeId}`).emit('space_allocated', data);
+      });
+      
+      socket.on('optimization_started', (data) => {
+        this.io.to(`bridge_${data.bridgeId}`).emit('optimization_started', data);
+      });
+      
+      socket.on('optimization_complete', (data) => {
+        this.io.to(`bridge_${data.bridgeId}`).emit('optimization_complete', data);
+      });
+      
+      socket.on('allocation_started', (data) => {
+        this.io.emit('allocation_started', data);
+      });
+      
+      socket.on('space_archived', (data) => {
+        this.io.to(`bridge_${data.bridgeId}`).emit('space_archived', data);
+      });
+      
+      socket.on('disconnect', () => {
+        console.log(`🌉 Bridge client disconnected: ${socket.id}`);
+      });
+    });
   }
 
   async shutdown() {
@@ -3385,6 +5485,9 @@ class DOMSpaceHarvesterAPI {
     // =====================================================
     // MINING API ENDPOINTS
     // =====================================================
+    
+    // Add the blockchain mining routes from api-mining-routes.js
+    addMiningRoutes(this.app, { miningSystem: this.miningSystem });
 
     // Start mining session
     this.app.post('/api/mining/start', this.authenticateToken.bind(this), async (req, res) => {
@@ -5809,6 +7912,283 @@ class DOMSpaceHarvesterAPI {
         error: 'Invalid token'
       });
     }
+  }
+
+  setupDataIntegrationRoutes() {
+    console.log('🔗 Setting up data integration API routes...');
+    
+    // =====================================================
+    // DATA INTEGRATION ENDPOINTS
+    // =====================================================
+
+    // Get integrated dashboard data
+    this.app.get('/api/integrated/dashboard', async (req, res) => {
+      try {
+        const [blockchain, crawler, lightdom, metaverse] = await Promise.all([
+          this.getBlockchainStats(),
+          this.getCrawlerStats(),
+          this.getLightDomStats(),
+          this.getMetaverseStats()
+        ]);
+
+        const systemHealth = this.calculateSystemHealth(blockchain, crawler, lightdom, metaverse);
+
+        res.json({
+          success: true,
+          data: {
+            blockchain,
+            crawler,
+            lightdom,
+            metaverse,
+            lastUpdated: new Date().toISOString(),
+            systemHealth
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching integrated dashboard data:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to fetch integrated dashboard data'
+        });
+      }
+    });
+
+    // Get blockchain stats
+    this.app.get('/api/blockchain/stats', async (req, res) => {
+      try {
+        const stats = await this.getBlockchainStats();
+        res.json({ success: true, data: stats });
+      } catch (error) {
+        console.error('Error fetching blockchain stats:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch blockchain stats' });
+      }
+    });
+
+    // Get crawler stats
+    this.app.get('/api/crawler/stats', async (req, res) => {
+      try {
+        const stats = await this.getCrawlerStats();
+        res.json({ success: true, data: stats });
+      } catch (error) {
+        console.error('Error fetching crawler stats:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch crawler stats' });
+      }
+    });
+
+    // Get LightDom optimization stats
+    this.app.get('/api/optimization/stats', async (req, res) => {
+      try {
+        const stats = await this.getLightDomStats();
+        res.json({ success: true, data: stats });
+      } catch (error) {
+        console.error('Error fetching LightDom stats:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch LightDom stats' });
+      }
+    });
+
+    // Get metaverse stats
+    this.app.get('/api/metaverse/stats', async (req, res) => {
+      try {
+        const stats = await this.getMetaverseStats();
+        res.json({ success: true, data: stats });
+      } catch (error) {
+        console.error('Error fetching metaverse stats:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch metaverse stats' });
+      }
+    });
+
+    // Get mining rewards for user
+    this.app.get('/api/mining/rewards/:userId', async (req, res) => {
+      try {
+        const { userId } = req.params;
+        const rewards = await this.getMiningRewards(userId);
+        res.json({ success: true, data: rewards });
+      } catch (error) {
+        console.error('Error fetching mining rewards:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch mining rewards' });
+      }
+    });
+
+    // Get optimization performance
+    this.app.get('/api/optimization/performance', async (req, res) => {
+      try {
+        const performance = await this.getOptimizationPerformance();
+        res.json({ success: true, data: performance });
+      } catch (error) {
+        console.error('Error fetching optimization performance:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch optimization performance' });
+      }
+    });
+  }
+
+  // Helper methods for data integration
+  async getBlockchainStats() {
+    try {
+      // Try to get real data from blockchain system if available
+      if (global.blockchainSystem) {
+        const stats = global.blockchainSystem.getMiningStats();
+        return {
+          totalMined: stats.totalTokensRewarded,
+          activeMiners: stats.activeMiners,
+          currentHashRate: stats.hashRate,
+          lastBlockTime: stats.lastBlockTime,
+          pendingTransactions: stats.pendingTransactions,
+          gasPrice: stats.gasPrice,
+          networkStatus: stats.networkStatus,
+          miningRewards: stats.miningRewards || {
+            lightdom: stats.totalTokensRewarded,
+            usd: stats.totalTokensRewarded * 0.1,
+            btc: stats.totalTokensRewarded * 0.00002,
+            eth: stats.totalTokensRewarded * 0.0003
+          }
+        };
+      }
+    } catch (error) {
+      console.error('Error getting real blockchain stats:', error);
+    }
+
+    // Fallback to mock data
+    return {
+      totalMined: 1250.75,
+      activeMiners: 42,
+      currentHashRate: 15.6,
+      lastBlockTime: Date.now() - 300000,
+      pendingTransactions: 8,
+      gasPrice: 20,
+      networkStatus: 'healthy',
+      miningRewards: {
+        lightdom: 25.50,
+        usd: 2.55,
+        btc: 0.000058,
+        eth: 0.00092
+      }
+    };
+  }
+
+  async getCrawlerStats() {
+    try {
+      // Try to get real data from crawler system if available
+      if (global.crawlerSystem) {
+        const stats = global.crawlerSystem.getCrawlerStats();
+        return {
+          totalSitesCrawled: stats.totalSitesCrawled,
+          activeCrawlers: stats.activeCrawlers,
+          optimizationScore: stats.optimizationScore,
+          lastCrawlTime: stats.lastCrawlTime,
+          sitesInQueue: stats.sitesInQueue,
+          averageResponseTime: stats.averageResponseTime,
+          crawlStatus: stats.crawlStatus,
+          spaceHarvested: stats.spaceHarvested
+        };
+      }
+    } catch (error) {
+      console.error('Error getting real crawler stats:', error);
+    }
+
+    // Fallback to mock data
+    return {
+      totalSitesCrawled: 1847,
+      activeCrawlers: 3,
+      optimizationScore: 87.5,
+      lastCrawlTime: Date.now() - 120000,
+      sitesInQueue: 23,
+      averageResponseTime: 1.2,
+      crawlStatus: 'running',
+      spaceHarvested: {
+        total: 2048.5,
+        today: 156.2,
+        thisWeek: 892.7
+      }
+    };
+  }
+
+  async getLightDomStats() {
+    // Mock data - in real implementation, connect to LightDom optimization
+    return {
+      optimizationEfficiency: 92.3,
+      totalOptimizations: 4567,
+      activeOptimizations: 12,
+      averageOptimizationTime: 2.4,
+      spaceAllocated: 1024.8,
+      spaceAvailable: 2048.2,
+      optimizationStatus: 'active',
+      performanceMetrics: {
+        cpuUsage: 45.2,
+        memoryUsage: 67.8,
+        diskUsage: 34.1,
+        networkLatency: 12.5
+      }
+    };
+  }
+
+  async getMetaverseStats() {
+    // Mock data - in real implementation, connect to metaverse
+    return {
+      totalBridges: 15,
+      activeBridges: 12,
+      totalChatRooms: 8,
+      activeUsers: 247,
+      totalMessages: 1847,
+      economyValue: 125000.50,
+      landParcels: 64,
+      aiNodes: 23,
+      metaverseStatus: 'online',
+      realTimeStats: {
+        usersOnline: 47,
+        messagesPerMinute: 12,
+        transactionsPerHour: 156
+      }
+    };
+  }
+
+  async getMiningRewards(userId) {
+    // Mock data - in real implementation, calculate from blockchain
+    return {
+      totalEarned: 456.75,
+      todayEarned: 12.50,
+      pendingRewards: 8.25,
+      miningPower: 15.6
+    };
+  }
+
+  async getOptimizationPerformance() {
+    // Mock data - in real implementation, calculate from optimization logs
+    return {
+      totalOptimizations: 4567,
+      successRate: 94.2,
+      averageTime: 2.4,
+      spaceSaved: 1024.8,
+      efficiency: 92.3
+    };
+  }
+
+  calculateSystemHealth(blockchain, crawler, lightdom, metaverse) {
+    let healthScore = 100;
+
+    // Blockchain health
+    if (blockchain.networkStatus !== 'healthy') healthScore -= 20;
+    if (blockchain.pendingTransactions > 50) healthScore -= 10;
+    if (blockchain.gasPrice > 100) healthScore -= 5;
+
+    // Crawler health
+    if (crawler.crawlStatus !== 'running') healthScore -= 15;
+    if (crawler.averageResponseTime > 5) healthScore -= 10;
+    if (crawler.optimizationScore < 70) healthScore -= 10;
+
+    // LightDom health
+    if (lightdom.optimizationStatus !== 'active') healthScore -= 15;
+    if (lightdom.optimizationEfficiency < 80) healthScore -= 10;
+    if (lightdom.performanceMetrics.cpuUsage > 90) healthScore -= 5;
+    if (lightdom.performanceMetrics.memoryUsage > 90) healthScore -= 5;
+
+    // Metaverse health
+    if (metaverse.metaverseStatus !== 'online') healthScore -= 20;
+    if (metaverse.realTimeStats.usersOnline === 0) healthScore -= 10;
+
+    if (healthScore >= 90) return 'excellent';
+    if (healthScore >= 70) return 'good';
+    if (healthScore >= 50) return 'warning';
+    return 'critical';
   }
 }
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { cn } from '../../utils/cn';
+import { cn } from '@/utils/validation/cn';
 import { Button } from '../ui/Button';
 import { ThemeToggle } from '../ui';
 import { useAuth } from '../../hooks/useAuth';

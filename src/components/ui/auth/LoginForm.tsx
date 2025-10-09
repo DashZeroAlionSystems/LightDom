@@ -19,7 +19,7 @@ import {
   WalletOutlined,
   UserOutlined
 } from '@ant-design/icons';
-import { Link, useNavigate } from 'react-router-dom';
+// Avoid react-router hooks in contexts without a Router
 import './AuthForms.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -37,7 +37,7 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const navigatePath = (path: string) => { window.location.pathname = path; };
 
   const handleLogin = async (values: LoginFormData) => {
     try {
@@ -70,7 +70,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         }
 
         onSuccess?.();
-        navigate('/dashboard');
+        navigatePath('/dashboard');
       } else {
         setError(data.error || 'Invalid credentials');
       }
@@ -107,8 +107,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
   return (
     <div className="auth-form-container">
-      <Row justify="center" align="middle" style={{ minHeight: '100vh' }}>
-        <Col xs={22} sm={18} md={12} lg={8} xl={6}>
+      <Row justify="center" align="middle" style={{ minHeight: '70vh' }}>
+        <Col xs={24} sm={22} md={18} lg={14} xl={12}>
           <Card className="auth-card" bordered={false}>
             <div className="auth-header">
               <Title level={2} className="auth-title">
@@ -205,9 +205,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             <div className="auth-footer">
               <Text>
                 Don't have an account?{' '}
-                <Link to="/register">
+                <a href="/register">
                   <Text strong>Sign up</Text>
-                </Link>
+                </a>
               </Text>
             </div>
           </Card>

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { v4 as uuidv4 } from 'uuid';
 import { HeadlessChromeService } from './HeadlessChromeService';
-import { Logger } from '../utils/Logger';
+import { Logger } from '../../utils/Logger';
 
 export interface Task {
   id: string;

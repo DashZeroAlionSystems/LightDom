@@ -1,4 +1,4 @@
-import { Logger } from '../utils/Logger';
+import { Logger } from '../../utils/Logger';
 import { io, Socket } from 'socket.io-client';
 
 export interface Bridge {

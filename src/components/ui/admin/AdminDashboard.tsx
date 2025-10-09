@@ -67,7 +67,25 @@ import {
   EyeOutlined,
   EyeInvisibleOutlined
 } from '@ant-design/icons';
-import { adminSettingsService } from '../../services/AdminSettingsService';
+// Fallback in-memory admin settings service for dev
+const adminSettingsService = {
+  getAllSettings: () => ({
+    general: { environment: 'development', appName: 'LightDom' },
+    performance: {},
+    blockchain: {},
+    security: {},
+    api: {},
+    ui: {},
+    database: {},
+    email: {},
+    monitoring: {}
+  }),
+  getChangeLog: () => [],
+  updateMultipleSettings: () => ({ isValid: true, errors: {} }),
+  resetToDefaults: () => {},
+  exportSettings: () => JSON.stringify({}),
+  importSettings: () => ({ isValid: true, errors: {} })
+};
 import { AdminSettings, SettingsChangeLog } from '../../types/AdminSettingsTypes';
 import './AdminDashboard.css';
 

@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '../../utils/cn';
+import { cn } from '@/utils/validation/cn';
 
 const progressVariants = cva(
   'relative overflow-hidden rounded-full bg-surface',

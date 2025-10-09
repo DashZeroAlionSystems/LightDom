@@ -43,7 +43,7 @@ import {
   ExclamationCircleOutlined,
   InfoCircleOutlined,
   GlobalOutlined,
-  OptimizationOutlined,
+  ThunderboltOutlined,
   BarChartOutlined
 } from '@ant-design/icons';
 import { useOptimization } from '../../hooks/useOptimization';
@@ -350,7 +350,7 @@ const OptimizationDashboard: React.FC<OptimizationDashboardProps> = ({ className
             <Statistic
               title="Total Optimizations"
               value={stats.total}
-              prefix={<OptimizationOutlined />}
+              prefix={<ThunderboltOutlined />}
               valueStyle={{ color: '#1890ff' }}
             />
           </Card>

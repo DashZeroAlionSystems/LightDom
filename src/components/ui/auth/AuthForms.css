@@ -192,46 +192,17 @@ a:hover {
 }
 
 /* Auth Page Styles */
-.auth-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
+.auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(600px 300px at 50% 0%, rgba(124,58,237,0.25), transparent), #0b1020; padding: 24px; }
+.auth-container { width: 100%; max-width: 760px; border: 1px solid rgba(255,255,255,0.08); background: rgba(17,24,39,0.6); backdrop-filter: blur(8px); border-radius: 16px; padding: 24px; color: #e6e8ef; box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+.auth-header { text-align: center; margin-bottom: 16px; }
+.auth-header h1 { margin: 0 0 6px; letter-spacing: .4px; }
+.auth-header p { margin: 0; color: #9aa3ba; }
 
-.auth-container {
-  width: 100%;
-  max-width: 500px;
-}
+/* Error banner */
+.error-banner { margin-top: 12px; padding: 10px 12px; border: 1px solid #ef4444; color: #fecaca; background: rgba(239,68,68,.1); border-radius: 10px; }
 
-.auth-header {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: white;
-}
+/* Utility */
+.link { color: #93c5fd; text-decoration: none; }
+.link:hover { text-decoration: underline; }
 
-.auth-header h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.auth-header p {
-  font-size: 1.1rem;
-  margin: 0;
-  opacity: 0.9;
-}
-
-.error-banner {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 8px;
-  color: #ef4444;
-  text-align: center;
-  font-weight: 500;
-}
+/* Inputs/buttons are styled inside the forms already via inline styles; keep container polish here. */

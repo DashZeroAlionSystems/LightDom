@@ -326,7 +326,7 @@ const SettingsOverview: React.FC<SettingsOverviewProps> = ({ className }) => {
         </Col>
       </Row>
 
-      <style jsx>{`
+      <style>{`
         .settings-overview-card {
           height: 100%;
           transition: all 0.3s ease;

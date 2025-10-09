@@ -35,15 +35,15 @@ function createWindow() {
     show: false // Don't show until ready
   });
 
-  // Load the app - always try Vite dev server first
+  // Load the app - try Vite dev server by probing its client endpoint
   const tryLoadApp = () => {
-    const ports = [3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015];
+    const ports = [3000, 3004, 3002, 3003, 3005, 3006, 3007, 3008, 3009, 3010, 3011, 3012, 3013, 3014, 3015];
     let currentPort = 0;
     
     const checkPort = (port) => {
       return new Promise((resolve) => {
-        const req = http.get(`http://localhost:${port}`, (res) => {
-          // Check if it's a Vite dev server by looking for Vite-specific headers or content
+        const req = http.get(`http://localhost:${port}/@vite/client`, (res) => {
+          // Only treat as Vite if the client endpoint exists
           if (res.statusCode === 200) {
             console.log(`✅ Found Vite dev server on port ${port}`);
             mainWindow.loadURL(`http://localhost:${port}`);
@@ -193,6 +193,12 @@ ipcMain.handle('get-crawler-stats', async (event) => {
     sitesAnalyzed: 45,
     activeCrawlers: 3
   };
+});
+
+// Restart app handler (renderer calls window.electronAPI.restartApp())
+ipcMain.handle('app-restart', async () => {
+  app.relaunch();
+  app.exit(0);
 });
 
 // Create application menu

@@ -21,7 +21,7 @@ import {
 } from 'antd';
 import {
   DashboardOutlined,
-  OptimizationOutlined,
+  ThunderboltOutlined,
   BarChartOutlined,
   SettingOutlined,
   LogoutOutlined,
@@ -39,11 +39,13 @@ import {
   BugOutlined,
   ClusterOutlined,
   DatabaseOutlined,
-  RocketOutlined
+  RocketOutlined,
+  ApiOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { useOptimization } from '../../hooks/useOptimization';
 import { useNotifications } from '../../hooks/useNotifications';
+import Navigation from '../Navigation';
 import './DashboardLayout.css';
 
 const { Header, Sider, Content } = Layout;
@@ -62,6 +64,34 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Lightweight service status indicators for the rail
+  const [serviceStatus, setServiceStatus] = useState<{
+    api: boolean;
+    crawler: boolean;
+    optimization: boolean;
+    blockchain: boolean;
+  }>({ api: false, crawler: false, optimization: false, blockchain: false });
+
+  useEffect(() => {
+    let mounted = true;
+    const check = async () => {
+      try {
+        const apiOk = await fetch('/api/health', { method: 'GET' }).then(r => r.ok).catch(() => false);
+        // Best-effort lightweight probes; ignore errors
+        const miningOk = await fetch('/api/mining/stats', { method: 'GET' }).then(r => r.ok).catch(() => false);
+        const crawlerOk = await fetch('/api/crawler/status', { method: 'GET' }).then(r => r.ok).catch(() => false);
+        if (mounted) {
+          setServiceStatus({ api: apiOk, crawler: crawlerOk, optimization: apiOk, blockchain: miningOk });
+        }
+      } catch {
+        if (mounted) setServiceStatus(s => ({ ...s, api: false }));
+      }
+    };
+    check();
+    const id = setInterval(check, 10000);
+    return () => { mounted = false; clearInterval(id); };
+  }, []);
+
   const menuItems = [
     {
       key: '/dashboard',
@@ -70,7 +100,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     },
     {
       key: '/dashboard/optimization',
-      icon: <OptimizationOutlined />,
+      icon: <ThunderboltOutlined />,
       label: 'DOM Optimization',
     },
     {
@@ -224,6 +254,43 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   return (
     <Layout className="dashboard-layout">
+      <Navigation />
+      {/* Compact left rail */}
+      <div className="nav-rail">
+        <div className="rail-top">
+          <div className="rail-logo">LD</div>
+          <button className="rail-icon" onClick={() => navigate('/dashboard')} title="Dashboard">
+            <DashboardOutlined />
+          </button>
+          <button className="rail-icon" onClick={() => navigate('/dashboard/optimization')} title="Optimization">
+            <ThunderboltOutlined />
+          </button>
+          <button className="rail-icon" onClick={() => navigate('/dashboard/space-mining')} title="Space Mining">
+            <GlobalOutlined />
+          </button>
+          <button className="rail-icon" onClick={() => navigate('/dashboard/analytics')} title="Analytics">
+            <BarChartOutlined />
+          </button>
+        </div>
+        <div className="rail-bottom">
+          <div className="rail-status" title={`API: ${serviceStatus.api ? 'Operational' : 'Down'}`}>
+            <span className={`dot ${serviceStatus.api ? 'ok' : 'down'}`} />
+            <ApiOutlined />
+          </div>
+          <div className="rail-status" title={`Crawler: ${serviceStatus.crawler ? 'Operational' : 'Down'}`}>
+            <span className={`dot ${serviceStatus.crawler ? 'ok' : 'down'}`} />
+            <BugOutlined />
+          </div>
+          <div className="rail-status" title={`Optimization: ${serviceStatus.optimization ? 'Operational' : 'Down'}`}>
+            <span className={`dot ${serviceStatus.optimization ? 'ok' : 'down'}`} />
+            <ThunderboltOutlined />
+          </div>
+          <div className="rail-status" title={`Blockchain: ${serviceStatus.blockchain ? 'Operational' : 'Down'}`}>
+            <span className={`dot ${serviceStatus.blockchain ? 'ok' : 'down'}`} />
+            <WalletOutlined />
+          </div>
+        </div>
+      </div>
       {/* Mobile Header */}
       <div className="mobile-header">
         <Button
@@ -264,10 +331,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       >
         <div className="sidebar-header">
           <div className="logo">
-            <OptimizationOutlined className="logo-icon" />
+            <ThunderboltOutlined className="logo-icon" />
             {!collapsed && <span className="logo-text">LightDom</span>}
           </div>
         </div>
+
+        {!collapsed && (
+          <div style={{ padding: '12px 16px' }}>
+            <button className="compose-btn">
+              <span className="dot ok" style={{ marginRight: 8 }} /> New Message
+            </button>
+          </div>
+        )}
 
         <Menu
           mode="inline"
@@ -276,6 +351,27 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           onClick={handleSidebarClick}
           className="sidebar-menu"
         />
+
+        {!collapsed && (
+          <div className="sidebar-sections">
+            <div className="section">
+              <div className="section-title">MESSAGE CATEGORIES</div>
+              <ul className="side-list">
+                <li className="side-list-item"><span className="dot ok" /> My works <span className="count">9</span></li>
+                <li className="side-list-item"><span className="dot" style={{ color: '#22d3ee' }} /> Accountant <span className="count">43</span></li>
+                <li className="side-list-item"><span className="dot" style={{ color: '#ef4444' }} /> Works <span className="count">78</span></li>
+                <li className="side-list-item"><span className="dot" style={{ color: '#10b981' }} /> Marketing <span className="count">253</span></li>
+              </ul>
+            </div>
+            <div className="section">
+              <div className="section-title">RECENT CHATS</div>
+              <ul className="side-list">
+                <li className="side-list-item avatar-row"><span className="avatar-circle">K</span> Kierra Gouse</li>
+                <li className="side-list-item avatar-row"><span className="avatar-circle">J</span> Jordyn Vaccaro <span className="badge">3</span></li>
+              </ul>
+            </div>
+          </div>
+        )}
 
         <div className="sidebar-footer">
           <Card size="small" className="user-info-card">
@@ -385,7 +481,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   title="Optimizations Today"
                   value={optimizationStats?.optimizationsToday || 0}
                   loading={statsLoading}
-                  prefix={<OptimizationOutlined />}
+                  prefix={<ThunderboltOutlined />}
                 />
               </Card>
             </Col>

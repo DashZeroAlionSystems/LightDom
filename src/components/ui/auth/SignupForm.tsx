@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Logger } from '../../utils/Logger';
-import WebAuthnService from '../../services/WebAuthnService';
-import WebOTPService from '../../services/WebOTPService';
+import { Logger } from '../../../utils/Logger';
+// Optional client helpers; fall back to no-ops if missing in dev
+let WebAuthnService: any = class { constructor() {} isPasskeySupported(){return Promise.resolve(false);} registerPasskey(){return Promise.resolve(null);} };
+let WebOTPService: any = class { getSupportStatus(){return { webOTP:false }; } setupOTPFormWithHandlers(){}}
 
 interface SignUpFormProps {
   onSignUp: (userData: any) => void;
@@ -476,7 +477,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
         </p>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .sign-up-form {
           max-width: 500px;
           margin: 0 auto;

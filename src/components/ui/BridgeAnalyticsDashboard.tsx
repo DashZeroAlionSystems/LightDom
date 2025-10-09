@@ -13,7 +13,7 @@ import {
   Target,
   Clock
 } from 'lucide-react';
-import BridgeAnalyticsService from '../services/BridgeAnalyticsService';
+import BridgeAnalyticsService from '../../services/api/BridgeAnalyticsService';
 import type { 
   BridgeAnalytics, 
   SpaceMiningAnalytics, 

@@ -50,11 +50,11 @@ class MasterAutomation {
     try {
       // Step 1: Run automation round
       this.log('Step 1: Running automation round...', 'info');
-      await execAsync(`node scripts/automation-round.js ${this.round}`);
+      await execAsync(`node scripts/automation/automation-round.js ${this.round}`);
       
       // Step 2: Run Cursor agent
       this.log('Step 2: Running Cursor agent...', 'info');
-      await execAsync(`node scripts/cursor-agent.js ${this.round}`);
+      await execAsync(`node scripts/automation/cursor-agent.js ${this.round}`);
       
       // Step 3: Wait for user to review fixes
       this.log('\n⏳ Please review the generated files:', 'info');

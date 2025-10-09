@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useEnhancedAuth } from '../../../contexts/EnhancedAuthContext';
 import SignupForm from './SignupForm';
 import './AuthForms.css';
 
 const RegisterPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register } = useEnhancedAuth();
   const [error, setError] = useState<string | null>(null);
 
   const handleSignUp = async (userData: any) => {
@@ -18,15 +16,13 @@ const RegisterPage: React.FC = () => {
         password: userData.password,
         confirmPassword: userData.password // SignUpForm doesn't have confirmPassword in the callback
       });
-      navigate('/dashboard');
+      window.location.pathname = '/dashboard';
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Registration failed');
     }
   };
 
-  const handleSignIn = () => {
-    navigate('/login');
-  };
+  const handleSignIn = () => { window.location.pathname = '/login'; };
 
   return (
     <div className="auth-page">
@@ -36,9 +32,12 @@ const RegisterPage: React.FC = () => {
           <p>Join the DOM optimization revolution</p>
         </div>
         
-        <SignupForm
-          onSuccess={() => navigate('/dashboard')}
-        />
+        <SignupForm onSuccess={() => (window.location.pathname = '/dashboard')} />
+        
+        <div style={{ display:'flex', justifyContent:'space-between', marginTop:8, color:'#9aa3ba' }}>
+          <span>Already have an account?</span>
+          <button onClick={handleSignIn} className="link" style={{ background:'transparent', border:'none', cursor:'pointer' }}>Sign in</button>
+        </div>
         
         {error && (
           <div className="error-banner">

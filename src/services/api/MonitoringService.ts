@@ -1,11 +1,12 @@
 import { EventEmitter } from 'events';
-import { Logger } from '../utils/Logger';
+import { Logger } from '../../utils/Logger';
 import HeadlessChromeService from './HeadlessChromeService';
 import WebCrawlerService from './WebCrawlerService';
 import OptimizationEngine from './OptimizationEngine';
 import BackgroundWorkerService from './BackgroundWorkerService';
-import Redis from 'ioredis';
-import cron from 'node-cron';
+// Server-only deps. Use lazy imports to avoid bundling in browser.
+let RedisCtor: any;
+let cronLib: any;
 
 export interface MonitoringMetrics {
   timestamp: string;
@@ -75,7 +76,7 @@ export interface MonitoringConfig {
 
 export class MonitoringService extends EventEmitter {
   private logger: Logger;
-  private redis: Redis;
+  private redis: any;
   private services: Map<string, any> = new Map();
   private config: MonitoringConfig;
   private isRunning = false;
@@ -88,7 +89,7 @@ export class MonitoringService extends EventEmitter {
     super();
     this.logger = new Logger('MonitoringService');
     this.config = config;
-    this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+    this.redis = null; // initialized in initialize() on server only
   }
 
   /**
@@ -97,6 +98,17 @@ export class MonitoringService extends EventEmitter {
   async initialize(): Promise<void> {
     try {
       this.logger.info('Initializing monitoring service');
+      if (typeof window !== 'undefined') {
+        throw new Error('MonitoringService is server-only and cannot run in the browser');
+      }
+      // Lazy load server-only modules
+      const [{ default: Redis }, cron] = await Promise.all([
+        import('ioredis'),
+        import('node-cron')
+      ]);
+      RedisCtor = Redis;
+      cronLib = cron;
+      this.redis = new RedisCtor(process.env.REDIS_URL || 'redis://localhost:6379');
 
       // Setup cron jobs
       await this.setupCronJobs();
@@ -134,25 +146,25 @@ export class MonitoringService extends EventEmitter {
    */
   private async setupCronJobs(): Promise<void> {
     // Collect metrics every minute
-    const metricsJob = cron.schedule('* * * * *', async () => {
+    const metricsJob = cronLib.schedule('* * * * *', async () => {
       await this.collectMetrics();
     });
     this.cronJobs.set('metrics', metricsJob);
 
     // Check alerts every 30 seconds
-    const alertsJob = cron.schedule('*/30 * * * * *', async () => {
+    const alertsJob = cronLib.schedule('*/30 * * * * *', async () => {
       await this.checkAlerts();
     });
     this.cronJobs.set('alerts', alertsJob);
 
     // Cleanup old data every hour
-    const cleanupJob = cron.schedule('0 * * * *', async () => {
+    const cleanupJob = cronLib.schedule('0 * * * *', async () => {
       await this.cleanupOldData();
     });
     this.cronJobs.set('cleanup', cleanupJob);
 
     // Health check every 5 minutes
-    const healthJob = cron.schedule('*/5 * * * *', async () => {
+    const healthJob = cronLib.schedule('*/5 * * * *', async () => {
       await this.performHealthCheck();
     });
     this.cronJobs.set('health', healthJob);

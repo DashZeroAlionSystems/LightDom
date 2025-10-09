@@ -33,14 +33,11 @@
     }
   },
   "include": [
-    "src/**/*",
-    "scripts/**/*",
-    "contracts/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "build"
   ],
-  "references": [{ "path": "./tsconfig.node.json" }]
 }

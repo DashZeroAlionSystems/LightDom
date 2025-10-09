@@ -1,8 +1,6 @@
 import { EventEmitter } from 'events';
-import { Logger } from '../utils/Logger';
-import * as saml from 'saml2-js';
-import * as jwt from 'jsonwebtoken';
-import * as crypto from 'crypto';
+import { Logger } from '../../utils/Logger';
+// Server-only libraries (saml, jwt, crypto) are loaded lazily inside methods to avoid bundling in browser
 import {
   SSOProvider,
   EnterpriseUser,
@@ -103,6 +101,10 @@ export class SSOService extends EventEmitter {
    * Initialize SAML provider
    */
   private async initializeSAMLProvider(provider: SSOProvider): Promise<void> {
+    if (typeof window !== 'undefined') {
+      throw new Error('SAML initialization is server-only');
+    }
+    const saml = await import('saml2-js');
     const config = provider.configuration.saml;
     if (!config) {
       throw new Error('SAML configuration not found');
@@ -351,8 +353,8 @@ export class SSOService extends EventEmitter {
       createdAt: new Date().toISOString()
     };
 
-    const sessionToken = this.generateSessionToken(userProfile);
-    const refreshToken = this.generateRefreshToken(userProfile);
+    const sessionToken = await this.generateSessionToken(userProfile);
+    const refreshToken = await this.generateRefreshToken(userProfile);
 
     return { userProfile, sessionToken, refreshToken };
   }
@@ -393,8 +395,8 @@ export class SSOService extends EventEmitter {
       createdAt: new Date().toISOString()
     };
 
-    const sessionToken = this.generateSessionToken(userProfile);
-    const refreshToken = this.generateRefreshToken(userProfile);
+    const sessionToken = await this.generateSessionToken(userProfile);
+    const refreshToken = await this.generateRefreshToken(userProfile);
 
     return { userProfile, sessionToken, refreshToken };
   }
@@ -435,8 +437,8 @@ export class SSOService extends EventEmitter {
       createdAt: new Date().toISOString()
     };
 
-    const sessionToken = this.generateSessionToken(userProfile);
-    const refreshToken = this.generateRefreshToken(userProfile);
+    const sessionToken = await this.generateSessionToken(userProfile);
+    const refreshToken = await this.generateRefreshToken(userProfile);
 
     return { userProfile, sessionToken, refreshToken };
   }
@@ -477,8 +479,8 @@ export class SSOService extends EventEmitter {
       createdAt: new Date().toISOString()
     };
 
-    const sessionToken = this.generateSessionToken(userProfile);
-    const refreshToken = this.generateRefreshToken(userProfile);
+    const sessionToken = await this.generateSessionToken(userProfile);
+    const refreshToken = await this.generateRefreshToken(userProfile);
 
     return { userProfile, sessionToken, refreshToken };
   }
@@ -519,8 +521,8 @@ export class SSOService extends EventEmitter {
       createdAt: new Date().toISOString()
     };
 
-    const sessionToken = this.generateSessionToken(userProfile);
-    const refreshToken = this.generateRefreshToken(userProfile);
+    const sessionToken = await this.generateSessionToken(userProfile);
+    const refreshToken = await this.generateRefreshToken(userProfile);
 
     return { userProfile, sessionToken, refreshToken };
   }
@@ -530,7 +532,12 @@ export class SSOService extends EventEmitter {
    */
   async validateToken(token: string): Promise<SSOTokenValidation> {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret') as any;
+      if (typeof window !== 'undefined') {
+        throw new Error('Token validation must run on server');
+      }
+      const jwtLib = await import('jsonwebtoken');
+      const env = (typeof process !== 'undefined' && process.env) ? process.env : {} as any;
+      const decoded = jwtLib.verify(token, env.JWT_SECRET || 'default-secret') as any;
       
       // Check if session exists and is active
       const session = this.sessions.get(decoded.sessionId);
@@ -567,7 +574,12 @@ export class SSOService extends EventEmitter {
    */
   async refreshToken(refreshToken: string): Promise<{ sessionToken: string; refreshToken: string } | null> {
     try {
-      const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'default-refresh-secret') as any;
+      if (typeof window !== 'undefined') {
+        throw new Error('Token refresh must run on server');
+      }
+      const jwtLib = await import('jsonwebtoken');
+      const env = (typeof process !== 'undefined' && process.env) ? process.env : {} as any;
+      const decoded = jwtLib.verify(refreshToken, env.JWT_REFRESH_SECRET || 'default-refresh-secret') as any;
       
       const session = this.sessions.get(decoded.sessionId);
       if (!session || !session.isActive) {
@@ -575,7 +587,7 @@ export class SSOService extends EventEmitter {
       }
 
       // Generate new tokens
-      const newSessionToken = this.generateSessionToken({
+      const newSessionToken = await this.generateSessionToken({
         id: session.userId,
         username: 'user',
         email: 'user@example.com',
@@ -598,7 +610,7 @@ export class SSOService extends EventEmitter {
         createdAt: new Date().toISOString()
       });
 
-      const newRefreshToken = this.generateRefreshToken({
+      const newRefreshToken = await this.generateRefreshToken({
         id: session.userId,
         username: 'user',
         email: 'user@example.com',
@@ -709,7 +721,7 @@ export class SSOService extends EventEmitter {
   /**
    * Generate session token
    */
-  private generateSessionToken(userProfile: SSOUserProfile): string {
+  private async generateSessionToken(userProfile: SSOUserProfile): Promise<string> {
     const payload = {
       userId: userProfile.id,
       enterpriseId: userProfile.enterprise.id,
@@ -719,14 +731,18 @@ export class SSOService extends EventEmitter {
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + (this.config.sessionTimeout * 60)
     };
-
-    return jwt.sign(payload, process.env.JWT_SECRET || 'default-secret');
+    if (typeof window !== 'undefined') {
+      throw new Error('JWT signing must run on server');
+    }
+    const jwtLib = await import('jsonwebtoken');
+    const env = (typeof process !== 'undefined' && process.env) ? process.env : {} as any;
+    return jwtLib.sign(payload, env.JWT_SECRET || 'default-secret');
   }
 
   /**
    * Generate refresh token
    */
-  private generateRefreshToken(userProfile: SSOUserProfile): string {
+  private async generateRefreshToken(userProfile: SSOUserProfile): Promise<string> {
     const payload = {
       userId: userProfile.id,
       enterpriseId: userProfile.enterprise.id,
@@ -735,8 +751,12 @@ export class SSOService extends EventEmitter {
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + (this.config.refreshTokenExpiry * 24 * 60 * 60)
     };
-
-    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET || 'default-refresh-secret');
+    if (typeof window !== 'undefined') {
+      throw new Error('JWT signing must run on server');
+    }
+    const jwtLib = await import('jsonwebtoken');
+    const env = (typeof process !== 'undefined' && process.env) ? process.env : {} as any;
+    return jwtLib.sign(payload, env.JWT_REFRESH_SECRET || 'default-refresh-secret');
   }
 
   /**

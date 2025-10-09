@@ -15,6 +15,8 @@ class RealWebCrawlerSystem {
       respectRobots: config.respectRobots !== false,
       userAgent: 'DOM-Space-Harvester/1.0 (+https://github.com/domspaceharvester)',
       timeout: 30000,
+      healthCheckInterval: config.healthCheckInterval || 15000,
+      performanceUpdateInterval: config.performanceUpdateInterval || 5000,
       ...config
     };
     
@@ -29,6 +31,48 @@ class RealWebCrawlerSystem {
     this.schemaData = [];
     this.backlinkNetwork = [];
     this.domainAuthority = new Map(); // Cache for domain authority scores
+    
+    // Enhanced monitoring and statistics
+    this.crawlerStats = {
+      totalSitesCrawled: 0,
+      activeCrawlers: 0,
+      optimizationScore: 0,
+      lastCrawlTime: Date.now(),
+      sitesInQueue: 0,
+      averageResponseTime: 0,
+      crawlStatus: 'idle',
+      spaceHarvested: {
+        total: 0,
+        today: 0,
+        thisWeek: 0
+      },
+      errors: 0,
+      successRate: 100
+    };
+    
+    // Performance metrics
+    this.performanceMetrics = {
+      cpuUsage: 0,
+      memoryUsage: 0,
+      networkLatency: 0,
+      averageProcessingTime: 0,
+      throughput: 0
+    };
+    
+    // Health monitoring
+    this.healthStatus = {
+      isHealthy: true,
+      lastHealthCheck: Date.now(),
+      consecutiveErrors: 0,
+      errorHistory: []
+    };
+    
+    // Real-time data integration
+    this.dataIntegration = {
+      lastUpdate: Date.now(),
+      updateInterval: 5000,
+      subscribers: new Set()
+    };
     
     // Artifact storage
     this.storage = new ArtifactStorage({
@@ -711,6 +755,302 @@ class RealWebCrawlerSystem {
       totalOptimizations: this.optimizationResults.length,
       totalSpaceHarvested: this.optimizationResults.reduce((sum, r) => sum + (r.spaceSaved || 0), 0)
     };
+  }
+
+  /**
+   * Start health monitoring system
+   */
+  startHealthMonitoring() {
+    setInterval(async () => {
+      await this.performHealthCheck();
+    }, this.config.healthCheckInterval);
+  }
+
+  /**
+   * Start performance monitoring
+   */
+  startPerformanceMonitoring() {
+    setInterval(() => {
+      this.updatePerformanceMetrics();
+    }, this.config.performanceUpdateInterval);
+  }
+
+  /**
+   * Start real-time data integration
+   */
+  startDataIntegration() {
+    setInterval(() => {
+      this.updateDataIntegration();
+    }, this.dataIntegration.updateInterval);
+  }
+
+  /**
+   * Perform comprehensive health check
+   */
+  async performHealthCheck() {
+    try {
+      // Check browser health
+      const browserHealth = await this.checkBrowserHealth();
+      
+      // Check crawling performance
+      const performanceHealth = await this.checkCrawlingPerformance();
+      
+      // Update health status
+      this.healthStatus = {
+        isHealthy: browserHealth.isHealthy && performanceHealth.isHealthy,
+        lastHealthCheck: Date.now(),
+        consecutiveErrors: browserHealth.isHealthy ? 0 : this.healthStatus.consecutiveErrors + 1,
+        errorHistory: this.healthStatus.errorHistory.slice(-10) // Keep last 10 errors
+      };
+
+      // Update crawler stats
+      this.crawlerStats = {
+        ...this.crawlerStats,
+        crawlStatus: this.isRunning ? 'running' : 'idle',
+        activeCrawlers: this.activeCrawlers.size,
+        sitesInQueue: this.crawlQueue.length + this.priorityQueue.length,
+        lastCrawlTime: this.crawlerStats.lastCrawlTime,
+        optimizationScore: this.calculateOptimizationScore(),
+        averageResponseTime: this.calculateAverageResponseTime(),
+        successRate: this.calculateSuccessRate()
+      };
+
+      // Emit health status update
+      this.emit('healthUpdate', {
+        isHealthy: this.healthStatus.isHealthy,
+        crawlerStatus: this.crawlerStats.crawlStatus,
+        performance: this.performanceMetrics
+      });
+
+    } catch (error) {
+      console.error('Crawler health check failed:', error);
+      this.healthStatus.consecutiveErrors++;
+      this.healthStatus.errorHistory.push({
+        timestamp: Date.now(),
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Check browser health and connectivity
+   */
+  async checkBrowserHealth() {
+    try {
+      if (!this.browser) {
+        return { isHealthy: false, status: 'browser_not_initialized' };
+      }
+
+      // Check if browser is still connected
+      const pages = await this.browser.pages();
+      const isConnected = this.browser.isConnected();
+      
+      return {
+        isHealthy: isConnected && pages.length >= 0,
+        status: isConnected ? 'healthy' : 'disconnected',
+        pageCount: pages.length
+      };
+    } catch (error) {
+      return {
+        isHealthy: false,
+        status: 'error',
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Check crawling performance metrics
+   */
+  async checkCrawlingPerformance() {
+    try {
+      // Calculate throughput (sites per minute)
+      const recentCrawls = this.optimizationResults.slice(-10);
+      const throughput = recentCrawls.length / (this.config.performanceUpdateInterval / 60000);
+
+      // Update performance metrics
+      this.performanceMetrics = {
+        cpuUsage: Math.random() * 100, // Simulate CPU usage
+        memoryUsage: Math.random() * 100, // Simulate memory usage
+        networkLatency: Math.random() * 100, // Simulate network latency
+        averageProcessingTime: this.calculateAverageProcessingTime(),
+        throughput: throughput
+      };
+
+      return {
+        isHealthy: this.performanceMetrics.cpuUsage < 90 && this.performanceMetrics.memoryUsage < 90,
+        performance: this.performanceMetrics
+      };
+    } catch (error) {
+      return {
+        isHealthy: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Update performance metrics
+   */
+  updatePerformanceMetrics() {
+    // Simulate real-time performance data
+    this.performanceMetrics = {
+      cpuUsage: Math.random() * 100,
+      memoryUsage: Math.random() * 100,
+      networkLatency: Math.random() * 100,
+      averageProcessingTime: this.calculateAverageProcessingTime(),
+      throughput: this.calculateThroughput()
+    };
+  }
+
+  /**
+   * Calculate optimization score based on recent results
+   */
+  calculateOptimizationScore() {
+    if (this.optimizationResults.length === 0) return 0;
+    
+    const recentResults = this.optimizationResults.slice(-20);
+    const totalScore = recentResults.reduce((sum, result) => {
+      return sum + (result.optimizationScore || 0);
+    }, 0);
+    
+    return Math.round(totalScore / recentResults.length);
+  }
+
+  /**
+   * Calculate average response time
+   */
+  calculateAverageResponseTime() {
+    if (this.optimizationResults.length === 0) return 0;
+    
+    const recentResults = this.optimizationResults.slice(-20);
+    const totalTime = recentResults.reduce((sum, result) => {
+      return sum + (result.responseTime || 0);
+    }, 0);
+    
+    return Math.round(totalTime / recentResults.length);
+  }
+
+  /**
+   * Calculate success rate
+   */
+  calculateSuccessRate() {
+    if (this.optimizationResults.length === 0) return 100;
+    
+    const recentResults = this.optimizationResults.slice(-50);
+    const successfulResults = recentResults.filter(result => !result.error);
+    
+    return Math.round((successfulResults.length / recentResults.length) * 100);
+  }
+
+  /**
+   * Calculate average processing time
+   */
+  calculateAverageProcessingTime() {
+    if (this.optimizationResults.length === 0) return 0;
+    
+    const recentResults = this.optimizationResults.slice(-20);
+    const totalTime = recentResults.reduce((sum, result) => {
+      return sum + (result.processingTime || 0);
+    }, 0);
+    
+    return Math.round(totalTime / recentResults.length);
+  }
+
+  /**
+   * Calculate throughput (sites per minute)
+   */
+  calculateThroughput() {
+    const now = Date.now();
+    const oneMinuteAgo = now - 60000;
+    
+    const recentCrawls = this.optimizationResults.filter(result => 
+      result.timestamp && result.timestamp > oneMinuteAgo
+    );
+    
+    return recentCrawls.length;
+  }
+
+  /**
+   * Update data integration and notify subscribers
+   */
+  updateDataIntegration() {
+    const data = {
+      totalSitesCrawled: this.crawlerStats.totalSitesCrawled,
+      activeCrawlers: this.crawlerStats.activeCrawlers,
+      optimizationScore: this.crawlerStats.optimizationScore,
+      lastCrawlTime: this.crawlerStats.lastCrawlTime,
+      sitesInQueue: this.crawlerStats.sitesInQueue,
+      averageResponseTime: this.crawlerStats.averageResponseTime,
+      crawlStatus: this.crawlerStats.crawlStatus,
+      spaceHarvested: this.crawlerStats.spaceHarvested,
+      performance: this.performanceMetrics,
+      health: this.healthStatus
+    };
+
+    this.dataIntegration.lastUpdate = Date.now();
+    
+    // Notify all subscribers
+    this.dataIntegration.subscribers.forEach(callback => {
+      try {
+        callback(data);
+      } catch (error) {
+        console.error('Error notifying crawler data subscriber:', error);
+      }
+    });
+
+    this.emit('dataUpdate', data);
+  }
+
+  /**
+   * Subscribe to real-time data updates
+   */
+  subscribe(callback) {
+    this.dataIntegration.subscribers.add(callback);
+    return () => this.dataIntegration.subscribers.delete(callback);
+  }
+
+  /**
+   * Get current crawler statistics
+   */
+  getCrawlerStats() {
+    return {
+      ...this.crawlerStats,
+      performance: this.performanceMetrics,
+      health: this.healthStatus,
+      lastUpdate: this.dataIntegration.lastUpdate
+    };
+  }
+
+  /**
+   * Get system health status
+   */
+  getHealthStatus() {
+    return {
+      ...this.healthStatus,
+      isRunning: this.isRunning,
+      activeCrawlers: this.activeCrawlers.size,
+      queueSize: this.crawlQueue.length + this.priorityQueue.length
+    };
+  }
+
+  /**
+   * Get performance metrics
+   */
+  getPerformanceMetrics() {
+    return {
+      ...this.performanceMetrics,
+      crawlerStats: this.crawlerStats,
+      healthStatus: this.healthStatus
+    };
+  }
+
+  /**
+   * Force data refresh
+   */
+  async refreshData() {
+    await this.performHealthCheck();
+    this.updateDataIntegration();
   }
 }
 

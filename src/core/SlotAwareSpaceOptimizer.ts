@@ -38,6 +38,29 @@ export class SlotAwareSpaceOptimizer {
   }
 
   /**
+   * Initialize internal state used for cross-slot optimizations
+   */
+  private initializeCrossSlotOptimizations(): void {
+    this.crossSlotOptimizations.clear();
+    this.slotPerformanceBaseline.clear();
+    try {
+      const slots = lightDomSlotSystem.getAllSlots();
+      // Establish a lightweight baseline entry for each slot so later diffs are meaningful
+      for (const slot of slots) {
+        this.slotPerformanceBaseline.set(slot.id, {
+          renderTime: 0,
+          layoutShifts: 0,
+          interactiveTime: 0,
+          memoryUsage: 0,
+          contentHash: `baseline_${slot.id}`,
+        });
+      }
+    } catch (_e) {
+      // If slot system isn't ready yet, we'll populate baselines during first optimization pass
+    }
+  }
+
+  /**
    * Optimize all slots with cross-slot awareness
    */
   async optimizeAllSlots(): Promise<SlotOptimizationResult[]> {

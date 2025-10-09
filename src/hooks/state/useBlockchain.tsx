@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import { BlockchainService, BlockchainConfig, HarvesterStats, MetaverseStats, OptimizationData } from '../services/BlockchainService';
+import { BlockchainService, BlockchainConfig, HarvesterStats, MetaverseStats, OptimizationData } from '../../services/api/BlockchainService';
 
 interface BlockchainContextType {
   blockchainService: BlockchainService | null;

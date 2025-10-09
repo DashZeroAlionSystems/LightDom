@@ -1,6 +1,6 @@
 import puppeteer, { Browser, Page, LaunchOptions, PDFOptions, ScreenshotOptions } from 'puppeteer';
 import { EventEmitter } from 'events';
-import { Logger } from '../utils/Logger';
+import { Logger } from '../../utils/Logger';
 import { PerformanceMetrics, DOMAnalysis, OptimizationResult } from '../types/HeadlessTypes';
 
 export class HeadlessChromeService extends EventEmitter {

@@ -1,4 +1,4 @@
-import { DOMOptimizationEngine } from '../core/DOMOptimizationEngine';
+import { DOMOptimizationEngine } from '../../core/DOMOptimizationEngine';
 
 export interface MiningSession {
   id: string;

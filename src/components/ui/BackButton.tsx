@@ -18,11 +18,10 @@ const BackButton: React.FC<BackButtonProps> = ({ onBack, className = '' }) => {
   return (
     <button
       onClick={handleBack}
-      className={`discord-btn discord-btn-secondary ${className}`}
-      style={{ display: 'flex', alignItems: 'center', gap: 'var(--discord-spacing-sm)' }}
+      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 text-white shadow-md hover:shadow-lg hover:bg-blue-700 active:bg-blue-800 transition-colors ${className}`}
     >
       <ArrowLeft size={16} />
-      Back
+      <span className="font-medium">Back</span>
     </button>
   );
 };

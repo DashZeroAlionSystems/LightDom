@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { TaskManager } from './TaskManager';
 import { HeadlessChromeService } from './HeadlessChromeService';
-import { Logger } from '../utils/Logger';
+import { Logger } from '../../utils/Logger';
 import axios from 'axios';
 
 export interface CursorAPIFunction {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { cn } from '../../utils/cn';
+import { cn } from '@/utils/validation/cn';
 
 interface AnimatedCounterProps {
   value: number;

@@ -299,7 +299,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({
         </p>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .sign-in-form {
           max-width: 400px;
           margin: 0 auto;

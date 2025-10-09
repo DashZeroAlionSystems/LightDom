@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { Logger } from '../utils/Logger';
+import { Logger } from '../../utils/Logger';
 import { ethers } from 'ethers';
 import {
   BridgeTransaction,

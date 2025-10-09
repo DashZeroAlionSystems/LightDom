@@ -1,15 +1,15 @@
 import { EventEmitter } from 'events';
-import { Logger } from '../utils/Logger';
+import { Logger } from '../../utils/Logger';
 import HeadlessChromeService from './HeadlessChromeService';
 import { CrawlResult, CrawlOptions, WebsiteData, OptimizationOpportunity } from '../types/CrawlerTypes';
-import { Queue } from 'bull';
-import Redis from 'ioredis';
+let BullQueueWC: any;
+let RedisCtorWC: any;
 
 export class WebCrawlerService extends EventEmitter {
   private headlessService: HeadlessChromeService;
   private logger: Logger;
-  private crawlQueue: Queue;
-  private redis: Redis;
+  private crawlQueue: any;
+  private redis: any;
   private isRunning = false;
   private activeCrawls = new Map<string, any>();
 
@@ -17,16 +17,9 @@ export class WebCrawlerService extends EventEmitter {
     super();
     this.headlessService = new HeadlessChromeService();
     this.logger = new Logger('WebCrawlerService');
-    this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-    this.crawlQueue = new Queue('crawl-queue', {
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD
-      }
-    });
-
-    this.setupQueueProcessing();
+    this.redis = null;
+    this.crawlQueue = null;
+    // Defer server-only setup to initialize()
   }
 
   /**
@@ -34,7 +27,25 @@ export class WebCrawlerService extends EventEmitter {
    */
   async initialize(): Promise<void> {
     try {
+      if (typeof window !== 'undefined') {
+        throw new Error('WebCrawlerService is server-only and cannot run in the browser');
+      }
+      const [bull, { default: Redis }] = await Promise.all([
+        import('bull'),
+        import('ioredis')
+      ]);
+      BullQueueWC = bull.Queue || bull.default?.Queue || bull;
+      RedisCtorWC = Redis;
+      this.redis = new RedisCtorWC(process.env.REDIS_URL || 'redis://localhost:6379');
+      this.crawlQueue = new BullQueueWC('crawl-queue', {
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+        password: process.env.REDIS_PASSWORD
+      }
+    });
       await this.headlessService.initialize();
+      this.setupQueueProcessing();
       this.logger.info('WebCrawlerService initialized successfully');
     } catch (error) {
       this.logger.error('Failed to initialize WebCrawlerService:', error);

@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '../../utils/cn';
+import { cn } from '../../utils/validation/cn';
 
 const inputVariants = cva(
   'flex w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200',
@@ -45,7 +45,7 @@ export interface InputProps
   fullWidth?: boolean;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
+const InputBase = forwardRef<HTMLInputElement, InputProps>(
   (
     {
       className,
@@ -209,6 +209,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-Input.displayName = 'Input';
+InputBase.displayName = 'Input';
 
-export { Input, inputVariants };
+export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = '', ...props }) => (
+  <input className={`border rounded px-3 py-2 w-full border-gray-300 focus:outline-none focus:ring focus:border-blue-300 ${className}`} {...props} />
+);
+
+export default Input;

@@ -1,4 +1,4 @@
-import { Logger } from '../utils/Logger';
+import { Logger } from '../../utils/Logger';
 import { DOMAnalysis, PerformanceMetrics, ImageAnalysis, ScriptAnalysis, CSSAnalysis, ResourceAnalysis } from '../types/HeadlessTypes';
 import { OptimizationOpportunity } from '../types/CrawlerTypes';
 

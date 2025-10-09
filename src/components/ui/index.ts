@@ -1,11 +1,11 @@
 // LightDom Space-Bridge Platform - UI Components Export
 // Modern, accessible, and user-friendly component library
 
-export { Button, buttonVariants } from './Button';
-export { Input, inputVariants } from './Input';
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, cardVariants } from './Card';
+export { Button } from './Button';
+export { Input } from './Input';
+export { Card, CardHeader, CardTitle, CardContent } from './Card';
 export { Modal, ModalHeader, ModalTitle, ModalDescription, ModalContent, ModalFooter, modalVariants } from './Modal';
-export { Badge, badgeVariants } from './Badge';
+export { Badge } from './Badge';
 export { LoadingSpinner, PulseSpinner, DotsSpinner, Skeleton, LoadingOverlay, spinnerVariants } from './LoadingSpinner';
 export { Tooltip, tooltipVariants } from './Tooltip';
 export { ToastProvider, Toast, toastVariants, toast } from './Toast';
@@ -14,4 +14,4 @@ export { AnimatedCounter, AnimatedNumber, AnimatedProgress } from './AnimatedCou
 export { GradientText, GradientBackground, GradientBorder } from './GradientText';
 
 // Re-export theme hook
-export { useTheme, ThemeProvider, ThemeToggle } from '../../hooks/useTheme';
+export { useTheme, ThemeProvider, ThemeToggle } from '../../hooks/state/useTheme';

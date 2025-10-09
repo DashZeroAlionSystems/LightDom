@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { cn } from '../../utils/cn';
+import { cn } from '@/utils/validation/cn';
 import Header from './Header';
 import Footer from './Footer';
 

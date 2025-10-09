@@ -1,6 +1,6 @@
 import puppeteer, { Browser, Page, ElementHandle, JSHandle } from 'puppeteer';
 import { EventEmitter } from 'events';
-import { Logger } from '../utils/Logger';
+import { Logger } from '../../utils/Logger';
 import { HeadlessChromeService } from './HeadlessChromeService';
 
 export interface AutomationConfig {

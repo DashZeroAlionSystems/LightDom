@@ -1,25 +1,27 @@
-import { Worker, Queue, Job } from 'bull';
+// Server-only queue library; avoid bundling in browser
+let BullWorker: any, BullQueue: any;
+type Job = any;
 import { EventEmitter } from 'events';
-import { Logger } from '../utils/Logger';
+import { Logger } from '../../utils/Logger';
 import HeadlessChromeService from './HeadlessChromeService';
 import WebCrawlerService from './WebCrawlerService';
 import OptimizationEngine from './OptimizationEngine';
-import Redis from 'ioredis';
-import cron from 'node-cron';
+let RedisCtorBW: any;
+let cronLibBW: any;
 
 export class BackgroundWorkerService extends EventEmitter {
   private logger: Logger;
-  private redis: Redis;
-  private workers: Map<string, Worker> = new Map();
-  private queues: Map<string, Queue> = new Map();
+  private redis: any;
+  private workers: Map<string, any> = new Map();
+  private queues: Map<string, any> = new Map();
   private services: Map<string, any> = new Map();
-  private cronJobs: Map<string, cron.ScheduledTask> = new Map();
+  private cronJobs: Map<string, any> = new Map();
   private isRunning = false;
 
   constructor() {
     super();
     this.logger = new Logger('BackgroundWorkerService');
-    this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+    this.redis = null; // initialized on server only
   }
 
   /**
@@ -27,6 +29,19 @@ export class BackgroundWorkerService extends EventEmitter {
    */
   async initialize(): Promise<void> {
     try {
+      if (typeof window !== 'undefined') {
+        throw new Error('BackgroundWorkerService is server-only and cannot run in the browser');
+      }
+      const [bull, { default: Redis }, cron] = await Promise.all([
+        import('bull'),
+        import('ioredis'),
+        import('node-cron')
+      ]);
+      BullWorker = bull.Worker || bull.default?.Worker || bull;
+      BullQueue = bull.Queue || bull.default?.Queue || bull;
+      RedisCtorBW = Redis;
+      cronLibBW = cron;
+      this.redis = new RedisCtorBW(process.env.REDIS_URL || 'redis://localhost:6379');
       // Initialize services
       const headlessService = new HeadlessChromeService();
       const crawlerService = new WebCrawlerService();
@@ -70,19 +85,19 @@ export class BackgroundWorkerService extends EventEmitter {
     };
 
     // Crawl queue
-    const crawlQueue = new Queue('crawl-queue', queueConfig);
+    const crawlQueue = new BullQueue('crawl-queue', queueConfig);
     this.queues.set('crawl', crawlQueue);
 
     // Optimization queue
-    const optimizationQueue = new Queue('optimization-queue', queueConfig);
+    const optimizationQueue = new BullQueue('optimization-queue', queueConfig);
     this.queues.set('optimization', optimizationQueue);
 
     // Monitoring queue
-    const monitoringQueue = new Queue('monitoring-queue', queueConfig);
+    const monitoringQueue = new BullQueue('monitoring-queue', queueConfig);
     this.queues.set('monitoring', monitoringQueue);
 
     // Cleanup queue
-    const cleanupQueue = new Queue('cleanup-queue', queueConfig);
+    const cleanupQueue = new BullQueue('cleanup-queue', queueConfig);
     this.queues.set('cleanup', cleanupQueue);
 
     this.logger.info('Queues setup completed');
@@ -93,7 +108,7 @@ export class BackgroundWorkerService extends EventEmitter {
    */
   private async setupWorkers(): Promise<void> {
     // Crawl worker
-    const crawlWorker = new Worker('crawl-queue', async (job: Job) => {
+    const crawlWorker = new BullWorker('crawl-queue', async (job: Job) => {
       return await this.processCrawlJob(job);
     }, {
       connection: {
@@ -117,7 +132,7 @@ export class BackgroundWorkerService extends EventEmitter {
     this.workers.set('crawl', crawlWorker);
 
     // Optimization worker
-    const optimizationWorker = new Worker('optimization-queue', async (job: Job) => {
+    const optimizationWorker = new BullWorker('optimization-queue', async (job: Job) => {
       return await this.processOptimizationJob(job);
     }, {
       connection: {
@@ -141,7 +156,7 @@ export class BackgroundWorkerService extends EventEmitter {
     this.workers.set('optimization', optimizationWorker);
 
     // Monitoring worker
-    const monitoringWorker = new Worker('monitoring-queue', async (job: Job) => {
+    const monitoringWorker = new BullWorker('monitoring-queue', async (job: Job) => {
       return await this.processMonitoringJob(job);
     }, {
       connection: {
@@ -163,7 +178,7 @@ export class BackgroundWorkerService extends EventEmitter {
     this.workers.set('monitoring', monitoringWorker);
 
     // Cleanup worker
-    const cleanupWorker = new Worker('cleanup-queue', async (job: Job) => {
+    const cleanupWorker = new BullWorker('cleanup-queue', async (job: Job) => {
       return await this.processCleanupJob(job);
     }, {
       connection: {
@@ -192,25 +207,25 @@ export class BackgroundWorkerService extends EventEmitter {
    */
   private async setupCronJobs(): Promise<void> {
     // Health check every 5 minutes
-    const healthCheckJob = cron.schedule('*/5 * * * *', async () => {
+    const healthCheckJob = cronLibBW.schedule('*/5 * * * *', async () => {
       await this.performHealthCheck();
     });
     this.cronJobs.set('healthCheck', healthCheckJob);
 
     // Cleanup old data every hour
-    const cleanupJob = cron.schedule('0 * * * *', async () => {
+    const cleanupJob = cronLibBW.schedule('0 * * * *', async () => {
       await this.scheduleCleanup();
     });
     this.cronJobs.set('cleanup', cleanupJob);
 
     // Performance monitoring every 15 minutes
-    const performanceJob = cron.schedule('*/15 * * * *', async () => {
+    const performanceJob = cronLibBW.schedule('*/15 * * * *', async () => {
       await this.schedulePerformanceMonitoring();
     });
     this.cronJobs.set('performance', performanceJob);
 
     // Queue monitoring every minute
-    const queueJob = cron.schedule('* * * * *', async () => {
+    const queueJob = cronLibBW.schedule('* * * * *', async () => {
       await this.monitorQueues();
     });
     this.cronJobs.set('queue', queueJob);
