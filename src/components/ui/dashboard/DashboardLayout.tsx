@@ -41,6 +41,7 @@ import {
   DatabaseOutlined,
   RocketOutlined,
   ApiOutlined
+  SearchOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { useOptimization } from '../../hooks/useOptimization';
@@ -152,6 +153,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       key: '/dashboard/space-optimization',
       icon: <RocketOutlined />,
       label: 'Space Optimization',
+    },
+    {
+      key: '/dashboard/seo-optimization',
+      icon: <SearchOutlined />,
+      label: 'SEO Optimization',
+    },
+    {
+      key: '/dashboard/seo-marketplace',
+      icon: <ShoppingCartOutlined />,
+      label: 'SEO Marketplace',
     },
     {
       key: '/dashboard/analytics',
