@@ -7,6 +7,10 @@ import DashboardLayout from './components/ui/dashboard/DashboardLayout';
 import DashboardOverview from './components/ui/dashboard/DashboardOverview';
 import OptimizationDashboard from './components/ui/dashboard/OptimizationDashboard';
 import WalletDashboard from './components/ui/dashboard/WalletDashboard';
+import AnalyticsDashboard from './components/ui/dashboard/AnalyticsDashboard';
+import WebsitesManagementPage from './components/ui/dashboard/WebsitesManagementPage';
+import HistoryPage from './components/ui/dashboard/HistoryPage';
+import AchievementsPage from './components/ui/dashboard/AchievementsPage';
 import BlockchainDashboard from './components/ui/BlockchainDashboard';
 import SpaceMiningDashboard from './components/ui/SpaceMiningDashboard';
 import MetaverseMiningDashboard from './components/ui/MetaverseMiningDashboard';
@@ -21,6 +25,8 @@ import { SEOOptimizationDashboard } from './components/SEOOptimizationDashboard'
 import { SEOModelMarketplace } from './components/SEOModelMarketplace';
 import LoginPage from './components/ui/auth/LoginPage';
 import RegisterPage from './components/ui/auth/RegisterPage';
+import ForgotPasswordPage from './components/ui/auth/ForgotPasswordPage';
+import ResetPasswordPage from './components/ui/auth/ResetPasswordPage';
 import PaymentPage from './components/ui/payment/PaymentPage';
 import { FileUploadSettings } from './components/ui/FileUploadSettings';
 import AdminDashboard from './components/ui/admin/AdminDashboard';
@@ -64,6 +70,8 @@ const AppContent: React.FC = () => {
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/payment" element={<PaymentPage />} />
         
         {/* Admin Routes */}
@@ -100,10 +108,10 @@ const AppContent: React.FC = () => {
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />
           <Route path="seo-optimization" element={<SEOOptimizationDashboard />} />
           <Route path="seo-marketplace" element={<SEOModelMarketplace />} />
-          <Route path="analytics" element={<div>Analytics Coming Soon</div>} />
-          <Route path="websites" element={<div>Websites Coming Soon</div>} />
-          <Route path="history" element={<div>History Coming Soon</div>} />
-          <Route path="achievements" element={<div>Achievements Coming Soon</div>} />
+          <Route path="analytics" element={<AnalyticsDashboard />} />
+          <Route path="websites" element={<WebsitesManagementPage />} />
+          <Route path="history" element={<HistoryPage />} />
+          <Route path="achievements" element={<AchievementsPage />} />
           <Route path="settings" element={<FileUploadSettings />} />
         </Route>
         
