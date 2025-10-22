@@ -130,6 +130,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       label: 'SEO Optimization',
     },
     {
+      key: '/dashboard/seo-datamining',
+      icon: <DatabaseOutlined />,
+      label: 'SEO Data Mining',
+    },
+    {
       key: '/dashboard/seo-marketplace',
       icon: <ShoppingCartOutlined />,
       label: 'SEO Marketplace',
@@ -170,9 +175,37 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       label: 'Settings',
     },
     {
-      key: '/admin',
+      type: 'divider',
+    },
+    {
+      key: 'admin-section',
+      label: 'Admin Section',
+      type: 'group',
+    },
+    {
+      key: '/dashboard/admin',
       icon: <SettingOutlined />,
-      label: 'Admin Dashboard',
+      label: 'Admin Settings',
+    },
+    {
+      key: '/dashboard/admin/users',
+      icon: <UserOutlined />,
+      label: 'User Management',
+    },
+    {
+      key: '/dashboard/admin/monitoring',
+      icon: <MonitorOutlined />,
+      label: 'System Monitoring',
+    },
+    {
+      key: '/dashboard/admin/logs',
+      icon: <HistoryOutlined />,
+      label: 'System Logs',
+    },
+    {
+      key: '/dashboard/admin/billing',
+      icon: <WalletOutlined />,
+      label: 'Billing Management',
     },
   ];
 

@@ -167,10 +167,58 @@ export class SEODataCollector {
   }
 
   /**
+   * Validate and sanitize URL to prevent SSRF attacks
+   */
+  private validateUrl(url: string): boolean {
+    try {
+      const parsedUrl = new URL(url);
+      
+      // Only allow http and https protocols
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        throw new Error('Invalid protocol. Only HTTP and HTTPS are allowed.');
+      }
+      
+      // Prevent access to local/private networks
+      const hostname = parsedUrl.hostname.toLowerCase();
+      
+      // Block localhost
+      if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+        throw new Error('Access to localhost is not allowed.');
+      }
+      
+      // Block private IP ranges
+      const privateIpRanges = [
+        /^10\./,                          // 10.0.0.0/8
+        /^172\.(1[6-9]|2[0-9]|3[0-1])\./,  // 172.16.0.0/12
+        /^192\.168\./,                     // 192.168.0.0/16
+        /^169\.254\./,                     // 169.254.0.0/16 (link-local)
+        /^fd[0-9a-f]{2}:/i,               // IPv6 ULA
+        /^fe80:/i                          // IPv6 link-local
+      ];
+      
+      for (const pattern of privateIpRanges) {
+        if (pattern.test(hostname)) {
+          throw new Error('Access to private IP ranges is not allowed.');
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('URL validation failed:', error.message);
+      return false;
+    }
+  }
+
+  /**
    * Collect on-page SEO data via web scraping
    */
   async collectOnPageData(url: string): Promise<OnPageSEOData> {
     try {
+      // Validate URL to prevent SSRF
+      if (!this.validateUrl(url)) {
+        throw new Error('Invalid or unsafe URL provided');
+      }
+      
       // Add delay to respect crawl rate
       await this.delay(this.config.crawlDelay);
       
@@ -178,7 +226,9 @@ export class SEODataCollector {
         headers: {
           'User-Agent': this.config.crawlUserAgent
         },
-        timeout: 30000
+        timeout: 30000,
+        maxRedirects: 5,  // Limit redirects
+        validateStatus: (status) => status >= 200 && status < 400  // Only follow success/redirect
       });
 
       const $ = cheerio.load(response.data);

@@ -3,28 +3,33 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ConfigProvider, theme, Spin, Typography } from 'antd';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { BlockchainProvider } from './hooks/useBlockchain';
-import DashboardLayout from './components/dashboard/DashboardLayout';
-import DashboardOverview from './components/dashboard/DashboardOverview';
-import OptimizationDashboard from './components/dashboard/OptimizationDashboard';
-import WalletDashboard from './components/dashboard/WalletDashboard';
-import BlockchainDashboard from './components/BlockchainDashboard';
-import SpaceMiningDashboard from './components/SpaceMiningDashboard';
-import MetaverseMiningDashboard from './components/MetaverseMiningDashboard';
-import MetaverseMarketplace from './components/MetaverseMarketplace';
-import MetaverseMiningRewards from './components/MetaverseMiningRewards';
-import WorkflowSimulationDashboard from './components/WorkflowSimulationDashboard';
-import TestingDashboard from './components/TestingDashboard';
-import AdvancedNodeDashboard from './components/AdvancedNodeDashboard';
-import BlockchainModelStorageDashboard from './components/BlockchainModelStorageDashboard';
-import SpaceOptimizationDashboard from './components/SpaceOptimizationDashboard';
+import DashboardLayout from './components/ui/dashboard/DashboardLayout';
+import DashboardOverview from './components/ui/dashboard/DashboardOverview';
+import OptimizationDashboard from './components/ui/dashboard/OptimizationDashboard';
+import WalletDashboard from './components/ui/dashboard/WalletDashboard';
+import AnalyticsDashboard from './components/ui/dashboard/AnalyticsDashboard';
+import WebsitesManagementPage from './components/ui/dashboard/WebsitesManagementPage';
+import HistoryPage from './components/ui/dashboard/HistoryPage';
+import AchievementsPage from './components/ui/dashboard/AchievementsPage';
+import BlockchainDashboard from './components/ui/BlockchainDashboard';
+import SpaceMiningDashboard from './components/ui/SpaceMiningDashboard';
+import MetaverseMiningDashboard from './components/ui/MetaverseMiningDashboard';
+import MetaverseMarketplace from './components/ui/MetaverseMarketplace';
+import MetaverseMiningRewards from './components/ui/MetaverseMiningRewards';
+import WorkflowSimulationDashboard from './components/ui/WorkflowSimulationDashboard';
+import TestingDashboard from './components/ui/TestingDashboard';
+import AdvancedNodeDashboard from './components/ui/AdvancedNodeDashboard';
+import BlockchainModelStorageDashboard from './components/ui/BlockchainModelStorageDashboard';
+import SpaceOptimizationDashboard from './components/ui/SpaceOptimizationDashboard';
 import { SEOOptimizationDashboard } from './components/SEOOptimizationDashboard';
 import { SEOModelMarketplace } from './components/SEOModelMarketplace';
-import AutomationOrchestrationDashboard from './components/AutomationOrchestrationDashboard';
-import LoginPage from './components/auth/LoginPage';
-import RegisterPage from './components/auth/RegisterPage';
-import PaymentPage from './components/payment/PaymentPage';
-import { FileUploadSettings } from './components/FileUploadSettings';
-import AdminDashboard from './components/admin/AdminDashboard';
+import LoginPage from './components/ui/auth/LoginPage';
+import RegisterPage from './components/ui/auth/RegisterPage';
+import ForgotPasswordPage from './components/ui/auth/ForgotPasswordPage';
+import ResetPasswordPage from './components/ui/auth/ResetPasswordPage';
+import PaymentPage from './components/ui/payment/PaymentPage';
+import { FileUploadSettings } from './components/ui/FileUploadSettings';
+import AdminDashboard from './components/ui/admin/AdminDashboard';
 import './App.css';
 
 // Initialize persistence system
@@ -65,17 +70,11 @@ const AppContent: React.FC = () => {
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/payment" element={<PaymentPage />} />
         
-        {/* Admin Routes */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Admin Routes - Now integrated into dashboard layout */}
         
         {/* Protected Routes */}
         <Route
@@ -100,13 +99,18 @@ const AppContent: React.FC = () => {
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />
           <Route path="seo-optimization" element={<SEOOptimizationDashboard />} />
+          <Route path="seo-datamining" element={<SEODataMiningDashboard />} />
           <Route path="seo-marketplace" element={<SEOModelMarketplace />} />
-          <Route path="automation" element={<AutomationOrchestrationDashboard />} />
-          <Route path="analytics" element={<div>Analytics Coming Soon</div>} />
-          <Route path="websites" element={<div>Websites Coming Soon</div>} />
-          <Route path="history" element={<div>History Coming Soon</div>} />
-          <Route path="achievements" element={<div>Achievements Coming Soon</div>} />
+          <Route path="analytics" element={<AnalyticsDashboard />} />
+          <Route path="websites" element={<WebsitesManagementPage />} />
+          <Route path="history" element={<HistoryPage />} />
+          <Route path="achievements" element={<AchievementsPage />} />
           <Route path="settings" element={<FileUploadSettings />} />
+          <Route path="admin" element={<AdminDashboard />} />
+          <Route path="admin/users" element={<UserManagement />} />
+          <Route path="admin/monitoring" element={<SystemMonitoring />} />
+          <Route path="admin/logs" element={<SystemLogs />} />
+          <Route path="admin/billing" element={<BillingManagement />} />
         </Route>
         
         {/* Default Redirect */}
