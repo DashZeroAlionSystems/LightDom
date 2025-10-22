@@ -241,45 +241,106 @@ export class ModelTrainingOrchestrator {
   ): Promise<Omit<TrainingResult, 'modelId' | 'featureImportance'>> {
     const startTime = Date.now();
     
-    // Construct Python command
-    const command = [
-      'python3',
-      this.pythonScriptPath,
-      '--dataset', datasetPath,
-      '--model-name', config.modelName,
-      '--model-version', config.modelVersion,
-      '--algorithm', config.algorithm,
-      '--hyperparameters', JSON.stringify(config.hyperparameters),
-      '--target-metric', config.targetMetric
-    ].join(' ');
+    // Validate inputs to prevent command injection
+    const validAlgorithms = ['gradient_boosting', 'neural_network', 'random_forest', 'ensemble'];
+    const validMetrics = ['ndcg', 'map', 'precision', 'recall'];
     
-    try {
-      const { stdout, stderr } = await execAsync(command, {
+    if (!validAlgorithms.includes(config.algorithm)) {
+      throw new Error(`Invalid algorithm: ${config.algorithm}`);
+    }
+    
+    if (!validMetrics.includes(config.targetMetric)) {
+      throw new Error(`Invalid target metric: ${config.targetMetric}`);
+    }
+    
+    // Sanitize model name and version (alphanumeric, dash, underscore, dot only)
+    const sanitizeString = (str: string) => str.replace(/[^a-zA-Z0-9\-_.]/g, '');
+    const safeModelName = sanitizeString(config.modelName);
+    const safeModelVersion = sanitizeString(config.modelVersion);
+    
+    // Use spawn instead of exec for better security
+    const { spawn } = require('child_process');
+    
+    return new Promise((resolve, reject) => {
+      const args = [
+        this.pythonScriptPath,
+        '--dataset', datasetPath,
+        '--model-name', safeModelName,
+        '--model-version', safeModelVersion,
+        '--algorithm', config.algorithm,
+        '--hyperparameters', JSON.stringify(config.hyperparameters),
+        '--target-metric', config.targetMetric
+      ];
+      
+      const pythonProcess = spawn('python3', args, {
         maxBuffer: 1024 * 1024 * 50 // 50MB buffer
       });
       
-      if (stderr) {
-        console.warn('Training script warnings:', stderr);
-      }
+      let stdout = '';
+      let stderr = '';
       
-      // Parse training results
-      const results = JSON.parse(stdout);
-      const trainingTime = (Date.now() - startTime) / 1000; // Convert to seconds
+      pythonProcess.stdout.on('data', (data: Buffer) => {
+        stdout += data.toString();
+      });
       
-      return {
-        accuracy: results.accuracy,
-        trainingTime,
-        datasetSize: results.datasetSize,
-        modelPath: results.modelPath,
-        modelHash: results.modelHash || this.generateModelHash(results.modelPath),
-        metrics: {
-          ndcg10: results.metrics.ndcg10 || 0,
-          map: results.metrics.map || 0,
-          precision10: results.metrics.precision10 || 0,
-          recall10: results.metrics.recall10 || 0,
-          rmse: results.metrics.rmse
+      pythonProcess.stderr.on('data', (data: Buffer) => {
+        stderr += data.toString();
+      });
+      
+      pythonProcess.on('close', (code: number) => {
+        if (code !== 0) {
+          reject(new Error(`Training script failed with code ${code}: ${stderr}`));
+          return;
         }
-      };
+        
+        try {
+          if (stderr) {
+            console.warn('Training script warnings:', stderr);
+          }
+          
+          // Parse training results
+          const results = JSON.parse(stdout);
+          const trainingTime = (Date.now() - startTime) / 1000; // Convert to seconds
+          
+          resolve({
+            accuracy: results.accuracy,
+            trainingTime,
+            datasetSize: results.datasetSize,
+            modelPath: results.modelPath,
+            modelHash: results.modelHash || this.generateModelHash(results.modelPath),
+            metrics: {
+              ndcg10: results.metrics.ndcg10 || 0,
+              map: results.metrics.map || 0,
+              precision10: results.metrics.precision10 || 0,
+              recall10: results.metrics.recall10 || 0,
+              rmse: results.metrics.rmse
+            }
+          });
+        } catch (error) {
+          reject(new Error(`Failed to parse training results: ${error.message}`));
+        }
+      });
+      
+      pythonProcess.on('error', (error: Error) => {
+        reject(new Error(`Failed to start training script: ${error.message}`));
+      });
+    });
+  }
+  
+  /**
+   * OLD IMPLEMENTATION - Keeping for reference but not used
+   */
+  private async executeTrainingOld(
+    config: ModelConfig,
+    datasetPath: string
+  ): Promise<Omit<TrainingResult, 'modelId' | 'featureImportance'>> {
+    const startTime = Date.now();
+    
+    try {
+      const command = `python3 ${this.pythonScriptPath} --dataset ${datasetPath}`;
+      const { stdout, stderr } = await execAsync(command, {
+        maxBuffer: 1024 * 1024 * 50 // 50MB buffer
+      });
     } catch (error) {
       throw new Error(`Training execution failed: ${error.message}`);
     }
