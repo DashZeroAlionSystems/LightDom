@@ -428,6 +428,22 @@ CMD ["node", "api-server-express.js"]
 - **[Architecture Documentation](./ARCHITECTURE.md)** - System architecture and design
 - **[Blockchain Guide](./BLOCKCHAIN_README.md)** - Blockchain integration details
 
+## 📚 Documentation
+
+### Getting Started
+- **[Quick Start Guide](./QUICK_START.md)** - Fast track to running the project
+- **[Workflow Automation](./WORKFLOW_AUTOMATION.md)** - CLI tools and automation guide
+- **[Dev Container Guide](./.devcontainer/README.md)** - Development environment setup
+
+### AI Integration
+- **[GitHub Copilot Instructions](./.github/COPILOT_INSTRUCTIONS.md)** - Copilot configuration and usage
+- **[Cursor AI Instructions](./.cursor/CURSOR_INSTRUCTIONS.md)** - Cursor AI integration guide
+- **[Cursor Rules](./.cursorrules)** - Project-specific coding standards
+
+### Technical Documentation
+- **[Architecture Documentation](./ARCHITECTURE.md)** - System architecture and design
+- **[Blockchain Guide](./BLOCKCHAIN_README.md)** - Blockchain integration details
+
 ## 🤝 Contributing
 
 ### Development Setup
