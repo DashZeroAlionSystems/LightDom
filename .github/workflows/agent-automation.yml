@@ -34,6 +34,12 @@ on:
 env:
   NODE_VERSION: '18'
 
+# Explicit permissions for security
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
 jobs:
   # Agent evaluation job - evaluates tasks and creates execution plan
   agent-evaluation:

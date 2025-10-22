@@ -225,14 +225,20 @@ export class AutomationOrchestrator extends EventEmitter {
     try {
       // Merge configs
       const mergedConfig = { ...workflow, ...config };
-      const args = mergedConfig.args || [];
-      const command = `${mergedConfig.script} ${args.join(' ')}`;
+      
+      // Sanitize and validate script and args to prevent command injection
+      const script = String(mergedConfig.script).replace(/[;&|`$()]/g, '');
+      const args = (mergedConfig.args || []).map((arg: any) => 
+        String(arg).replace(/[;&|`$()]/g, '')
+      );
+      const command = `${script} ${args.join(' ')}`;
 
       // Execute workflow
       const { stdout, stderr } = await execAsync(command, {
         timeout: mergedConfig.timeout || 600000,
         env: { ...process.env, ...mergedConfig.env },
-        maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+        maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+        shell: '/bin/bash' // Explicitly set shell for security
       });
 
       // Save output
@@ -475,14 +481,22 @@ export class AutomationOrchestrator extends EventEmitter {
    * Parse schedule string to milliseconds
    */
   private parseSchedule(schedule: string): number {
-    // Simple parser for common formats
-    const match = schedule.match(/^every\s+(\d+)\s+(second|minute|hour|day)s?$/i);
+    // Sanitize input to prevent injection
+    const sanitizedSchedule = String(schedule).trim().toLowerCase();
+    
+    // Simple parser for common formats with strict validation
+    const match = sanitizedSchedule.match(/^every\s+(\d+)\s+(second|minute|hour|day)s?$/i);
     if (!match) {
       throw new Error('Invalid schedule format. Use: "every N seconds/minutes/hours/days"');
     }
 
-    const value = parseInt(match[1]);
+    const value = parseInt(match[1], 10);
     const unit = match[2].toLowerCase();
+
+    // Validate value range to prevent abuse
+    if (value < 1 || value > 365) {
+      throw new Error('Schedule value must be between 1 and 365');
+    }
 
     const multipliers: Record<string, number> = {
       second: 1000,
@@ -490,6 +504,11 @@ export class AutomationOrchestrator extends EventEmitter {
       hour: 60 * 60 * 1000,
       day: 24 * 60 * 60 * 1000
     };
+
+    // Ensure unit is valid
+    if (!multipliers[unit]) {
+      throw new Error(`Invalid time unit: ${unit}`);
+    }
 
     return value * multipliers[unit];
   }

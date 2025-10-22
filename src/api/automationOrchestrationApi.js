@@ -119,13 +119,19 @@ class AutomationOrchestratorJS extends EventEmitter {
 
     try {
       const mergedConfig = { ...workflow, ...config };
-      const args = mergedConfig.args || [];
-      const command = `${mergedConfig.script} ${args.join(' ')}`;
+      
+      // Sanitize and validate script and args to prevent command injection
+      const script = String(mergedConfig.script).replace(/[;&|`$()]/g, '');
+      const args = (mergedConfig.args || []).map(arg => 
+        String(arg).replace(/[;&|`$()]/g, '')
+      );
+      const command = `${script} ${args.join(' ')}`;
 
       const { stdout, stderr } = await execAsync(command, {
         timeout: mergedConfig.timeout || 600000,
         env: { ...process.env, ...mergedConfig.env },
-        maxBuffer: 10 * 1024 * 1024
+        maxBuffer: 10 * 1024 * 1024,
+        shell: '/bin/bash' // Explicitly set shell for security
       });
 
       const output = stdout + (stderr ? `\n\nSTDERR:\n${stderr}` : '');
