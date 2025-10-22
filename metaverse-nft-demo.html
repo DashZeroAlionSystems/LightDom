@@ -871,10 +871,15 @@ const metadata = nftAnimationGenerator.generateMetadata(
       const name = document.getElementById('itemName').value || 'Preview Item';
       const previewArea = document.getElementById('previewArea');
       
+      // Sanitize name to prevent XSS
+      const sanitizedName = document.createElement('div');
+      sanitizedName.textContent = name;
+      const safeName = sanitizedName.innerHTML;
+      
       previewArea.innerHTML = `
         <div style="text-align: center; color: #94a3b8;">
           <div style="font-size: 3rem; animation: pulse 2s infinite;">✨</div>
-          <div style="margin-top: 0.5rem; font-weight: 600;">${name}</div>
+          <div style="margin-top: 0.5rem; font-weight: 600;">${safeName}</div>
           <div style="font-size: 0.875rem; margin-top: 0.25rem;">Generating preview...</div>
         </div>
       `;
@@ -883,7 +888,7 @@ const metadata = nftAnimationGenerator.generateMetadata(
         previewArea.innerHTML = `
           <div style="text-align: center; color: #f8fafc;">
             <div style="font-size: 4rem; animation: pulse 2s infinite;">🎨</div>
-            <div style="margin-top: 0.5rem; font-weight: 600;">${name}</div>
+            <div style="margin-top: 0.5rem; font-weight: 600;">${safeName}</div>
             <div style="font-size: 0.875rem; color: #22c55e; margin-top: 0.25rem;">✅ Preview ready!</div>
           </div>
         `;
