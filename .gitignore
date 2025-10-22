@@ -476,5 +476,24 @@ ehthumbs.db
 *.sw?
 
 # =============================================================================
+# LIGHTDOM PROJECT CLEANUP (2025-10-22)
+# =============================================================================
+# Archive directory - old backups and deprecated files
+archive/
+
+# Runtime data directory
+.data/
+
+# Cursor IDE backups (should not be tracked)
+.cursor/
+
+# Generated reports (tracked in docs/reports/ instead)
+*-report.md
+*-status-*.md
+
+# Legacy test directory (consolidated into tests/)
+# (keeping this in case any are generated)
+
+# =============================================================================
 # END OF .gitignore
 # =============================================================================
