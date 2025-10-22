@@ -110,15 +110,25 @@ export const colors = {
     950: '#020617',
   },
   
-  // Dark Mode Colors
+  // Dark Mode Colors - Exodus-inspired
   dark: {
-    background: '#0a0a0a',
-    surface: '#111111',
-    surfaceElevated: '#1a1a1a',
-    border: '#262626',
-    text: '#ffffff',
-    textSecondary: '#a3a3a3',
-    textTertiary: '#737373',
+    background: '#0A0E27',      // Deep navy (Exodus-inspired)
+    surface: '#151A31',         // Lighter navy for cards
+    surfaceElevated: '#1E2438', // Elevated surfaces
+    surfaceHover: '#252B45',    // Hover state
+    border: '#2E3349',          // Border color
+    borderLight: '#40444B',     // Lighter border
+    text: '#FFFFFF',            // Primary text
+    textSecondary: '#B9BBBE',   // Secondary text
+    textTertiary: '#72767D',    // Tertiary text
+  },
+  
+  // Exodus-inspired gradients
+  gradients: {
+    primary: 'linear-gradient(135deg, #5865F2 0%, #7C5CFF 100%)',
+    secondary: 'linear-gradient(135deg, #6C7BFF 0%, #9D7CFF 100%)',
+    hero: 'linear-gradient(135deg, #0A0E27 0%, #1E2438 50%, #252B45 100%)',
+    card: 'linear-gradient(135deg, #151A31 0%, #1E2438 100%)',
   },
   
   // Light Mode Colors

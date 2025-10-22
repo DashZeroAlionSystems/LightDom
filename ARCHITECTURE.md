@@ -49,6 +49,9 @@ graph TB
             SLOT_DASH[LightDomSlotDashboard - Slots]
             BRIDGE_DASH[BridgeChatPage - Communication]
             CRAWLER_DASH[RealWebCrawlerDashboard]
+            SEO_DASH[SEOOptimizationDashboard - SEO Analysis]
+            SEO_MINING_DASH[SEODataMiningDashboard - Data Mining]
+            SEO_MARKET_DASH[SEOModelMarketplace - AI Models]
         end
 
         subgraph "React Hooks"
@@ -111,6 +114,8 @@ graph TB
         HEADLESS_SVC[HeadlessChromeService.ts<br/>Headless Browsing]
         TASK_SVC[TaskManager.ts<br/>Task Management]
         SEO_SVC[SEOService.ts<br/>SEO Analysis]
+        SEO_DATA_SVC[SEODataCollector.ts<br/>SEO Data Collection]
+        SEO_TRAINING_SVC[SEOTrainingDataService.ts<br/>Training Data Management]
     end
 
     %% ============================================================================
@@ -133,7 +138,8 @@ graph TB
             ALCHEMY_API[metaverseAlchemyApi.ts<br/>Alchemy]
             STORAGE_API[LightDomStorageApi.ts<br/>Storage API]
             TASK_API[taskApi.ts<br/>Task Management]
-            SEO_API[seo-analysis.ts<br/>SEO Analysis]
+            SEO_API[seo-analysis.ts<br/>SEO Analysis & Predictions]
+            SEO_TRAINING_API[seo-training.ts<br/>Training Data & Mining]
             BROWSER_API[BrowserbaseAPI.ts<br/>Browserbase Integration]
         end
 
@@ -245,6 +251,9 @@ graph TB
     MAIN --> SLOT_DASH
     MAIN --> BRIDGE_DASH
     MAIN --> CRAWLER_DASH
+    MAIN --> SEO_DASH
+    MAIN --> SEO_MINING_DASH
+    MAIN --> SEO_MARKET_DASH
 
     USE_AUTH --> AUTH_SVC
     USE_OPT --> OPTIMIZATION_SVC
@@ -266,6 +275,9 @@ graph TB
     WORK_DASH --> WORK_ENGINE
     SLOT_DASH --> SLOT_ENGINE
     CRAWLER_DASH --> CRAWLER_SVC
+    SEO_DASH --> SEO_SVC
+    SEO_MINING_DASH --> SEO_TRAINING_SVC
+    SEO_MARKET_DASH --> SEO_SVC
 
     %% ============================================================================
     %% CONNECTIONS - Engines to Services
@@ -312,6 +324,8 @@ graph TB
     HEADLESS_SVC --> BROWSER_API
     TASK_SVC --> TASK_API
     SEO_SVC --> SEO_API
+    SEO_DATA_SVC --> SEO_API
+    SEO_TRAINING_SVC --> SEO_TRAINING_API
 
     %% ============================================================================
     %% CONNECTIONS - APIs to Data Layer
@@ -391,11 +405,11 @@ graph TB
     classDef automation fill:#E0E0E0,stroke:#404040,stroke-width:2px
 
     class BROWSER,ELECTRON,EXTENSION,CLI ui
-    class MAIN,NAV,BACK,DASH,OPT_DASH,SPACE_DASH,META_DASH,NODE_DASH,BLOCK_DASH,WALLET_DASH,WORK_DASH,TEST_DASH,SLOT_DASH,BRIDGE_DASH,CRAWLER_DASH,USE_AUTH,USE_OPT,USE_NOTIF,USE_BLOCKCHAIN,USE_WEBSITES,USE_ANALYTICS,USE_CRAWLER frontend
+    class MAIN,NAV,BACK,DASH,OPT_DASH,SPACE_DASH,META_DASH,NODE_DASH,BLOCK_DASH,WALLET_DASH,WORK_DASH,TEST_DASH,SLOT_DASH,BRIDGE_DASH,CRAWLER_DASH,SEO_DASH,SEO_MINING_DASH,SEO_MARKET_DASH,USE_AUTH,USE_OPT,USE_NOTIF,USE_BLOCKCHAIN,USE_WEBSITES,USE_ANALYTICS,USE_CRAWLER frontend
     class DOM_ENGINE,SPACE_ENGINE,META_ENGINE,OPT_ENGINE,NODE_ENGINE,BLOCK_ENGINE,WORK_ENGINE,SLOT_ENGINE,GAME_ENGINE,ALCHEMY_ENGINE,CLIENT_ENGINE,CURSOR_AGENT,ERROR_HANDLER engine
     class FRAMEWORK,QUEUE_MGR,SIM_ENGINE,API_GATEWAY,FRAMEWORK_RUNNER,DEPLOY_SYS,MONITOR_DASH framework
-    class BLOCKCHAIN_SVC,CRAWLER_SVC,OPTIMIZATION_SVC,METAVERSE_SVC,NODE_SVC,WALLET_SVC,AUTH_SVC,NOTIFICATION_SVC,ANALYTICS_SVC,STORAGE_SVC,HEADLESS_SVC,TASK_SVC,SEO_SVC service
-    class API_SERVER,SIMPLE_API,BLOCKCHAIN_API,SPACE_API,META_API,OPT_API,NODE_API,WALLET_API,CRAWLER_API,BILLING_API,GAMIF_API,ALCHEMY_API,STORAGE_API,TASK_API,SEO_API,BROWSER_API,WEBSOCKET api
+    class BLOCKCHAIN_SVC,CRAWLER_SVC,OPTIMIZATION_SVC,METAVERSE_SVC,NODE_SVC,WALLET_SVC,AUTH_SVC,NOTIFICATION_SVC,ANALYTICS_SVC,STORAGE_SVC,HEADLESS_SVC,TASK_SVC,SEO_SVC,SEO_DATA_SVC,SEO_TRAINING_SVC service
+    class API_SERVER,SIMPLE_API,BLOCKCHAIN_API,SPACE_API,META_API,OPT_API,NODE_API,WALLET_API,CRAWLER_API,BILLING_API,GAMIF_API,ALCHEMY_API,STORAGE_API,TASK_API,SEO_API,SEO_TRAINING_API,BROWSER_API,WEBSOCKET api
     class DOM_TOKEN,LIGHT_TOKEN,ENH_TOKEN,STORAGE_TOKEN,OPT_REGISTRY,PROOF_OPT,MODEL_STORAGE,STORAGE_CONTRACT,VIRTUAL_LAND,SEO_MINING,ETH_BRIDGE,POLY_BRIDGE,FILE_MGR,HOST_MGR,DATA_ENC,STORAGE_GOV blockchain
     class N8N_MCP,N8N_CLI,CURSOR_INT,N8N_SERVICE mcp
     class POSTGRES,REDIS,BLOCKCHAIN_DATA,CRAWLER_DATA,IPFS data
@@ -474,7 +488,7 @@ graph TB
 **Purpose:** User-facing interfaces for all platform features
 
 **Key Components:**
-- **12 Specialized Dashboards** - Each focused on specific functionality
+- **15 Specialized Dashboards** - Each focused on specific functionality (including 3 SEO dashboards)
 - **7 React Hooks** - Centralized state management
 - **Navigation System** - Discord-style sidebar navigation
 - **Real-time Updates** - Socket.IO for live data
@@ -521,7 +535,7 @@ graph TB
 
 **Purpose:** Business logic and external integrations
 
-**13 Services:**
+**15 Services:**
 1. **BlockchainService** - Blockchain operations
 2. **WebCrawlerService** - Web crawling management
 3. **OptimizationService** - Optimization coordination
@@ -534,7 +548,9 @@ graph TB
 10. **StorageService** - Data persistence
 11. **HeadlessChromeService** - Headless browser automation
 12. **TaskManager** - Task queue management
-13. **SEOService** - SEO analysis
+13. **SEOService** - SEO analysis and predictions
+14. **SEODataCollector** - Multi-source SEO data collection
+15. **SEOTrainingDataService** - Training data management and blockchain integration
 
 ### 5. API Layer
 
@@ -544,7 +560,7 @@ graph TB
 - **api-server-express.js** (5,849 lines) - Production server with full features
 - **simple-api-server.js** (201 lines) - Development server with mock data
 
-**14 Specialized API Modules:**
+**15 Specialized API Modules:**
 1. **blockchainApi** - Blockchain operations
 2. **spaceMiningApi** - Space mining endpoints
 3. **metaverseMiningApi** - Metaverse mining
@@ -556,9 +572,10 @@ graph TB
 9. **metaverseAlchemyApi** - Alchemy operations
 10. **LightDomStorageApi** - Storage management
 11. **taskApi** - Task management
-12. **seo-analysis** - SEO analysis
-13. **BrowserbaseAPI** - Browserbase integration
-14. **DOMSpaceHarvesterAPI** - Crawler API
+12. **seo-analysis** - SEO analysis and ML predictions
+13. **seo-training** - Training data contribution and mining rewards
+14. **BrowserbaseAPI** - Browserbase integration
+15. **DOMSpaceHarvesterAPI** - Crawler API
 
 **Real-time:**
 - **Socket.IO Server** - WebSocket for real-time updates
@@ -767,6 +784,15 @@ npm run start:blockchain
 - Integration tests
 - E2E testing
 - Load testing
+
+### ✅ SEO Optimization & AI
+- 194-feature SEO analysis
+- ML-powered ranking predictions
+- Data mining with blockchain rewards
+- Collective intelligence training
+- AI model marketplace
+- Core Web Vitals monitoring
+- Competitor analysis
 
 ---
 
