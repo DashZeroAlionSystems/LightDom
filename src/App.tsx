@@ -23,7 +23,11 @@ import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import PaymentPage from './components/payment/PaymentPage';
 import { FileUploadSettings } from './components/FileUploadSettings';
-import AdminDashboard from './components/admin/AdminDashboard';
+import AdminDashboard from './components/ui/admin/AdminDashboard';
+import UserManagement from './components/ui/admin/UserManagement';
+import SystemMonitoring from './components/ui/admin/SystemMonitoring';
+import SystemLogs from './components/ui/admin/SystemLogs';
+import BillingManagement from './components/ui/admin/BillingManagement';
 import './App.css';
 
 // Initialize persistence system
@@ -66,15 +70,7 @@ const AppContent: React.FC = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/payment" element={<PaymentPage />} />
         
-        {/* Admin Routes */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Admin Routes - Now integrated into dashboard layout */}
         
         {/* Protected Routes */}
         <Route
@@ -105,6 +101,11 @@ const AppContent: React.FC = () => {
           <Route path="history" element={<div>History Coming Soon</div>} />
           <Route path="achievements" element={<div>Achievements Coming Soon</div>} />
           <Route path="settings" element={<FileUploadSettings />} />
+          <Route path="admin" element={<AdminDashboard />} />
+          <Route path="admin/users" element={<UserManagement />} />
+          <Route path="admin/monitoring" element={<SystemMonitoring />} />
+          <Route path="admin/logs" element={<SystemLogs />} />
+          <Route path="admin/billing" element={<BillingManagement />} />
         </Route>
         
         {/* Default Redirect */}
