@@ -1,0 +1,307 @@
+.seo-training-admin-dashboard {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #262626;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-header h1 svg {
+  color: #1890ff;
+}
+
+/* Real-time indicator animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-indicator.training {
+  background-color: #1890ff;
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.completed {
+  background-color: #52c41a;
+}
+
+.status-indicator.failed {
+  background-color: #f5222d;
+}
+
+.status-indicator.pending {
+  background-color: #faad14;
+}
+
+/* Feature score badges */
+.feature-score {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.feature-score.excellent {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.feature-score.good {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.feature-score.fair {
+  background: #fffbe6;
+  color: #faad14;
+  border: 1px solid #ffe58f;
+}
+
+.feature-score.poor {
+  background: #fff1f0;
+  color: #f5222d;
+  border: 1px solid #ffa39e;
+}
+
+/* Training progress card */
+.training-progress-card {
+  border: 2px solid #1890ff;
+  background: linear-gradient(135deg, #e6f7ff 0%, #ffffff 100%);
+}
+
+.training-progress-card .ant-card-head {
+  background: #1890ff;
+  color: white;
+}
+
+/* Metric cards */
+.metric-card {
+  text-align: center;
+  padding: 16px;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.metric-card .metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1890ff;
+  margin: 8px 0;
+}
+
+.metric-card .metric-label {
+  font-size: 14px;
+  color: #8c8c8c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Quality distribution chart */
+.quality-chart-container {
+  padding: 24px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Training controls */
+.training-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.training-controls .ant-btn {
+  border-radius: 4px;
+}
+
+/* Feature threshold table */
+.threshold-table .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #262626;
+}
+
+.threshold-table .ant-table-tbody > tr:hover {
+  background: #e6f7ff;
+}
+
+/* Alert styling */
+.dashboard-alert {
+  margin-bottom: 16px;
+  border-radius: 4px;
+}
+
+/* Live metrics chart container */
+.live-metrics-container {
+  background: #fafafa;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.live-metrics-container h4 {
+  margin: 0 0 16px 0;
+  color: #262626;
+  font-weight: 600;
+}
+
+/* Site stats cards */
+.site-stat-card {
+  border-left: 4px solid #1890ff;
+  transition: all 0.3s ease;
+}
+
+.site-stat-card:hover {
+  border-left-color: #40a9ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+}
+
+.site-stat-card .trend-up {
+  color: #52c41a;
+}
+
+.site-stat-card .trend-down {
+  color: #f5222d;
+}
+
+.site-stat-card .trend-stable {
+  color: #1890ff;
+}
+
+/* Model type badges */
+.model-type-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.model-type-badge.xgboost {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.model-type-badge.lightgbm {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.model-type-badge.neural_network {
+  background: #fff0f6;
+  color: #eb2f96;
+}
+
+.model-type-badge.bert_finetune {
+  background: #f9f0ff;
+  color: #722ed1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 20px;
+  }
+
+  .seo-training-admin-dashboard {
+    padding: 16px;
+  }
+
+  .training-controls {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .training-controls .ant-btn {
+    width: 100%;
+  }
+}
+
+/* Loading state */
+.loading-overlay {
+  position: relative;
+}
+
+.loading-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* Scrollable tables */
+.ant-table-wrapper {
+  overflow-x: auto;
+}
+
+/* Chart tooltips */
+.recharts-tooltip-wrapper {
+  background: white !important;
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.recharts-tooltip-label {
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.recharts-tooltip-item {
+  color: #8c8c8c !important;
+}
