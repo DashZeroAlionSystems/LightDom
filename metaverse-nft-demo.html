@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metaverse NFT System Demo - LightDom</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      font-size: 1.25rem;
+      color: #94a3b8;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 0.75rem 1.5rem;
+      background: #1e293b;
+      border: 2px solid transparent;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .tab:hover {
+      background: #334155;
+    }
+
+    .tab.active {
+      background: #2563eb;
+      border-color: #3b82f6;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      border: 1px solid #334155;
+      transition: all 0.2s;
+    }
+
+    .card:hover {
+      border-color: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-description {
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: #334155;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-right: 0.5rem;
+    }
+
+    .badge.rare {
+      background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+      color: #1e293b;
+    }
+
+    .badge.epic {
+      background: linear-gradient(135deg, #fb923c 0%, #fdba74 100%);
+      color: #1e293b;
+    }
+
+    .badge.legendary {
+      background: linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%);
+      color: #1e293b;
+    }
+
+    .button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    .button:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .button-secondary {
+      background: #334155;
+    }
+
+    .button-secondary:hover {
+      background: #475569;
+    }
+
+    .nft-preview {
+      width: 100%;
+      height: 250px;
+      background: #334155;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+
+    .nft-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+
+    .form-input {
+      width: 100%;
+      background: #334155;
+      border: 1px solid #475569;
+      border-radius: 0.5rem;
+      color: #ffffff;
+      padding: 0.75rem;
+      font-family: inherit;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+
+    .form-select {
+      width: 100%;
+      background: #334155;
+      border: 1px solid #475569;
+      border-radius: 0.5rem;
+      color: #ffffff;
+      padding: 0.75rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .color-picker-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .color-picker {
+      width: 50px;
+      height: 50px;
+      border: 2px solid #475569;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .stat-item {
+      background: #334155;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: #94a3b8;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin-top: 1rem;
+    }
+
+    .feature-list li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+
+    .code-block {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+
+    .marketplace-item {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      background: #334155;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .marketplace-item-image {
+      width: 100px;
+      height: 100px;
+      background: #1e293b;
+      border-radius: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .marketplace-item-info {
+      flex: 1;
+    }
+
+    .marketplace-item-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .marketplace-item-price {
+      color: #22c55e;
+      font-weight: 700;
+      font-size: 1.125rem;
+    }
+
+    .alert {
+      padding: 1rem;
+      background: #2563eb;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .alert-success {
+      background: #22c55e;
+    }
+
+    .alert-warning {
+      background: #f59e0b;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .tab-content.active {
+      animation: fadeIn 0.3s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🎨 Metaverse NFT System Demo</h1>
+      <p>Explore tradeable NFTs, user-generated items, and procedural animation art</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-tab="overview">📊 Overview</div>
+      <div class="tab" data-tab="nfts">🎨 Browse NFTs</div>
+      <div class="tab" data-tab="create">✨ Create Item</div>
+      <div class="tab" data-tab="marketplace">🏪 Marketplace</div>
+      <div class="tab" data-tab="bridge">🌉 Chat Bridge</div>
+      <div class="tab" data-tab="technical">🔧 Technical</div>
+    </div>
+
+    <!-- Overview Tab -->
+    <div class="tab-content active" id="overview">
+      <div class="alert">
+        <span style="font-size: 1.5rem;">ℹ️</span>
+        <div>
+          <strong>Welcome to the LightDom Metaverse NFT System!</strong><br>
+          This demo showcases the complete NFT ecosystem with tradeable items, user-generated content, and real-time chat bridges.
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card-title">🎨 NFT Items</div>
+          <div class="card-description">
+            ERC1155 multi-token standard with support for avatars, tools, pets, buildings, and more. Each item features procedurally generated animation art.
+          </div>
+          <ul class="feature-list">
+            <li>✅ 8 item categories</li>
+            <li>✅ 6 rarity levels</li>
+            <li>✅ Mining power bonuses</li>
+            <li>✅ Animated SVG art</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🏪 Marketplace</div>
+          <div class="card-description">
+            Full-featured marketplace supporting fixed price sales, auctions, and offer systems with 2.5% platform fee.
+          </div>
+          <ul class="feature-list">
+            <li>✅ Fixed price listings</li>
+            <li>✅ Auction system</li>
+            <li>✅ Offer/counter-offer</li>
+            <li>✅ Batch operations</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-title">✨ User-Generated</div>
+          <div class="card-description">
+            Create custom metaverse items using templates with validation, preview, and automated minting workflow.
+          </div>
+          <ul class="feature-list">
+            <li>✅ 5 item templates</li>
+            <li>✅ Live preview</li>
+            <li>✅ Validation system</li>
+            <li>✅ IPFS integration</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🌉 Chat Bridges</div>
+          <div class="card-description">
+            Real-time communication through mined storage bridges connecting LightDOM nodes across the metaverse.
+          </div>
+          <ul class="feature-list">
+            <li>✅ WebSocket connection</li>
+            <li>✅ Multi-bridge support</li>
+            <li>✅ Chrome extension integration</li>
+            <li>✅ Persistent messaging</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">25+</div>
+          <div class="stat-label">NFT Items</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">6</div>
+          <div class="stat-label">Rarity Levels</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">5</div>
+          <div class="stat-label">Item Templates</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">100%</div>
+          <div class="stat-label">On-Chain</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NFTs Tab -->
+    <div class="tab-content" id="nfts">
+      <h2 style="margin-bottom: 1.5rem;">🎨 Available NFT Items</h2>
+
+      <div class="grid">
+        <div class="card">
+          <div class="nft-preview">
+            <div style="text-align: center; color: #94a3b8;">
+              <div style="font-size: 3rem;">🎭</div>
+              <div>Cyber Visor</div>
+            </div>
+          </div>
+          <div class="card-title">Cyber Visor</div>
+          <div class="card-description">
+            Advanced heads-up display for metaverse navigation
+          </div>
+          <div>
+            <span class="badge rare">Rare</span>
+            <span class="badge">Avatar</span>
+          </div>
+          <div style="margin-top: 1rem;">
+            <div style="color: #94a3b8; font-size: 0.875rem;">Mining Power Bonus</div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: #22c55e;">+25</div>
+          </div>
+          <button class="button">Mint for 0.01 ETH</button>
+          <button class="button button-secondary">View Details</button>
+        </div>
+
+        <div class="card">
+          <div class="nft-preview">
+            <div style="text-align: center; color: #94a3b8;">
+              <div style="font-size: 3rem;">⚡</div>
+              <div>Quantum Miner</div>
+            </div>
+          </div>
+          <div class="card-title">Quantum Miner</div>
+          <div class="card-description">
+            Increases mining efficiency by 50%
+          </div>
+          <div>
+            <span class="badge epic">Epic</span>
+            <span class="badge">Tool</span>
+          </div>
+          <div style="margin-top: 1rem;">
+            <div style="color: #94a3b8; font-size: 0.875rem;">Mining Power Bonus</div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: #22c55e;">+50</div>
+          </div>
+          <button class="button">Mint for 0.05 ETH</button>
+          <button class="button button-secondary">View Details</button>
+        </div>
+
+        <div class="card">
+          <div class="nft-preview">
+            <div style="text-align: center; color: #94a3b8;">
+              <div style="font-size: 3rem;">🐉</div>
+              <div>Data Dragon</div>
+            </div>
+          </div>
+          <div class="card-title">Data Dragon</div>
+          <div class="card-description">
+            A loyal companion that helps optimize code
+          </div>
+          <div>
+            <span class="badge legendary">Legendary</span>
+            <span class="badge">Pet</span>
+          </div>
+          <div style="margin-top: 1rem;">
+            <div style="color: #94a3b8; font-size: 0.875rem;">Mining Power Bonus</div>
+            <div style="font-size: 1.25rem; font-weight: 700; color: #22c55e;">+100</div>
+          </div>
+          <button class="button">Mint for 0.1 ETH</button>
+          <button class="button button-secondary">View Details</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Item Tab -->
+    <div class="tab-content" id="create">
+      <h2 style="margin-bottom: 1.5rem;">✨ Create Your Own Metaverse Item</h2>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div class="card">
+          <h3 style="margin-bottom: 1.5rem;">Item Details</h3>
+
+          <div class="form-group">
+            <label class="form-label">Template</label>
+            <select class="form-select" id="templateSelect">
+              <option value="avatar-basic">Avatar Item</option>
+              <option value="tool-basic">Mining Tool</option>
+              <option value="pet-basic">Companion Pet</option>
+              <option value="building-basic">Building</option>
+              <option value="art-basic">Art Piece</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Item Name</label>
+            <input type="text" class="form-input" id="itemName" placeholder="My Awesome Item" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" id="itemDescription" rows="3" 
+                      placeholder="Describe your item..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Color Palette (up to 5 colors)</label>
+            <div class="color-picker-group">
+              <input type="color" class="color-picker" value="#667eea" />
+              <input type="color" class="color-picker" value="#764ba2" />
+              <input type="color" class="color-picker" value="#f093fb" />
+              <input type="color" class="color-picker" value="#4facfe" />
+              <input type="color" class="color-picker" value="#00f2fe" />
+            </div>
+          </div>
+
+          <button class="button" onclick="generatePreview()">🎨 Generate Preview</button>
+          <button class="button" onclick="createItem()">✨ Create Item (0.01 ETH)</button>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom: 1.5rem;">Preview</h3>
+
+          <div class="nft-preview" id="previewArea">
+            <div style="text-align: center; color: #94a3b8;">
+              <div style="font-size: 3rem;">🎨</div>
+              <div>Click "Generate Preview" to see your item</div>
+            </div>
+          </div>
+
+          <div style="background: #334155; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem;">
+            <h4 style="margin-bottom: 0.5rem;">Item Attributes</h4>
+            <div style="font-size: 0.875rem; color: #cbd5e1;">
+              <p style="margin: 0.5rem 0;"><strong>Rarity:</strong> Uncommon</p>
+              <p style="margin: 0.5rem 0;"><strong>Mining Power:</strong> +10</p>
+              <p style="margin: 0.5rem 0;"><strong>Max Supply:</strong> 100</p>
+              <p style="margin: 0.5rem 0;"><strong>User Generated:</strong> Yes</p>
+            </div>
+          </div>
+
+          <div class="alert alert-success" style="margin-top: 1rem; font-size: 0.875rem;">
+            <span>✅</span>
+            <div>Your item will be automatically uploaded to IPFS and minted as an NFT on the blockchain.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Marketplace Tab -->
+    <div class="tab-content" id="marketplace">
+      <h2 style="margin-bottom: 1.5rem;">🏪 NFT Marketplace</h2>
+
+      <div class="marketplace-item">
+        <div class="marketplace-item-image">
+          <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 2rem;">
+            🎭
+          </div>
+        </div>
+        <div class="marketplace-item-info">
+          <div class="marketplace-item-title">Cyber Visor #42</div>
+          <div style="color: #94a3b8; font-size: 0.875rem; margin: 0.25rem 0;">
+            <span class="badge rare">Rare</span>
+            Seller: 0x1234...5678
+          </div>
+          <div class="marketplace-item-price">0.012 ETH</div>
+          <button class="button" style="margin-top: 0.5rem; width: auto; padding: 0.5rem 1rem;">
+            Buy Now
+          </button>
+        </div>
+      </div>
+
+      <div class="marketplace-item">
+        <div class="marketplace-item-image">
+          <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 2rem;">
+            ⚡
+          </div>
+        </div>
+        <div class="marketplace-item-info">
+          <div class="marketplace-item-title">Quantum Miner #18</div>
+          <div style="color: #94a3b8; font-size: 0.875rem; margin: 0.25rem 0;">
+            <span class="badge epic">Epic</span>
+            Auction ends in 2h 15m
+          </div>
+          <div class="marketplace-item-price">Current Bid: 0.048 ETH</div>
+          <button class="button" style="margin-top: 0.5rem; width: auto; padding: 0.5rem 1rem;">
+            Place Bid
+          </button>
+        </div>
+      </div>
+
+      <div class="marketplace-item">
+        <div class="marketplace-item-image">
+          <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 2rem;">
+            🏠
+          </div>
+        </div>
+        <div class="marketplace-item-info">
+          <div class="marketplace-item-title">Custom Neon Building #7</div>
+          <div style="color: #94a3b8; font-size: 0.875rem; margin: 0.25rem 0;">
+            <span class="badge">Uncommon</span>
+            <span class="badge">User Generated</span>
+            Seller: 0x9abc...def0
+          </div>
+          <div class="marketplace-item-price">0.015 ETH</div>
+          <button class="button" style="margin-top: 0.5rem; width: auto; padding: 0.5rem 1rem;">
+            Make Offer
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Bridge Tab -->
+    <div class="tab-content" id="bridge">
+      <h2 style="margin-bottom: 1.5rem;">🌉 Chat Bridge Demo</h2>
+
+      <div class="alert alert-warning">
+        <span>⚠️</span>
+        <div>
+          <strong>Chrome Extension Required</strong><br>
+          Install the LightDom Chrome extension to access the full Chat Bridge functionality.
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card-title">Bridge Features</div>
+          <div class="card-description">
+            Connect Light DOM nodes across the metaverse through mined storage bridges
+          </div>
+          <ul class="feature-list">
+            <li>💬 Real-time chat</li>
+            <li>📊 Data transfer</li>
+            <li>🎯 Asset sharing</li>
+            <li>⚡ Cross-chain computing</li>
+          </ul>
+          <div class="code-block">
+// Create a bridge
+const bridge = await chatBridge.createBridge(
+  'LightDOM',
+  'DigitalRealm',
+  'isolated_dom_123'
+);
+
+// Send a message
+chatBridge.sendChatMessage(
+  bridge.id,
+  'Hello metaverse!'
+);
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Active Bridges</div>
+          <div class="card-description">
+            Currently connected bridges in the metaverse
+          </div>
+          <div style="margin-top: 1rem;">
+            <div style="background: #334155; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem;">
+              <div style="font-weight: 600;">LightDOM → DigitalRealm</div>
+              <div style="font-size: 0.875rem; color: #94a3b8; margin-top: 0.25rem;">
+                <span class="badge" style="background: #22c55e;">Active</span>
+                👥 5 users
+              </div>
+            </div>
+            <div style="background: #334155; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem;">
+              <div style="font-weight: 600;">LightDOM → KnowledgeArchive</div>
+              <div style="font-size: 0.875rem; color: #94a3b8; margin-top: 0.25rem;">
+                <span class="badge" style="background: #22c55e;">Active</span>
+                👥 3 users
+              </div>
+            </div>
+          </div>
+          <button class="button">Open Chat Bridge UI</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Tab -->
+    <div class="tab-content" id="technical">
+      <h2 style="margin-bottom: 1.5rem;">🔧 Technical Implementation</h2>
+
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-title">Smart Contracts</div>
+        <div class="card-description">
+          Solidity contracts implementing the NFT and marketplace systems
+        </div>
+        <div class="code-block">
+// MetaverseItemNFT.sol - ERC1155 Multi-token
+contract MetaverseItemNFT is ERC1155, Ownable, ReentrancyGuard {
+  // Support for user-generated items
+  function createUserItem(
+    string memory name,
+    string memory description,
+    ItemCategory category,
+    string memory animationURI
+  ) external payable returns (uint256)
+
+  // Mint with mining power bonuses
+  function mintItem(
+    address to,
+    uint256 itemId,
+    uint256 amount
+  ) external payable nonReentrant
+}
+
+// MetaverseMarketplace.sol - Trading platform
+contract MetaverseMarketplace is ReentrancyGuard, Ownable {
+  // Fixed price, auctions, and offers
+  function createListing(...) external returns (uint256)
+  function createAuction(...) external returns (uint256)
+  function makeOffer(...) external payable
+}
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-title">LightDom Encapsulation</div>
+        <div class="card-description">
+          Shadow DOM-like encapsulation for Light DOM elements
+        </div>
+        <div class="code-block">
+// Create isolated LightDOM root
+const root = lightDomEncapsulation.createRoot(
+  hostElement,
+  isolated: true
+);
+
+// Create optimized slots
+const slot = lightDomEncapsulation.createSlot(
+  root,
+  'content-slot',
+  'aggressive' // optimization level
+);
+
+// Export for metaverse bridges
+const serialized = lightDomEncapsulation.exportRoot(root);
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-title">Animation Generator</div>
+        <div class="card-description">
+          Procedural SVG animation art with rarity-based complexity
+        </div>
+        <div class="code-block">
+// Generate animated NFT art
+const animation = nftAnimationGenerator.generateAnimation(
+  'Cyber Visor',
+  {
+    rarity: 'rare',
+    category: 'avatar',
+    colors: ['#667eea', '#764ba2'],
+    patterns: ['geometric'],
+    effects: ['glow']
+  }
+);
+
+// Generate metadata
+const metadata = nftAnimationGenerator.generateMetadata(
+  itemName,
+  description,
+  config,
+  animation.dataURI
+);
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card-title">Architecture</div>
+          <ul class="feature-list">
+            <li>✅ ERC1155 multi-token standard</li>
+            <li>✅ OpenZeppelin security</li>
+            <li>✅ IPFS metadata storage</li>
+            <li>✅ WebSocket real-time chat</li>
+            <li>✅ Procedural art generation</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Security</div>
+          <ul class="feature-list">
+            <li>✅ ReentrancyGuard</li>
+            <li>✅ Access control</li>
+            <li>✅ Input validation</li>
+            <li>✅ Safe math operations</li>
+            <li>✅ Audited contracts</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        
+        // Update active tab
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Update active content
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        document.getElementById(tabName).classList.add('active');
+      });
+    });
+
+    // Demo functions
+    function generatePreview() {
+      const name = document.getElementById('itemName').value || 'Preview Item';
+      const previewArea = document.getElementById('previewArea');
+      
+      previewArea.innerHTML = `
+        <div style="text-align: center; color: #94a3b8;">
+          <div style="font-size: 3rem; animation: pulse 2s infinite;">✨</div>
+          <div style="margin-top: 0.5rem; font-weight: 600;">${name}</div>
+          <div style="font-size: 0.875rem; margin-top: 0.25rem;">Generating preview...</div>
+        </div>
+      `;
+
+      setTimeout(() => {
+        previewArea.innerHTML = `
+          <div style="text-align: center; color: #f8fafc;">
+            <div style="font-size: 4rem; animation: pulse 2s infinite;">🎨</div>
+            <div style="margin-top: 0.5rem; font-weight: 600;">${name}</div>
+            <div style="font-size: 0.875rem; color: #22c55e; margin-top: 0.25rem;">✅ Preview ready!</div>
+          </div>
+        `;
+      }, 1500);
+    }
+
+    function createItem() {
+      const name = document.getElementById('itemName').value;
+      
+      if (!name) {
+        alert('Please enter an item name');
+        return;
+      }
+
+      alert(`Item "${name}" created successfully!\n\nIn production, this would:\n1. Generate animation art\n2. Upload to IPFS\n3. Mint NFT on blockchain\n4. Add to your inventory`);
+    }
+
+    // Add pulse animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
