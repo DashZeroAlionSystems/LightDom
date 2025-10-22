@@ -169,7 +169,7 @@ const SecuritySettings: React.FC = () => {
             <div className="key-info">
               <span className="key-name">Production API Key</span>
               <span className="key-value">
-                {showSecrets ? 'sk_live_abcd1234efgh5678ijkl9012' : '••••••••••••••••••••9012'}
+                {showSecrets ? (process.env.REACT_APP_STRIPE_SECRET_KEY || 'Not configured') : '••••••••••••••••••••••••'}
               </span>
             </div>
             <div className="key-actions">

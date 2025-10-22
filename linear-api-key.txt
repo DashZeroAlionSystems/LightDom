@@ -1,1 +1,3 @@
-lin_api_QQTPVGsbC73Md5wvK3zo5HjhoMfxHhf6Rgp2PBgC
+# Add your Linear API key here
+# Get it from: https://linear.app/settings/api
+# Then set it as an environment variable: LINEAR_API_KEY=your_key_here

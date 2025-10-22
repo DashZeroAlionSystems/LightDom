@@ -339,6 +339,12 @@ kibana/data/
 !.env.example
 !.env.template
 
+# API Keys and Secrets
+linear-api-key.txt
+*-key.txt
+*secret*.txt
+*api-key*.txt
+
 # API keys and secrets
 secrets/
 *.secret
