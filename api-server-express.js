@@ -310,6 +310,25 @@ class DOMSpaceHarvesterAPI {
     }).catch(err => {
       console.error('Failed to load SEO routes:', err);
     });
+
+    // Import and register Automation Orchestration routes
+    import('./src/api/automationOrchestrationApi.js').then(async (autoModule) => {
+      const api = autoModule.automationOrchestrationAPIJS;
+      await api.initialize();
+
+      this.app.post('/api/automation/workflow/start', api.startWorkflow.bind(api));
+      this.app.post('/api/automation/workflow/stop', api.stopWorkflow.bind(api));
+      this.app.get('/api/automation/workflow/:jobId', api.getWorkflowStatus.bind(api));
+      this.app.get('/api/automation/workflows', api.listWorkflows.bind(api));
+      this.app.get('/api/automation/jobs', api.listJobs.bind(api));
+      this.app.post('/api/automation/autopilot/start', api.startAutopilot.bind(api));
+      this.app.get('/api/automation/metrics', api.getMetrics.bind(api));
+      this.app.get('/api/automation/health', api.getHealth.bind(api));
+
+      console.log('✅ Automation Orchestration API routes registered');
+    }).catch(err => {
+      console.error('Failed to load Automation Orchestration API:', err);
+    });
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
