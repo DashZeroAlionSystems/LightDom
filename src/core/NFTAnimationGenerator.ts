@@ -246,10 +246,8 @@ export class NFTAnimationGenerator {
    */
   private generatePolygonPoints(cx: number, cy: number, size: number, sides: number): string {
     const points: string[] = [];
-    // Limit sides to prevent potential DoS
-    const safeSides = Math.min(Math.max(3, sides), 20);
-    for (let i = 0; i < safeSides; i++) {
-      const angle = (Math.PI * 2 * i) / safeSides;
+    for (let i = 0; i < sides; i++) {
+      const angle = (Math.PI * 2 * i) / sides;
       const x = cx + size * Math.cos(angle);
       const y = cy + size * Math.sin(angle);
       points.push(`${x.toFixed(2)},${y.toFixed(2)}`);
@@ -387,11 +385,8 @@ export class NFTAnimationGenerator {
    */
   private hashString(str: string): number {
     let hash = 0;
-    // Limit string length to prevent potential DoS
-    const safeStr = str.slice(0, 1000);
-    const length = Math.min(safeStr.length, 1000);
-    for (let i = 0; i < length; i++) {
-      const char = safeStr.charCodeAt(i);
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
       hash = hash & hash;
     }

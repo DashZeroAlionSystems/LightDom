@@ -1,5 +1,5 @@
 /**
- * Admin Dashboard Component - Simplified Test Version
+ * Admin Dashboard Component - Comprehensive Admin Overview
  */
 
 import React, { useState, useEffect } from 'react';
@@ -26,7 +26,11 @@ import {
   Drawer,
   Avatar,
   Spin,
-  Empty
+  Empty,
+  Statistic,
+  Progress,
+  List,
+  Divider
 } from 'antd';
 import {
   SettingOutlined,
@@ -46,19 +50,27 @@ import {
   InfoCircleOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
-  WarningOutlined,
   ClockCircleOutlined,
   UserOutlined,
-  DownloadOutlined,
-  UploadOutlined,
   FileTextOutlined,
   LockOutlined,
-  UnlockOutlined,
-  EyeOutlined,
-  EyeInvisibleOutlined
+  ArrowLeftOutlined,
+  DashboardOutlined,
+  TeamOutlined,
+  DollarOutlined,
+  FileTextOutlined as LogsOutlined,
+  BarChartOutlined,
+  GlobalOutlined,
+  DatabaseOutlined as DbOutlined,
+  SettingOutlined as ConfigOutlined
 } from '@ant-design/icons';
-import { adminSettingsService } from '../../../services/api/AdminSettingsService';
-import { AdminSettings, SettingsChangeLog } from '../../../types/api/AdminSettingsTypes';
+import { adminSettingsService } from '../../../services/AdminSettingsService';
+import { AdminSettings, SettingsChangeLog } from '../../../types/AdminSettingsTypes';
+import UserManagement from './UserManagement';
+import BillingManagement from './BillingManagement';
+import SystemLogs from './SystemLogs';
+import SystemMonitoring from './SystemMonitoring';
+import SettingsOverview from './SettingsOverview';
 import './AdminDashboard.css';
 
 const { TabPane } = Tabs;
@@ -67,24 +79,54 @@ const { TextArea } = Input;
 
 interface AdminDashboardProps {
   className?: string;
+  onBack?: () => void;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ className }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ className, onBack }) => {
   const [form] = Form.useForm();
   const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('general');
+  const [activeTab, setActiveTab] = useState<string>('overview');
   const [changeLogVisible, setChangeLogVisible] = useState(false);
   const [changeLog, setChangeLog] = useState<SettingsChangeLog[]>([]);
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [importData, setImportData] = useState('');
   const [passwordVisible, setPasswordVisible] = useState<Record<string, boolean>>({});
+  const [systemStats, setSystemStats] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    totalOptimizations: 0,
+    systemUptime: '99.9%',
+    storageUsed: 0,
+    storageTotal: 100,
+    apiCalls: 0,
+    errors: 0
+  });
 
   useEffect(() => {
     loadSettings();
     loadChangeLog();
+    loadSystemStats();
   }, []);
+
+  const loadSystemStats = async () => {
+    try {
+      // Simulate loading system stats
+      setSystemStats({
+        totalUsers: 1250,
+        activeUsers: 890,
+        totalOptimizations: 15600,
+        systemUptime: '99.9%',
+        storageUsed: 75,
+        storageTotal: 100,
+        apiCalls: 45600,
+        errors: 12
+      });
+    } catch (error) {
+      console.error('Failed to load system stats:', error);
+    }
+  };
 
   const loadSettings = () => {
     setLoading(true);
@@ -407,6 +449,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className }) => {
     );
   };
 
+  const adminTabs = [
+    { key: 'overview', name: 'Overview', icon: <DashboardOutlined />, component: null },
+    { key: 'users', name: 'User Management', icon: <TeamOutlined />, component: <UserManagement /> },
+    { key: 'billing', name: 'Billing', icon: <DollarOutlined />, component: <BillingManagement /> },
+    { key: 'logs', name: 'System Logs', icon: <LogsOutlined />, component: <SystemLogs /> },
+    { key: 'monitoring', name: 'Monitoring', icon: <BarChartOutlined />, component: <SystemMonitoring /> },
+    { key: 'settings', name: 'Settings', icon: <ConfigOutlined />, component: <SettingsOverview /> }
+  ];
+
   const categories = [
     { key: 'general', name: 'General', icon: <SettingOutlined /> },
     { key: 'performance', name: 'Performance', icon: <ThunderboltOutlined /> },
@@ -418,6 +469,154 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className }) => {
     { key: 'email', name: 'Email', icon: <MailOutlined /> },
     { key: 'monitoring', name: 'Monitoring', icon: <MonitorOutlined /> }
   ];
+
+  const renderAdminOverview = () => (
+    <div>
+      {/* System Stats */}
+      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        <Col xs={24} sm={12} md={6}>
+          <Card>
+            <Statistic
+              title="Total Users"
+              value={systemStats.totalUsers}
+              prefix={<UserOutlined />}
+              valueStyle={{ color: '#3f8600' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card>
+            <Statistic
+              title="Active Users"
+              value={systemStats.activeUsers}
+              prefix={<CheckCircleOutlined />}
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card>
+            <Statistic
+              title="Optimizations"
+              value={systemStats.totalOptimizations}
+              prefix={<ThunderboltOutlined />}
+              valueStyle={{ color: '#722ed1' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card>
+            <Statistic
+              title="System Uptime"
+              value={systemStats.systemUptime}
+              prefix={<GlobalOutlined />}
+              valueStyle={{ color: '#52c41a' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Storage and Performance */}
+      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        <Col xs={24} md={12}>
+          <Card title="Storage Usage" extra={<DbOutlined />}>
+            <Progress
+              percent={systemStats.storageUsed}
+              status={systemStats.storageUsed > 80 ? 'exception' : 'active'}
+              strokeColor={{
+                '0%': '#108ee9',
+                '100%': '#87d068',
+              }}
+            />
+            <Text type="secondary">
+              {systemStats.storageUsed}GB used of {systemStats.storageTotal}GB total
+            </Text>
+          </Card>
+        </Col>
+        <Col xs={24} md={12}>
+          <Card title="API Performance" extra={<ApiOutlined />}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <div>
+                <Text strong>API Calls Today: </Text>
+                <Text>{systemStats.apiCalls.toLocaleString()}</Text>
+              </div>
+              <div>
+                <Text strong>Errors: </Text>
+                <Text type={systemStats.errors > 10 ? 'danger' : 'success'}>
+                  {systemStats.errors}
+                </Text>
+              </div>
+              <Progress
+                percent={((systemStats.apiCalls - systemStats.errors) / systemStats.apiCalls) * 100}
+                status="active"
+                strokeColor="#52c41a"
+              />
+            </Space>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Quick Actions */}
+      <Card title="Quick Actions" style={{ marginBottom: '24px' }}>
+        <Row gutter={[16, 16]}>
+          {adminTabs.slice(1).map((tab) => (
+            <Col xs={24} sm={12} md={8} lg={6} key={tab.key}>
+              <Card
+                hoverable
+                onClick={() => setActiveTab(tab.key)}
+                style={{ textAlign: 'center' }}
+              >
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <div style={{ fontSize: '24px', color: '#1890ff' }}>
+                    {tab.icon}
+                  </div>
+                  <Text strong>{tab.name}</Text>
+                </Space>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Card>
+
+      {/* Recent Activity */}
+      <Card title="Recent Activity" extra={<HistoryOutlined />}>
+        <List
+          dataSource={[
+            { action: 'User registration', user: 'john.doe@example.com', time: '2 minutes ago', type: 'success' },
+            { action: 'System optimization completed', user: 'System', time: '5 minutes ago', type: 'info' },
+            { action: 'Billing payment processed', user: 'jane.smith@example.com', time: '10 minutes ago', type: 'success' },
+            { action: 'API error detected', user: 'System', time: '15 minutes ago', type: 'error' },
+            { action: 'Settings updated', user: 'admin@lightdom.com', time: '1 hour ago', type: 'info' }
+          ]}
+          renderItem={item => (
+            <List.Item>
+              <List.Item.Meta
+                avatar={
+                  <Avatar
+                    style={{
+                      backgroundColor: item.type === 'success' ? '#52c41a' : 
+                                     item.type === 'error' ? '#ff4d4f' : '#1890ff'
+                    }}
+                  >
+                    {item.type === 'success' ? <CheckCircleOutlined /> :
+                     item.type === 'error' ? <ExclamationCircleOutlined /> : <InfoCircleOutlined />}
+                  </Avatar>
+                }
+                title={item.action}
+                description={
+                  <Space>
+                    <Text type="secondary">{item.user}</Text>
+                    <Divider type="vertical" />
+                    <Text type="secondary">{item.time}</Text>
+                  </Space>
+                }
+              />
+            </List.Item>
+          )}
+        />
+      </Card>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -432,11 +631,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className }) => {
 
   return (
     <div className={`admin-dashboard ${className || ''}`}>
+      {/* Header with Back Button */}
       <Card style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <Title level={3} style={{ margin: 0 }}>
-            <SettingOutlined /> Admin Dashboard
-          </Title>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {onBack && (
+              <Button
+                icon={<ArrowLeftOutlined />}
+                onClick={onBack}
+                type="text"
+                size="large"
+              >
+                Back
+              </Button>
+            )}
+            <Title level={3} style={{ margin: 0 }}>
+              <DashboardOutlined /> Admin Dashboard
+            </Title>
+          </div>
           <Space>
             <Button
               icon={<HistoryOutlined />}
@@ -463,42 +675,59 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className }) => {
             >
               Reset
             </Button>
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              loading={saving}
-              onClick={handleSave}
-              size="large"
-            >
-              Save Settings
-            </Button>
+            {activeTab === 'settings' && (
+              <Button
+                type="primary"
+                icon={<SaveOutlined />}
+                loading={saving}
+                onClick={handleSave}
+                size="large"
+              >
+                Save Settings
+              </Button>
+            )}
           </Space>
         </div>
 
         <Alert
-          message="Admin Settings"
-          description="Configure all application settings from this centralized dashboard. Changes are automatically validated and logged."
+          message="Admin Dashboard"
+          description="Manage users, monitor system performance, and configure application settings from this centralized admin panel."
           type="info"
           showIcon
           style={{ marginBottom: '24px' }}
         />
 
-        <Form form={form} layout="vertical">
-          <Tabs
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            type="card"
-            size="large"
-          >
-            {categories.map(category => 
-              renderCategory(
-                category.key as keyof AdminSettings,
-                category.name,
-                category.icon
-              )
-            )}
-          </Tabs>
-        </Form>
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          type="card"
+          size="large"
+        >
+          {adminTabs.map(tab => (
+            <TabPane
+              tab={
+                <Space>
+                  {tab.icon}
+                  <span>{tab.name}</span>
+                </Space>
+              }
+              key={tab.key}
+            >
+              {tab.key === 'overview' ? renderAdminOverview() : tab.component}
+              {tab.key === 'settings' && (
+                <Form form={form} layout="vertical">
+                  {categories.map(category => 
+                    renderCategory(
+                      category.key as keyof AdminSettings,
+                      category.name,
+                      category.icon
+                    )
+                  )}
+                </Form>
+              )}
+            </TabPane>
+          ))}
+        </Tabs>
       </Card>
 
       {/* Change Log Drawer */}
@@ -519,7 +748,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className }) => {
           <Empty description="No changes recorded" />
         ) : (
           <Timeline>
-            {changeLog.slice(0, 50).map((change, index) => (
+            {changeLog.slice(0, 50).map((change) => (
               <Timeline.Item
                 key={change.id}
                 dot={

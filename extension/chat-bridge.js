@@ -116,10 +116,7 @@ class ChatBridge {
     try {
       const message = JSON.parse(data);
       
-      // Sanitize message type
-      const messageType = String(message.type || '').slice(0, 50);
-      
-      switch (messageType) {
+      switch (message.type) {
         case 'chat_message':
           this.handleChatMessage(message);
           break;
@@ -137,14 +134,9 @@ class ChatBridge {
           break;
         
         default:
-          console.log('Unknown message type');
+          console.log('Unknown message type:', message.type);
       }
     } catch (error) {
-      console.error('Error parsing WebSocket message:', error);
-    }
-  }
-
-  /**
    * Handle chat message
    */
   handleChatMessage(message) {
@@ -194,13 +186,11 @@ class ChatBridge {
    * Handle user joined event
    */
   handleUserJoined(message) {
-    const bridgeId = String(message.bridgeId || '').slice(0, 100);
-    const user = String(message.user || '').slice(0, 100);
-    console.log('User joined bridge:', { bridgeId, user });
+    console.log(`👋 User joined bridge ${message.bridgeId}:`, message.user);
     
     this.notifyUI('user_joined', {
-      bridgeId: bridgeId,
-      user: user
+      bridgeId: message.bridgeId,
+      user: message.user
     });
   }
 
@@ -208,6 +198,7 @@ class ChatBridge {
    * Handle user left event
    */
   handleUserLeft(message) {
+<<<<<<< HEAD
     const bridgeId = String(message.bridgeId || '').slice(0, 100);
     const user = String(message.user || '').slice(0, 100);
     console.log('User left bridge:', { bridgeId, user });
@@ -215,16 +206,13 @@ class ChatBridge {
     this.notifyUI('user_left', {
       bridgeId: bridgeId,
       user: user
-    });
-  }
-
-  /**
+=======
+    console.log(`👋 User left bridge ${message.bridgeId}:`, message.user);
    * Create a new bridge
    */
   async createBridge(sourceDomain, targetDomain, isolatedDomId) {
     const bridgeId = `bridge_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    const bridge = {
       id: bridgeId,
       sourceDomain,
       targetDomain,

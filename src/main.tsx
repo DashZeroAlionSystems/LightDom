@@ -85,7 +85,7 @@ const App = () => {
     } else if (currentPath === '/register') {
       return <RegisterPage />;
     } else if (currentPath === '/pricing') {
-      return <LandingPage onGetStarted={() => handleNavigate('/register')} onLogin={() => handleNavigate('/login')} onPricing={() => {}} />;
+      return <LandingPage />;
     } else if (currentPath === '/dashboard') {
       return (
         <Guarded>
@@ -96,9 +96,12 @@ const App = () => {
       );
     } else if (currentPath === '/admin') {
       console.log('Rendering admin dashboard, currentPath:', currentPath);
+      const goBack = () => {
+        setCurrentPath('/dashboard');
+      };
       return (
         <Guarded requireAdmin>
-          <AdminDashboard />
+          <AdminDashboard onBack={goBack} />
         </Guarded>
       );
     }
@@ -117,13 +120,13 @@ const App = () => {
         </React.Suspense>
       );
     } else if (currentPath === '/dashboard') {
-      return <SimpleDashboard />;
+      return <DashboardOverview />;
     } else if (currentPath.startsWith('/bridge/')) {
       const bridgeId = currentPath.split('/bridge/')[1] || '';
       return (
         <div>
           <BackButton onBack={goBack} className="mb-4" />
-          <BridgeChatPage bridgeId={bridgeId} />
+          <div>Bridge Chat Page - {bridgeId}</div>
         </div>
       );
     } else if (currentPath === '/space-mining') {
@@ -187,9 +190,9 @@ const App = () => {
           </div>
         );
       } else if (currentPath === '/') {
-      return <LandingPage onGetStarted={() => handleNavigate('/register')} onLogin={() => handleNavigate('/login')} onPricing={() => handleNavigate('/pricing')} />;
+      return <LandingPage />;
     } else {
-      return <LandingPage onGetStarted={() => handleNavigate('/register')} onLogin={() => handleNavigate('/login')} onPricing={() => handleNavigate('/pricing')} />;
+      return <LandingPage />;
     }
   };
 

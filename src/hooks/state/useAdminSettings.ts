@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { adminSettingsService } from '../services/AdminSettingsService';
-import { AdminSettings, SettingsValidationResult, SettingsChangeLog } from '../types/AdminSettingsTypes';
+import { adminSettingsService } from '../../services/AdminSettingsService';
+import { AdminSettings, SettingsValidationResult, SettingsChangeLog } from '../../types/AdminSettingsTypes';
 
 export interface UseAdminSettingsReturn {
   settings: AdminSettings | null;
