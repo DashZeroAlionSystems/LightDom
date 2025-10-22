@@ -310,6 +310,15 @@ class DOMSpaceHarvesterAPI {
     }).catch(err => {
       console.error('Failed to load SEO routes:', err);
     });
+    
+    // Import and register SEO Training routes
+    import('./src/api/seo-training.js').then((trainingModule) => {
+      this.app.use('/api/seo/training', trainingModule.default);
+      console.log('SEO training routes registered');
+    }).catch(err => {
+      console.error('Failed to load SEO training routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');

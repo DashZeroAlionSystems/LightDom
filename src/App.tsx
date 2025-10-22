@@ -19,6 +19,7 @@ import BlockchainModelStorageDashboard from './components/BlockchainModelStorage
 import SpaceOptimizationDashboard from './components/SpaceOptimizationDashboard';
 import { SEOOptimizationDashboard } from './components/SEOOptimizationDashboard';
 import { SEOModelMarketplace } from './components/SEOModelMarketplace';
+import { SEODataMiningDashboard } from './components/SEODataMiningDashboard';
 import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import PaymentPage from './components/payment/PaymentPage';
@@ -99,6 +100,7 @@ const AppContent: React.FC = () => {
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />
           <Route path="seo-optimization" element={<SEOOptimizationDashboard />} />
+          <Route path="seo-datamining" element={<SEODataMiningDashboard />} />
           <Route path="seo-marketplace" element={<SEOModelMarketplace />} />
           <Route path="analytics" element={<div>Analytics Coming Soon</div>} />
           <Route path="websites" element={<div>Websites Coming Soon</div>} />
