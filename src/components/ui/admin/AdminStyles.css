@@ -1,0 +1,349 @@
+/**
+ * Admin Dashboard Styles
+ * Comprehensive styling for the admin dashboard
+ */
+
+/* Admin Overview Styles */
+.admin-overview {
+  background: #f0f2f5;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.admin-overview .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.admin-overview .ant-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.admin-overview .ant-statistic-title {
+  color: #8c8c8c;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.admin-overview .ant-statistic-content {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+/* User Management Styles */
+.user-management {
+  padding: 24px;
+}
+
+.user-management .ant-table-wrapper {
+  background: white;
+  border-radius: 12px;
+}
+
+.user-management .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #262626;
+}
+
+.user-management .ant-table-tbody > tr:hover {
+  background: #f5f7fa;
+}
+
+.user-management .ant-tag {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Chart Styles */
+.admin-chart-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.admin-chart-card .ant-card-head {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+}
+
+.admin-chart-card .ant-card-head-title {
+  color: white;
+  font-weight: 600;
+}
+
+/* Quick Action Buttons */
+.admin-quick-actions .ant-btn {
+  height: 60px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.admin-quick-actions .ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.admin-quick-actions .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6a3f8e 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.admin-quick-actions .ant-btn:not(.ant-btn-primary):hover {
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+/* Activity Timeline */
+.admin-activity-timeline .ant-timeline-item {
+  padding-bottom: 16px;
+}
+
+.admin-activity-timeline .ant-timeline-item-content {
+  margin-left: 20px;
+}
+
+/* System Health Indicators */
+.system-health-indicator {
+  padding: 12px;
+  border-radius: 8px;
+  background: #fafafa;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.system-health-indicator:hover {
+  background: #f0f0f0;
+}
+
+.system-health-indicator.healthy {
+  border-left: 4px solid #52c41a;
+}
+
+.system-health-indicator.warning {
+  border-left: 4px solid #faad14;
+}
+
+.system-health-indicator.critical {
+  border-left: 4px solid #f5222d;
+}
+
+/* User Details Drawer */
+.user-details-drawer .ant-drawer-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom: none;
+}
+
+.user-details-drawer .ant-drawer-title {
+  color: white;
+}
+
+.user-details-drawer .ant-drawer-close {
+  color: white;
+}
+
+.user-details-drawer .ant-tabs-nav {
+  background: white;
+  padding: 0 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin-overview {
+    padding: 16px;
+  }
+
+  .user-management {
+    padding: 16px;
+  }
+
+  .admin-overview .ant-statistic-content {
+    font-size: 20px;
+  }
+
+  .admin-quick-actions .ant-btn {
+    height: 50px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  .admin-overview {
+    padding: 12px;
+  }
+
+  .user-management {
+    padding: 12px;
+  }
+
+  .admin-overview .ant-statistic-content {
+    font-size: 18px;
+  }
+
+  .admin-quick-actions .ant-btn {
+    height: 45px;
+    font-size: 13px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .admin-overview {
+    background: #141414;
+  }
+
+  .admin-overview .ant-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+
+  .user-management .ant-table {
+    background: #1f1f1f;
+    color: #e8e8e8;
+  }
+
+  .user-management .ant-table-thead > tr > th {
+    background: #262626;
+    color: #e8e8e8;
+    border-color: #303030;
+  }
+
+  .user-management .ant-table-tbody > tr {
+    border-color: #303030;
+  }
+
+  .user-management .ant-table-tbody > tr:hover {
+    background: #262626;
+  }
+
+  .system-health-indicator {
+    background: #262626;
+  }
+
+  .system-health-indicator:hover {
+    background: #303030;
+  }
+}
+
+/* Animation Classes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Loading State */
+.admin-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.admin-loading .ant-spin {
+  color: white;
+}
+
+/* Badge Styles */
+.admin-badge-success {
+  background: #52c41a;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.admin-badge-warning {
+  background: #faad14;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.admin-badge-error {
+  background: #f5222d;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Custom Scrollbar */
+.admin-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Print Styles */
+@media print {
+  .admin-overview,
+  .user-management {
+    background: white;
+  }
+
+  .ant-btn,
+  .ant-drawer,
+  .ant-modal {
+    display: none;
+  }
+
+  .ant-table {
+    page-break-inside: auto;
+  }
+
+  .ant-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+}

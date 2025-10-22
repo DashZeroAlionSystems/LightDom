@@ -18,11 +18,12 @@ LightDom is a revolutionary blockchain-based DOM optimization platform that comb
 - **Performance Metrics** - Hash rate, block time, and mining statistics
 - **Reward System** - Earn LightDom tokens for optimization contributions
 
-### 🕷️ **Advanced Web Crawler**
-- **Multi-threaded Crawling** - Concurrent website analysis
-- **DOM Optimization Analysis** - Identify and optimize unused code
-- **Performance Tracking** - Real-time optimization metrics
-- **Space Harvesting** - Calculate and track space savings
+### Testing & Quality Assurance
+- **Integration Testing**: Comprehensive test suite for all platform components
+- **Workflow Simulation**: End-to-end user workflow testing
+- **Error Handling**: Centralized error management and validation
+- **Performance Monitoring**: Real-time performance metrics and alerts
+- **Automatic Retry Mechanism**: GitHub Actions workflows with intelligent retry logic for transient failures
 
 ### 💰 **Comprehensive Wallet System**
 - **Multi-currency Support** - LightDom, USD, BTC, ETH balances
@@ -414,6 +415,9 @@ CMD ["node", "api-server-express.js"]
 - **[Quick Start Guide](./QUICK_START.md)** - Fast track to running the project
 - **[Workflow Automation](./WORKFLOW_AUTOMATION.md)** - CLI tools and automation guide
 - **[Dev Container Guide](./.devcontainer/README.md)** - Development environment setup
+
+### CI/CD & Quality Assurance
+- **[Retry Mechanism](./RETRY_MECHANISM.md)** - Automatic retry logic for GitHub Actions workflows
 
 ### AI Integration
 - **[GitHub Copilot Instructions](./.github/COPILOT_INSTRUCTIONS.md)** - Copilot configuration and usage

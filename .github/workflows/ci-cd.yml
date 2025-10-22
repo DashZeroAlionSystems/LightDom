@@ -56,48 +56,30 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run linting
-      run: npm run lint
+      - name: Code formatting check
+        run: npm run format:check
 
-    - name: Run type checking
-      run: npm run type-check
+      - name: Linting
+        run: npm run lint
 
-    - name: Run unit tests
-      run: npm run test:unit
-      env:
-        NODE_ENV: test
-        DB_HOST: localhost
-        DB_PORT: 5432
-        DB_NAME: dom_space_harvester_test
-        DB_USER: postgres
-        DB_PASSWORD: postgres
-        REDIS_HOST: localhost
-        REDIS_PORT: 6379
+      - name: Type checking
+        run: npm run type-check
 
-    - name: Run integration tests
-      run: node scripts/run-integration-tests.js
-      env:
-        NODE_ENV: test
-        DB_HOST: localhost
-        DB_PORT: 5432
-        DB_NAME: dom_space_harvester_test
-        DB_USER: postgres
-        DB_PASSWORD: postgres
-        REDIS_HOST: localhost
-        REDIS_PORT: 6379
+      - name: Unit tests
+        run: npm run test:unit:coverage
 
-    - name: Generate test coverage
-      run: npm run test:coverage
+      - name: Security scan
+        run: npm run security:scan
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage/lcov.info
-        flags: unittests
-        name: codecov-umbrella
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
 
   # Security Scanning
   security:
@@ -114,30 +96,33 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run security audit
-      run: npm audit --audit-level=moderate
+      - name: Build application
+        run: npm run build
 
-    - name: Run Snyk security scan
-      uses: snyk/actions/node@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --severity-threshold=high
+      - name: Integration tests
+        run: npm run test:integration
 
-    - name: Run CodeQL Analysis
-      uses: github/codeql-action/init@v2
-      with:
-        languages: javascript
+      - name: E2E tests
+        run: npm run test:e2e
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      - name: Performance tests
+        run: npm run test:performance
 
-  # Build and Package
-  build:
-    name: Build Application
+      - name: Accessibility tests
+        run: npm run test:accessibility
+
+      - name: Bundle analysis
+        run: npm run analyze:bundle
+
+      - name: Security audit
+        run: npm audit --audit-level=moderate
+
+  # Pre-deployment Quality Gates
+  pre-deployment-gates:
+    name: Pre-deployment Quality Gates
     runs-on: ubuntu-latest
     needs: [test, security]
     
@@ -151,45 +136,25 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Build frontend
-      run: npm run build
-      env:
-        NODE_ENV: production
+      - name: Build application
+        run: npm run build
 
-    - name: Build Docker image
-      run: |
-        docker build -f Dockerfile.production -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
-        docker build -f Dockerfile.production -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest .
+      - name: Load testing
+        run: npm run test:load
 
-    - name: Login to Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Security penetration testing
+        run: npm run security:pentest
 
-    - name: Push Docker image
-      run: |
-        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+      - name: Compliance check
+        run: npm run compliance:check
 
-    - name: Generate SBOM
-      uses: anchore/sbom-action@v0
-      with:
-        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        format: spdx-json
-        output-file: sbom.spdx.json
+      - name: Architecture validation
+        run: npm run architecture:validate
 
-    - name: Upload SBOM
-      uses: actions/upload-artifact@v3
-      with:
-        name: sbom
-        path: sbom.spdx.json
-
-  # Deploy to Staging
+  # Staging Deployment
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
