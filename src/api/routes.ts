@@ -9,6 +9,7 @@ import { blockchainModelStorageAPI } from './blockchainModelStorageApi';
 import { lightDomStorageAPI } from './LightDomStorageApi';
 import { spaceMiningAPI } from './spaceMiningApi';
 import { metaverseMiningAPI } from './metaverseMiningApi';
+import clientZoneRouter from './clientZoneApi';
 import { startupScript } from '../scripts/StartupScript';
 import { browserRefreshHandler } from '../scripts/BrowserRefreshHandler';
 import { persistentBlockchainStorage } from '../core/PersistentBlockchainStorage';
@@ -67,6 +68,9 @@ router.post('/space-mining/test-bridge/:bridgeId', spaceMiningAPI.testBridgeConn
 // Metaverse Bridge API routes
 router.get('/metaverse/bridge/:bridgeId', metaverseMiningAPI.getBridgeDetails.bind(metaverseMiningAPI));
 router.get('/metaverse/bridge/:bridgeId/chat', metaverseMiningAPI.getBridgeChat.bind(metaverseMiningAPI));
+
+// Client Zone API routes
+router.use('/client', clientZoneRouter);
 
 // Startup and Refresh Handler routes
 router.get('/startup/status', (req, res) => {

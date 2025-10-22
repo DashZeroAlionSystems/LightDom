@@ -59,6 +59,18 @@
         });
         break;
         
+      case 'ITEM_PURCHASED':
+        console.log('Item purchased notification received:', message.data);
+        showItemPurchaseNotification(message.data);
+        sendResponse({ success: true });
+        break;
+        
+      case 'CHAT_ROOM_ITEM_ADDED':
+        console.log('Chat room item added:', message.data);
+        renderChatRoomItem(message.data);
+        sendResponse({ success: true });
+        break;
+        
       default:
         sendResponse({ success: false, error: 'Unknown message type' });
     }
@@ -492,6 +504,174 @@
     const ui = document.getElementById('lightdom-mining-ui');
     if (ui) {
       ui.remove();
+    }
+  }
+  
+  // Show item purchase notification in the page
+  function showItemPurchaseNotification(data) {
+    const { item } = data;
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      z-index: 999999;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 350px;
+      animation: slideInRight 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+        <div style="font-size: 24px;">🎉</div>
+        <div>
+          <div style="font-weight: bold; font-size: 16px;">Item Purchased!</div>
+          <div style="font-size: 14px; opacity: 0.9;">${item.name}</div>
+        </div>
+      </div>
+      <div style="font-size: 13px; opacity: 0.8; margin-bottom: 12px;">
+        ${item.description}
+      </div>
+      <button id="lightdom-add-to-chat" style="
+        width: 100%;
+        padding: 8px 16px;
+        background: white;
+        color: #667eea;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 14px;
+      ">
+        Add to Current Page
+      </button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Add click handler for adding to chat
+    const addButton = notification.querySelector('#lightdom-add-to-chat');
+    if (addButton) {
+      addButton.addEventListener('click', () => {
+        const chatRoomId = window.location.href;
+        chrome.runtime.sendMessage({
+          type: 'ADD_ITEM_TO_CHAT',
+          data: { itemId: item.id, chatRoomId }
+        }).then(() => {
+          addButton.textContent = '✓ Added!';
+          addButton.style.background = '#10B981';
+          addButton.style.color = 'white';
+          setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+          }, 2000);
+        });
+      });
+    }
+    
+    // Auto remove after 10 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }
+    }, 10000);
+  }
+  
+  // Render metaverse item in the chat room
+  function renderChatRoomItem(data) {
+    const { chatRoomId, item } = data;
+    
+    // Only render if this is the correct chat room
+    if (window.location.href !== chatRoomId) return;
+    
+    console.log('Rendering item in chat room:', item.name);
+    
+    // Create item container
+    const itemContainer = document.createElement('div');
+    itemContainer.className = 'lightdom-metaverse-item';
+    itemContainer.style.cssText = `
+      position: fixed;
+      z-index: 999998;
+      pointer-events: auto;
+      animation: fadeIn 0.5s ease-out;
+    `;
+    
+    // Position based on item category
+    const positions = {
+      furniture: { bottom: '20px', left: '20px' },
+      decoration: { top: '20px', right: '20px' },
+      effect: { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
+      avatar: { bottom: '20px', right: '20px' },
+      background: { top: '0', left: '0', width: '100%', height: '100%', pointerEvents: 'none' }
+    };
+    
+    const position = positions[item.category] || positions.decoration;
+    Object.assign(itemContainer.style, position);
+    
+    // Render based on item type
+    if (item.category === 'background') {
+      itemContainer.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)';
+      itemContainer.innerHTML = `
+        <div style="
+          width: 100%;
+          height: 100%;
+          background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 1px, transparent 1px);
+          background-size: 50px 50px;
+          animation: backgroundMove 20s linear infinite;
+        "></div>
+      `;
+    } else {
+      itemContainer.innerHTML = `
+        <div style="
+          background: white;
+          border-radius: 12px;
+          padding: 12px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          min-width: 150px;
+        ">
+          <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">
+            ${item.name}
+          </div>
+          <div style="font-size: 11px; color: #6B7280;">
+            ${item.category}
+          </div>
+        </div>
+      `;
+    }
+    
+    document.body.appendChild(itemContainer);
+    
+    // Add styles for animations if not already added
+    if (!document.getElementById('lightdom-item-styles')) {
+      const style = document.createElement('style');
+      style.id = 'lightdom-item-styles';
+      style.textContent = `
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.8); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(100%); opacity: 0; }
+        }
+        @keyframes backgroundMove {
+          from { background-position: 0 0; }
+          to { background-position: 50px 50px; }
+        }
+      `;
+      document.head.appendChild(style);
     }
   }
   

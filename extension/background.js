@@ -130,6 +130,21 @@ class LightDomBackgroundService {
           sendResponse({ success: true, data: result });
           break;
           
+        case 'ITEM_PURCHASED':
+          await this.handleItemPurchase(message.data);
+          sendResponse({ success: true });
+          break;
+          
+        case 'GET_PURCHASED_ITEMS':
+          const items = await this.getPurchasedItems();
+          sendResponse({ success: true, data: items });
+          break;
+          
+        case 'ADD_ITEM_TO_CHAT':
+          await this.addItemToChatRoom(message.data);
+          sendResponse({ success: true });
+          break;
+          
         default:
           sendResponse({ success: false, error: 'Unknown message type' });
       }
@@ -372,6 +387,106 @@ class LightDomBackgroundService {
     } catch (error) {
       // Document might already exist
       console.log('Offscreen document already exists or creation failed:', error);
+    }
+  }
+
+  async handleItemPurchase(data) {
+    try {
+      const { item } = data;
+      console.log('Item purchased:', item);
+      
+      // Store purchased item in local storage
+      const result = await chrome.storage.local.get(['purchasedItems']);
+      const purchasedItems = result.purchasedItems || [];
+      
+      const purchase = {
+        id: `purchase-${Date.now()}`,
+        itemId: item.id,
+        item: item,
+        purchasedAt: Date.now(),
+        status: 'active'
+      };
+      
+      purchasedItems.push(purchase);
+      await chrome.storage.local.set({ purchasedItems });
+      
+      // Show notification
+      await chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icon48.svg',
+        title: 'Item Purchased!',
+        message: `You purchased ${item.name}. Add it to your chat room!`,
+        priority: 2
+      });
+      
+      // Broadcast to all tabs
+      const tabs = await chrome.tabs.query({});
+      tabs.forEach(tab => {
+        chrome.tabs.sendMessage(tab.id, {
+          type: 'ITEM_PURCHASED',
+          data: { item, purchase }
+        }).catch(() => {
+          // Ignore errors for tabs that don't have content script
+        });
+      });
+    } catch (error) {
+      console.error('Failed to handle item purchase:', error);
+    }
+  }
+
+  async getPurchasedItems() {
+    try {
+      const result = await chrome.storage.local.get(['purchasedItems']);
+      return result.purchasedItems || [];
+    } catch (error) {
+      console.error('Failed to get purchased items:', error);
+      return [];
+    }
+  }
+
+  async addItemToChatRoom(data) {
+    try {
+      const { itemId, chatRoomId } = data;
+      
+      // Get purchased items
+      const items = await this.getPurchasedItems();
+      const item = items.find(i => i.itemId === itemId);
+      
+      if (!item) {
+        throw new Error('Item not found in inventory');
+      }
+      
+      // Store chat room items mapping
+      const result = await chrome.storage.local.get(['chatRoomItems']);
+      const chatRoomItems = result.chatRoomItems || {};
+      
+      if (!chatRoomItems[chatRoomId]) {
+        chatRoomItems[chatRoomId] = [];
+      }
+      
+      chatRoomItems[chatRoomId].push({
+        itemId: item.itemId,
+        item: item.item,
+        addedAt: Date.now()
+      });
+      
+      await chrome.storage.local.set({ chatRoomItems });
+      
+      // Notify the chat room tab
+      const tabs = await chrome.tabs.query({});
+      tabs.forEach(tab => {
+        chrome.tabs.sendMessage(tab.id, {
+          type: 'CHAT_ROOM_ITEM_ADDED',
+          data: { chatRoomId, item: item.item }
+        }).catch(() => {
+          // Ignore errors
+        });
+      });
+      
+      console.log('Item added to chat room:', { chatRoomId, item: item.item.name });
+    } catch (error) {
+      console.error('Failed to add item to chat room:', error);
+      throw error;
     }
   }
 }
