@@ -105,56 +105,98 @@ LightDom/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 20+
 - PostgreSQL 13+
 - Ethereum node (local or remote)
 - Git
+- Make (optional, for Makefile commands)
 
-### Installation
+### Quick Start with Dev Container (Recommended)
+
+The fastest way to get started is using our pre-configured dev container:
+
+**GitHub Codespaces:**
+1. Click "Code" → "Codespaces" → "Create codespace"
+2. Wait for setup to complete (~5 minutes first time)
+3. Run `make dev-full` or `npm run dev`
+
+**VS Code Dev Containers:**
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop)
+2. Install [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+3. Open project → F1 → "Dev Containers: Reopen in Container"
+4. Run `make dev-full` or `npm run dev`
+
+📖 **See [Dev Container Documentation](./.devcontainer/README.md)** for details.
+
+### Manual Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-org/lightdom.git
+   git clone https://github.com/DashZeroAlionSystems/lightdom.git
    cd lightdom
    ```
 
-2. **Install dependencies**
+2. **Quick setup (using CLI)**
    ```bash
+   npm run cli setup
+   ```
+   This will install dependencies, setup database, and start services.
+
+   **Or manual setup:**
+   ```bash
+   # Install dependencies
    npm install
-   # or
-   yarn install
-   ```
-
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
+   
+   # Setup environment
+   make setup-env
    # Edit .env with your configuration
-   ```
-
-4. **Set up the database**
-   ```bash
-   # Create PostgreSQL database
-   createdb lightdom
    
-   # Run database migrations
-   psql -d lightdom -f database/optimization_schema.sql
-   ```
-
-5. **Deploy smart contracts**
-   ```bash
-   # Install Hardhat dependencies
-   npm install --save-dev hardhat @nomiclabs/hardhat-ethers ethers
+   # Setup database
+   make db-create
+   make db-migrate
    
-   # Deploy contracts
-   npx hardhat run scripts/deploy.ts --network localhost
+   # Start blockchain
+   make blockchain-start
    ```
 
-6. **Start the development server**
+3. **Start development**
    ```bash
-   npm run dev
-   # or
-   yarn dev
+   # Using Make (recommended)
+   make dev-full              # Start all services
+   
+   # Or using npm scripts
+   npm run dev                # Frontend only
+   npm run start:dev          # Full stack
+   
+   # Or using CLI
+   npm run cli dev --full     # All services
    ```
+
+### CLI Tool & Automation
+
+We provide comprehensive CLI tools and automation:
+
+```bash
+# Using the CLI tool
+npm run cli <command> [options]
+npm run cli --help              # View all commands
+npm run cli dev --full          # Start development
+npm run cli test --coverage     # Run tests with coverage
+npm run cli db migrate          # Run migrations
+
+# Using Makefile (shorter commands)
+make help                       # View all commands
+make dev-full                   # Start all services
+make test                       # Run tests
+make quality                    # Run quality checks
+
+# Quick workflows
+make quick-start                # Complete setup and start
+make quick-test                 # Lint + type-check + test
+make quick-deploy               # Quality + test + build
+```
+
+📖 **See [Workflow Automation Guide](./WORKFLOW_AUTOMATION.md)** for comprehensive documentation.
 
 ### Environment Variables
 
@@ -357,6 +399,22 @@ docker-compose up -d
 4. Set up monitoring and logging
 5. Configure load balancing
 
+## 📚 Documentation
+
+### Getting Started
+- **[Quick Start Guide](./QUICK_START.md)** - Fast track to running the project
+- **[Workflow Automation](./WORKFLOW_AUTOMATION.md)** - CLI tools and automation guide
+- **[Dev Container Guide](./.devcontainer/README.md)** - Development environment setup
+
+### AI Integration
+- **[GitHub Copilot Instructions](./.github/COPILOT_INSTRUCTIONS.md)** - Copilot configuration and usage
+- **[Cursor AI Instructions](./.cursor/CURSOR_INSTRUCTIONS.md)** - Cursor AI integration guide
+- **[Cursor Rules](./.cursorrules)** - Project-specific coding standards
+
+### Technical Documentation
+- **[Architecture Documentation](./ARCHITECTURE.md)** - System architecture and design
+- **[Blockchain Guide](./BLOCKCHAIN_README.md)** - Blockchain integration details
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -371,6 +429,7 @@ docker-compose up -d
 - Document all public APIs
 - Follow the coding standards
 - Ensure security best practices
+- See **[Cursor Rules](./.cursorrules)** for detailed guidelines
 
 ## 📄 License
 

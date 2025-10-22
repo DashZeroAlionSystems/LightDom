@@ -36,7 +36,19 @@ const App = () => {
       setCurrentPath('/');
     };
 
-    if (currentPath.startsWith('/bridge/')) {
+    if (currentPath === '/') {
+      // Show landing page at root
+      const LandingPage = React.lazy(() => import('./components/ui/LandingPage'));
+      return (
+        <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background-primary">
+          <div className="text-text-primary">Loading...</div>
+        </div>}>
+          <LandingPage />
+        </React.Suspense>
+      );
+    } else if (currentPath === '/dashboard') {
+      return <SimpleDashboard />;
+    } else if (currentPath.startsWith('/bridge/')) {
       const bridgeId = currentPath.split('/bridge/')[1] || '';
       return (
         <div>

@@ -506,7 +506,7 @@ const InteractiveMermaidDemo: React.FC = () => {
                       <div className="feature-icon-large">
                         <CloudOutlined />
                       </div>
-                      <Title level={5">Gantt Charts</Title>
+                      <Title level={5}>Gantt Charts</Title>
                       <Text type="secondary">
                         Plan and track project timelines with interactive Gantt charts.
                       </Text>

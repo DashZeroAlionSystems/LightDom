@@ -19,7 +19,7 @@ import {
   ExclamationCircleOutlined,
   WarningOutlined
 } from '@ant-design/icons';
-import { useAdminSettings } from '../../hooks/useAdminSettings';
+import { useAdminSettings } from '../../../hooks/state/useAdminSettings';
 
 const { Title, Text } = Typography;
 
