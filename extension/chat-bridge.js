@@ -116,7 +116,10 @@ class ChatBridge {
     try {
       const message = JSON.parse(data);
       
-      switch (message.type) {
+      // Sanitize message type
+      const messageType = String(message.type || '').slice(0, 50);
+      
+      switch (messageType) {
         case 'chat_message':
           this.handleChatMessage(message);
           break;
@@ -134,7 +137,7 @@ class ChatBridge {
           break;
         
         default:
-          console.log('Unknown message type:', message.type);
+          console.log('Unknown message type');
       }
     } catch (error) {
    * Handle chat message
@@ -186,11 +189,13 @@ class ChatBridge {
    * Handle user joined event
    */
   handleUserJoined(message) {
-    console.log(`👋 User joined bridge ${message.bridgeId}:`, message.user);
+    const bridgeId = String(message.bridgeId || '').slice(0, 100);
+    const user = String(message.user || '').slice(0, 100);
+    console.log('User joined bridge:', { bridgeId, user });
     
     this.notifyUI('user_joined', {
-      bridgeId: message.bridgeId,
-      user: message.user
+      bridgeId: bridgeId,
+      user: user
     });
   }
 
@@ -198,7 +203,6 @@ class ChatBridge {
    * Handle user left event
    */
   handleUserLeft(message) {
-<<<<<<< HEAD
     const bridgeId = String(message.bridgeId || '').slice(0, 100);
     const user = String(message.user || '').slice(0, 100);
     console.log('User left bridge:', { bridgeId, user });
@@ -206,8 +210,10 @@ class ChatBridge {
     this.notifyUI('user_left', {
       bridgeId: bridgeId,
       user: user
-=======
-    console.log(`👋 User left bridge ${message.bridgeId}:`, message.user);
+    });
+  }
+
+  /**
    * Create a new bridge
    */
   async createBridge(sourceDomain, targetDomain, isolatedDomId) {
