@@ -1,7 +1,19 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { 
-  Home, Settings, Wallet, Zap, Globe, Database, FlaskConical as TestTube, Workflow, Cpu, Rocket, BarChart3,
-  MailPlus, ChevronLeft, ChevronRight, Bell, Bug, Server, ShieldCheck
+  Home, 
+  Menu, 
+  X, 
+  Settings, 
+  Wallet, 
+  Zap, 
+  Globe, 
+  Database, 
+  TestTube,
+  Workflow,
+  Mining,
+  Blockchain,
+  Cpu,
+  User
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -32,6 +44,11 @@ const Navigation: React.FC<NavigationProps> = ({ currentPath = window.location.p
 
   const items = useMemo(() => ([
     { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/dashboard/client-zone', label: 'Client Zone', icon: User },
+    { path: '/space-mining', label: 'Space Mining', icon: Mining },
+    { path: '/harvester', label: 'Web Crawler', icon: Globe },
+    { path: '/wallet', label: 'Wallet', icon: Wallet },
+    { path: '/advanced-nodes', label: 'Advanced Nodes', icon: Cpu },
     { path: '/optimization', label: 'Optimization', icon: Zap },
     { path: '/space-mining', label: 'Space Mining', icon: Rocket },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },

@@ -51,24 +51,116 @@ LightDom is a revolutionary blockchain-based DOM optimization platform that comb
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 20+
 - PostgreSQL 13+
 - Git
+- Make (optional, for Makefile commands)
 
-### Installation
+### Quick Start with Dev Container (Recommended)
+
+The fastest way to get started is using our pre-configured dev container:
+
+**GitHub Codespaces:**
+1. Click "Code" → "Codespaces" → "Create codespace"
+2. Wait for setup to complete (~5 minutes first time)
+3. Run `make dev-full` or `npm run dev`
+
+**VS Code Dev Containers:**
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop)
+2. Install [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+3. Open project → F1 → "Dev Containers: Reopen in Container"
+4. Run `make dev-full` or `npm run dev`
+
+📖 **See [Dev Container Documentation](./.devcontainer/README.md)** for details.
+
+### Manual Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/DashZeroAlionSystems/lightdom.git
+   cd lightdom
+   ```
+
+2. **Quick setup (using CLI)**
+   ```bash
+   npm run cli setup
+   ```
+   This will install dependencies, setup database, and start services.
+
+   **Or manual setup:**
+   ```bash
+   # Install dependencies
+   npm install
+   
+   # Setup environment
+   make setup-env
+   # Edit .env with your configuration
+   
+   # Setup database
+   make db-create
+   make db-migrate
+   
+   # Start blockchain
+   make blockchain-start
+   ```
+
+3. **Start development**
+   ```bash
+   # Using Make (recommended)
+   make dev-full              # Start all services
+   
+   # Or using npm scripts
+   npm run dev                # Frontend only
+   npm run start:dev          # Full stack
+   
+   # Or using CLI
+   npm run cli dev --full     # All services
+   ```
+
+### CLI Tool & Automation
+
+We provide comprehensive CLI tools and automation:
+
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd LightDom
+# Using the CLI tool
+npm run cli <command> [options]
+npm run cli --help              # View all commands
+npm run cli dev --full          # Start development
+npm run cli test --coverage     # Run tests with coverage
+npm run cli db migrate          # Run migrations
 
-# Install dependencies
-npm install
+# Using Makefile (shorter commands)
+make help                       # View all commands
+make dev-full                   # Start all services
+make test                       # Run tests
+make quality                    # Run quality checks
 
-# Setup database
-npm run db:setup
+# Quick workflows
+make quick-start                # Complete setup and start
+make quick-test                 # Lint + type-check + test
+make quick-deploy               # Quality + test + build
+```
 
-# Start the complete system
-node scripts/start-system-integration.js
+📖 **See [Workflow Automation Guide](./WORKFLOW_AUTOMATION.md)** for comprehensive documentation.
+
+### Environment Variables
+
+```env
+# Database
+DATABASE_URL=postgresql://username:password@localhost:5432/lightdom
+
+# Ethereum
+ETHEREUM_RPC_URL=http://localhost:8545
+ADMIN_PRIVATE_KEY=0x...
+MODEL_STORAGE_CONTRACT_ADDRESS=0x...
+
+# API
+API_KEY=your-api-key
+CURSOR_API_KEY=your-cursor-api-key
+
+# Server
+PORT=3000
+NODE_ENV=development
 ```
 
 ### Access Points
@@ -316,6 +408,22 @@ CMD ["node", "api-server-express.js"]
 - **Error Tracking** - Comprehensive error monitoring
 - **Resource Usage** - CPU, memory, and network monitoring
 
+## 📚 Documentation
+
+### Getting Started
+- **[Quick Start Guide](./QUICK_START.md)** - Fast track to running the project
+- **[Workflow Automation](./WORKFLOW_AUTOMATION.md)** - CLI tools and automation guide
+- **[Dev Container Guide](./.devcontainer/README.md)** - Development environment setup
+
+### AI Integration
+- **[GitHub Copilot Instructions](./.github/COPILOT_INSTRUCTIONS.md)** - Copilot configuration and usage
+- **[Cursor AI Instructions](./.cursor/CURSOR_INSTRUCTIONS.md)** - Cursor AI integration guide
+- **[Cursor Rules](./.cursorrules)** - Project-specific coding standards
+
+### Technical Documentation
+- **[Architecture Documentation](./ARCHITECTURE.md)** - System architecture and design
+- **[Blockchain Guide](./BLOCKCHAIN_README.md)** - Blockchain integration details
+
 ## 🤝 Contributing
 
 ### Development Setup
@@ -325,11 +433,13 @@ CMD ["node", "api-server-express.js"]
 4. Run tests: `node scripts/run-integration-tests.js`
 5. Submit a pull request
 
-### Code Standards
-- TypeScript for new code
-- ESLint configuration
-- Comprehensive testing
-- Documentation updates
+### Development Guidelines
+- Follow TypeScript best practices
+- Write comprehensive tests
+- Document all public APIs
+- Follow the coding standards
+- Ensure security best practices
+- See **[Cursor Rules](./.cursorrules)** for detailed guidelines
 
 ## 📄 License
 

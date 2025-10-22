@@ -1,9 +1,9 @@
 /**
  * Simplified Dashboard for LightDom
- * Basic Discord-style layout without complex components
+ * Updated with Exodus-inspired design system
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Activity, 
   HardDrive, 
@@ -11,16 +11,11 @@ import {
   Award, 
   Play, 
   Pause,
-  Star,
-  Map,
   TrendingUp,
-  Wallet,
-  ArrowLeft,
-  RefreshCw,
-  CheckCircle,
-  AlertCircle
+  Zap,
+  Settings
 } from 'lucide-react';
-import axios from 'axios';
+import { Card, Button } from './design-system';
 
 interface SimpleDashboardProps {
   className?: string;
@@ -101,488 +96,155 @@ const SimpleDashboard: React.FC<SimpleDashboardProps> = ({ className = '' }) => 
   };
 
   return (
-    <>
-      <style>{`
-        @keyframes pulse {
-          0% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.5;
-          }
-          100% {
-            opacity: 1;
-          }
-        }
-        
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        
-        .animate-spin {
-          animation: spin 1s linear infinite;
-        }
-        
-        .stat-card {
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .stat-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        
-        /* Discord Theme Inline Styles */
-        .discord-app {
-          display: flex;
-          height: 100vh;
-          background-color: #36393f;
-          color: #ffffff;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .discord-header {
-          height: 48px;
-          background-color: #36393f;
-          border-bottom: 1px solid #40444b;
-          display: flex;
-          align-items: center;
-          padding: 0 16px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .discord-content {
-          flex: 1;
-          overflow: auto;
-          padding: 16px;
-          background-color: #36393f;
-        }
-        
-        .discord-card {
-          background-color: #2f3136;
-          border-radius: 8px;
-          padding: 16px;
-          border: 1px solid #40444b;
-          margin-bottom: 16px;
-        }
-        
-        .discord-button {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px 16px;
-          border: none;
-          border-radius: 4px;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          color: white;
-        }
-        
-        .discord-button-primary {
-          background-color: #5865f2;
-        }
-        
-        .discord-button-primary:hover {
-          background-color: #4752c4;
-        }
-        
-        .discord-button-secondary {
-          background-color: #40444b;
-        }
-        
-        .discord-button-secondary:hover {
-          background-color: #4f545c;
-        }
-      `}</style>
-      
-      <div className="discord-app"
-        style={{ 
-          height: '100vh', 
-          display: 'flex', 
-          flexDirection: 'column',
-          backgroundColor: '#36393f',
-          color: '#ffffff',
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-        }}>
+    <div className={`min-h-screen bg-background-primary ${className}`}>
       {/* Header */}
-      <div className="discord-header" style={{ 
-        height: '48px',
-        backgroundColor: '#36393f',
-        borderBottom: '1px solid #40444b',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 16px',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
-      }}>
-        <button
-          onClick={() => window.history.back()}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '6px 12px',
-            marginRight: '16px',
-            background: 'none',
-            border: '1px solid #40444b',
-            borderRadius: '4px',
-            color: '#b9bbbe',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            fontSize: '14px'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#40444b';
-            e.currentTarget.style.color = '#ffffff';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#b9bbbe';
-          }}
-        >
-          <ArrowLeft size={16} />
-          Back
-        </button>
-        
-        <h1 style={{ 
-          fontSize: '16px',
-          fontWeight: '600',
-          color: '#ffffff',
-          margin: 0
-        }}>
-          LightDom Space-Bridge Platform
-        </h1>
-        
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button
-            onClick={fetchRealData}
-            disabled={isLoading}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '6px 12px',
-              background: 'none',
-              border: '1px solid #40444b',
-              borderRadius: '4px',
-              color: '#b9bbbe',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease',
-              fontSize: '14px',
-              opacity: isLoading ? 0.6 : 1
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.backgroundColor = '#40444b';
-                e.currentTarget.style.color = '#ffffff';
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = '#b9bbbe';
-            }}
-          >
-            <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
-            Refresh
-          </button>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {apiStatus === 'checking' ? (
-              <>
-                <div style={{ 
-                  width: '8px', 
-                  height: '8px', 
-                  borderRadius: '50%', 
-                  backgroundColor: '#faa61a',
-                  animation: 'pulse 1.5s ease-in-out infinite'
-                }} />
-                <span style={{ fontSize: '12px', color: '#b9bbbe' }}>Checking...</span>
-              </>
-            ) : apiStatus === 'online' ? (
-              <>
-                <CheckCircle size={16} style={{ color: '#3ba55c' }} />
-                <span style={{ fontSize: '12px', color: '#3ba55c' }}>API Online</span>
-              </>
-            ) : (
-              <>
-                <AlertCircle size={16} style={{ color: '#ed4245' }} />
-                <span style={{ fontSize: '12px', color: '#ed4245' }}>API Offline</span>
-              </>
-            )}
+      <header className="sticky top-0 z-50 bg-background-secondary border-b border-border backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-xl font-heading font-bold text-text-primary">
+                LightDom Dashboard
+              </h1>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-semantic-success animate-pulse" />
+                <span className="text-sm text-text-secondary">Online</span>
+              </div>
+              <Button variant="ghost" size="sm">
+                <Settings className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="discord-content" style={{ 
-        flex: 1,
-        overflow: 'auto',
-        padding: '16px',
-        backgroundColor: '#36393f'
-      }}>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Grid */}
-        <div style={{ 
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '16px',
-          marginBottom: '24px'
-        }}>
-          <div className="discord-card stat-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <Activity size={20} style={{ color: '#5865f2' }} />
-              <span style={{ fontSize: '12px', color: '#b9bbbe', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card variant="gradient" padding="md">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-accent-blue bg-opacity-20">
+                <Activity className="w-5 h-5 text-accent-blue" />
+              </div>
+              <span className="text-xs text-text-secondary uppercase tracking-wider">
                 Active Optimizations
               </span>
             </div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#5865f2', margin: 0 }}>
-              {isLoading ? (
-                <span style={{ opacity: 0.5 }}>...</span>
-              ) : (
-                stats.optimizations.toLocaleString()
-              )}
+            <div className="text-3xl font-bold text-accent-blue">
+              {stats.optimizations}
             </div>
-          </div>
+          </Card>
 
-          <div className="discord-card stat-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <HardDrive size={20} style={{ color: '#3ba55c' }} />
-              <span style={{ fontSize: '12px', color: '#b9bbbe', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <Card variant="gradient" padding="md">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-semantic-success bg-opacity-20">
+                <HardDrive className="w-5 h-5 text-semantic-success" />
+              </div>
+              <span className="text-xs text-text-secondary uppercase tracking-wider">
                 Space Saved
               </span>
             </div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#3ba55c', margin: 0 }}>
-              {isLoading ? (
-                <span style={{ opacity: 0.5 }}>...</span>
-              ) : (
-                formatBytes(stats.spaceSaved)
-              )}
+            <div className="text-3xl font-bold text-semantic-success">
+              {formatBytes(stats.spaceSaved)}
             </div>
-          </div>
+          </Card>
 
-          <div className="discord-card stat-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <Coins size={20} style={{ color: '#faa81a' }} />
-              <span style={{ fontSize: '12px', color: '#b9bbbe', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <Card variant="gradient" padding="md">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-semantic-warning bg-opacity-20">
+                <Coins className="w-5 h-5 text-semantic-warning" />
+              </div>
+              <span className="text-xs text-text-secondary uppercase tracking-wider">
                 Tokens Earned
               </span>
             </div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#faa61a', margin: 0 }}>
-              {isLoading ? (
-                <span style={{ opacity: 0.5 }}>...</span>
-              ) : (
-                `${stats.tokensEarned.toLocaleString()} LDOM`
-              )}
+            <div className="text-3xl font-bold text-semantic-warning">
+              {stats.tokensEarned.toLocaleString()}
             </div>
-          </div>
+          </Card>
 
-          <div className="discord-card stat-card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <Award size={20} style={{ color: '#00b0f4' }} />
-              <span style={{ fontSize: '12px', color: '#b9bbbe', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <Card variant="gradient" padding="md">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-accent-purple bg-opacity-20">
+                <Award className="w-5 h-5 text-accent-purple" />
+              </div>
+              <span className="text-xs text-text-secondary uppercase tracking-wider">
                 Rank
               </span>
             </div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#00b0f4', margin: 0 }}>
-              {isLoading ? (
-                <span style={{ opacity: 0.5 }}>...</span>
-              ) : (
-                stats.rank > 0 ? `#${stats.rank}` : 'Unranked'
-              )}
+            <div className="text-3xl font-bold text-accent-purple">
+              #{stats.rank}
             </div>
-          </div>
-        </div>
-
-        {/* Bridge Stats */}
-        <div className="discord-card">
-          <h3 style={{ 
-            fontSize: '16px',
-            fontWeight: '600',
-            color: '#ffffff',
-            margin: '0 0 16px 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <Map size={20} />
-            Bridge Network Status
-          </h3>
-          <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '16px'
-          }}>
-            <div>
-              <div style={{ fontSize: '12px', color: '#b9bbbe', marginBottom: '4px' }}>Active Bridges</div>
-              <div style={{ fontSize: '20px', fontWeight: '600', color: '#3ba55c' }}>
-                {isLoading ? '...' : stats.activeBridges}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: '12px', color: '#b9bbbe', marginBottom: '4px' }}>Total Space</div>
-              <div style={{ fontSize: '20px', fontWeight: '600', color: '#5865f2' }}>
-                {isLoading ? '...' : formatBytes(stats.totalSpace)}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: '12px', color: '#b9bbbe', marginBottom: '4px' }}>Space Used</div>
-              <div style={{ fontSize: '20px', fontWeight: '600', color: '#faa61a' }}>
-                {isLoading ? '...' : formatBytes(stats.usedSpace)}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: '12px', color: '#b9bbbe', marginBottom: '4px' }}>Utilization</div>
-              <div style={{ fontSize: '20px', fontWeight: '600', color: '#00b0f4' }}>
-                {isLoading ? '...' : stats.totalSpace > 0 ? `${Math.round((stats.usedSpace / stats.totalSpace) * 100)}%` : '0%'}
-              </div>
-            </div>
-          </div>
+          </Card>
         </div>
 
         {/* Control Panel */}
-        <div className="discord-card">
-          <h3 style={{ 
-            fontSize: '16px',
-            fontWeight: '600',
-            color: '#ffffff',
-            margin: '0 0 16px 0'
-          }}>
+        <Card variant="default" padding="lg" className="mb-8">
+          <h3 className="text-lg font-semibold text-text-primary mb-4">
             Crawler Control
           </h3>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
+          <div className="flex gap-3">
+            <Button
+              variant={isCrawling ? 'outline' : 'primary'}
+              size="md"
+              icon={isCrawling ? Pause : Play}
+              iconPosition="left"
               onClick={() => setIsCrawling(!isCrawling)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '8px 16px',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                gap: '8px',
-                backgroundColor: isCrawling ? '#ed4245' : '#3ba55c',
-                color: 'white'
-              }}
             >
-              {isCrawling ? <Pause size={16} /> : <Play size={16} />}
               {isCrawling ? 'Stop' : 'Start'} Crawling
-            </button>
+            </Button>
+            <Button variant="secondary" size="md">
+              View History
+            </Button>
           </div>
-        </div>
+        </Card>
 
         {/* Quick Actions */}
-        <div className="discord-card">
-          <h3 style={{ 
-            fontSize: '16px',
-            fontWeight: '600',
-            color: '#ffffff',
-            margin: '0 0 16px 0'
-          }}>
+        <Card variant="default" padding="lg">
+          <h3 className="text-lg font-semibold text-text-primary mb-4">
             Quick Actions
           </h3>
-          <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '16px'
-          }}>
-            <button
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth
+              icon={TrendingUp}
+              iconPosition="left"
               onClick={() => window.location.href = '/space-mining'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                justifyContent: 'flex-start',
-                padding: '12px 16px',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                backgroundColor: '#5865f2',
-                color: 'white'
-              }}
             >
-              <Star size={16} />
-              Space Mining Dashboard
-            </button>
-            <button
+              Space Mining
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth
+              icon={Zap}
+              iconPosition="left"
               onClick={() => window.location.href = '/metaverse-mining'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                justifyContent: 'flex-start',
-                padding: '12px 16px',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                backgroundColor: '#40444b',
-                color: '#ffffff'
-              }}
             >
-              <Map size={16} />
               Metaverse Mining
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth
+              icon={TrendingUp}
+              iconPosition="left"
               onClick={() => window.location.href = '/optimization'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                justifyContent: 'flex-start',
-                padding: '12px 16px',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                backgroundColor: '#40444b',
-                color: '#ffffff'
-              }}
             >
-              <TrendingUp size={16} />
               Space Optimization
-            </button>
-            <button
-              onClick={() => window.location.href = '/wallet'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                justifyContent: 'flex-start',
-                padding: '12px 16px',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                backgroundColor: '#40444b',
-                color: '#ffffff'
-              }}
-            >
-              <Wallet size={16} />
-              Wallet Dashboard
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
+        </Card>
+      </main>
     </div>
-    </>
   );
 };
 

@@ -38,6 +38,13 @@
   "exclude": [
     "node_modules",
     "dist",
-    "build"
-  ],
+    "build",
+    "scripts/**/*",
+    "contracts/**/*",
+    "src/setupTests.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
 }

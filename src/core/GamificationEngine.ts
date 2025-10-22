@@ -817,6 +817,24 @@ export class GamificationEngine {
     
     return achievementBonus + streakBonus;
   }
+
+  /**
+   * Get user statistics
+   */
+  public getUserStats(userId: string): any {
+    // Mock implementation - would track real user stats in production
+    const level = Math.floor(Math.random() * 50) + 1;
+    const miningScore = Math.floor(Math.random() * 10000);
+    
+    return {
+      level,
+      experiencePoints: level * 1000 + Math.floor(Math.random() * 1000),
+      achievementsUnlocked: Math.floor(Math.random() * 50),
+      questsCompleted: Math.floor(Math.random() * 100),
+      currentStreak: Math.floor(Math.random() * 30),
+      rank: this.calculateRank(miningScore)
+    };
+  }
 }
 
 // Export singleton instance

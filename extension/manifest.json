@@ -31,7 +31,8 @@
       ],
       "js": [
         "content.js",
-        "blockchain-miner.js"
+        "blockchain-miner.js",
+        "chat-bridge.js"
       ],
       "run_at": "document_idle"
     }
@@ -68,6 +69,13 @@
         "mac": "Command+Shift+D"
       },
       "description": "Open side panel"
+    },
+    "open-chat-bridge": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+B",
+        "mac": "Command+Shift+B"
+      },
+      "description": "Open chat bridge"
     }
   },
   "icons": {
