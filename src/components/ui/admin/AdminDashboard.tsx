@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Layout,
   Card,
   Tabs,
   Form,
@@ -16,27 +15,19 @@ import {
   Button,
   Space,
   Typography,
-  Divider,
   Alert,
   message,
   Modal,
-  Upload,
   Row,
   Col,
-  Statistic,
   Timeline,
   Tag,
   Tooltip,
-  Collapse,
   Badge,
   Drawer,
-  List,
   Avatar,
-  Descriptions,
-  Progress,
   Spin,
-  Empty,
-  Result
+  Empty
 } from 'antd';
 import {
   SettingOutlined,
@@ -67,14 +58,12 @@ import {
   EyeOutlined,
   EyeInvisibleOutlined
 } from '@ant-design/icons';
-import { adminSettingsService } from '../../services/AdminSettingsService';
-import { AdminSettings, SettingsChangeLog } from '../../types/AdminSettingsTypes';
+import { adminSettingsService } from '../../../services/api/AdminSettingsService';
+import { AdminSettings, SettingsChangeLog } from '../../../types/api/AdminSettingsTypes';
 import './AdminDashboard.css';
 
-const { Header, Content, Sider } = Layout;
 const { TabPane } = Tabs;
 const { Title, Text, Paragraph } = Typography;
-const { Panel } = Collapse;
 const { TextArea } = Input;
 
 interface AdminDashboardProps {
@@ -444,78 +433,74 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className }) => {
 
   return (
     <div className={`admin-dashboard ${className || ''}`}>
-      <Layout>
-        <Header className="admin-header">
-          <div className="header-content">
-            <Title level={2} style={{ color: 'white', margin: 0 }}>
-              <SettingOutlined /> Admin Dashboard
-            </Title>
-            <Space>
-              <Button
-                icon={<HistoryOutlined />}
-                onClick={() => setChangeLogVisible(true)}
-              >
-                Change Log
-              </Button>
-              <Button
-                icon={<ExportOutlined />}
-                onClick={handleExport}
-              >
-                Export
-              </Button>
-              <Button
-                icon={<ImportOutlined />}
-                onClick={() => setImportModalVisible(true)}
-              >
-                Import
-              </Button>
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={handleReset}
-                danger
-              >
-                Reset
-              </Button>
-              <Button
-                type="primary"
-                icon={<SaveOutlined />}
-                loading={saving}
-                onClick={handleSave}
-                size="large"
-              >
-                Save Settings
-              </Button>
-            </Space>
-          </div>
-        </Header>
-
-        <Content className="admin-content">
-          <Alert
-            message="Admin Settings"
-            description="Configure all application settings from this centralized dashboard. Changes are automatically validated and logged."
-            type="info"
-            showIcon
-            style={{ marginBottom: '24px' }}
-          />
-
-          <Form form={form} layout="vertical">
-            <Tabs
-              activeKey={activeTab}
-              onChange={setActiveTab}
-              type="card"
+      <Card style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <Title level={3} style={{ margin: 0 }}>
+            <SettingOutlined /> Admin Dashboard
+          </Title>
+          <Space>
+            <Button
+              icon={<HistoryOutlined />}
+              onClick={() => setChangeLogVisible(true)}
+            >
+              Change Log
+            </Button>
+            <Button
+              icon={<ExportOutlined />}
+              onClick={handleExport}
+            >
+              Export
+            </Button>
+            <Button
+              icon={<ImportOutlined />}
+              onClick={() => setImportModalVisible(true)}
+            >
+              Import
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleReset}
+              danger
+            >
+              Reset
+            </Button>
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              loading={saving}
+              onClick={handleSave}
               size="large"
             >
-              {categories.map(category => 
-                renderCategory(
-                  category.key as keyof AdminSettings,
-                  category.name,
-                  category.icon
-                )
-              )}
-            </Tabs>
-          </Form>
-        </Content>
-      </Layout>
+              Save Settings
+            </Button>
+          </Space>
+        </div>
+
+        <Alert
+          message="Admin Settings"
+          description="Configure all application settings from this centralized dashboard. Changes are automatically validated and logged."
+          type="info"
+          showIcon
+          style={{ marginBottom: '24px' }}
+        />
+
+        <Form form={form} layout="vertical">
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            type="card"
+            size="large"
+          >
+            {categories.map(category => 
+              renderCategory(
+                category.key as keyof AdminSettings,
+                category.name,
+                category.icon
+              )
+            )}
+          </Tabs>
+        </Form>
+      </Card>
 
       {/* Change Log Drawer */}
       <Drawer

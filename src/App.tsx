@@ -74,15 +74,7 @@ const AppContent: React.FC = () => {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/payment" element={<PaymentPage />} />
         
-        {/* Admin Routes */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Admin Routes - Now integrated into dashboard layout */}
         
         {/* Protected Routes */}
         <Route
@@ -113,6 +105,11 @@ const AppContent: React.FC = () => {
           <Route path="history" element={<HistoryPage />} />
           <Route path="achievements" element={<AchievementsPage />} />
           <Route path="settings" element={<FileUploadSettings />} />
+          <Route path="admin" element={<AdminDashboard />} />
+          <Route path="admin/users" element={<UserManagement />} />
+          <Route path="admin/monitoring" element={<SystemMonitoring />} />
+          <Route path="admin/logs" element={<SystemLogs />} />
+          <Route path="admin/billing" element={<BillingManagement />} />
         </Route>
         
         {/* Default Redirect */}
