@@ -1,0 +1,315 @@
+name: Agent-Driven Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      workflow_type:
+        description: 'Type of automation workflow to run'
+        required: true
+        default: 'compliance-check'
+        type: choice
+        options:
+          - compliance-check
+          - autopilot
+          - functionality-test
+          - quality-gates
+          - enhanced-automation
+      max_rounds:
+        description: 'Maximum rounds for autopilot (if applicable)'
+        required: false
+        default: '5'
+        type: string
+  schedule:
+    # Run compliance checks daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'src/**'
+      - 'scripts/automation/**'
+      - '.github/workflows/agent-automation.yml'
+
+env:
+  NODE_VERSION: '18'
+
+# Explicit permissions for security
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  # Agent evaluation job - evaluates tasks and creates execution plan
+  agent-evaluation:
+    name: Agent Task Evaluation
+    runs-on: ubuntu-latest
+    outputs:
+      evaluation_id: ${{ steps.evaluate.outputs.evaluation_id }}
+      should_execute: ${{ steps.evaluate.outputs.should_execute }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Evaluate tasks
+        id: evaluate
+        run: |
+          # Create a task evaluation request
+          cat > tasks.json << EOF
+          {
+            "tasks": [
+              {
+                "title": "Run compliance checks",
+                "description": "Execute compliance checks to identify issues",
+                "priority": "high",
+                "category": "testing"
+              },
+              {
+                "title": "Fix identified issues",
+                "description": "Apply automated fixes to identified issues",
+                "priority": "high",
+                "category": "automation"
+              },
+              {
+                "title": "Verify fixes",
+                "description": "Verify that fixes resolved the issues",
+                "priority": "medium",
+                "category": "testing"
+              }
+            ]
+          }
+          EOF
+          
+          # For now, we'll set a placeholder evaluation ID
+          echo "evaluation_id=eval-$(date +%s)" >> $GITHUB_OUTPUT
+          echo "should_execute=true" >> $GITHUB_OUTPUT
+
+      - name: Upload evaluation
+        uses: actions/upload-artifact@v3
+        with:
+          name: task-evaluation
+          path: tasks.json
+
+  # Compliance check job
+  compliance-check:
+    name: Run Compliance Checks
+    runs-on: ubuntu-latest
+    needs: agent-evaluation
+    if: needs.agent-evaluation.outputs.should_execute == 'true'
+    outputs:
+      compliance_status: ${{ steps.check.outputs.status }}
+      has_failures: ${{ steps.check.outputs.has_failures }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run compliance check
+        id: check
+        continue-on-error: true
+        run: |
+          # Run the compliance check
+          npm run compliance:check > compliance-output.txt 2>&1 || true
+          
+          # Check for failures
+          if grep -qE '❌|ERROR|failed|not.*passing' compliance-output.txt; then
+            echo "has_failures=true" >> $GITHUB_OUTPUT
+            echo "status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+            echo "status=passed" >> $GITHUB_OUTPUT
+          fi
+          
+          # Display output
+          cat compliance-output.txt
+
+      - name: Upload compliance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: compliance-results
+          path: compliance-output.txt
+
+  # Autopilot execution job
+  autopilot-execution:
+    name: Execute Autopilot
+    runs-on: ubuntu-latest
+    needs: [agent-evaluation, compliance-check]
+    if: |
+      needs.agent-evaluation.outputs.should_execute == 'true' &&
+      needs.compliance-check.outputs.has_failures == 'true' &&
+      (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure autopilot
+        run: |
+          # Set up automation environment
+          cat > automation.env << EOF
+          AUTOMATION_MAX_ROUNDS=${{ github.event.inputs.max_rounds || '5' }}
+          AUTOMATION_ENABLED=true
+          AUTOMATION_DRY_RUN=false
+          EOF
+
+      - name: Run autopilot
+        id: autopilot
+        continue-on-error: true
+        timeout-minutes: 60
+        run: |
+          # Run autopilot with configured rounds
+          npm run automation:autopilot > autopilot-output.txt 2>&1 || true
+          
+          # Display output
+          cat autopilot-output.txt
+
+      - name: Upload autopilot results
+        uses: actions/upload-artifact@v3
+        with:
+          name: autopilot-results
+          path: |
+            autopilot-output.txt
+            autopilot-round-*.log
+            .cursor/agent-launch-*.json
+
+  # Execute specific workflow
+  execute-workflow:
+    name: Execute Workflow - ${{ github.event.inputs.workflow_type }}
+    runs-on: ubuntu-latest
+    needs: agent-evaluation
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.workflow_type != 'autopilot'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Execute workflow
+        run: |
+          case "${{ github.event.inputs.workflow_type }}" in
+            compliance-check)
+              npm run compliance:check
+              ;;
+            functionality-test)
+              node scripts/automation/functionality-test.js
+              ;;
+            quality-gates)
+              node scripts/automation/quality-gates.js
+              ;;
+            enhanced-automation)
+              node scripts/automation/enhanced-automation-system.js
+              ;;
+            *)
+              echo "Unknown workflow type: ${{ github.event.inputs.workflow_type }}"
+              exit 1
+              ;;
+          esac
+
+  # Post-execution verification
+  verify-results:
+    name: Verify Automation Results
+    runs-on: ubuntu-latest
+    needs: [compliance-check, autopilot-execution]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Verify compliance
+        id: verify
+        continue-on-error: true
+        run: |
+          # Run final compliance check
+          npm run compliance:check > final-compliance.txt 2>&1 || true
+          
+          # Check results
+          if grep -qE '❌|ERROR|failed|not.*passing' final-compliance.txt; then
+            echo "verification_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "verification_status=passed" >> $GITHUB_OUTPUT
+          fi
+          
+          cat final-compliance.txt
+
+      - name: Generate summary
+        run: |
+          echo "# Automation Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Workflow: ${{ github.event.inputs.workflow_type || 'scheduled' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Compliance Status**: ${{ needs.compliance-check.outputs.compliance_status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Has Failures**: ${{ needs.compliance-check.outputs.has_failures }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Final Verification**: ${{ steps.verify.outputs.verification_status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.verify.outputs.verification_status }}" = "passed" ]; then
+            echo "✅ All checks passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some checks failed. Review the artifacts for details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload final results
+        uses: actions/upload-artifact@v3
+        with:
+          name: final-verification
+          path: final-compliance.txt
+
+  # Notification job
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [verify-results]
+    if: always()
+    steps:
+      - name: Notify on completion
+        run: |
+          echo "Automation workflow completed"
+          echo "Status: ${{ job.status }}"
+          # Add Slack/Discord notification here if needed

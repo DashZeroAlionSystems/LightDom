@@ -10,6 +10,7 @@ import { lightDomStorageAPI } from './LightDomStorageApi';
 import { spaceMiningAPI } from './spaceMiningApi';
 import { metaverseMiningAPI } from './metaverseMiningApi';
 import { adminAnalyticsAPI } from './adminAnalyticsApi';
+import { automationOrchestrationAPI } from './automationOrchestrationApi';
 import { startupScript } from '../scripts/StartupScript';
 import { browserRefreshHandler } from '../scripts/BrowserRefreshHandler';
 import { persistentBlockchainStorage } from '../core/PersistentBlockchainStorage';
@@ -292,6 +293,20 @@ router.put('/settings', (req, res) => {
     });
   }
 });
+
+// Automation Orchestration API routes
+router.post('/automation/workflow/start', automationOrchestrationAPI.startWorkflow.bind(automationOrchestrationAPI));
+router.post('/automation/workflow/stop', automationOrchestrationAPI.stopWorkflow.bind(automationOrchestrationAPI));
+router.get('/automation/workflow/:jobId', automationOrchestrationAPI.getWorkflowStatus.bind(automationOrchestrationAPI));
+router.get('/automation/workflows', automationOrchestrationAPI.listWorkflows.bind(automationOrchestrationAPI));
+router.get('/automation/jobs', automationOrchestrationAPI.listJobs.bind(automationOrchestrationAPI));
+router.post('/automation/autopilot/start', automationOrchestrationAPI.startAutopilot.bind(automationOrchestrationAPI));
+router.post('/automation/evaluate', automationOrchestrationAPI.evaluateTasks.bind(automationOrchestrationAPI));
+router.post('/automation/execute', automationOrchestrationAPI.executeTasks.bind(automationOrchestrationAPI));
+router.get('/automation/metrics', automationOrchestrationAPI.getMetrics.bind(automationOrchestrationAPI));
+router.get('/automation/evaluations', automationOrchestrationAPI.getEvaluations.bind(automationOrchestrationAPI));
+router.post('/automation/schedule', automationOrchestrationAPI.scheduleWorkflow.bind(automationOrchestrationAPI));
+router.get('/automation/health', automationOrchestrationAPI.getHealth.bind(automationOrchestrationAPI));
 
 // Health check route
 router.get('/health', (req, res) => {
