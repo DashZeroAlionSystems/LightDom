@@ -29,6 +29,7 @@ A comprehensive blockchain-based DOM optimization platform with AI-powered codin
 - **Workflow Simulation**: End-to-end user workflow testing
 - **Error Handling**: Centralized error management and validation
 - **Performance Monitoring**: Real-time performance metrics and alerts
+- **Automatic Retry Mechanism**: GitHub Actions workflows with intelligent retry logic for transient failures
 
 ## 🏗️ Architecture
 
@@ -405,6 +406,9 @@ docker-compose up -d
 - **[Quick Start Guide](./QUICK_START.md)** - Fast track to running the project
 - **[Workflow Automation](./WORKFLOW_AUTOMATION.md)** - CLI tools and automation guide
 - **[Dev Container Guide](./.devcontainer/README.md)** - Development environment setup
+
+### CI/CD & Quality Assurance
+- **[Retry Mechanism](./RETRY_MECHANISM.md)** - Automatic retry logic for GitHub Actions workflows
 
 ### AI Integration
 - **[GitHub Copilot Instructions](./.github/COPILOT_INSTRUCTIONS.md)** - Copilot configuration and usage
