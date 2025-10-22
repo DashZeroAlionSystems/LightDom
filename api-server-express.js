@@ -175,13 +175,16 @@ class DOMSpaceHarvesterAPI {
     
     // Setup advanced node API routes
     this.setupAdvancedNodeRoutes();
-    
+
+    // Setup SEO injection service API routes
+    this.setupSEOServiceRoutes();
+
     // Statistics cache
     this.statsCache = {
       lastUpdate: 0,
       data: {}
     };
-    
+
     this.setupMiddleware();
     this.setupWebSocket();
     this.startRealtimeUpdates();
@@ -5681,6 +5684,22 @@ class DOMSpaceHarvesterAPI {
     });
 
     console.log('✅ Advanced Node API routes configured');
+  }
+
+  async setupSEOServiceRoutes() {
+    // Import SEO service API creator
+    try {
+      const { createSEOInjectionAPI } = await import('./src/api/seo-injection-api.js');
+
+      // Mount SEO API routes
+      const seoRouter = createSEOInjectionAPI(this.db);
+      this.app.use('/api/v1/seo', seoRouter);
+
+      console.log('✅ SEO Service API routes configured');
+    } catch (error) {
+      console.error('⚠️ Failed to setup SEO Service routes:', error.message);
+      console.log('SEO Service will not be available. This is expected if TypeScript files are not compiled yet.');
+    }
   }
 
   // Helper methods for authentication
