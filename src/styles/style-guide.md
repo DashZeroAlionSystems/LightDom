@@ -383,6 +383,464 @@ The LightDom Space-Bridge platform uses a modern, accessible, and user-friendly 
 </Button>
 ```
 
+## 🎯 **Process Indicators**
+
+### **When to Use Each Indicator**
+
+#### **1. Loading Skeleton** - Initial data load (>500ms expected)
+**Use for:** Dashboard initial load, table data fetch, card content
+
+```tsx
+import { Skeleton } from 'antd';
+
+<Skeleton active loading={loading} paragraph={{ rows: 4 }}>
+  <ActualContent />
+</Skeleton>
+```
+
+#### **2. Spinner** - Short operations (<2s expected)
+**Use for:** Button actions, form submissions, quick API calls
+
+```tsx
+import { Spin } from 'antd';
+
+<Spin spinning={processing}>
+  <Content />
+</Spin>
+
+// Or inline
+{isProcessing && <Spin />}
+```
+
+#### **3. Progress Bar** - Long operations with progress (>2s expected)
+**Use for:** File uploads, batch operations, mining processes, optimization
+
+```tsx
+import { Progress } from 'antd';
+
+<Progress 
+  percent={progressPercent} 
+  status={status}
+  strokeColor={{
+    '0%': '#108ee9',
+    '100%': '#87d068',
+  }}
+/>
+```
+
+#### **4. Toast Notification** - Operation completion feedback
+**Use for:** All user-initiated operations, success/error feedback
+
+```tsx
+import { notification } from 'antd';
+
+// Success
+notification.success({
+  message: 'Operation Completed',
+  description: 'Your optimization has finished successfully',
+  placement: 'topRight',
+  duration: 3
+});
+
+// Error
+notification.error({
+  message: 'Operation Failed',
+  description: error.message,
+  placement: 'topRight',
+  duration: 5
+});
+```
+
+#### **5. Status Badge** - Ongoing process state
+**Use for:** Mining status, connection status, job status, server status
+
+```tsx
+import { Badge } from 'antd';
+
+<Badge status="processing" text="Mining" />
+<Badge status="success" text="Active" />
+<Badge status="error" text="Failed" />
+<Badge status="warning" text="Paused" />
+```
+
+### **Standard Implementation Pattern**
+
+```tsx
+import { useState } from 'react';
+import { Skeleton, Spin, Progress, notification, Badge } from 'antd';
+
+function DashboardWithIndicators() {
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState<'idle' | 'active' | 'error'>('idle');
+
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  const loadInitialData = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchData();
+      setData(data);
+    } catch (error) {
+      notification.error({
+        message: 'Failed to Load Data',
+        description: error.message
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOperation = async () => {
+    setProcessing(true);
+    setProgress(0);
+    try {
+      // Simulate progress
+      for (let i = 0; i <= 100; i += 10) {
+        setProgress(i);
+        await delay(200);
+      }
+      
+      notification.success({
+        message: 'Success',
+        description: 'Operation completed successfully'
+      });
+      setStatus('active');
+    } catch (error) {
+      notification.error({
+        message: 'Error',
+        description: error.message
+      });
+      setStatus('error');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  if (loading) {
+    return <Skeleton active paragraph={{ rows: 8 }} />;
+  }
+
+  return (
+    <div className="p-6">
+      {/* Status indicator */}
+      <div className="mb-4">
+        <Badge status={status === 'active' ? 'success' : 'default'} text="System Status" />
+      </div>
+
+      {/* Content with spinner overlay */}
+      <Spin spinning={processing}>
+        {/* Progress bar */}
+        {progress > 0 && progress < 100 && (
+          <Progress percent={progress} className="mb-4" />
+        )}
+
+        {/* Your content */}
+        <button onClick={handleOperation}>Start Operation</button>
+      </Spin>
+    </div>
+  );
+}
+```
+
+## 🛡️ **Error Handling UI Patterns**
+
+### **Error Boundary**
+
+Wrap all route components in an error boundary:
+
+```tsx
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Button, Result } from 'antd';
+
+interface Props {
+  children: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error: Error | null;
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Result
+          status="error"
+          title="Something went wrong"
+          subTitle={this.state.error?.message}
+          extra={[
+            <Button type="primary" onClick={() => this.setState({ hasError: false })}>
+              Try Again
+            </Button>,
+            <Button onClick={() => window.location.href = '/'}>
+              Go Home
+            </Button>
+          ]}
+        />
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Usage in main.tsx
+<ErrorBoundary>
+  <YourComponent />
+</ErrorBoundary>
+```
+
+### **API Error Display**
+
+```tsx
+// Pattern 1: Toast for operations
+try {
+  await performOperation();
+  notification.success({ message: 'Success' });
+} catch (error) {
+  notification.error({
+    message: 'Operation Failed',
+    description: error.response?.data?.message || error.message
+  });
+}
+
+// Pattern 2: Inline for forms
+<Form.Item
+  validateStatus={error ? 'error' : ''}
+  help={error?.message}
+>
+  <Input />
+</Form.Item>
+
+// Pattern 3: Alert for page-level errors
+import { Alert } from 'antd';
+
+{error && (
+  <Alert
+    message="Error"
+    description={error.message}
+    type="error"
+    closable
+    onClose={() => setError(null)}
+    showIcon
+  />
+)}
+```
+
+## 🔌 **Enterprise API Call Pattern**
+
+### **API Client Setup**
+
+Create a centralized API client with interceptors:
+
+```typescript
+// src/utils/apiClient.ts
+import axios from 'axios';
+import { notification } from 'antd';
+
+const apiClient = axios.create({
+  baseURL: '/api',
+  timeout: 30000,
+  withCredentials: true, // Include cookies
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+// Request interceptor
+apiClient.interceptors.request.use(
+  (config) => {
+    // Add correlation ID for tracking
+    config.headers['X-Correlation-ID'] = generateCorrelationId();
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle auth errors
+    if (error.response?.status === 401) {
+      window.location.href = '/login';
+    }
+    
+    // Log errors
+    console.error('API Error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.message
+    });
+    
+    return Promise.reject(error);
+  }
+);
+
+export default apiClient;
+```
+
+### **API Call Pattern with Error Handling**
+
+```typescript
+import apiClient from '@/utils/apiClient';
+import { notification } from 'antd';
+
+export async function fetchData<T>(
+  endpoint: string,
+  options?: AxiosRequestConfig
+): Promise<T> {
+  try {
+    const response = await apiClient.get<T>(endpoint, options);
+    return response.data;
+  } catch (error) {
+    // User-friendly error message
+    const message = error.response?.data?.message || 'Request failed';
+    
+    notification.error({
+      message: 'Error',
+      description: message
+    });
+    
+    throw error;
+  }
+}
+
+// Usage in components
+const loadData = async () => {
+  setLoading(true);
+  try {
+    const data = await fetchData<MyDataType>('/endpoint');
+    setData(data);
+  } catch (error) {
+    // Error already handled by fetchData
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+## 🎨 **Design System Priorities**
+
+### **Primary: Material Design 3 + Tailwind CSS**
+
+**Use Material Design 3 (Ant Design) for:**
+- Buttons, inputs, forms
+- Cards and containers
+- Navigation components
+- Modal dialogs
+- Tables and lists
+- Notifications and alerts
+
+**Use Tailwind CSS for:**
+- Layout (flexbox, grid)
+- Spacing and sizing
+- Colors and backgrounds
+- Typography utilities
+- Responsive design
+- Custom components
+
+**Example combining both:**
+
+```tsx
+import { Card, Button } from 'antd';
+
+<Card className="shadow-lg rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
+  <h2 className="text-2xl font-bold mb-4">Dashboard Title</h2>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg">
+      <p className="text-gray-600 dark:text-gray-400">Content</p>
+      <Button type="primary" className="mt-4">Action</Button>
+    </div>
+  </div>
+</Card>
+```
+
+## 📱 **Component Templates**
+
+### **Dashboard Template**
+
+```tsx
+import React from 'react';
+import { Card, Typography, Button, Skeleton } from 'antd';
+import { ArrowLeft } from 'lucide-react';
+
+const { Title } = Typography;
+
+interface DashboardTemplateProps {
+  title: string;
+  subtitle?: string;
+  actions?: React.ReactNode;
+  children: React.ReactNode;
+  loading?: boolean;
+  onBack?: () => void;
+}
+
+export const DashboardTemplate: React.FC<DashboardTemplateProps> = ({
+  title,
+  subtitle,
+  actions,
+  children,
+  loading,
+  onBack
+}) => {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              {onBack && (
+                <Button
+                  type="text"
+                  icon={<ArrowLeft className="w-5 h-5" />}
+                  onClick={onBack}
+                  className="mr-4"
+                />
+              )}
+              <div>
+                <Title level={2} className="mb-0">{title}</Title>
+                {subtitle && (
+                  <p className="text-gray-600 dark:text-gray-400 mt-1">
+                    {subtitle}
+                  </p>
+                )}
+              </div>
+            </div>
+            {actions && <div>{actions}</div>}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {loading ? (
+          <Skeleton active paragraph={{ rows: 8 }} />
+        ) : (
+          children
+        )}
+      </div>
+    </div>
+  );
+};
+```
+
 ## 📖 **Resources**
 
 ### **Design Tools**
@@ -397,6 +855,15 @@ The LightDom Space-Bridge platform uses a modern, accessible, and user-friendly 
 - Usage examples
 - Testing guidelines
 
+### **Libraries**
+- Ant Design 5.27+ (Material Design 3)
+- Tailwind CSS 4.1+
+- Lucide React (Icons)
+- React 19+
+
 ---
 
 This comprehensive style guide ensures consistency, accessibility, and modern design practices across the entire LightDom Space-Bridge platform. All components follow these guidelines to create a cohesive, user-friendly experience.
+
+**Last Updated:** 2025-10-22
+**Version:** 2.0 (Added process indicators, error handling, and API patterns)
