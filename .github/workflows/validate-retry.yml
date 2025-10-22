@@ -1,0 +1,65 @@
+name: Test Retry Mechanism
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  test-retry-success:
+    name: Test Successful Retry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test successful command with retry
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 1
+          max_attempts: 3
+          retry_wait_seconds: 5
+          command: echo "This should succeed on first attempt"
+  
+  test-retry-transient-failure:
+    name: Test Transient Failure Recovery
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test command that fails once then succeeds
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 1
+          max_attempts: 3
+          retry_wait_seconds: 5
+          command: |
+            # This simulates a transient failure by failing on first attempt
+            if [ ! -f /tmp/retry-test-marker ]; then
+              touch /tmp/retry-test-marker
+              echo "First attempt - simulating transient failure"
+              exit 1
+            else
+              echo "Second attempt - success!"
+              rm -f /tmp/retry-test-marker
+              exit 0
+            fi
+  
+  test-retry-installation:
+    name: Test Package Installation Retry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Test npm install with retry
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: npm install --no-save chalk
