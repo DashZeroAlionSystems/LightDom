@@ -23,6 +23,12 @@ import BlockchainModelStorageDashboard from './components/ui/BlockchainModelStor
 import SpaceOptimizationDashboard from './components/ui/SpaceOptimizationDashboard';
 import { SEOOptimizationDashboard } from './components/SEOOptimizationDashboard';
 import { SEOModelMarketplace } from './components/SEOModelMarketplace';
+import LoginPage from './components/auth/LoginPage';
+import RegisterPage from './components/auth/RegisterPage';
+import PaymentPage from './components/payment/PaymentPage';
+import { FileUploadSettings } from './components/FileUploadSettings';
+import AdminDashboard from './components/admin/AdminDashboard';
+import AdminAnalyticsDashboard from './components/ui/AdminAnalyticsDashboard';
 import LoginPage from './components/ui/auth/LoginPage';
 import RegisterPage from './components/ui/auth/RegisterPage';
 import ForgotPasswordPage from './components/ui/auth/ForgotPasswordPage';
@@ -74,6 +80,23 @@ const AppContent: React.FC = () => {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/payment" element={<PaymentPage />} />
         
+        {/* Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/analytics"
+          element={
+            <ProtectedRoute>
+              <AdminAnalyticsDashboard />
+            </ProtectedRoute>
+          }
+        />
         {/* Admin Routes - Now integrated into dashboard layout */}
         
         {/* Protected Routes */}
