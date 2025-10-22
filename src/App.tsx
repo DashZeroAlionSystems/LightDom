@@ -99,6 +99,7 @@ const AppContent: React.FC = () => {
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />
           <Route path="seo-optimization" element={<SEOOptimizationDashboard />} />
+          <Route path="seo-datamining" element={<SEODataMiningDashboard />} />
           <Route path="seo-marketplace" element={<SEOModelMarketplace />} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="websites" element={<WebsitesManagementPage />} />
