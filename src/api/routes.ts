@@ -9,6 +9,7 @@ import { blockchainModelStorageAPI } from './blockchainModelStorageApi';
 import { lightDomStorageAPI } from './LightDomStorageApi';
 import { spaceMiningAPI } from './spaceMiningApi';
 import { metaverseMiningAPI } from './metaverseMiningApi';
+import { adminAnalyticsAPI } from './adminAnalyticsApi';
 import { startupScript } from '../scripts/StartupScript';
 import { browserRefreshHandler } from '../scripts/BrowserRefreshHandler';
 import { persistentBlockchainStorage } from '../core/PersistentBlockchainStorage';
@@ -67,6 +68,14 @@ router.post('/space-mining/test-bridge/:bridgeId', spaceMiningAPI.testBridgeConn
 // Metaverse Bridge API routes
 router.get('/metaverse/bridge/:bridgeId', metaverseMiningAPI.getBridgeDetails.bind(metaverseMiningAPI));
 router.get('/metaverse/bridge/:bridgeId/chat', metaverseMiningAPI.getBridgeChat.bind(metaverseMiningAPI));
+
+// Admin Analytics API routes
+router.get('/admin/analytics/overview', adminAnalyticsAPI.getSystemOverview.bind(adminAnalyticsAPI));
+router.get('/admin/analytics/clients', adminAnalyticsAPI.getClientUsageMetrics.bind(adminAnalyticsAPI));
+router.get('/admin/analytics/client/:clientId/activity', adminAnalyticsAPI.getClientActivity.bind(adminAnalyticsAPI));
+router.get('/admin/analytics/mining', adminAnalyticsAPI.getMiningStatistics.bind(adminAnalyticsAPI));
+router.get('/admin/analytics/billing', adminAnalyticsAPI.getBillingAnalytics.bind(adminAnalyticsAPI));
+router.get('/admin/analytics/alerts', adminAnalyticsAPI.getSystemAlerts.bind(adminAnalyticsAPI));
 
 // Startup and Refresh Handler routes
 router.get('/startup/status', (req, res) => {

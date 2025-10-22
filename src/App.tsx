@@ -24,6 +24,7 @@ import RegisterPage from './components/auth/RegisterPage';
 import PaymentPage from './components/payment/PaymentPage';
 import { FileUploadSettings } from './components/FileUploadSettings';
 import AdminDashboard from './components/admin/AdminDashboard';
+import AdminAnalyticsDashboard from './components/ui/AdminAnalyticsDashboard';
 import './App.css';
 
 // Initialize persistence system
@@ -72,6 +73,14 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/analytics"
+          element={
+            <ProtectedRoute>
+              <AdminAnalyticsDashboard />
             </ProtectedRoute>
           }
         />
