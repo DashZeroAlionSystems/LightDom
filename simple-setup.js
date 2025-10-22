@@ -137,8 +137,8 @@ app.listen(port, () => {
 export default app;
 `;
 
-  writeFileSync('simple-api.js', apiContent);
-  logSuccess('Created minimal API server: simple-api.js');
+  writeFileSync('simple-api-server.js', apiContent);
+  logSuccess('Created minimal API server: simple-api-server.js');
 }
 
 async function createSimpleExtension() {
@@ -746,7 +746,7 @@ async function main() {
     
     logSuccess('🎉 Setup completed successfully!');
     logInfo('To start the system:');
-    logInfo('1. Run: node simple-api.js');
+    logInfo('1. Run: node simple-api-server.js');
     logInfo('2. Open dashboard.html in your browser');
     logInfo('3. Install Chrome extension from extension/ folder');
     logInfo('4. Visit any website to start mining!');
