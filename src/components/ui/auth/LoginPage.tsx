@@ -27,26 +27,8 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-        <div className="auth-header">
-          <h1>LightDom</h1>
-          <p>DOM Optimization & Mining Platform</p>
-        </div>
-        
-        <LoginForm onSuccess={() => (window.location.pathname = '/dashboard')} />
-        
-        <div style={{ display:'flex', justifyContent:'space-between', marginTop:8, color:'#9aa3ba' }}>
-          <button onClick={handleForgotPassword} style={{ background:'transparent', border:'none', color:'#93c5fd', cursor:'pointer' }}>Forgot password?</button>
-          <button onClick={handleSignUp} className="link" style={{ background:'transparent', border:'none', cursor:'pointer' }}>Create account</button>
-        </div>
-        
-        {error && (
-          <div className="error-banner">
-            {error}
-          </div>
-        )}
-      </div>
+    <div className="auth-form-container">
+      <LoginForm onSuccess={() => (window.location.pathname = '/dashboard')} />
     </div>
   );
 };

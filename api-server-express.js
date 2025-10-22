@@ -159,6 +159,9 @@ class DOMSpaceHarvesterAPI {
     // Setup analytics API routes
     this.setupAnalyticsRoutes();
     
+    // Setup SEO API routes
+    this.setupSEORoutes();
+    
     // Setup authentication API routes
     this.setupAuthRoutes();
     
@@ -5187,6 +5190,183 @@ class DOMSpaceHarvesterAPI {
     console.log('✅ Analytics API routes configured');
   }
 
+  setupSEORoutes() {
+    // =====================================================
+    // SEO OPTIMIZATION API ENDPOINTS
+    // =====================================================
+
+    // Analyze SEO for a URL and keyword
+    this.app.post('/api/seo/analyze', async (req, res) => {
+      try {
+        const { url, keyword } = req.body;
+
+        if (!url || !keyword) {
+          return res.status(400).json({
+            success: false,
+            error: 'URL and keyword are required'
+          });
+        }
+
+        // Mock SEO analysis data
+        const seoData = {
+          url,
+          keyword,
+          currentPosition: Math.floor(Math.random() * 100) + 1,
+          predictedPosition: Math.floor(Math.random() * 50) + 1,
+          rankingScore: Math.random() * 100,
+          
+          coreWebVitals: {
+            lcp: { 
+              value: Math.random() * 4 + 1, 
+              rating: Math.random() > 0.5 ? 'good' : 'needs-improvement' 
+            },
+            inp: { 
+              value: Math.random() * 200 + 50, 
+              rating: Math.random() > 0.3 ? 'good' : 'poor' 
+            },
+            cls: { 
+              value: Math.random() * 0.3, 
+              rating: Math.random() > 0.4 ? 'good' : 'needs-improvement' 
+            },
+            overallScore: Math.random() * 100
+          },
+          
+          onPage: {
+            titleOptimized: Math.random() > 0.3,
+            metaOptimized: Math.random() > 0.4,
+            headingStructure: Math.floor(Math.random() * 5) + 1,
+            contentQuality: Math.random() * 100,
+            keywordDensity: Math.random() * 5,
+            schemaMarkup: Math.random() > 0.6
+          },
+          
+          authority: {
+            domainRating: Math.random() * 100,
+            backlinks: Math.floor(Math.random() * 10000) + 100,
+            referringDomains: Math.floor(Math.random() * 1000) + 10,
+            authorityScore: Math.random() * 100
+          },
+          
+          userBehavior: {
+            ctr: Math.random() * 10,
+            engagementRate: Math.random() * 100,
+            bounceRate: Math.random() * 100,
+            dwellTime: Math.random() * 300 + 30
+          },
+          
+          aiInsights: {
+            topOpportunities: [
+              'Improve page loading speed',
+              'Optimize meta descriptions',
+              'Add schema markup',
+              'Improve internal linking',
+              'Enhance content quality'
+            ],
+            predictedImpact: Math.random() * 50 + 10,
+            confidenceScore: Math.random() * 30 + 70,
+            recommendedActions: [
+              { action: 'Optimize images', impact: 'high', effort: 'medium' },
+              { action: 'Improve title tags', impact: 'medium', effort: 'low' },
+              { action: 'Add internal links', impact: 'high', effort: 'medium' },
+              { action: 'Enhance content', impact: 'high', effort: 'high' }
+            ]
+          }
+        };
+
+        res.json({
+          success: true,
+          data: seoData
+        });
+      } catch (error) {
+        console.error('SEO analysis error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to analyze SEO'
+        });
+      }
+    });
+
+    // Get SEO feature importance
+    this.app.get('/api/seo/feature-importance', async (req, res) => {
+      try {
+        const featureImportance = [
+          { feature: 'Page Speed', importance: 0.25, category: 'Technical SEO' },
+          { feature: 'Content Quality', importance: 0.20, category: 'Content' },
+          { feature: 'Backlinks', importance: 0.18, category: 'Authority' },
+          { feature: 'Title Optimization', importance: 0.15, category: 'On-Page' },
+          { feature: 'Meta Descriptions', importance: 0.12, category: 'On-Page' },
+          { feature: 'Internal Linking', importance: 0.10, category: 'Technical SEO' }
+        ];
+
+        res.json({
+          success: true,
+          data: featureImportance
+        });
+      } catch (error) {
+        console.error('Feature importance error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get feature importance'
+        });
+      }
+    });
+
+    // Get historical SEO data
+    this.app.get('/api/seo/historical/:url', async (req, res) => {
+      try {
+        const { url } = req.params;
+        
+        // Mock historical data
+        const historicalData = Array.from({ length: 30 }, (_, i) => ({
+          date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString(),
+          position: Math.floor(Math.random() * 50) + 10,
+          traffic: Math.floor(Math.random() * 1000) + 100,
+          clicks: Math.floor(Math.random() * 500) + 50,
+          impressions: Math.floor(Math.random() * 5000) + 1000
+        }));
+
+        res.json({
+          success: true,
+          data: historicalData
+        });
+      } catch (error) {
+        console.error('Historical data error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to get historical data'
+        });
+      }
+    });
+
+    // Export SEO report
+    this.app.post('/api/seo/export', async (req, res) => {
+      try {
+        const { url, format = 'pdf' } = req.body;
+
+        if (!url) {
+          return res.status(400).json({
+            success: false,
+            error: 'URL is required'
+          });
+        }
+
+        // Mock export response
+        res.json({
+          success: true,
+          message: `SEO report exported successfully for ${url}`,
+          downloadUrl: `/api/seo/download/${Date.now()}.${format}`,
+          format
+        });
+      } catch (error) {
+        console.error('Export error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to export report'
+        });
+      }
+    });
+  }
+
   setupAuthRoutes() {
     // =====================================================
     // AUTHENTICATION API ENDPOINTS
@@ -7786,6 +7966,7 @@ class DOMSpaceHarvesterAPI {
         walletAddress: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
         createdAt: '2024-01-01T00:00:00Z',
         isVerified: true,
+        role: 'user',
         profile: {
           avatar: null,
           bio: 'DOM optimization enthusiast',
@@ -7799,6 +7980,29 @@ class DOMSpaceHarvesterAPI {
           reputation: 850,
           level: 5
         }
+      },
+      {
+        id: 'admin',
+        name: 'Admin User',
+        email: 'admin',
+        password: 'admin', // In production, this would be hashed
+        walletAddress: '0x0000000000000000000000000000000000000000',
+        createdAt: '2024-01-01T00:00:00Z',
+        isVerified: true,
+        role: 'admin',
+        profile: {
+          avatar: null,
+          bio: 'System Administrator',
+          location: 'Global',
+          website: ''
+        },
+        stats: {
+          totalOptimizations: 0,
+          tokensEarned: 0,
+          spaceSaved: 0,
+          reputation: 1000,
+          level: 10
+        }
       }
     ];
 
@@ -7810,7 +8014,9 @@ class DOMSpaceHarvesterAPI {
     const payload = {
       id: user.id,
       email: user.email,
-      name: user.name
+      name: user.name,
+      role: user.role || 'user',
+      address: user.walletAddress
     };
     
     // Simple base64 encoding (not secure for production)

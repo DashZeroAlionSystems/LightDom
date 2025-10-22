@@ -40,7 +40,7 @@ import {
   ClusterOutlined,
   DatabaseOutlined,
   RocketOutlined,
-  ApiOutlined
+  ApiOutlined,
   SearchOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';

@@ -38,7 +38,12 @@ class FunctionalityTester {
     
     try {
       // Try to run electron --version
-      const { stdout } = await execAsync('electron --version');
+      let stdout;
+      try {
+        ({ stdout } = await execAsync('npx electron --version'));
+      } catch {
+        ({ stdout } = await execAsync('electron --version'));
+      }
       this.log(`  ✓ Electron installed: ${stdout.trim()}`, 'success');
       this.results.passed++;
     } catch (error) {
@@ -68,9 +73,13 @@ class FunctionalityTester {
       }
       this.results.total++;
 
-      // Test if API server can start
+      // Test if API server can start (prefer real server)
       try {
-        const apiProcess = spawn('node', ['simple-api-server.js'], { 
+        const prefersReal = true;
+        const target = prefersReal && await fs.stat('api-server-express.js').then(() => true).catch(() => false)
+          ? 'api-server-express.js'
+          : 'simple-api-server.js';
+        const apiProcess = spawn('node', [target], { 
           stdio: 'pipe',
           cwd: process.cwd()
         });
@@ -79,7 +88,7 @@ class FunctionalityTester {
           let output = '';
           apiProcess.stdout.on('data', (data) => {
             output += data.toString();
-            if (output.includes('LightDom API Server running')) {
+            if (output.includes('LightDom API Server running') || output.includes('DOM Space Harvester API running')) {
               resolve();
             }
           });
@@ -112,7 +121,7 @@ class FunctionalityTester {
     
     try {
       // Test if frontend is accessible
-      const ports = [3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010];
+      const ports = [Number(process.env.VITE_PORT || 3000), 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010];
       let frontendFound = false;
       
       for (const port of ports) {

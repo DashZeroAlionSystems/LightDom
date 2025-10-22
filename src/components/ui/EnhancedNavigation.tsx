@@ -5,9 +5,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useEnhancedAuth } from '../../contexts/EnhancedAuthContext';
 import { 
-  Home, Settings, Wallet, Zap, Globe, Database, FlaskConical as TestTube, Workflow, Cpu,
-  Lock, Users, CreditCard, Crown, LogOut, ChevronLeft, ChevronRight, MailPlus, Bell,
-  Rocket, BarChart3, Bug, Server, ShieldCheck
+  Home, Settings, Wallet, Zap, Globe, Database, Workflow, Cpu,
+  LogOut, ChevronLeft, ChevronRight, MailPlus, Bell,
+  Rocket, BarChart3, Bug, Server, ShieldCheck, Search
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -41,6 +41,7 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPath = window.lo
     const all = [
       { path: '/', label: 'Dashboard', icon: Home, plans: ['free','pro','enterprise','admin'] },
       { path: '/optimization', label: 'Optimization', icon: Zap, plans: ['free','pro','enterprise','admin'] },
+      { path: '/seo-optimization', label: 'SEO Optimization', icon: Search, plans: ['pro','enterprise','admin'] },
       { path: '/space-mining', label: 'Space Mining', icon: Rocket, plans: ['pro','enterprise','admin'] },
       { path: '/analytics', label: 'Analytics', icon: BarChart3, plans: ['pro','enterprise','admin'] },
       { path: '/harvester', label: 'Web Crawler', icon: Globe, plans: ['pro','enterprise','admin'] },

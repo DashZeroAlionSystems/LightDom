@@ -160,39 +160,237 @@ class EnhancedAutomationWithCursorLinear {
   }
 
   async createLinearIssue(title, description, priority = 'Medium', teamId = null) {
-    const client = await this.setupLinearClient();
-    if (!client) return null;
+    // Deprecated direct creation. Use enqueue to ticket queue with de-dup and rate limit.
+    return this.enqueueLinearIssue(title, description, priority, teamId);
+  }
 
+  async enqueueLinearIssue(title, description, priority = 'Medium', teamId = null) {
     try {
-      // Get teams if teamId not provided
-      if (!teamId) {
-        const teams = await client.teams();
-        teamId = teams.nodes[0]?.id;
+      // Optional pre-check against Linear: skip if an open issue with same title exists within cooldown
+      const cooldownMin = Number(process.env.TICKETS_COOLDOWN_MINUTES || 120);
+      const client = await this.setupLinearClient();
+      if (client) {
+        const { teamId: resolvedTeamId } = await this.findTeamAndStates(client);
+        const label = process.env.TICKETS_LABEL || 'automation';
+        const existing = await this.listAutomationIssues(client, resolvedTeamId, label);
+        const same = existing.find(i => (i.title || '').trim().toLowerCase() === (title || '').trim().toLowerCase() && (i.state?.type || '').toLowerCase() !== 'canceled');
+        if (same) {
+          const createdAt = new Date(same.createdAt).getTime();
+          if (Date.now() - createdAt < cooldownMin * 60 * 1000) {
+            this.log(`Skip enqueue: similar ticket exists recently: ${title}`, 'linear');
+            return { skipped: true };
+          }
+        }
       }
 
-      const issue = await client.createIssue({
-        teamId,
-        title,
-        description,
-        priority: priority.toLowerCase(),
-        labels: ['automation', 'lightdom']
+      const port = process.env.TICKET_QUEUE_PORT || 3099;
+      const res = await fetch(`http://localhost:${port}/api/tickets/enqueue`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, priority, teamId })
       });
-
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Queue HTTP ${res.status}: ${text}`);
+      }
+      const body = await res.json();
+      if (body.ok === false) {
+        this.log(`Queue refusal: ${body.error || 'unknown error'}`, 'error');
+        return { queued: false };
+      }
+      if (body.deduped) {
+        this.log(`Deduped ticket (already queued): ${title}`, 'linear');
+      } else {
+        this.log(`Queued ticket: ${title}`, 'linear');
+      }
       this.results.linearIssues.push({
         title,
         description,
         priority,
-        issueId: issue.id,
-        status: 'created',
+        issueId: 'queued',
+        status: body.deduped ? 'deduped' : 'queued',
         timestamp: new Date().toISOString()
       });
-
-      this.log(`Linear issue created: ${issue.id}`, 'linear');
-      return issue;
+      return { queued: true, deduped: !!body.deduped };
     } catch (error) {
-      this.log(`Failed to create Linear issue: ${error.message}`, 'error');
+      this.log(`Failed to enqueue Linear issue: ${error.message}`, 'error');
       return null;
     }
+  }
+
+  // =====================================================
+  // GIT BRANCH & PR PER LINEAR ISSUE
+  // =====================================================
+
+  async ensureGitRemote() {
+    try {
+      const { stdout } = await execAsync('git remote -v');
+      if (!stdout || !stdout.includes('origin')) {
+        this.log('No git origin remote detected. Configure origin to enable PR flow.', 'error');
+        return false;
+      }
+      return true;
+    } catch (e) {
+      this.log(`Git remote check failed: ${e.message}`, 'error');
+      return false;
+    }
+  }
+
+  sanitizeBranchName(name) {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9-_\.]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60);
+  }
+
+  async createBranchForIssue(issue) {
+    const shortTitle = this.sanitizeBranchName(issue.title || 'update');
+    const branchName = `feature/${shortTitle}-${(issue.issueId || '').slice(0, 6)}`;
+    try {
+      await execAsync(`git rev-parse --is-inside-work-tree`);
+      await execAsync(`git checkout -b ${branchName}`);
+      this.log(`Created branch: ${branchName}`, 'automation');
+      return branchName;
+    } catch (e) {
+      this.log(`Failed to create branch ${branchName}: ${e.message}`, 'error');
+      return null;
+    }
+  }
+
+  async commitAndPushBranch(branchName, message) {
+    try {
+      await execAsync('git add .');
+      await execAsync(`git commit -m "${message}"`);
+    } catch (e) {
+      // Continue if no changes to commit
+    }
+    try {
+      await execAsync(`git push -u origin ${branchName}`);
+      this.log(`Pushed branch to origin: ${branchName}`, 'automation');
+      return true;
+    } catch (e) {
+      this.log(`Failed to push branch ${branchName}: ${e.message}`, 'error');
+      return false;
+    }
+  }
+
+  async openPullRequest(branchName, title, body = '') {
+    try {
+      // Prefer GitHub CLI if available
+      const { stdout } = await execAsync('gh --version');
+      if (stdout && stdout.includes('gh version')) {
+        const prCmd = `gh pr create --fill --title "${title}" --body "${body}" --base main --head ${branchName}`;
+        await execAsync(prCmd);
+        this.log(`Opened PR via GitHub CLI: ${branchName}`, 'automation');
+        return true;
+      }
+    } catch {}
+    try {
+      // Fallback to hub if installed
+      await execAsync('hub --version');
+      const prCmd = `hub pull-request -m "${title}\n\n${body}" -b main -h ${branchName}`;
+      await execAsync(prCmd);
+      this.log(`Opened PR via hub: ${branchName}`, 'automation');
+      return true;
+    } catch {}
+    this.log('Neither gh nor hub is available to open PRs automatically.', 'error');
+    return false;
+  }
+
+  async branchAndPrForLinearIssues() {
+    const remoteOk = await this.ensureGitRemote();
+    if (!remoteOk) return [];
+    const results = [];
+    for (const issue of this.results.linearIssues) {
+      const branch = await this.createBranchForIssue(issue);
+      if (!branch) continue;
+      await this.commitAndPushBranch(branch, `chore(linear): scaffold for ${issue.title} (${issue.issueId})`);
+      const prTitle = `feat: ${issue.title} (${issue.issueId})`;
+      const prBody = issue.description || '';
+      const prOk = await this.openPullRequest(branch, prTitle, prBody);
+      results.push({ issueId: issue.issueId, branch, prOpened: prOk });
+      // Return to main to prep next branch
+      try { await execAsync('git checkout main'); } catch {}
+    }
+    return results;
+  }
+
+  // =====================================================
+  // LINEAR TICKET MANAGEMENT (LIMIT, CANCEL, STATUS)
+  // =====================================================
+
+  async findTeamAndStates(client) {
+    const teams = await client.teams();
+    const team = teams.nodes[0];
+    if (!team) return { teamId: null, states: [] };
+    const statesRes = await client.workflowStates({ filter: { team: { id: { eq: team.id } } } });
+    return { teamId: team.id, states: statesRes.nodes || [] };
+  }
+
+  async findStateIdByName(client, teamId, name) {
+    const states = await client.workflowStates({ filter: { name: { eq: name }, team: { id: { eq: teamId } } } });
+    return states.nodes?.[0]?.id || null;
+  }
+
+  async listAutomationIssues(client, teamId, label = (process.env.TICKETS_LABEL || 'automation')) {
+    // Search by label; fallback to querying recent issues and filter client-side
+    const issuesRes = await client.issues({ first: 100, filter: { team: { id: { eq: teamId } } } });
+    const issues = (issuesRes.nodes || []).filter(i => (i.labels?.nodes || []).some(l => l.name?.toLowerCase() === label));
+    return issues;
+  }
+
+  async cancelExcessTickets(limit) {
+    const client = await this.setupLinearClient();
+    if (!client) return { cancelled: 0, kept: 0 };
+
+    const { teamId } = await this.findTeamAndStates(client);
+    if (!teamId) return { cancelled: 0, kept: 0 };
+
+    const label = process.env.TICKETS_LABEL || 'automation';
+    const openIssues = await this.listAutomationIssues(client, teamId, label);
+
+    const maxOpen = Number(limit || process.env.TICKETS_MAX_OPEN || 20);
+    if (openIssues.length <= maxOpen) return { cancelled: 0, kept: openIssues.length };
+
+    // Determine canceled state id
+    const canceledStateId = await this.findStateIdByName(client, teamId, 'Canceled')
+      || await this.findStateIdByName(client, teamId, 'Cancelled');
+
+    let cancelled = 0;
+    // Sort oldest first (createdAt ascending) to cancel overflow
+    const sorted = [...openIssues].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    const toCancel = sorted.slice(0, openIssues.length - maxOpen);
+    for (const issue of toCancel) {
+      try {
+        if (canceledStateId) {
+          await client.updateIssue({ id: issue.id, stateId: canceledStateId });
+        } else {
+          await client.updateIssue({ id: issue.id, description: `${issue.description || ''}\n\n[automation]: marked as canceled due to ticket limit.` });
+        }
+        cancelled++;
+      } catch (e) {
+        this.log(`Failed to cancel Linear issue ${issue.id}: ${e.message}`, 'error');
+      }
+    }
+    return { cancelled, kept: openIssues.length - cancelled };
+  }
+
+  async summarizeTicketStatuses() {
+    const client = await this.setupLinearClient();
+    if (!client) return null;
+    const { teamId } = await this.findTeamAndStates(client);
+    if (!teamId) return null;
+    const label = process.env.TICKETS_LABEL || 'automation';
+    const issues = await this.listAutomationIssues(client, teamId, label);
+    const byState = new Map();
+    for (const i of issues) {
+      const name = i.state?.name || 'Unknown';
+      byState.set(name, (byState.get(name) || 0) + 1);
+    }
+    const summary = Array.from(byState.entries()).map(([state, count]) => ({ state, count }));
+    this.log(`Ticket status summary: ${summary.map(s => `${s.state}:${s.count}`).join(', ')}`, 'linear');
+    return { total: issues.length, summary };
   }
 
   // =====================================================
@@ -412,17 +610,31 @@ class EnhancedAutomationWithCursorLinear {
       }
     }
     
-    // Step 4: Create Linear issues for tracking
+    // Step 4: Enqueue Linear issues for tracking via ticket queue (dedup + rate limit)
+    const maxPerRun = Number(process.env.TICKETS_MAX_PER_RUN || 5);
+    let createdThisRun = 0;
     for (const issue of issues.filter(i => i.type === 'critical')) {
-      await this.createLinearIssue(
+      if (createdThisRun >= maxPerRun) break;
+      const res = await this.enqueueLinearIssue(
         issue.title,
         `${issue.description}\n\nSolution: ${issue.solution}\nEstimated time: ${issue.estimatedTime}`,
         'High'
       );
+      if (res && !res.skipped) createdThisRun++;
     }
     
     // Step 5: Generate comprehensive report
     await this.generateComprehensiveReport();
+    
+    // Step 6: For Linear issues created, create branches and open PRs
+    const prResults = await this.branchAndPrForLinearIssues();
+    if (prResults.length > 0) {
+      this.log(`Opened ${prResults.filter(r => r.prOpened).length}/${prResults.length} PRs for Linear issues`, 'automation');
+    }
+
+    // Step 7: Enforce ticket cap and summarize statuses
+    await this.cancelExcessTickets(process.env.TICKETS_MAX_OPEN || 20);
+    await this.summarizeTicketStatuses();
     
     this.log('🎉 Enhanced Automation Pipeline Complete!', 'success');
     

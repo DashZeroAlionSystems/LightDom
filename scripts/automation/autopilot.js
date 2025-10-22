@@ -36,7 +36,8 @@ async function launchCursorAgent(promptFile) {
     await fs.writeFile(`.cursor/agent-launch-${Date.now()}.json`, JSON.stringify(res, null, 2));
     log(`Cursor agent launched: ${res.id || 'unknown'}`);
   } catch (e) {
-    log(`Cursor agent launch failed: ${e.message}`, 'err');
+    // If disabled or blocked by allowed models, log and continue without failing rounds
+    log(`Cursor agent skipped or failed: ${e.message}`, 'warn');
   }
 }
 

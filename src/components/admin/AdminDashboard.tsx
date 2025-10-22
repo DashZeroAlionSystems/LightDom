@@ -276,32 +276,69 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="admin-dashboard">
-      <div className="admin-header">
-        <h1 className="admin-title">Admin Dashboard</h1>
-        <div className="admin-user">
-          <span className="admin-username">{user?.username || user?.email}</span>
-          <span className="admin-role">{user?.role}</span>
+      {/* Sidebar */}
+      <div className="admin-sidebar">
+        <div className="admin-sidebar-header">
+          <h2 className="admin-sidebar-title">Admin Panel</h2>
+          <div className="admin-user-info">
+            <div className="admin-user-avatar">
+              {user?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'A'}
+            </div>
+            <div className="admin-user-details">
+              <span className="admin-username">{user?.username || user?.email}</span>
+              <span className="admin-role">{user?.role}</span>
+            </div>
+          </div>
+        </div>
+
+        <nav className="admin-sidebar-nav">
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                className={`admin-sidebar-item ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+                title={tab.label}
+              >
+                <Icon size={20} />
+                <span className="admin-sidebar-label">{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="admin-sidebar-footer">
+          <div className="admin-system-status">
+            <div className="status-indicator">
+              <div className="status-dot"></div>
+              <span>System Online</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="admin-tabs">
-        {tabs.map(tab => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              className={`admin-tab ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <Icon size={18} />
-              <span>{tab.label}</span>
+      {/* Main Content Area */}
+      <div className="admin-main">
+        <div className="admin-main-header">
+          <h1 className="admin-page-title">
+            {tabs.find(tab => tab.id === activeTab)?.label || 'Overview'}
+          </h1>
+          <div className="admin-actions">
+            <button className="admin-action-btn">
+              <Settings size={16} />
+              <span>Settings</span>
             </button>
-          );
-        })}
-      </div>
+            <button className="admin-action-btn">
+              <Activity size={16} />
+              <span>Activity</span>
+            </button>
+          </div>
+        </div>
 
-      <div className="admin-content">
-        {renderContent()}
+        <div className="admin-content">
+          {renderContent()}
+        </div>
       </div>
     </div>
   );

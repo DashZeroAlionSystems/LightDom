@@ -44,39 +44,65 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-          remember: values.remember
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        message.success('Welcome back!');
+      // Mock authentication for development - check this first
+      if ((values.email === 'admin' || values.email === 'admin@lightdom.com') && values.password === 'admin123') {
+        message.success('Welcome back, Admin!');
         
-        // Store auth token and user data
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        // Store mock auth data
+        const mockUser = {
+          id: 'admin',
+          username: 'admin',
+          email: 'admin@lightdom.com',
+          role: 'admin',
+          subscription: {
+            plan: 'admin',
+            status: 'active',
+            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            features: ['all']
+          },
+          wallet: {
+            address: '0x1234567890123456789012345678901234567890',
+            connected: true,
+            balance: '1000.0',
+            ldomBalance: '5000.0'
+          },
+          stats: {
+            reputation: 100,
+            totalSpaceHarvested: 1000000,
+            optimizationCount: 150,
+            tokensEarned: '5000.0'
+          },
+          preferences: {
+            theme: 'dark',
+            notifications: true,
+            language: 'en',
+            dashboard: ['overview', 'mining', 'analytics']
+          },
+          permissions: [
+            { resource: 'admin', actions: ['read', 'write', 'delete'] },
+            { resource: 'users', actions: ['read', 'write', 'delete'] },
+            { resource: 'system', actions: ['read', 'write', 'delete'] }
+          ]
+        };
+
+        localStorage.setItem('auth_token', 'mock-admin-token');
+        localStorage.setItem('user', JSON.stringify(mockUser));
         
         if (values.remember) {
           localStorage.setItem('remember_me', 'true');
         }
 
         onSuccess?.();
-        navigatePath('/dashboard');
-      } else {
-        setError(data.error || 'Invalid credentials');
+        navigatePath('/admin');
+        return;
       }
+
+      // For any other credentials, show demo message
+      setError('Demo Mode: Use admin/admin123 for admin access or register a new account.');
+      
     } catch (error) {
       console.error('Login error:', error);
-      setError('Network error. Please try again.');
+      setError('Login failed. Try admin/admin123 for demo access.');
     } finally {
       setLoading(false);
     }

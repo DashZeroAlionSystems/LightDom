@@ -88,19 +88,23 @@ class LightDomMiningSystem extends EventEmitter {
       this.startDataIntegration();
       
       // Connect to blockchain
-    this.provider = new ethers.JsonRpcProvider(this.config.rpcUrl);
-    this.wallet = new ethers.Wallet(privateKey, this.provider);
-    
-    // Load contract ABIs
-    await this.loadContracts();
-    
-    // Initialize genesis block if needed
-    await this.initializeGenesisBlock();
-    
-    console.log('✅ Mining system initialized');
-    console.log(`📍 Miner address: ${this.wallet.address}`);
-    
-    return true;
+      this.provider = new ethers.JsonRpcProvider(this.config.rpcUrl);
+      this.wallet = new ethers.Wallet(privateKey, this.provider);
+      
+      // Load contract ABIs
+      await this.loadContracts();
+      
+      // Initialize genesis block if needed
+      await this.initializeGenesisBlock();
+      
+      console.log('✅ Mining system initialized');
+      console.log(`📍 Miner address: ${this.wallet.address}`);
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to initialize mining system:', error);
+      throw error;
+    }
   }
 
   async loadContracts() {

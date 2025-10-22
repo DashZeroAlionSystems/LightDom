@@ -180,7 +180,7 @@ class CompleteSystemStarter {
   async startFrontend() {
     console.log('🎨 Starting Frontend (Discord Style)...');
     
-    const frontendProcess = spawn('yarn', ['dev'], {
+    const frontendProcess = spawn('npm', ['run', 'dev'], {
       cwd: __dirname,
       stdio: ['pipe', 'pipe', 'pipe'],
       env: { 
