@@ -23,6 +23,7 @@ import BlockchainModelStorageDashboard from './components/ui/BlockchainModelStor
 import SpaceOptimizationDashboard from './components/ui/SpaceOptimizationDashboard';
 import { SEOOptimizationDashboard } from './components/SEOOptimizationDashboard';
 import { SEOModelMarketplace } from './components/SEOModelMarketplace';
+import ClientZone from './components/ui/ClientZone';
 import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import PaymentPage from './components/payment/PaymentPage';

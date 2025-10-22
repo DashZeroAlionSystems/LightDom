@@ -12,7 +12,8 @@ import {
   Workflow,
   Mining,
   Blockchain,
-  Cpu
+  Cpu,
+  User
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -25,6 +26,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentPath = '/', onNavigate }
 
   const navigationItems = [
     { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/dashboard/client-zone', label: 'Client Zone', icon: User },
     { path: '/space-mining', label: 'Space Mining', icon: Mining },
     { path: '/harvester', label: 'Web Crawler', icon: Globe },
     { path: '/wallet', label: 'Wallet', icon: Wallet },

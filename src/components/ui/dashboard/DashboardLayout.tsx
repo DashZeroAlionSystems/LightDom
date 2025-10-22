@@ -70,6 +70,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       label: 'Overview',
     },
     {
+      key: '/dashboard/client-zone',
+      icon: <UserOutlined />,
+      label: 'Client Zone',
+    },
+    {
       key: '/dashboard/optimization',
       icon: <OptimizationOutlined />,
       label: 'DOM Optimization',
