@@ -59,7 +59,12 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci
 
       - name: Evaluate tasks
         id: evaluate
@@ -120,26 +125,36 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci
 
       - name: Run compliance check
         id: check
         continue-on-error: true
-        run: |
-          # Run the compliance check
-          npm run compliance:check > compliance-output.txt 2>&1 || true
-          
-          # Check for failures
-          if grep -qE '❌|ERROR|failed|not.*passing' compliance-output.txt; then
-            echo "has_failures=true" >> $GITHUB_OUTPUT
-            echo "status=failed" >> $GITHUB_OUTPUT
-          else
-            echo "has_failures=false" >> $GITHUB_OUTPUT
-            echo "status=passed" >> $GITHUB_OUTPUT
-          fi
-          
-          # Display output
-          cat compliance-output.txt
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            # Run the compliance check
+            npm run compliance:check > compliance-output.txt 2>&1 || true
+            
+            # Check for failures
+            if grep -qE '❌|ERROR|failed|not.*passing' compliance-output.txt; then
+              echo "has_failures=true" >> $GITHUB_OUTPUT
+              echo "status=failed" >> $GITHUB_OUTPUT
+            else
+              echo "has_failures=false" >> $GITHUB_OUTPUT
+              echo "status=passed" >> $GITHUB_OUTPUT
+            fi
+            
+            # Display output
+            cat compliance-output.txt
 
       - name: Upload compliance results
         uses: actions/upload-artifact@v3
@@ -167,7 +182,12 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci
 
       - name: Configure autopilot
         run: |
@@ -182,12 +202,17 @@ jobs:
         id: autopilot
         continue-on-error: true
         timeout-minutes: 60
-        run: |
-          # Run autopilot with configured rounds
-          npm run automation:autopilot > autopilot-output.txt 2>&1 || true
-          
-          # Display output
-          cat autopilot-output.txt
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          retry_wait_seconds: 60
+          command: |
+            # Run autopilot with configured rounds
+            npm run automation:autopilot > autopilot-output.txt 2>&1 || true
+            
+            # Display output
+            cat autopilot-output.txt
 
       - name: Upload autopilot results
         uses: actions/upload-artifact@v3
@@ -217,28 +242,38 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci
 
       - name: Execute workflow
-        run: |
-          case "${{ github.event.inputs.workflow_type }}" in
-            compliance-check)
-              npm run compliance:check
-              ;;
-            functionality-test)
-              node scripts/automation/functionality-test.js
-              ;;
-            quality-gates)
-              node scripts/automation/quality-gates.js
-              ;;
-            enhanced-automation)
-              node scripts/automation/enhanced-automation-system.js
-              ;;
-            *)
-              echo "Unknown workflow type: ${{ github.event.inputs.workflow_type }}"
-              exit 1
-              ;;
-          esac
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            case "${{ github.event.inputs.workflow_type }}" in
+              compliance-check)
+                npm run compliance:check
+                ;;
+              functionality-test)
+                node scripts/automation/functionality-test.js
+                ;;
+              quality-gates)
+                node scripts/automation/quality-gates.js
+                ;;
+              enhanced-automation)
+                node scripts/automation/enhanced-automation-system.js
+                ;;
+              *)
+                echo "Unknown workflow type: ${{ github.event.inputs.workflow_type }}"
+                exit 1
+                ;;
+            esac
 
   # Post-execution verification
   verify-results:
@@ -257,7 +292,12 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
@@ -265,18 +305,23 @@ jobs:
       - name: Verify compliance
         id: verify
         continue-on-error: true
-        run: |
-          # Run final compliance check
-          npm run compliance:check > final-compliance.txt 2>&1 || true
-          
-          # Check results
-          if grep -qE '❌|ERROR|failed|not.*passing' final-compliance.txt; then
-            echo "verification_status=failed" >> $GITHUB_OUTPUT
-          else
-            echo "verification_status=passed" >> $GITHUB_OUTPUT
-          fi
-          
-          cat final-compliance.txt
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            # Run final compliance check
+            npm run compliance:check > final-compliance.txt 2>&1 || true
+            
+            # Check results
+            if grep -qE '❌|ERROR|failed|not.*passing' final-compliance.txt; then
+              echo "verification_status=failed" >> $GITHUB_OUTPUT
+            else
+              echo "verification_status=passed" >> $GITHUB_OUTPUT
+            fi
+            
+            cat final-compliance.txt
 
       - name: Generate summary
         run: |

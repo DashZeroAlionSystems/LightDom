@@ -31,22 +31,52 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci
 
       - name: Code formatting check
-        run: npm run format:check
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 2
+          retry_wait_seconds: 10
+          command: npm run format:check
 
       - name: Linting
-        run: npm run lint
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 2
+          retry_wait_seconds: 10
+          command: npm run lint
 
       - name: Type checking
-        run: npm run type-check
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 2
+          retry_wait_seconds: 10
+          command: npm run type-check
 
       - name: Unit tests
-        run: npm run test:unit:coverage
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run test:unit:coverage
 
       - name: Security scan
-        run: npm run security:scan
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run security:scan
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
@@ -72,28 +102,68 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci
 
       - name: Build application
-        run: npm run build
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run build
 
       - name: Integration tests
-        run: npm run test:integration
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run test:integration
 
       - name: E2E tests
-        run: npm run test:e2e
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run test:e2e
 
       - name: Performance tests
-        run: npm run test:performance
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run test:performance
 
       - name: Accessibility tests
-        run: npm run test:accessibility
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run test:accessibility
 
       - name: Bundle analysis
-        run: npm run analyze:bundle
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 2
+          retry_wait_seconds: 20
+          command: npm run analyze:bundle
 
       - name: Security audit
-        run: npm audit --audit-level=moderate
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm audit --audit-level=moderate
 
   # Pre-deployment Quality Gates
   pre-deployment-gates:
@@ -112,22 +182,52 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci
 
       - name: Build application
-        run: npm run build
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run build
 
       - name: Load testing
-        run: npm run test:load
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run test:load
 
       - name: Security penetration testing
-        run: npm run security:pentest
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 2
+          retry_wait_seconds: 30
+          command: npm run security:pentest
 
       - name: Compliance check
-        run: npm run compliance:check
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm run compliance:check
 
       - name: Architecture validation
-        run: npm run architecture:validate
+        uses: nick-fields/retry-action@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 2
+          retry_wait_seconds: 20
+          command: npm run architecture:validate
 
   # Staging Deployment
   deploy-staging:
