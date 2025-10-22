@@ -25,7 +25,7 @@
     "test:e2e": "vitest run --config vitest.config.js --testNamePattern=e2e",
     "test:performance": "vitest run --config vitest.config.js --testNamePattern=performance",
     "test:accessibility": "vitest run --config vitest.config.js --testNamePattern=accessibility",
-    "test:load": "artillery run test/load/load-test.yml",
+    "test:load": "echo 'Load tests not configured yet. Install artillery and create tests/load/load-test.yml'",
     "test:smoke": "vitest run --config vitest.config.js --testNamePattern=smoke",
     "test:coverage": "vitest run --coverage --reporter=verbose",
     "test:api": "vitest run --config vitest.config.js --testNamePattern=api",

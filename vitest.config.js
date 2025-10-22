@@ -6,12 +6,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./test/setup/vitest-setup.js'],
+    setupFiles: ['./tests/unit/setup.ts'],
     include: [
-      'test/**/*.{test,spec}.{js,jsx,ts,tsx}'
+      'tests/**/*.{test,spec}.{js,jsx,ts,tsx}'
     ],
     exclude: [
-      'test/frontend/**/*',
+      'archive/**/*',
       'dom-space-harvester.tsx',
       'node_modules',
       'dist',
@@ -23,7 +23,7 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
-        'test/',
+        'archive/',
         'dist/',
         '**/*.d.ts',
         '**/*.config.js',

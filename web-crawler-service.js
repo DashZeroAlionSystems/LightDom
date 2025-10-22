@@ -16,7 +16,7 @@ class WebCrawlerService {
     this.discoveredUrls = new Set();
     this.isRunning = false;
     this.crawlInterval = null;
-    this.dataFile = path.join(__dirname, 'crawler-data.json');
+    this.dataFile = path.join(__dirname, '.data', 'crawler-data.json');
     this.loadData();
     
     // Seed URLs to start crawling
