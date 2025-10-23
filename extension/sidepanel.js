@@ -63,12 +63,22 @@ class LightDomSidePanel {
     document.getElementById('toggleMining').addEventListener('click', () => {
       this.toggleMining();
     });
-    
+
     // Open full dashboard
     document.getElementById('openDashboard').addEventListener('click', () => {
       this.openFullDashboard();
     });
-    
+
+    // Creature Creator button
+    document.getElementById('openCreatureCreator')?.addEventListener('click', () => {
+      this.openCreatureCreator();
+    });
+
+    // Marketplace button
+    document.getElementById('openMarketplace')?.addEventListener('click', () => {
+      this.openMarketplace();
+    });
+
     // Handle keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       if (e.key === ' ' && e.ctrlKey) {
@@ -76,6 +86,9 @@ class LightDomSidePanel {
         this.toggleMining();
       }
     });
+
+    // Load creature metrics
+    this.loadCreatureMetrics();
   }
 
   async toggleMining() {
@@ -119,6 +132,54 @@ class LightDomSidePanel {
     chrome.tabs.create({
       url: 'http://localhost:3000/dashboard'
     });
+  }
+
+  openCreatureCreator() {
+    // Open the creature creator page
+    chrome.tabs.create({
+      url: 'http://localhost:3000/creature-creator'
+    });
+    this.showNotification('Opening Creature Creator', 'Create your unique NFT creatures and objects!');
+  }
+
+  openMarketplace() {
+    // Open the metaverse marketplace
+    chrome.tabs.create({
+      url: 'http://localhost:3000/marketplace'
+    });
+    this.showNotification('Opening Marketplace', 'Browse and trade NFT creatures and objects!');
+  }
+
+  async loadCreatureMetrics() {
+    try {
+      // Get user address
+      const { userAddress } = await chrome.storage.local.get(['userAddress']);
+
+      if (!userAddress) {
+        document.getElementById('myCreatures').textContent = '0';
+        document.getElementById('totalBenefits').textContent = '0';
+        return;
+      }
+
+      // Fetch creature data from API
+      const response = await fetch(`http://localhost:3001/api/metaverse-creature/analytics/${userAddress}`);
+      const data = await response.json();
+
+      if (data.success) {
+        const analytics = data.analytics;
+        document.getElementById('myCreatures').textContent = analytics.totalEntities || '0';
+
+        const totalBenefits =
+          (analytics.totalBenefits?.mined || 0) +
+          (analytics.totalBenefits?.auctionSales || 0) +
+          (analytics.totalBenefits?.rentalIncome || 0);
+
+        document.getElementById('totalBenefits').textContent = totalBenefits.toFixed(2);
+      }
+    } catch (error) {
+      console.error('Failed to load creature metrics:', error);
+      // Silently fail - just show 0
+    }
   }
 
   updateStatus() {
