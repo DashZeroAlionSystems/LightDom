@@ -40,7 +40,8 @@ import {
   ClusterOutlined,
   DatabaseOutlined,
   RocketOutlined,
-  SearchOutlined
+  SearchOutlined,
+  MonitorOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { useOptimization } from '../../hooks/useOptimization';

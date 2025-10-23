@@ -23,12 +23,8 @@ import BlockchainModelStorageDashboard from './components/ui/BlockchainModelStor
 import SpaceOptimizationDashboard from './components/ui/SpaceOptimizationDashboard';
 import { SEOOptimizationDashboard } from './components/SEOOptimizationDashboard';
 import { SEOModelMarketplace } from './components/SEOModelMarketplace';
+import { SEODataMiningDashboard } from './components/SEODataMiningDashboard';
 import ClientZone from './components/ui/ClientZone';
-import LoginPage from './components/auth/LoginPage';
-import RegisterPage from './components/auth/RegisterPage';
-import PaymentPage from './components/payment/PaymentPage';
-import { FileUploadSettings } from './components/FileUploadSettings';
-import AdminDashboard from './components/admin/AdminDashboard';
 import AdminAnalyticsDashboard from './components/ui/AdminAnalyticsDashboard';
 import LoginPage from './components/ui/auth/LoginPage';
 import RegisterPage from './components/ui/auth/RegisterPage';
@@ -37,6 +33,10 @@ import ResetPasswordPage from './components/ui/auth/ResetPasswordPage';
 import PaymentPage from './components/ui/payment/PaymentPage';
 import { FileUploadSettings } from './components/ui/FileUploadSettings';
 import AdminDashboard from './components/ui/admin/AdminDashboard';
+import UserManagement from './components/ui/admin/UserManagement';
+import SystemMonitoring from './components/ui/admin/SystemMonitoring';
+import SystemLogs from './components/ui/admin/SystemLogs';
+import BillingManagement from './components/ui/admin/BillingManagement';
 import './App.css';
 
 // Initialize persistence system
