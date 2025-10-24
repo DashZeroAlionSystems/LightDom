@@ -190,8 +190,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     },
     {
       key: '/dashboard/admin',
+      icon: <DashboardOutlined />,
+      label: 'Admin Dashboard',
+    },
+    {
+      key: '/dashboard/admin/settings',
       icon: <SettingOutlined />,
-      label: 'Admin Settings',
+      label: 'System Settings',
     },
     {
       key: '/dashboard/admin/users',
