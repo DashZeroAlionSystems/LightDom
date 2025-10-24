@@ -418,6 +418,8 @@ docker-compose up -d
 ### Technical Documentation
 - **[Architecture Documentation](./ARCHITECTURE.md)** - System architecture and design
 - **[Blockchain Guide](./BLOCKCHAIN_README.md)** - Blockchain integration details
+- **[Blockchain Deployment Guide](./BLOCKCHAIN_DEPLOYMENT_GUIDE.md)** - Step-by-step deployment instructions
+- **[Blockchain README Review](./BLOCKCHAIN_README_REVIEW.md)** - Comprehensive blockchain documentation review
 
 ## 🤝 Contributing
 
