@@ -296,8 +296,19 @@ class LightDomBackgroundService {
         case 'open-sidepanel':
           this.openSidePanel();
           break;
+        case 'open-wallet':
+          this.openWallet();
+          break;
       }
     });
+  }
+
+  async openWallet() {
+    try {
+      await chrome.tabs.create({ url: 'wallet.html' });
+    } catch (error) {
+      console.error('Failed to open wallet:', error);
+    }
   }
 
   async openSidePanel() {

@@ -76,6 +76,13 @@
         "mac": "Command+Shift+B"
       },
       "description": "Open chat bridge"
+    },
+    "open-wallet": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+W",
+        "mac": "Command+Shift+W"
+      },
+      "description": "Open wallet"
     }
   },
   "icons": {
