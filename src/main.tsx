@@ -5,12 +5,12 @@
 
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import LandingPage from './components/ui/LandingPage';
+import { HomePage } from './pages/HomePage';
 import SpaceMiningDashboard from './components/ui/SpaceMiningDashboard';
 import BillingDashboard from './components/ui/BillingDashboard';
 import BridgeAnalyticsDashboard from './components/ui/BridgeAnalyticsDashboard';
-import LoginPage from './components/ui/auth/LoginPage';
-import RegisterPage from './components/ui/auth/RegisterPage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import DashboardOverview from './components/ui/dashboard/DashboardOverview';
 import AdminDashboard from './components/ui/admin/AdminDashboard';
 import MetaverseDashboard from './components/ui/MetaverseDashboard';
@@ -85,7 +85,7 @@ const App = () => {
     } else if (currentPath === '/register') {
       return <RegisterPage />;
     } else if (currentPath === '/pricing') {
-      return <LandingPage />;
+      return <HomePage />;
     } else if (currentPath === '/dashboard') {
       return (
         <Guarded>
@@ -110,15 +110,8 @@ const App = () => {
     };
 
     if (currentPath === '/') {
-      // Show landing page at root
-      const LandingPage = React.lazy(() => import('./components/ui/LandingPage'));
-      return (
-        <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background-primary">
-          <div className="text-text-primary">Loading...</div>
-        </div>}>
-          <LandingPage />
-        </React.Suspense>
-      );
+      // Show new Exodus-style home page at root
+      return <HomePage />;
     } else if (currentPath === '/dashboard') {
       return <DashboardOverview />;
     } else if (currentPath.startsWith('/bridge/')) {
@@ -190,19 +183,19 @@ const App = () => {
           </div>
         );
       } else if (currentPath === '/') {
-      return <LandingPage />;
+      return <HomePage />;
     } else {
-      return <LandingPage />;
+      return <HomePage />;
     }
   };
 
   return (
     <div className="discord-app">
-      {!(currentPath === '/' || currentPath === '/login' || currentPath === '/register') && (
+      {!(currentPath === '/' || currentPath === '/login' || currentPath === '/register' || currentPath === '/pricing') && (
         <EnhancedNavigation currentPath={currentPath} onNavigate={handleNavigate} />
       )}
-      <div className="discord-main">
-        <div className="discord-content discord-scrollbar">
+      <div className={currentPath === '/' || currentPath === '/login' || currentPath === '/register' || currentPath === '/pricing' ? '' : 'discord-main'}>
+        <div className={currentPath === '/' || currentPath === '/login' || currentPath === '/register' || currentPath === '/pricing' ? '' : 'discord-content discord-scrollbar'}>
           {renderContent()}
         </div>
       </div>
