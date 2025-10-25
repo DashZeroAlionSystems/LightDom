@@ -427,6 +427,9 @@ CMD ["node", "api-server-express.js"]
 ### Technical Documentation
 - **[Architecture Documentation](./ARCHITECTURE.md)** - System architecture and design
 - **[Blockchain Guide](./BLOCKCHAIN_README.md)** - Blockchain integration details
+- **[Blockchain Deployment Guide](./BLOCKCHAIN_DEPLOYMENT_GUIDE.md)** - Step-by-step deployment instructions
+- **[Blockchain Usage Examples](./BLOCKCHAIN_USAGE_EXAMPLES.md)** - Practical code examples and workflows
+- **[Blockchain README Review](./BLOCKCHAIN_README_REVIEW.md)** - Comprehensive blockchain documentation review
 
 ## 📚 Documentation
 
