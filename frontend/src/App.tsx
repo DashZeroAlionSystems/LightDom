@@ -23,6 +23,7 @@ import { ContractsPage } from '@/pages/ContractsPage';
 import { GovernancePage } from '@/pages/GovernancePage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { AIContentPage } from '@/pages/AIContentPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 // Hooks
@@ -189,6 +190,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <ProfilePage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ai-content"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AIContentPage />
                       </Layout>
                     </ProtectedRoute>
                   }
