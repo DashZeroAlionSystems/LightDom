@@ -43,9 +43,9 @@ import {
   ApiOutlined,
   SearchOutlined
 } from '@ant-design/icons';
-import { useAuth } from '../../hooks/useAuth';
-import { useOptimization } from '../../hooks/useOptimization';
-import { useNotifications } from '../../hooks/useNotifications';
+import { useAuth } from '../../../hooks/state/useAuth';
+import { useOptimization } from '../../../hooks/state/useOptimization';
+import { useNotifications } from '../../../hooks/state/useNotifications';
 import Navigation from '../Navigation';
 import './DashboardLayout.css';
 
@@ -194,12 +194,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       icon: <SettingOutlined />,
       label: 'Settings',
     },
-    {
-      key: '/admin',
-      icon: <SettingOutlined />,
-      label: 'Admin Dashboard',
-    },
   ];
+
+  // Add admin menu item for admin users
+  const isAdmin = user?.email?.includes('admin'); // Simple check - replace with proper role check
+  if (isAdmin) {
+    menuItems.push({
+      key: 'admin-separator',
+      type: 'divider' as any,
+    });
+    menuItems.push({
+      key: '/admin',
+      icon: <SettingOutlined style={{ color: '#e74c3c' }} />,
+      label: <span style={{ color: '#e74c3c', fontWeight: 600 }}>Admin Panel</span>,
+    });
+  }
 
   const userMenuItems = [
     {
