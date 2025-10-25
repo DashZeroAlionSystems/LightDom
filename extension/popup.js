@@ -13,14 +13,15 @@ class LightDomPopup {
 
   async init() {
     console.log('LightDom Popup v2.0 loaded');
-    
+
     // Load initial state
     await this.loadMiningStatus();
     await this.loadStats();
-    
+    await this.loadWalletInfo();
+
     // Setup event listeners
     this.setupEventListeners();
-    
+
     // Update UI
     this.updateUI();
   }
@@ -28,15 +29,20 @@ class LightDomPopup {
   setupEventListeners() {
     const toggleBtn = document.getElementById('toggleMining');
     const openSidePanelBtn = document.getElementById('openSidePanel');
-    
+    const openWalletBtn = document.getElementById('openWallet');
+
     if (toggleBtn) {
       toggleBtn.addEventListener('click', () => this.toggleMining());
     }
-    
+
     if (openSidePanelBtn) {
       openSidePanelBtn.addEventListener('click', () => this.openSidePanel());
     }
-    
+
+    if (openWalletBtn) {
+      openWalletBtn.addEventListener('click', () => this.openWallet());
+    }
+
     // Listen for mining status changes
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       this.handleMessage(message, sender, sendResponse);
@@ -137,6 +143,34 @@ class LightDomPopup {
     } catch (error) {
       console.error('Failed to open side panel:', error);
       this.showNotification('Error', 'Failed to open side panel');
+    }
+  }
+
+  async openWallet() {
+    try {
+      await chrome.tabs.create({ url: 'wallet.html' });
+      window.close();
+    } catch (error) {
+      console.error('Failed to open wallet:', error);
+      this.showNotification('Error', 'Failed to open wallet');
+    }
+  }
+
+  async loadWalletInfo() {
+    try {
+      const result = await chrome.storage.local.get(['walletAddress', 'hasWallet']);
+
+      if (result.hasWallet && result.walletAddress) {
+        const walletInfoEl = document.getElementById('walletInfo');
+        const walletAddressEl = document.getElementById('walletAddress');
+
+        if (walletInfoEl && walletAddressEl) {
+          walletInfoEl.style.display = 'block';
+          walletAddressEl.textContent = result.walletAddress;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load wallet info:', error);
     }
   }
 

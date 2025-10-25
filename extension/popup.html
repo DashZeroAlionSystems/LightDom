@@ -56,7 +56,18 @@
   <button id="openSidePanel" class="button secondary-btn">
     📊 Open Dashboard
   </button>
-  
+
+  <button id="openWallet" class="button secondary-btn">
+    👛 Wallet
+  </button>
+
+  <div class="wallet-info" id="walletInfo" style="display: none;">
+    <div style="background-color: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 12px;">
+      <div style="margin-bottom: 5px;"><strong>Wallet:</strong></div>
+      <div id="walletAddress" style="font-family: monospace; font-size: 10px; word-break: break-all; color: #555;">Not connected</div>
+    </div>
+  </div>
+
   <div class="stats">
     <div><strong>Total Mined:</strong> <span id="totalMined">0 DSH</span></div>
     <div><strong>Space Saved:</strong> <span id="spaceSaved">0 bytes</span></div>
