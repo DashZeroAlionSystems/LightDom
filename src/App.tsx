@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, theme, Spin, Typography } from 'antd';
-import { AuthProvider, useAuth } from './hooks/useAuth';
+import { AuthProvider, useAuth } from './hooks/state/useAuth';
 import { BlockchainProvider } from './hooks/useBlockchain';
 import DashboardLayout from './components/ui/dashboard/DashboardLayout';
 import DashboardOverview from './components/ui/dashboard/DashboardOverview';
@@ -32,6 +32,7 @@ import ForgotPasswordPage from './components/ui/auth/ForgotPasswordPage';
 import ResetPasswordPage from './components/ui/auth/ResetPasswordPage';
 import PaymentPage from './components/ui/payment/PaymentPage';
 import { FileUploadSettings } from './components/ui/FileUploadSettings';
+import AdminLayout from './components/ui/admin/AdminLayout';
 import AdminDashboard from './components/ui/admin/AdminDashboard';
 import AdminOverview from './components/ui/admin/AdminOverview';
 import UserManagement from './components/ui/admin/UserManagement';
@@ -83,24 +84,23 @@ const AppContent: React.FC = () => {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/payment" element={<PaymentPage />} />
         
-        {/* Admin Routes */}
+        {/* Admin Routes - Separate Admin Layout */}
         <Route
           path="/admin"
           element={
             <ProtectedRoute>
-              <AdminDashboard />
+              <AdminLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/admin/analytics"
-          element={
-            <ProtectedRoute>
-              <AdminAnalyticsDashboard />
-            </ProtectedRoute>
-          }
-        />
-        {/* Admin Routes - Now integrated into dashboard layout */}
+        >
+          <Route index element={<AdminOverview />} />
+          <Route path="users" element={<EnhancedUserManagement />} />
+          <Route path="billing" element={<BillingManagement />} />
+          <Route path="monitoring" element={<SystemMonitoring />} />
+          <Route path="logs" element={<SystemLogs />} />
+          <Route path="settings" element={<AdminDashboard />} />
+          <Route path="analytics" element={<AdminAnalyticsDashboard />} />
+        </Route>
         
         {/* Protected Routes */}
         <Route
@@ -132,12 +132,6 @@ const AppContent: React.FC = () => {
           <Route path="history" element={<HistoryPage />} />
           <Route path="achievements" element={<AchievementsPage />} />
           <Route path="settings" element={<FileUploadSettings />} />
-          <Route path="admin" element={<AdminOverview />} />
-          <Route path="admin/settings" element={<AdminDashboard />} />
-          <Route path="admin/users" element={<EnhancedUserManagement />} />
-          <Route path="admin/monitoring" element={<SystemMonitoring />} />
-          <Route path="admin/logs" element={<SystemLogs />} />
-          <Route path="admin/billing" element={<BillingManagement />} />
         </Route>
         
         {/* Default Redirect */}
