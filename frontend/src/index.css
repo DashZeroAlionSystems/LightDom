@@ -4,48 +4,58 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    /* Exodus-inspired dark theme */
+    --background: 220 27% 7%;
+    --foreground: 210 40% 98%;
+    --card: 220 26% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 220 26% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 237 92% 64%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --secondary: 220 26% 14%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 220 26% 14%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 237 92% 64%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --border: 220 26% 18%;
+    --input: 220 26% 14%;
+    --ring: 237 92% 64%;
+    --radius: 0.75rem;
+
+    /* Exodus color palette */
+    --exodus-blue: 237 92% 64%;
+    --exodus-purple: 270 70% 60%;
+    --exodus-dark: 220 27% 7%;
+    --exodus-card: 220 26% 11%;
+    --exodus-card-hover: 220 26% 14%;
+    --exodus-text-primary: 210 40% 98%;
+    --exodus-text-secondary: 220 17% 60%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 220 27% 7%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 220 26% 11%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 220 26% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
+    --primary: 237 92% 64%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 220 26% 14%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 220 26% 14%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 237 92% 64%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    --border: 220 26% 18%;
+    --input: 220 26% 14%;
+    --ring: 237 92% 64%;
   }
 }
 
@@ -262,5 +272,73 @@
 
   .animate-spin {
     animation: spin 1s linear infinite;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin 20s linear infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(99, 102, 241, 0.8);
+    }
+  }
+
+  /* Exodus-style gradient backgrounds */
+  .bg-gradient-exodus {
+    background: linear-gradient(135deg, hsl(var(--exodus-blue)) 0%, hsl(var(--exodus-purple)) 100%);
+  }
+
+  .bg-gradient-exodus-hover {
+    background: linear-gradient(135deg, hsl(var(--exodus-blue)) 0%, hsl(var(--exodus-purple)) 100%);
+    transition: all 0.3s ease;
+  }
+
+  .bg-gradient-exodus-hover:hover {
+    filter: brightness(1.2);
+    transform: scale(1.02);
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar for Exodus theme */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--exodus-dark));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--exodus-blue));
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--exodus-purple));
   }
 }
