@@ -40,6 +40,8 @@ import EnhancedUserManagement from './components/ui/admin/EnhancedUserManagement
 import SystemMonitoring from './components/ui/admin/SystemMonitoring';
 import SystemLogs from './components/ui/admin/SystemLogs';
 import BillingManagement from './components/ui/admin/BillingManagement';
+import CrawlerDashboard from './components/ui/admin/CrawlerDashboard';
+import TrainingControlPanel from './components/ui/admin/TrainingControlPanel';
 import './App.css';
 
 // Initialize persistence system
@@ -96,6 +98,8 @@ const AppContent: React.FC = () => {
           <Route index element={<AdminOverview />} />
           <Route path="users" element={<EnhancedUserManagement />} />
           <Route path="billing" element={<BillingManagement />} />
+          <Route path="crawler" element={<CrawlerDashboard />} />
+          <Route path="training" element={<TrainingControlPanel />} />
           <Route path="monitoring" element={<SystemMonitoring />} />
           <Route path="logs" element={<SystemLogs />} />
           <Route path="settings" element={<AdminDashboard />} />
