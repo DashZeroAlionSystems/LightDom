@@ -40,6 +40,7 @@ const EnhancedNavigation: React.FC<NavigationProps> = ({ currentPath = window.lo
   const items = useMemo(() => {
     const all = [
       { path: '/', label: 'Dashboard', icon: Home, plans: ['free','pro','enterprise','admin'] },
+      { path: '/admin', label: 'Admin Dashboard', icon: Settings, plans: ['admin'] },
       { path: '/optimization', label: 'Optimization', icon: Zap, plans: ['free','pro','enterprise','admin'] },
       { path: '/seo-optimization', label: 'SEO Optimization', icon: Search, plans: ['pro','enterprise','admin'] },
       { path: '/space-mining', label: 'Space Mining', icon: Rocket, plans: ['pro','enterprise','admin'] },

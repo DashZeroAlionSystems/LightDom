@@ -30,8 +30,8 @@ import {
   ClockCircleOutlined,
   DownloadOutlined,
   EyeOutlined,
-  TrendingUpOutlined,
-  TrendingDownOutlined
+  RiseOutlined,
+  FallOutlined
 } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
@@ -310,7 +310,7 @@ const BillingManagement: React.FC = () => {
                 valueStyle={{ color: '#3f8600' }}
                 suffix={
                   <span style={{ fontSize: '14px' }}>
-                    <TrendingUpOutlined style={{ color: '#52c41a' }} /> 15%
+                    <RiseOutlined style={{ color: '#52c41a' }} /> 15%
                   </span>
                 }
               />

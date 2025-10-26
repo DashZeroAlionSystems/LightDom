@@ -98,6 +98,27 @@ CREATE TABLE optimization_analytics (
     UNIQUE(period, calculated_at)
 );
 
+-- Crawled sites table (for web crawler data)
+CREATE TABLE crawled_sites (
+    id VARCHAR(255) PRIMARY KEY,
+    url TEXT NOT NULL,
+    domain VARCHAR(255) NOT NULL,
+    last_crawled TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    crawl_frequency INTEGER DEFAULT 1,
+    priority INTEGER DEFAULT 5,
+    seo_score DECIMAL(5,2) DEFAULT 0,
+    optimization_potential DECIMAL(5,2) DEFAULT 0,
+    current_size BIGINT DEFAULT 0,
+    optimized_size BIGINT DEFAULT 0,
+    space_reclaimed BIGINT DEFAULT 0,
+    blockchain_recorded BOOLEAN DEFAULT FALSE,
+    transaction_hash VARCHAR(66),
+    metaverse_slot_id VARCHAR(255),
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create indexes for performance
 CREATE INDEX idx_harvesters_address ON harvesters(address);
 CREATE INDEX idx_harvesters_reputation ON harvesters(reputation DESC);
@@ -121,6 +142,12 @@ CREATE INDEX idx_staking_rewards_claimed_at ON staking_rewards(claimed_at);
 
 CREATE INDEX idx_optimization_analytics_period ON optimization_analytics(period);
 CREATE INDEX idx_optimization_analytics_calculated_at ON optimization_analytics(calculated_at DESC);
+
+CREATE INDEX idx_crawled_sites_url ON crawled_sites(url);
+CREATE INDEX idx_crawled_sites_domain ON crawled_sites(domain);
+CREATE INDEX idx_crawled_sites_last_crawled ON crawled_sites(last_crawled DESC);
+CREATE INDEX idx_crawled_sites_seo_score ON crawled_sites(seo_score DESC);
+CREATE INDEX idx_crawled_sites_priority ON crawled_sites(priority DESC);
 
 -- Create functions for updating timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()

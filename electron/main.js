@@ -83,7 +83,7 @@ function startBackendServices() {
       EXTENSION_BRIDGE_ENABLED: 'true'
     };
     
-    backendProcess = spawn('node', ['api-server-express.js'], {
+    backendProcess = spawn('node', ['simple-api-server.js'], {
       cwd: path.join(path.dirname(import.meta.url.replace('file://', '')), '..'),
       stdio: 'pipe',
       env

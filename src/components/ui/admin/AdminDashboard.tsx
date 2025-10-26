@@ -71,9 +71,10 @@ import BillingManagement from './BillingManagement';
 import SystemLogs from './SystemLogs';
 import SystemMonitoring from './SystemMonitoring';
 import SettingsOverview from './SettingsOverview';
+import { SEODataMiningDashboard } from '../../SEODataMiningDashboard';
 import './AdminDashboard.css';
 
-const { TabPane } = Tabs;
+// TabPane is no longer needed with modern Ant Design Tabs API
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
@@ -416,36 +417,26 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className, onBack }) =>
     const settingEntries = Object.entries(categorySettings);
 
     return (
-      <TabPane
-        tab={
+      <Card key={category}>
+        <Title level={4}>
           <Space>
             {icon}
-            <span>{categoryName}</span>
+            {categoryName} Settings
             <Badge count={settingEntries.length} style={{ backgroundColor: '#52c41a' }} />
           </Space>
-        }
-        key={category}
-      >
-        <Card>
-          <Title level={4}>
-            <Space>
-              {icon}
-              {categoryName} Settings
-            </Space>
-          </Title>
-          <Paragraph type="secondary">
-            Configure {categoryName.toLowerCase()} related settings for your application.
-          </Paragraph>
-          
-          <Row gutter={[24, 16]}>
-            {settingEntries.map(([key, value]) => (
-              <Col xs={24} sm={12} md={8} lg={6} key={key}>
-                {renderField(category, key, value)}
-              </Col>
-            ))}
-          </Row>
-        </Card>
-      </TabPane>
+        </Title>
+        <Paragraph type="secondary">
+          Configure {categoryName.toLowerCase()} related settings for your application.
+        </Paragraph>
+        
+        <Row gutter={[24, 16]}>
+          {settingEntries.map(([key, value]) => (
+            <Col xs={24} sm={12} md={8} lg={6} key={key}>
+              {renderField(category, key, value)}
+            </Col>
+          ))}
+        </Row>
+      </Card>
     );
   };
 
@@ -453,6 +444,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className, onBack }) =>
     { key: 'overview', name: 'Overview', icon: <DashboardOutlined />, component: null },
     { key: 'users', name: 'User Management', icon: <TeamOutlined />, component: <UserManagement /> },
     { key: 'billing', name: 'Billing', icon: <DollarOutlined />, component: <BillingManagement /> },
+    { key: 'seo-data-mining', name: 'SEO Data Mining', icon: <DatabaseOutlined />, component: <SEODataMiningDashboard /> },
     { key: 'logs', name: 'System Logs', icon: <LogsOutlined />, component: <SystemLogs /> },
     { key: 'monitoring', name: 'Monitoring', icon: <BarChartOutlined />, component: <SystemMonitoring /> },
     { key: 'settings', name: 'Settings', icon: <ConfigOutlined />, component: <SettingsOverview /> }
@@ -631,9 +623,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className, onBack }) =>
 
   return (
     <div className={`admin-dashboard ${className || ''}`}>
-      {/* Header with Back Button */}
-      <Card style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      {/* Modern Header */}
+      <div className="admin-header">
+        <div className="header-content">
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             {onBack && (
               <Button
@@ -641,13 +633,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className, onBack }) =>
                 onClick={onBack}
                 type="text"
                 size="large"
+                style={{ color: 'white' }}
               >
                 Back
               </Button>
             )}
-            <Title level={3} style={{ margin: 0 }}>
-              <DashboardOutlined /> Admin Dashboard
-            </Title>
+            <h2>
+              <Space>
+                <DashboardOutlined />
+                Admin Dashboard
+              </Space>
+            </h2>
           </div>
           <Space>
             <Button
@@ -688,6 +684,61 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className, onBack }) =>
             )}
           </Space>
         </div>
+      </div>
+
+      <div className="admin-content">
+        {/* Statistics Overview */}
+        <Card style={{ marginBottom: '24px' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <Title level={3} style={{ marginBottom: '16px', color: '#1e293b' }}>
+              System Overview
+            </Title>
+            <Row gutter={[24, 24]}>
+              <Col xs={24} sm={12} md={6}>
+                <div style={{ textAlign: 'center', padding: '16px' }}>
+                  <Statistic
+                    title="Total Users"
+                    value={userStats.totalUsers}
+                    prefix={<TeamOutlined style={{ color: '#3b82f6' }} />}
+                    valueStyle={{ color: '#1e293b', fontSize: '28px' }}
+                  />
+                </div>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <div style={{ textAlign: 'center', padding: '16px' }}>
+                  <Statistic
+                    title="Active Sessions"
+                    value={userStats.activeSessions}
+                    prefix={<ThunderboltOutlined style={{ color: '#10b981' }} />}
+                    valueStyle={{ color: '#1e293b', fontSize: '28px' }}
+                  />
+                </div>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <div style={{ textAlign: 'center', padding: '16px' }}>
+                  <Statistic
+                    title="System Uptime"
+                    value={systemStats.uptime}
+                    suffix="days"
+                    prefix={<ClockCircleOutlined style={{ color: '#8b5cf6' }} />}
+                    valueStyle={{ color: '#1e293b', fontSize: '28px' }}
+                  />
+                </div>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <div style={{ textAlign: 'center', padding: '16px' }}>
+                  <Statistic
+                    title="Storage Used"
+                    value={systemStats.storageUsed}
+                    suffix="GB"
+                    prefix={<DatabaseOutlined style={{ color: '#f59e0b' }} />}
+                    valueStyle={{ color: '#1e293b', fontSize: '28px' }}
+                  />
+                </div>
+              </Col>
+            </Row>
+          </div>
+        </Card>
 
         <Alert
           message="Admin Dashboard"
@@ -697,38 +748,40 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ className, onBack }) =>
           style={{ marginBottom: '24px' }}
         />
 
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          type="card"
-          size="large"
-        >
-          {adminTabs.map(tab => (
-            <TabPane
-              tab={
+        <Card>
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            type="card"
+            size="large"
+            items={adminTabs.map(tab => ({
+              key: tab.key,
+              label: (
                 <Space>
                   {tab.icon}
                   <span>{tab.name}</span>
                 </Space>
-              }
-              key={tab.key}
-            >
-              {tab.key === 'overview' ? renderAdminOverview() : tab.component}
-              {tab.key === 'settings' && (
-                <Form form={form} layout="vertical">
-                  {categories.map(category => 
-                    renderCategory(
-                      category.key as keyof AdminSettings,
-                      category.name,
-                      category.icon
-                    )
+              ),
+              children: (
+                <>
+                  {tab.key === 'overview' ? renderAdminOverview() : tab.component}
+                  {tab.key === 'settings' && (
+                    <Form form={form} layout="vertical">
+                      {categories.map(category => 
+                        renderCategory(
+                          category.key as keyof AdminSettings,
+                          category.name,
+                          category.icon
+                        )
+                      )}
+                    </Form>
                   )}
-                </Form>
-              )}
-            </TabPane>
-          ))}
-        </Tabs>
-      </Card>
+                </>
+              )
+            }))}
+          />
+        </Card>
+      </div>
 
       {/* Change Log Drawer */}
       <Drawer

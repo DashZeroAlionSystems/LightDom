@@ -32,7 +32,14 @@ export class DatabaseIntegration {
       blockchain: 'database/blockchain_schema.sql',
       optimization: 'database/optimization_schema.sql',
       bridge: 'database/bridge_schema.sql',
-      billing: 'database/billing_schema.sql'
+      billing: 'database/billing_schema.sql',
+      metaverse: 'database/metaverse_schema.sql',
+      unified_metaverse: 'database/unified_metaverse_migration.sql',
+      blockchain_alt: 'database/01-blockchain.sql',
+      optimization_alt: 'database/02-optimization.sql',
+      bridge_alt: 'database/03-bridge.sql',
+      seo_service: 'database/seo_service_schema.sql',
+      seo_training: 'src/seo/database/training-data-migrations.sql'
     };
     
     this.initialized = false;
@@ -97,11 +104,16 @@ export class DatabaseIntegration {
         const fullPath = pathMod.join(process.cwd(), schemaPath);
         const schemaSQL = await fsPromises.readFile(fullPath, 'utf8');
         
-        console.log(`Applying ${name} schema...`);
-        await this.pool.query(schemaSQL);
-        console.log(`✅ ${name} schema applied`);
+        if (schemaSQL && schemaSQL.trim()) {
+          console.log(`Applying ${name} schema...`);
+          await this.pool.query(schemaSQL);
+          console.log(`✅ ${name} schema applied`);
+        } else {
+          console.log(`⚠️  ${name} schema file is empty, skipping...`);
+        }
       } catch (error) {
-        console.error(`❌ Failed to apply ${name} schema:`, error.message);
+        console.warn(`⚠️  Schema apply warning: ${schemaPath} ${error.message}`);
+        // Continue with other schemas even if one fails
       }
     }
   }

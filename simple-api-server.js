@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import crawler from './web-crawler-service.js';
+import crawler from './enhanced-web-crawler-service.js';
 import dotenv from 'dotenv';
 dotenv.config();
 let databaseIntegration = null;
@@ -75,7 +75,9 @@ app.post('/api/db/apply-schemas', async (req, res) => {
       'database/unified_metaverse_migration.sql',
       'database/01-blockchain.sql',
       'database/02-optimization.sql',
-      'database/03-bridge.sql'
+      'database/03-bridge.sql',
+      'database/seo_service_schema.sql',
+      'src/seo/database/training-data-migrations.sql'
     ];
 
     for (const relPath of schemaFiles) {
@@ -518,6 +520,11 @@ app.get('/api/space-mining/stats', (req, res) => {
 });
 
 // Web Crawler API endpoints
+app.get('/api/crawler/status', (req, res) => {
+  const status = crawler.getStatus();
+  res.json(status);
+});
+
 app.get('/api/crawler/stats', (req, res) => {
   const stats = crawler.getStats();
   res.json(stats);
@@ -539,6 +546,109 @@ app.post('/api/crawler/stop', (req, res) => {
   res.json({ message: 'Crawler stopped', status: 'success' });
 });
 
+// Get crawler data from database
+app.get('/api/crawler/database', async (req, res) => {
+  try {
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      host: process.env.DB_HOST || 'localhost',
+      port: Number(process.env.DB_PORT || 5432),
+      database: process.env.DB_NAME || 'dom_space_harvester',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+    });
+
+    // Get crawled sites data
+    const crawledSitesResult = await pool.query(`
+      SELECT url, domain, last_crawled, seo_score, current_size, optimized_size, 
+             space_reclaimed, metadata
+      FROM crawled_sites 
+      ORDER BY last_crawled DESC 
+      LIMIT 20
+    `);
+
+    // Get SEO training data
+    const seoTrainingResult = await pool.query(`
+      SELECT url, domain, page_title, meta_description, seo_score, 
+             performance_score, technical_score, content_score, 
+             headings, keywords, word_count, paragraph_count,
+             social_media, structured_data, dom_info, crawled_at
+      FROM seo_training_data 
+      ORDER BY crawled_at DESC 
+      LIMIT 20
+    `);
+
+    await pool.end();
+
+    res.json({
+      success: true,
+      crawledSites: crawledSitesResult.rows,
+      seoAnalytics: seoTrainingResult.rows, // Keep the same key for compatibility
+      totalCrawled: crawledSitesResult.rows.length,
+      totalAnalytics: seoTrainingResult.rows.length
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get SEO training data
+app.get('/api/seo/training/stats', async (req, res) => {
+  try {
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      host: process.env.DB_HOST || 'localhost',
+      port: Number(process.env.DB_PORT || 5432),
+      database: process.env.DB_NAME || 'lightdom',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+    });
+
+    // Get training contributions count
+    const contributionsResult = await pool.query(`
+      SELECT COUNT(*) as total_contributions, 
+             AVG(quality_score) as avg_quality_score,
+             SUM(CAST(reward_amount AS DECIMAL)) as total_rewards
+      FROM seo_features.training_contributions
+    `);
+
+    // Get unique contributors
+    const contributorsResult = await pool.query(`
+      SELECT COUNT(DISTINCT contributor_address) as unique_contributors
+      FROM seo_features.training_contributions
+    `);
+
+    // Get complete features count
+    const featuresResult = await pool.query(`
+      SELECT COUNT(*) as total_features
+      FROM seo_features.complete_features
+    `);
+
+    await pool.end();
+
+    res.json({
+      success: true,
+      stats: {
+        totalContributions: parseInt(contributionsResult.rows[0].total_contributions) || 0,
+        totalFeatures: parseInt(featuresResult.rows[0].total_features) || 0,
+        totalRewards: contributionsResult.rows[0].total_rewards || '0',
+        uniqueContributors: parseInt(contributorsResult.rows[0].unique_contributors) || 0,
+        avgQualityScore: parseFloat(contributionsResult.rows[0].avg_quality_score) || 0,
+        datasetReadiness: {
+          isReady: (parseInt(contributionsResult.rows[0].total_contributions) || 0) >= 1000,
+          minSamplesRequired: 1000,
+          currentSamples: parseInt(contributionsResult.rows[0].total_contributions) || 0,
+          missingFeatures: []
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Start server
 app.listen(PORT, async () => {
   console.log(`🚀 LightDom API Server running on port ${PORT}`);
@@ -546,12 +656,26 @@ app.listen(PORT, async () => {
   console.log(`⛏️  Mining data: http://localhost:${PORT}/api/metaverse/mining-data`);
   try {
     if (process.env.APPLY_SCHEMAS === 'true' && databaseIntegration) {
+      console.log('🗄️ Initializing DatabaseIntegration with all schemas...');
       await databaseIntegration.initialize();
       console.log('✅ Schemas ensured at startup');
     }
   } catch (e) {
     console.warn('⚠️  Schema init at startup failed:', e.message);
+    console.warn('⚠️  Stack trace:', e.stack);
   }
+});
+
+// Handle uncaught exceptions and unhandled rejections
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  console.error('❌ Stack trace:', error.stack);
+  // Don't exit the process, just log the error
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit the process, just log the error
 });
 
 // Graceful shutdown
@@ -564,3 +688,8 @@ process.on('SIGINT', () => {
   console.log('🛑 API Server shutting down...');
   process.exit(0);
 });
+
+// Keep the process alive
+setInterval(() => {
+  // This keeps the event loop alive
+}, 1000);
