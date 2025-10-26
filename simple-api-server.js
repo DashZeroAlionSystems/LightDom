@@ -539,6 +539,96 @@ app.post('/api/crawler/stop', (req, res) => {
   res.json({ message: 'Crawler stopped', status: 'success' });
 });
 
+// Downloads API - Serve Electron app builds
+app.get('/downloads/app/latest', async (req, res) => {
+  try {
+    const fs = await import('fs/promises');
+    const distPath = path.join(__dirname, 'dist-electron');
+
+    // Check if dist-electron directory exists
+    try {
+      await fs.access(distPath);
+    } catch {
+      return res.status(404).json({
+        error: 'No builds available. Please run: npm run electron:build',
+        message: 'The Electron app has not been built yet. Run the build command first.'
+      });
+    }
+
+    // Get user agent to determine platform
+    const userAgent = req.headers['user-agent'] || '';
+    const files = await fs.readdir(distPath);
+
+    let fileName = null;
+    if (userAgent.includes('Mac')) {
+      fileName = files.find(f => f.endsWith('.dmg'));
+    } else if (userAgent.includes('Windows')) {
+      fileName = files.find(f => f.endsWith('.exe'));
+    } else if (userAgent.includes('Linux')) {
+      fileName = files.find(f => f.endsWith('.AppImage'));
+    }
+
+    if (!fileName) {
+      return res.status(404).json({
+        error: 'No build found for your platform',
+        availableBuilds: files
+      });
+    }
+
+    const filePath = path.join(distPath, fileName);
+    res.download(filePath);
+  } catch (err) {
+    console.error('Download error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Serve specific platform downloads
+app.get('/downloads/app/:filename', async (req, res) => {
+  try {
+    const fs = await import('fs/promises');
+    const distPath = path.join(__dirname, 'dist-electron');
+    const fileName = req.params.filename;
+    const filePath = path.join(distPath, fileName);
+
+    // Check if file exists
+    try {
+      await fs.access(filePath);
+    } catch {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    res.download(filePath);
+  } catch (err) {
+    console.error('Download error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Serve extension as a zip file
+app.get('/downloads/extension', async (req, res) => {
+  try {
+    const extensionPath = path.join(__dirname, 'extension');
+    res.json({
+      message: 'Extension download',
+      instructions: [
+        '1. Clone the repository or download the extension folder',
+        '2. Open Chrome and navigate to chrome://extensions/',
+        '3. Enable "Developer mode" in the top right',
+        '4. Click "Load unpacked"',
+        '5. Select the extension folder',
+        '6. The LightDom DOM Space Miner extension will be installed'
+      ],
+      extensionPath: '/extension',
+      manifestVersion: 3,
+      version: '2.0.0'
+    });
+  } catch (err) {
+    console.error('Extension info error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Start server
 app.listen(PORT, async () => {
   console.log(`🚀 LightDom API Server running on port ${PORT}`);

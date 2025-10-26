@@ -5,6 +5,7 @@ import { URL } from 'url';
 import crypto from 'crypto';
 import MerkleTree from '../utils/MerkleTree.js';
 import ArtifactStorage from '../utils/ArtifactStorage.js';
+import { SEOCrawlerIntegration } from './SEOCrawlerIntegration.js';
 
 class RealWebCrawlerSystem {
   constructor(config = {}) {
@@ -17,9 +18,10 @@ class RealWebCrawlerSystem {
       timeout: 30000,
       healthCheckInterval: config.healthCheckInterval || 15000,
       performanceUpdateInterval: config.performanceUpdateInterval || 5000,
+      enableSEOIntegration: config.enableSEOIntegration !== false, // Enabled by default
       ...config
     };
-    
+
     this.isRunning = false;
     this.sessionId = null;
     this.browser = null;
@@ -31,7 +33,7 @@ class RealWebCrawlerSystem {
     this.schemaData = [];
     this.backlinkNetwork = [];
     this.domainAuthority = new Map(); // Cache for domain authority scores
-    
+
     // Enhanced monitoring and statistics
     this.crawlerStats = {
       totalSitesCrawled: 0,
@@ -47,9 +49,10 @@ class RealWebCrawlerSystem {
         thisWeek: 0
       },
       errors: 0,
-      successRate: 100
+      successRate: 100,
+      seoRecordsSaved: 0
     };
-    
+
     // Performance metrics
     this.performanceMetrics = {
       cpuUsage: 0,
@@ -58,7 +61,7 @@ class RealWebCrawlerSystem {
       averageProcessingTime: 0,
       throughput: 0
     };
-    
+
     // Health monitoring
     this.healthStatus = {
       isHealthy: true,
@@ -66,21 +69,34 @@ class RealWebCrawlerSystem {
       consecutiveErrors: 0,
       errorHistory: []
     };
-    
+
     // Real-time data integration
     this.dataIntegration = {
       lastUpdate: Date.now(),
       updateInterval: 5000,
       subscribers: new Set()
     };
-    
+
     // Artifact storage
     this.storage = new ArtifactStorage({
       storageType: config.storageType || 'local',
       localPath: config.artifactPath || './artifacts'
     });
-    
-    // Database connection
+
+    // SEO Database Integration
+    if (this.config.enableSEOIntegration) {
+      try {
+        this.seoIntegration = new SEOCrawlerIntegration(config);
+        console.log('✅ SEO Crawler Integration Enabled');
+      } catch (error) {
+        console.warn('⚠️  SEO Integration failed to initialize:', error.message);
+        this.seoIntegration = null;
+      }
+    } else {
+      this.seoIntegration = null;
+    }
+
+    // Database connection (legacy)
     this.db = config.postgres ? {
       query: async (sql, params = []) => {
         // Mock database for now - will be replaced with real PostgreSQL
@@ -303,6 +319,22 @@ class RealWebCrawlerSystem {
       // Fire optimization callback for minting or external actions
       if (this.onOptimization) {
         try { await this.onOptimization({ url, analysis, result }); } catch (e) { console.log('onOptimization error:', e.message); }
+      }
+
+      // Save to SEO database if integration is enabled
+      if (this.seoIntegration) {
+        try {
+          // Save analytics data
+          await this.seoIntegration.saveSEOAnalytics(null, result);
+
+          // Save as training data
+          await this.seoIntegration.saveSEOTrainingData(result);
+
+          // Update stats
+          this.crawlerStats.seoRecordsSaved++;
+        } catch (error) {
+          console.error('Failed to save SEO data:', error.message);
+        }
       }
 
       return result;

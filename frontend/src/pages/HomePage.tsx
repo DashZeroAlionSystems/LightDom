@@ -35,6 +35,50 @@ export const HomePage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Handle desktop app download
+  const handleDownloadApp = () => {
+    // Detect user's operating system
+    const userAgent = window.navigator.userAgent;
+    const platform = window.navigator.platform;
+    let downloadUrl = '/downloads/app/latest'; // Default download endpoint
+
+    if (platform.includes('Mac') || userAgent.includes('Mac')) {
+      downloadUrl = '/downloads/app/LightDom-latest.dmg';
+    } else if (platform.includes('Win') || userAgent.includes('Windows')) {
+      downloadUrl = '/downloads/app/LightDom-Setup-latest.exe';
+    } else if (platform.includes('Linux') || userAgent.includes('Linux')) {
+      downloadUrl = '/downloads/app/LightDom-latest.AppImage';
+    }
+
+    // Trigger download
+    window.location.href = downloadUrl;
+  };
+
+  // Handle Chrome extension download
+  const handleDownloadExtension = () => {
+    // For development: Show instructions for loading unpacked extension
+    // For production: Link to Chrome Web Store
+    const extensionId = 'lightdom-extension'; // Replace with actual Chrome Web Store ID
+    const chromeWebStoreUrl = `https://chrome.google.com/webstore/detail/${extensionId}`;
+
+    // Check if running in development mode
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      // Show installation instructions for development
+      alert(
+        'Development Mode: Extension Installation\n\n' +
+        '1. Download the extension folder from GitHub\n' +
+        '2. Open Chrome and go to chrome://extensions/\n' +
+        '3. Enable "Developer mode" (top right)\n' +
+        '4. Click "Load unpacked"\n' +
+        '5. Select the extension folder\n\n' +
+        'Extension folder location: /extension'
+      );
+    } else {
+      // Link to Chrome Web Store in production
+      window.open(chromeWebStoreUrl, '_blank');
+    }
+  };
+
   const features = [
     {
       icon: <Wallet className="w-12 h-12" />,
@@ -165,12 +209,18 @@ export const HomePage: React.FC = () => {
 
               {/* Download Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <button className="group flex items-center justify-center space-x-2 px-6 py-4 bg-gradient-exodus rounded-xl font-semibold text-lg hover:opacity-90 transition-all hover:scale-105">
+                <button
+                  onClick={handleDownloadApp}
+                  className="group flex items-center justify-center space-x-2 px-6 py-4 bg-gradient-exodus rounded-xl font-semibold text-lg hover:opacity-90 transition-all hover:scale-105"
+                >
                   <Download className="w-5 h-5" />
                   <span>Download App</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button className="group flex items-center justify-center space-x-2 px-6 py-4 bg-card border-2 border-primary rounded-xl font-semibold text-lg hover:bg-card/80 transition-all hover:scale-105">
+                <button
+                  onClick={handleDownloadExtension}
+                  className="group flex items-center justify-center space-x-2 px-6 py-4 bg-card border-2 border-primary rounded-xl font-semibold text-lg hover:bg-card/80 transition-all hover:scale-105"
+                >
                   <Chrome className="w-5 h-5" />
                   <span>Chrome Extension</span>
                 </button>
@@ -373,7 +423,10 @@ export const HomePage: React.FC = () => {
                   Download LightDom and get rewarded for every transaction.
                   Mine LightDom Coins while you browse.
                 </p>
-                <button className="w-full py-4 bg-white text-blue-600 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                <button
+                  onClick={handleDownloadApp}
+                  className="w-full py-4 bg-white text-blue-600 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+                >
                   Get Started Now
                 </button>
               </div>
@@ -392,12 +445,18 @@ export const HomePage: React.FC = () => {
             Download LightDom today and start your journey into decentralized finance.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="group flex items-center justify-center space-x-2 px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all hover:scale-105">
+            <button
+              onClick={handleDownloadApp}
+              className="group flex items-center justify-center space-x-2 px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-all hover:scale-105"
+            >
               <Smartphone className="w-5 h-5" />
               <span>Download for Desktop</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button className="group flex items-center justify-center space-x-2 px-8 py-4 bg-white/10 border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white/20 transition-all hover:scale-105 backdrop-blur-sm">
+            <button
+              onClick={handleDownloadExtension}
+              className="group flex items-center justify-center space-x-2 px-8 py-4 bg-white/10 border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white/20 transition-all hover:scale-105 backdrop-blur-sm"
+            >
               <Chrome className="w-5 h-5" />
               <span>Add to Chrome</span>
             </button>
