@@ -24,6 +24,7 @@ import { GovernancePage } from '@/pages/GovernancePage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AIContentPage } from '@/pages/AIContentPage';
+import { SEOModelTrainingPage } from '@/pages/SEOModelTrainingPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 // Hooks
@@ -200,6 +201,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <AIContentPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/seo-training"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SEOModelTrainingPage />
                       </Layout>
                     </ProtectedRoute>
                   }

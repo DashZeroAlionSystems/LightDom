@@ -10,6 +10,7 @@ import {
   Settings,
   User,
   Brain,
+  TrendingUp,
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -56,6 +57,7 @@ export const Navigation: React.FC = () => {
   const navLinks = [
     { to: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard' },
     { to: '/ai-content', icon: <Brain className="w-5 h-5" />, label: 'AI Content' },
+    { to: '/seo-training', icon: <TrendingUp className="w-5 h-5" />, label: 'SEO Training' },
     { to: '/files', icon: <FileText className="w-5 h-5" />, label: 'Files' },
     { to: '/upload', icon: <Upload className="w-5 h-5" />, label: 'Upload' },
     { to: '/hosts', icon: <Server className="w-5 h-5" />, label: 'Hosts' },
