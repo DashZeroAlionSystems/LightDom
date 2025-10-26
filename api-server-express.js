@@ -174,7 +174,13 @@ class DOMSpaceHarvesterAPI {
     
     // Setup mining API routes
     this.setupMiningRoutes();
-    
+
+    // Setup crawler admin API routes
+    this.setupCrawlerAdminRoutes();
+
+    // Setup training control API routes
+    this.setupTrainingControlRoutes();
+
     // Setup wallet API routes
     this.setupWalletRoutes();
     
@@ -3494,6 +3500,30 @@ class DOMSpaceHarvesterAPI {
         console.error('Real-time update error:', error);
       }
     }, 5000); // Update every 5 seconds
+  }
+
+  async setupCrawlerAdminRoutes() {
+    console.log('🕷️ Setting up crawler admin API routes...');
+
+    try {
+      const crawlerAdminModule = await import('./src/api/crawler-admin.js');
+      this.app.use('/api', crawlerAdminModule.default);
+      console.log('✅ Crawler admin routes registered');
+    } catch (err) {
+      console.error('Failed to load crawler admin routes:', err);
+    }
+  }
+
+  async setupTrainingControlRoutes() {
+    console.log('🧠 Setting up training control API routes...');
+
+    try {
+      const trainingControlModule = await import('./src/api/training-control.js');
+      this.app.use('/api', trainingControlModule.default);
+      console.log('✅ Training control routes registered');
+    } catch (err) {
+      console.error('Failed to load training control routes:', err);
+    }
   }
 
   setupWalletRoutes() {
