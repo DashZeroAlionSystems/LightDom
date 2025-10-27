@@ -17,6 +17,8 @@ import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { CompleteDashboardPage } from '@/pages/CompleteDashboardPage';
+import { AdminDashboardPage } from '@/pages/AdminDashboardPage';
+import { ClientDashboardPage } from '@/pages/ClientDashboardPage';
 import { FilesPage } from '@/pages/FilesPage';
 import { UploadPage } from '@/pages/UploadPage';
 import { HostsPage } from '@/pages/HostsPage';
@@ -132,6 +134,26 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <CompleteDashboardPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin-dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AdminDashboardPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/client-dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ClientDashboardPage />
                       </Layout>
                     </ProtectedRoute>
                   }
