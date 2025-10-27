@@ -104,7 +104,11 @@ class DOMSpaceHarvesterAPI {
     
     // Mining system (will be initialized later)
     this.miningSystem = null;
-    
+
+    // AI Content Generation Service
+    this.aiContentGenerationService = null;
+    this.aiContentModelTrainer = null;
+
     // Setup blockchain runner event handlers
     this.setupBlockchainEventHandlers();
     
@@ -161,13 +165,22 @@ class DOMSpaceHarvesterAPI {
     
     // Setup SEO API routes
     this.setupSEORoutes();
-    
+
+    // Setup AI Content Generation API routes
+    this.setupAIContentGenerationRoutes();
+
     // Setup authentication API routes
     this.setupAuthRoutes();
     
     // Setup mining API routes
     this.setupMiningRoutes();
-    
+
+    // Setup crawler admin API routes
+    this.setupCrawlerAdminRoutes();
+
+    // Setup training control API routes
+    this.setupTrainingControlRoutes();
+
     // Setup wallet API routes
     this.setupWalletRoutes();
     
@@ -3489,6 +3502,30 @@ class DOMSpaceHarvesterAPI {
     }, 5000); // Update every 5 seconds
   }
 
+  async setupCrawlerAdminRoutes() {
+    console.log('🕷️ Setting up crawler admin API routes...');
+
+    try {
+      const crawlerAdminModule = await import('./src/api/crawler-admin.js');
+      this.app.use('/api', crawlerAdminModule.default);
+      console.log('✅ Crawler admin routes registered');
+    } catch (err) {
+      console.error('Failed to load crawler admin routes:', err);
+    }
+  }
+
+  async setupTrainingControlRoutes() {
+    console.log('🧠 Setting up training control API routes...');
+
+    try {
+      const trainingControlModule = await import('./src/api/training-control.js');
+      this.app.use('/api', trainingControlModule.default);
+      console.log('✅ Training control routes registered');
+    } catch (err) {
+      console.error('Failed to load training control routes:', err);
+    }
+  }
+
   setupWalletRoutes() {
     console.log('💰 Setting up wallet API routes...');
     
@@ -5385,6 +5422,434 @@ class DOMSpaceHarvesterAPI {
         });
       }
     });
+  }
+
+  setupAIContentGenerationRoutes() {
+    // =====================================================
+    // AI CONTENT GENERATION API ENDPOINTS
+    // =====================================================
+
+    // Initialize AI Content Generation Service
+    const initAIService = async () => {
+      if (!this.aiContentGenerationService) {
+        try {
+          const { default: AIContentGenerationService } = await import('./src/services/api/AIContentGenerationService.js');
+          const { default: AIContentModelTrainer } = await import('./src/services/api/AIContentModelTrainer.js');
+
+          this.aiContentGenerationService = new AIContentGenerationService(this.db);
+          this.aiContentModelTrainer = new AIContentModelTrainer(this.db);
+
+          await this.aiContentGenerationService.initialize();
+          console.log('✅ AI Content Generation Service initialized');
+        } catch (error) {
+          console.error('Error initializing AI Content Generation Service:', error);
+          throw error;
+        }
+      }
+      return this.aiContentGenerationService;
+    };
+
+    // Generate content for a URL
+    this.app.post('/api/ai/content/generate', async (req, res) => {
+      try {
+        const {
+          url,
+          targetKeywords,
+          contentType,
+          competitorUrls,
+          brandGuidelines,
+          minLength,
+          maxLength,
+          includeCompetitorAnalysis
+        } = req.body;
+
+        if (!url) {
+          return res.status(400).json({
+            success: false,
+            error: 'URL is required'
+          });
+        }
+
+        const service = await initAIService();
+
+        const generatedContent = await service.generateContent({
+          url,
+          targetKeywords: targetKeywords || [],
+          contentType: contentType || 'full_page',
+          competitorUrls: competitorUrls || [],
+          brandGuidelines: brandGuidelines || {},
+          minLength: minLength || 300,
+          maxLength: maxLength || 2500,
+          includeCompetitorAnalysis: includeCompetitorAnalysis !== false
+        });
+
+        res.json({
+          success: true,
+          data: generatedContent
+        });
+      } catch (error) {
+        console.error('Content generation error:', error);
+        res.status(500).json({
+          success: false,
+          error: error.message || 'Failed to generate content'
+        });
+      }
+    });
+
+    // Queue batch content generation
+    this.app.post('/api/ai/content/queue', async (req, res) => {
+      try {
+        const { urls, config } = req.body;
+
+        if (!urls || !Array.isArray(urls) || urls.length === 0) {
+          return res.status(400).json({
+            success: false,
+            error: 'URLs array is required'
+          });
+        }
+
+        const service = await initAIService();
+
+        const queuedIds = await service.queueGeneration(urls, config || {});
+
+        res.json({
+          success: true,
+          data: {
+            queuedCount: queuedIds.length,
+            queuedIds
+          }
+        });
+      } catch (error) {
+        console.error('Queue generation error:', error);
+        res.status(500).json({
+          success: false,
+          error: error.message || 'Failed to queue content generation'
+        });
+      }
+    });
+
+    // Process queued content generation tasks
+    this.app.post('/api/ai/content/process-queue', async (req, res) => {
+      try {
+        const { batchSize } = req.body;
+
+        const service = await initAIService();
+
+        await service.processQueue(batchSize || 10);
+
+        res.json({
+          success: true,
+          message: 'Queue processing completed'
+        });
+      } catch (error) {
+        console.error('Process queue error:', error);
+        res.status(500).json({
+          success: false,
+          error: error.message || 'Failed to process queue'
+        });
+      }
+    });
+
+    // Get generated content by ID
+    this.app.get('/api/ai/content/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        const query = 'SELECT * FROM ai_content.generated_content WHERE id = $1';
+        const result = await this.db.query(query, [id]);
+
+        if (result.rows.length === 0) {
+          return res.status(404).json({
+            success: false,
+            error: 'Content not found'
+          });
+        }
+
+        res.json({
+          success: true,
+          data: result.rows[0]
+        });
+      } catch (error) {
+        console.error('Get content error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to retrieve content'
+        });
+      }
+    });
+
+    // Get content generation history for a URL
+    this.app.get('/api/ai/content/history/:url', async (req, res) => {
+      try {
+        const { url } = req.params;
+        const { limit = 10, offset = 0 } = req.query;
+
+        const query = `
+          SELECT * FROM ai_content.generated_content
+          WHERE url = $1
+          ORDER BY created_at DESC
+          LIMIT $2 OFFSET $3
+        `;
+
+        const result = await this.db.query(query, [
+          decodeURIComponent(url),
+          parseInt(limit),
+          parseInt(offset)
+        ]);
+
+        res.json({
+          success: true,
+          data: result.rows,
+          count: result.rows.length
+        });
+      } catch (error) {
+        console.error('Get history error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to retrieve history'
+        });
+      }
+    });
+
+    // Get content performance metrics
+    this.app.get('/api/ai/content/:id/performance', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        const query = `
+          SELECT * FROM ai_content.content_performance
+          WHERE generated_content_id = $1
+          ORDER BY measurement_date DESC
+        `;
+
+        const result = await this.db.query(query, [id]);
+
+        res.json({
+          success: true,
+          data: result.rows
+        });
+      } catch (error) {
+        console.error('Get performance error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to retrieve performance data'
+        });
+      }
+    });
+
+    // Submit feedback for generated content
+    this.app.post('/api/ai/content/:id/feedback', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const {
+          feedbackType,
+          rating,
+          feedbackText,
+          improvementsSuggested,
+          successfulElements,
+          failedElements
+        } = req.body;
+
+        const query = `
+          INSERT INTO ai_content.training_feedback (
+            generated_content_id, model_id, feedback_type, rating,
+            feedback_text, improvements_suggested,
+            successful_elements, failed_elements, feedback_source
+          )
+          SELECT
+            $1, model_id, $2, $3, $4, $5, $6, $7, $8
+          FROM ai_content.generated_content
+          WHERE id = $1
+          RETURNING id
+        `;
+
+        const result = await this.db.query(query, [
+          id,
+          feedbackType || 'user_rating',
+          rating || null,
+          feedbackText || null,
+          improvementsSuggested ? JSON.stringify(improvementsSuggested) : null,
+          successfulElements ? JSON.stringify(successfulElements) : null,
+          failedElements ? JSON.stringify(failedElements) : null,
+          'user'
+        ]);
+
+        res.json({
+          success: true,
+          data: { feedbackId: result.rows[0].id }
+        });
+      } catch (error) {
+        console.error('Submit feedback error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to submit feedback'
+        });
+      }
+    });
+
+    // Get active content summary
+    this.app.get('/api/ai/content/summary/active', async (req, res) => {
+      try {
+        const query = 'SELECT * FROM ai_content.active_content_summary ORDER BY avg_search_position ASC';
+        const result = await this.db.query(query);
+
+        res.json({
+          success: true,
+          data: result.rows
+        });
+      } catch (error) {
+        console.error('Get summary error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to retrieve content summary'
+        });
+      }
+    });
+
+    // Train new content generation model
+    this.app.post('/api/ai/model/train', async (req, res) => {
+      try {
+        const {
+          modelType,
+          epochs,
+          batchSize,
+          learningRate,
+          validationSplit,
+          minDatasetSize
+        } = req.body;
+
+        if (!modelType) {
+          return res.status(400).json({
+            success: false,
+            error: 'Model type is required (title, meta_description, content, or combined)'
+          });
+        }
+
+        if (!this.aiContentModelTrainer) {
+          const { default: AIContentModelTrainer } = await import('./src/services/api/AIContentModelTrainer.js');
+          this.aiContentModelTrainer = new AIContentModelTrainer(this.db);
+        }
+
+        // Run training asynchronously
+        const trainingConfig = {
+          modelType,
+          epochs: epochs || 50,
+          batchSize: batchSize || 32,
+          learningRate: learningRate || 0.001,
+          validationSplit: validationSplit || 0.2,
+          minDatasetSize: minDatasetSize || 100
+        };
+
+        // Start training in background
+        this.aiContentModelTrainer.trainModel(trainingConfig)
+          .then(modelId => {
+            console.log(`Model training completed: ${modelId}`);
+          })
+          .catch(error => {
+            console.error('Model training failed:', error);
+          });
+
+        res.json({
+          success: true,
+          message: 'Model training started in background',
+          config: trainingConfig
+        });
+      } catch (error) {
+        console.error('Train model error:', error);
+        res.status(500).json({
+          success: false,
+          error: error.message || 'Failed to start model training'
+        });
+      }
+    });
+
+    // Get model performance metrics
+    this.app.get('/api/ai/model/performance', async (req, res) => {
+      try {
+        const query = 'SELECT * FROM ai_content.model_performance_metrics ORDER BY avg_seo_score DESC';
+        const result = await this.db.query(query);
+
+        res.json({
+          success: true,
+          data: result.rows
+        });
+      } catch (error) {
+        console.error('Get model performance error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to retrieve model performance'
+        });
+      }
+    });
+
+    // Get content templates
+    this.app.get('/api/ai/templates', async (req, res) => {
+      try {
+        const { industry, contentCategory } = req.query;
+
+        let query = 'SELECT * FROM ai_content.content_templates WHERE status = $1';
+        const params = ['active'];
+
+        if (industry) {
+          query += ' AND industry = $2';
+          params.push(industry);
+        }
+
+        if (contentCategory) {
+          query += industry ? ' AND content_category = $3' : ' AND content_category = $2';
+          params.push(contentCategory);
+        }
+
+        query += ' ORDER BY avg_performance_score DESC';
+
+        const result = await this.db.query(query, params);
+
+        res.json({
+          success: true,
+          data: result.rows
+        });
+      } catch (error) {
+        console.error('Get templates error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to retrieve templates'
+        });
+      }
+    });
+
+    // Retrain model with feedback
+    this.app.post('/api/ai/model/:id/retrain', async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        if (!this.aiContentModelTrainer) {
+          const { default: AIContentModelTrainer } = await import('./src/services/api/AIContentModelTrainer.js');
+          this.aiContentModelTrainer = new AIContentModelTrainer(this.db);
+        }
+
+        // Start retraining in background
+        this.aiContentModelTrainer.retrainWithFeedback(id)
+          .then(newModelId => {
+            console.log(`Model retraining completed: ${newModelId}`);
+          })
+          .catch(error => {
+            console.error('Model retraining failed:', error);
+          });
+
+        res.json({
+          success: true,
+          message: 'Model retraining started in background'
+        });
+      } catch (error) {
+        console.error('Retrain model error:', error);
+        res.status(500).json({
+          success: false,
+          error: error.message || 'Failed to start model retraining'
+        });
+      }
+    });
+
+    console.log('✅ AI Content Generation API routes configured');
   }
 
   setupAuthRoutes() {

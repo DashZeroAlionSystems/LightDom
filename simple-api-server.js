@@ -546,106 +546,93 @@ app.post('/api/crawler/stop', (req, res) => {
   res.json({ message: 'Crawler stopped', status: 'success' });
 });
 
-// Get crawler data from database
-app.get('/api/crawler/database', async (req, res) => {
+// Downloads API - Serve Electron app builds
+app.get('/downloads/app/latest', async (req, res) => {
   try {
-    const { Pool } = await import('pg');
-    const pool = new Pool({
-      host: process.env.DB_HOST || 'localhost',
-      port: Number(process.env.DB_PORT || 5432),
-      database: process.env.DB_NAME || 'dom_space_harvester',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
-    });
+    const fs = await import('fs/promises');
+    const distPath = path.join(__dirname, 'dist-electron');
 
-    // Get crawled sites data
-    const crawledSitesResult = await pool.query(`
-      SELECT url, domain, last_crawled, seo_score, current_size, optimized_size, 
-             space_reclaimed, metadata
-      FROM crawled_sites 
-      ORDER BY last_crawled DESC 
-      LIMIT 20
-    `);
+    // Check if dist-electron directory exists
+    try {
+      await fs.access(distPath);
+    } catch {
+      return res.status(404).json({
+        error: 'No builds available. Please run: npm run electron:build',
+        message: 'The Electron app has not been built yet. Run the build command first.'
+      });
+    }
 
-    // Get SEO training data
-    const seoTrainingResult = await pool.query(`
-      SELECT url, domain, page_title, meta_description, seo_score, 
-             performance_score, technical_score, content_score, 
-             headings, keywords, word_count, paragraph_count,
-             social_media, structured_data, dom_info, crawled_at
-      FROM seo_training_data 
-      ORDER BY crawled_at DESC 
-      LIMIT 20
-    `);
+    // Get user agent to determine platform
+    const userAgent = req.headers['user-agent'] || '';
+    const files = await fs.readdir(distPath);
 
-    await pool.end();
+    let fileName = null;
+    if (userAgent.includes('Mac')) {
+      fileName = files.find(f => f.endsWith('.dmg'));
+    } else if (userAgent.includes('Windows')) {
+      fileName = files.find(f => f.endsWith('.exe'));
+    } else if (userAgent.includes('Linux')) {
+      fileName = files.find(f => f.endsWith('.AppImage'));
+    }
 
-    res.json({
-      success: true,
-      crawledSites: crawledSitesResult.rows,
-      seoAnalytics: seoTrainingResult.rows, // Keep the same key for compatibility
-      totalCrawled: crawledSitesResult.rows.length,
-      totalAnalytics: seoTrainingResult.rows.length
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    if (!fileName) {
+      return res.status(404).json({
+        error: 'No build found for your platform',
+        availableBuilds: files
+      });
+    }
+
+    const filePath = path.join(distPath, fileName);
+    res.download(filePath);
+  } catch (err) {
+    console.error('Download error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Get SEO training data
-app.get('/api/seo/training/stats', async (req, res) => {
+// Serve specific platform downloads
+app.get('/downloads/app/:filename', async (req, res) => {
   try {
-    const { Pool } = await import('pg');
-    const pool = new Pool({
-      host: process.env.DB_HOST || 'localhost',
-      port: Number(process.env.DB_PORT || 5432),
-      database: process.env.DB_NAME || 'lightdom',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
-    });
+    const fs = await import('fs/promises');
+    const distPath = path.join(__dirname, 'dist-electron');
+    const fileName = req.params.filename;
+    const filePath = path.join(distPath, fileName);
 
-    // Get training contributions count
-    const contributionsResult = await pool.query(`
-      SELECT COUNT(*) as total_contributions, 
-             AVG(quality_score) as avg_quality_score,
-             SUM(CAST(reward_amount AS DECIMAL)) as total_rewards
-      FROM seo_features.training_contributions
-    `);
+    // Check if file exists
+    try {
+      await fs.access(filePath);
+    } catch {
+      return res.status(404).json({ error: 'File not found' });
+    }
 
-    // Get unique contributors
-    const contributorsResult = await pool.query(`
-      SELECT COUNT(DISTINCT contributor_address) as unique_contributors
-      FROM seo_features.training_contributions
-    `);
+    res.download(filePath);
+  } catch (err) {
+    console.error('Download error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
-    // Get complete features count
-    const featuresResult = await pool.query(`
-      SELECT COUNT(*) as total_features
-      FROM seo_features.complete_features
-    `);
-
-    await pool.end();
-
+// Serve extension as a zip file
+app.get('/downloads/extension', async (req, res) => {
+  try {
+    const extensionPath = path.join(__dirname, 'extension');
     res.json({
-      success: true,
-      stats: {
-        totalContributions: parseInt(contributionsResult.rows[0].total_contributions) || 0,
-        totalFeatures: parseInt(featuresResult.rows[0].total_features) || 0,
-        totalRewards: contributionsResult.rows[0].total_rewards || '0',
-        uniqueContributors: parseInt(contributorsResult.rows[0].unique_contributors) || 0,
-        avgQualityScore: parseFloat(contributionsResult.rows[0].avg_quality_score) || 0,
-        datasetReadiness: {
-          isReady: (parseInt(contributionsResult.rows[0].total_contributions) || 0) >= 1000,
-          minSamplesRequired: 1000,
-          currentSamples: parseInt(contributionsResult.rows[0].total_contributions) || 0,
-          missingFeatures: []
-        }
-      }
+      message: 'Extension download',
+      instructions: [
+        '1. Clone the repository or download the extension folder',
+        '2. Open Chrome and navigate to chrome://extensions/',
+        '3. Enable "Developer mode" in the top right',
+        '4. Click "Load unpacked"',
+        '5. Select the extension folder',
+        '6. The LightDom DOM Space Miner extension will be installed'
+      ],
+      extensionPath: '/extension',
+      manifestVersion: 3,
+      version: '2.0.0'
     });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (err) {
+    console.error('Extension info error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

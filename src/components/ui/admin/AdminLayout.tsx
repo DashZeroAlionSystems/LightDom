@@ -28,6 +28,8 @@ import {
   ApiOutlined,
   ThunderboltOutlined,
   ArrowLeftOutlined,
+  RobotOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../../hooks/state/useAuth';
 import './AdminLayout.css';
@@ -57,6 +59,16 @@ const AdminLayout: React.FC = () => {
       key: '/admin/billing',
       icon: <DollarOutlined />,
       label: 'Billing Management',
+    },
+    {
+      key: '/admin/crawler',
+      icon: <RobotOutlined />,
+      label: 'Web Crawler',
+    },
+    {
+      key: '/admin/training',
+      icon: <ExperimentOutlined />,
+      label: 'Model Training',
     },
     {
       key: '/admin/monitoring',
