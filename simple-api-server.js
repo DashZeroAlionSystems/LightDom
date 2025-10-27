@@ -6,14 +6,103 @@ import path from 'path';
 import crawler from './enhanced-web-crawler-service.js';
 import dotenv from 'dotenv';
 dotenv.config();
-let databaseIntegration = null;
-try {
-  const mod = await import('./src/services/DatabaseIntegration.js');
-  databaseIntegration = mod.databaseIntegration;
-} catch {}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Import services and engines
+let databaseIntegration = null;
+let ServiceHub = null;
+let MiningService = null;
+let BlockchainService = null;
+let OptimizationEngine = null;
+let SpaceMiningEngine = null;
+let MetaverseMiningEngine = null;
+let SEOAnalyticsService = null;
+let WalletService = null;
+
+// Load services
+try {
+  const mod = await import('./src/services/DatabaseIntegration.js');
+  databaseIntegration = mod.databaseIntegration;
+} catch (err) {
+  console.log('DatabaseIntegration not available:', err.message);
+}
+
+// Load ServiceHub and services
+try {
+  const hub = await import('./src/services/ServiceHub.ts');
+  ServiceHub = hub.ServiceHub;
+  console.log('✅ ServiceHub loaded');
+} catch (err) {
+  console.log('⚠️  ServiceHub not available:', err.message);
+}
+
+try {
+  const mining = await import('./src/services/api/MiningService.ts');
+  MiningService = mining.MiningService;
+  console.log('✅ MiningService loaded');
+} catch (err) {
+  console.log('⚠️  MiningService not available:', err.message);
+}
+
+try {
+  const blockchain = await import('./src/services/api/BlockchainService.ts');
+  BlockchainService = blockchain.BlockchainService;
+  console.log('✅ BlockchainService loaded');
+} catch (err) {
+  console.log('⚠️  BlockchainService not available:', err.message);
+}
+
+try {
+  const opt = await import('./src/services/api/OptimizationEngine.ts');
+  OptimizationEngine = opt.OptimizationEngine;
+  console.log('✅ OptimizationEngine loaded');
+} catch (err) {
+  console.log('⚠️  OptimizationEngine not available:', err.message);
+}
+
+try {
+  const spaceMining = await import('./src/core/SpaceMiningEngine.ts');
+  SpaceMiningEngine = spaceMining.SpaceMiningEngine;
+  console.log('✅ SpaceMiningEngine loaded');
+} catch (err) {
+  console.log('⚠️  SpaceMiningEngine not available:', err.message);
+}
+
+try {
+  const metaMining = await import('./src/core/MetaverseMiningEngine.ts');
+  MetaverseMiningEngine = metaMining.MetaverseMiningEngine;
+  console.log('✅ MetaverseMiningEngine loaded');
+} catch (err) {
+  console.log('⚠️  MetaverseMiningEngine not available:', err.message);
+}
+
+try {
+  const seoAnalytics = await import('./src/services/api/SEOAnalyticsService.ts');
+  SEOAnalyticsService = seoAnalytics.SEOAnalyticsService;
+  console.log('✅ SEOAnalyticsService loaded');
+} catch (err) {
+  console.log('⚠️  SEOAnalyticsService not available:', err.message);
+}
+
+try {
+  const wallet = await import('./src/services/WalletService.ts');
+  WalletService = wallet.WalletService;
+  console.log('✅ WalletService loaded');
+} catch (err) {
+  console.log('⚠️  WalletService not available:', err.message);
+}
+
+// Initialize service instances
+let serviceHub = null;
+let miningService = null;
+let blockchainService = null;
+let optimizationEngine = null;
+let spaceMiningEngine = null;
+let metaverseMiningEngine = null;
+let seoAnalyticsService = null;
+let walletService = null;
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -696,6 +785,273 @@ app.post('/api/crawler/stop', (req, res) => {
   res.json({ message: 'Crawler stopped', status: 'success' });
 });
 
+// ============================================================================
+// COMPREHENSIVE SERVICE INTEGRATIONS
+// ============================================================================
+
+// Unified Dashboard Data Endpoint
+app.get('/api/dashboard/complete', async (req, res) => {
+  try {
+    const data = {
+      timestamp: new Date().toISOString(),
+      services: {}
+    };
+
+    // Get crawler stats
+    try {
+      const crawlerStats = crawler.getStats();
+      data.services.crawler = {
+        isRunning: crawlerStats.isRunning,
+        crawledCount: crawlerStats.crawledCount || 0,
+        discoveredCount: crawlerStats.discoveredCount || 0
+      };
+    } catch (err) {
+      data.services.crawler = { error: err.message };
+    }
+
+    // Get mining stats (if available)
+    if (miningService) {
+      try {
+        const miningStats = await miningService.getStats();
+        data.services.mining = miningStats;
+      } catch (err) {
+        data.services.mining = { error: err.message };
+      }
+    }
+
+    // Get blockchain stats (if available)
+    if (blockchainService) {
+      try {
+        const blockchainStats = await blockchainService.getMetaverseStats();
+        data.services.blockchain = blockchainStats;
+      } catch (err) {
+        data.services.blockchain = { error: err.message };
+      }
+    }
+
+    // Get space mining stats (if available)
+    if (spaceMiningEngine) {
+      try {
+        const spaceMiningStats = await spaceMiningEngine.getMiningStats();
+        data.services.spaceMining = spaceMiningStats;
+      } catch (err) {
+        data.services.spaceMining = { error: err.message };
+      }
+    }
+
+    // Get metaverse stats (if available)
+    if (metaverseMiningEngine) {
+      try {
+        const metaverseStats = await metaverseMiningEngine.getMiningData();
+        data.services.metaverse = metaverseStats;
+      } catch (err) {
+        data.services.metaverse = { error: err.message };
+      }
+    }
+
+    // Get SEO analytics (if available)
+    if (seoAnalyticsService) {
+      try {
+        const seoStats = await seoAnalyticsService.getDashboardData();
+        data.services.seo = seoStats;
+      } catch (err) {
+        data.services.seo = { error: err.message };
+      }
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching complete dashboard data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Mining Service Endpoints
+app.post('/api/mining/start', async (req, res) => {
+  try {
+    if (!miningService) {
+      return res.status(503).json({ error: 'Mining service not available' });
+    }
+    const { urls, config } = req.body;
+    const sessionId = await miningService.startMining(urls || [], config || {});
+    res.json({ success: true, sessionId });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/mining/stats', async (req, res) => {
+  try {
+    if (!miningService) {
+      return res.json({ active: false, message: 'Mining service not initialized' });
+    }
+    const stats = await miningService.getStats();
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/mining/stop', async (req, res) => {
+  try {
+    if (!miningService) {
+      return res.status(503).json({ error: 'Mining service not available' });
+    }
+    await miningService.shutdown();
+    res.json({ success: true, message: 'Mining stopped' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Blockchain Service Endpoints
+app.get('/api/blockchain/status', async (req, res) => {
+  try {
+    if (!blockchainService) {
+      return res.json({ connected: false, message: 'Blockchain service not initialized' });
+    }
+    const status = {
+      connected: true,
+      network: process.env.BLOCKCHAIN_NETWORK || 'localhost',
+      rpcUrl: process.env.BLOCKCHAIN_RPC_URL || 'http://localhost:8545'
+    };
+    res.json(status);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/blockchain/harvester/:address', async (req, res) => {
+  try {
+    if (!blockchainService) {
+      return res.status(503).json({ error: 'Blockchain service not available' });
+    }
+    const stats = await blockchainService.getHarvesterStats(req.params.address);
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/blockchain/submit-optimization', async (req, res) => {
+  try {
+    if (!blockchainService) {
+      return res.status(503).json({ error: 'Blockchain service not available' });
+    }
+    const result = await blockchainService.submitOptimization(req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Optimization Engine Endpoints
+app.post('/api/optimization/submit', async (req, res) => {
+  try {
+    if (!optimizationEngine) {
+      return res.status(503).json({ error: 'Optimization engine not available' });
+    }
+    const { url, html } = req.body;
+    const jobId = await optimizationEngine.submitOptimization({ url, html });
+    res.json({ success: true, jobId });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/optimization/status/:jobId', async (req, res) => {
+  try {
+    if (!optimizationEngine) {
+      return res.status(503).json({ error: 'Optimization engine not available' });
+    }
+    const status = await optimizationEngine.getOptimizationStatus(req.params.jobId);
+    res.json(status);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Space Mining Engine Endpoints
+app.post('/api/space-mining/analyze', async (req, res) => {
+  try {
+    if (!spaceMiningEngine) {
+      return res.status(503).json({ error: 'Space mining engine not available' });
+    }
+    const { url } = req.body;
+    const result = await spaceMiningEngine.mineSpaceFromURL(url);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/space-mining/stats', async (req, res) => {
+  try {
+    if (!spaceMiningEngine) {
+      return res.json({ active: false, message: 'Space mining engine not initialized' });
+    }
+    const stats = await spaceMiningEngine.getMiningStats();
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// SEO Analytics Endpoints
+app.get('/api/seo/dashboard', async (req, res) => {
+  try {
+    if (!seoAnalyticsService) {
+      return res.json({ message: 'SEO analytics service not initialized' });
+    }
+    const dashboard = await seoAnalyticsService.getDashboardData();
+    res.json(dashboard);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/seo/collect', async (req, res) => {
+  try {
+    if (!seoAnalyticsService) {
+      return res.status(503).json({ error: 'SEO analytics service not available' });
+    }
+    const { url } = req.body;
+    const result = await seoAnalyticsService.collectAnalytics(url);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Wallet Service Endpoints
+app.get('/api/wallet/balance', async (req, res) => {
+  try {
+    if (!walletService) {
+      return res.json({ LDC: 0, USD: 0, message: 'Wallet service not initialized' });
+    }
+    const balance = await walletService.getBalance();
+    res.json(balance);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/wallet/transactions', async (req, res) => {
+  try {
+    if (!walletService) {
+      return res.json({ transactions: [], message: 'Wallet service not initialized' });
+    }
+    const transactions = await walletService.getTransactions();
+    res.json({ transactions });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================================
+// END COMPREHENSIVE SERVICE INTEGRATIONS
+// ============================================================================
+
 // Downloads API - Serve Electron app builds
 app.get('/downloads/app/latest', async (req, res) => {
   try {
@@ -802,6 +1158,96 @@ app.listen(PORT, async () => {
     console.warn('⚠️  Stack trace:', e.stack);
   }
 
+  // Initialize and auto-start services
+  console.log('🚀 Initializing all services...');
+
+  // Initialize ServiceHub (if available)
+  if (ServiceHub) {
+    try {
+      serviceHub = await ServiceHub.getInstance();
+      await serviceHub.initialize();
+      console.log('✅ ServiceHub initialized');
+    } catch (error) {
+      console.error('⚠️  ServiceHub initialization failed:', error.message);
+    }
+  }
+
+  // Initialize MiningService (if available)
+  if (MiningService) {
+    try {
+      miningService = new MiningService();
+      await miningService.initialize();
+      console.log('✅ MiningService initialized');
+    } catch (error) {
+      console.error('⚠️  MiningService initialization failed:', error.message);
+    }
+  }
+
+  // Initialize BlockchainService (if available)
+  if (BlockchainService) {
+    try {
+      blockchainService = new BlockchainService({
+        rpcUrl: process.env.BLOCKCHAIN_RPC_URL || 'http://localhost:8545',
+        privateKey: process.env.PRIVATE_KEY
+      });
+      await blockchainService.initializeContracts();
+      console.log('✅ BlockchainService initialized');
+    } catch (error) {
+      console.error('⚠️  BlockchainService initialization failed:', error.message);
+    }
+  }
+
+  // Initialize OptimizationEngine (if available)
+  if (OptimizationEngine) {
+    try {
+      optimizationEngine = new OptimizationEngine();
+      await optimizationEngine.initialize();
+      console.log('✅ OptimizationEngine initialized');
+    } catch (error) {
+      console.error('⚠️  OptimizationEngine initialization failed:', error.message);
+    }
+  }
+
+  // Initialize SpaceMiningEngine (if available)
+  if (SpaceMiningEngine) {
+    try {
+      spaceMiningEngine = new SpaceMiningEngine();
+      console.log('✅ SpaceMiningEngine initialized');
+    } catch (error) {
+      console.error('⚠️  SpaceMiningEngine initialization failed:', error.message);
+    }
+  }
+
+  // Initialize MetaverseMiningEngine (if available)
+  if (MetaverseMiningEngine) {
+    try {
+      metaverseMiningEngine = new MetaverseMiningEngine();
+      console.log('✅ MetaverseMiningEngine initialized');
+    } catch (error) {
+      console.error('⚠️  MetaverseMiningEngine initialization failed:', error.message);
+    }
+  }
+
+  // Initialize SEOAnalyticsService (if available)
+  if (SEOAnalyticsService) {
+    try {
+      seoAnalyticsService = new SEOAnalyticsService();
+      console.log('✅ SEOAnalyticsService initialized');
+    } catch (error) {
+      console.error('⚠️  SEOAnalyticsService initialization failed:', error.message);
+    }
+  }
+
+  // Initialize WalletService (if available)
+  if (WalletService) {
+    try {
+      walletService = new WalletService();
+      console.log('✅ WalletService initialized');
+    } catch (error) {
+      console.error('⚠️  WalletService initialization failed:', error.message);
+    }
+  }
+
   // Auto-start web crawler
   console.log('🕷️  Auto-starting web crawler...');
   try {
@@ -811,6 +1257,8 @@ app.listen(PORT, async () => {
   } catch (error) {
     console.error('❌ Failed to start crawler:', error.message);
   }
+
+  console.log('✅ All services initialized and ready');
 });
 
 // Handle uncaught exceptions and unhandled rejections

@@ -16,6 +16,7 @@ import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { CompleteDashboardPage } from '@/pages/CompleteDashboardPage';
 import { FilesPage } from '@/pages/FilesPage';
 import { UploadPage } from '@/pages/UploadPage';
 import { HostsPage } from '@/pages/HostsPage';
@@ -121,6 +122,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <DashboardPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/complete-dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CompleteDashboardPage />
                       </Layout>
                     </ProtectedRoute>
                   }
