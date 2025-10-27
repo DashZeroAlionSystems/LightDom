@@ -114,18 +114,69 @@ app.post('/api/db/migrate', async (req, res) => {
   }
 });
 
-// Mock metaverse mining data endpoint
-app.get('/api/metaverse/mining-data', (req, res) => {
-  const mockData = {
-    totalMined: Math.floor(Math.random() * 10000),
-    activeMiners: Math.floor(Math.random() * 100),
-    tokensEarned: Math.floor(Math.random() * 1000),
-    lastUpdate: new Date().toISOString(),
-    miningRate: Math.floor(Math.random() * 100),
-    efficiency: Math.floor(Math.random() * 100)
-  };
-  
-  res.json(mockData);
+// Real metaverse mining data endpoint (from crawler)
+app.get('/api/metaverse/mining-data', async (req, res) => {
+  try {
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      host: process.env.DB_HOST || 'localhost',
+      port: Number(process.env.DB_PORT || 5432),
+      database: process.env.DB_NAME || 'dom_space_harvester',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+      idleTimeoutMillis: 5000
+    });
+
+    // Get crawler stats
+    const crawlerStats = crawler.getStats();
+
+    // Get real data from database
+    const result = await pool.query(`
+      SELECT
+        COUNT(*) as total_sites,
+        SUM(current_size) as total_size_mined,
+        SUM(space_reclaimed) as total_space_reclaimed,
+        AVG(seo_score) as avg_seo_score,
+        COUNT(*) FILTER (WHERE last_crawled > NOW() - INTERVAL '1 day') as mined_today,
+        COUNT(*) FILTER (WHERE last_crawled > NOW() - INTERVAL '7 days') as mined_this_week
+      FROM crawled_sites
+    `);
+
+    const stats = result.rows[0] || {};
+
+    await pool.end();
+
+    const miningData = {
+      totalMined: parseInt(stats.total_sites) || crawlerStats.crawledCount || 0,
+      activeMiners: crawlerStats.isRunning ? 1 : 0,
+      tokensEarned: Math.floor((parseInt(stats.total_space_reclaimed) || 0) / 1000), // 1 token per 1KB saved
+      lastUpdate: new Date().toISOString(),
+      miningRate: parseInt(stats.mined_today) || 0,
+      efficiency: Math.round(parseFloat(stats.avg_seo_score) || 0),
+      totalSizeMinedBytes: parseInt(stats.total_size_mined) || 0,
+      spaceReclaimedBytes: parseInt(stats.total_space_reclaimed) || 0,
+      minedToday: parseInt(stats.mined_today) || 0,
+      minedThisWeek: parseInt(stats.mined_this_week) || 0,
+      crawlerStatus: crawlerStats.isRunning ? 'running' : 'stopped'
+    };
+
+    res.json(miningData);
+  } catch (err) {
+    console.error('Error fetching mining data:', err);
+    // Return crawler stats as fallback
+    const crawlerStats = crawler.getStats();
+    res.json({
+      totalMined: crawlerStats.crawledCount || 0,
+      activeMiners: crawlerStats.isRunning ? 1 : 0,
+      tokensEarned: Math.floor((crawlerStats.crawledCount || 0) * 10),
+      lastUpdate: new Date().toISOString(),
+      miningRate: 0,
+      efficiency: 0,
+      crawlerStatus: crawlerStats.isRunning ? 'running' : 'stopped',
+      error: 'Using fallback data - database not available'
+    });
+  }
 });
 
 // Mock blockchain data endpoint
@@ -519,26 +570,125 @@ app.get('/api/space-mining/stats', (req, res) => {
   res.json(mockData);
 });
 
-// Web Crawler API endpoints
+// Web Crawler API endpoints with real data
 app.get('/api/crawler/status', (req, res) => {
   const status = crawler.getStatus();
   res.json(status);
 });
 
-app.get('/api/crawler/stats', (req, res) => {
-  const stats = crawler.getStats();
-  res.json(stats);
+app.get('/api/crawler/stats', async (req, res) => {
+  try {
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      host: process.env.DB_HOST || 'localhost',
+      port: Number(process.env.DB_PORT || 5432),
+      database: process.env.DB_NAME || 'dom_space_harvester',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+      idleTimeoutMillis: 5000
+    });
+
+    // Get crawler runtime stats
+    const crawlerStats = crawler.getStats();
+
+    // Get database stats
+    const dbStats = await pool.query(`
+      SELECT
+        COUNT(*) as total_crawled,
+        COUNT(*) FILTER (WHERE last_crawled > NOW() - INTERVAL '1 hour') as crawled_last_hour,
+        COUNT(*) FILTER (WHERE last_crawled > NOW() - INTERVAL '1 day') as crawled_today,
+        AVG(seo_score) as avg_seo_score,
+        SUM(space_reclaimed) as total_space_saved
+      FROM crawled_sites
+    `);
+
+    const seoTrainingCount = await pool.query(`
+      SELECT COUNT(*) as training_records
+      FROM seo_training_data
+    `);
+
+    await pool.end();
+
+    const stats = dbStats.rows[0] || {};
+    const trainingStats = seoTrainingCount.rows[0] || {};
+
+    res.json({
+      isRunning: crawlerStats.isRunning,
+      crawledCount: parseInt(stats.total_crawled) || crawlerStats.crawledCount || 0,
+      discoveredCount: crawlerStats.discoveredCount || 0,
+      crawledLastHour: parseInt(stats.crawled_last_hour) || 0,
+      crawledToday: parseInt(stats.crawled_today) || 0,
+      avgSeoScore: Math.round(parseFloat(stats.avg_seo_score) || 0),
+      totalSpaceSaved: parseInt(stats.total_space_saved) || 0,
+      seoTrainingRecords: parseInt(trainingStats.training_records) || 0,
+      lastUpdate: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error fetching crawler stats:', error);
+    // Fallback to runtime stats only
+    const stats = crawler.getStats();
+    res.json({
+      ...stats,
+      error: 'Using fallback data - database not available'
+    });
+  }
 });
 
-app.get('/api/crawler/recent', (req, res) => {
+app.get('/api/crawler/recent', async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
-  const recent = crawler.getRecentCrawls(limit);
-  res.json({ crawls: recent });
+
+  try {
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      host: process.env.DB_HOST || 'localhost',
+      port: Number(process.env.DB_PORT || 5432),
+      database: process.env.DB_NAME || 'dom_space_harvester',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+      idleTimeoutMillis: 5000
+    });
+
+    const result = await pool.query(`
+      SELECT url, domain, last_crawled as crawled_at, seo_score,
+             current_size, space_reclaimed, metadata
+      FROM crawled_sites
+      ORDER BY last_crawled DESC
+      LIMIT $1
+    `, [limit]);
+
+    await pool.end();
+
+    res.json({
+      crawls: result.rows.map(row => ({
+        url: row.url,
+        domain: row.domain,
+        crawledAt: row.crawled_at,
+        seoScore: row.seo_score,
+        sizeBytes: row.current_size,
+        spaceSaved: row.space_reclaimed,
+        metadata: row.metadata
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching recent crawls:', error);
+    // Fallback to crawler's in-memory data
+    const recent = crawler.getRecentCrawls(limit);
+    res.json({
+      crawls: recent,
+      error: 'Using fallback data - database not available'
+    });
+  }
 });
 
-app.post('/api/crawler/start', (req, res) => {
-  crawler.startCrawling();
-  res.json({ message: 'Crawler started', status: 'success' });
+app.post('/api/crawler/start', async (req, res) => {
+  try {
+    await crawler.startCrawling();
+    res.json({ message: 'Crawler started', status: 'success' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to start crawler', error: error.message });
+  }
 });
 
 app.post('/api/crawler/stop', (req, res) => {
@@ -650,6 +800,16 @@ app.listen(PORT, async () => {
   } catch (e) {
     console.warn('⚠️  Schema init at startup failed:', e.message);
     console.warn('⚠️  Stack trace:', e.stack);
+  }
+
+  // Auto-start web crawler
+  console.log('🕷️  Auto-starting web crawler...');
+  try {
+    await crawler.initialize();
+    await crawler.startCrawling();
+    console.log('✅ Web crawler started and actively mining data');
+  } catch (error) {
+    console.error('❌ Failed to start crawler:', error.message);
   }
 });
 
