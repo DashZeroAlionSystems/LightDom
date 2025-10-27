@@ -12,6 +12,9 @@ import {
   Brain,
   TrendingUp,
   LogOut,
+  PanelsTopLeft,
+  Shield,
+  UserCircle,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthService } from '@/services/auth';
@@ -56,6 +59,9 @@ export const Navigation: React.FC = () => {
 
   const navLinks = [
     { to: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard' },
+    { to: '/complete-dashboard', icon: <PanelsTopLeft className="w-5 h-5" />, label: 'Complete Dashboard' },
+    { to: '/admin-dashboard', icon: <Shield className="w-5 h-5" />, label: 'Admin Dashboard' },
+    { to: '/client-dashboard', icon: <UserCircle className="w-5 h-5" />, label: 'Client Dashboard' },
     { to: '/ai-content', icon: <Brain className="w-5 h-5" />, label: 'AI Content' },
     { to: '/seo-training', icon: <TrendingUp className="w-5 h-5" />, label: 'SEO Training' },
     { to: '/files', icon: <FileText className="w-5 h-5" />, label: 'Files' },
