@@ -1,0 +1,11 @@
+/**
+ * Main Stylesheet Entry Point
+ */
+
+@import './tokens/colors.css';
+@import './base/reset.css';
+@import './base/global.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
