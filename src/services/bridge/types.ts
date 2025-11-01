@@ -47,6 +47,10 @@ export interface BridgeMetadata {
   };
 }
 
+export interface BridgeMessageMetadata {
+  [key: string]: string | number | boolean | undefined;
+}
+
 export interface BridgeMessage {
   id: string;
   message_id: string;
@@ -55,7 +59,7 @@ export interface BridgeMessage {
   user_id?: string;
   message_text: string;
   message_type: 'text' | 'system' | 'optimization' | 'space_mined' | 'bridge_event';
-  metadata?: any;
+  metadata?: BridgeMessageMetadata;
   created_at: Date;
 }
 

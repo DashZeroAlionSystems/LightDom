@@ -3,6 +3,8 @@
  * Extracted from SEOGenerationService.tsx for better separation of concerns
  */
 
+import type { GeneratedContent } from '../../seo/SEOMLWorkflowService';
+
 export interface MetaTags {
   title: string;
   description: string;
@@ -50,6 +52,12 @@ export interface ContentTemplate {
   aiPrompt: string;
 }
 
+export interface ReviewComment {
+  user: string;
+  comment: string;
+  timestamp: Date;
+}
+
 export interface ContentWorkflow {
   id: string;
   templateId: string;
@@ -59,13 +67,9 @@ export interface ContentWorkflow {
   updatedAt: Date;
   scheduledFor?: Date;
   publishedAt?: Date;
-  content?: any; // Reference to GeneratedContent from SEOMLWorkflowService
+  content?: GeneratedContent;
   collaborators?: string[];
-  reviewComments?: Array<{
-    user: string;
-    comment: string;
-    timestamp: Date;
-  }>;
+  reviewComments?: ReviewComment[];
 }
 
 export interface ContentGenerationOptions {
