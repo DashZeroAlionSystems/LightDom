@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightDom Dev Container - Modular React App Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            background: #0e639c;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #1177bb;
+        }
+
+        .btn-secondary {
+            background: #3e3e42;
+        }
+
+        .btn-secondary:hover {
+            background: #505056;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .split-view {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .split-view.vertical {
+            flex-direction: column;
+        }
+
+        .pane {
+            flex: 1;
+            position: relative;
+            border-right: 1px solid #3e3e42;
+            overflow: hidden;
+        }
+
+        .pane:last-child {
+            border-right: none;
+        }
+
+        .pane-header {
+            background: #2d2d30;
+            padding: 8px 16px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pane-header h2 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #cccccc;
+        }
+
+        .view-selector {
+            background: #3e3e42;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .pane-content {
+            height: calc(100% - 40px);
+            overflow: auto;
+        }
+
+        #editor {
+            width: 100%;
+            height: 100%;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            padding: 16px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+        }
+
+        #preview-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+
+        .schema-panel {
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .schema-item {
+            background: #2d2d30;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .schema-item:hover {
+            background: #3e3e42;
+        }
+
+        .schema-item h3 {
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #4ec9b0;
+        }
+
+        .schema-item p {
+            font-size: 12px;
+            color: #9cdcfe;
+            margin-bottom: 4px;
+        }
+
+        .schema-item .tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .tag {
+            background: #0e639c;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+
+        .status-bar {
+            background: #007acc;
+            color: #fff;
+            padding: 4px 16px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #2d2d30;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            width: 500px;
+            max-width: 90%;
+            margin: 100px auto;
+            padding: 20px;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 16px;
+            color: #fff;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 12px;
+            background: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-radius: 3px;
+            color: #d4d4d4;
+            font-family: inherit;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .logs {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1e1e1e;
+            border-top: 1px solid #3e3e42;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            display: none;
+        }
+
+        .logs.show {
+            display: block;
+        }
+
+        .log-entry {
+            padding: 2px 0;
+        }
+
+        .log-entry.error {
+            color: #f48771;
+        }
+
+        .log-entry.success {
+            color: #4ec9b0;
+        }
+
+        .log-entry.info {
+            color: #9cdcfe;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ LightDom Dev Container - Modular React App Builder</h1>
+            <div class="toolbar">
+                <button class="btn btn-secondary" onclick="toggleLayout()">↔️ Toggle Layout</button>
+                <button class="btn" onclick="selectComponent()">🔍 Select Component</button>
+                <button class="btn" onclick="runCode()">▶️ Run</button>
+                <button class="btn btn-secondary" onclick="toggleLogs()">📋 Logs</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="split-view" id="split-view">
+                <!-- Left Pane -->
+                <div class="pane">
+                    <div class="pane-header">
+                        <h2>Code Editor</h2>
+                        <select class="view-selector" onchange="switchView('left', this.value)">
+                            <option value="code" selected>Code</option>
+                            <option value="preview">Preview</option>
+                            <option value="schema">Schema</option>
+                        </select>
+                    </div>
+                    <div class="pane-content" id="left-pane">
+                        <textarea id="editor" placeholder="Write your React component here...">
+// React Component Example
+import React from 'react';
+
+const MyComponent = () => {
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Hello from LightDom!</h1>
+      <p>This is a modular React component built with schema-driven development.</p>
+    </div>
+  );
+};
+
+export default MyComponent;</textarea>
+                    </div>
+                </div>
+
+                <!-- Right Pane -->
+                <div class="pane">
+                    <div class="pane-header">
+                        <h2>Live Preview</h2>
+                        <select class="view-selector" onchange="switchView('right', this.value)">
+                            <option value="code">Code</option>
+                            <option value="preview" selected>Preview</option>
+                            <option value="schema">Schema</option>
+                        </select>
+                    </div>
+                    <div class="pane-content" id="right-pane">
+                        <iframe id="preview-frame" src="about:blank"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="logs" id="logs">
+                <div class="log-entry info">Dev Container initialized ✓</div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <span id="status-text">Ready</span>
+            <span id="connection-status">🟢 Connected</span>
+        </div>
+    </div>
+
+    <!-- Component Selector Modal -->
+    <div class="modal" id="component-modal">
+        <div class="modal-content">
+            <h2>Select Component by Use Case</h2>
+            <textarea id="use-case-input" rows="3" placeholder="Describe your use case (e.g., 'dashboard with charts and analytics')"></textarea>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn" onclick="findComponent()">Find Component</button>
+            </div>
+            <div id="component-results" style="margin-top: 16px;"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let viewState = { left: 'code', right: 'preview', layout: 'horizontal', syncScroll: false };
+        let schemas = [];
+
+        // Socket.IO Event Handlers
+        socket.on('connect', () => {
+            updateStatus('Connected', true);
+            loadSchemas();
+        });
+
+        socket.on('disconnect', () => {
+            updateStatus('Disconnected', false);
+        });
+
+        socket.on('fileChanged', (data) => {
+            addLog(`File changed: ${data.filepath}`, 'info');
+        });
+
+        socket.on('viewStateChanged', (state) => {
+            viewState = state;
+            renderViews();
+        });
+
+        socket.on('executionResult', (result) => {
+            if (result.success) {
+                addLog('Code executed successfully', 'success');
+            } else {
+                addLog(`Execution error: ${result.error}`, 'error');
+            }
+        });
+
+        // Initialize
+        async function init() {
+            await loadSchemas();
+            renderViews();
+        }
+
+        // Load available schemas
+        async function loadSchemas() {
+            try {
+                const response = await fetch('/api/schemas');
+                const data = await response.json();
+                if (data.success) {
+                    schemas = data.schemas;
+                    addLog(`Loaded ${schemas.length} component schemas`, 'success');
+                }
+            } catch (error) {
+                addLog(`Failed to load schemas: ${error.message}`, 'error');
+            }
+        }
+
+        // Switch view
+        function switchView(pane, view) {
+            viewState[pane] = view;
+            fetch('/api/view-state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(viewState)
+            });
+            renderViews();
+        }
+
+        // Render views based on state
+        function renderViews() {
+            const leftPane = document.getElementById('left-pane');
+            const rightPane = document.getElementById('right-pane');
+
+            leftPane.innerHTML = renderPaneContent(viewState.left);
+            rightPane.innerHTML = renderPaneContent(viewState.right);
+        }
+
+        function renderPaneContent(view) {
+            switch (view) {
+                case 'code':
+                    return `<textarea id="editor" placeholder="Write your React component here..."></textarea>`;
+                case 'preview':
+                    return `<iframe id="preview-frame" src="about:blank"></iframe>`;
+                case 'schema':
+                    return renderSchemaList();
+                default:
+                    return '';
+            }
+        }
+
+        function renderSchemaList() {
+            if (schemas.length === 0) {
+                return '<div class="schema-panel"><p>No schemas loaded</p></div>';
+            }
+
+            const items = schemas.map(schema => `
+                <div class="schema-item" onclick="useSchema('${schema['@id']}')">
+                    <h3>${schema.name}</h3>
+                    <p>${schema.description}</p>
+                    <p style="color: #808080; font-size: 11px;">Type: ${schema['@type']} | Component: ${schema['lightdom:reactComponent']}</p>
+                    <div class="tags">
+                        ${schema['lightdom:useCase'].map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            return `<div class="schema-panel">${items}</div>`;
+        }
+
+        // Toggle layout
+        function toggleLayout() {
+            viewState.layout = viewState.layout === 'horizontal' ? 'vertical' : 'horizontal';
+            const splitView = document.getElementById('split-view');
+            splitView.className = `split-view ${viewState.layout}`;
+            
+            fetch('/api/view-state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(viewState)
+            });
+        }
+
+        // Run code
+        async function runCode() {
+            const editor = document.getElementById('editor');
+            if (!editor) return;
+
+            const code = editor.value;
+            
+            try {
+                const response = await fetch('/api/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLog('Code executed successfully', 'success');
+                } else {
+                    addLog(`Execution failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Select component
+        function selectComponent() {
+            document.getElementById('component-modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('component-modal').style.display = 'none';
+        }
+
+        async function findComponent() {
+            const useCase = document.getElementById('use-case-input').value;
+            
+            if (!useCase) {
+                alert('Please describe your use case');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/select-component', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ useCase })
+                });
+
+                const result = await response.json();
+                
+                if (result.success && result.match) {
+                    const match = result.match;
+                    const resultsDiv = document.getElementById('component-results');
+                    resultsDiv.innerHTML = `
+                        <div class="schema-item">
+                            <h3>✓ ${match.schema.name}</h3>
+                            <p>${match.schema.description}</p>
+                            <p style="color: #4ec9b0;">Match Score: ${match.score}</p>
+                            <p style="color: #808080; font-size: 11px;">${match.reasons.join(', ')}</p>
+                            <button class="btn" onclick="useSchema('${match.schema['@id']}'); closeModal();">Use This Component</button>
+                        </div>
+                    `;
+                    addLog(`Found component: ${match.schema.name} (score: ${match.score})`, 'success');
+                } else {
+                    addLog('No matching component found', 'error');
+                }
+            } catch (error) {
+                addLog(`Error finding component: ${error.message}`, 'error');
+            }
+        }
+
+        function useSchema(schemaId) {
+            const schema = schemas.find(s => s['@id'] === schemaId);
+            if (!schema) return;
+
+            // Generate component code from schema
+            const componentCode = generateComponentCode(schema);
+            
+            const editor = document.getElementById('editor');
+            if (editor) {
+                editor.value = componentCode;
+                addLog(`Using component: ${schema.name}`, 'success');
+            }
+        }
+
+        function generateComponentCode(schema) {
+            const props = schema['lightdom:props'].map(p => 
+                `${p.name}${p.required ? '' : '?'}: ${p.type}`
+            ).join(', ');
+
+            const propDefaults = schema['lightdom:props']
+                .filter(p => p.default !== undefined)
+                .map(p => `const ${p.name} = props.${p.name} ?? ${JSON.stringify(p.default)};`)
+                .join('\n  ');
+
+            return `import React from 'react';
+
+interface ${schema['lightdom:reactComponent']}Props {
+  ${props}
+}
+
+/**
+ * ${schema.name}
+ * ${schema.description}
+ * 
+ * Schema: ${schema['@type']}
+ * Use Cases: ${schema['lightdom:useCase'].join(', ')}
+ */
+const ${schema['lightdom:reactComponent']}: React.FC<${schema['lightdom:reactComponent']}Props> = (props) => {
+  ${propDefaults}
+
+  return (
+    <div className="${schema['lightdom:reactComponent'].toLowerCase()}">
+      <h2>{props.title || '${schema.name}'}</h2>
+      {/* Add your component logic here */}
+    </div>
+  );
+};
+
+export default ${schema['lightdom:reactComponent']};`;
+        }
+
+        // Toggle logs
+        function toggleLogs() {
+            const logs = document.getElementById('logs');
+            logs.classList.toggle('show');
+        }
+
+        // Add log entry
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.appendChild(entry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        // Update status
+        function updateStatus(text, connected) {
+            document.getElementById('status-text').textContent = text;
+            document.getElementById('connection-status').textContent = connected ? '🟢 Connected' : '🔴 Disconnected';
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

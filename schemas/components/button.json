@@ -1,0 +1,59 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Button",
+  "@id": "lightdom:button",
+  "name": "Button",
+  "description": "Basic button component",
+  "lightdom:componentType": "atom",
+  "lightdom:reactComponent": "Button",
+  "lightdom:props": [
+    {
+      "name": "label",
+      "type": "string",
+      "required": true,
+      "description": "Button label text"
+    },
+    {
+      "name": "variant",
+      "type": "string",
+      "required": false,
+      "description": "Button variant: primary, secondary, danger, success",
+      "enum": ["primary", "secondary", "danger", "success", "warning", "info"],
+      "default": "primary"
+    },
+    {
+      "name": "size",
+      "type": "string",
+      "required": false,
+      "description": "Button size: small, medium, large",
+      "enum": ["small", "medium", "large"],
+      "default": "medium"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "description": "Disabled state",
+      "default": false
+    },
+    {
+      "name": "onClick",
+      "type": "function",
+      "required": false,
+      "description": "Click event handler"
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "button",
+    "action",
+    "click",
+    "submit",
+    "form",
+    "cta",
+    "interaction"
+  ],
+  "lightdom:semanticMeaning": "Clickable button for user actions",
+  "lightdom:priority": 2,
+  "lightdom:category": "atom"
+}

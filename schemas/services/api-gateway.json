@@ -1,0 +1,46 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": "lightdom:api-gateway",
+  "name": "API Gateway Service",
+  "description": "Unified API gateway for all LightDom services",
+  "lightdom:serviceType": "api",
+  "lightdom:config": {
+    "server": {
+      "port": 3001,
+      "host": "0.0.0.0"
+    },
+    "middleware": [
+      "cors",
+      "helmet",
+      "compression",
+      "rateLimit"
+    ],
+    "rateLimit": {
+      "windowMs": 900000,
+      "max": 100
+    },
+    "cors": {
+      "origin": "*",
+      "credentials": true
+    }
+  },
+  "lightdom:linkedServices": [
+    "lightdom:crawler-service",
+    "lightdom:optimization-service"
+  ],
+  "lightdom:autoStart": true,
+  "lightdom:priority": 10,
+  "lightdom:healthCheck": {
+    "enabled": true,
+    "interval": 15000,
+    "timeout": 3000,
+    "endpoint": "/health"
+  },
+  "lightdom:endpoints": [
+    "/api/crawl",
+    "/api/optimize",
+    "/api/analyze",
+    "/api/status"
+  ]
+}

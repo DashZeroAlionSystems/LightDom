@@ -1,0 +1,55 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "@id": "lightdom:article-component",
+  "name": "Article Component",
+  "description": "Article page with author, date, and content",
+  "lightdom:componentType": "organism",
+  "lightdom:reactComponent": "ArticleComponent",
+  "lightdom:props": [
+    {
+      "name": "title",
+      "type": "string",
+      "required": true,
+      "description": "Article title"
+    },
+    {
+      "name": "content",
+      "type": "string",
+      "required": true,
+      "description": "Article content (HTML or Markdown)"
+    },
+    {
+      "name": "author",
+      "type": "object",
+      "required": false,
+      "description": "Author information object"
+    },
+    {
+      "name": "publishDate",
+      "type": "string",
+      "required": false,
+      "description": "Publication date (ISO 8601)"
+    },
+    {
+      "name": "tags",
+      "type": "array",
+      "required": false,
+      "description": "Article tags",
+      "default": []
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "article",
+    "blog",
+    "post",
+    "content",
+    "news",
+    "story",
+    "editorial"
+  ],
+  "lightdom:semanticMeaning": "Displays article content with metadata",
+  "lightdom:priority": 4,
+  "lightdom:category": "organism"
+}
