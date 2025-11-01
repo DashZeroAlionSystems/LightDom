@@ -146,7 +146,7 @@ export class OllamaService {
             
             return assistantMessage;
         } catch (error) {
-            console.error('Ollama chat error:', error);
+            Logger.error('Ollama chat error:', error);
             throw new Error('Failed to communicate with Ollama');
         }
     }
@@ -198,7 +198,7 @@ export class OllamaService {
                 dependencies: []
             };
         } catch (error) {
-            console.error('Failed to parse task delegation response:', error);
+            Logger.error('Failed to parse task delegation response:', error);
             return {
                 task,
                 analysis: response,
@@ -231,7 +231,7 @@ export class OllamaService {
                 return JSON.parse(jsonStr);
             }
         } catch (error) {
-            console.error('Failed to parse SEO optimization response:', error);
+            Logger.error('Failed to parse SEO optimization response:', error);
         }
         
         // Fallback
@@ -264,7 +264,7 @@ export class OllamaService {
                 return JSON.parse(jsonStr);
             }
         } catch (error) {
-            console.error('Failed to parse workflow response:', error);
+            Logger.error('Failed to parse workflow response:', error);
         }
         
         return {
@@ -296,7 +296,7 @@ export class OllamaService {
                 return JSON.parse(jsonStr);
             }
         } catch (error) {
-            console.error('Failed to parse code analysis response:', error);
+            Logger.error('Failed to parse code analysis response:', error);
         }
         
         return {

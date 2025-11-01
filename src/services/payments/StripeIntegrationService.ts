@@ -16,7 +16,6 @@
  */
 
 import Stripe from 'stripe';
-import { httpClient } from '@/lib/http-client';
 import Logger from '@/utils/Logger';
 
 // Initialize Stripe

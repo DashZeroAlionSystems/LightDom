@@ -494,7 +494,8 @@ export class N8NWorkflowService {
                     parameters: {
                         operation: 'select',
                         table: 'ml_training_data',
-                        where: `model_type = '${modelType}'`
+                        where: 'model_type = $1',
+                        values: [modelType]
                     }
                 },
                 {
