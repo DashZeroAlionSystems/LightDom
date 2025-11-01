@@ -362,6 +362,14 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load SEO model training routes:', err);
     });
     
+    // Import and register Schema Linking routes
+    import('./services/schema-linking-routes.js').then((schemaModule) => {
+      this.app.use('/api/schema-linking', schemaModule.default);
+      console.log('Schema linking routes registered');
+    }).catch(err => {
+      console.error('Failed to load schema linking routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
