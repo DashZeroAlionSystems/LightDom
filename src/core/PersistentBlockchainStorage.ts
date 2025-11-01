@@ -22,14 +22,22 @@ export interface PersistentData {
     pendingRewards: number;
     totalEarned: number;
   };
-  userSettings: {
-    maxFileUploadSize: number;
-    autoSave: boolean;
-    syncInterval: number;
-    preferredBiome: string;
-  };
+  userSettings: UserSettings;
+  // Optional triage fields used by some startup scripts
+  harvesters?: any[];
+  metaverseAssets?: any[];
+  modelData?: any[];
+  pendingTransactions?: any[];
   lastSync: number;
   version: string;
+}
+
+export interface UserSettings {
+  maxFileUploadSize?: number;
+  autoSave?: boolean;
+  autoSync?: boolean;
+  syncInterval?: number;
+  preferredBiome?: string;
 }
 
 export interface ChromeUploadLimits {
@@ -44,7 +52,7 @@ export class PersistentBlockchainStorage {
   private dbName = 'LightDomBlockchainDB';
   private dbVersion = 1;
   private db: IDBDatabase | null = null;
-  // private syncInterval: NodeJS.Timeout | null = null; // Will be used for periodic sync
+  private syncInterval: NodeJS.Timeout | null = null; // Will be used for periodic sync
   private isOnline: boolean = navigator.onLine;
   private pendingSync: boolean = false;
 
@@ -166,7 +174,7 @@ export class PersistentBlockchainStorage {
   /**
    * Start automatic sync to blockchain and PostgreSQL
    */
-  private startAutoSync(): void {
+  public startAutoSync(): void {
     // Sync every 30 seconds when online
     this.syncInterval = setInterval(() => {
       if (this.isOnline && !this.pendingSync) {
@@ -366,12 +374,20 @@ export class PersistentBlockchainStorage {
   /**
    * Get user settings
    */
-  private async getUserSettings(): Promise<PersistentData['userSettings']> {
-    const settings = await this.getFromIndexedDB('userSettings') as PersistentData['userSettings'];
-    
-    return settings || {
+  public getUserSettings(): PersistentData['userSettings'] {
+    try {
+      const raw = localStorage.getItem('lightdom_userSettings');
+      if (raw) {
+        return JSON.parse(raw) as PersistentData['userSettings'];
+      }
+    } catch (e) {
+      // ignore and fallback to defaults
+    }
+
+    return {
       maxFileUploadSize: this.CHROME_LIMITS.maxFileSize,
       autoSave: true,
+      autoSync: true,
       syncInterval: 30000,
       preferredBiome: 'digital'
     };
@@ -388,7 +404,7 @@ export class PersistentBlockchainStorage {
   /**
    * Save data to IndexedDB
    */
-  private async saveToIndexedDB(storeName: string, data: any): Promise<void> {
+  public async saveToIndexedDB(storeName: string, data: any): Promise<void> {
     if (!this.db) return;
 
     return new Promise((resolve, reject) => {
@@ -404,7 +420,7 @@ export class PersistentBlockchainStorage {
   /**
    * Get data from IndexedDB
    */
-  private async getFromIndexedDB(storeName: string, key?: string): Promise<any> {
+  public async getFromIndexedDB(storeName: string, key?: string): Promise<any> {
     if (!this.db) return null;
 
     return new Promise((resolve, reject) => {
@@ -415,6 +431,58 @@ export class PersistentBlockchainStorage {
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
+  }
+
+  /**
+   * Load all persistent data (public wrapper)
+   */
+  public async loadAllData(): Promise<PersistentData> {
+    const data = await this.getFromIndexedDB('persistentData') as PersistentData;
+    if (data) return data;
+
+    // Return an empty shaped object as a safe default
+    return {
+      optimizations: [],
+      nodes: [],
+      algorithms: [],
+      dataMiningResults: [],
+      blockchainUpgrades: [],
+      walletData: {
+        address: '0x0000000000000000000000000000000000000000',
+        balance: 0,
+        totalValue: 0,
+        pendingRewards: 0,
+        totalEarned: 0,
+      },
+      userSettings: this.getUserSettings(),
+      lastSync: 0,
+      version: '1.0.0'
+    };
+  }
+
+  /**
+   * Remove a pending transaction (triage stub)
+   */
+  public async removePendingTransaction(txId: string): Promise<void> {
+    // Triaged stub: real implementation should remove the pending transaction from storage
+    try {
+      const state = await this.getFromIndexedDB('persistentData');
+      if (!state) return;
+      if (Array.isArray(state.pendingTransactions)) {
+        state.pendingTransactions = state.pendingTransactions.filter((p: any) => p.id !== txId);
+        await this.saveToIndexedDB('persistentData', state);
+      }
+    } catch (e) {
+      // ignore for triage
+    }
+  }
+
+  /**
+   * Restore from backup (triage stub)
+   */
+  public async restoreFromBackup(): Promise<boolean> {
+    // Triaged stub - in real code this would attempt to restore from a critical backup
+    return false;
   }
 
   /**

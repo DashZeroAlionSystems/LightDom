@@ -1,492 +1,444 @@
-# LightDom Design System & Workflow Mining
+# LightDom Design System - Material Design 3
 
-## Quick Start
+**Modern, accessible, and scalable component library following Material Design 3 principles with Tailwind CSS.**
 
-### 1. Mine Design Patterns
+## 🎨 Overview
 
+This design system provides a unified, consistent user experience across the entire LightDom platform. Built with Material Design 3 specifications, it ensures accessibility, responsive design, and optimal performance.
+
+## 📚 Documentation
+
+- **[Research & Guidelines](./docs/research/)** - Comprehensive UI/UX patterns and best practices
+- **[Implementation Guide](./docs/DESIGN_SYSTEM_IMPLEMENTATION.md)** - Practical examples and code patterns
+- **[Consolidation Plan](./DESIGN_SYSTEM_CONSOLIDATION_PLAN.md)** - Migration strategy from legacy systems
+- **[Quick Reference](./docs/research/design-system-quick-reference.md)** - Cheat sheet for common tasks
+
+## 🚀 Quick Start
+
+### Installation
+
+Required dependencies are already installed:
 ```bash
-# Mine components and workflows from popular libraries
-npm run design-system:mine
+npm install class-variance-authority clsx tailwind-merge lucide-react
 ```
 
-This will generate:
-- Component patterns from 8+ UI libraries
-- Workflow patterns from n8n templates
-- Neural network training datasets
-- Comprehensive mining reports
+### Basic Usage
 
-### 2. Setup n8n Workflow Engine
+```tsx
+import { Button, Card, Input, Badge, Avatar } from '@/components/ui';
 
-```bash
-# Run setup script
-npm run n8n:setup
-
-# Start n8n Docker container
-npm run n8n:start
-
-# Access n8n UI
-open http://localhost:5678
+function MyComponent() {
+  return (
+    <Card variant="elevated">
+      <Card.Header>
+        <Card.Title>Welcome</Card.Title>
+        <Card.Description>Get started with LightDom</Card.Description>
+      </Card.Header>
+      <Card.Content>
+        <Input 
+          label="Email" 
+          placeholder="you@example.com" 
+          leftIcon={<Mail />}
+        />
+      </Card.Content>
+      <Card.Footer>
+        <Button variant="filled" fullWidth>
+          Continue
+        </Button>
+      </Card.Footer>
+    </Card>
+  );
+}
 ```
 
-Default credentials:
-- Username: `admin`
-- Password: `lightdom_n8n_password`
+## 🧩 Components
 
-### 3. Import Workflow Templates
+### Core Components
 
-1. Open n8n UI (http://localhost:5678)
-2. Navigate to **Workflows** → **Import from File**
-3. Import templates from:
-   - `workflows/n8n/templates/dom-optimization-workflow.json`
-   - `workflows/n8n/templates/data-sync-workflow.json`
+#### Button
+Material Design 3 button with multiple variants and states.
 
-### 4. Test the Integration
-
-```bash
-# Test DOM optimization webhook
-curl -X POST http://localhost:5678/webhook/dom-optimize \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
-
-# View n8n logs
-npm run n8n:logs
+```tsx
+<Button variant="filled" size="md" leftIcon={<Icon />} isLoading={false}>
+  Click Me
+</Button>
 ```
 
-## What Gets Generated?
+**Variants:** `filled` | `filled-tonal` | `outlined` | `text` | `elevated`  
+**Sizes:** `sm` | `md` | `lg`
 
-### Component Data
+#### Card
+Compound component for flexible card layouts.
+
+```tsx
+<Card variant="elevated" padding="md">
+  <CardHeader>
+    <CardTitle>Title</CardTitle>
+    <CardDescription>Description</CardDescription>
+  </CardHeader>
+  <CardContent>Content</CardContent>
+  <CardFooter>Actions</CardFooter>
+</Card>
 ```
-data/design-system/
+
+**Variants:** `filled` | `elevated` | `outlined`  
+**Padding:** `none` | `sm` | `md` | `lg`
+
+#### Input
+Accessible form input with validation support.
+
+```tsx
+<Input
+  label="Email"
+  type="email"
+  variant="outlined"
+  error="Invalid email"
+  leftIcon={<Mail />}
+/>
+```
+
+**Variants:** `filled` | `outlined`
+
+#### Badge
+Semantic status indicators.
+
+```tsx
+<Badge variant="success">Active</Badge>
+```
+
+**Variants:** `primary` | `secondary` | `tertiary` | `success` | `warning` | `error` | `outline`
+
+#### Avatar
+User profile images with fallback initials.
+
+```tsx
+<Avatar name="John Doe" src="/avatar.jpg" size="md" />
+```
+
+**Sizes:** `sm` | `md` | `lg` | `xl`
+
+#### StatCard
+Dashboard statistics display.
+
+```tsx
+<StatCard
+  title="Total Users"
+  value="2,543"
+  change="+12.5%"
+  trend="up"
+  icon={Users}
+/>
+```
+
+### Layout Components
+
+#### DashboardShell
+Unified layout for admin and client dashboards.
+
+```tsx
+<DashboardShell mode="admin">
+  {/* Your content */}
+</DashboardShell>
+```
+
+**Features:**
+- Collapsible sidebar
+- Role-based navigation
+- Search functionality
+- User profile section
+- Dark mode toggle
+- Responsive design
+
+## 🎨 Design Tokens
+
+### Colors
+
+```tsx
+// Primary
+bg-primary text-on-primary
+
+// Secondary
+bg-secondary text-on-secondary
+
+// Surface
+bg-surface bg-surface-container-* text-on-surface
+
+// Semantic
+bg-success bg-warning bg-error
+```
+
+### Typography
+
+Material Design 3 type scale:
+
+```tsx
+// Display (hero text)
+text-display-lg text-display-md text-display-sm
+
+// Headline (page titles)
+text-headline-lg text-headline-md text-headline-sm
+
+// Title (section headers)
+text-title-lg text-title-md text-title-sm
+
+// Body (content)
+text-body-lg text-body-md text-body-sm
+
+// Label (UI elements)
+text-label-lg text-label-md text-label-sm
+```
+
+### Elevation
+
+```tsx
+shadow-level-1  // Subtle elevation
+shadow-level-2  // Moderate elevation
+shadow-level-3  // High elevation
+shadow-level-4  // Higher elevation
+shadow-level-5  // Highest elevation
+
+shadow-glow     // Special glow effect
+shadow-glow-lg  // Larger glow effect
+```
+
+### Spacing
+
+8px grid system:
+
+```tsx
+p-4   // 16px
+m-6   // 24px
+gap-8 // 32px
+
+// Extended scale
+p-18  // 72px
+m-88  // 352px
+```
+
+### Border Radius
+
+Material Design 3 shape scale:
+
+```tsx
+rounded-xs   // 4px - Small components
+rounded-sm   // 8px - Buttons, inputs
+rounded-md   // 12px - Cards
+rounded-lg   // 16px - Large cards
+rounded-xl   // 28px - Dialogs
+rounded-full // Pill shape
+```
+
+## 🎭 Animations
+
+Material Design 3 motion system:
+
+```tsx
+// Duration
+duration-short-1  // 50ms
+duration-short-2  // 100ms
+duration-short-3  // 150ms
+duration-short-4  // 200ms
+duration-medium-1 // 250ms
+duration-medium-2 // 300ms
+duration-medium-3 // 350ms
+duration-medium-4 // 400ms
+duration-long-1   // 450ms
+duration-long-2   // 500ms
+
+// Easing
+ease-emphasized   // Primary easing
+ease-standard     // Secondary easing
+```
+
+## 📱 Responsive Design
+
+Mobile-first breakpoints:
+
+```tsx
+sm: '640px'   // Small tablets
+md: '768px'   // Tablets
+lg: '1024px'  // Laptops
+xl: '1280px'  // Desktops
+2xl: '1536px' // Large screens
+```
+
+## ♿ Accessibility
+
+All components follow WCAG 2.1 AA standards:
+
+- Semantic HTML
+- ARIA labels and roles
+- Keyboard navigation
+- Focus indicators
+- Color contrast ratios
+- Screen reader support
+- Touch target sizes (44x44px minimum)
+
+## 🛠️ Utilities
+
+### cn() - Class Name Utility
+
+Merge Tailwind classes with proper precedence:
+
+```tsx
+import { cn } from '@/lib/utils';
+
+<div className={cn('base-class', condition && 'conditional', className)} />
+```
+
+### Helper Functions
+
+```tsx
+import { 
+  formatNumber,      // Format numbers with separators
+  formatCurrency,    // Format currency values
+  truncateText,      // Truncate text with ellipsis
+  getInitials,       // Get initials from name
+  generateId,        // Generate random ID
+} from '@/lib/utils';
+```
+
+## 📋 Component Patterns
+
+### Compound Components
+
+```tsx
+<Card>
+  <Card.Header>
+    <Card.Title>Title</Card.Title>
+  </Card.Header>
+  <Card.Content>Content</Card.Content>
+  <Card.Footer>Footer</Card.Footer>
+</Card>
+```
+
+### Variant Props (CVA)
+
+```tsx
+const buttonVariants = cva('base-classes', {
+  variants: {
+    variant: { filled: '...', outlined: '...' },
+    size: { sm: '...', md: '...', lg: '...' }
+  },
+  defaultVariants: {
+    variant: 'filled',
+    size: 'md'
+  }
+});
+```
+
+### Polymorphic Components
+
+```tsx
+<Text as="p">Paragraph</Text>
+<Text as="h1">Heading</Text>
+<Text as={Link} to="/path">Link</Text>
+```
+
+## 🔄 Migration Guide
+
+### From Old Components
+
+```tsx
+// Old
+import { EnhancedButton } from '@/components/DesignSystemComponents';
+<EnhancedButton variant="primary">Click</EnhancedButton>
+
+// New
+import { Button } from '@/components/ui';
+<Button variant="filled">Click</Button>
+```
+
+### From Ant Design
+
+```tsx
+// Old
+import { Button as AntButton } from 'antd';
+<AntButton type="primary">Click</AntButton>
+
+// New
+import { Button } from '@/components/ui';
+<Button variant="filled">Click</Button>
+```
+
+## 📁 File Structure
+
+```
+src/
+├── lib/
+│   └── utils.ts              # Utility functions
 ├── components/
-│   ├── all-components.json          # All mined components
-│   ├── atom-components.json         # Basic building blocks
-│   ├── molecule-components.json     # Component combinations
-│   └── organism-components.json     # Complex components
-├── schemas/
-│   └── all-schemas.json             # Component schemas
-└── training-data/
-    └── neural-network-training-data.json  # ML training data
+│   └── ui/
+│       ├── Button.tsx        # Button component
+│       ├── Card.tsx          # Card component
+│       ├── Input.tsx         # Input component
+│       ├── Badge.tsx         # Badge component
+│       ├── Avatar.tsx        # Avatar component
+│       ├── StatCard.tsx      # StatCard component
+│       └── index.ts          # Component exports
+├── pages/
+│   ├── auth/
+│   │   └── LoginPage.tsx     # Login page
+│   ├── admin/
+│   │   └── AdminDashboard.tsx
+│   ├── client/
+│   │   └── ClientDashboard.tsx
+│   └── DashboardShell.tsx    # Unified layout
+└── App.tsx                   # Main app with routing
 ```
 
-### Workflow Data
-```
-data/workflow-patterns/
-├── workflows/
-│   ├── all-workflows.json
-│   ├── automation-workflows.json
-│   ├── data-synchronization-workflows.json
-│   └── [10+ workflow categories]
-├── schemas/
-│   └── all-workflow-schemas.json
-└── training-data/
-    └── neural-network-training-data.json
-```
+## 🎯 Best Practices
 
-### Training Datasets
-```
-data/neural-network-training/
-├── comprehensive-training-data.json       # Complete dataset
-├── component-generation-task.json         # Component generation
-├── workflow-generation-task.json          # Workflow generation
-└── component-composition-task.json        # Component composition
-```
+1. **Use Semantic HTML** - Always use appropriate HTML elements
+2. **Follow Composition** - Prefer composition over prop drilling
+3. **Keep Components Small** - Single responsibility principle
+4. **Use TypeScript** - Type-safe component props
+5. **Accessibility First** - WCAG 2.1 AA compliance
+6. **Mobile First** - Responsive design approach
+7. **Performance** - Optimize re-renders and bundle size
 
-## Component Mining
+## 🧪 Testing
 
-### Libraries Mined
-1. **Bootstrap** - Most popular CSS framework
-2. **Material-UI** - React Material Design
-3. **Ant Design** - Enterprise UI design
-4. **Chakra UI** - Accessible components
-5. **Tailwind UI** - Utility-first components
-6. **Shadcn UI** - Re-usable components
-7. **Radix UI** - Unstyled primitives
-8. **Headless UI** - Accessible components
+```tsx
+import { render, screen } from '@testing-library/react';
+import { Button } from '@/components/ui';
 
-### Atomic Design Levels
-- **Atoms**: Button, Input, Icon, Label, Badge
-- **Molecules**: FormField, Card, SearchBar, NavigationItem
-- **Organisms**: Form, Table, Navigation, Modal
-- **Templates**: Page layouts (future)
-- **Pages**: Complete interfaces (future)
-
-### Component Schema Example
-
-```json
-{
-  "id": "Material-UI-button-1234",
-  "name": "Button",
-  "category": "action",
-  "atomicLevel": "atom",
-  "library": "Material-UI",
-  "html": "<button class='btn'>Click me</button>",
-  "css": ".btn { padding: 0.5rem 1rem; }",
-  "props": {
-    "variant": ["primary", "secondary", "success"],
-    "size": ["sm", "md", "lg"],
-    "disabled": "boolean"
-  },
-  "variants": ["solid", "outline", "ghost"],
-  "dependencies": [],
-  "accessibility": {
-    "ariaLabels": ["aria-label", "aria-pressed"],
-    "keyboardNavigation": true,
-    "screenReaderSupport": true
-  },
-  "schema": {
-    "type": "button",
-    "properties": {...},
-    "composability": {
-      "canContain": ["icon", "text", "badge"],
-      "mustContain": [],
-      "optionalContain": ["icon", "badge"]
-    }
-  }
-}
+test('renders button with text', () => {
+  render(<Button>Click me</Button>);
+  expect(screen.getByText('Click me')).toBeInTheDocument();
+});
 ```
 
-## Workflow Mining
+## 📊 Performance
 
-### Workflow Categories
-1. **Data Synchronization** - Database syncs, API integrations
-2. **Automation** - Task automation, process optimization
-3. **Integration** - Service connections, data flow
-4. **Notification** - Multi-channel alerts, messaging
-5. **Data Processing** - Transformation, aggregation
-6. **Monitoring** - Health checks, performance tracking
-7. **Deployment** - CI/CD, infrastructure automation
-8. **Content Management** - Publishing, distribution
-9. **Customer Support** - Ticket management
-10. **Marketing** - Campaign automation, lead scoring
+- **Bundle Size**: Optimized with tree-shaking
+- **Animations**: 60fps with GPU acceleration
+- **Lazy Loading**: Code splitting for routes
+- **Memoization**: React.memo for expensive components
 
-### Workflow Template Example
+## 🤝 Contributing
 
-The **DOM Optimization Workflow** includes:
-1. **Webhook Trigger** - Receives URL to optimize
-2. **Validate Input** - Checks URL validity
-3. **Crawl Website** - Fetches webpage content
-4. **Optimize DOM** - Analyzes and optimizes structure
-5. **Record on Blockchain** - Stores optimization proof
-6. **Send Notification** - Alerts about completion
+When adding new components:
 
-### Workflow Schema Example
+1. Follow Material Design 3 specifications
+2. Use CVA for variant management
+3. Include TypeScript types
+4. Add accessibility features
+5. Write tests
+6. Document usage
 
-```json
-{
-  "id": "dom-optimization-template",
-  "name": "DOM Optimization Workflow",
-  "category": "automation",
-  "complexity": "moderate",
-  "nodes": [...],
-  "connections": [...],
-  "schema": {
-    "type": "workflow",
-    "trigger": {
-      "type": "Webhook",
-      "config": { "path": "dom-optimize" }
-    },
-    "steps": [
-      { "type": "Function", "action": "Validate Input" },
-      { "type": "HTTP Request", "action": "Crawl URL" },
-      { "type": "Function", "action": "Optimize DOM" },
-      { "type": "HTTP Request", "action": "Record on Blockchain" }
-    ],
-    "errorHandling": {
-      "strategy": "continue-on-fail",
-      "retries": 3
-    }
-  }
-}
-```
+## 📖 Resources
 
-## Neural Network Training
+- [Material Design 3](https://m3.material.io/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [CVA Documentation](https://cva.style/docs)
+- [React Aria](https://react-spectrum.adobe.com/react-aria/)
+- [WCAG Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
 
-### Training Data Structure
+## 📝 License
 
-```json
-{
-  "metadata": {
-    "version": "1.0.0",
-    "generatedAt": "2025-11-01T...",
-    "totalSamples": 200
-  },
-  "components": {
-    "metadata": {...},
-    "samples": [...],
-    "combinations": [...]
-  },
-  "workflows": {
-    "metadata": {...},
-    "samples": [...],
-    "patterns": [...]
-  },
-  "trainingConfig": {
-    "modelArchitecture": {
-      "type": "transformer",
-      "layers": 12,
-      "hiddenSize": 768,
-      "attentionHeads": 12
-    },
-    "hyperparameters": {
-      "learningRate": 0.0001,
-      "batchSize": 32,
-      "epochs": 100
-    }
-  }
-}
-```
-
-### Task-Specific Datasets
-
-1. **Component Generation**
-   ```json
-   {
-     "input": "Generate a login form with email and password",
-     "output": {
-       "html": "...",
-       "css": "...",
-       "schema": {...}
-     }
-   }
-   ```
-
-2. **Workflow Generation**
-   ```json
-   {
-     "input": "Create a data sync workflow from PostgreSQL to external API",
-     "output": {
-       "nodes": [...],
-       "connections": [...],
-       "schema": {...}
-     }
-   }
-   ```
-
-3. **Component Composition**
-   ```json
-   {
-     "input": "Compose a FormField using Label and Input atoms",
-     "output": {
-       "schema": {...}
-     }
-   }
-   ```
-
-## n8n Integration
-
-### Docker Configuration
-
-The `docker-compose.yml` includes:
-
-```yaml
-n8n:
-  image: n8nio/n8n:latest
-  ports:
-    - "5678:5678"
-  environment:
-    DB_TYPE: postgresdb
-    N8N_BASIC_AUTH_ACTIVE: true
-    LIGHTDOM_API_URL: http://app:3001
-  volumes:
-    - n8n_data:/home/node/.n8n
-    - ./workflows/n8n:/home/node/.n8n/workflows
-```
-
-### API Endpoints
-
-```typescript
-// List all workflows
-GET /api/n8n/workflows
-
-// Get workflow by ID
-GET /api/n8n/workflows/:id
-
-// Execute workflow
-POST /api/n8n/workflows/:id/execute
-
-// Trigger webhook
-POST /api/n8n/webhooks/:path
-
-// Get executions
-GET /api/n8n/executions
-```
-
-### Environment Variables
-
-```env
-N8N_BASE_URL=http://localhost:5678
-N8N_API_KEY=your-api-key
-N8N_PASSWORD=lightdom_n8n_password
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=lightdom
-DB_USER=lightdom_user
-DB_PASSWORD=lightdom_password
-```
-
-## Available Scripts
-
-### Mining
-```bash
-npm run design-system:mine    # Mine components and workflows
-npm run workflow:mine          # Alias for design-system:mine
-```
-
-### n8n Management
-```bash
-npm run n8n:setup             # Setup n8n integration
-npm run n8n:start             # Start n8n container
-npm run n8n:stop              # Stop n8n container
-npm run n8n:logs              # View n8n logs
-```
-
-### Development
-```bash
-npm run dev                   # Start development server
-npm run build                 # Build production bundle
-npm run test                  # Run tests
-```
-
-## Project Structure
-
-```
-LightDom/
-├── src/
-│   ├── design-system/
-│   │   ├── ComponentMiningService.ts    # Component mining logic
-│   │   └── N8nWorkflowMiningService.ts  # Workflow mining logic
-│   ├── api/
-│   │   └── n8n-routes.ts                # n8n API endpoints
-│   └── ...
-├── scripts/
-│   ├── mine-design-system.ts            # Mining CLI
-│   └── setup-n8n-integration.js         # n8n setup
-├── workflows/
-│   └── n8n/
-│       ├── templates/                   # Workflow templates
-│       └── credentials/                 # Credential templates
-├── data/
-│   ├── design-system/                   # Component data
-│   ├── workflow-patterns/               # Workflow data
-│   ├── neural-network-training/         # Training datasets
-│   ├── MINING_REPORT.json              # Mining report
-│   └── MINING_REPORT.md                # Mining report (markdown)
-├── docs/
-│   └── DESIGN_SYSTEM_N8N_INTEGRATION.md # Full documentation
-└── docker-compose.yml                   # Includes n8n service
-```
-
-## Use Cases
-
-### 1. Component Generation
-```bash
-# Mine component patterns
-npm run design-system:mine
-
-# Train model
-npm run train:model --data ./data/neural-network-training/component-generation-task.json
-
-# Generate component
-npm run generate:component --prompt "Create a modern login form"
-```
-
-### 2. Workflow Automation
-```bash
-# Setup n8n
-npm run n8n:setup
-npm run n8n:start
-
-# Import templates
-# (via n8n UI)
-
-# Trigger workflow
-curl -X POST http://localhost:5678/webhook/dom-optimize \
-  -d '{"url": "https://example.com"}'
-```
-
-### 3. Design System Extension
-```bash
-# Mine additional libraries
-# Edit ComponentMiningService.ts to add new libraries
-
-# Re-run mining
-npm run design-system:mine
-
-# Review generated data
-cat data/MINING_REPORT.md
-```
-
-## Troubleshooting
-
-### n8n Won't Start
-```bash
-# Check Docker status
-docker ps
-
-# View logs
-npm run n8n:logs
-
-# Restart container
-npm run n8n:stop
-npm run n8n:start
-```
-
-### Mining Fails
-```bash
-# Check permissions
-ls -la data/
-
-# Create directories manually
-mkdir -p data/design-system data/workflow-patterns
-
-# Re-run mining
-npm run design-system:mine
-```
-
-### Workflow Execution Fails
-1. Check n8n credentials in UI
-2. Verify PostgreSQL is running
-3. Check API endpoints are accessible
-4. Review execution logs in n8n UI
-
-## Next Steps
-
-1. **Review Generated Data**
-   ```bash
-   cat data/MINING_REPORT.md
-   ```
-
-2. **Train Neural Network**
-   ```bash
-   # Use your preferred ML framework
-   python train.py --data data/neural-network-training/comprehensive-training-data.json
-   ```
-
-3. **Create Custom Workflows**
-   - Design in n8n UI
-   - Export as JSON
-   - Save to `workflows/n8n/templates/`
-
-4. **Extend Component Mining**
-   - Add new libraries to `ComponentMiningService.ts`
-   - Re-run mining
-   - Review updated datasets
-
-## Resources
-
-- [Full Documentation](./docs/DESIGN_SYSTEM_N8N_INTEGRATION.md)
-- [n8n Documentation](https://docs.n8n.io/)
-- [n8n API Reference](https://docs.n8n.io/api/)
-- [Atomic Design Methodology](https://bradfrost.com/blog/post/atomic-web-design/)
-
-## Support
-
-- **GitHub Issues**: Report bugs and request features
-- **Documentation**: Check `docs/` directory
-- **Mining Reports**: Review `data/MINING_REPORT.md`
+Part of the LightDom platform. See LICENSE file for details.
 
 ---
 
-**Version**: 1.0.0  
-**Status**: Production Ready  
-**Last Updated**: 2025-11-01
+**Built with ❤️ following Material Design 3 principles**

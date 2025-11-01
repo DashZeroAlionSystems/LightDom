@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-10-27T12:27:51.561Z",
+  "summary": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "successRate": "NaN%"
+  },
+  "categories": [],
+  "tests": [],
+  "services": {
+    "api": "http://localhost:3001",
+    "admin": "http://localhost:8081/admin",
+    "analytics": "http://localhost:8082/analytics",
+    "production": "http://localhost:8080",
+    "integration": "http://localhost:8084"
+  }
+}

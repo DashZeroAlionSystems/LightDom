@@ -1,0 +1,32 @@
+{
+  "dashboard": {
+    "refresh_interval": 30000,
+    "auto_refresh": true,
+    "metrics": [
+      "system_resources",
+      "component_performance",
+      "user_activity",
+      "error_rates"
+    ]
+  },
+  "alerts": {
+    "enabled": true,
+    "channels": [
+      "console",
+      "file",
+      "webhook"
+    ],
+    "thresholds": {
+      "cpu_usage": 80,
+      "memory_usage": 85,
+      "error_rate": 5,
+      "response_time": 2000
+    }
+  },
+  "analytics": {
+    "track_user_actions": true,
+    "track_performance": true,
+    "track_errors": true,
+    "export_format": "json"
+  }
+}

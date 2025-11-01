@@ -601,13 +601,21 @@ export class LightDomFramework extends EventEmitter {
     queueStatus: any;
     systemStats: any;
     metrics: any;
+    performance: {
+      averageProcessingTime: number;
+      errorRate: number;
+    };
   } {
     return {
       running: this.isRunning,
       config: this.config,
       queueStatus: this.getQueueStatus(),
       systemStats: advancedNodeManager.getSystemStats(),
-      metrics: Object.fromEntries(this.metrics)
+      metrics: Object.fromEntries(this.metrics),
+      performance: {
+        averageProcessingTime: 0,
+        errorRate: 0
+      }
     };
   }
 

@@ -531,7 +531,7 @@ const WalletDashboard: React.FC = () => {
                 <div className="ld-card__content">
                   <div className="ld-flex ld-flex--between ld-items--center ld-mb-4">
                     <h3 className="ld-text-lg ld-font-semibold ld-text-primary">Mining Rewards</h3>
-                    <ThunderboltOutlined className="h-6 w-6 ld-text-primary" />
+                    <Zap className="h-6 w-6 ld-text-primary" />
                   </div>
                   <div className="ld-space-y-2">
                     <div className="ld-flex ld-flex--between">
@@ -567,7 +567,7 @@ const WalletDashboard: React.FC = () => {
                 <div className="ld-card__content">
                   <div className="ld-flex ld-flex--between ld-items--center ld-mb-4">
                     <h3 className="ld-text-lg ld-font-semibold ld-text-primary">Optimization</h3>
-                    <ThunderboltOutlined className="h-6 w-6 ld-text-primary" />
+                    <Zap className="h-6 w-6 ld-text-primary" />
                   </div>
                   <div className="ld-space-y-2">
                     <div className="ld-flex ld-flex--between">

@@ -2,7 +2,9 @@ import { Logger } from '../../utils/Logger';
 
 export interface WebAuthnCredential {
   id: string;
-  type: 'public-key';
+  // Accept string here because runtime values come from credential.type
+  // which is typically the string 'public-key'.
+  type: string;
   rawId: ArrayBuffer;
   response: AuthenticatorAttestationResponse | AuthenticatorAssertionResponse;
 }

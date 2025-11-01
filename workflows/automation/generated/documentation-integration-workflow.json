@@ -1,0 +1,71 @@
+{
+  "name": "Frontend Documentation Integration",
+  "version": "1.0.0",
+  "sourceWorkflow": "automation/documentation-research-workflow.json",
+  "createdAt": "2025-10-30T16:06:00Z",
+  "description": "Implements documentation insights across feature-first React folders using MD3 components and typed hooks.",
+  "tasks": [
+    {
+      "id": "collect-dashboard-context",
+      "title": "Review dashboard documentation & data flow",
+      "details": {
+        "references": [
+          "docs/ARCHITECTURE.md",
+          "docs/design-system/IMPLEMENTATION_SUMMARY.md"
+        ],
+        "notes": "Confirm mining/crawler stats endpoints and MD3 layout requirements."
+      }
+    },
+    {
+      "id": "verify-dependencies",
+      "title": "Check required dependencies",
+      "details": {
+        "steps": [
+          "Confirm @tanstack/react-query >=4 in frontend/package.json",
+          "Ensure zod typings available for schema validation",
+          "Verify axios removed where replaced by fetch wrappers"
+        ]
+      }
+    },
+    {
+      "id": "align-feature-structure",
+      "title": "Organize dashboard feature module",
+      "details": {
+        "actions": [
+          "Move dashboard API/helpers into src/features/dashboard/api",
+          "Expose typed hooks via src/features/dashboard/hooks",
+          "Create barrel exports if needed"
+        ]
+      }
+    },
+    {
+      "id": "refactor-pages",
+      "title": "Refactor dashboard page to use feature module",
+      "details": {
+        "actions": [
+          "Replace inline axios calls with dashboardApi",
+          "Use useDashboardData hook for polling",
+          "Apply MD3 components per design-system guidance"
+        ],
+        "acceptanceCriteria": [
+          "No direct API URLs inside pages",
+          "Error/loading states use design-system patterns"
+        ]
+      }
+    },
+    {
+      "id": "document-followup",
+      "title": "Document follow-up work",
+      "details": {
+        "notes": "Capture findings in Cascade memory and flag additional feature domains (SEO, neural network) for migration using this template."
+      }
+    }
+  ],
+  "outputs": {
+    "updatedPages": ["frontend/src/pages/DashboardPage.tsx"],
+    "featureDirectories": ["frontend/src/features/dashboard"],
+    "memories": [
+      "Documentation workflow aligned with feature-first frontend updates"
+    ]
+  }
+}

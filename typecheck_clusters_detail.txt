@@ -1,0 +1,300 @@
+Count: 308
+Message: Type 'string' is not assignable to type 'Gutter'.
+Sample: 
+SampleLine: 
+---
+Count: 89
+Message: Type 'string' is not assignable to type 'SpaceSize | [SpaceSize, SpaceSize]'.
+Sample: 
+SampleLine: 
+---
+Count: 46
+Message: Object literal may only specify known properties, and 'offset' does not exist in type 'AnimationKeyframe'.
+Sample: 
+SampleLine: 
+---
+Count: 29
+Message: Argument of type '{ success: false; error: string; }' is not assignable to parameter of type 'APIResponse<any>'.
+Sample: 
+SampleLine: 
+---
+Count: 24
+Message: Type '{ backgroundColor: string; border: string; borderRadius: string; padding: string; textAlign: string; }' is not assignable to type 'CSSProperties'.
+Sample: 
+SampleLine: 
+---
+Count: 24
+Message: Type '{ background: string; padding: string; borderRadius: string; border: string; textAlign: string; }' is not assignable to type 'CSSProperties'.
+Sample: 
+SampleLine: 
+---
+Count: 18
+Message: Cannot find name 'WorkflowPanel'.
+Sample: 
+SampleLine: 
+---
+Count: 18
+Message: Type 'string' is not assignable to type 'string[]'.
+Sample: 
+SampleLine: 
+---
+Count: 18
+Message: Cannot find name 'WorkflowPanelSection'.
+Sample: 
+SampleLine: 
+---
+Count: 13
+Message: Object literal may only specify known properties, and 'id' does not exist in type 'Omit<GAMetric, "id">'.
+Sample: 
+SampleLine: 
+---
+Count: 12
+Message: Block-scoped variable 'Animation' used before its declaration.
+Sample: 
+SampleLine: 
+---
+Count: 12
+Message: Cannot find name 'message'.
+Sample: 
+SampleLine: 
+---
+Count: 12
+Message: Cannot find namespace 'Electron'.
+Sample: 
+SampleLine: 
+---
+Count: 11
+Message: Expected 1 arguments, but got 0.
+Sample: 
+SampleLine: 
+---
+Count: 11
+Message: Type '"outline"' is not assignable to type '"text" | "filled" | "elevated" | "outlined" | "filled-tonal"'. Did you mean '"outlined"'?
+Sample: 
+SampleLine: 
+---
+Count: 11
+Message: Object literal may only specify known properties, and 'id' does not exist in type 'Omit<GADimension, "id">'.
+Sample: 
+SampleLine: 
+---
+Count: 10
+Message: Property 'performance' does not exist on type '{ running: boolean; config: FrameworkConfig; queueStatus: any; systemStats: any; metrics: any; }'.
+Sample: 
+SampleLine: 
+---
+Count: 10
+Message: Property 'maxFileUploadSize' does not exist on type 'Promise<{ maxFileUploadSize: number; autoSave: boolean; syncInterval: number; preferredBiome: string; }>'.
+Sample: 
+SampleLine: 
+---
+Count: 10
+Message: Duplicate function implementation.
+Sample: 
+SampleLine: 
+---
+Count: 10
+Message: An object literal cannot have multiple properties with the same name.
+Sample: 
+SampleLine: 
+---
+Count: 8
+Message: Type '{ color: string; intensity: number; }' is not assignable to type 'string'.
+Sample: 
+SampleLine: 
+---
+Count: 8
+Message: Property 'post' is private and only accessible within class 'APIClient'.
+Sample: 
+SampleLine: 
+---
+Count: 8
+Message: Cannot find name 'useState'.
+Sample: 
+SampleLine: 
+---
+Count: 7
+Message: Type '"medium"' is not assignable to type 'SpaceSize | [SpaceSize, SpaceSize]'.
+Sample: 
+SampleLine: 
+---
+Count: 7
+Message: Property 'getUserSettings' is private and only accessible within class 'PersistentBlockchainStorage'.
+Sample: 
+SampleLine: 
+---
+Count: 7
+Message: Type '{ title: string; value: number; suffix: string; prefix: Element; valueStyle: { color: string; fontSize: string; }; titleStyle: { fontSize: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & AriaAttributes & { [key: `data-${string}`]: unknown; } & Pick<HTMLAttributes<HTMLDivElement>, "role"> & StatisticReactProps & RefAttributes<...>'.
+Sample: 
+SampleLine: 
+---
+Count: 7
+Message: Property 'get' is private and only accessible within class 'APIClient'.
+Sample: 
+SampleLine: 
+---
+Count: 7
+Message: Object literal may only specify known properties, and 'id' does not exist in type 'Omit<SEOAttribute, "id">'.
+Sample: 
+SampleLine: 
+---
+Count: 7
+Message: Property 'stats' does not exist on type 'MLEnhancedDOMHarvestingWorker'.
+Sample: 
+SampleLine: 
+---
+Count: 6
+Message: Object literal may only specify known properties, and 'id' does not exist in type 'Omit<DynamicBacklinkRule, "id">'.
+Sample: 
+SampleLine: 
+---
+Count: 6
+Message: Only a void function can be called with the 'new' keyword.
+Sample: 
+SampleLine: 
+---
+Count: 5
+Message: Property 'schema' is missing in type '{ id: string; name: string; type: "text"; description: string; required: true; }' but required in type 'AttributeDefinition'.
+Sample: 
+SampleLine: 
+---
+Count: 5
+Message: Property 'extractAccessibilityProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateAccessibilityProperties'?
+Sample: 
+SampleLine: 
+---
+Count: 5
+Message: Type 'string[]' is not assignable to type 'string'.
+Sample: 
+SampleLine: 
+---
+Count: 5
+Message: Property 'extractSemanticProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateSemanticProperties'?
+Sample: 
+SampleLine: 
+---
+Count: 5
+Message: Property 'extractVisualProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateVisualProperties'?
+Sample: 
+SampleLine: 
+---
+Count: 5
+Message: Type '{ percent: number; size: "small"; style: { width: string; }; }' is not assignable to type 'IntrinsicAttributes & EnhancedProgressProps'.
+Sample: 
+SampleLine: 
+---
+Count: 5
+Message: Type '{ children: Element[]; direction: "vertical"; alignItems: string; }' is not assignable to type 'IntrinsicAttributes & SpaceProps & RefAttributes<HTMLDivElement>'.
+Sample: 
+SampleLine: 
+---
+Count: 5
+Message: Type '"outlined"' is not assignable to type '"error" | "success" | "info" | "warning" | "primary" | "secondary"'.
+Sample: 
+SampleLine: 
+---
+Count: 5
+Message: Property 'extractBehavioralProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateBehavioralProperties'?
+Sample: 
+SampleLine: 
+---
+Count: 5
+Message: This expression is not callable.
+Sample: 
+SampleLine: 
+---
+Count: 5
+Message: Cannot find namespace 'Express'.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Object literal may only specify known properties, and 'id' does not exist in type 'Omit<BacklinkBridge, "id">'.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Duplicate identifier 'ShapeStar'.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Object literal may only specify known properties, and 'id' does not exist in type 'Omit<GAReport, "id">'.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Module '"lucide-react"' has no exported member 'Tool'. Did you mean to use 'import Tool from "lucide-react"' instead?
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Cannot find name 'Slider'.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Module '"lucide-react"' has no exported member 'Hdmi'. Did you mean to use 'import Hdmi from "lucide-react"' instead?
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Module '"lucide-react"' has no exported member 'Bridge'. Did you mean to use 'import Bridge from "lucide-react"' instead?
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Cannot find name 'Empty'.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Cannot find module '../services/HeadlessChromeService' or its corresponding type declarations.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Cannot find name 'Statistic'.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: '"../utils/Logger"' has no exported member named 'logger'. Did you mean 'Logger'?
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Argument of type '{ name: string; category: string; subcategory: string; description: string; expectedOutcome: string; trainingData: { type: string; count: number; quality: number; features: string[]; }; neuralNetworkConfig: { ...; }; }' is not assignable to parameter of type 'Omit<TrainingSection, "children" | "id" | "progress" | "status" | "trainingHistory" | "currentAccuracy" | "bestAccuracy" | "trustRating" | "userFeedback">'.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Property 'trackEvent' does not exist on type 'BridgeAnalyticsService'.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Cannot find module '../types/MetaverseAnimationTypes' or its corresponding type declarations.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Property 'utils' does not exist on type 'typeof import("E:/Personal/project/lightdom/LightDom/node_modules/ethers/lib.esm/ethers")'.
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: '"lucide-react"' has no exported member named 'BrokenHeart'. Did you mean 'BookHeart'?
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: '"lucide-react"' has no exported member named 'Tree'. Did you mean 'Trees'?
+Sample: 
+SampleLine: 
+---
+Count: 4
+Message: Argument of type '{ success: true; message: string; }' is not assignable to parameter of type 'APIResponse<any>'.
+Sample: 
+SampleLine: 
+---

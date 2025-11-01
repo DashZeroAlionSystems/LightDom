@@ -28,6 +28,7 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { AIContentPage } from '@/pages/AIContentPage';
 import { SEOModelTrainingPage } from '@/pages/SEOModelTrainingPage';
+import { WorkflowsPage } from '@/pages/WorkflowsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 // Hooks
@@ -244,6 +245,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <SEOModelTrainingPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/workflows"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <WorkflowsPage />
                       </Layout>
                     </ProtectedRoute>
                   }

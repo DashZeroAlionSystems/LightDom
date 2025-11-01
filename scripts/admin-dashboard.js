@@ -60,6 +60,9 @@ class LightDomAdminDashboard {
   setupAuth() {
     // Authentication middleware
     this.app.use('/api/admin', (req, res, next) => {
+      if (req.path === '/login') {
+        return next();
+      }
       const token = req.headers.authorization?.replace('Bearer ', '');
       
       if (!token) {
@@ -106,8 +109,8 @@ class LightDomAdminDashboard {
     });
 
     // Admin dashboard home
-    this.app.get('/admin', (req, res) => {
-      res.send(this.generateAdminDashboardHTML());
+    this.app.get('/admin', (_req, res) => {
+      res.sendFile(join(__dirname, '..', 'public', 'admin', 'index.html'));
     });
 
     // System overview
@@ -1091,7 +1094,107 @@ class LightDomAdminDashboard {
         .close:hover {
             color: #fff;
         }
+        .dashboard-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .dashboard-nav a {
+            color: #e2e8f0;
+            text-decoration: none;
+            padding: 8px 12px;
+            border: 1px solid #334155;
+            border-radius: 999px;
+            background: #1e293b;
+        }
+        .dashboard-nav a:hover {
+            background: #334155;
+        }
+        .section {
+            margin: 32px 0;
+        }
+        .section h2 {
+            margin-bottom: 16px;
+            color: #f8fafc;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .control-group label {
+            font-size: 14px;
+            color: #cbd5f5;
+        }
+        .control-group select,
+        .control-group textarea,
+        .control-group input {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .control-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .preview-panel {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        .preview-panel h4 {
+            margin: 0 0 8px 0;
+            color: #60a5fa;
+        }
+        .preview-panel pre {
+            background: #1e293b;
+            padding: 8px;
+            border-radius: 6px;
+            overflow-x: auto;
+            color: #cbd5f5;
+        }
+        .status.status-active {
+            background: #3b82f6;
+            color: #ffffff;
+        }
+        .status.status-pending {
+            background: #475569;
+            color: #e2e8f0;
+        }
+        .status.status-completed {
+            background: #10b981;
+            color: #0f172a;
+        }
+        .status.status-failed {
+            background: #ef4444;
+            color: #ffffff;
+        }
+        .chart-container {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .mermaid-diagram svg {
+            width: 100%;
+            height: auto;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 </head>
 <body>
     <div id="login-container" class="login-container">
@@ -1122,6 +1225,17 @@ class LightDomAdminDashboard {
         </div>
 
         <div class="container">
+            <nav class="dashboard-nav">
+                <a href="#system-overview">System Overview</a>
+                <a href="#user-management">Users</a>
+                <a href="#security-status">Security</a>
+                <a href="#performance-metrics">Performance</a>
+                <a href="#crawler-section">Crawler Mining</a>
+                <a href="#neural-section">Neural Instances</a>
+                <a href="#workflow-overview-section">Workflow Overview</a>
+                <a href="#audit-logs">Audit Logs</a>
+            </nav>
+
             <div class="grid">
                 <div class="card">
                     <h3>System Overview</h3>
@@ -1168,6 +1282,75 @@ class LightDomAdminDashboard {
                 <h3>Audit Logs</h3>
                 <div id="audit-logs">Loading...</div>
             </div>
+
+            <div class="section" id="neural-section">
+                <h2>Neural network orchestrator</h2>
+                <div class="card">
+                    <div class="control-group">
+                        <label for="neural-workflow-select">Workflow</label>
+                        <select id="neural-workflow-select"></select>
+                    </div>
+                    <div class="control-group">
+                        <label for="neural-instance-count">Instances to launch</label>
+                        <input type="number" id="neural-instance-count" min="1" value="1">
+                    </div>
+                    <div class="button-row">
+                        <button class="btn btn-success" onclick="spinUpNeuralInstances()">Spin up instances</button>
+                        <button class="btn" onclick="refreshNeuralStatus()">Refresh status</button>
+                    </div>
+                    <div class="preview-panel" id="neural-status-panel">
+                        Select a workflow to inspect current neural instances.
+                    </div>
+                </div>
+            </div>
+
+            <div class="section" id="crawler-section">
+                <h2>Crawler prompt miner</h2>
+                <div class="card">
+                    <div class="control-group">
+                        <label for="crawler-workflow-select">Associate with workflow</label>
+                        <select id="crawler-workflow-select"></select>
+                    </div>
+                    <div class="control-group">
+                        <label for="crawler-prompt">Mining prompt</label>
+                        <textarea id="crawler-prompt" placeholder="Describe the experience you want the crawler to mine"></textarea>
+                    </div>
+                    <div class="button-row">
+                        <button class="btn" onclick="previewCrawlerPrompt()">Preview mined schema</button>
+                        <button class="btn btn-success" onclick="enqueueCrawlerRun()">Queue mining + training</button>
+                    </div>
+                    <div class="preview-panel">
+                        <h4>Attribute prompts</h4>
+                        <div id="crawler-preview-attributes">No preview generated yet.</div>
+                        <h4 style="margin-top:12px;">Blueprint</h4>
+                        <pre id="crawler-preview-blueprint">Run a preview to inspect blueprint output.</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section" id="workflow-overview-section">
+                <h2>Workflow overview</h2>
+                <div class="card">
+                    <div class="control-group">
+                        <label for="workflow-overview-select">Workflow</label>
+                        <select id="workflow-overview-select"></select>
+                    </div>
+                    <div class="chart-container">
+                        <div id="workflow-mermaid" class="mermaid-diagram">graph LR; A[Loading workflow diagram]</div>
+                    </div>
+                    <div class="button-row">
+                        <button class="btn btn-success" onclick="startWorkflowRun()">Start workflow</button>
+                        <button class="btn" onclick="refreshWorkflowOverview()">Refresh overview</button>
+                    </div>
+                    <div class="preview-panel" id="workflow-overview-status">
+                        Select a workflow to view run history and job status.
+                    </div>
+                    <div class="preview-panel" id="workflow-activity-log" style="margin-top:12px;">
+                        <h4>Workflow events</h4>
+                        <div>No events yet.</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1202,121 +1385,7 @@ class LightDomAdminDashboard {
         </div>
     </div>
 
-    <script>
-        let authToken = null;
-        let currentUser = null;
 
-        // Authentication
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            try {
-                const response = await fetch('/api/admin/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    authToken = data.token;
-                    currentUser = data.user;
-                    showDashboard();
-                } else {
-                    showError(data.error);
-                }
-            } catch (error) {
-                showError('Login failed: ' + error.message);
-            }
-        });
-
-        function showError(message) {
-            const errorDiv = document.getElementById('login-error');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-        }
-
-        function showDashboard() {
-            document.getElementById('login-container').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            document.getElementById('user-info').textContent = \`Welcome, \${currentUser.username}\`;
-            
-            loadDashboardData();
-        }
-
-        function logout() {
-            authToken = null;
-            currentUser = null;
-            document.getElementById('login-container').style.display = 'flex';
-            document.getElementById('dashboard').style.display = 'none';
-        }
-
-        // API calls
-        async function apiCall(url, options = {}) {
-            const response = await fetch(url, {
-                ...options,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': \`Bearer \${authToken}\`,
-                    ...options.headers
-                }
-            });
-            
-            return await response.json();
-        }
-
-        // Dashboard data loading
-        async function loadDashboardData() {
-            await Promise.all([
-                loadSystemOverview(),
-                loadUserManagement(),
-                loadSecurityStatus(),
-                loadPerformanceMetrics(),
-                loadDatabaseManagement(),
-                loadMonitoringAlerts(),
-                loadBackupManagement(),
-                loadSystemMaintenance(),
-                loadAuditLogs()
-            ]);
-        }
-
-        async function loadSystemOverview() {
-            const data = await apiCall('/api/admin/overview');
-            if (data.success) {
-                const overview = data.data;
-                document.getElementById('system-overview').innerHTML = \`
-                    <div class="metric">
-                        <span>Uptime:</span>
-                        <span>\${Math.floor(overview.system.uptime / 3600)}h \${Math.floor((overview.system.uptime % 3600) / 60)}m</span>
-                    </div>
-                    <div class="metric">
-                        <span>Memory Usage:</span>
-                        <span>\${(overview.system.memory.heapUsed / 1024 / 1024).toFixed(1)} MB</span>
-                    </div>
-                    <div class="metric">
-                        <span>Active Users:</span>
-                        <span>\${overview.users.active} / \${overview.users.total}</span>
-                    </div>
-                    <div class="metric">
-                        <span>Active Alerts:</span>
-                        <span>\${overview.alerts.active}</span>
-                    </div>
-                \`;
-            }
-        }
-
-        async function loadUserManagement() {
-            const data = await apiCall('/api/admin/users');
-            if (data.success) {
-                const users = data.data;
-                let html = \`
-                    <button class="btn btn-success" onclick="openModal('user-modal')">Create User</button>
-                    <table class="table">
-                        <thead>
                             <tr>
                                 <th>Username</th>
                                 <th>Role</th>
@@ -1534,6 +1603,211 @@ class LightDomAdminDashboard {
                 html += '</tbody></table>';
                 document.getElementById('audit-logs').innerHTML = html;
             }
+        }
+
+        async function loadWorkflowCollections() {
+            try {
+                const data = await apiCall('/api/workflow-admin/workflows', { method: 'GET' });
+                workflows = data.workflows || [];
+                populateWorkflowSelect('neural-workflow-select');
+                populateWorkflowSelect('crawler-workflow-select');
+                populateWorkflowSelect('workflow-overview-select');
+            } catch (error) {
+                console.error('Failed to load workflows', error);
+            }
+        }
+
+        function populateWorkflowSelect(selectId) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            select.innerHTML = '<option value="">Select workflow</option>';
+            workflows.forEach((wf) => {
+                const option = document.createElement('option');
+                option.value = wf.id;
+                option.textContent = wf.dataset_name + ' (' + wf.schema_key + ')';
+                select.appendChild(option);
+            });
+        }
+
+        async function spinUpNeuralInstances() {
+            const workflowId = document.getElementById('neural-workflow-select').value;
+            const count = parseInt(document.getElementById('neural-instance-count').value, 10);
+            if (!workflowId || !count) {
+                alert('Select a workflow and specify instance count.');
+                return;
+            }
+            const statusPanel = document.getElementById('neural-status-panel');
+            statusPanel.textContent = 'Enqueuing mining + training jobs...';
+            try {
+                const workflow = workflows.find((wf) => wf.id === workflowId);
+                for (let i = 0; i < count; i += 1) {
+                    await apiCall('/api/workflow-admin/workflows/' + workflowId + '/enqueue', {
+                        method: 'POST',
+                        body: JSON.stringify({ prompt: workflow.prompt })
+                    });
+                }
+                statusPanel.textContent = 'Queued ' + count + ' job(s). Monitor workflow runs for progress.';
+            } catch (error) {
+                statusPanel.textContent = 'Failed to queue instances: ' + error.message;
+            }
+        }
+
+        async function refreshNeuralStatus() {
+            const workflowId = document.getElementById('neural-workflow-select').value;
+            const statusPanel = document.getElementById('neural-status-panel');
+            if (!workflowId) {
+                statusPanel.textContent = 'Select a workflow to inspect current neural instances.';
+                return;
+            }
+            statusPanel.textContent = 'Loading workflow runs...';
+            try {
+                const data = await apiCall('/api/workflow-admin/workflows/' + workflowId + '/runs');
+                const runs = data.runs || [];
+                if (!runs.length) {
+                    statusPanel.textContent = 'No workflow runs recorded yet.';
+                    return;
+                }
+                const list = runs.slice(0, 10).map((run) => {
+                    const started = new Date(run.started_at).toLocaleString();
+                    const completed = run.completed_at ? new Date(run.completed_at).toLocaleString() : '—';
+                    return '<div class="metric"><span>' + run.id + '</span><span class="status status-' + run.status + '">' + run.status + '</span></div>' +
+                        '<div class="metric"><span>Started</span><span>' + started + '</span></div>' +
+                        '<div class="metric"><span>Completed</span><span>' + completed + '</span></div>';
+                }).join('<hr style="border-color:#1f2937;">');
+                statusPanel.innerHTML = list;
+            } catch (error) {
+                statusPanel.textContent = 'Failed to load runs: ' + error.message;
+            }
+        }
+
+        async function previewCrawlerPrompt() {
+            const workflowId = document.getElementById('crawler-workflow-select').value || 'null';
+            const prompt = document.getElementById('crawler-prompt').value.trim();
+            if (!prompt) {
+                alert('Enter a mining prompt first.');
+                return;
+            }
+            document.getElementById('crawler-preview-attributes').textContent = 'Generating preview...';
+            document.getElementById('crawler-preview-blueprint').textContent = '...';
+            try {
+                const response = await apiCall('/api/workflow-admin/workflows/' + workflowId + '/preview-mining', {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt })
+                });
+                const { mined, blueprint, attributePrompts } = response.preview;
+                document.getElementById('crawler-preview-attributes').innerHTML = attributePrompts.length
+                    ? attributePrompts.map((line) => '<div class="metric"><span>' + line + '</span></div>').join('')
+                    : 'No attribute prompts generated.';
+                document.getElementById('crawler-preview-blueprint').textContent = JSON.stringify({
+                    workflow: mined.workflow,
+                    blueprint
+                }, null, 2);
+            } catch (error) {
+                document.getElementById('crawler-preview-attributes').textContent = 'Preview failed: ' + error.message;
+                document.getElementById('crawler-preview-blueprint').textContent = '';
+            }
+        }
+
+        async function enqueueCrawlerRun() {
+            const workflowId = document.getElementById('crawler-workflow-select').value;
+            const prompt = document.getElementById('crawler-prompt').value.trim();
+            if (!workflowId || !prompt) {
+                alert('Select a workflow and enter a prompt before enqueuing.');
+                return;
+            }
+            try {
+                await apiCall('/api/workflow-admin/workflows/' + workflowId + '/enqueue', {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt })
+                });
+                alert('Workflow mining + training queued successfully.');
+                refreshNeuralStatus();
+            } catch (error) {
+                alert('Failed to enqueue: ' + error.message);
+            }
+        }
+
+        async function startWorkflowRun() {
+            const workflowId = document.getElementById('workflow-overview-select').value;
+            if (!workflowId) {
+                alert('Select a workflow first.');
+                return;
+            }
+            const workflow = workflows.find((wf) => wf.id === workflowId);
+            try {
+                await apiCall('/api/workflow-admin/workflows/' + workflowId + '/enqueue', {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt: workflow.prompt })
+                });
+                document.getElementById('workflow-overview-status').textContent = 'Workflow queued. Updating overview...';
+                await refreshWorkflowOverview();
+            } catch (error) {
+                document.getElementById('workflow-overview-status').textContent = 'Failed to start workflow: ' + error.message;
+            }
+        }
+
+        async function refreshWorkflowOverview() {
+            const workflowId = document.getElementById('workflow-overview-select').value;
+            if (!workflowId) {
+                document.getElementById('workflow-overview-status').textContent = 'Select a workflow to view run history and job status.';
+                return;
+            }
+            try {
+                const runsData = await apiCall('/api/workflow-admin/workflows/' + workflowId + '/runs');
+                const queuedData = await apiCall('/api/workflow-admin/queue');
+                const workflow = workflows.find((wf) => wf.id === workflowId);
+                renderWorkflowMermaid(workflow, runsData.runs || [], queuedData.jobs || []);
+                renderWorkflowStatus(runsData.runs || []);
+            } catch (error) {
+                document.getElementById('workflow-overview-status').textContent = 'Failed to refresh workflow: ' + error.message;
+            }
+        }
+
+        function renderWorkflowMermaid(workflow, runs, jobs) {
+            const latestRun = runs[0];
+            const status = latestRun?.status || 'idle';
+            const nodes = [
+                'A[Workflow queued]',
+                'B{Mining job}',
+                'C[Blueprint persisted]',
+                'D[Training job]',
+                'E[Models + metrics stored]'
+            ];
+            const edges = [
+                'A --> B',
+                'B --> C',
+                'C --> D',
+                'D --> E'
+            ];
+            const highlightNode = status === 'queued' ? 'A' : status === 'mining' ? 'B' : status === 'training' ? 'D' : status === 'completed' ? 'E' : null;
+            const diagramNodes = nodes.map((node) => {
+                if (highlightNode && node.indexOf(highlightNode) === 0) {
+                    return node + ':::activeNode';
+                }
+                return node;
+            });
+            const chartParts = ['graph LR'].concat(diagramNodes).concat(edges);
+            const chart = chartParts.join('');
+            const mermaidEl = document.getElementById('workflow-mermaid');
+            mermaidEl.innerHTML = chart;
+            mermaid.initialize({ startOnLoad: false, theme: 'dark', themeVariables: { primaryColor: '#3b82f6', primaryTextColor: '#0f172a' } });
+            mermaid.init(undefined, mermaidEl);
+        }
+
+        function renderWorkflowStatus(runs) {
+            if (!runs.length) {
+                document.getElementById('workflow-overview-status').textContent = 'No workflow runs recorded yet.';
+                return;
+            }
+            const list = runs.slice(0, 8).map((run) => {
+                const started = new Date(run.started_at).toLocaleString();
+                const completed = run.completed_at ? new Date(run.completed_at).toLocaleString() : '—';
+                return '<div class="metric"><span>' + run.id + '</span><span class="status status-' + run.status + '">' + run.status + '</span></div>' +
+                    '<div class="metric"><span>Started</span><span>' + started + '</span></div>' +
+                    '<div class="metric"><span>Completed</span><span>' + completed + '</span></div>';
+            }).join('<hr style="border-color:#1f2937;">');
+            document.getElementById('workflow-overview-status').innerHTML = list;
+            document.getElementById('workflow-activity-log').innerHTML = '<h4>Workflow events</h4><div>' + list + '</div>';
         }
 
         // Modal functions

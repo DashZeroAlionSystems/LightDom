@@ -1,0 +1,47 @@
+name: Integration Test (docker-compose)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start docker-compose (test)
+        uses: docker/compose-action@v3
+        with:
+          files: |
+            docker-compose.test.yml
+            docker-compose.yml
+          run: up -d --build
+
+      - name: Wait for services
+        run: |
+          echo 'Waiting for Postgres...'
+          ./scripts/wait-for-services.sh || true
+        shell: bash
+
+      - name: Run integration tests
+        run: |
+          npm ci
+          npm run test:integration --silent
+
+      - name: Collect logs
+        if: failure()
+        run: |
+          docker compose -f docker-compose.test.yml logs --no-color > diagnostics/integration-logs.txt || true
+
+      - name: Tear down
+        if: always()
+        uses: docker/compose-action@v3
+        with:
+          files: docker-compose.test.yml
+          run: down

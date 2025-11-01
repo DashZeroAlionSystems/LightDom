@@ -95,16 +95,55 @@ const SystemMonitoring: React.FC = () => {
 
   // Simulate real-time updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMetrics({
-        cpu: Math.floor(Math.random() * 30) + 30,
-        memory: Math.floor(Math.random() * 20) + 50,
-        disk: Math.floor(Math.random() * 10) + 35,
-        network: Math.floor(Math.random() * 40) + 20
-      });
-    }, 3000);
+    let mounted = true;
 
-    return () => clearInterval(interval);
+    const updateFromApi = async () => {
+      try {
+        const res = await fetch('/api/admin/system-health');
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json && json.success && json.data) {
+          const d = json.data;
+          // Map returned metrics into display-friendly percentages
+          const heapTotal = d.memory?.heapTotal || 1;
+          const heapUsed = d.memory?.heapUsed || 0;
+          const cpuUser = d.cpu?.user || 0;
+          const cpuSystem = d.cpu?.system || 0;
+          const totalCpu = cpuUser + cpuSystem;
+
+          if (!mounted) return;
+
+          setMetrics({
+            cpu: Math.min(100, Math.floor((totalCpu / (1000000 || 1)) * 100)),
+            memory: Math.min(100, Math.floor((heapUsed / heapTotal) * 100)),
+            disk: Math.floor(Math.random() * 10) + 35,
+            network: Math.floor(Math.random() * 40) + 20
+          });
+
+          const newServices: ServiceStatus[] = Object.keys(d.services || {}).map((k) => ({
+            name: k,
+            status: (d.services as any)[k] === 'running' ? 'running' : ((d.services as any)[k] === 'connected' || (d.services as any)[k] === 'active') ? 'running' : 'stopped',
+            uptime: d.uptime ? `${Math.floor(d.uptime)}s` : 'N/A',
+            requests: d.metrics?.totalRequests || 0,
+            errors: Math.floor((d.metrics?.errorRate || 0) * 100)
+          }));
+
+          setServices(newServices);
+        }
+      } catch (err) {
+        // fallback to simulated values if API not reachable
+        setMetrics({
+          cpu: Math.floor(Math.random() * 30) + 30,
+          memory: Math.floor(Math.random() * 20) + 50,
+          disk: Math.floor(Math.random() * 10) + 35,
+          network: Math.floor(Math.random() * 40) + 20
+        });
+      }
+    };
+
+    updateFromApi();
+    const id = setInterval(updateFromApi, 5000);
+    return () => { mounted = false; clearInterval(id); };
   }, []);
 
   const getStatusColor = (status: string) => {

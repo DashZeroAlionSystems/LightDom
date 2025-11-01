@@ -10,7 +10,8 @@ import {
   TestTube, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  User
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -25,15 +26,16 @@ const Navigation: React.FC<NavigationProps> = ({ onNavigate, currentPath }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navItems = [
-    { path: '/', label: 'Home', icon: Home },
+    { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/dashboard/client-zone', label: 'Client Zone', icon: User },
     { path: '/space-mining', label: 'Space Mining', icon: Pickaxe },
-    { path: '/metaverse', label: 'Metaverse', icon: Globe },
-    { path: '/optimization', label: 'Optimization', icon: Zap },
-    { path: '/advanced-nodes', label: 'Advanced Nodes', icon: Network },
+    { path: '/harvester', label: 'Web Crawler', icon: Globe },
     { path: '/wallet', label: 'Wallet', icon: Wallet },
-    { path: '/blockchain', label: 'Blockchain Storage', icon: Database },
-    { path: '/workflow', label: 'Workflow Simulation', icon: TestTube },
-    { path: '/testing', label: 'Testing Dashboard', icon: Settings }
+    { path: '/advanced-nodes', label: 'Advanced Nodes', icon: Network },
+    { path: '/optimization', label: 'Optimization', icon: Zap },
+    { path: '/blockchain-models', label: 'Blockchain Models', icon: Database },
+    { path: '/workflow-simulation', label: 'Workflow Simulation', icon: TestTube },
+    { path: '/settings', label: 'Settings', icon: Settings }
   ];
 
   return (

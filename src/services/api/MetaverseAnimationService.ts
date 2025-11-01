@@ -11,7 +11,7 @@ import {
   InteractionAction,
   MetaverseAnimationConfig,
   MetaverseAnimationEvents
-} from '../types/MetaverseAnimationTypes';
+} from '@/types/MetaverseAnimationTypes';
 import { metaverseAnimationConfig } from '../../config/MetaverseAnimationPresets';
 
 export class MetaverseAnimationService extends EventEmitter {

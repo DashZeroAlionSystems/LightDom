@@ -46,7 +46,6 @@ import {
 import { useAuth } from '../../../hooks/state/useAuth';
 import { useOptimization } from '../../../hooks/state/useOptimization';
 import { useNotifications } from '../../../hooks/state/useNotifications';
-import Navigation from '../Navigation';
 import './DashboardLayout.css';
 
 const { Header, Sider, Content } = Layout;
@@ -196,17 +195,45 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     },
   ];
 
-  // Add admin menu item for admin users
-  const isAdmin = user?.email?.includes('admin'); // Simple check - replace with proper role check
+  // Add admin menu items for admin users
+  const isAdmin = user?.role === 'admin' || user?.email?.includes('admin'); // Enhanced role check
   if (isAdmin) {
     menuItems.push({
       key: 'admin-separator',
       type: 'divider' as any,
     });
+    // Admin Section Label
     menuItems.push({
-      key: '/admin',
-      icon: <SettingOutlined style={{ color: '#e74c3c' }} />,
-      label: <span style={{ color: '#e74c3c', fontWeight: 600 }}>Admin Panel</span>,
+      key: 'admin-section-label',
+      type: 'group',
+      label: 'Admin Section',
+      children: [
+        {
+          key: '/dashboard/admin',
+          icon: <SettingOutlined style={{ color: '#e74c3c' }} />,
+          label: <span style={{ color: '#e74c3c', fontWeight: 600 }}>Admin Settings</span>,
+        },
+        {
+          key: '/dashboard/admin/users',
+          icon: <UserOutlined style={{ color: '#3498db' }} />,
+          label: <span style={{ color: '#3498db', fontWeight: 600 }}>User Management</span>,
+        },
+        {
+          key: '/dashboard/admin/monitoring',
+          icon: <BarChartOutlined style={{ color: '#2ecc71' }} />,
+          label: <span style={{ color: '#2ecc71', fontWeight: 600 }}>System Monitoring</span>,
+        },
+        {
+          key: '/dashboard/admin/logs',
+          icon: <HistoryOutlined style={{ color: '#f39c12' }} />,
+          label: <span style={{ color: '#f39c12', fontWeight: 600 }}>System Logs</span>,
+        },
+        {
+          key: '/dashboard/admin/billing',
+          icon: <WalletOutlined style={{ color: '#9b59b6' }} />,
+          label: <span style={{ color: '#9b59b6', fontWeight: 600 }}>Billing Management</span>,
+        }
+      ]
     });
   }
 
@@ -274,7 +301,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   return (
     <Layout className="dashboard-layout">
-      <Navigation />
       {/* Compact left rail */}
       <div className="nav-rail">
         <div className="rail-top">

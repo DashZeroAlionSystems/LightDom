@@ -1,0 +1,43 @@
+{
+  "name": "Blockchain Mining Automation",
+  "description": "Automated blockchain mining with optimization",
+  "steps": [
+    {
+      "name": "Check Mining Difficulty",
+      "type": "api_call",
+      "config": {
+        "endpoint": "/api/mining/difficulty"
+      }
+    },
+    {
+      "name": "Optimize Parameters",
+      "type": "automation",
+      "config": {
+        "auto_tune": true
+      }
+    },
+    {
+      "name": "Start Mining Session",
+      "type": "api_call",
+      "config": {
+        "endpoint": "/api/mining/start"
+      }
+    },
+    {
+      "name": "Monitor Performance",
+      "type": "monitoring",
+      "config": {
+        "metrics": [
+          "hash_rate",
+          "efficiency",
+          "temperature"
+        ]
+      }
+    }
+  ],
+  "triggers": [
+    "event",
+    "manual"
+  ],
+  "schedule": "*/5 * * * *"
+}

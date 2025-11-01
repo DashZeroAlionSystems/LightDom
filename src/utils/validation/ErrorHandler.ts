@@ -1,12 +1,12 @@
 import { Logger } from './Logger';
-import { HeadlessChromeError } from '../types/HeadlessTypes';
-import { CrawlError } from '../types/CrawlerTypes';
-import { OptimizationError } from '../types/OptimizationTypes';
+import { HeadlessChromeError } from '@/types/HeadlessTypes';
+import { CrawlError } from '@/types/CrawlerTypes';
+import { OptimizationError } from '@/types/OptimizationTypes';
 
 export interface ErrorContext {
   service: string;
   operation: string;
-  timestamp: string;
+  timestamp?: string;
   userId?: string;
   sessionId?: string;
   requestId?: string;
@@ -82,15 +82,19 @@ export class ErrorHandler {
    * Categorize error type
    */
   private categorizeError(error: Error): string {
-    if (error instanceof HeadlessChromeError) {
+    // HeadlessChromeError, CrawlError and OptimizationError are defined as
+    // interfaces in our type shims. Using `instanceof` on an interface is not
+    // valid, so we perform lightweight runtime shape checks instead.
+    const anyErr = error as any;
+    if (anyErr && (anyErr.name === 'HeadlessChromeError' || (anyErr.message && String(anyErr.message).toLowerCase().includes('headless')))) {
       return 'headless-chrome';
     }
-    
-    if (error instanceof CrawlError) {
+
+    if (anyErr && (anyErr.name === 'CrawlError' || anyErr.url)) {
       return 'crawl';
     }
-    
-    if (error instanceof OptimizationError) {
+
+    if (anyErr && (anyErr.name === 'OptimizationError' || anyErr.ruleId)) {
       return 'optimization';
     }
     

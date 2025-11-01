@@ -1,0 +1,1267 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightDom Admin Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #0f172a;
+            color: #ffffff;
+        }
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e293b, #334155);
+        }
+        .login-form {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #60a5fa;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #e2e8f0;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            background: #334155;
+            color: #ffffff;
+            font-size: 16px;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .error {
+            color: #ef4444;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .dashboard {
+            display: none;
+        }
+        .header {
+            background: #1e293b;
+            padding: 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #60a5fa;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #334155;
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #60a5fa;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.healthy {
+            background: #10b981;
+            color: white;
+        }
+        .status.unhealthy {
+            background: #ef4444;
+            color: white;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 4px;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .btn-danger {
+            background: #ef4444;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-success {
+            background: #10b981;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 8px;
+            background: #334155;
+            border-radius: 4px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        .table th {
+            background: #334155;
+            color: #e2e8f0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background: #1e293b;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #fff;
+        }
+        .dashboard-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .dashboard-nav a {
+            color: #e2e8f0;
+            text-decoration: none;
+            padding: 8px 12px;
+            border: 1px solid #334155;
+            border-radius: 999px;
+            background: #1e293b;
+        }
+        .dashboard-nav a:hover {
+            background: #334155;
+        }
+        .section {
+            margin: 32px 0;
+        }
+        .section h2 {
+            margin-bottom: 16px;
+            color: #f8fafc;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .control-group label {
+            font-size: 14px;
+            color: #cbd5f5;
+        }
+        .control-group select,
+        .control-group textarea,
+        .control-group input {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .control-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .preview-panel {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        .preview-panel h4 {
+            margin: 0 0 8px 0;
+            color: #60a5fa;
+        }
+        .preview-panel pre {
+            background: #1e293b;
+            padding: 8px;
+            border-radius: 6px;
+            overflow-x: auto;
+            color: #cbd5f5;
+        }
+        .status.status-active {
+            background: #3b82f6;
+            color: #ffffff;
+        }
+        .status.status-pending {
+            background: #475569;
+            color: #e2e8f0;
+        }
+        .status.status-completed {
+            background: #10b981;
+            color: #0f172a;
+        }
+        .status.status-failed {
+            background: #ef4444;
+            color: #ffffff;
+        }
+        .chart-container {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .mermaid-diagram svg {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <div id="login-container" class="login-container">
+        <div class="login-form">
+            <h2>🔐 Admin Login</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+                <div id="login-error" class="error" style="display: none;"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard" class="dashboard">
+        <div class="header">
+            <h1>🚀 LightDom Admin Dashboard</h1>
+            <div class="user-info">
+                <span id="user-info">Welcome, Admin</span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <nav class="dashboard-nav">
+                <a href="#system-overview">System Overview</a>
+                <a href="#user-management">Users</a>
+                <a href="#security-status">Security</a>
+                <a href="#performance-metrics">Performance</a>
+                <a href="#crawler-section">Crawler Mining</a>
+                <a href="#neural-section">Neural Instances</a>
+                <a href="#workflow-overview-section">Workflow Overview</a>
+                <a href="#audit-logs">Audit Logs</a>
+            </nav>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>System Overview</h3>
+                    <div id="system-overview">Loading...</div>
+                </div>
+                
+                <div class="card">
+                    <h3>User Management</h3>
+                    <div id="user-management">Loading...</div>
+                </div>
+                
+                <div class="card">
+                    <h3>Security Status</h3>
+                    <div id="security-status">Loading...</div>
+                </div>
+                
+                <div class="card">
+                    <h3>Performance Metrics</h3>
+                    <div id="performance-metrics">Loading...</div>
+                </div>
+                
+                <div class="card">
+                    <h3>Database Management</h3>
+                    <div id="database-management">Loading...</div>
+                </div>
+                
+                <div class="card">
+                    <h3>Monitoring & Alerts</h3>
+                    <div id="monitoring-alerts">Loading...</div>
+                </div>
+                
+                <div class="card">
+                    <h3>Backup Management</h3>
+                    <div id="backup-management">Loading...</div>
+                </div>
+                
+                <div class="card">
+                    <h3>System Maintenance</h3>
+                    <div id="system-maintenance">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Audit Logs</h3>
+                <div id="audit-logs">Loading...</div>
+            </div>
+
+            <div class="section" id="neural-section">
+                <h2>Neural network orchestrator</h2>
+                <div class="card">
+                    <div class="control-group">
+                        <label for="neural-workflow-select">Workflow</label>
+                        <select id="neural-workflow-select"></select>
+                    </div>
+                    <div class="control-group">
+                        <label for="neural-instance-count">Instances to launch</label>
+                        <input type="number" id="neural-instance-count" min="1" value="1">
+                    </div>
+                    <div class="button-row">
+                        <button class="btn btn-success" onclick="spinUpNeuralInstances()">Spin up instances</button>
+                        <button class="btn" onclick="refreshNeuralStatus()">Refresh status</button>
+                    </div>
+                    <div class="preview-panel" id="neural-status-panel">
+                        Select a workflow to inspect current neural instances.
+                    </div>
+                </div>
+            </div>
+
+            <div class="section" id="crawler-section">
+                <h2>Crawler prompt miner</h2>
+                <div class="card">
+                    <div class="control-group">
+                        <label for="crawler-workflow-select">Associate with workflow</label>
+                        <select id="crawler-workflow-select"></select>
+                    </div>
+                    <div class="control-group">
+                        <label for="crawler-prompt">Mining prompt</label>
+                        <textarea id="crawler-prompt" placeholder="Describe the experience you want the crawler to mine"></textarea>
+                    </div>
+                    <div class="button-row">
+                        <button class="btn" onclick="previewCrawlerPrompt()">Preview mined schema</button>
+                        <button class="btn btn-success" onclick="enqueueCrawlerRun()">Queue mining + training</button>
+                    </div>
+                    <div class="preview-panel">
+                        <h4>Attribute prompts</h4>
+                        <div id="crawler-preview-attributes">No preview generated yet.</div>
+                        <h4 style="margin-top:12px;">Blueprint</h4>
+                        <pre id="crawler-preview-blueprint">Run a preview to inspect blueprint output.</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section" id="workflow-overview-section">
+                <h2>Workflow overview</h2>
+                <div class="card">
+                    <div class="control-group">
+                        <label for="workflow-overview-select">Workflow</label>
+                        <select id="workflow-overview-select"></select>
+                    </div>
+                    <div class="chart-container">
+                        <div id="workflow-mermaid" class="mermaid-diagram">graph LR; A[Loading workflow diagram]</div>
+                    </div>
+                    <div class="button-row">
+                        <button class="btn btn-success" onclick="startWorkflowRun()">Start workflow</button>
+                        <button class="btn" onclick="refreshWorkflowOverview()">Refresh overview</button>
+                    </div>
+                    <div class="preview-panel" id="workflow-overview-status">
+                        Select a workflow to view run history and job status.
+                    </div>
+                    <div class="preview-panel" id="workflow-activity-log" style="margin-top:12px;">
+                        <h4>Workflow events</h4>
+                        <div>No events yet.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('user-modal')">&times;</span>
+            <h2>Create User</h2>
+            <form id="create-user-form">
+                <div class="form-group">
+                    <label for="new-username">Username</label>
+                    <input type="text" id="new-username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-password">Password</label>
+                    <input type="password" id="new-password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-role">Role</label>
+                    <select id="new-role" name="role" required>
+                        <option value="admin">Admin</option>
+                        <option value="moderator">Moderator</option>
+                        <option value="viewer">Viewer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new-email">Email</label>
+                    <input type="email" id="new-email" name="email" required>
+                </div>
+                <button type="submit" class="btn">Create User</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let authToken = null;
+        let currentUser = null;
+        let workflows = [];
+
+        // Authentication
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    try {
+                        localStorage.setItem('adminToken', authToken);
+                        localStorage.setItem('adminUser', JSON.stringify(currentUser));
+                    } catch (storageError) {
+                        console.warn('Failed to persist admin session:', storageError);
+                    }
+                    showDashboard();
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                showError('Login failed: ' + error.message);
+            }
+        });
+
+        // Restore persisted session if available
+        (function restoreSession() {
+            try {
+                const storedToken = localStorage.getItem('adminToken');
+                const storedUser = localStorage.getItem('adminUser');
+                if (storedToken && storedUser) {
+                    authToken = storedToken;
+                    currentUser = JSON.parse(storedUser);
+                    showDashboard();
+                }
+            } catch (error) {
+                console.warn('Failed to restore admin session:', error);
+            }
+        })();
+
+        function showError(message) {
+            const errorDiv = document.getElementById('login-error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function showDashboard() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('user-info').textContent = `Welcome, ${currentUser.username}`;
+            
+            loadDashboardData();
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            try {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
+            } catch (storageError) {
+                console.warn('Failed to clear admin session:', storageError);
+            }
+            document.getElementById('login-container').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'none';
+        }
+
+        // API calls
+        async function apiCall(url, options = {}) {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`,
+                    ...options.headers
+                }
+            });
+            
+            return await response.json();
+        }
+
+        // Dashboard data loading
+        async function loadDashboardData() {
+            await Promise.all([
+                loadSystemOverview(),
+                loadUserManagement(),
+                loadSecurityStatus(),
+                loadPerformanceMetrics(),
+                loadDatabaseManagement(),
+                loadMonitoringAlerts(),
+                loadBackupManagement(),
+                loadSystemMaintenance(),
+                loadAuditLogs(),
+                loadWorkflowCollections()
+            ]);
+        }
+
+        async function loadSystemOverview() {
+            const data = await apiCall('/api/admin/overview');
+            if (data.success) {
+                const overview = data.data;
+                document.getElementById('system-overview').innerHTML = `
+                    <div class="metric">
+                        <span>Uptime:</span>
+                        <span>${Math.floor(overview.system.uptime / 3600)}h ${Math.floor((overview.system.uptime % 3600) / 60)}m</span>
+                    </div>
+                    <div class="metric">
+                        <span>Memory Usage:</span>
+                        <span>${(overview.system.memory.heapUsed / 1024 / 1024).toFixed(1)} MB</span>
+                    </div>
+                    <div class="metric">
+                        <span>Active Users:</span>
+                        <span>${overview.users.active} / ${overview.users.total}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Active Alerts:</span>
+                        <span>${overview.alerts.active}</span>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadUserManagement() {
+            const data = await apiCall('/api/admin/users');
+            if (data.success) {
+                const users = data.data;
+                let html = `
+                    <button class="btn btn-success" onclick="openModal('user-modal')">Create User</button>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Email</th>
+                                <th>Last Login</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                users.forEach(user => {
+                    html += `
+                        <tr>
+                            <td>${user.username}</td>
+                            <td>${user.role}</td>
+                            <td>${user.email}</td>
+                            <td>${user.lastLogin || 'Never'}</td>
+                            <td>
+                                <button class="btn" onclick="editUser('${user.id}')">Edit</button>
+                                <button class="btn btn-danger" onclick="deleteUser('${user.id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                document.getElementById('user-management').innerHTML = html;
+            }
+        }
+
+        async function loadSecurityStatus() {
+            const data = await apiCall('/api/admin/security/status');
+            if (data.success) {
+                const status = data.data;
+                document.getElementById('security-status').innerHTML = `
+                    <div class="metric">
+                        <span>Last Scan:</span>
+                        <span>${new Date(status.lastScan).toLocaleDateString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Critical Vulnerabilities:</span>
+                        <span>${status.vulnerabilities.critical}</span>
+                    </div>
+                    <div class="metric">
+                        <span>High Vulnerabilities:</span>
+                        <span>${status.vulnerabilities.high}</span>
+                    </div>
+                    <div class="metric">
+                        <span>OWASP Compliance:</span>
+                        <span class="status ${status.compliance.owasp === 'compliant' ? 'healthy' : 'unhealthy'}">${status.compliance.owasp}</span>
+                    </div>
+                    <button class="btn btn-danger" onclick="runSecurityScan()">Run Security Scan</button>
+                `;
+            }
+        }
+
+        async function loadPerformanceMetrics() {
+            const data = await apiCall('/api/admin/performance/metrics');
+            if (data.success) {
+                const metrics = data.data;
+                document.getElementById('performance-metrics').innerHTML = `
+                    <div class="metric">
+                        <span>CPU Usage:</span>
+                        <span>${metrics.cpu.usage.toFixed(1)}%</span>
+                    </div>
+                    <div class="metric">
+                        <span>Memory Usage:</span>
+                        <span>${metrics.memory.usage.toFixed(1)}%</span>
+                    </div>
+                    <div class="metric">
+                        <span>Disk Usage:</span>
+                        <span>${metrics.disk.usage.toFixed(1)}%</span>
+                    </div>
+                    <div class="metric">
+                        <span>Avg Response Time:</span>
+                        <span>${metrics.responseTime.avg.toFixed(0)}ms</span>
+                    </div>
+                    <button class="btn" onclick="optimizePerformance()">Optimize Performance</button>
+                `;
+            }
+        }
+
+        async function loadDatabaseManagement() {
+            const data = await apiCall('/api/admin/database/stats');
+            if (data.success) {
+                const stats = data.data;
+                document.getElementById('database-management').innerHTML = `
+                    <div class="metric">
+                        <span>Connections:</span>
+                        <span>${stats.connections}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Queries:</span>
+                        <span>${stats.queries}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Size:</span>
+                        <span>${stats.size}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Uptime:</span>
+                        <span>${Math.floor(stats.uptime / 3600)}h</span>
+                    </div>
+                    <button class="btn" onclick="optimizeDatabase()">Optimize Database</button>
+                    <button class="btn" onclick="cleanupDatabase()">Cleanup Database</button>
+                `;
+            }
+        }
+
+        async function loadMonitoringAlerts() {
+            const data = await apiCall('/api/admin/monitoring/alerts');
+            if (data.success) {
+                const alerts = data.data;
+                let html = '';
+                
+                alerts.forEach(alert => {
+                    html += `
+                        <div class="metric">
+                            <span>${alert.type}:</span>
+                            <span class="status ${alert.severity === 'critical' ? 'unhealthy' : 'healthy'}">${alert.severity}</span>
+                        </div>
+                        <div class="metric">
+                            <span>Message:</span>
+                            <span>${alert.message}</span>
+                        </div>
+                        <div class="metric">
+                            <span>Timestamp:</span>
+                            <span>${new Date(alert.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div>
+                            <button class="btn" onclick="acknowledgeAlert('${alert.id}')">Acknowledge</button>
+                            <button class="btn btn-success" onclick="resolveAlert('${alert.id}')">Resolve</button>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('monitoring-alerts').innerHTML = html;
+            }
+        }
+
+        async function loadBackupManagement() {
+            const data = await apiCall('/api/admin/backups');
+            if (data.success) {
+                const backups = data.data;
+                let html = `
+                    <button class="btn btn-success" onclick="createBackup()">Create Backup</button>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                backups.forEach(backup => {
+                    html += `
+                        <tr>
+                            <td>${backup.name}</td>
+                            <td>${backup.type}</td>
+                            <td>${backup.size}</td>
+                            <td>${backup.date}</td>
+                            <td>
+                                <button class="btn" onclick="restoreBackup('${backup.name}')">Restore</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                document.getElementById('backup-management').innerHTML = html;
+            }
+        }
+
+        async function loadSystemMaintenance() {
+            document.getElementById('system-maintenance').innerHTML = `
+                <button class="btn btn-danger" onclick="startMaintenance()">Start Maintenance</button>
+                <button class="btn btn-success" onclick="stopMaintenance()">Stop Maintenance</button>
+            `;
+        }
+
+        async function loadAuditLogs() {
+            const data = await apiCall('/api/admin/audit/logs?limit=20');
+            if (data.success) {
+                const logs = data.data.logs;
+                let html = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>User</th>
+                                <th>Timestamp</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                logs.forEach(log => {
+                    html += `
+                        <tr>
+                            <td>${log.type}</td>
+                            <td>${log.data.admin || log.data.username || 'System'}</td>
+                            <td>${new Date(log.timestamp).toLocaleString()}</td>
+                            <td>${JSON.stringify(log.data)}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                document.getElementById('audit-logs').innerHTML = html;
+            }
+        }
+
+        async function loadWorkflowCollections() {
+            try {
+                const data = await apiCall('/api/workflow-admin/workflows', { method: 'GET' });
+                workflows = data.workflows || [];
+                populateWorkflowSelect('neural-workflow-select');
+                populateWorkflowSelect('crawler-workflow-select');
+                populateWorkflowSelect('workflow-overview-select');
+            } catch (error) {
+                console.error('Failed to load workflows', error);
+            }
+        }
+
+        function populateWorkflowSelect(selectId) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            select.innerHTML = '<option value="">Select workflow</option>';
+            workflows.forEach((wf) => {
+                const option = document.createElement('option');
+                option.value = wf.id;
+                option.textContent = wf.dataset_name + ' (' + wf.schema_key + ')';
+                select.appendChild(option);
+            });
+        }
+
+        async function spinUpNeuralInstances() {
+            const workflowId = document.getElementById('neural-workflow-select').value;
+            const count = parseInt(document.getElementById('neural-instance-count').value, 10);
+            if (!workflowId || !count) {
+                alert('Select a workflow and specify instance count.');
+                return;
+            }
+            const statusPanel = document.getElementById('neural-status-panel');
+            statusPanel.textContent = 'Enqueuing mining + training jobs...';
+            try {
+                const workflow = workflows.find((wf) => wf.id === workflowId);
+                for (let i = 0; i < count; i += 1) {
+                    await apiCall('/api/workflow-admin/workflows/' + workflowId + '/enqueue', {
+                        method: 'POST',
+                        body: JSON.stringify({ prompt: workflow.prompt })
+                    });
+                }
+                statusPanel.textContent = 'Queued ' + count + ' job(s). Monitor workflow runs for progress.';
+            } catch (error) {
+                statusPanel.textContent = 'Failed to queue instances: ' + error.message;
+            }
+        }
+
+        async function refreshNeuralStatus() {
+            const workflowId = document.getElementById('neural-workflow-select').value;
+            const statusPanel = document.getElementById('neural-status-panel');
+            if (!workflowId) {
+                statusPanel.textContent = 'Select a workflow to inspect current neural instances.';
+                return;
+            }
+            statusPanel.textContent = 'Loading workflow runs...';
+            try {
+                const data = await apiCall('/api/workflow-admin/workflows/' + workflowId + '/runs');
+                const runs = data.runs || [];
+                if (!runs.length) {
+                    statusPanel.textContent = 'No workflow runs recorded yet.';
+                    return;
+                }
+                const list = runs.slice(0, 10).map((run) => {
+                    const started = new Date(run.started_at).toLocaleString();
+                    const completed = run.completed_at ? new Date(run.completed_at).toLocaleString() : '—';
+                    return '<div class="metric"><span>' + run.id + '</span><span class="status status-' + run.status + '">' + run.status + '</span></div>' +
+                        '<div class="metric"><span>Started</span><span>' + started + '</span></div>' +
+                        '<div class="metric"><span>Completed</span><span>' + completed + '</span></div>';
+                }).join('<hr style="border-color:#1f2937;">');
+                statusPanel.innerHTML = list;
+            } catch (error) {
+                statusPanel.textContent = 'Failed to load runs: ' + error.message;
+            }
+        }
+
+        async function previewCrawlerPrompt() {
+            const workflowId = document.getElementById('crawler-workflow-select').value || 'null';
+            const prompt = document.getElementById('crawler-prompt').value.trim();
+            if (!prompt) {
+                alert('Enter a mining prompt first.');
+                return;
+            }
+            document.getElementById('crawler-preview-attributes').textContent = 'Generating preview...';
+            document.getElementById('crawler-preview-blueprint').textContent = '...';
+            try {
+                const response = await apiCall('/api/workflow-admin/workflows/' + workflowId + '/preview-mining', {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt })
+                });
+                const { mined, blueprint, attributePrompts } = response.preview;
+                document.getElementById('crawler-preview-attributes').innerHTML = attributePrompts.length
+                    ? attributePrompts.map((line) => '<div class="metric"><span>' + line + '</span></div>').join('')
+                    : 'No attribute prompts generated.';
+                document.getElementById('crawler-preview-blueprint').textContent = JSON.stringify({
+                    workflow: mined.workflow,
+                    blueprint
+                }, null, 2);
+            } catch (error) {
+                document.getElementById('crawler-preview-attributes').textContent = 'Preview failed: ' + error.message;
+                document.getElementById('crawler-preview-blueprint').textContent = '';
+            }
+        }
+
+        async function enqueueCrawlerRun() {
+            const workflowId = document.getElementById('crawler-workflow-select').value;
+            const prompt = document.getElementById('crawler-prompt').value.trim();
+            if (!workflowId || !prompt) {
+                alert('Select a workflow and enter a prompt before enqueuing.');
+                return;
+            }
+            try {
+                await apiCall('/api/workflow-admin/workflows/' + workflowId + '/enqueue', {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt })
+                });
+                alert('Workflow mining + training queued successfully.');
+                refreshNeuralStatus();
+            } catch (error) {
+                alert('Failed to enqueue: ' + error.message);
+            }
+        }
+
+        async function startWorkflowRun() {
+            const workflowId = document.getElementById('workflow-overview-select').value;
+            if (!workflowId) {
+                alert('Select a workflow first.');
+                return;
+            }
+            const workflow = workflows.find((wf) => wf.id === workflowId);
+            try {
+                await apiCall('/api/workflow-admin/workflows/' + workflowId + '/enqueue', {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt: workflow.prompt })
+                });
+                document.getElementById('workflow-overview-status').textContent = 'Workflow queued. Updating overview...';
+                await refreshWorkflowOverview();
+            } catch (error) {
+                document.getElementById('workflow-overview-status').textContent = 'Failed to start workflow: ' + error.message;
+            }
+        }
+
+        async function refreshWorkflowOverview() {
+            const workflowId = document.getElementById('workflow-overview-select').value;
+            if (!workflowId) {
+                document.getElementById('workflow-overview-status').textContent = 'Select a workflow to view run history and job status.';
+                return;
+            }
+            try {
+                const runsData = await apiCall('/api/workflow-admin/workflows/' + workflowId + '/runs');
+                const queuedData = await apiCall('/api/workflow-admin/queue');
+                const workflow = workflows.find((wf) => wf.id === workflowId);
+                renderWorkflowMermaid(workflow, runsData.runs || [], queuedData.jobs || []);
+                renderWorkflowStatus(runsData.runs || []);
+            } catch (error) {
+                document.getElementById('workflow-overview-status').textContent = 'Failed to refresh workflow: ' + error.message;
+            }
+        }
+
+        function renderWorkflowMermaid(workflow, runs, jobs) {
+            const latestRun = runs[0];
+            const status = latestRun?.status || 'idle';
+            const nodes = [
+                'A[Workflow queued]',
+                'B{Mining job}',
+                'C[Blueprint persisted]',
+                'D[Training job]',
+                'E[Models + metrics stored]'
+            ];
+            const edges = [
+                'A --> B',
+                'B --> C',
+                'C --> D',
+                'D --> E'
+            ];
+            const highlightNode = status === 'queued' ? 'A' : status === 'mining' ? 'B' : status === 'training' ? 'D' : status === 'completed' ? 'E' : null;
+            const diagramNodes = nodes.map((node) => {
+                if (highlightNode && node.indexOf(highlightNode) === 0) {
+                    return node + ':::activeNode';
+                }
+                return node;
+            });
+            const chartParts = ['graph LR'].concat(diagramNodes).concat(edges);
+            const chart = chartParts.join('
+');
+            const mermaidEl = document.getElementById('workflow-mermaid');
+            mermaidEl.innerHTML = chart;
+            mermaid.initialize({ startOnLoad: false, theme: 'dark', themeVariables: { primaryColor: '#3b82f6', primaryTextColor: '#0f172a' } });
+            mermaid.init(undefined, mermaidEl);
+        }
+
+        function renderWorkflowStatus(runs) {
+            if (!runs.length) {
+                document.getElementById('workflow-overview-status').textContent = 'No workflow runs recorded yet.';
+                return;
+            }
+            const list = runs.slice(0, 8).map((run) => {
+                const started = new Date(run.started_at).toLocaleString();
+                const completed = run.completed_at ? new Date(run.completed_at).toLocaleString() : '—';
+                return '<div class="metric"><span>' + run.id + '</span><span class="status status-' + run.status + '">' + run.status + '</span></div>' +
+                    '<div class="metric"><span>Started</span><span>' + started + '</span></div>' +
+                    '<div class="metric"><span>Completed</span><span>' + completed + '</span></div>';
+            }).join('<hr style="border-color:#1f2937;">');
+            document.getElementById('workflow-overview-status').innerHTML = list;
+            document.getElementById('workflow-activity-log').innerHTML = '<h4>Workflow events</h4><div>' + list + '</div>';
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // User management functions
+        document.getElementById('create-user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const userData = Object.fromEntries(formData);
+            
+            try {
+                const response = await apiCall('/api/admin/users', {
+                    method: 'POST',
+                    body: JSON.stringify(userData)
+                });
+                
+                if (response.success) {
+                    closeModal('user-modal');
+                    loadUserManagement();
+                } else {
+                    alert('Failed to create user: ' + response.error);
+                }
+            } catch (error) {
+                alert('Failed to create user: ' + error.message);
+            }
+        });
+
+        async function editUser(userId) {
+            // Implementation for editing user
+            console.log('Edit user:', userId);
+        }
+
+        async function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                try {
+                    const response = await apiCall(`/api/admin/users/${userId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.success) {
+                        loadUserManagement();
+                    } else {
+                        alert('Failed to delete user: ' + response.error);
+                    }
+                } catch (error) {
+                    alert('Failed to delete user: ' + error.message);
+                }
+            }
+        }
+
+        // System management functions
+        async function runSecurityScan() {
+            try {
+                const response = await apiCall('/api/admin/security/scan', { method: 'POST' });
+                if (response.success) {
+                    alert(response.message);
+                }
+            } catch (error) {
+                alert('Failed to run security scan: ' + error.message);
+            }
+        }
+
+        async function optimizePerformance() {
+            try {
+                const response = await apiCall('/api/admin/performance/optimize', { method: 'POST' });
+                if (response.success) {
+                    alert(response.message);
+                }
+            } catch (error) {
+                alert('Failed to optimize performance: ' + error.message);
+            }
+        }
+
+        async function optimizeDatabase() {
+            try {
+                const response = await apiCall('/api/admin/database/optimize', { method: 'POST' });
+                if (response.success) {
+                    alert(response.message);
+                }
+            } catch (error) {
+                alert('Failed to optimize database: ' + error.message);
+            }
+        }
+
+        async function cleanupDatabase() {
+            const days = prompt('Enter number of days to keep data:', '30');
+            if (days) {
+                try {
+                    const response = await apiCall('/api/admin/database/cleanup', {
+                        method: 'POST',
+                        body: JSON.stringify({ days: parseInt(days) })
+                    });
+                    if (response.success) {
+                        alert(response.message);
+                    }
+                } catch (error) {
+                    alert('Failed to cleanup database: ' + error.message);
+                }
+            }
+        }
+
+        async function acknowledgeAlert(alertId) {
+            try {
+                const response = await apiCall(`/api/admin/monitoring/alerts/${alertId}/acknowledge`, { method: 'POST' });
+                if (response.success) {
+                    loadMonitoringAlerts();
+                }
+            } catch (error) {
+                alert('Failed to acknowledge alert: ' + error.message);
+            }
+        }
+
+        async function resolveAlert(alertId) {
+            try {
+                const response = await apiCall(`/api/admin/monitoring/alerts/${alertId}/resolve`, { method: 'POST' });
+                if (response.success) {
+                    loadMonitoringAlerts();
+                }
+            } catch (error) {
+                alert('Failed to resolve alert: ' + error.message);
+            }
+        }
+
+        async function createBackup() {
+            const type = prompt('Enter backup type (full/incremental):', 'full');
+            if (type) {
+                try {
+                    const response = await apiCall('/api/admin/backups/create', {
+                        method: 'POST',
+                        body: JSON.stringify({ type })
+                    });
+                    if (response.success) {
+                        alert('Backup created successfully');
+                        loadBackupManagement();
+                    }
+                } catch (error) {
+                    alert('Failed to create backup: ' + error.message);
+                }
+            }
+        }
+
+        async function restoreBackup(backupName) {
+            if (confirm(`Are you sure you want to restore backup ${backupName}?`)) {
+                try {
+                    const response = await apiCall(`/api/admin/backups/${backupName}/restore`, { method: 'POST' });
+                    if (response.success) {
+                        alert(response.message);
+                    }
+                } catch (error) {
+                    alert('Failed to restore backup: ' + error.message);
+                }
+            }
+        }
+
+        async function startMaintenance() {
+            const message = prompt('Enter maintenance message:', 'System maintenance in progress');
+            if (message) {
+                try {
+                    const response = await apiCall('/api/admin/maintenance/start', {
+                        method: 'POST',
+                        body: JSON.stringify({ message })
+                    });
+                    if (response.success) {
+                        alert(response.message);
+                    }
+                } catch (error) {
+                    alert('Failed to start maintenance: ' + error.message);
+                }
+            }
+        }
+
+        async function stopMaintenance() {
+            try {
+                const response = await apiCall('/api/admin/maintenance/stop', { method: 'POST' });
+                if (response.success) {
+                    alert(response.message);
+                }
+            } catch (error) {
+                alert('Failed to stop maintenance: ' + error.message);
+            }
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadDashboardData, 30000);
+    </script>
+</body>
+</html>
+    

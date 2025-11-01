@@ -1,0 +1,26 @@
+name: Auto-create PR for autofix branches
+
+on:
+  push:
+    branches:
+      - 'autofix/**'
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "[autofix] Automated change from Copilot agent"
+          title: "[autofix] Automated change"
+          body: |
+            This PR was created automatically by the repository automation for branch `${{ github.ref_name }}`.
+            Please run CI and review the changes. If the PR is ready, add label `ready-for-review`.
+          base: main
+          branch: ${{ github.ref_name }}
+          labels: autofix, automation

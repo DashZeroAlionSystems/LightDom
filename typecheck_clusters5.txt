@@ -1,0 +1,60 @@
+423 x Namespace '"react"' has no exported member 'FC'.
+224 x Module '"react"' has no exported member 'useState'.
+192 x Module '"react"' has no exported member 'useEffect'.
+133 x Namespace '"react"' has no exported member 'ReactNode'.
+73 x Namespace '"react"' has no exported member 'HTMLAttributes'.
+73 x Module '"react"' has no exported member 'useCallback'.
+52 x Module '"react"' has no exported member 'useRef'.
+46 x Object literal may only specify known properties, and 'offset' does not exist in type 'AnimationKeyframe'.
+35 x Property 'forwardRef' does not exist on type 'typeof import("react")'.
+24 x Type '{ background: string; padding: string; borderRadius: string; border: string; textAlign: string; }' is not assignable to type 'CSSProperties'.
+24 x Type '{ backgroundColor: string; border: string; borderRadius: string; padding: string; textAlign: string; }' is not assignable to type 'CSSProperties'.
+18 x Type 'string' is not assignable to type 'string[]'.
+14 x Property 'metadata' does not exist on type 'unknown'.
+13 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<GAMetric, "id">'.
+12 x Block-scoped variable 'Animation' used before its declaration.
+11 x Module '"react"' has no exported member 'useMemo'.
+11 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<GADimension, "id">'.
+10 x Property 'maxFileUploadSize' does not exist on type 'Promise<{ maxFileUploadSize: number; autoSave: boolean; syncInterval: number; preferredBiome: string; }>'.
+10 x Property 'performance' does not exist on type '{ running: boolean; config: FrameworkConfig; queueStatus: any; systemStats: any; metrics: any; }'.
+10 x Duplicate function implementation.
+10 x An object literal cannot have multiple properties with the same name.
+9 x Namespace '"react"' has no exported member 'MouseEvent'.
+8 x Property 'post' is private and only accessible within class 'APIClient'.
+8 x Type 'unknown' is not assignable to type 'ReactNode'.
+8 x Type '{ color: string; intensity: number; }' is not assignable to type 'string'.
+8 x Module '"react"' has no exported member 'useContext'.
+8 x Property 'useEffect' does not exist on type 'typeof import("react")'.
+8 x Module '"react"' has no exported member 'createContext'.
+7 x Argument of type 'string' is not assignable to parameter of type '"fadeIn" | "slideUp" | "slideDown" | "scaleIn" | "bounceIn"'.
+7 x Property 'get' is private and only accessible within class 'APIClient'.
+7 x Property 'status' does not exist on type 'unknown'.
+7 x Property 'stats' does not exist on type 'MLEnhancedDOMHarvestingWorker'.
+7 x Property 'getUserSettings' is private and only accessible within class 'PersistentBlockchainStorage'.
+7 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<SEOAttribute, "id">'.
+6 x Namespace '"react"' has no exported member 'ChangeEvent'.
+6 x Module '"antd"' has no exported member 'MenuProps'.
+6 x Module '"antd"' has no exported member 'Descriptions'.
+6 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<DynamicBacklinkRule, "id">'.
+6 x Module '"antd"' has no exported member 'ColorPicker'.
+5 x Namespace '"react"' has no exported member 'ButtonHTMLAttributes'.
+5 x Namespace '"react"' has no exported member 'ReactElement'.
+5 x Namespace 'global.Express' has no exported member 'Multer'.
+5 x Property 'extractBehavioralProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateBehavioralProperties'?
+5 x '"antd"' has no exported member named 'TimePicker'. Did you mean 'DatePicker'?
+5 x Type 'string[]' is not assignable to type 'string'.
+5 x Property 'extractAccessibilityProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateAccessibilityProperties'?
+5 x Property 'extractSemanticProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateSemanticProperties'?
+5 x Property 'extractVisualProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateVisualProperties'?
+5 x This expression is not callable.
+5 x Property 'name' does not exist on type 'unknown'.
+5 x Property 'schema' is missing in type '{ id: string; name: string; type: "text"; description: string; required: true; }' but required in type 'AttributeDefinition'.
+4 x Property 'category' does not exist on type 'unknown'.
+4 x Type '{ title: string; value: any; icon: Element; color: string; loading: any; }' is not assignable to type 'IntrinsicAttributes & StatCardProps'.
+4 x Module '"antd"' has no exported member 'notification'.
+4 x Module '"antd"' has no exported member 'QRCode'.
+4 x Property 'utils' does not exist on type 'typeof import("E:/Personal/project/lightdom/LightDom/node_modules/ethers/lib.esm/ethers")'.
+4 x Property 'trend' does not exist on type 'unknown'.
+4 x Property 'trackEvent' does not exist on type 'BridgeAnalyticsService'.
+4 x Property 'StrictMode' does not exist on type 'typeof import("react")'.
+4 x Property 'mlInsights' does not exist on type '{ mlEnhanced: boolean; confidenceMultiplier: number; predictedImprovements: any; visualOptimizations: any; anomalyDetected: any; cssBytes: number; jsBytes: number; domMemory: number; orphanedElementsSize: number; ... 5 more ...; tokenValue: number; }'.

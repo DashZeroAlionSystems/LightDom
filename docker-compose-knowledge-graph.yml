@@ -1,0 +1,138 @@
+# Knowledge Graph MCP Server - Multi-Service Container Setup
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Knowledge Graph
+  postgres:
+    image: postgres:15-alpine
+    container_name: kg-postgres
+    environment:
+      POSTGRES_DB: knowledge_graph
+      POSTGRES_USER: kg_user
+      POSTGRES_PASSWORD: kg_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-postgres.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - kg-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kg_user -d knowledge_graph"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Knowledge Graph MCP Server
+  kg-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.kg-mcp
+    container_name: kg-mcp-server
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: knowledge_graph
+      POSTGRES_USER: kg_user
+      POSTGRES_PASSWORD: kg_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - kg-network
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+  # Workflow Automation Service
+  workflow-automator:
+    build:
+      context: .
+      dockerfile: Dockerfile.workflow
+    container_name: kg-workflow-automator
+    environment:
+      MCP_SERVER_URL: http://kg-mcp-server:3003
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: knowledge_graph
+      POSTGRES_USER: kg_user
+      POSTGRES_PASSWORD: kg_password
+    depends_on:
+      - kg-mcp-server
+      - postgres
+    networks:
+      - kg-network
+    volumes:
+      - ./automations:/app/automations
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+  # API Gateway for Knowledge Graph
+  kg-api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.api-gateway
+    container_name: kg-api-gateway
+    ports:
+      - "3003:3003"
+    environment:
+      MCP_SERVER_HOST: kg-mcp-server
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+    depends_on:
+      - kg-mcp-server
+      - postgres
+    networks:
+      - kg-network
+    restart: unless-stopped
+
+  # Monitoring and Analytics
+  kg-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
+    container_name: kg-monitor
+    ports:
+      - "3004:3004"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      PROMETHEUS_URL: http://prometheus:9090
+    depends_on:
+      - postgres
+    networks:
+      - kg-network
+    volumes:
+      - ./metrics:/app/metrics
+    restart: unless-stopped
+
+  # Optional: Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kg-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - kg-network
+    profiles:
+      - monitoring
+
+# Named volumes for data persistence
+volumes:
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+
+# Custom networks
+networks:
+  kg-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

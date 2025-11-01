@@ -5,7 +5,8 @@
  */
 
 import { EventEmitter } from 'events';
-import { Browser, BrowserContext, Page, launch as puppeteerLaunch } from 'puppeteer';
+import { Browser, Page, launch as puppeteerLaunch } from 'puppeteer';
+import type { BrowserContext } from 'puppeteer';
 import { install, Browser as BrowserType, BrowserPlatform } from '@puppeteer/browsers';
 import { detectBrowserPlatform } from '@puppeteer/browsers';
 import { WebCrawlerService } from '../services/WebCrawlerService';

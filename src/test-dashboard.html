@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightDom Dashboard Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #111827;
+            color: #f9fafb;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: #1f2937;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid #374151;
+        }
+        .card {
+            background: #1f2937;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #374151;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #1f2937;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #374151;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            color: #d1d5db;
+            font-size: 14px;
+        }
+        .success { color: #10b981; }
+        .warning { color: #f59e0b; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+        .primary { color: #7c3aed; }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #374151;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            color: #7c3aed;
+            border-bottom-color: #7c3aed;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .progress {
+            width: 100%;
+            height: 8px;
+            background: #374151;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed, #a78bfa);
+            transition: width 0.3s ease;
+        }
+        .button {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 4px;
+        }
+        .button:hover {
+            background: #6d28d9;
+        }
+        .button.success { background: #10b981; }
+        .button.warning { background: #f59e0b; }
+        .button.info { background: #3b82f6; }
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+        .notification {
+            background: #374151;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid #10b981;
+        }
+        .notification.warning {
+            border-left-color: #f59e0b;
+        }
+        .notification.error {
+            border-left-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="margin: 0; color: #f9fafb;">🚀 LightDom Integrated Dashboard</h1>
+            <p style="margin: 8px 0 0 0; color: #d1d5db;">Advanced Control Center - Working Version</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value primary">15,420</div>
+                <div class="stat-label">Total Users</div>
+                <div class="progress">
+                    <div class="progress-bar" style="width: 23.5%;"></div>
+                </div>
+                <small style="color: #9ca3af;">+23.5% from last month</small>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value success">8,932</div>
+                <div class="stat-label">Active Users</div>
+                <div class="progress">
+                    <div class="progress-bar" style="width: 57.9%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+                </div>
+                <small style="color: #9ca3af;">57.9% of total users</small>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value warning">$2,847,500</div>
+                <div class="stat-label">Revenue</div>
+                <div class="progress">
+                    <div class="progress-bar" style="width: 18.2%; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+                </div>
+                <small style="color: #9ca3af;">+18.2% growth rate</small>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value info">23.5%</div>
+                <div class="stat-label">Growth Rate</div>
+                <div class="progress">
+                    <div class="progress-bar" style="width: 23.5%; background: linear-gradient(90deg, #3b82f6, #60a5fa);"></div>
+                </div>
+                <small style="color: #9ca3af;">Monthly growth</small>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0;">⚡ Quick Actions</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <button class="button" onclick="showTab('seo')">🤖 Generate SEO Content</button>
+                <button class="button success" onclick="showTab('automation')">⚡ Start Workflow</button>
+                <button class="button warning" onclick="showTab('tensorflow')">🧠 Train Model</button>
+                <button class="button info" onclick="showTab('metaverse')">🌐 Enter Metaverse</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('overview')">📊 Overview</button>
+            <button class="tab" onclick="showTab('seo')">🤖 SEO Generator</button>
+            <button class="tab" onclick="showTab('blockchain')">💎 Blockchain Rewards</button>
+            <button class="tab" onclick="showTab('metaverse')">🌐 Metaverse Portal</button>
+            <button class="tab" onclick="showTab('automation')">⚡ Automation Workflows</button>
+            <button class="tab" onclick="showTab('tensorflow')">🧠 TensorFlow Admin</button>
+        </div>
+
+        <div id="overview" class="tab-content active">
+            <div class="grid">
+                <div>
+                    <div class="card">
+                        <h3 style="margin-top: 0;">📈 System Performance</h3>
+                        <div style="margin-bottom: 16px;">
+                            <strong>CPU Usage:</strong> 67.8%
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 67.8%;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <strong>Memory Usage:</strong> 72.3%
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 72.3%; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <strong>Disk Usage:</strong> 45.6%
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 45.6%; background: linear-gradient(90deg, #ef4444, #f87171);"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <strong>Network Usage:</strong> 23.4%
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 23.4%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <h3 style="margin-top: 0;">🔔 Recent Notifications</h3>
+                        <div class="notification">
+                            <strong>✅ SEO Campaign Completed</strong><br>
+                            <small>Your SEO optimization campaign has been completed successfully.</small><br>
+                            <small style="color: #9ca3af;">2 minutes ago</small>
+                        </div>
+                        <div class="notification warning">
+                            <strong>⚠️ Mining Efficiency Drop</strong><br>
+                            <small>Mining efficiency has dropped by 5%. Consider optimizing parameters.</small><br>
+                            <small style="color: #9ca3af;">1 hour ago</small>
+                        </div>
+                        <div class="notification">
+                            <strong>ℹ️ New Metaverse Bridge</strong><br>
+                            <small>A new metaverse bridge has been established in Tokyo.</small><br>
+                            <small style="color: #9ca3af;">2 hours ago</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="seo" class="tab-content">
+            <div class="card">
+                <h3 style="margin-top: 0;">🤖 SEO Content Generator</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value success">94.2%</div>
+                        <div class="stat-label">SEO Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value info">1,250</div>
+                        <div class="stat-label">Keywords</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">890</div>
+                        <div class="stat-label">Backlinks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">156</div>
+                        <div class="stat-label">Rankings</div>
+                    </div>
+                </div>
+                <button class="button">🚀 Generate New Content</button>
+                <button class="button success">📊 View Analytics</button>
+                <button class="button info">⚙️ Settings</button>
+            </div>
+        </div>
+
+        <div id="blockchain" class="tab-content">
+            <div class="card">
+                <h3 style="margin-top: 0;">💎 Blockchain Rewards</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value primary">45,670</div>
+                        <div class="stat-label">Transactions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">$125,000</div>
+                        <div class="stat-label">Wallet Balance</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">$50,000</div>
+                        <div class="stat-label">Staked Amount</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value info">$8,920</div>
+                        <div class="stat-label">Rewards</div>
+                    </div>
+                </div>
+                <button class="button">💰 Claim Rewards</button>
+                <button class="button success">🎯 Stake Tokens</button>
+                <button class="button info">📈 View Portfolio</button>
+            </div>
+        </div>
+
+        <div id="metaverse" class="tab-content">
+            <div class="card">
+                <h3 style="margin-top: 0;">🌐 Metaverse Portal</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value info">12</div>
+                        <div class="stat-label">Active Worlds</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">5,670</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">8</div>
+                        <div class="stat-label">Bridges</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value primary">$2,340,000</div>
+                        <div class="stat-label">Economy</div>
+                    </div>
+                </div>
+                <button class="button">🌍 Explore Worlds</button>
+                <button class="button success">💬 Chat Nodes</button>
+                <button class="button info">🏪 Marketplace</button>
+            </div>
+        </div>
+
+        <div id="automation" class="tab-content">
+            <div class="card">
+                <h3 style="margin-top: 0;">⚡ Automation Workflows</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value primary">15</div>
+                        <div class="stat-label">Active Workflows</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">1,250</div>
+                        <div class="stat-label">Completed Tasks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">94.5%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value info">45s</div>
+                        <div class="stat-label">Avg Time</div>
+                    </div>
+                </div>
+                <button class="button">▶️ Start Workflow</button>
+                <button class="button success">📋 Templates</button>
+                <button class="button info">📊 Analytics</button>
+            </div>
+        </div>
+
+        <div id="tensorflow" class="tab-content">
+            <div class="card">
+                <h3 style="margin-top: 0;">🧠 TensorFlow Admin</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value error">8</div>
+                        <div class="stat-label">Total Models</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">2</div>
+                        <div class="stat-label">Training Jobs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success">5</div>
+                        <div class="stat-label">Deployed Models</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value info">92.3%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                </div>
+                <button class="button">🚀 Train Model</button>
+                <button class="button success">📦 Deploy Model</button>
+                <button class="button info">📊 Performance</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Simulate real-time updates
+        setInterval(() => {
+            // Update random stat
+            const stats = document.querySelectorAll('.stat-value');
+            if (stats.length > 0) {
+                const randomStat = stats[Math.floor(Math.random() * stats.length)];
+                const currentValue = parseInt(randomStat.textContent.replace(/[^0-9]/g, ''));
+                const change = Math.floor(Math.random() * 10) - 5;
+                const newValue = Math.max(0, currentValue + change);
+                
+                if (randomStat.textContent.includes('$')) {
+                    randomStat.textContent = '$' + newValue.toLocaleString();
+                } else if (randomStat.textContent.includes('%')) {
+                    randomStat.textContent = (newValue / 100).toFixed(1) + '%';
+                } else {
+                    randomStat.textContent = newValue.toLocaleString();
+                }
+            }
+        }, 5000);
+
+        // Add some interactivity
+        document.querySelectorAll('.button').forEach(button => {
+            button.addEventListener('click', function() {
+                const originalText = this.textContent;
+                this.textContent = '✅ Action completed!';
+                this.style.background = '#10b981';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                    this.style.background = '';
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>

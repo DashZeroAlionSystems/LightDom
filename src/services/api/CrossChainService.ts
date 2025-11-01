@@ -9,7 +9,7 @@ import {
   BridgeFee,
   BridgeStats,
   BridgeError
-} from '../types/CrossChainTypes';
+} from '@/types/CrossChainTypes';
 
 export class CrossChainService extends EventEmitter {
   private logger: Logger;

@@ -333,7 +333,7 @@ export class ModelTrainingOrchestrator {
   private async executeTrainingOld(
     config: ModelConfig,
     datasetPath: string
-  ): Promise<Omit<TrainingResult, 'modelId' | 'featureImportance'>> {
+  ): Promise<void> {
     const startTime = Date.now();
     
     try {
@@ -341,6 +341,9 @@ export class ModelTrainingOrchestrator {
       const { stdout, stderr } = await execAsync(command, {
         maxBuffer: 1024 * 1024 * 50 // 50MB buffer
       });
+      // OLD implementation kept for reference — no return value is expected.
+      // Consumers should use executeTraining() which returns structured results.
+      return;
     } catch (error) {
       throw new Error(`Training execution failed: ${error.message}`);
     }

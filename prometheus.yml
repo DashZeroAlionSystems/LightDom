@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'knowledge-graph-mcp'
+    static_configs:
+      - targets: ['kg-mcp-server:3003']
+    scrape_interval: 5s
+
+  - job_name: 'kg-api-gateway'
+    static_configs:
+      - targets: ['kg-api-gateway:3003']
+    scrape_interval: 10s
+
+  - job_name: 'workflow-automator'
+    static_configs:
+      - targets: ['workflow-automator:3005']
+    scrape_interval: 10s
+
+  - job_name: 'kg-monitor'
+    static_configs:
+      - targets: ['kg-monitor:3004']
+    scrape_interval: 5s
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s

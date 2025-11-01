@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Organizing App Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white min-h-screen">
+    <div id="dashboard-root" class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Self-Organizing App Dashboard
+            </h1>
+            <p class="text-xl text-gray-300 mb-8">
+                Advanced Chrome Headless API-Powered Application Generator
+            </p>
+            <div class="flex justify-center space-x-4">
+                <div class="bg-black/20 backdrop-blur-lg px-6 py-3 rounded-lg">
+                    <div class="text-2xl font-bold text-green-400" id="apps-count">0</div>
+                    <div class="text-sm text-gray-400">Generated Apps</div>
+                </div>
+                <div class="bg-black/20 backdrop-blur-lg px-6 py-3 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-400" id="workflows-count">0</div>
+                    <div class="text-sm text-gray-400">Active Workflows</div>
+                </div>
+                <div class="bg-black/20 backdrop-blur-lg px-6 py-3 rounded-lg">
+                    <div class="text-2xl font-bold text-purple-400" id="neural-status">Active</div>
+                    <div class="text-sm text-gray-400">Neural Network</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Neural Task Breakdown -->
+            <div class="bg-black/20 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+                <h2 class="text-2xl font-bold mb-4 text-blue-400">🧠 Neural Task Breakdown</h2>
+                <textarea
+                    id="task-input"
+                    placeholder="Enter a complex task to break down..."
+                    class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 mb-4"
+                    rows="4"
+                ></textarea>
+                <button
+                    id="breakdown-btn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold transition-colors"
+                >
+                    🚀 Break Down Task
+                </button>
+                <div id="breakdown-result" class="mt-4 space-y-2"></div>
+            </div>
+
+            <!-- Data Mining -->
+            <div class="bg-black/20 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+                <h2 class="text-2xl font-bold mb-4 text-purple-400">⛏️ Data Mining</h2>
+                <input
+                    id="mining-input"
+                    type="text"
+                    placeholder="Enter source URLs or paths..."
+                    class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 mb-4"
+                />
+                <button
+                    id="mining-btn"
+                    class="w-full bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-semibold transition-colors"
+                >
+                    🔍 Start Mining
+                </button>
+                <div id="mining-result" class="mt-4 space-y-2"></div>
+            </div>
+
+            <!-- Workflow Control -->
+            <div class="bg-black/20 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+                <h2 class="text-2xl font-bold mb-4 text-green-400">🔄 Workflow Control</h2>
+                <select id="workflow-select" class="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white mb-4">
+                    <option value="DataMiningWorkflow">Data Mining Workflow</option>
+                    <option value="NeuralTrainingWorkflow">Neural Training Workflow</option>
+                    <option value="AppGenerationWorkflow">App Generation Workflow</option>
+                </select>
+                <button
+                    id="workflow-btn"
+                    class="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-semibold transition-colors"
+                >
+                    ▶️ Run Workflow
+                </button>
+                <div id="workflow-status" class="mt-4">
+                    <div class="text-sm text-gray-400">Status: Ready</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generated Apps -->
+        <div class="mt-12">
+            <h2 class="text-3xl font-bold mb-6 text-center text-pink-400">📱 Generated Applications</h2>
+            <div id="apps-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Apps will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="mt-12 bg-black/20 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+            <h2 class="text-2xl font-bold mb-4 text-yellow-400">📋 Activity Log</h2>
+            <div id="activity-log" class="space-y-2 max-h-64 overflow-y-auto">
+                <div class="text-gray-400">System initialized and ready...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+
+        // DOM elements
+        const appsCount = document.getElementById('apps-count');
+        const workflowsCount = document.getElementById('workflows-count');
+        const breakdownBtn = document.getElementById('breakdown-btn');
+        const miningBtn = document.getElementById('mining-btn');
+        const workflowBtn = document.getElementById('workflow-btn');
+        const appsList = document.getElementById('apps-list');
+        const activityLog = document.getElementById('activity-log');
+
+        // Neural task breakdown
+        breakdownBtn.addEventListener('click', async () => {
+            const taskInput = document.getElementById('task-input');
+            const resultDiv = document.getElementById('breakdown-result');
+
+            if (!taskInput.value.trim()) {
+                alert('Please enter a task description');
+                return;
+            }
+
+            breakdownBtn.disabled = true;
+            breakdownBtn.textContent = '🧠 Processing...';
+
+            try {
+                const response = await fetch('/api/neural/breakdown', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ task: taskInput.value })
+                });
+
+                const result = await response.json();
+
+                resultDiv.innerHTML = '';
+                result.subtasks.forEach((subtask, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800 p-2 rounded text-sm';
+                    div.textContent = `${index + 1}. ${subtask}`;
+                    resultDiv.appendChild(div);
+                });
+
+                addActivityLog(`🤖 Broke down task into ${result.subtasks.length} subtasks`);
+
+            } catch (error) {
+                resultDiv.innerHTML = '<div class="text-red-400">Error: ' + error.message + '</div>';
+            } finally {
+                breakdownBtn.disabled = false;
+                breakdownBtn.textContent = '🚀 Break Down Task';
+            }
+        });
+
+        // Data mining
+        miningBtn.addEventListener('click', async () => {
+            const miningInput = document.getElementById('mining-input');
+            const resultDiv = document.getElementById('mining-result');
+
+            if (!miningInput.value.trim()) {
+                alert('Please enter sources to mine');
+                return;
+            }
+
+            miningBtn.disabled = true;
+            miningBtn.textContent = '⛏️ Mining...';
+
+            try {
+                const sources = miningInput.value.split(',').map(s => s.trim());
+                const response = await fetch('/api/mining/crawl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sources })
+                });
+
+                const result = await response.json();
+
+                resultDiv.innerHTML = '';
+                result.data.forEach(data => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-800 p-3 rounded';
+                    div.innerHTML = `
+                        <div class="font-semibold">${data.source}</div>
+                        <div class="text-sm text-gray-400">${data.type}</div>
+                        <div class="text-sm text-green-400">${data.insights.length} insights found</div>
+                    `;
+                    resultDiv.appendChild(div);
+                });
+
+                addActivityLog(`⛏️ Mined ${result.results} sources, found ${result.data.reduce((sum, d) => sum + d.insights.length, 0)} insights`);
+
+            } catch (error) {
+                resultDiv.innerHTML = '<div class="text-red-400">Error: ' + error.message + '</div>';
+            } finally {
+                miningBtn.disabled = false;
+                miningBtn.textContent = '🔍 Start Mining';
+            }
+        });
+
+        // Workflow execution
+        workflowBtn.addEventListener('click', async () => {
+            const workflowSelect = document.getElementById('workflow-select');
+            const statusDiv = document.getElementById('workflow-status');
+
+            workflowBtn.disabled = true;
+            workflowBtn.textContent = '🔄 Starting...';
+
+            try {
+                const response = await fetch(`/api/workflows/${workflowSelect.value}/run`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                statusDiv.innerHTML = '<div class="text-green-400">Workflow started: ' + result.workflowId + '</div>';
+                addActivityLog(`🔄 Started workflow: ${workflowSelect.value}`);
+
+                // Monitor workflow progress
+                monitorWorkflow(result.workflowId);
+
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="text-red-400">Error: ' + error.message + '</div>';
+            } finally {
+                workflowBtn.disabled = false;
+                workflowBtn.textContent = '▶️ Run Workflow';
+            }
+        });
+
+        // Monitor workflow progress
+        function monitorWorkflow(workflowId) {
+            const statusDiv = document.getElementById('workflow-status');
+
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/workflows/${workflowId}/status`);
+                    const status = await response.json();
+
+                    if (status.status === 'completed') {
+                        statusDiv.innerHTML = '<div class="text-green-400">✅ Workflow completed!</div>';
+                        clearInterval(interval);
+                        workflowsCount.textContent = parseInt(workflowsCount.textContent) + 1;
+                    } else if (status.status === 'running') {
+                        statusDiv.innerHTML = `
+                            <div class="text-blue-400">${status.currentStep || 'Processing...'}</div>
+                            <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: ${status.progress}%"></div>
+                            </div>
+                            <div class="text-sm text-gray-400 mt-1">${status.progress}% complete</div>
+                        `;
+                    }
+                } catch (error) {
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+
+        // Load generated apps
+        async function loadApps() {
+            try {
+                const response = await fetch('/api/apps');
+                const data = await response.json();
+
+                appsCount.textContent = data.total;
+
+                appsList.innerHTML = '';
+                data.apps.forEach(app => {
+                    const appCard = document.createElement('div');
+                    appCard.className = 'bg-black/20 backdrop-blur-lg rounded-xl p-6 border border-white/10';
+                    appCard.innerHTML = `
+                        <h3 class="text-xl font-bold mb-2">${app.name}</h3>
+                        <p class="text-gray-400 text-sm mb-4">${app.package.description || 'Generated application'}</p>
+                        <div class="flex space-x-2">
+                            <button onclick="openApp('${app.name}')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-semibold text-sm">
+                                🚀 Open App
+                            </button>
+                            <button onclick="viewCode('${app.name}')" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded font-semibold text-sm">
+                                📝 View Code
+                            </button>
+                        </div>
+                    `;
+                    appsList.appendChild(appCard);
+                });
+
+            } catch (error) {
+                console.error('Failed to load apps:', error);
+            }
+        }
+
+        // Socket.IO event handlers
+        socket.on('system-status', (status) => {
+            appsCount.textContent = status.apps;
+            workflowsCount.textContent = status.workflows;
+        });
+
+        socket.on('workflow-progress', (data) => {
+            addActivityLog(`📊 ${data.step} (${data.progress}%)`);
+        });
+
+        socket.on('workflow-completed', (data) => {
+            addActivityLog(`✅ Workflow completed: ${data.name}`);
+            loadApps();
+        });
+
+        socket.on('neural-result', (data) => {
+            addActivityLog(`🧠 Neural breakdown completed for: ${data.task.substring(0, 50)}...`);
+        });
+
+        // Utility functions
+        function addActivityLog(message) {
+            const div = document.createElement('div');
+            div.className = 'text-sm';
+            div.innerHTML = `<span class="text-gray-500">${new Date().toLocaleTimeString()}</span> ${message}`;
+            activityLog.appendChild(div);
+            activityLog.scrollTop = activityLog.scrollHeight;
+        }
+
+        function openApp(appName) {
+            window.open(`/generated-apps/${appName}/dashboard.html`, '_blank');
+        }
+
+        function viewCode(appName) {
+            window.open(`/generated-apps/${appName}/`, '_blank');
+        }
+
+        // Initialize
+        loadApps();
+        addActivityLog('🎯 Self-Organizing Dashboard loaded');
+
+        console.log('🚀 Self-Organizing Dashboard initialized');
+    </script>
+</body>
+</html>

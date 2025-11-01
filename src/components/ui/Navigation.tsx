@@ -1,153 +1,84 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { 
-  Home, 
-  Menu, 
-  X, 
-  Settings, 
-  Wallet, 
-  Zap, 
-  Globe, 
-  Database, 
+import React, { useState } from 'react';
+import {
+  Home,
+  Pickaxe,
+  Globe,
+  Zap,
+  Network,
+  Wallet,
+  Database,
   TestTube,
-  Workflow,
-  Mining,
-  Blockchain,
-  Cpu,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
   User
 } from 'lucide-react';
 
 interface NavigationProps {
-  currentPath?: string;
-  onNavigate?: (path: string) => void;
+  onNavigate: (path: string) => void;
+  currentPath: string;
 }
 
-const NAV_WIDTH_RAIL = 64; // px
-const NAV_WIDTH_PANEL = 280; // px
+/**
+ * Navigation - Collapsible sidebar navigation component
+ */
+const Navigation: React.FC<NavigationProps> = ({ onNavigate, currentPath }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-const Navigation: React.FC<NavigationProps> = ({ currentPath = window.location.pathname, onNavigate }) => {
-  const [expanded, setExpanded] = useState<boolean>(true);
-  const [serviceStatus, setServiceStatus] = useState<{ api: boolean; crawler: boolean; optimization: boolean; blockchain: boolean }>({ api: false, crawler: false, optimization: false, blockchain: false });
-
-  useEffect(() => {
-    let mounted = true;
-    const probe = async () => {
-      const ok = async (url: string) => fetch(url, { method: 'GET' }).then(r => r.ok).catch(() => false);
-      const api = await ok('/api/health');
-      const crawler = await ok('/api/crawler/status');
-      const mining = await ok('/api/mining/stats');
-      if (mounted) setServiceStatus({ api, crawler, optimization: api, blockchain: mining });
-    };
-    probe();
-    const id = setInterval(probe, 10000);
-    return () => { mounted = false; clearInterval(id); };
-  }, []);
-
-  const items = useMemo(() => ([
+  const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/dashboard/client-zone', label: 'Client Zone', icon: User },
-    { path: '/space-mining', label: 'Space Mining', icon: Mining },
+    { path: '/space-mining', label: 'Space Mining', icon: Pickaxe },
     { path: '/harvester', label: 'Web Crawler', icon: Globe },
     { path: '/wallet', label: 'Wallet', icon: Wallet },
-    { path: '/advanced-nodes', label: 'Advanced Nodes', icon: Cpu },
+    { path: '/advanced-nodes', label: 'Advanced Nodes', icon: Network },
     { path: '/optimization', label: 'Optimization', icon: Zap },
-    { path: '/space-mining', label: 'Space Mining', icon: Rocket },
-    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { path: '/harvester', label: 'Web Crawler', icon: Globe },
-    { path: '/advanced-nodes', label: 'Advanced Nodes', icon: Cpu },
     { path: '/blockchain-models', label: 'Blockchain Models', icon: Database },
-    { path: '/workflow-simulation', label: 'Workflow Simulation', icon: Workflow },
-    { path: '/wallet', label: 'Wallet', icon: Wallet },
-    { path: '/settings', label: 'Settings', icon: Settings },
-  ]), []);
-
-  const navigate = (path: string) => {
-    if (onNavigate) onNavigate(path); else window.location.pathname = path;
-  };
+    { path: '/workflow-simulation', label: 'Workflow Simulation', icon: TestTube },
+    { path: '/settings', label: 'Settings', icon: Settings }
+  ];
 
   return (
-    <aside style={{
-      position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 110,
-      display: 'flex', flexDirection: 'row',
-      width: expanded ? NAV_WIDTH_RAIL + NAV_WIDTH_PANEL : NAV_WIDTH_RAIL
-    }}>
-      {/* Slim rail */}
-      <div style={{
-        width: NAV_WIDTH_RAIL,
-        background: '#0f172a', color: 'rgba(255,255,255,0.9)',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 8px', boxShadow: '2px 0 8px rgba(0,0,0,.3)'
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#7c3aed,#3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>LD</div>
-          {items.slice(0,4).map(it => {
-            const Icon = it.icon as any;
-            const active = currentPath === it.path;
-            return (
-              <button key={it.path} title={it.label} onClick={() => navigate(it.path)}
-                style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', background: active? 'rgba(24,144,255,.25)':'rgba(255,255,255,.04)', color: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <Icon size={18} />
-              </button>
-            );
-          })}
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-          <div title={`API: ${serviceStatus.api ? 'Operational':'Down'}`} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.85)' }}>
-            <span style={{ width: 8, height: 8, borderRadius: 9999, boxShadow: '0 0 8px currentColor', color: serviceStatus.api? '#22c55e':'#ef4444' }} />
-            <Server size={14} />
-          </div>
-          <div title={`Crawler: ${serviceStatus.crawler ? 'Operational':'Down'}`} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.85)' }}>
-            <span style={{ width: 8, height: 8, borderRadius: 9999, boxShadow: '0 0 8px currentColor', color: serviceStatus.crawler? '#22c55e':'#ef4444' }} />
-            <Bug size={14} />
-          </div>
-          <div title={`Optimization: ${serviceStatus.optimization ? 'Operational':'Down'}`} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.85)' }}>
-            <span style={{ width: 8, height: 8, borderRadius: 9999, boxShadow: '0 0 8px currentColor', color: serviceStatus.optimization? '#22c55e':'#ef4444' }} />
-            <ShieldCheck size={14} />
-          </div>
-          <div title={`Blockchain: ${serviceStatus.blockchain ? 'Operational':'Down'}`} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,0.85)' }}>
-            <span style={{ width: 8, height: 8, borderRadius: 9999, boxShadow: '0 0 8px currentColor', color: serviceStatus.blockchain? '#22c55e':'#ef4444' }} />
-            <Wallet size={14} />
-          </div>
-          <button onClick={() => setExpanded(e => !e)} title={expanded ? 'Collapse':'Expand'}
-            style={{ width: 40, height: 40, borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,.04)', color: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            {expanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-          </button>
-        </div>
+    <div className={`discord-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+      <div className="discord-sidebar-header">
+        <h2 className="discord-sidebar-title">{!isCollapsed && 'LightDom'}</h2>
+        <button
+          className="discord-sidebar-toggle"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
       </div>
 
-      {/* Panel */}
-      {expanded && (
-        <div style={{ width: NAV_WIDTH_PANEL, background: '#0b1220', color: '#e6e8ef', display: 'flex', flexDirection: 'column', borderLeft: '1px solid #0a1a30' }}>
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #0a1a30', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#7c3aed,#3b82f6)' }} />
-              <strong>LightDom</strong>
-            </div>
-            <Bell size={16} color="#9aa3ba" />
-          </div>
-          <div style={{ padding: '12px 16px' }}>
-            <button style={{ width: '100%', height: 40, borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,.05)', color: '#e6e8ef', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}>
-              <MailPlus size={16} /> New Message
-            </button>
-          </div>
-          <nav style={{ padding: '8px 8px 0 8px', overflowY: 'auto' }}>
-            {items.map(it => {
-              const Icon = it.icon as any;
-              const active = currentPath === it.path;
-              return (
-                <button key={it.path} onClick={() => navigate(it.path)}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', margin: '2px 4px', borderRadius: 8, background: active? 'rgba(24,144,255,.15)':'transparent', color: active? '#fff':'#cbd5e1', border: '1px solid transparent', textAlign: 'left', cursor: 'pointer' }}>
-                  <Icon size={18} />
-                  <span style={{ flex: 1 }}>{it.label}</span>
+      <nav className="discord-sidebar-nav">
+        <ul className="discord-sidebar-list">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = currentPath === item.path;
+
+            return (
+              <li key={item.path}>
+                <button
+                  className={`discord-sidebar-item ${isActive ? 'active' : ''}`}
+                  onClick={() => onNavigate(item.path)}
+                  title={item.label}
+                >
+                  <Icon size={20} />
+                  {!isCollapsed && <span>{item.label}</span>}
                 </button>
-              );
-            })}
-          </nav>
-          <div style={{ marginTop: 'auto', padding: '12px 16px', borderTop: '1px solid #0a1a30', color: '#9aa3ba', fontSize: 12 }}>
-            System Status: {serviceStatus.api ? 'Operational' : 'Degraded'}
-          </div>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {!isCollapsed && (
+        <div className="discord-sidebar-footer">
+          <p className="text-xs text-gray-500">v1.0.0</p>
         </div>
       )}
-    </aside>
+    </div>
   );
 };
 

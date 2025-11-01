@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { Logger } from '../../utils/Logger';
-import { ErrorHandler } from '../utils/ErrorHandler';
-import { ConfigManager } from '../config/HeadlessConfig';
+import { ErrorHandler } from '../../utils/validation/ErrorHandler';
+import { ConfigManager } from '../../config/HeadlessConfig';
 import HeadlessChromeService from './HeadlessChromeService';
 import WebCrawlerService from './WebCrawlerService';
 import OptimizationEngine from './OptimizationEngine';

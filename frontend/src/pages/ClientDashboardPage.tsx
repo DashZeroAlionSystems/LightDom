@@ -3,13 +3,8 @@ import {
   Activity,
   Database,
   Globe,
-  TrendingUp,
   Wallet,
-  Cpu,
-  Code,
   Zap,
-  Users,
-  BarChart3,
   Shield,
   Target,
   FileText,
@@ -19,9 +14,20 @@ import {
   Upload,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Plus,
 } from 'lucide-react';
 import axios from 'axios';
+import {
+  KpiGrid,
+  KpiCard,
+  WorkflowPanel,
+  WorkflowPanelSection,
+  AsyncStateLoading,
+  AsyncStateError,
+  AsyncStateEmpty,
+  Fab,
+} from '@/components/ui';
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -63,6 +69,7 @@ export const ClientDashboardPage: React.FC = () => {
   });
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     fetchClientData();
@@ -99,8 +106,10 @@ export const ClientDashboardPage: React.FC = () => {
       }
 
       setLoading(false);
+      setError(null);
     } catch (error) {
       console.error('Failed to fetch client data:', error);
+      setError(error as Error);
       setLoading(false);
     }
   };
@@ -136,192 +145,155 @@ export const ClientDashboardPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Activity className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
+      <div className="p-6">
+        <AsyncStateLoading className="min-h-[40vh]">Loading your dashboard…</AsyncStateLoading>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <AsyncStateError
+          description={error.message}
+          icon={<AlertCircle className="h-10 w-10" />}
+          actionLabel="Retry"
+          onAction={fetchClientData}
+        />
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="relative space-y-8 p-6">
+      <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-exodus-text-primary">Client Dashboard</h1>
-          <p className="text-exodus-text-secondary mt-1">
-            Welcome back! Here's your activity overview
+          <h1 className="md3-headline-large text-on-surface">Client dashboard</h1>
+          <p className="md3-body-medium text-on-surface-variant">
+            Welcome back! Review your optimization performance, wallet balances, and recent activity.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="p-2 rounded-lg bg-card hover:bg-card-hover border border-border">
-            <Bell className="w-5 h-5" />
+        <div className="flex items-center gap-3">
+          <button className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-outline bg-surface-container-high text-on-surface">
+            <Bell className="h-5 w-5" />
           </button>
-          <button className="p-2 rounded-lg bg-card hover:bg-card-hover border border-border">
-            <Settings className="w-5 h-5" />
+          <button className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-outline bg-surface-container-high text-on-surface">
+            <Settings className="h-5 w-5" />
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Optimizations"
-          value={clientStats.optimizationsSubmitted}
-          icon={<Zap className="w-6 h-6 text-blue-500" />}
-          trend="+12%"
-          trendUp={true}
+      <KpiGrid columns={4}>
+        <KpiCard
+          label="Optimizations"
+          value={clientStats.optimizationsSubmitted.toLocaleString()}
+          delta="Last 24h"
+          tone="primary"
+          icon={<Zap className="h-4 w-4" />}
         />
-        <StatCard
-          title="Tokens Earned"
-          value={`${clientStats.tokensEarned} LDC`}
-          icon={<Wallet className="w-6 h-6 text-green-500" />}
-          trend="+8%"
-          trendUp={true}
+        <KpiCard
+          label="Tokens earned"
+          value={`${clientStats.tokensEarned.toLocaleString()} LDC`}
+          tone="success"
+          delta="Rewards accumulated"
+          icon={<Wallet className="h-4 w-4" />}
         />
-        <StatCard
-          title="Storage Used"
+        <KpiCard
+          label="Storage used"
           value={formatBytes(clientStats.storageUsed)}
-          icon={<Database className="w-6 h-6 text-purple-500" />}
-          trend="75% of quota"
-          trendUp={false}
+          tone="warning"
+          delta="75% of quota"
+          icon={<Database className="h-4 w-4" />}
         />
-        <StatCard
-          title="Active Projects"
+        <KpiCard
+          label="Active projects"
           value={clientStats.activeProjects}
-          icon={<FileText className="w-6 h-6 text-orange-500" />}
-          trend="3 running"
-          trendUp={true}
+          tone="neutral"
+          delta="Currently tracked"
+          icon={<FileText className="h-4 w-4" />}
         />
+      </KpiGrid>
+
+      <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+        <WorkflowPanel title="Wallet overview" description="Track balances across your LightDom wallet and associated assets.">
+          <WorkflowPanelSection>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <WalletAsset label="LightDom" amount={walletInfo.LDC} symbol="LDC" color="text-primary" />
+              <WalletAsset label="USD value" amount={walletInfo.USD} symbol="USD" color="text-success" />
+              <WalletAsset label="Bitcoin" amount={walletInfo.BTC} symbol="BTC" color="text-warning" />
+              <WalletAsset label="Ethereum" amount={walletInfo.ETH} symbol="ETH" color="text-tertiary" />
+            </div>
+          </WorkflowPanelSection>
+        </WorkflowPanel>
+
+        <WorkflowPanel title="Quick actions" description="Access frequent client operations with a single tap.">
+          <WorkflowPanelSection>
+            <div className="space-y-3">
+              <ActionButton icon={<Upload className="h-4 w-4" />} label="Upload files" />
+              <ActionButton icon={<Download className="h-4 w-4" />} label="Export data" />
+              <ActionButton icon={<Target className="h-4 w-4" />} label="New optimization" />
+              <ActionButton icon={<Settings className="h-4 w-4" />} label="Settings" />
+            </div>
+          </WorkflowPanelSection>
+        </WorkflowPanel>
       </div>
 
-      {/* Wallet Overview & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Wallet Card */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <Wallet className="w-5 h-5" />
-              Wallet Overview
-            </h2>
-            <button className="text-sm text-primary hover:underline">View Details</button>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <WalletAsset label="LightDom" amount={walletInfo.LDC} symbol="LDC" color="blue" />
-            <WalletAsset label="USD Value" amount={walletInfo.USD} symbol="USD" color="green" />
-            <WalletAsset label="Bitcoin" amount={walletInfo.BTC} symbol="BTC" color="orange" />
-            <WalletAsset label="Ethereum" amount={walletInfo.ETH} symbol="ETH" color="purple" />
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <h2 className="text-xl font-bold mb-6">Quick Actions</h2>
-          <div className="space-y-3">
-            <ActionButton icon={<Upload className="w-4 h-4" />} label="Upload Files" />
-            <ActionButton icon={<Download className="w-4 h-4" />} label="Export Data" />
-            <ActionButton icon={<Target className="w-4 h-4" />} label="New Optimization" />
-            <ActionButton icon={<Settings className="w-4 h-4" />} label="Settings" />
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity & Performance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-            <Clock className="w-5 h-5" />
-            Recent Activity
-          </h2>
-          <div className="space-y-4">
-            {clientStats.recentActivity.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Activity className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No recent activity</p>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <WorkflowPanel title="Recent activity" description="Latest optimization submissions and automation events.">
+          {clientStats.recentActivity.length === 0 ? (
+            <AsyncStateEmpty
+              title="No recent activity"
+              description="Once new optimizations are processed they will appear here."
+              icon={<Activity className="h-10 w-10" />}
+              compact
+            />
+          ) : (
+            <WorkflowPanelSection>
+              <div className="space-y-3">
+                {clientStats.recentActivity.map((activity) => (
+                  <ActivityItem
+                    key={activity.id}
+                    description={activity.description}
+                    timestamp={getTimeAgo(activity.timestamp)}
+                    status={activity.status}
+                    type={activity.type}
+                  />
+                ))}
               </div>
-            ) : (
-              clientStats.recentActivity.map((activity) => (
-                <ActivityItem
-                  key={activity.id}
-                  type={activity.type}
-                  description={activity.description}
-                  timestamp={getTimeAgo(activity.timestamp)}
-                  status={activity.status}
-                />
-              ))
-            )}
-          </div>
-        </div>
+            </WorkflowPanelSection>
+          )}
+        </WorkflowPanel>
 
-        {/* Performance Stats */}
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5" />
-            Performance
-          </h2>
-          <div className="space-y-6">
-            <PerformanceMetric label="Success Rate" value={95} color="green" />
-            <PerformanceMetric label="Average Speed" value={78} color="blue" />
-            <PerformanceMetric label="Optimization Quality" value={88} color="purple" />
-            <PerformanceMetric label="Resource Usage" value={65} color="orange" />
-          </div>
-        </div>
+        <WorkflowPanel title="Performance" description="Monitor success metrics and resource usage trends.">
+          <WorkflowPanelSection>
+            <div className="space-y-4">
+              <PerformanceMetric label="Success rate" value={95} color="bg-success" />
+              <PerformanceMetric label="Average speed" value={78} color="bg-primary" />
+              <PerformanceMetric label="Optimization quality" value={88} color="bg-tertiary" />
+              <PerformanceMetric label="Resource usage" value={65} color="bg-warning" />
+            </div>
+          </WorkflowPanelSection>
+        </WorkflowPanel>
       </div>
 
-      {/* Projects Overview */}
-      <div className="bg-card border border-border rounded-2xl p-6">
-        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-          <FileText className="w-5 h-5" />
-          Active Projects
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <ProjectCard
-            name="Website Optimization"
-            progress={75}
-            status="In Progress"
-            lastUpdate="2 hours ago"
-          />
-          <ProjectCard
-            name="SEO Enhancement"
-            progress={100}
-            status="Completed"
-            lastUpdate="1 day ago"
-          />
-          <ProjectCard
-            name="Performance Audit"
-            progress={45}
-            status="In Progress"
-            lastUpdate="30 minutes ago"
-          />
-        </div>
+      <WorkflowPanel title="Active projects" description="Track progress across ongoing optimization efforts.">
+        <WorkflowPanelSection>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <ProjectCard name="Website Optimization" progress={75} status="In Progress" lastUpdate="2 hours ago" />
+            <ProjectCard name="SEO Enhancement" progress={100} status="Completed" lastUpdate="1 day ago" />
+            <ProjectCard name="Performance Audit" progress={45} status="In Progress" lastUpdate="30 minutes ago" />
+          </div>
+        </WorkflowPanelSection>
+      </WorkflowPanel>
+
+      <div className="fixed bottom-8 right-8">
+        <Fab extended icon={<Plus className="h-5 w-5" />} aria-label="Create optimization">
+          New optimization
+        </Fab>
       </div>
     </div>
   );
 };
-
-// Helper Components
-const StatCard: React.FC<{
-  title: string;
-  value: string | number;
-  icon: React.ReactNode;
-  trend: string;
-  trendUp: boolean;
-}> = ({ title, value, icon, trend, trendUp }) => (
-  <div className="bg-card border border-border rounded-2xl p-6 hover:border-primary/50 transition-colors">
-    <div className="flex items-center justify-between mb-4">
-      <span className="text-muted-foreground text-sm">{title}</span>
-      {icon}
-    </div>
-    <div className="text-3xl font-bold mb-2">{value}</div>
-    <div className={`text-sm flex items-center gap-1 ${trendUp ? 'text-green-500' : 'text-muted-foreground'}`}>
-      <TrendingUp className="w-4 h-4" />
-      {trend}
-    </div>
-  </div>
-);
 
 const WalletAsset: React.FC<{
   label: string;
@@ -329,12 +301,10 @@ const WalletAsset: React.FC<{
   symbol: string;
   color: string;
 }> = ({ label, amount, symbol, color }) => (
-  <div className="text-center p-4 bg-background rounded-lg">
-    <div className="text-sm text-muted-foreground mb-1">{label}</div>
-    <div className={`text-2xl font-bold text-${color}-500`}>
-      {amount.toFixed(2)}
-    </div>
-    <div className="text-xs text-muted-foreground mt-1">{symbol}</div>
+  <div className="flex flex-col items-start gap-1 rounded-2xl border border-outline bg-surface px-4 py-3">
+    <span className="md3-label-medium text-on-surface-variant">{label}</span>
+    <span className={`md3-title-large ${color}`}>{amount.toFixed(2)}</span>
+    <span className="md3-label-small text-on-surface-variant/80">{symbol}</span>
   </div>
 );
 
@@ -342,18 +312,20 @@ const ActionButton: React.FC<{
   icon: React.ReactNode;
   label: string;
 }> = ({ icon, label }) => (
-  <button className="w-full flex items-center gap-3 p-3 bg-background hover:bg-primary/10 rounded-lg transition-colors border border-border hover:border-primary/50">
-    {icon}
-    <span className="text-sm font-medium">{label}</span>
+  <button className="flex w-full items-center gap-3 rounded-2xl border border-outline px-4 py-2 text-on-surface transition-colors hover:border-primary">
+    <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-container-high text-primary">
+      {icon}
+    </span>
+    <span className="md3-body-medium font-medium">{label}</span>
   </button>
 );
 
 const ActivityItem: React.FC<{
-  type: string;
+  type?: string;
   description: string;
   timestamp: string;
   status: 'success' | 'pending' | 'failed';
-}> = ({ type, description, timestamp, status }) => {
+}> = ({ description, timestamp, status }) => {
   const getStatusIcon = () => {
     switch (status) {
       case 'success':
@@ -366,11 +338,13 @@ const ActivityItem: React.FC<{
   };
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-background rounded-lg border border-border">
-      {getStatusIcon()}
+    <div className="flex items-center gap-3 rounded-2xl border border-outline bg-surface px-4 py-3">
+      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-high">
+        {getStatusIcon()}
+      </span>
       <div className="flex-1">
-        <div className="text-sm font-medium">{description}</div>
-        <div className="text-xs text-muted-foreground">{timestamp}</div>
+        <div className="md3-body-medium text-on-surface">{description}</div>
+        <div className="md3-label-small text-on-surface-variant">{timestamp}</div>
       </div>
     </div>
   );
@@ -382,15 +356,12 @@ const PerformanceMetric: React.FC<{
   color: string;
 }> = ({ label, value, color }) => (
   <div>
-    <div className="flex items-center justify-between mb-2">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm font-bold">{value}%</span>
+    <div className="flex items-center justify-between">
+      <span className="md3-body-medium text-on-surface-variant">{label}</span>
+      <span className="md3-label-medium text-on-surface">{value}%</span>
     </div>
-    <div className="w-full bg-background rounded-full h-2">
-      <div
-        className={`bg-${color}-500 h-2 rounded-full transition-all`}
-        style={{ width: `${value}%` }}
-      />
+    <div className="mt-2 h-2 w-full rounded-full bg-surface-container-high">
+      <div className={`h-2 rounded-full ${color}`} style={{ width: `${value}%` }} />
     </div>
   </div>
 );
@@ -401,23 +372,20 @@ const ProjectCard: React.FC<{
   status: string;
   lastUpdate: string;
 }> = ({ name, progress, status, lastUpdate }) => (
-  <div className="p-4 bg-background rounded-lg border border-border hover:border-primary/50 transition-colors">
-    <div className="flex items-center justify-between mb-3">
-      <h3 className="font-semibold">{name}</h3>
-      <span className={`text-xs px-2 py-1 rounded-full ${
-        progress === 100 ? 'bg-green-500/20 text-green-500' : 'bg-blue-500/20 text-blue-500'
-      }`}>
+  <div className="rounded-2xl border border-outline bg-surface px-4 py-3 transition-colors hover:border-primary">
+    <div className="flex items-center justify-between">
+      <h3 className="md3-title-small text-on-surface">{name}</h3>
+      <span
+        className={`md3-label-small rounded-full px-3 py-1 ${
+          progress === 100 ? 'bg-success/15 text-success' : 'bg-primary/15 text-primary'
+        }`}
+      >
         {status}
       </span>
     </div>
-    <div className="mb-3">
-      <div className="w-full bg-card rounded-full h-2">
-        <div
-          className="bg-primary h-2 rounded-full transition-all"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+    <div className="mt-3 h-2 w-full rounded-full bg-surface-container-high">
+      <div className="h-2 rounded-full bg-primary" style={{ width: `${progress}%` }} />
     </div>
-    <div className="text-xs text-muted-foreground">Updated {lastUpdate}</div>
+    <div className="md3-label-small text-on-surface-variant mt-3">Updated {lastUpdate}</div>
   </div>
 );

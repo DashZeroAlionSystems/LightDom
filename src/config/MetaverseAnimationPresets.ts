@@ -297,7 +297,7 @@ export const metaverseBiomes: MetaverseBiome[] = [
       }
     ],
     lighting: {
-      ambient: { color: '#00D4FF', intensity: 0.3 },
+      ambient: '#00D4FF',
       directional: { color: '#FFFFFF', intensity: 0.8, direction: [1, 1, 1] },
       point: [
         { color: '#00D4FF', intensity: 1, position: [0, 10, 0], range: 20 },
@@ -343,7 +343,7 @@ export const metaverseBiomes: MetaverseBiome[] = [
       }
     ],
     lighting: {
-      ambient: { color: '#FFFFFF', intensity: 0.8 },
+      ambient: '#FFFFFF',
       directional: { color: '#FFFFFF', intensity: 1, direction: [0, -1, 0] },
       point: [
         { color: '#2563EB', intensity: 0.8, position: [0, 8, 0], range: 25 }
@@ -387,7 +387,7 @@ export const metaverseBiomes: MetaverseBiome[] = [
       }
     ],
     lighting: {
-      ambient: { color: '#FFFFFF', intensity: 0.9 },
+      ambient: '#FFFFFF',
       directional: { color: '#FFFFFF', intensity: 1, direction: [0, -1, 0] },
       point: [
         { color: '#10B981', intensity: 1, position: [0, 6, 0], range: 20 },
@@ -432,7 +432,7 @@ export const metaverseBiomes: MetaverseBiome[] = [
       }
     ],
     lighting: {
-      ambient: { color: '#FFFFFF', intensity: 0.7 },
+      ambient: '#FFFFFF',
       directional: { color: '#FFFFFF', intensity: 0.8, direction: [0, -1, 0] },
       point: [
         { color: '#EC4899', intensity: 0.9, position: [0, 7, 0], range: 18 },
@@ -477,7 +477,7 @@ export const metaverseBiomes: MetaverseBiome[] = [
       }
     ],
     lighting: {
-      ambient: { color: '#FFFFFF', intensity: 0.8 },
+      ambient: '#FFFFFF',
       directional: { color: '#FFFFFF', intensity: 0.9, direction: [0, -1, 0] },
       point: [
         { color: '#7C3AED', intensity: 1, position: [0, 9, 0], range: 22 },
@@ -522,7 +522,7 @@ export const metaverseBiomes: MetaverseBiome[] = [
       }
     ],
     lighting: {
-      ambient: { color: '#FFFFFF', intensity: 0.9 },
+      ambient: '#FFFFFF',
       directional: { color: '#FFFFFF', intensity: 1, direction: [0, -1, 0] },
       point: [
         { color: '#22C55E', intensity: 0.8, position: [0, 8, 0], range: 25 },
@@ -581,7 +581,7 @@ export const metaverseBiomes: MetaverseBiome[] = [
       }
     ],
     lighting: {
-      ambient: { color: '#FFFFFF', intensity: 0.8 },
+      ambient: '#FFFFFF',
       directional: { color: '#FFFFFF', intensity: 0.9, direction: [0, -1, 0] },
       point: [
         { color: '#F59E0B', intensity: 1.2, position: [0, 6, 0], range: 20 },
@@ -628,7 +628,7 @@ export const metaverseBiomes: MetaverseBiome[] = [
       }
     ],
     lighting: {
-      ambient: { color: '#FFFFFF', intensity: 0.9 },
+      ambient: '#FFFFFF',
       directional: { color: '#FFFFFF', intensity: 1, direction: [0, -1, 0] },
       point: [
         { color: '#6B7280', intensity: 0.8, position: [0, 10, 0], range: 30 },

@@ -77,25 +77,34 @@ export interface ParticleSystem {
 }
 
 export interface LightingConfig {
-  ambient: {
+  // Ambient may be a color string or a richer object
+  ambient?: string | { color: string; intensity?: number };
+  directional?: {
     color: string;
-    intensity: number;
+    intensity?: number;
+    direction?: [number, number, number];
+    [key: string]: any;
   };
-  directional: {
+  // Support both `point` and `pointLights` naming
+  point?: Array<{
     color: string;
-    intensity: number;
-    direction: [number, number, number];
-  };
-  point: Array<{
-    color: string;
-    intensity: number;
-    position: [number, number, number];
-    range: number;
+    intensity?: number;
+    position?: [number, number, number];
+    range?: number;
+    [key: string]: any;
   }>;
-  effects: Array<{
-    type: 'pulse' | 'flicker' | 'wave' | 'glow';
-    duration: number;
-    intensity: number;
+  pointLights?: Array<{
+    color: string;
+    intensity?: number;
+    position?: [number, number, number];
+    range?: number;
+    [key: string]: any;
+  }>;
+  effects?: Array<{
+    type: 'pulse' | 'flicker' | 'wave' | 'glow' | string;
+    duration?: number;
+    intensity?: number;
+    [key: string]: any;
   }>;
 }
 

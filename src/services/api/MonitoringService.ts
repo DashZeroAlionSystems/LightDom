@@ -28,6 +28,10 @@ export interface MonitoringMetrics {
       active: number;
       completed: number;
       failed: number;
+      // Some queue status providers include an error field when status cannot be
+      // retrieved; make it optional to avoid type errors when we propagate
+      // error objects into monitoring metrics.
+      error?: any;
     };
   };
   performance: {

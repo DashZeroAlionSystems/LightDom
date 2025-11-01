@@ -3,7 +3,7 @@
  * Service for managing admin settings throughout the application
  */
 
-import { AdminSettings, SettingsValidationResult, SettingsChangeLog } from '../types/api/AdminSettingsTypes';
+import { AdminSettings, SettingsValidationResult, SettingsChangeLog } from '@/types/api/AdminSettingsTypes';
 
 class AdminSettingsService {
   private settings: AdminSettings;

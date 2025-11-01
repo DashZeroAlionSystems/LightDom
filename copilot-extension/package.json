@@ -1,0 +1,99 @@
+{
+  "name": "lightdom-copilot",
+  "displayName": "LightDom Copilot",
+  "description": "AI-powered DOM optimization assistant for the LightDom platform",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:html",
+    "onLanguage:css"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "lightdom.optimizeDOM",
+        "title": "LightDom: Optimize DOM"
+      },
+      {
+        "command": "lightdom.analyzePerformance",
+        "title": "LightDom: Analyze Performance"
+      },
+      {
+        "command": "lightdom.generateTests",
+        "title": "LightDom: Generate Tests"
+      },
+      {
+        "command": "lightdom.reviewCode",
+        "title": "LightDom: Review Code"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "lightdom.optimizeDOM",
+          "when": "resourceExtname =~ /\\.(html|ts|js|tsx|jsx)$/",
+          "group": "7_modification"
+        },
+        {
+          "command": "lightdom.analyzePerformance",
+          "when": "resourceExtname =~ /\\.(html|ts|js|tsx|jsx)$/",
+          "group": "7_modification"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "LightDom Copilot",
+      "properties": {
+        "lightdom.api.endpoint": {
+          "type": "string",
+          "default": "http://localhost:3001",
+          "description": "LightDom API endpoint"
+        },
+        "lightdom.ml.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable ML-powered analysis"
+        },
+        "lightdom.autoOptimize": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically suggest optimizations"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts --config .eslintrc.json",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.53.0",
+    "@typescript-eslint/parser": "^5.53.0",
+    "eslint": "^8.34.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.0.0",
+    "@vscode/test-electron": "^2.2.3"
+  },
+  "dependencies": {
+    "axios": "^1.3.4",
+    "@tensorflow/tfjs": "^4.22.0",
+    "ws": "^8.13.0"
+  }
+}

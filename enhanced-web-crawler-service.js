@@ -130,11 +130,21 @@ class EnhancedWebCrawlerService {
       // Set user agent
       await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
       
-      // Set timeout
-      await page.setDefaultTimeout(10000);
+      // Set timeout (increased for better reliability)
+      await page.setDefaultTimeout(30000);
       
-      // Navigate to URL
-      await page.goto(url, { waitUntil: 'networkidle2' });
+      // Navigate to URL with timeout handling
+      try {
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 25000 });
+      } catch (navError) {
+        if (navError.message.includes('Navigation timeout')) {
+          console.warn(`⚠️  Navigation timeout for ${url}, continuing with basic page load...`);
+          // Try with domcontentloaded instead
+          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+        } else {
+          throw navError; // Re-throw non-timeout errors
+        }
+      }
       
       // Extract comprehensive SEO data
       const seoData = await page.evaluate(() => {
@@ -282,6 +292,10 @@ class EnhancedWebCrawlerService {
     } catch (error) {
       console.error(`❌ Failed to crawl ${url}:`, error.message);
       this.crawledUrls.add(url); // Mark as attempted
+      
+      // Don't save failed crawls to database, just log
+      console.log(`⚠️  Skipping database save for failed crawl: ${url}`);
+      
       return {
         url,
         status: 'error',
@@ -493,20 +507,30 @@ class EnhancedWebCrawlerService {
 
     // Start with seed URLs
     for (const url of this.seedUrls) {
-      if (!this.crawledUrls.has(url)) {
-        await this.crawlUrl(url);
-        // Small delay between crawls
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      try {
+        if (!this.crawledUrls.has(url)) {
+          await this.crawlUrl(url);
+          // Small delay between crawls
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      } catch (error) {
+        console.error(`❌ Error crawling seed URL ${url}:`, error.message);
+        // Continue with next URL
       }
     }
 
     // Start continuous crawling
     this.crawlInterval = setInterval(async () => {
-      if (this.discoveredUrls.size > 0) {
-        const url = this.discoveredUrls.values().next().value;
-        this.discoveredUrls.delete(url);
-        await this.crawlUrl(url);
-        this.saveData();
+      try {
+        if (this.discoveredUrls.size > 0) {
+          const url = this.discoveredUrls.values().next().value;
+          this.discoveredUrls.delete(url);
+          await this.crawlUrl(url);
+          this.saveData();
+        }
+      } catch (error) {
+        console.error('❌ Error in continuous crawling loop:', error.message);
+        // Continue running despite errors
       }
     }, 5000); // Crawl every 5 seconds
 

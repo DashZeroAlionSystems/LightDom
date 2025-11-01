@@ -20,7 +20,7 @@ import {
   InteractionFeaturesComplete,
   CompositeScoresComplete,
   SEOFeatureCalculator
-} from '../types/complete-seo-schema';
+} from '@/types/complete-seo-schema';
 import { Pool } from 'pg';
 import axios from 'axios';
 import * as cheerio from 'cheerio';

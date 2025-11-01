@@ -471,16 +471,16 @@ export class MetaverseAlchemyAPI {
       
       // Mock leaderboard data - in real implementation, this would come from database
       const leaderboard = [
-        { rank: 1, username: 'RealityBender', score: 15420, level: 25, rank: 'Reality Bender' },
-        { rank: 2, username: 'QuantumMaster', score: 12350, level: 22, rank: 'Mythical' },
-        { rank: 3, username: 'AlchemyLegend', score: 9870, level: 20, rank: 'Legend' },
-        { rank: 4, username: 'ElementFusion', score: 8450, level: 18, rank: 'Legend' },
-        { rank: 5, username: 'MiningExpert', score: 7230, level: 16, rank: 'Grandmaster' },
-        { rank: 6, username: 'CodeOptimizer', score: 6540, level: 15, rank: 'Grandmaster' },
-        { rank: 7, username: 'DataMiner', score: 5890, level: 14, rank: 'Master' },
-        { rank: 8, username: 'AlgorithmCrafter', score: 5230, level: 13, rank: 'Master' },
-        { rank: 9, username: 'BiomeExplorer', score: 4670, level: 12, rank: 'Expert' },
-        { rank: 10, username: 'ElementSeeker', score: 4120, level: 11, rank: 'Expert' }
+        { rank: 1, username: 'RealityBender', score: 15420, level: 25, tier: 'Reality Bender' },
+        { rank: 2, username: 'QuantumMaster', score: 12350, level: 22, tier: 'Mythical' },
+        { rank: 3, username: 'AlchemyLegend', score: 9870, level: 20, tier: 'Legend' },
+        { rank: 4, username: 'ElementFusion', score: 8450, level: 18, tier: 'Legend' },
+        { rank: 5, username: 'MiningExpert', score: 7230, level: 16, tier: 'Grandmaster' },
+        { rank: 6, username: 'CodeOptimizer', score: 6540, level: 15, tier: 'Grandmaster' },
+        { rank: 7, username: 'DataMiner', score: 5890, level: 14, tier: 'Master' },
+        { rank: 8, username: 'AlgorithmCrafter', score: 5230, level: 13, tier: 'Master' },
+        { rank: 9, username: 'BiomeExplorer', score: 4670, level: 12, tier: 'Expert' },
+        { rank: 10, username: 'ElementSeeker', score: 4120, level: 11, tier: 'Expert' }
       ];
       
       res.json({

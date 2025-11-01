@@ -766,8 +766,8 @@ export class AIContentGenerationService {
         ];
 
         commonWords.forEach((word, index) => {
-            this.vocabularyMap.set(word, index);
-            this.reverseVocabularyMap.set(index, word);
+            this.vocabularyMap.set(word as string, index);
+            this.reverseVocabularyMap.set(index, word as string);
         });
     }
 
@@ -794,10 +794,10 @@ export class AIContentGenerationService {
             const uniqueWords = [...new Set(words)];
 
             uniqueWords.forEach((word, index) => {
-                if (!this.vocabularyMap.has(word)) {
+                if (!this.vocabularyMap.has(word as string)) {
                     const newIndex = this.vocabularyMap.size;
-                    this.vocabularyMap.set(word, newIndex);
-                    this.reverseVocabularyMap.set(newIndex, word);
+                    this.vocabularyMap.set(word as string, newIndex);
+                    this.reverseVocabularyMap.set(newIndex, word as string);
                 }
             });
 
