@@ -113,7 +113,13 @@
     "monitoring:start": "node scripts/monitoring-system.js",
     "monitoring:status": "curl -s http://localhost:8085/api/health | jq .",
     "monitoring:alerts": "curl -s http://localhost:8085/api/alerts | jq .",
-    "monitoring:incidents": "curl -s http://localhost:8085/api/incidents | jq ."
+    "monitoring:incidents": "curl -s http://localhost:8085/api/incidents | jq .",
+    "design-system:mine": "tsx scripts/mine-design-system.ts",
+    "n8n:start": "docker-compose up -d n8n",
+    "n8n:stop": "docker-compose stop n8n",
+    "n8n:logs": "docker-compose logs -f n8n",
+    "n8n:setup": "node scripts/setup-n8n-integration.js",
+    "workflow:mine": "tsx scripts/mine-design-system.ts"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.2",
