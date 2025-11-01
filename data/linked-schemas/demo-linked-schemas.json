@@ -1,0 +1,470 @@
+{
+  "metadata": {
+    "exportedAt": "2025-11-01T12:01:50.237Z",
+    "totalTables": 4,
+    "totalRelationships": 4,
+    "totalFeatures": 3
+  },
+  "tables": [
+    {
+      "schema": "public",
+      "tableName": "users",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "wallet_address",
+          "type": "varchar",
+          "nullable": false,
+          "maxLength": 42
+        },
+        {
+          "name": "username",
+          "type": "varchar",
+          "nullable": true,
+          "maxLength": 50
+        },
+        {
+          "name": "email",
+          "type": "varchar",
+          "nullable": true,
+          "maxLength": 255
+        },
+        {
+          "name": "reputation_score",
+          "type": "integer",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "primaryKeys": [
+        "id"
+      ]
+    },
+    {
+      "schema": "public",
+      "tableName": "optimizations",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "url",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "space_bytes",
+          "type": "bigint",
+          "nullable": false
+        },
+        {
+          "name": "proof_hash",
+          "type": "varchar",
+          "nullable": false,
+          "maxLength": 66
+        },
+        {
+          "name": "is_verified",
+          "type": "boolean",
+          "nullable": true
+        },
+        {
+          "name": "metadata",
+          "type": "jsonb",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "primaryKeys": [
+        "id"
+      ]
+    },
+    {
+      "schema": "public",
+      "tableName": "seo_clients",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "domain",
+          "type": "varchar",
+          "nullable": false,
+          "maxLength": 255
+        },
+        {
+          "name": "api_key",
+          "type": "varchar",
+          "nullable": false,
+          "maxLength": 64
+        },
+        {
+          "name": "subscription_tier",
+          "type": "varchar",
+          "nullable": false,
+          "maxLength": 50
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "nullable": true,
+          "maxLength": 20
+        },
+        {
+          "name": "config",
+          "type": "jsonb",
+          "nullable": true
+        },
+        {
+          "name": "settings",
+          "type": "jsonb",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "primaryKeys": [
+        "id"
+      ]
+    },
+    {
+      "schema": "public",
+      "tableName": "seo_analytics",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "client_id",
+          "type": "uuid",
+          "nullable": false
+        },
+        {
+          "name": "url",
+          "type": "text",
+          "nullable": false
+        },
+        {
+          "name": "seo_score",
+          "type": "numeric",
+          "nullable": true
+        },
+        {
+          "name": "performance_score",
+          "type": "numeric",
+          "nullable": true
+        },
+        {
+          "name": "optimization_applied",
+          "type": "jsonb",
+          "nullable": true
+        },
+        {
+          "name": "timestamp",
+          "type": "timestamp",
+          "nullable": true
+        }
+      ],
+      "primaryKeys": [
+        "id"
+      ]
+    }
+  ],
+  "relationships": {
+    "foreignKeys": [
+      {
+        "table": "optimizations",
+        "column": "user_id",
+        "foreign_table": "users",
+        "foreign_column": "id"
+      },
+      {
+        "table": "seo_clients",
+        "column": "user_id",
+        "foreign_table": "users",
+        "foreign_column": "id"
+      },
+      {
+        "table": "seo_analytics",
+        "column": "client_id",
+        "foreign_table": "seo_clients",
+        "foreign_column": "id"
+      }
+    ],
+    "semantic": [
+      {
+        "table1": "optimizations",
+        "table2": "seo_clients",
+        "commonFields": [
+          "id",
+          "user_id",
+          "created_at"
+        ]
+      }
+    ]
+  },
+  "features": [
+    {
+      "name": "users",
+      "tables": [
+        {
+          "schema": "public",
+          "tableName": "users",
+          "columns": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "nullable": false
+            },
+            {
+              "name": "wallet_address",
+              "type": "varchar",
+              "nullable": false,
+              "maxLength": 42
+            },
+            {
+              "name": "username",
+              "type": "varchar",
+              "nullable": true,
+              "maxLength": 50
+            },
+            {
+              "name": "email",
+              "type": "varchar",
+              "nullable": true,
+              "maxLength": 255
+            },
+            {
+              "name": "reputation_score",
+              "type": "integer",
+              "nullable": true
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "nullable": true
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp",
+              "nullable": true
+            }
+          ],
+          "primaryKeys": [
+            "id"
+          ]
+        }
+      ],
+      "settings": [],
+      "options": []
+    },
+    {
+      "name": "optimizations",
+      "tables": [
+        {
+          "schema": "public",
+          "tableName": "optimizations",
+          "columns": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "nullable": false
+            },
+            {
+              "name": "user_id",
+              "type": "uuid",
+              "nullable": false
+            },
+            {
+              "name": "url",
+              "type": "text",
+              "nullable": false
+            },
+            {
+              "name": "space_bytes",
+              "type": "bigint",
+              "nullable": false
+            },
+            {
+              "name": "proof_hash",
+              "type": "varchar",
+              "nullable": false,
+              "maxLength": 66
+            },
+            {
+              "name": "is_verified",
+              "type": "boolean",
+              "nullable": true
+            },
+            {
+              "name": "metadata",
+              "type": "jsonb",
+              "nullable": true
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "nullable": true
+            }
+          ],
+          "primaryKeys": [
+            "id"
+          ]
+        }
+      ],
+      "settings": [],
+      "options": []
+    },
+    {
+      "name": "seo",
+      "tables": [
+        {
+          "schema": "public",
+          "tableName": "seo_clients",
+          "columns": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "nullable": false
+            },
+            {
+              "name": "user_id",
+              "type": "uuid",
+              "nullable": false
+            },
+            {
+              "name": "domain",
+              "type": "varchar",
+              "nullable": false,
+              "maxLength": 255
+            },
+            {
+              "name": "api_key",
+              "type": "varchar",
+              "nullable": false,
+              "maxLength": 64
+            },
+            {
+              "name": "subscription_tier",
+              "type": "varchar",
+              "nullable": false,
+              "maxLength": 50
+            },
+            {
+              "name": "status",
+              "type": "varchar",
+              "nullable": true,
+              "maxLength": 20
+            },
+            {
+              "name": "config",
+              "type": "jsonb",
+              "nullable": true
+            },
+            {
+              "name": "settings",
+              "type": "jsonb",
+              "nullable": true
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "nullable": true
+            }
+          ],
+          "primaryKeys": [
+            "id"
+          ]
+        },
+        {
+          "schema": "public",
+          "tableName": "seo_analytics",
+          "columns": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "nullable": false
+            },
+            {
+              "name": "client_id",
+              "type": "uuid",
+              "nullable": false
+            },
+            {
+              "name": "url",
+              "type": "text",
+              "nullable": false
+            },
+            {
+              "name": "seo_score",
+              "type": "numeric",
+              "nullable": true
+            },
+            {
+              "name": "performance_score",
+              "type": "numeric",
+              "nullable": true
+            },
+            {
+              "name": "optimization_applied",
+              "type": "jsonb",
+              "nullable": true
+            },
+            {
+              "name": "timestamp",
+              "type": "timestamp",
+              "nullable": true
+            }
+          ],
+          "primaryKeys": [
+            "id"
+          ]
+        }
+      ],
+      "settings": [
+        "config",
+        "settings"
+      ],
+      "options": [
+        "subscription_tier",
+        "status"
+      ]
+    }
+  ]
+}

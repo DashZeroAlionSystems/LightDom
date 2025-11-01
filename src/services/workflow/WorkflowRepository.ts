@@ -172,7 +172,6 @@ export interface WorkflowAdminSummary {
   tasks: WorkflowAdminTask[];
   attributes: WorkflowAdminAttribute[];
 }
-
 export interface NeuralNetworkInstanceRecord {
   id: string;
   workflow_id: string | null;
@@ -235,6 +234,8 @@ export interface NeuralAttributeSuggestionRecord {
   applied_at: string | null;
   applied_attribute_id: string | null;
 }
+
+
 
 export class WorkflowRepository {
   async initialize() {
@@ -317,6 +318,75 @@ export class WorkflowRepository {
       ...workflowRes.rows[0],
       attributes: attributesRes.rows,
       seeds: seedsRes.rows,
+    };
+  }
+
+  async upsertNeuralNetworkInstance(
+    record: Partial<NeuralNetworkInstanceRecord> & { workflow_instance_id: string; label: string; model_type: string },
+  ): Promise<NeuralNetworkInstanceRecord> {
+    await this.initialize();
+    const pool = await getPool();
+
+    const payload = {
+      workflow_id: record.workflow_id ?? null,
+      workflow_instance_id: record.workflow_instance_id,
+      label: record.label,
+      model_type: record.model_type,
+      current_version: record.current_version ?? null,
+      status: record.status ?? 'provisioning',
+      automation_enabled: record.automation_enabled ?? false,
+      config: JSON.stringify(record.config ?? {}),
+      metrics: JSON.stringify(record.metrics ?? {}),
+      last_trained_at: record.last_trained_at ?? null,
+    };
+
+    const { rows } = await pool.query(
+      `INSERT INTO neural_network_instances (
+         workflow_id,
+         workflow_instance_id,
+         label,
+         model_type,
+         current_version,
+         status,
+         automation_enabled,
+         config,
+         metrics,
+         last_trained_at
+       ) VALUES (
+         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
+       )
+       ON CONFLICT (workflow_instance_id)
+       DO UPDATE SET
+         workflow_id = EXCLUDED.workflow_id,
+         label = EXCLUDED.label,
+         model_type = EXCLUDED.model_type,
+         current_version = COALESCE(EXCLUDED.current_version, neural_network_instances.current_version),
+         status = EXCLUDED.status,
+         automation_enabled = EXCLUDED.automation_enabled,
+         config = EXCLUDED.config,
+         metrics = EXCLUDED.metrics,
+         last_trained_at = COALESCE(EXCLUDED.last_trained_at, neural_network_instances.last_trained_at),
+         updated_at = NOW()
+       RETURNING *`,
+      [
+        payload.workflow_id,
+        payload.workflow_instance_id,
+        payload.label,
+        payload.model_type,
+        payload.current_version,
+        payload.status,
+        payload.automation_enabled,
+        payload.config,
+        payload.metrics,
+        payload.last_trained_at,
+      ],
+    );
+
+    const row = rows[0];
+    return {
+      ...row,
+      config: row.config ?? {},
+      metrics: row.metrics ?? {},
     };
   }
 
@@ -473,81 +543,6 @@ export class WorkflowRepository {
 
   }
 
-  async listWorkflowAdminSummaries(): Promise<WorkflowAdminSummary[]> {
-    await this.initialize();
-    const pool = await getPool();
-
-    const { rows } = await pool.query(
-      `SELECT
-         wi.id,
-         wi.status,
-         wi.prompt_payload,
-         wi.active_tasks,
-         wi.automation_state,
-         wi.automation_threshold,
-         wi.tf_model_id,
-         wi.created_at,
-         wi.updated_at,
-         w.dataset_name,
-         w.created_by,
-         COALESCE(wi.prompt_payload -> 'owner' ->> 'name', w.created_by) AS owner_name,
-         COALESCE(wi.prompt_payload -> 'owner' ->> 'email', w.created_by) AS owner_email
-       FROM workflow_instances wi
-       LEFT JOIN workflows w ON wi.workflow_id = w.id
-       ORDER BY wi.updated_at DESC NULLS LAST, wi.created_at DESC`,
-    );
-
-    const fallbackId = (prefix: string, position: number) => `${prefix}-${position}`;
-
-    return rows.map((row, index) => {
-      const promptPayload = (row.prompt_payload ?? {}) as Record<string, any>;
-      const automationState = (row.automation_state ?? {}) as Record<string, any>;
-      const tasksRaw = Array.isArray(row.active_tasks) ? (row.active_tasks as any[]) : [];
-      const attributesRaw = Array.isArray(promptPayload.attributes) ? promptPayload.attributes : [];
-
-      const tasks: WorkflowAdminTask[] = tasksRaw.map((task: any, taskIndex: number) => ({
-        id: String(task.id ?? task.taskId ?? fallbackId('task', taskIndex)),
-        label: String(task.label ?? task.name ?? `Task ${taskIndex + 1}`),
-        status: String(task.status ?? 'pending'),
-        description: typeof task.description === 'string' ? task.description : undefined,
-        lastRunAt: task.lastRunAt ? String(task.lastRunAt) : undefined,
-      }));
-
-      const attributes: WorkflowAdminAttribute[] = attributesRaw.map((attribute: any, attrIndex: number) => ({
-        id: String(attribute.id ?? attribute.key ?? fallbackId('attr', attrIndex)),
-        label: String(attribute.label ?? attribute.name ?? `Attribute ${attrIndex + 1}`),
-        type: attribute.type ?? attribute.category ?? null,
-        enrichmentPrompt: attribute.enrichmentPrompt ?? attribute.prompt ?? null,
-        drilldownPrompts: Array.isArray(attribute.drilldownPrompts)
-          ? attribute.drilldownPrompts.map((value: any) => String(value))
-          : [],
-        status: attribute.status ?? undefined,
-      }));
-
-      return {
-        id: String(row.id),
-        campaignName: row.dataset_name ?? promptPayload.campaignName ?? `Workflow ${index + 1}`,
-        ownerName: row.owner_name ?? promptPayload.owner?.name ?? row.created_by ?? 'Unknown owner',
-        ownerEmail: row.owner_email ?? promptPayload.owner?.email ?? 'unknown@example.com',
-        status: row.status ?? 'draft',
-        scriptInjected: Boolean(
-          automationState.scriptInjected ?? promptPayload.scriptInjected ?? false,
-        ),
-        n8nWorkflowId: promptPayload.n8nWorkflowId ?? automationState.n8nWorkflowId ?? null,
-        tensorflowInstanceId: row.tf_model_id ?? automationState.tfModelId ?? null,
-        seoScore: promptPayload.seoScore ?? automationState.seoScore ?? null,
-        automationThreshold: row.automation_threshold ?? automationState.threshold ?? null,
-        pendingAutomation: Boolean(
-          automationState.pendingAutomation ?? automationState.pending ?? false,
-        ),
-        createdAt: row.created_at,
-        updatedAt: row.updated_at ?? row.created_at,
-        tasks,
-        attributes,
-      };
-    });
-  }
-
   async listTfBaseModels(): Promise<TfBaseModelRecord[]> {
     await this.initialize();
     const pool = await getPool();
@@ -555,380 +550,51 @@ export class WorkflowRepository {
       'SELECT * FROM tf_base_models ORDER BY updated_at DESC NULLS LAST, created_at DESC',
     );
 
-    return rows.map((row) => ({
-      ...row,
-      feature_schema: row.feature_schema ?? {},
-      last_validated_metrics: row.last_validated_metrics ?? {},
-    }));
+    const fallbackId = (prefix: string, seed: string | number) => `${prefix}-${seed}`;
+
+    return rows.map((row) => {
+      const promptPayload = (row.prompt_payload ?? {}) as Record<string, any>;
+      const automationState = (row.automation_state ?? {}) as Record<string, any>;
+      const owner = promptPayload.owner ?? {};
+      const tasksRaw = Array.isArray(row.active_tasks) ? (row.active_tasks as any[]) : [];
+      const attributesRaw = Array.isArray(promptPayload.attributes)
+        ? (promptPayload.attributes as any[])
+        : [];
+
+      const tasks: WorkflowAdminTask[] = tasksRaw.map((task) => ({
+        id: String(task.id ?? task.taskId ?? fallbackId('task', task.label ?? Math.random().toString(36).slice(2))),
+        label: String(task.label ?? task.name ?? 'Task'),
+        status: String(task.status ?? 'pending'),
+        description: task.description ? String(task.description) : undefined,
+        lastRunAt: task.lastRunAt ? String(task.lastRunAt) : undefined,
+      }));
+
+      const attributes: WorkflowAdminAttribute[] = attributesRaw.map((attribute: any) => ({
+        id: String(
+          attribute.id
+            ?? attribute.key
+            ?? fallbackId('attr', attribute.label ?? Math.random().toString(36).slice(2)),
+        ),
+        label: String(attribute.label ?? attribute.name ?? 'Attribute'),
+        type: attribute.type ?? attribute.category ?? null,
+        enrichmentPrompt: attribute.enrichmentPrompt ?? attribute.prompt ?? null,
+        drilldownPrompts: Array.isArray(attribute.drilldownPrompts)
+          ? attribute.drilldownPrompts.map((value: any) => String(value))
+          : [],
+      }));
+
+      return {
+        id: String(row.id),
+        name: String(row.name),
+        description: row.description,
+        tasks,
+        attributes,
+        owner: owner.name ?? owner.email ?? null,
+      } satisfies WorkflowAdminSummary;
+    });
   }
-
-  async listNeuralNetworkInstances(options: { workflowId?: string; includeMetrics?: boolean } = {}): Promise<NeuralNetworkInstanceRecord[]> {
-    await this.initialize();
-    const pool = await getPool();
-
-    const conditions: string[] = [];
-    const values: any[] = [];
-
-    if (options.workflowId) {
-      conditions.push('workflow_id = $1');
-      values.push(options.workflowId);
-    }
-
-    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-    const { rows } = await pool.query(
-      `SELECT * FROM neural_network_instances ${whereClause} ORDER BY updated_at DESC NULLS LAST, created_at DESC`,
-      values,
-    );
-
-    return rows.map((row) => ({
-      ...row,
-      config: row.config ?? {},
-      metrics: options.includeMetrics ? row.metrics ?? {} : {},
-    }));
-  }
-
-  async getNeuralNetworkInstance(id: string): Promise<NeuralNetworkInstanceRecord | null> {
-    await this.initialize();
-    const pool = await getPool();
-    const { rows } = await pool.query('SELECT * FROM neural_network_instances WHERE id = $1', [id]);
-    if (!rows.length) return null;
-    const row = rows[0];
-    return {
-      ...row,
-      config: row.config ?? {},
-      metrics: row.metrics ?? {},
-    };
-  }
-
-  async upsertNeuralNetworkInstance(record: Partial<NeuralNetworkInstanceRecord> & { workflow_instance_id: string; label: string; model_type: string }): Promise<NeuralNetworkInstanceRecord> {
-    await this.initialize();
-    const pool = await getPool();
-
-    const payload = {
-      workflow_id: record.workflow_id ?? null,
-      workflow_instance_id: record.workflow_instance_id,
-      label: record.label,
-      model_type: record.model_type,
-      current_version: record.current_version ?? null,
-      status: record.status ?? 'provisioning',
-      automation_enabled: record.automation_enabled ?? false,
-      config: JSON.stringify(record.config ?? {}),
-      metrics: JSON.stringify(record.metrics ?? {}),
-      last_trained_at: record.last_trained_at ?? null,
-    };
-
-    const { rows } = await pool.query(
-      `INSERT INTO neural_network_instances (
-         workflow_id,
-         workflow_instance_id,
-         label,
-         model_type,
-         current_version,
-         status,
-         automation_enabled,
-         config,
-         metrics,
-         last_trained_at
-       ) VALUES (
-         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
-       )
-       ON CONFLICT (workflow_instance_id)
-       DO UPDATE SET
-         workflow_id = EXCLUDED.workflow_id,
-         label = EXCLUDED.label,
-         model_type = EXCLUDED.model_type,
-         current_version = COALESCE(EXCLUDED.current_version, neural_network_instances.current_version),
-         status = EXCLUDED.status,
-         automation_enabled = EXCLUDED.automation_enabled,
-         config = EXCLUDED.config,
-         metrics = EXCLUDED.metrics,
-         last_trained_at = COALESCE(EXCLUDED.last_trained_at, neural_network_instances.last_trained_at),
-         updated_at = NOW()
-       RETURNING *`,
-      [
-        payload.workflow_id,
-        payload.workflow_instance_id,
-        payload.label,
-        payload.model_type,
-        payload.current_version,
-        payload.status,
-        payload.automation_enabled,
-        payload.config,
-        payload.metrics,
-        payload.last_trained_at,
-      ],
-    );
-
-    const row = rows[0];
-    return {
-      ...row,
-      config: row.config ?? {},
-      metrics: row.metrics ?? {},
-    };
-  }
-
-  async recordNeuralTrainingRun(
-    instanceId: string,
-    payload: Partial<NeuralTrainingRunRecord> & { status: string },
-  ): Promise<NeuralTrainingRunRecord> {
-    await this.initialize();
-    const pool = await getPool();
-
-    const { rows } = await pool.query(
-      `INSERT INTO neural_training_runs (
-         neural_instance_id,
-         training_job_id,
-         workflow_run_id,
-         status,
-         dataset_overview,
-         hyperparameters,
-         metrics,
-         notes,
-         started_at,
-         completed_at
-       ) VALUES (
-         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
-       ) RETURNING *`,
-      [
-        instanceId,
-        payload.training_job_id ?? null,
-        payload.workflow_run_id ?? null,
-        payload.status,
-        JSON.stringify(payload.dataset_overview ?? {}),
-        JSON.stringify(payload.hyperparameters ?? {}),
-        JSON.stringify(payload.metrics ?? {}),
-        payload.notes ?? null,
-        payload.started_at ?? new Date().toISOString(),
-        payload.completed_at ?? null,
-      ],
-    );
-
-    const row = rows[0];
-    return {
-      ...row,
-      dataset_overview: row.dataset_overview ?? {},
-      hyperparameters: row.hyperparameters ?? {},
-      metrics: row.metrics ?? {},
-    };
-  }
-
-  async updateNeuralTrainingRun(runId: string, updates: Partial<NeuralTrainingRunRecord>): Promise<void> {
-    await this.initialize();
-    const pool = await getPool();
-
-    const fields: string[] = [];
-    const values: any[] = [];
-
-    if (updates.status) {
-      fields.push(`status = $${fields.length + 1}`);
-      values.push(updates.status);
-    }
-    if (updates.dataset_overview) {
-      fields.push(`dataset_overview = $${fields.length + 1}`);
-      values.push(JSON.stringify(updates.dataset_overview));
-    }
-    if (updates.hyperparameters) {
-      fields.push(`hyperparameters = $${fields.length + 1}`);
-      values.push(JSON.stringify(updates.hyperparameters));
-    }
-    if (updates.metrics) {
-      fields.push(`metrics = $${fields.length + 1}`);
-      values.push(JSON.stringify(updates.metrics));
-    }
-    if (updates.notes !== undefined) {
-      fields.push(`notes = $${fields.length + 1}`);
-      values.push(updates.notes);
-    }
-    if (updates.started_at) {
-      fields.push(`started_at = $${fields.length + 1}`);
-      values.push(updates.started_at);
-    }
-    if (updates.completed_at) {
-      fields.push(`completed_at = $${fields.length + 1}`);
-      values.push(updates.completed_at);
-    }
-
-    if (!fields.length) return;
-
-    values.push(runId);
-    await pool.query(
-      `UPDATE neural_training_runs SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${fields.length + 1}`,
-      values,
-    );
-  }
-
-  async recordNeuralSchemaVersion(
-    instanceId: string,
-    payload: Omit<NeuralTrainingSchemaVersionRecord, 'id' | 'neural_instance_id' | 'created_at'>,
-  ): Promise<NeuralTrainingSchemaVersionRecord> {
-    await this.initialize();
-    const pool = await getPool();
-
-    const { rows } = await pool.query(
-      `INSERT INTO neural_training_schema_versions (
-         neural_instance_id,
-         version,
-         schema_snapshot,
-         attributes,
-         discovered_links
-       ) VALUES ($1,$2,$3,$4,$5)
-       ON CONFLICT (neural_instance_id, version)
-       DO UPDATE SET
-         schema_snapshot = EXCLUDED.schema_snapshot,
-         attributes = EXCLUDED.attributes,
-         discovered_links = EXCLUDED.discovered_links
-       RETURNING *`,
-      [
-        instanceId,
-        payload.version,
-        JSON.stringify(payload.schema_snapshot ?? {}),
-        JSON.stringify(payload.attributes ?? []),
-        JSON.stringify(payload.discovered_links ?? []),
-      ],
-    );
-
-    const row = rows[0];
-    return {
-      ...row,
-      schema_snapshot: row.schema_snapshot ?? {},
-      attributes: row.attributes ?? [],
-      discovered_links: row.discovered_links ?? [],
-    };
-  }
-
-  async listNeuralSchemaLinks(workflowId: string): Promise<NeuralSchemaLinkRecord[]> {
-    await this.initialize();
-    const pool = await getPool();
-    const { rows } = await pool.query(
-      `SELECT * FROM neural_schema_links WHERE workflow_id = $1 ORDER BY discovered_at DESC`,
-      [workflowId],
-    );
-    return rows.map((row) => ({
-      ...row,
-      relation: row.relation ?? {},
-      metadata: row.metadata ?? {},
-    }));
-  }
-
-  async upsertNeuralSchemaLink(link: {
-    workflowId: string;
-    sourceType: string;
-    sourceId?: string | null;
-    schemaUri: string;
-    relation?: Record<string, any>;
-    confidence?: number | null;
-    metadata?: Record<string, any>;
-  }): Promise<NeuralSchemaLinkRecord> {
-    await this.initialize();
-    const pool = await getPool();
-
-    const { rows } = await pool.query(
-      `INSERT INTO neural_schema_links (
-         workflow_id,
-         source_type,
-         source_id,
-         schema_uri,
-         relation,
-         confidence,
-         metadata
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7)
-       ON CONFLICT (workflow_id, source_type, source_id, schema_uri)
-       DO UPDATE SET
-         relation = EXCLUDED.relation,
-         confidence = EXCLUDED.confidence,
-         metadata = EXCLUDED.metadata,
-         discovered_at = NOW()
-       RETURNING *`,
-      [
-        link.workflowId,
-        link.sourceType,
-        link.sourceId ?? null,
-        link.schemaUri,
-        JSON.stringify(link.relation ?? {}),
-        link.confidence ?? 0.8,
-        JSON.stringify(link.metadata ?? {}),
-      ],
-    );
-
-    const row = rows[0];
-    return {
-      ...row,
-      relation: row.relation ?? {},
-      metadata: row.metadata ?? {},
-    };
-  }
-
-  async listNeuralAttributeSuggestions(workflowId: string): Promise<NeuralAttributeSuggestionRecord[]> {
-    await this.initialize();
-    const pool = await getPool();
-    const { rows } = await pool.query(
-      `SELECT * FROM neural_attribute_suggestions WHERE workflow_id = $1 ORDER BY created_at DESC`,
-      [workflowId],
-    );
-    return rows.map((row) => ({
-      ...row,
-      suggestion: row.suggestion ?? {},
-    }));
-  }
-
-  async createNeuralAttributeSuggestion(payload: {
-    workflowId: string;
-    suggestion: Record<string, any>;
-    confidence?: number | null;
-  }): Promise<NeuralAttributeSuggestionRecord> {
-    await this.initialize();
-    const pool = await getPool();
-    const { rows } = await pool.query(
-      `INSERT INTO neural_attribute_suggestions (
-         workflow_id,
-         suggestion,
-         confidence
-       ) VALUES ($1,$2,$3) RETURNING *`,
-      [
-        payload.workflowId,
-        JSON.stringify(payload.suggestion ?? {}),
-        payload.confidence ?? 0.75,
-      ],
-    );
-
-    const row = rows[0];
-    return {
-      ...row,
-      suggestion: row.suggestion ?? {},
-    };
-  }
-
-  async markNeuralAttributeSuggestion(
-    suggestionId: string,
-    updates: { status?: string; appliedAttributeId?: string | null },
-  ): Promise<void> {
-    await this.initialize();
-    const pool = await getPool();
-
-    const fields: string[] = [];
-    const values: any[] = [];
-
-    if (updates.status) {
-      fields.push(`status = $${fields.length + 1}`);
-      values.push(updates.status);
-    }
-    if (updates.appliedAttributeId !== undefined) {
-      fields.push(`applied_attribute_id = $${fields.length + 1}`);
-      values.push(updates.appliedAttributeId ?? null);
-      fields.push(`applied_at = $${fields.length + 1}`);
-      values.push(updates.appliedAttributeId ? new Date().toISOString() : null);
-    }
-
-    if (!fields.length) return;
-
-    values.push(suggestionId);
-    await pool.query(
-      `UPDATE neural_attribute_suggestions SET ${fields.join(', ')} WHERE id = $${fields.length + 1}`,
-      values,
-    );
-  }
-
-  async applyBlueprint(workflowId: string, blueprint: WorkflowBlueprint) {
+  
+    async applyBlueprint(workflowId: string, blueprint: WorkflowBlueprint) {
     const pool = await getPool();
     const client = await pool.connect();
 
