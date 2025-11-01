@@ -51,6 +51,7 @@ import DesignSystemGuide from './components/DesignSystemGuide';
 import MotionDesignShowcase from './components/MotionDesignShowcase';
 import DesignToolsNavigation from './components/DesignToolsNavigation';
 import SchemaLinkingDashboard from './components/SchemaLinkingDashboard';
+import WorkflowCreationDashboard from './components/WorkflowCreationDashboard';
 import './App.css';
 
 // Initialize persistence system
@@ -121,6 +122,7 @@ const AppContent: React.FC = () => {
           <Route path="motion-showcase" element={<MotionDesignShowcase />} />
           <Route path="design-tools" element={<DesignToolsNavigation />} />
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
+          <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
         </Route>
         
         {/* Protected Routes */}
@@ -159,6 +161,7 @@ const AppContent: React.FC = () => {
           <Route path="motion-showcase" element={<MotionDesignShowcase />} />
           <Route path="design-tools" element={<DesignToolsNavigation />} />
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
+          <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
           
           {/* Admin Routes within Dashboard */}
           <Route path="admin" element={<AdminDashboard />} />
