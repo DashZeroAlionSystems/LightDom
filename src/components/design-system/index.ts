@@ -21,3 +21,6 @@ export { default as WorkflowManagementDashboard } from './WorkflowManagementDash
 
 export { default as DashboardGenerator } from './DashboardGenerator';
 export type { DashboardGeneratorProps } from './DashboardGenerator';
+
+export { default as MotionAnimationGenerator } from './MotionAnimationGenerator';
+export type { MotionAnimationGeneratorProps } from './MotionAnimationGenerator';
