@@ -18,3 +18,6 @@ export { default as EnhancedWorkflowWizard } from './EnhancedWorkflowWizard';
 export type { EnhancedWorkflowWizardProps, EnhancedWorkflowCampaign, WorkflowProcess } from './EnhancedWorkflowWizard';
 
 export { default as WorkflowManagementDashboard } from './WorkflowManagementDashboard';
+
+export { default as DashboardGenerator } from './DashboardGenerator';
+export type { DashboardGeneratorProps } from './DashboardGenerator';
