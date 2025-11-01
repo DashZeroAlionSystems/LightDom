@@ -124,6 +124,77 @@ router.get('/workflows/:id/attributes', async (req, res) => {
   }
 });
 
+router.get('/neural/instances', async (req, res) => {
+  try {
+    const { workflowId } = req.query ?? {};
+    const instances = await workflowRepository.listNeuralNetworkInstances({
+      workflowId: typeof workflowId === 'string' && workflowId.length ? workflowId : undefined,
+      includeMetrics: true,
+    });
+    res.json({ ok: true, instances });
+  } catch (error: any) {
+    res.status(500).json({ ok: false, error: error?.message || 'Failed to list neural instances' });
+  }
+});
+
+router.get('/neural/instances/:id', async (req, res) => {
+  try {
+    const instance = await workflowRepository.getNeuralNetworkInstance(req.params.id);
+    if (!instance) {
+      return res.status(404).json({ ok: false, error: 'Neural instance not found' });
+    }
+
+    const [trainingRuns, schemaVersions] = await Promise.all([
+      workflowRepository.listNeuralTrainingRuns(instance.id),
+      workflowRepository.listNeuralSchemaVersions(instance.id),
+    ]);
+
+    let schemaLinks = [];
+    let attributeSuggestions = [];
+
+    if (instance.workflow_id) {
+      [schemaLinks, attributeSuggestions] = await Promise.all([
+        workflowRepository.listNeuralSchemaLinks(instance.workflow_id),
+        workflowRepository.listNeuralAttributeSuggestions(instance.workflow_id),
+      ]);
+    }
+
+    res.json({
+      ok: true,
+      instance,
+      trainingRuns,
+      schemaVersions,
+      schemaLinks,
+      attributeSuggestions,
+    });
+  } catch (error: any) {
+    res.status(500).json({ ok: false, error: error?.message || 'Failed to load neural instance' });
+  }
+});
+
+router.patch('/neural/instances/:id', express.json(), async (req, res) => {
+  try {
+    const { status, automationEnabled, config, metrics, lastTrainedAt, currentVersion } = req.body ?? {};
+
+    const instance = await workflowRepository.updateNeuralNetworkInstance(req.params.id, {
+      status,
+      automation_enabled: typeof automationEnabled === 'boolean' ? automationEnabled : undefined,
+      config,
+      metrics,
+      last_trained_at: lastTrainedAt,
+      current_version: currentVersion,
+    });
+
+    if (!instance) {
+      return res.status(404).json({ ok: false, error: 'Neural instance not found' });
+    }
+
+    res.json({ ok: true, instance });
+  } catch (error: any) {
+    res.status(500).json({ ok: false, error: error?.message || 'Failed to update neural instance' });
+  }
+});
+
 router.put('/workflows/:id/attributes/:attrKey', express.json(), async (req, res) => {
   try {
     const { attrKey } = req.params;
