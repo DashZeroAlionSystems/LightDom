@@ -34,6 +34,10 @@
     "test:coverage": "vitest run --coverage --reporter=verbose",
     "test:api": "vitest run --config vitest.config.js --testNamePattern=api",
     "test:frontend": "vitest run --config vitest.config.js --testNamePattern=frontend",
+    "test:visual": "ts-node test/puppeteer/example-tests.ts",
+    "test:visual:headed": "HEADLESS=false ts-node test/puppeteer/example-tests.ts",
+    "test:components": "ts-node test/puppeteer/example-tests.ts",
+    "test:ai-components": "ts-node test/puppeteer/example-tests.ts",
     "lint:check": "eslint . --ext .ts,.tsx,.js,.jsx",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -190,6 +194,7 @@
     "winston": "^3.18.3"
   },
   "devDependencies": {
+    "@types/node": "^24.9.2",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
