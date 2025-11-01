@@ -136,6 +136,7 @@
     "ollama:prompt:list": "node scripts/automation/ollama-prompt-engine.js --list",
     "ollama:prompt:interactive": "node scripts/automation/ollama-prompt-engine.js --interactive",
     "ollama:prompt:execute": "node scripts/automation/ollama-prompt-engine.js --execute",
+    "demo:ollama-n8n": "node scripts/automation/demo-ollama-n8n-integration.js",
     "workflow:mine": "tsx scripts/mine-design-system.ts"
   },
   "dependencies": {
