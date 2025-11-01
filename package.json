@@ -137,6 +137,13 @@
     "ollama:prompt:interactive": "node scripts/automation/ollama-prompt-engine.js --interactive",
     "ollama:prompt:execute": "node scripts/automation/ollama-prompt-engine.js --execute",
     "demo:ollama-n8n": "node scripts/automation/demo-ollama-n8n-integration.js",
+    "design:build": "node scripts/automation/design-system-builder.js",
+    "design:build:interactive": "node scripts/automation/design-system-builder.js --interactive",
+    "design:component": "node scripts/automation/design-system-builder.js --component",
+    "design:dashboard": "node scripts/automation/design-system-builder.js --dashboard",
+    "workflow:monitor": "node scripts/automation/workflow-automation-monitor.js",
+    "workflow:monitor:interactive": "node scripts/automation/workflow-automation-monitor.js --interactive",
+    "workflow:watch": "node scripts/automation/workflow-automation-monitor.js --watch",
     "workflow:mine": "tsx scripts/mine-design-system.ts"
   },
   "dependencies": {
