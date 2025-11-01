@@ -8,13 +8,10 @@
  * - Storybook file (ComponentName.stories.tsx)
  */
 
-// Export UI components as they are created
-// export * from './Button';
+export * from './Button';
 // export * from './Card';
 // export * from './Input';
 // export * from './Modal';
 // export * from './Select';
 // export * from './Badge';
 // export * from './Alert';
-
-export {};
