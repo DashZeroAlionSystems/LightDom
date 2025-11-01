@@ -19,6 +19,7 @@ import axios from 'axios';
 import * as fs from 'fs/promises';
 import { WorkflowTemplateLibrary, WorkflowTemplate } from './workflow-templates.js';
 import { SchemaOrgGenerator, SchemaOrgAnalyzer, SEOStrategyGenerator } from './schema-org-tools.js';
+import { IntelligentScraperWorkflowGenerator } from './intelligent-scraper-workflow.js';
 
 // n8n MCP Server Configuration
 interface N8nConfig {
@@ -321,6 +322,111 @@ class EnhancedN8nMCPServer {
             },
           },
 
+          // ========== NEW: Intelligent Universal Scraping ==========
+          {
+            name: 'create_universal_scraper',
+            description: 'Create an intelligent universal web scraper that can discover and scrape any data source',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', description: 'Scraper name' },
+                searchQuery: { type: 'string', description: 'Search query to discover sources (optional)' },
+                targetDomains: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Specific domains to scrape (optional)',
+                },
+                dataTypes: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Types of data to extract (e.g., title, price, description, image)',
+                },
+                maxPages: { type: 'number', description: 'Maximum pages to scrape per source', default: 10 },
+                schedule: { type: 'string', description: 'Cron schedule for periodic scraping' },
+                storageType: {
+                  type: 'string',
+                  enum: ['database', 'json', 'csv', 'api'],
+                  description: 'How to store scraped data',
+                  default: 'json',
+                },
+                includeSchemaOrg: { type: 'boolean', description: 'Extract Schema.org data', default: true },
+                useAISelectors: { type: 'boolean', description: 'Use AI to generate CSS selectors', default: true },
+                activate: { type: 'boolean', description: 'Activate workflow immediately', default: false },
+              },
+              required: ['name', 'dataTypes'],
+            },
+          },
+          {
+            name: 'create_search_scraper',
+            description: 'Create a scraper that discovers sources via search and extracts data',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                searchQuery: { type: 'string', description: 'What to search for' },
+                dataTypes: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Data types to extract',
+                },
+                activate: { type: 'boolean', default: false },
+              },
+              required: ['searchQuery', 'dataTypes'],
+            },
+          },
+          {
+            name: 'create_competitor_scraper',
+            description: 'Create a competitive intelligence scraper for monitoring competitors',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                competitors: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Competitor website URLs',
+                },
+                activate: { type: 'boolean', default: false },
+              },
+              required: ['competitors'],
+            },
+          },
+          {
+            name: 'create_product_scraper',
+            description: 'Create a product catalog scraper with pricing and availability tracking',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                categories: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Product categories to scrape',
+                },
+                activate: { type: 'boolean', default: false },
+              },
+              required: ['categories'],
+            },
+          },
+          {
+            name: 'create_content_aggregator',
+            description: 'Create a content aggregator for news, blogs, or articles',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                sources: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Content source URLs',
+                },
+                topics: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Topics to aggregate',
+                },
+                activate: { type: 'boolean', default: false },
+              },
+              required: ['sources', 'topics'],
+            },
+          },
+
           // ========== NEW: Advanced Workflow Generation ==========
           {
             name: 'generate_seo_workflow',
@@ -398,6 +504,18 @@ class EnhancedN8nMCPServer {
             return this.generateSEOStrategy(args);
           case 'generate_data_mining_strategy':
             return this.generateDataMiningStrategy(args);
+
+          // Intelligent universal scraping
+          case 'create_universal_scraper':
+            return await this.createUniversalScraper(args);
+          case 'create_search_scraper':
+            return await this.createSearchScraper(args);
+          case 'create_competitor_scraper':
+            return await this.createCompetitorScraper(args);
+          case 'create_product_scraper':
+            return await this.createProductScraper(args);
+          case 'create_content_aggregator':
+            return await this.createContentAggregator(args);
 
           // Advanced workflow generation
           case 'generate_seo_workflow':
@@ -720,6 +838,123 @@ class EnhancedN8nMCPServer {
     const strategy = SEOStrategyGenerator.generateDataMiningStrategy(args.industry);
     return {
       content: [{ type: 'text', text: JSON.stringify(strategy, null, 2) }],
+    };
+  }
+
+  // ========== NEW: Intelligent Universal Scraping ==========
+
+  private async createUniversalScraper(args: any) {
+    const workflowDef = IntelligentScraperWorkflowGenerator.generateUniversalScraper(args);
+
+    const workflow = await this.makeRequest('/api/v1/workflows', {
+      method: 'POST',
+      data: {
+        ...workflowDef,
+        active: args.activate || false,
+      },
+    });
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Universal scraper created: ${JSON.stringify(workflow, null, 2)}`,
+        },
+      ],
+    };
+  }
+
+  private async createSearchScraper(args: { searchQuery: string; dataTypes: string[]; activate?: boolean }) {
+    const workflowDef = IntelligentScraperWorkflowGenerator.generateSearchScraper(
+      args.searchQuery,
+      args.dataTypes
+    );
+
+    const workflow = await this.makeRequest('/api/v1/workflows', {
+      method: 'POST',
+      data: {
+        ...workflowDef,
+        active: args.activate || false,
+      },
+    });
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Search-based scraper created: ${JSON.stringify(workflow, null, 2)}`,
+        },
+      ],
+    };
+  }
+
+  private async createCompetitorScraper(args: { competitors: string[]; activate?: boolean }) {
+    const workflowDef = IntelligentScraperWorkflowGenerator.generateCompetitorScraper(args.competitors);
+
+    const workflow = await this.makeRequest('/api/v1/workflows', {
+      method: 'POST',
+      data: {
+        ...workflowDef,
+        active: args.activate || false,
+      },
+    });
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Competitor scraper created: ${JSON.stringify(workflow, null, 2)}`,
+        },
+      ],
+    };
+  }
+
+  private async createProductScraper(args: { categories: string[]; activate?: boolean }) {
+    const workflowDef = IntelligentScraperWorkflowGenerator.generateProductScraper(args.categories);
+
+    const workflow = await this.makeRequest('/api/v1/workflows', {
+      method: 'POST',
+      data: {
+        ...workflowDef,
+        active: args.activate || false,
+      },
+    });
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Product scraper created: ${JSON.stringify(workflow, null, 2)}`,
+        },
+      ],
+    };
+  }
+
+  private async createContentAggregator(args: {
+    sources: string[];
+    topics: string[];
+    activate?: boolean;
+  }) {
+    const workflowDef = IntelligentScraperWorkflowGenerator.generateContentAggregator(
+      args.sources,
+      args.topics
+    );
+
+    const workflow = await this.makeRequest('/api/v1/workflows', {
+      method: 'POST',
+      data: {
+        ...workflowDef,
+        active: args.activate || false,
+      },
+    });
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Content aggregator created: ${JSON.stringify(workflow, null, 2)}`,
+        },
+      ],
     };
   }
 

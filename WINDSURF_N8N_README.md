@@ -25,6 +25,24 @@ Based on real-world examples from the Zie619/n8n-workflows repository:
 - **Technical Infrastructure & DevOps** (134 templates)
 - **Creative Design Automation** (99 templates)
 
+### 🌐 Universal Web Scraper
+
+**NEW**: Intelligent scraper that can discover and scrape data from ANY web source:
+
+- **Auto-Discovery**: Search queries find relevant sources automatically
+- **AI-Powered**: Generates CSS selectors based on content structure
+- **Schema.org Extraction**: Automatically extracts structured data
+- **Pagination Handling**: Follows next page links automatically
+- **Multi-Format Storage**: Database, JSON, CSV, or API
+- **Production-Ready**: Error handling, retries, rate limiting
+
+**5 Pre-Built Scraper Types:**
+1. `create_universal_scraper` - Scrape anything from anywhere
+2. `create_search_scraper` - Discover sources via search
+3. `create_competitor_scraper` - Monitor competitors
+4. `create_product_scraper` - Track product catalogs
+5. `create_content_aggregator` - Aggregate news/blogs
+
 ### 🔍 Schema.org SEO Tools
 
 Complete Schema.org structured data generation and analysis:
@@ -141,25 +159,67 @@ In Windsurf, the following MCP tools should be available:
 
 2. **[Real-World Examples](docs/N8N_EXAMPLES.md)**
    - 15 practical examples
+
+3. **[Universal Scraper Guide](docs/UNIVERSAL_SCRAPER_GUIDE.md)** (NEW!)
+   - Complete scraping guide
+   - AI-powered extraction
+   - 7 real-world examples
    - AI content generation
    - SEO automation
    - Data mining workflows
    - Social media automation
 
-3. **[Setup Instructions](N8N_MCP_SETUP.md)**
+4. **[Setup Instructions](N8N_MCP_SETUP.md)**
    - Installation steps
    - Configuration guide
    - Troubleshooting
+
+5. **[Quick Examples](examples/universal-scraper-examples.md)** (NEW!)
+   - Copy-paste ready examples
+   - Common use cases
+   - Industry templates
 
 ### Key Modules
 
 - **workflow-templates.ts** - Template library with 2,057+ examples
 - **schema-org-tools.ts** - Schema.org generators and analyzers
+- **intelligent-scraper-workflow.ts** - Universal web scraper (NEW!)
 - **n8n-mcp-server-enhanced.ts** - Main MCP server implementation
 
 ## 💡 Usage Examples
 
-### Example 1: Create AI Content Generator
+### Example 1: Universal Web Scraper
+
+```typescript
+// Scrape ANY data from discovered sources
+const scraper = await mcp('create_universal_scraper', {
+  name: 'My Scraper',
+  searchQuery: 'best tech products 2025',
+  dataTypes: ['title', 'price', 'description', 'rating'],
+  maxPages: 10,
+  storageType: 'database',
+  includeSchemaOrg: true,
+  useAISelectors: true,
+  activate: true
+});
+```
+
+### Example 2: Competitor Intelligence
+
+```typescript
+// Monitor competitor prices automatically
+const monitor = await mcp('create_competitor_scraper', {
+  competitors: [
+    'https://competitor1.com',
+    'https://competitor2.com'
+  ],
+  activate: true
+});
+// Tracks: prices, products, ratings, availability
+// Scheduled: Daily
+```
+
+### Example 3: Create AI Content Generator
 
 ```typescript
 // In Windsurf
