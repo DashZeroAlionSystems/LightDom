@@ -13,3 +13,8 @@ export type { PromptToComponentProps } from './PromptToComponent';
 
 export { default as WorkflowWizard } from './WorkflowWizard';
 export type { WorkflowWizardProps, WorkflowCampaign, WorkflowTemplate, WorkflowTask } from './WorkflowWizard';
+
+export { default as EnhancedWorkflowWizard } from './EnhancedWorkflowWizard';
+export type { EnhancedWorkflowWizardProps, EnhancedWorkflowCampaign, WorkflowProcess } from './EnhancedWorkflowWizard';
+
+export { default as WorkflowManagementDashboard } from './WorkflowManagementDashboard';
