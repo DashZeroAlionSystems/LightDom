@@ -370,6 +370,14 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load schema linking routes:', err);
     });
     
+    // Import and register Workflow Generator routes
+    import('./services/workflow-generator-routes.js').then((workflowModule) => {
+      this.app.use('/api/workflow-generator', workflowModule.default);
+      console.log('Workflow generator routes registered');
+    }).catch(err => {
+      console.error('Failed to load workflow generator routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
