@@ -129,6 +129,13 @@
     "n8n:stop": "docker-compose stop n8n",
     "n8n:logs": "docker-compose logs -f n8n",
     "n8n:setup": "node scripts/setup-n8n-integration.js",
+    "n8n:workflow:build": "node scripts/automation/n8n-workflow-builder.js",
+    "n8n:workflow:build:interactive": "node scripts/automation/n8n-workflow-builder.js --interactive",
+    "n8n:workflow:batch": "node scripts/automation/n8n-workflow-builder.js --batch",
+    "ollama:test": "node scripts/automation/test-ollama-setup.js",
+    "ollama:prompt:list": "node scripts/automation/ollama-prompt-engine.js --list",
+    "ollama:prompt:interactive": "node scripts/automation/ollama-prompt-engine.js --interactive",
+    "ollama:prompt:execute": "node scripts/automation/ollama-prompt-engine.js --execute",
     "workflow:mine": "tsx scripts/mine-design-system.ts"
   },
   "dependencies": {
