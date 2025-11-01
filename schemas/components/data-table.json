@@ -1,0 +1,65 @@
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "@id": "lightdom:data-table",
+  "name": "Data Table",
+  "description": "Sortable and filterable data table with pagination",
+  "lightdom:componentType": "organism",
+  "lightdom:reactComponent": "DataTable",
+  "lightdom:props": [
+    {
+      "name": "columns",
+      "type": "array",
+      "required": true,
+      "description": "Array of column definitions"
+    },
+    {
+      "name": "data",
+      "type": "array",
+      "required": true,
+      "description": "Array of data rows"
+    },
+    {
+      "name": "sortable",
+      "type": "boolean",
+      "required": false,
+      "description": "Enable sorting",
+      "default": true
+    },
+    {
+      "name": "filterable",
+      "type": "boolean",
+      "required": false,
+      "description": "Enable filtering",
+      "default": true
+    },
+    {
+      "name": "pagination",
+      "type": "boolean",
+      "required": false,
+      "description": "Enable pagination",
+      "default": true
+    },
+    {
+      "name": "pageSize",
+      "type": "number",
+      "required": false,
+      "description": "Rows per page",
+      "default": 10
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "table",
+    "list",
+    "data display",
+    "grid",
+    "sortable",
+    "filterable",
+    "records",
+    "database view"
+  ],
+  "lightdom:semanticMeaning": "Displays tabular data with sorting and filtering capabilities",
+  "lightdom:priority": 6,
+  "lightdom:category": "organism"
+}

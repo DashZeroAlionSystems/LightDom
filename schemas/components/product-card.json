@@ -1,0 +1,56 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "@id": "lightdom:product-card",
+  "name": "Product Card",
+  "description": "Product display card for ecommerce",
+  "lightdom:componentType": "molecule",
+  "lightdom:reactComponent": "ProductCard",
+  "lightdom:props": [
+    {
+      "name": "name",
+      "type": "string",
+      "required": true,
+      "description": "Product name"
+    },
+    {
+      "name": "price",
+      "type": "number",
+      "required": true,
+      "description": "Product price"
+    },
+    {
+      "name": "image",
+      "type": "string",
+      "required": false,
+      "description": "Product image URL"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "required": false,
+      "description": "Product description"
+    },
+    {
+      "name": "onAddToCart",
+      "type": "function",
+      "required": false,
+      "description": "Callback when add to cart is clicked"
+    }
+  ],
+  "lightdom:linkedSchemas": [
+    "lightdom:button"
+  ],
+  "lightdom:useCase": [
+    "product",
+    "ecommerce",
+    "shop",
+    "store",
+    "catalog",
+    "item",
+    "purchase"
+  ],
+  "lightdom:semanticMeaning": "Displays product information in a card format",
+  "lightdom:priority": 5,
+  "lightdom:category": "molecule"
+}
