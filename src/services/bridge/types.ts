@@ -47,8 +47,23 @@ export interface BridgeMetadata {
   };
 }
 
+/**
+ * Metadata for bridge messages
+ * Includes common metadata fields that may be attached to messages
+ */
 export interface BridgeMessageMetadata {
-  [key: string]: string | number | boolean | undefined;
+  /** User's wallet address if available */
+  walletAddress?: string;
+  /** Timestamp of the event that triggered this message */
+  eventTimestamp?: number;
+  /** Source of the message (e.g., 'optimization', 'mining', 'user') */
+  source?: string;
+  /** Priority level for system messages */
+  priority?: 'low' | 'normal' | 'high';
+  /** Related entity ID (e.g., optimization ID, mining job ID) */
+  relatedEntityId?: string;
+  /** Custom data specific to message type */
+  customData?: Record<string, string | number | boolean>;
 }
 
 export interface BridgeMessage {

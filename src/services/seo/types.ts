@@ -3,7 +3,7 @@
  * Extracted from SEOGenerationService.tsx for better separation of concerns
  */
 
-import type { GeneratedContent } from '../../seo/SEOMLWorkflowService';
+import type { GeneratedContent } from '@/seo/SEOMLWorkflowService';
 
 export interface MetaTags {
   title: string;
