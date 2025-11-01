@@ -1,0 +1,58 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Chart",
+  "@id": "lightdom:chart-component",
+  "name": "Chart Component",
+  "description": "Configurable chart component for data visualization",
+  "lightdom:componentType": "organism",
+  "lightdom:reactComponent": "ChartComponent",
+  "lightdom:props": [
+    {
+      "name": "type",
+      "type": "string",
+      "required": true,
+      "description": "Chart type: line, bar, pie, area, scatter",
+      "enum": ["line", "bar", "pie", "area", "scatter", "donut"]
+    },
+    {
+      "name": "data",
+      "type": "array",
+      "required": true,
+      "description": "Chart data array"
+    },
+    {
+      "name": "width",
+      "type": "number",
+      "required": false,
+      "description": "Chart width in pixels",
+      "default": 600
+    },
+    {
+      "name": "height",
+      "type": "number",
+      "required": false,
+      "description": "Chart height in pixels",
+      "default": 400
+    },
+    {
+      "name": "showLegend",
+      "type": "boolean",
+      "required": false,
+      "description": "Show/hide legend",
+      "default": true
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "chart",
+    "visualization",
+    "graph",
+    "data display",
+    "analytics",
+    "metrics",
+    "statistics"
+  ],
+  "lightdom:semanticMeaning": "Visualizes data in various chart formats",
+  "lightdom:priority": 7,
+  "lightdom:category": "organism"
+}

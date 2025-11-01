@@ -501,5 +501,19 @@ archive/
 # (keeping this in case any are generated)
 
 # =============================================================================
+# DESIGN SYSTEM & WORKFLOW MINING DATA (2025-11-01)
+# =============================================================================
+# Generated component and workflow mining data
+data/design-system/
+data/workflow-patterns/
+data/neural-network-training/
+data/MINING_REPORT.json
+data/MINING_REPORT.md
+
+# n8n workflow data (credentials should never be committed)
+workflows/n8n/credentials/*.json
+!workflows/n8n/credentials/credential-templates.json
+
+# =============================================================================
 # END OF .gitignore
 # =============================================================================

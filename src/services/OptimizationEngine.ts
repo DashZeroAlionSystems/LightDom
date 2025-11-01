@@ -29,3 +29,6 @@ export default class OptimizationEngine {
     // triage stub
   }
 }
+
+// Named export for backward compatibility
+export { OptimizationEngine };

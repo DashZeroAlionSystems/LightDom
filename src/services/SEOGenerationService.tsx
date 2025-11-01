@@ -6,93 +6,26 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import SEOMLWorkflowService, { ContentGenerationRequest, GeneratedContent } from '../seo/SEOMLWorkflowService';
+import type {
+  MetaTags,
+  SitemapEntry,
+  GeneratedContentItem,
+  ContentTemplate,
+  ContentWorkflow,
+  ContentGenerationOptions,
+  SEOReport,
+} from './seo/types';
 
-export interface MetaTags {
-  title: string;
-  description: string;
-  keywords: string[];
-  canonical: string;
-  ogTitle: string;
-  ogDescription: string;
-  ogImage: string;
-  twitterCard: string;
-  twitterTitle: string;
-  twitterDescription: string;
-  robots: string;
-  author: string;
-  viewport: string;
-}
-
-export interface SitemapEntry {
-  url: string;
-  lastModified: string;
-  changeFrequency: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
-  priority: number;
-}
-
-export interface GeneratedContentItem {
-  type: 'blog' | 'landing' | 'product' | 'article';
-  title: string;
-  content: string;
-  metaDescription: string;
-  keywords: string[];
-  readabilityScore: number;
-  seoScore: number;
-}
-
-export interface ContentTemplate {
-  id: string;
-  name: string;
-  description: string;
-  type: 'blog' | 'landing' | 'product' | 'article' | 'social' | 'email';
-  category: string;
-  structure: string[];
-  tone: 'professional' | 'casual' | 'technical' | 'conversational' | 'persuasive';
-  targetAudience: string;
-  estimatedWordCount: number;
-  seoFocus: string[];
-  aiPrompt: string;
-}
-
-export interface ContentWorkflow {
-  id: string;
-  templateId: string;
-  topic: string;
-  status: 'draft' | 'generating' | 'reviewing' | 'editing' | 'scheduled' | 'published';
-  createdAt: Date;
-  updatedAt: Date;
-  scheduledFor?: Date;
-  publishedAt?: Date;
-  content?: GeneratedContent;
-  collaborators?: string[];
-  reviewComments?: Array<{
-    user: string;
-    comment: string;
-    timestamp: Date;
-  }>;
-}
-
-export interface ContentGenerationOptions {
-  templateId?: string;
-  customPrompt?: string;
-  tone?: 'professional' | 'casual' | 'technical' | 'conversational' | 'persuasive';
-  targetAudience?: string;
-  keywords?: string[];
-  length?: 'short' | 'medium' | 'long';
-  includeImages?: boolean;
-  includeCallToAction?: boolean;
-  seoOptimization?: boolean;
-}
-
-export interface SEOReport {
-  url: string;
-  generatedAt: string;
-  metaTags: MetaTags;
-  sitemapEntries: number;
-  robotsTxt: string;
-  contentSuggestions: string[];
-  technicalImprovements: string[];
-}
+// Re-export types for backward compatibility
+export type {
+  MetaTags,
+  SitemapEntry,
+  GeneratedContentItem,
+  ContentTemplate,
+  ContentWorkflow,
+  ContentGenerationOptions,
+  SEOReport,
+} from './seo/types';
 
 const SEOGenerationService = () => {
   const [metaTags, setMetaTags] = useState<MetaTags | null>(null);

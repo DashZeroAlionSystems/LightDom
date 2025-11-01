@@ -1,0 +1,58 @@
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": "lightdom:dashboard-page",
+  "name": "Dashboard Page",
+  "description": "Analytics dashboard with metrics, charts, and data visualization",
+  "lightdom:componentType": "page",
+  "lightdom:reactComponent": "DashboardPage",
+  "lightdom:props": [
+    {
+      "name": "title",
+      "type": "string",
+      "required": true,
+      "description": "Dashboard title",
+      "default": "Analytics Dashboard"
+    },
+    {
+      "name": "metrics",
+      "type": "array",
+      "required": false,
+      "description": "Array of metric objects to display",
+      "default": []
+    },
+    {
+      "name": "refreshInterval",
+      "type": "number",
+      "required": false,
+      "description": "Auto-refresh interval in milliseconds",
+      "default": 30000
+    }
+  ],
+  "lightdom:linkedSchemas": [
+    "lightdom:chart-component",
+    "lightdom:data-table"
+  ],
+  "lightdom:useCase": [
+    "analytics",
+    "dashboard",
+    "metrics",
+    "monitoring",
+    "visualization",
+    "data display",
+    "reporting"
+  ],
+  "lightdom:semanticMeaning": "Displays aggregated data and metrics in a visual dashboard format",
+  "lightdom:priority": 8,
+  "lightdom:category": "page",
+  "lightdom:accessibility": {
+    "ariaLabel": "Analytics Dashboard",
+    "keyboardNavigable": true,
+    "screenReaderFriendly": true
+  },
+  "lightdom:responsiveness": {
+    "mobile": true,
+    "tablet": true,
+    "desktop": true
+  }
+}

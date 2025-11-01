@@ -1,0 +1,36 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": "lightdom:optimization-service",
+  "name": "DOM Optimization Service",
+  "description": "Background service for DOM analysis and optimization",
+  "lightdom:serviceType": "background",
+  "lightdom:config": {
+    "workers": {
+      "type": "node",
+      "count": 2
+    },
+    "queue": {
+      "type": "memory",
+      "concurrency": 5
+    },
+    "processing": {
+      "batchSize": 100,
+      "interval": 5000
+    }
+  },
+  "lightdom:linkedServices": [],
+  "lightdom:autoStart": true,
+  "lightdom:priority": 6,
+  "lightdom:healthCheck": {
+    "enabled": true,
+    "interval": 60000,
+    "timeout": 10000
+  },
+  "lightdom:scaling": {
+    "minWorkers": 1,
+    "maxWorkers": 4,
+    "scaleUpThreshold": 0.7,
+    "scaleDownThreshold": 0.3
+  }
+}
