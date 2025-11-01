@@ -252,9 +252,11 @@ router.post('/runner/start', async (req, res) => {
   try {
     const runner = getSchemaRunner();
     
-    if (!runner.isRunning) {
+    if (!runner.service) {
       await runner.initialize();
-    } else {
+    }
+    
+    if (!runner.isRunning) {
       await runner.start();
     }
     
@@ -303,7 +305,7 @@ router.post('/runner/run', async (req, res) => {
   try {
     const runner = getSchemaRunner();
     
-    if (!runner.isRunning) {
+    if (!runner.service) {
       await runner.initialize();
     }
     
