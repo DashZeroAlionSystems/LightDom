@@ -85,6 +85,7 @@
     "schema:link": "node services/schema-linking-runner.js run-once",
     "schema:link:start": "node services/schema-linking-runner.js start",
     "schema:link:demo": "node schema-linking-demo.js",
+    "schema:link:test": "node test/schema-linking-e2e.test.js",
     "schema:link:analyze": "curl -s http://localhost:3001/api/schema-linking/analyze | jq .",
     "schema:link:features": "curl -s http://localhost:3001/api/schema-linking/features | jq .",
     "health:check": "curl -f http://localhost:3001/health || exit 1",
