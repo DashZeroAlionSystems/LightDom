@@ -1,0 +1,91 @@
+{
+  "name": "Documentation Research Memory Workflow",
+  "version": "1.0.0",
+  "description": "Standardized process for reviewing core documentation, generating knowledge memories, and tracking follow-up workflows for implementation.",
+  "triggers": [
+    {
+      "type": "schedule",
+      "rule": "0 9 * * MON",
+      "description": "Run every Monday at 09:00 to refresh research notes."
+    },
+    {
+      "type": "manual",
+      "description": "Invoke when new documentation or architecture updates land."
+    }
+  ],
+  "prerequisites": [
+    "Access to docs/ARCHITECTURE.md",
+    "Access to docs/design-system/IMPLEMENTATION_SUMMARY.md",
+    "Access to any new documentation that needs integration"
+  ],
+  "steps": [
+    {
+      "name": "Collect Source Documentation",
+      "type": "gather",
+      "details": {
+        "documentationPaths": [
+          "docs/ARCHITECTURE.md",
+          "docs/design-system/IMPLEMENTATION_SUMMARY.md"
+        ],
+        "includeRecent": true,
+        "notes": "Add any new docs or ADRs published since last run."
+      }
+    },
+    {
+      "name": "Extract Integration Insights",
+      "type": "analyze",
+      "details": {
+        "focus": [
+          "Component architecture dependencies",
+          "Design system usage requirements",
+          "Data flow impacts"
+        ],
+        "output": "Summaries and actionable integration tasks"
+      }
+    },
+    {
+      "name": "Create Persistent Memory Entries",
+      "type": "memory",
+      "details": {
+        "memoryTags": ["documentation", "react", "design_system"],
+        "rules": [
+          "Create or update an existing memory if insights already exist",
+          "One memory per major document or change set",
+          "Summaries must include file references and intended usage"
+        ],
+        "tooling": "Cascade create_memory API"
+      }
+    },
+    {
+      "name": "Evaluate Memory Coverage",
+      "type": "decision",
+      "details": {
+        "criteria": [
+          "At least 3 active memories exist covering architecture, design, and implementation guidance",
+          "New documentation introduces net-new integration tasks"
+        ],
+        "onSatisfied": "Proceed to Generate Implementation Workflow",
+        "onNotSatisfied": "Log TODO and schedule follow-up research session"
+      }
+    },
+    {
+      "name": "Generate Implementation Workflow",
+      "type": "automation",
+      "details": {
+        "template": "workflows/automation/dom-optimization-template.json",
+        "outputPath": "workflows/automation/generated/documentation-integration-workflow.json",
+        "actions": [
+          "Draft workflow focused on applying insights to React feature folders (e.g., src/features/dashboard)",
+          "Include tasks to update components/pages with MD3 system and typed hooks (useDashboardData)",
+          "Document dependency checks (e.g., @tanstack/react-query alignment) before implementation",
+          "Create memory reminding future runs to reuse this workflow"
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "memories": "Updated Cascade memories containing the latest documentation insights",
+    "followUpWorkflow": "New or updated implementation workflow when coverage criteria satisfied",
+    "auditLog": "Timestamped summary of documentation reviewed and actions taken"
+  }
+}

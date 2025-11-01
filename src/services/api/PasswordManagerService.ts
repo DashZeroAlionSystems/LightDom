@@ -240,6 +240,7 @@ export class PasswordManagerService {
       const credential = new PasswordCredential({
         id: credentials.username,
         password: credentials.password,
+        type: 'password',
         name: credentials.username,
         iconURL: `${window.location.origin}/favicon.ico`
       });

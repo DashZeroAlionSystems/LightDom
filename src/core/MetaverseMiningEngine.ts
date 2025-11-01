@@ -129,7 +129,8 @@ export class MetaverseMiningEngine {
 
   constructor() {
     this.initializeBiomes();
-    this.startContinuousMining();
+    // Don't start mining automatically - let the server control it
+    // this.startContinuousMining();
   }
 
   /**
@@ -170,16 +171,6 @@ export class MetaverseMiningEngine {
         }
       });
     });
-  }
-
-  /**
-   * Start continuous mining process
-   */
-  private startContinuousMining(): void {
-    this.isMining = true;
-    this.miningInterval = setInterval(() => {
-      this.performMiningCycle();
-    }, 5000); // Mine every 5 seconds
   }
 
   /**

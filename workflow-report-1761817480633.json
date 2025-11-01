@@ -1,0 +1,30 @@
+{
+  "workflow": {
+    "name": "LightDom Complete Automation",
+    "version": "2.0.0",
+    "description": "Comprehensive automation workflow for LightDom project completion"
+  },
+  "execution": {
+    "startTime": "2025-10-30T09:43:05.691Z",
+    "endTime": "2025-10-30T09:44:13.201Z",
+    "duration": 1,
+    "status": "failed"
+  },
+  "tasks": {
+    "completed": 0,
+    "failed": 1,
+    "total": 1
+  },
+  "details": {
+    "completedTasks": [],
+    "failedTasks": [
+      {
+        "id": "preflight-checks",
+        "name": "Pre-flight Checks",
+        "error": "Task failed: Command failed: node scripts/automation/complete-automation-system.js --stage preflight\n(node:15920) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.\n(Use `node --trace-deprecation ...` to show where the warning was created)\n",
+        "duration": 67501,
+        "timestamp": "2025-10-30T09:44:13.201Z"
+      }
+    ]
+  }
+}

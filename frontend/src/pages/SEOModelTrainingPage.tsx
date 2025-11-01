@@ -7,7 +7,6 @@ import {
   Play,
   TrendingUp,
   CheckCircle,
-  XCircle,
   Clock,
   Zap,
   Target,
@@ -19,6 +18,17 @@ import {
   Upload,
 } from 'lucide-react';
 import axios from 'axios';
+import {
+  KpiGrid,
+  KpiCard,
+  WorkflowPanel,
+  WorkflowPanelSection,
+  WorkflowPanelFooter,
+  AsyncStateLoading,
+  AsyncStateError,
+  AsyncStateEmpty,
+  Fab,
+} from '@/components/ui';
 
 interface TrainingConfig {
   modelName: string;
@@ -74,7 +84,11 @@ export const SEOModelTrainingPage: React.FC = () => {
   });
 
   // Fetch all models
-  const { data: models, isLoading: modelsLoading } = useQuery<SEOModel[]>({
+  const {
+    data: models,
+    isLoading: modelsLoading,
+    error: modelsError,
+  } = useQuery<SEOModel[]>({
     queryKey: ['seoModels'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE_URL}/api/seo/models`);
@@ -84,7 +98,11 @@ export const SEOModelTrainingPage: React.FC = () => {
   });
 
   // Fetch training stats
-  const { data: stats, isLoading: statsLoading } = useQuery<TrainingStats>({
+  const {
+    data: stats,
+    isLoading: statsLoading,
+    error: statsError,
+  } = useQuery<TrainingStats>({
     queryKey: ['trainingStats'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE_URL}/api/seo/training/stats`);
@@ -156,269 +174,326 @@ export const SEOModelTrainingPage: React.FC = () => {
     );
   };
 
+  const initialLoading = modelsLoading && statsLoading;
+  const fetchError = (modelsError || statsError) as Error | undefined;
+  const hasModels = models && models.length > 0;
+
+  if (initialLoading) {
+    return (
+      <div className="p-6">
+        <AsyncStateLoading className="min-h-[40vh]">Preparing SEO model training data…</AsyncStateLoading>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="p-6">
+        <AsyncStateError
+          description={fetchError.message}
+          icon={<AlertCircle className="h-10 w-10" />}
+          actionLabel="Retry"
+          onAction={() => {
+            queryClient.invalidateQueries({ queryKey: ['seoModels'] });
+            queryClient.invalidateQueries({ queryKey: ['trainingStats'] });
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="relative space-y-8 p-6">
+      <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-            <Brain className="w-8 h-8 text-primary" />
+          <h1 className="md3-headline-large text-on-surface flex items-center gap-2">
+            <Brain className="h-8 w-8 text-primary" />
             SEO Model Training
           </h1>
-          <p className="text-muted-foreground">
-            Train and deploy ML models for SEO ranking prediction and optimization
+          <p className="md3-body-medium text-on-surface-variant">
+            Train, evaluate, and deploy optimization models for search rankings.
           </p>
         </div>
-        <button
-          onClick={handleStartTraining}
-          disabled={trainModelMutation.isPending}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-        >
-          {trainModelMutation.isPending ? (
-            <RefreshCw className="w-4 h-4 animate-spin" />
-          ) : (
-            <Play className="w-4 h-4" />
-          )}
-          Start Training
-        </button>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-card border border-border">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Training Records</span>
-            <Database className="w-4 h-4 text-blue-500" />
-          </div>
-          <div className="text-2xl font-bold">
-            {statsLoading ? '...' : stats?.total_training_records?.toLocaleString() || '0'}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {stats?.verified_records || 0} verified
-          </div>
+        <div className="flex items-center gap-3">
+          <span className="md3-label-medium text-on-surface-variant">
+            {trainModelMutation.isPending ? 'Training in progress…' : 'Ready for new training jobs'}
+          </span>
         </div>
+      </header>
 
-        <div className="p-4 rounded-xl bg-card border border-border">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Avg SEO Score</span>
-            <TrendingUp className="w-4 h-4 text-green-500" />
-          </div>
-          <div className="text-2xl font-bold">
-            {statsLoading ? '...' : (stats?.avg_seo_score || 0).toFixed(1)}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            Out of 100
-          </div>
-        </div>
+      <KpiGrid columns={4}>
+        <KpiCard
+          label="Training records"
+          value={stats?.total_training_records?.toLocaleString() ?? '—'}
+          delta={`${stats?.verified_records?.toLocaleString() ?? '0'} verified`}
+          icon={<Database className="h-4 w-4" />}
+        />
+        <KpiCard
+          label="Average SEO score"
+          value={stats ? `${(stats.avg_seo_score || 0).toFixed(1)}` : '—'}
+          tone="primary"
+          delta="Out of 100"
+          icon={<TrendingUp className="h-4 w-4" />}
+        />
+        <KpiCard
+          label="Active models"
+          value={models ? models.filter((m) => m.status === 'active').length : '—'}
+          tone="success"
+          delta={`${models?.length ?? 0} total models`}
+          icon={<Zap className="h-4 w-4" />}
+        />
+        <KpiCard
+          label="Effectiveness"
+          value={stats ? `${(stats.avg_effectiveness || 0).toFixed(1)}%` : '—'}
+          tone="warning"
+          delta="Avg optimization score"
+          icon={<Target className="h-4 w-4" />}
+        />
+      </KpiGrid>
 
-        <div className="p-4 rounded-xl bg-card border border-border">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Active Models</span>
-            <Zap className="w-4 h-4 text-yellow-500" />
-          </div>
-          <div className="text-2xl font-bold">
-            {modelsLoading ? '...' : models?.filter(m => m.status === 'active').length || '0'}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {models?.length || 0} total models
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl bg-card border border-border">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Effectiveness</span>
-            <Target className="w-4 h-4 text-purple-500" />
-          </div>
-          <div className="text-2xl font-bold">
-            {statsLoading ? '...' : (stats?.avg_effectiveness || 0).toFixed(1)}%
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            Average score
-          </div>
-        </div>
-      </div>
-
-      {/* Training Configuration */}
-      <div className="rounded-xl bg-card border border-border p-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Settings className="w-5 h-5 text-primary" />
-          Training Configuration
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">Model Name</label>
-            <input
-              type="text"
+      <WorkflowPanel title="Training configuration" description="Adjust hyperparameters and targets before launching a new training job.">
+        <WorkflowPanelSection>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Field
+              label="Model name"
               value={trainingConfig.modelName}
-              onChange={(e) => setTrainingConfig({ ...trainingConfig, modelName: e.target.value })}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(value) => setTrainingConfig({ ...trainingConfig, modelName: value })}
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Model Version</label>
-            <input
-              type="text"
+            <Field
+              label="Model version"
               value={trainingConfig.modelVersion}
-              onChange={(e) => setTrainingConfig({ ...trainingConfig, modelVersion: e.target.value })}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(value) => setTrainingConfig({ ...trainingConfig, modelVersion: value })}
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Algorithm</label>
-            <select
+            <SelectField
+              label="Algorithm"
               value={trainingConfig.algorithm}
-              onChange={(e) => setTrainingConfig({ ...trainingConfig, algorithm: e.target.value as any })}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="gradient_boosting">Gradient Boosting</option>
-              <option value="neural_network">Neural Network</option>
-              <option value="random_forest">Random Forest</option>
-              <option value="ensemble">Ensemble</option>
-            </select>
-          </div>
+              onChange={(value) =>
+                setTrainingConfig({ ...trainingConfig, algorithm: value as TrainingConfig['algorithm'] })
+              }
+              options={[
+                { value: 'gradient_boosting', label: 'Gradient Boosting' },
+                { value: 'neural_network', label: 'Neural Network' },
+                { value: 'random_forest', label: 'Random Forest' },
+                { value: 'ensemble', label: 'Ensemble' },
+              ]}
+            />
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Target Metric</label>
-            <select
+            <SelectField
+              label="Target metric"
               value={trainingConfig.targetMetric}
-              onChange={(e) => setTrainingConfig({ ...trainingConfig, targetMetric: e.target.value as any })}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="ndcg">NDCG (Normalized Discounted Cumulative Gain)</option>
-              <option value="map">MAP (Mean Average Precision)</option>
-              <option value="precision">Precision</option>
-              <option value="recall">Recall</option>
-            </select>
-          </div>
+              onChange={(value) =>
+                setTrainingConfig({ ...trainingConfig, targetMetric: value as TrainingConfig['targetMetric'] })
+              }
+              options={[
+                { value: 'ndcg', label: 'NDCG (Normalized Discounted Cumulative Gain)' },
+                { value: 'map', label: 'MAP (Mean Average Precision)' },
+                { value: 'precision', label: 'Precision' },
+                { value: 'recall', label: 'Recall' },
+              ]}
+            />
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Learning Rate</label>
-            <input
-              type="number"
-              step="0.01"
+            <NumberField
+              label="Learning rate"
               value={trainingConfig.hyperparameters.learningRate}
-              onChange={(e) => setTrainingConfig({
-                ...trainingConfig,
-                hyperparameters: { ...trainingConfig.hyperparameters, learningRate: parseFloat(e.target.value) }
-              })}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              step="0.01"
+              onChange={(value) =>
+                setTrainingConfig({
+                  ...trainingConfig,
+                  hyperparameters: {
+                    ...trainingConfig.hyperparameters,
+                    learningRate: parseFloat(value),
+                  },
+                })
+              }
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">N Estimators</label>
-            <input
-              type="number"
+            <NumberField
+              label="Number of estimators"
               value={trainingConfig.hyperparameters.nEstimators}
-              onChange={(e) => setTrainingConfig({
-                ...trainingConfig,
-                hyperparameters: { ...trainingConfig.hyperparameters, nEstimators: parseInt(e.target.value) }
-              })}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(value) =>
+                setTrainingConfig({
+                  ...trainingConfig,
+                  hyperparameters: {
+                    ...trainingConfig.hyperparameters,
+                    nEstimators: parseInt(value, 10),
+                  },
+                })
+              }
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Max Depth</label>
-            <input
-              type="number"
+            <NumberField
+              label="Max depth"
               value={trainingConfig.hyperparameters.maxDepth}
-              onChange={(e) => setTrainingConfig({
-                ...trainingConfig,
-                hyperparameters: { ...trainingConfig.hyperparameters, maxDepth: parseInt(e.target.value) }
-              })}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(value) =>
+                setTrainingConfig({
+                  ...trainingConfig,
+                  hyperparameters: {
+                    ...trainingConfig.hyperparameters,
+                    maxDepth: parseInt(value, 10),
+                  },
+                })
+              }
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Min Samples Leaf</label>
-            <input
-              type="number"
+            <NumberField
+              label="Min samples leaf"
               value={trainingConfig.hyperparameters.minSamplesLeaf}
-              onChange={(e) => setTrainingConfig({
-                ...trainingConfig,
-                hyperparameters: { ...trainingConfig.hyperparameters, minSamplesLeaf: parseInt(e.target.value) }
-              })}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(value) =>
+                setTrainingConfig({
+                  ...trainingConfig,
+                  hyperparameters: {
+                    ...trainingConfig.hyperparameters,
+                    minSamplesLeaf: parseInt(value, 10),
+                  },
+                })
+              }
             />
           </div>
-        </div>
-      </div>
+        </WorkflowPanelSection>
+        <WorkflowPanelFooter>
+          <span className="md3-label-medium text-on-surface-variant">
+            Configure hyperparameters before starting a new training run.
+          </span>
+          <Fab
+            extended
+            icon={trainModelMutation.isPending ? <RefreshCw className="h-5 w-5 animate-spin" /> : <Play className="h-5 w-5" />}
+            aria-label="Start training"
+            onClick={handleStartTraining}
+            disabled={trainModelMutation.isPending}
+          >
+            {trainModelMutation.isPending ? 'Starting…' : 'Start training'}
+          </Fab>
+        </WorkflowPanelFooter>
+      </WorkflowPanel>
 
-      {/* Model List */}
-      <div className="rounded-xl bg-card border border-border p-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-primary" />
-          Trained Models
-        </h2>
-
+      <WorkflowPanel title="Trained models" description="Monitor versioned models, deployment status, and evaluation metrics.">
         {modelsLoading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading models...</div>
-        ) : !models || models.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No models trained yet. Start training your first model!
-          </div>
+          <AsyncStateLoading className="min-h-[20vh]">Refreshing trained models…</AsyncStateLoading>
+        ) : !hasModels ? (
+          <AsyncStateEmpty
+            title="No models trained yet"
+            description="Launch a training job to populate your model registry."
+            icon={<Brain className="h-10 w-10" />}
+            compact
+          />
         ) : (
           <div className="space-y-4">
-            {models.map((model) => (
-              <div key={model.id} className="p-4 bg-background rounded-lg border border-border hover:border-primary transition-colors">
-                <div className="flex items-center justify-between mb-3">
+            {models?.map((model) => (
+              <div
+                key={model.id}
+                className="flex flex-col gap-4 rounded-2xl border border-outline-variant bg-surface-container-high p-4 transition-colors hover:border-primary"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <Brain className="w-5 h-5 text-primary" />
+                    <Brain className="h-5 w-5 text-primary" />
                     <div>
-                      <h3 className="font-semibold">{model.model_name}</h3>
-                      <p className="text-sm text-muted-foreground">v{model.model_version} • {model.model_type}</p>
+                      <h3 className="md3-title-medium text-on-surface">{model.model_name}</h3>
+                      <p className="md3-body-small text-on-surface-variant">
+                        v{model.model_version} • {model.model_type}
+                      </p>
                     </div>
                   </div>
                   {getStatusBadge(model.status)}
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
-                  <div>
-                    <div className="text-xs text-muted-foreground">Accuracy</div>
-                    <div className="text-lg font-semibold">{((model.accuracy || 0) * 100).toFixed(1)}%</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground">F1 Score</div>
-                    <div className="text-lg font-semibold">{((model.f1_score || 0) * 100).toFixed(1)}%</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground">Training Samples</div>
-                    <div className="text-lg font-semibold">{(model.training_samples || 0).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground">Deployed</div>
-                    <div className="text-lg font-semibold">
-                      {model.deployed_at ? new Date(model.deployed_at).toLocaleDateString() : 'Not deployed'}
-                    </div>
-                  </div>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                  <StatBlock label="Accuracy" value={`${((model.accuracy || 0) * 100).toFixed(1)}%`} />
+                  <StatBlock label="F1 score" value={`${((model.f1_score || 0) * 100).toFixed(1)}%`} />
+                  <StatBlock label="Training samples" value={(model.training_samples || 0).toLocaleString()} />
+                  <StatBlock
+                    label="Deployed"
+                    value={model.deployed_at ? new Date(model.deployed_at).toLocaleDateString() : 'Not deployed'}
+                  />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-3">
                   <button
                     onClick={() => handleDeployModel(model.id)}
                     disabled={model.status === 'active' || deployModelMutation.isPending}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-on-primary transition-opacity hover:opacity-90 disabled:opacity-50"
                   >
-                    <Upload className="w-3 h-3" />
-                    Deploy
+                    <Upload className="h-4 w-4" /> Deploy
                   </button>
-                  <button
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 transition-opacity"
-                  >
-                    <Download className="w-3 h-3" />
-                    Export
+                  <button className="inline-flex items-center gap-2 rounded-full border border-outline px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:border-primary">
+                    <Download className="h-4 w-4" /> Export
                   </button>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </WorkflowPanel>
     </div>
   );
 };
+
+interface FieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const Field: React.FC<FieldProps> = ({ label, value, onChange }) => (
+  <label className="flex flex-col gap-2">
+    <span className="md3-label-medium text-on-surface-variant">{label}</span>
+    <input
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full rounded-2xl border border-outline bg-surface-container-high px-4 py-3 text-on-surface shadow-level-1 focus:outline-none focus:ring-2 focus:ring-primary"
+    />
+  </label>
+);
+
+interface SelectFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+}
+
+const SelectField: React.FC<SelectFieldProps> = ({ label, value, onChange, options }) => (
+  <label className="flex flex-col gap-2">
+    <span className="md3-label-medium text-on-surface-variant">{label}</span>
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full rounded-2xl border border-outline bg-surface-container-high px-4 py-3 text-on-surface shadow-level-1 focus:outline-none focus:ring-2 focus:ring-primary"
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </label>
+);
+
+interface NumberFieldProps {
+  label: string;
+  value: number;
+  step?: string;
+  onChange: (value: string) => void;
+}
+
+const NumberField: React.FC<NumberFieldProps> = ({ label, value, step = '1', onChange }) => (
+  <label className="flex flex-col gap-2">
+    <span className="md3-label-medium text-on-surface-variant">{label}</span>
+    <input
+      type="number"
+      step={step}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full rounded-2xl border border-outline bg-surface-container-high px-4 py-3 text-on-surface shadow-level-1 focus:outline-none focus:ring-2 focus:ring-primary"
+    />
+  </label>
+);
+
+interface StatBlockProps {
+  label: string;
+  value: React.ReactNode;
+}
+
+const StatBlock: React.FC<StatBlockProps> = ({ label, value }) => (
+  <div className="rounded-2xl border border-outline bg-surface px-4 py-3 text-left">
+    <div className="md3-label-small text-on-surface-variant">{label}</div>
+    <div className="md3-title-medium text-on-surface">{value}</div>
+  </div>
+);

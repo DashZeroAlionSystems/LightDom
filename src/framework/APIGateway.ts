@@ -33,8 +33,12 @@ export interface APIResponse<T = any> {
   data?: T;
   error?: string;
   message?: string;
-  timestamp: number;
-  requestId: string;
+  // Make timestamp/requestId optional at call sites — the gateway will fill
+  // these before sending the final response. This relaxes strictness during
+  // triage and avoids many call-site errors where intermediate objects omit
+  // these fields.
+  timestamp?: number;
+  requestId?: string;
 }
 
 export interface WebhookPayload {

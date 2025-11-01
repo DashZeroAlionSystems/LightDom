@@ -39,7 +39,8 @@ export class DatabaseIntegration {
       optimization_alt: 'database/02-optimization.sql',
       bridge_alt: 'database/03-bridge.sql',
       seo_service: 'database/seo_service_schema.sql',
-      seo_training: 'src/seo/database/training-data-migrations.sql'
+      seo_training: 'src/seo/database/training-data-migrations.sql',
+      workflow_training: 'database/129-workflow-training.sql'
     };
     
     this.initialized = false;

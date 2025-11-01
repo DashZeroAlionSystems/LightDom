@@ -19,6 +19,7 @@ import { SEOOptimizationDashboard } from './components/SEOOptimizationDashboard'
 import { EnhancedAuthProvider, useEnhancedAuth } from './contexts/EnhancedAuthContext';
 import BackButton from './components/ui/BackButton';
 import EnhancedNavigation from './components/ui/EnhancedNavigation';
+import SEOCrawlerWorkflow from './components/ui/admin/SEOCrawlerWorkflow';
 import './discord-theme.css';
 import './index.css';
 
@@ -93,6 +94,17 @@ const App = () => {
             <DashboardOverview />
           </AdminRedirectWrapper>
         </Guarded>
+      );
+    } else if (currentPath === '/admin/seo-workflows') {
+      console.log('Rendering SEO Crawler Workflow, currentPath:', currentPath);
+      const goBack = () => {
+        setCurrentPath('/admin');
+      };
+      return (
+        <div>
+          <BackButton onBack={goBack} className="mb-4" />
+          <SEOCrawlerWorkflow />
+        </div>
       );
     } else if (currentPath === '/admin') {
       console.log('Rendering admin dashboard, currentPath:', currentPath);

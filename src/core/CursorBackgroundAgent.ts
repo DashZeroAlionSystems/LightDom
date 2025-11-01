@@ -174,16 +174,16 @@ export class CursorBackgroundAgent {
       let response: any;
       switch (request.type) {
         case 'code_generation':
-          response = await this.generateCode(request.request);
+          response = await this.generateCodeInternal(request.request);
           break;
         case 'refactoring':
-          response = await this.refactorCode(request.request);
+          response = await this.refactorCodeInternal(request.request);
           break;
         case 'debugging':
-          response = await this.debugCode(request.request);
+          response = await this.debugCodeInternal(request.request);
           break;
         case 'blockchain_code':
-          response = await this.generateBlockchainCode(request.request);
+          response = await this.generateBlockchainCodeInternal(request.request);
           break;
         default:
           throw new Error(`Unknown request type: ${request.type}`);
@@ -260,7 +260,7 @@ export class CursorBackgroundAgent {
   /**
    * Internal code generation implementation
    */
-  private async generateCode(request: CodeGenerationRequest): Promise<CodeGenerationResponse> {
+  private async generateCodeInternal(request: CodeGenerationRequest): Promise<CodeGenerationResponse> {
     // Simulate API call to Cursor AI
     await this.simulateAPICall();
 
@@ -295,7 +295,7 @@ export class CursorBackgroundAgent {
   /**
    * Internal refactoring implementation
    */
-  private async refactorCode(request: RefactoringRequest): Promise<RefactoringResponse> {
+  private async refactorCodeInternal(request: RefactoringRequest): Promise<RefactoringResponse> {
     await this.simulateAPICall();
 
     const { code, language, refactoringType, context } = request;
@@ -322,7 +322,7 @@ export class CursorBackgroundAgent {
   /**
    * Internal debugging implementation
    */
-  private async debugCode(request: DebuggingRequest): Promise<DebuggingResponse> {
+  private async debugCodeInternal(request: DebuggingRequest): Promise<DebuggingResponse> {
     await this.simulateAPICall();
 
     const { code, errorMessage, symptoms, context } = request;
@@ -349,7 +349,7 @@ export class CursorBackgroundAgent {
   /**
    * Internal blockchain code generation
    */
-  private async generateBlockchainCode(request: BlockchainCodeRequest): Promise<BlockchainCodeResponse> {
+  private async generateBlockchainCodeInternal(request: BlockchainCodeRequest): Promise<BlockchainCodeResponse> {
     await this.simulateAPICall();
 
     const { type, requirements, context } = request;

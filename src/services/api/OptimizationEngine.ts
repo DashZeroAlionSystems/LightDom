@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import { Logger } from '../../utils/Logger';
 import HeadlessChromeService from './HeadlessChromeService';
 import WebCrawlerService from './WebCrawlerService';
-import { OptimizationResult, OptimizationOptions, OptimizationRule } from '../types/OptimizationTypes';
+import { OptimizationResult, OptimizationOptions, OptimizationRule } from '@/types/OptimizationTypes';
 import { Queue } from 'bull';
 import Redis from 'ioredis';
 
@@ -10,8 +10,12 @@ export class OptimizationEngine extends EventEmitter {
   private headlessService: HeadlessChromeService;
   private crawlerService: WebCrawlerService;
   private logger: Logger;
-  private optimizationQueue: Queue;
-  private redis: Redis;
+  // Use a permissive `any` here to avoid pinning to a specific queue lib type
+  // during triage. The runtime uses Bull or similar queue implementations.
+  private optimizationQueue: any;
+  // Use a permissive any for redis client during triage to avoid coupling to
+  // specific redis client type definitions.
+  private redis: any;
   private isRunning = false;
   private activeOptimizations = new Map<string, any>();
   private optimizationRules: OptimizationRule[] = [];
@@ -334,6 +338,7 @@ export class OptimizationEngine extends EventEmitter {
       await this.headlessService.closePage(pageId);
 
       const result: OptimizationResult = {
+        success: true,
         optimizationId,
         url,
         timestamp: new Date().toISOString(),

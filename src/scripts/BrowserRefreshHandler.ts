@@ -324,6 +324,14 @@ export class BrowserRefreshHandler {
   }
 
   /**
+   * Attempt to restore from a backup source (triage stub)
+   */
+  public async restoreFromBackup(): Promise<boolean> {
+    // Triage stub - real implementation would attempt to restore from a backup
+    return false;
+  }
+
+  /**
    * Get refresh statistics
    */
   public async getRefreshStats(): Promise<{

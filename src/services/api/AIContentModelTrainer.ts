@@ -429,7 +429,9 @@ export class AIContentModelTrainer {
      * Evaluate model performance
      */
     private async evaluateModel(model: tf.LayersModel, xVal: tf.Tensor, yVal: tf.Tensor): Promise<ModelMetrics> {
-        const evaluation = model.evaluate(xVal, yVal) as tf.Scalar[];
+        // model.evaluate may return framework-specific tensor scalars; cast to
+        // `any` here to avoid depending on exact TF typings during triage.
+        const evaluation = model.evaluate(xVal, yVal) as any;       
 
         const loss = await evaluation[0].data();
         const accuracy = await evaluation[1].data();

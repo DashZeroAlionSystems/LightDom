@@ -14,6 +14,7 @@ import { automationOrchestrationAPI } from './automationOrchestrationApi';
 import { startupScript } from '../scripts/StartupScript';
 import { browserRefreshHandler } from '../scripts/BrowserRefreshHandler';
 import { persistentBlockchainStorage } from '../core/PersistentBlockchainStorage';
+import workflowAdminRouter from './workflow-admin';
 
 const router = Router();
 
@@ -111,10 +112,10 @@ router.post('/startup/restart', async (req, res) => {
 
 router.post('/refresh/save', async (req, res) => {
   try {
-    const result = await browserRefreshHandler.forceSave();
+    await browserRefreshHandler.forceSave();
     res.json({
-      success: result.success,
-      data: result
+      success: true,
+      message: 'Refresh data saved'
     });
   } catch (error) {
     res.status(500).json({
@@ -125,18 +126,14 @@ router.post('/refresh/save', async (req, res) => {
 });
 
 router.get('/refresh/status', (req, res) => {
-  try {
-    const status = browserRefreshHandler.getSaveStatus();
-    res.json({
-      success: true,
-      data: status
+  browserRefreshHandler.getRefreshStats()
+    .then((stats) => res.json({ success: true, data: stats }))
+    .catch((error) => {
+      res.status(500).json({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     });
-  } catch (error) {
-    res.status(500).json({
-      error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
 });
 
 router.post('/refresh/restore', async (req, res) => {
@@ -187,7 +184,7 @@ router.get('/persistent/stats', async (req, res) => {
 
 router.post('/persistent/sync', async (req, res) => {
   try {
-    await persistentBlockchainStorage.syncWithBlockchain();
+    await persistentBlockchainStorage.forceSync();
     res.json({
       success: true,
       message: 'Data synced with blockchain successfully'
@@ -217,7 +214,7 @@ router.post('/persistent/clear', async (req, res) => {
 
 router.post('/persistent/export', async (req, res) => {
   try {
-    const data = await persistentBlockchainStorage.exportData();
+    const data = await persistentBlockchainStorage.loadAllData();
     res.json({
       success: true,
       data
@@ -241,7 +238,7 @@ router.post('/persistent/import', async (req, res) => {
       return;
     }
 
-    await persistentBlockchainStorage.importData(data);
+    await persistentBlockchainStorage.saveToIndexedDB('persistentData', data);
     res.json({
       success: true,
       message: 'Data imported successfully'
@@ -281,7 +278,7 @@ router.put('/settings', (req, res) => {
       return;
     }
 
-    persistentBlockchainStorage.updateUserSettings(updates);
+    persistentBlockchainStorage.saveToIndexedDB('userSettings', updates);
     res.json({
       success: true,
       message: 'Settings updated successfully'
@@ -308,18 +305,19 @@ router.get('/automation/evaluations', automationOrchestrationAPI.getEvaluations.
 router.post('/automation/schedule', automationOrchestrationAPI.scheduleWorkflow.bind(automationOrchestrationAPI));
 router.get('/automation/health', automationOrchestrationAPI.getHealth.bind(automationOrchestrationAPI));
 
+// Workflow persistence & mining routes
+router.use('/workflow-admin', workflowAdminRouter);
+
 // Health check route
 router.get('/health', (req, res) => {
   try {
     const startupStatus = startupScript.getStartupStatus();
-    const refreshStatus = browserRefreshHandler.getSaveStatus();
     
     res.json({
       success: true,
       data: {
         status: 'healthy',
         startup: startupStatus,
-        refresh: refreshStatus,
         timestamp: Date.now()
       }
     });

@@ -1,0 +1,40 @@
+name: Issue auto-triage (assign Copilot agents)
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add comment + labels for Copilot
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue || {};
+            const labels = issue.labels ? issue.labels.map(l => l.name) : [];
+            // If issue requests Copilot or has autofix label, add triage comment & copilot-agent label
+            if (labels.includes('copilot') || labels.includes('autofix')) {
+              await github.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['triaged', 'copilot-agent']
+              });
+              await github.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `Thanks — this issue has been triaged for Copilot agents. If you want an automated fix, add the label \`autofix\` and include exact file paths. An agent may open a draft PR with changes.`
+              });
+            } else {
+              // generic triage: add Triage label
+              await github.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['needs-triage']
+              });
+            }

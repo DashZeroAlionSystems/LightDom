@@ -3311,6 +3311,28 @@ class DOMSpaceHarvesterAPI {
         res.status(500).json({ error: error.message });
       }
     });
+
+    // =====================================================
+    // ADMIN API ENDPOINTS
+    // =====================================================
+
+    // Setup admin routes
+    try {
+      import('./src/api/adminApi.js')
+        .then(({ setupAdminRoutes }) => {
+          try {
+            setupAdminRoutes(this.app);
+            console.log('✅ Admin API routes registered');
+          } catch (innerError) {
+            console.warn('⚠️ Admin API setup failed:', innerError?.message || innerError);
+          }
+        })
+        .catch((modErr) => {
+          console.warn('⚠️ Admin API not loaded:', modErr?.message || modErr);
+        });
+    } catch (error) {
+      console.warn('⚠️ Admin API load error:', error?.message || error);
+    }
   }
 
   // Verify batch signature (simplified)
@@ -8904,6 +8926,66 @@ class DOMSpaceHarvesterAPI {
     if (healthScore >= 50) return 'warning';
     return 'critical';
   }
+
+  async initializeServer() {
+    console.log('🔧 Initializing server components...');
+
+    // Initialize middleware and routes
+    this.setupMiddleware();
+    this.setupRoutes();
+
+    // Initialize WebSocket
+    this.setupWebSocket();
+    this.startRealtimeUpdates();
+
+    // Initialize blockchain if enabled
+    if (this.blockchainEnabled) {
+      await this.initializeBlockchain();
+    }
+
+    console.log('✅ Server initialization complete');
+  }
+
+  async start(port = 3001) {
+    try {
+      console.log('🚀 Starting DOM Space Harvester API Server...');
+
+      // Initialize all components
+      console.log('🔧 Initializing server components...');
+      await this.initializeServer();
+      console.log('✅ Server initialization complete');
+
+      console.log(`🔄 Starting server on port ${port}...`);
+      return new Promise((resolve, reject) => {
+        this.server.listen(port, () => {
+          console.log(`✅ API Server running on port ${port}`);
+          console.log(`📊 Health check: http://localhost:${port}/api/health`);
+          console.log(`🔗 WebSocket: ws://localhost:${port}`);
+          resolve(port);
+        });
+
+        this.server.on('error', (err) => {
+          console.error('❌ Server error:', err?.message || err);
+          reject(err);
+        });
+      });
+
+    } catch (error) {
+      console.error('❌ Failed to start API server:', error);
+      throw error;
+    }
+  }
+
+  async shutdown() {
+    console.log('🛑 Shutting down API server...');
+    if (this.server) {
+      this.server.close();
+    }
+    if (this.db) {
+      await this.db.end();
+    }
+    console.log('✅ API server shutdown complete');
+  }
 }
 
 // Error handling
@@ -8931,7 +9013,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   global.apiServer = apiServer;
   
   const port = process.env.PORT || 3001;
-  apiServer.start(port);
+  apiServer.start(port).catch(error => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  });
 }
 
 export { DOMSpaceHarvesterAPI };

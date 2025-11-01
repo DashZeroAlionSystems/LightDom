@@ -150,7 +150,9 @@ export class PWAService {
   private setupInstallPrompt(): void {
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
-      this.installPrompt = e as PWAInstallPrompt;
+      // cast via unknown to avoid TS converting Event -> PWAInstallPrompt directly
+      // (the runtime event is a browser-provided prompt event with extra fields)
+      this.installPrompt = e as unknown as PWAInstallPrompt;
       this.logger.info('Install prompt available');
       this.showInstallButton();
     });

@@ -1,0 +1,46 @@
+{
+  "name": "SEO Content Generation Workflow",
+  "description": "Automated SEO content generation with AI optimization",
+  "steps": [
+    {
+      "name": "Fetch Target URLs",
+      "type": "api_call",
+      "config": {
+        "endpoint": "/api/seo/targets"
+      }
+    },
+    {
+      "name": "Analyze SEO Data",
+      "type": "ai_process",
+      "config": {
+        "model": "seo-analyzer-v2"
+      }
+    },
+    {
+      "name": "Generate Content",
+      "type": "ai_process",
+      "config": {
+        "model": "content-generator-v2"
+      }
+    },
+    {
+      "name": "Optimize for SEO",
+      "type": "automation",
+      "config": {
+        "optimization_level": "maximum"
+      }
+    },
+    {
+      "name": "Publish Results",
+      "type": "api_call",
+      "config": {
+        "endpoint": "/api/seo/publish"
+      }
+    }
+  ],
+  "triggers": [
+    "schedule",
+    "manual"
+  ],
+  "schedule": "0 */6 * * *"
+}

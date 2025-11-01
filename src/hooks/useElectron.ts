@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import type { AppInfo, CrawlOptions, CrawlResult, ServiceStatus, WorkerMessage, UpdateProgress } from '../types/electron';
+import type { AppInfo, CrawlOptions, CrawlResult, ServiceStatus, WorkerMessage, UpdateProgress } from '@/types/electron';
 
 /**
  * Check if running in Electron

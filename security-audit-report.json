@@ -1,0 +1,32 @@
+{
+  "vulnerabilities": [
+    {
+      "type": "weak_password",
+      "severity": "high",
+      "title": "Weak Password in Environment",
+      "description": "Weak password detected in environment variables",
+      "recommendation": "Use strong passwords (8+ characters, mixed case, numbers, symbols)",
+      "location": "Environment variables"
+    }
+  ],
+  "compliance": [],
+  "recommendations": [],
+  "score": 85,
+  "timestamp": "2025-10-31T16:17:45.361Z",
+  "summary": {
+    "totalVulnerabilities": 1,
+    "criticalVulnerabilities": 0,
+    "highVulnerabilities": 1,
+    "mediumVulnerabilities": 0,
+    "lowVulnerabilities": 0,
+    "securityScore": 85,
+    "riskLevel": "Medium",
+    "topRecommendations": [
+      {
+        "type": "weak_password",
+        "count": 1,
+        "priority": "High"
+      }
+    ]
+  }
+}

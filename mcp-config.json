@@ -1,13 +1,14 @@
 {
   "mcpServers": {
-    "n8n": {
-      "command": "node",
-      "args": ["dist/src/mcp/n8n-mcp-server.js"],
+    "n8n-mcp": {
+      "command": "npx",
+      "args": ["n8n-mcp"],
       "env": {
-        "N8N_BASE_URL": "http://localhost:5678",
-        "N8N_API_KEY": "",
-        "N8N_WEBHOOK_URL": "",
-        "N8N_TIMEOUT": "30000"
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true",
+        "N8N_API_URL": "http://localhost:5678/",
+        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhMjYwMzkxMC00ODc1LTQ2MGItYWQwZC0xZDk5MmJlZjliMWMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzYxOTQzMDUyfQ.Xm3ZVweLIv6f2d_LvL55xC98-fnGsWYbQpguo7DT1tw"
       }
     }
   }

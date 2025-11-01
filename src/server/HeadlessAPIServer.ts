@@ -4,8 +4,10 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { Logger } from '../utils/Logger';
 import { ErrorHandler } from '../utils/ErrorHandler';
-import HeadlessService from '../services/HeadlessService';
+// HeadlessService implementation resides under services/api in this repo
+import HeadlessService from '../services/api/HeadlessService';
 import headlessRoutes from '../routes/headless';
+import { registerQueueProcessors } from '../services/workflow/MiningQueueProcessor';
 
 export class HeadlessAPIServer {
   private app: express.Application;
@@ -159,6 +161,7 @@ export class HeadlessAPIServer {
     try {
       // Initialize headless services
       await this.headlessService.initialize();
+      await registerQueueProcessors();
 
       // Start HTTP server
       this.server = this.app.listen(this.port, () => {

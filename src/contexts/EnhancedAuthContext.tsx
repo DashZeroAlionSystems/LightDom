@@ -8,6 +8,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 
 export interface User {
   id: string;
+  name?: string;
   walletAddress: string;
   username: string;
   email: string;
@@ -63,6 +64,8 @@ interface AuthContextType {
   updateProfile: (data: Partial<User>) => Promise<void>;
   checkPermission: (resource: string, action: string) => boolean;
   checkFeatureAccess: (feature: string) => FeatureAccess;
+  // Convenience helper for dev/demo flows to inject a mock user
+  setMockUser?: (user: Partial<User> | User | null) => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isPaidUser: boolean;
@@ -458,6 +461,36 @@ export const EnhancedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  // Dev/demo helper to quickly set a mock user (keeps shape safe)
+  const setMockUser = (u: Partial<User> | User | null) => {
+    if (!u) {
+      setUser(null);
+      return;
+    }
+
+    const mock: User = {
+      id: (u as any).id || 'mock-user',
+      walletAddress: (u as any).walletAddress || (u as any).email || '0x0',
+      username: (u as any).username || (u as any).name || (u as any).email || 'mock',
+      name: (u as any).name || (u as any).username || (u as any).email || 'Mock User',
+      email: (u as any).email || 'mock@lightdom.local',
+      avatar: (u as any).avatar,
+      role: (u as any).role || 'user',
+      subscription: (u as any).subscription || {
+        plan: 'free',
+        status: 'active',
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        features: Object.keys(FEATURE_LIMITS.free)
+      },
+      wallet: (u as any).wallet || { address: (u as any).walletAddress || '0x0', connected: false, balance: '0', ldomBalance: '0' },
+      stats: (u as any).stats || { reputation: 0, totalSpaceHarvested: 0, optimizationCount: 0, tokensEarned: '0' },
+      preferences: (u as any).preferences || { theme: 'system', notifications: true, language: 'en', dashboard: DEFAULT_DASHBOARDS.free },
+      permissions: (u as any).permissions || getPermissionsByRole((u as any).role || 'user', ((u as any).subscription && (u as any).subscription.plan) || 'free')
+    };
+
+    setUser(mock);
+  };
+
   const value: AuthContextType = {
     user,
     loading,
@@ -469,6 +502,7 @@ export const EnhancedAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     updateProfile,
     checkPermission,
     checkFeatureAccess,
+    setMockUser,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isPaidUser: user ? ['pro', 'enterprise', 'admin'].includes(user.subscription.plan) : false,

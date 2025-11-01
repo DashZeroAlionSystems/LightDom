@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, theme, Spin, Typography } from 'antd';
 import { AuthProvider, useAuth } from './hooks/state/useAuth';
+import { EnhancedAuthProvider } from './contexts/EnhancedAuthContext';
 import { BlockchainProvider } from './hooks/useBlockchain';
 import DashboardLayout from './components/ui/dashboard/DashboardLayout';
 import DashboardOverview from './components/ui/dashboard/DashboardOverview';
@@ -42,6 +43,13 @@ import SystemLogs from './components/ui/admin/SystemLogs';
 import BillingManagement from './components/ui/admin/BillingManagement';
 import CrawlerDashboard from './components/ui/admin/CrawlerDashboard';
 import TrainingControlPanel from './components/ui/admin/TrainingControlPanel';
+import UserManagementWorkflow from './components/ui/admin/UserManagementWorkflow';
+import SEOCrawlerWorkflow from './components/ui/admin/SEOCrawlerWorkflow';
+import WorkflowDemo from './components/WorkflowDemo';
+import TrainingDataPipeline from './components/TrainingDataPipeline';
+import DesignSystemGuide from './components/DesignSystemGuide';
+import MotionDesignShowcase from './components/MotionDesignShowcase';
+import DesignToolsNavigation from './components/DesignToolsNavigation';
 import './App.css';
 
 // Initialize persistence system
@@ -95,7 +103,8 @@ const AppContent: React.FC = () => {
             </ProtectedRoute>
           }
         >
-          <Route index element={<AdminOverview />} />
+          <Route index element={<AdminDashboard />} />
+          <Route path="overview" element={<AdminOverview />} />
           <Route path="users" element={<EnhancedUserManagement />} />
           <Route path="billing" element={<BillingManagement />} />
           <Route path="crawler" element={<CrawlerDashboard />} />
@@ -104,6 +113,12 @@ const AppContent: React.FC = () => {
           <Route path="logs" element={<SystemLogs />} />
           <Route path="settings" element={<AdminDashboard />} />
           <Route path="analytics" element={<AdminAnalyticsDashboard />} />
+          <Route path="user-workflows" element={<UserManagementWorkflow />} />
+          <Route path="seo-workflows" element={<SEOCrawlerWorkflow />} />
+          <Route path="training-data" element={<TrainingDataPipeline />} />
+          <Route path="design-system" element={<DesignSystemGuide />} />
+          <Route path="motion-showcase" element={<MotionDesignShowcase />} />
+          <Route path="design-tools" element={<DesignToolsNavigation />} />
         </Route>
         
         {/* Protected Routes */}
@@ -136,6 +151,23 @@ const AppContent: React.FC = () => {
           <Route path="history" element={<HistoryPage />} />
           <Route path="achievements" element={<AchievementsPage />} />
           <Route path="settings" element={<FileUploadSettings />} />
+          <Route path="workflow-demo" element={<WorkflowDemo />} />
+          <Route path="training-data" element={<TrainingDataPipeline />} />
+          <Route path="design-system" element={<DesignSystemGuide />} />
+          <Route path="motion-showcase" element={<MotionDesignShowcase />} />
+          <Route path="design-tools" element={<DesignToolsNavigation />} />
+          
+          {/* Admin Routes within Dashboard */}
+          <Route path="admin" element={<AdminDashboard />} />
+          <Route path="admin/users" element={<EnhancedUserManagement />} />
+          <Route path="admin/monitoring" element={<SystemMonitoring />} />
+          <Route path="admin/logs" element={<SystemLogs />} />
+          <Route path="admin/billing" element={<BillingManagement />} />
+          <Route path="admin/crawler" element={<CrawlerDashboard />} />
+          <Route path="admin/training" element={<TrainingControlPanel />} />
+          <Route path="admin/analytics" element={<AdminAnalyticsDashboard />} />
+          <Route path="admin/user-workflows" element={<UserManagementWorkflow />} />
+          <Route path="admin/seo-workflows" element={<SEOCrawlerWorkflow />} />
         </Route>
         
         {/* Default Redirect */}
@@ -188,11 +220,13 @@ const App: React.FC = () => {
         },
       }}
     >
-      <AuthProvider>
-        <BlockchainProvider>
-          <AppContent />
-        </BlockchainProvider>
-      </AuthProvider>
+      <EnhancedAuthProvider>
+        <AuthProvider>
+          <BlockchainProvider>
+            <AppContent />
+          </BlockchainProvider>
+        </AuthProvider>
+      </EnhancedAuthProvider>
     </ConfigProvider>
   );
 };

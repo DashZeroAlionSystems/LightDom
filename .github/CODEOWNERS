@@ -1,0 +1,11 @@
+# Code owners - assign review responsibility
+# Lines matching paths will request review from the listed owners
+
+# Core TS source
+src/ @DashZeroAlionSystems
+
+# Infrastructure and workflows
+.github/ @DashZeroAlionSystems
+
+# Docs
+README.md @DashZeroAlionSystems

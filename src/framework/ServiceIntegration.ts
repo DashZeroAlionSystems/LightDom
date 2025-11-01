@@ -76,9 +76,14 @@ export class ServiceIntegration extends EventEmitter {
         chainId: parseInt(process.env.BLOCKCHAIN_CHAIN_ID || '1337')
       });
       this.services.animationService = new MetaverseAnimationService();
-      this.services.cursorN8nService = new CursorN8nIntegrationService();
+      // CursorN8nIntegrationService requires TaskManager, HeadlessChromeService, and IntegrationConfig
+      // TODO: Initialize with proper dependencies
+      // this.services.cursorN8nService = new CursorN8nIntegrationService();
       this.services.analyticsService = new BridgeAnalyticsService();
-      this.services.authService = new WebAuthnService();
+      this.services.authService = new WebAuthnService({
+        timeout: 60000,
+        challengeLength: 32
+      });
       this.services.paymentService = new PaymentService();
 
       // Connect services

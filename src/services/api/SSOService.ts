@@ -18,7 +18,7 @@ import {
   SSOLoginResponse,
   SSOTokenValidation,
   SSOEvents
-} from '../types/SSOTypes';
+} from '@/types/SSOTypes';
 
 export class SSOService extends EventEmitter {
   private logger: Logger;

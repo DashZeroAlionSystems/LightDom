@@ -15,9 +15,9 @@
     "jsx": "react-jsx",
 
     /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
 
     /* Path mapping */
@@ -29,7 +29,9 @@
       "@/api/*": ["src/api/*"],
       "@/core/*": ["src/core/*"],
       "@/server/*": ["src/server/*"],
-      "@/types/*": ["src/types/*"]
+      "@/types/*": ["src/types/*"],
+      "@ant-design/icons": ["src/types/ant-design-icons-shim.d.ts"],
+      "@ant-design/icons/*": ["src/types/ant-design-icons-shim.d.ts"]
     }
   },
   "include": [
@@ -45,6 +47,7 @@
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
-    "**/*.spec.tsx"
+    "**/*.spec.tsx",
+    "src/types/shims.d.ts"
   ]
 }

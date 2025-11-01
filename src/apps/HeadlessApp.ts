@@ -1,4 +1,5 @@
-import puppeteer, { Browser, Page, CDPSession, LaunchOptions } from 'puppeteer';
+import puppeteer, { Browser, Page, LaunchOptions } from 'puppeteer';
+import type { CDPSession } from 'puppeteer';
 import { EventEmitter } from 'events';
 import { Logger } from '../utils/Logger';
 import { PerformanceMetrics, DOMAnalysis } from '../types/HeadlessTypes';

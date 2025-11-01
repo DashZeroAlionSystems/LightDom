@@ -13,7 +13,7 @@
 // Stripe is server-only; prevent client bundling by dynamic import on server
 let StripeCtor: any;
 import Logger from '../../utils/Logger';
-import { ErrorHandler } from '../../core/ErrorHandler';
+import { errorHandler } from '../../core/ErrorHandler';
 
 // Environment variables for secure configuration
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
@@ -107,12 +107,13 @@ export interface UsageRecord {
 }
 
 export class PaymentService {
-  private errorHandler: ErrorHandler;
+  private errorHandler: any;
   private webhookSecret: string;
   private logger: Logger;
 
   constructor() {
-    this.errorHandler = new ErrorHandler();
+    // Use the central singleton error handler
+    this.errorHandler = errorHandler;
     this.webhookSecret = STRIPE_WEBHOOK_SECRET;
     this.logger = new Logger('PaymentService');
   }

@@ -6,7 +6,7 @@
 
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { getExpectedCTR } from '../types/complete-seo-schema';
+import { getExpectedCTR } from '@/types/complete-seo-schema';
 
 export interface MVPFeatures {
   // Free from web scraping (8 features)
@@ -81,7 +81,7 @@ export class MVPFeatureCollector {
     return {
       ...rawFeatures,
       ...derivedFeatures
-    };
+    } as MVPFeatures;
   }
 
   /**

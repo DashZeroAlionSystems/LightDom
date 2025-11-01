@@ -458,7 +458,7 @@ export const FEATURE_IMPORTANCE_RANKING = {
 // EXPECTED CTR BY POSITION
 // ============================================================================
 
-export const EXPECTED_CTR_BY_POSITION: { [key: number]: number } = {
+export const EXPECTED_CTR_BY_POSITION: { [key: number]: number; default: number } = {
   1: 0.316,    // 31.6% CTR for position 1
   2: 0.177,    // 17.7% CTR for position 2
   3: 0.112,    // 11.2% CTR for position 3

@@ -24,7 +24,7 @@ const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const startTimeRef = useRef<number>(0);
   const startValueRef = useRef<number>(0);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (displayValue === value) return;
@@ -100,7 +100,7 @@ const AnimatedNumber: React.FC<AnimatedNumberProps> = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const startTimeRef = useRef<number>(0);
   const startValueRef = useRef<number>(0);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (displayValue === value) return;
@@ -195,7 +195,7 @@ const AnimatedProgress: React.FC<AnimatedProgressProps> = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const startTimeRef = useRef<number>(0);
   const startValueRef = useRef<number>(0);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (animatedValue === value) return;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Layout,
@@ -10,32 +10,46 @@ import {
   Typography,
   Badge,
   Drawer,
+  theme
 } from 'antd';
 import {
   DashboardOutlined,
-  TeamOutlined,
-  DollarOutlined,
+  UserOutlined,
   BarChartOutlined,
   SettingOutlined,
-  LogoutOutlined,
   BellOutlined,
-  UserOutlined,
-  MenuOutlined,
-  CloseOutlined,
+  MenuFoldOutlined,
+  CloseCircleOutlined,
   FileTextOutlined,
   DatabaseOutlined,
-  ShieldOutlined,
   ApiOutlined,
   ThunderboltOutlined,
-  ArrowLeftOutlined,
-  RobotOutlined,
+  RocketOutlined,
   ExperimentOutlined,
+  TeamOutlined,
+  AppstoreOutlined,
+  SafetyOutlined,
+  GlobalOutlined,
+  ToolOutlined,
+  QuestionCircleOutlined,
+  InfoCircleOutlined,
+  CloudDownloadOutlined,
+  RiseOutlined,
+  SearchOutlined,
+  SwapOutlined,
+  CommentOutlined,
+  SnippetsOutlined,
+  ArrowLeftOutlined,
+  ShieldOutlined,
+  MenuUnfoldOutlined,
+  EditOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../../hooks/state/useAuth';
 import './AdminLayout.css';
 
 const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;
+const { useToken } = theme;
 
 const AdminLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -43,69 +57,92 @@ const AdminLayout: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { token } = useToken();
+  
+  // Get the current path to highlight the active menu item
+  const currentPath = location.pathname;
 
-  const adminMenuItems = [
+  // Main navigation items
+  const adminMenuItems = useMemo(() => [
     {
       key: '/admin',
       icon: <DashboardOutlined />,
-      label: 'Admin Overview',
+      label: 'Dashboard',
     },
     {
-      key: '/admin/users',
-      icon: <TeamOutlined />,
+      type: 'divider' as const,
+    },
+    {
+      key: 'user-management',
+      icon: <UserOutlined />,
       label: 'User Management',
+      children: [
+        { key: '/admin/users', label: 'All Users', icon: <TeamOutlined /> },
+        { key: '/admin/user-workflows', label: 'User Workflows', icon: <ThunderboltOutlined /> },
+        { key: '/admin/roles', label: 'Roles & Permissions', icon: <SafetyOutlined /> },
+        { key: '/admin/activity', label: 'User Activity', icon: <EditOutlined /> },
+      ],
     },
     {
-      key: '/admin/billing',
-      icon: <DollarOutlined />,
-      label: 'Billing Management',
+      key: 'content',
+      icon: <AppstoreOutlined />,
+      label: 'Content',
+      children: [
+        { key: '/admin/pages', label: 'Pages', icon: <FileTextOutlined /> },
+        { key: '/admin/media', label: 'Media Library', icon: <DatabaseOutlined /> },
+        { key: '/admin/comments', label: 'Comments', icon: <CommentOutlined /> },
+      ],
     },
     {
-      key: '/admin/crawler',
-      icon: <RobotOutlined />,
-      label: 'Web Crawler',
+      key: 'system',
+      icon: <SettingOutlined />,
+      label: 'System',
+      children: [
+        { key: '/admin/settings', label: 'General Settings', icon: <ToolOutlined /> },
+        { key: '/admin/performance', label: 'Performance', icon: <ThunderboltOutlined /> },
+        { key: '/admin/updates', label: 'Updates', icon: <CloudDownloadOutlined /> },
+      ],
     },
     {
-      key: '/admin/training',
-      icon: <ExperimentOutlined />,
-      label: 'Model Training',
-    },
-    {
-      key: '/admin/monitoring',
+      key: 'analytics',
       icon: <BarChartOutlined />,
-      label: 'System Monitoring',
+      label: 'Analytics',
+      children: [
+        { key: '/admin/overview', label: 'Overview', icon: <DashboardOutlined /> },
+        { key: '/admin/reports', label: 'Reports', icon: <FileTextOutlined /> },
+        { key: '/admin/insights', label: 'Insights', icon: <RiseOutlined /> },
+      ],
     },
     {
-      key: '/admin/logs',
-      icon: <FileTextOutlined />,
-      label: 'System Logs',
+      key: 'seo',
+      icon: <GlobalOutlined />,
+      label: 'SEO',
+      children: [
+        { key: '/admin/seo/analysis', label: 'SEO Analysis', icon: <SearchOutlined /> },
+        { key: '/admin/seo-workflows', label: 'SEO Workflows', icon: <ThunderboltOutlined /> },
+        { key: '/admin/seo/sitemap', label: 'Sitemap', icon: <SwapOutlined /> },
+        { key: '/admin/seo/redirects', label: 'Redirects', icon: <SwapOutlined /> },
+      ],
     },
     {
-      key: '/admin/database',
-      icon: <DatabaseOutlined />,
-      label: 'Database Monitor',
+      type: 'divider' as const,
     },
     {
-      key: '/admin/security',
-      icon: <ShieldOutlined />,
-      label: 'Security Settings',
+      key: 'help',
+      icon: <QuestionCircleOutlined />,
+      label: 'Help & Support',
     },
     {
-      key: '/admin/api',
-      icon: <ApiOutlined />,
-      label: 'API Management',
-    },
-    {
-      key: '/admin/performance',
-      icon: <ThunderboltOutlined />,
-      label: 'Performance',
+      key: 'documentation',
+      icon: <InfoCircleOutlined />,
+      label: 'Documentation',
     },
     {
       key: '/admin/settings',
       icon: <SettingOutlined />,
       label: 'Admin Settings',
     },
-  ];
+  ], []);
 
   const userMenuItems = [
     {
@@ -123,7 +160,7 @@ const AdminLayout: React.FC = () => {
     },
     {
       key: 'logout',
-      icon: <LogoutOutlined />,
+      icon: <SettingOutlined />,
       label: 'Logout',
       danger: true,
     },
@@ -166,7 +203,7 @@ const AdminLayout: React.FC = () => {
       <div className="admin-mobile-header">
         <Button
           type="text"
-          icon={<MenuOutlined />}
+          icon={<MenuUnfoldOutlined />}
           onClick={() => setMobileMenuVisible(true)}
           className="mobile-menu-button"
         />
@@ -262,7 +299,7 @@ const AdminLayout: React.FC = () => {
           <div className="header-left">
             <Button
               type="text"
-              icon={collapsed ? <MenuOutlined /> : <CloseOutlined />}
+              icon={collapsed ? <MenuUnfoldOutlined /> : <CloseCircleOutlined />}
               onClick={() => setCollapsed(!collapsed)}
               className="sidebar-toggle"
               style={{ color: '#fff' }}

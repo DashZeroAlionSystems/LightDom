@@ -1,207 +1,191 @@
-import React, { forwardRef } from 'react';
+/**
+ * Input Component - Material Design 3
+ * Accessible form input with validation support and Material Design styling
+ */
+
+import React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '../../utils/validation/cn';
+import { cn } from '../../lib/utils';
 
 const inputVariants = cva(
-  'flex w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-200',
+  // Base styles - Material Design 3 text field foundation
+  [
+    'flex w-full rounded-md transition-all duration-medium-2 ease-standard',
+    'text-body-lg text-on-surface placeholder:text-on-surface-variant',
+    'focus:outline-none focus-visible:outline-none',
+    'disabled:cursor-not-allowed disabled:opacity-50'
+  ],
   {
     variants: {
       variant: {
-        default: 'border-border focus:border-primary',
-        error: 'border-error focus:border-error focus:ring-error',
-        success: 'border-success focus:border-success focus:ring-success',
-        warning: 'border-warning focus:border-warning focus:ring-warning',
+        // Outlined - Default Material Design 3 text field
+        outlined: [
+          'border border-outline bg-transparent px-4 py-3',
+          'hover:border-outline-variant',
+          'focus:border-primary focus:border-2',
+          'focus:px-[15px] focus:py-[11px]' // Compensate for thicker border
+        ],
+        // Filled - Alternate style with background
+        filled: [
+          'border-0 border-b border-outline bg-surface-container-highest px-4 pt-6 pb-2',
+          'rounded-t-md rounded-b-none',
+          'hover:border-on-surface',
+          'focus:border-primary focus:border-b-2',
+          'focus:pb-[7px]' // Compensate for thicker border
+        ]
       },
       size: {
-        sm: 'h-8 px-2 text-xs',
-        md: 'h-10 px-3 text-sm',
-        lg: 'h-12 px-4 text-base',
+        sm: 'h-8 px-3 text-sm',
+        md: 'h-12 text-body-lg',
+        lg: 'h-14 px-4 text-body-lg'
       },
-      fullWidth: {
-        true: 'w-full',
-        false: '',
-      },
+      state: {
+        default: '',
+        error: 'border-error focus:border-error',
+        success: 'border-success focus:border-success', 
+        disabled: 'opacity-50 cursor-not-allowed'
+      }
     },
     defaultVariants: {
-      variant: 'default',
+      variant: 'outlined',
       size: 'md',
-      fullWidth: true,
-    },
+      state: 'default'
+    }
   }
 );
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement>,
+const labelVariants = cva(
+  [
+    'absolute left-4 transition-all duration-medium-2 ease-standard',
+    'text-on-surface-variant pointer-events-none'
+  ],
+  {
+    variants: {
+      variant: {
+        outlined: [
+          'top-1/2 -translate-y-1/2 bg-surface px-1',
+          'peer-focus:top-0 peer-focus:text-xs peer-focus:text-primary',
+          'peer-[&:not(:placeholder-shown)]:top-0 peer-[&:not(:placeholder-shown)]:text-xs'
+        ],
+        filled: [
+          'top-6 text-body-lg',
+          'peer-focus:top-2 peer-focus:text-xs peer-focus:text-primary',
+          'peer-[&:not(:placeholder-shown)]:top-2 peer-[&:not(:placeholder-shown)]:text-xs'
+        ]
+      }
+    },
+    defaultVariants: {
+      variant: 'outlined'
+    }
+  }
+);
+
+export interface InputProps 
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
     VariantProps<typeof inputVariants> {
+  /**
+   * Label text for the input
+   */
   label?: string;
+  /**
+   * Helper text displayed below the input
+   */
   helperText?: string;
+  /**
+   * Error message - overrides helperText and applies error styling
+   */
   error?: string;
-  success?: string;
-  warning?: string;
+  /**
+   * Icon to display on the left side
+   */
   leftIcon?: React.ReactNode;
+  /**
+   * Icon to display on the right side
+   */
   rightIcon?: React.ReactNode;
-  leftAddon?: React.ReactNode;
-  rightAddon?: React.ReactNode;
+  /**
+   * Whether the input takes full width
+   */
   fullWidth?: boolean;
 }
 
-const InputBase = forwardRef<HTMLInputElement, InputProps>(
-  (
-    {
-      className,
-      variant,
-      size,
-      fullWidth,
-      label,
-      helperText,
-      error,
-      success,
-      warning,
-      leftIcon,
-      rightIcon,
-      leftAddon,
-      rightAddon,
-      id,
-      ...props
-    },
-    ref
-  ) => {
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ 
+    className, 
+    variant, 
+    size, 
+    state,
+    label,
+    helperText,
+    error,
+    leftIcon,
+    rightIcon,
+    fullWidth = true,
+    disabled,
+    id,
+    ...props 
+  }, ref) => {
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Determine variant based on state
-    let inputVariant = variant;
-    if (error) inputVariant = 'error';
-    else if (success) inputVariant = 'success';
-    else if (warning) inputVariant = 'warning';
-
-    const hasAddons = leftAddon || rightAddon;
-    const hasIcons = leftIcon || rightIcon;
+    const finalState = error ? 'error' : disabled ? 'disabled' : state;
+    const hasLabel = Boolean(label);
+    const hasHelperText = Boolean(helperText || error);
 
     return (
-      <div className={cn('space-y-2', fullWidth && 'w-full')}>
-        {label && (
-          <label
-            htmlFor={inputId}
-            className="block text-sm font-medium text-text"
-          >
-            {label}
-          </label>
-        )}
-        
+      <div className={cn('space-y-1', fullWidth && 'w-full')}>
         <div className="relative">
-          {hasAddons ? (
-            <div className="flex">
-              {leftAddon && (
-                <span className="inline-flex items-center px-3 text-sm text-text-tertiary bg-surface border border-r-0 border-border rounded-l-lg">
-                  {leftAddon}
-                </span>
-              )}
-              <input
-                id={inputId}
-                className={cn(
-                  inputVariants({ variant: inputVariant, size, fullWidth }),
-                  hasAddons && 'rounded-none',
-                  leftAddon && 'rounded-l-none',
-                  rightAddon && 'rounded-r-none',
-                  hasIcons && 'pl-10',
-                  rightIcon && 'pr-10',
-                  className
-                )}
-                ref={ref}
-                {...props}
-              />
-              {rightAddon && (
-                <span className="inline-flex items-center px-3 text-sm text-text-tertiary bg-surface border border-l-0 border-border rounded-r-lg">
-                  {rightAddon}
-                </span>
-              )}
+          {/* Left Icon */}
+          {leftIcon && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant z-10">
+              {leftIcon}
             </div>
-          ) : (
-            <div className="relative">
-              {leftIcon && (
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-text-tertiary">{leftIcon}</span>
-                </div>
-              )}
-              <input
-                id={inputId}
-                className={cn(
-                  inputVariants({ variant: inputVariant, size, fullWidth }),
-                  hasIcons && 'pl-10',
-                  rightIcon && 'pr-10',
-                  className
-                )}
-                ref={ref}
-                {...props}
-              />
-              {rightIcon && (
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <span className="text-text-tertiary">{rightIcon}</span>
-                </div>
-              )}
+          )}
+
+          {/* Input */}
+          <input
+            ref={ref}
+            id={inputId}
+            className={cn(
+              inputVariants({ variant, size, state: finalState }),
+              hasLabel && 'peer',
+              leftIcon && 'pl-10',
+              rightIcon && 'pr-10',
+              className
+            )}
+            placeholder={hasLabel ? ' ' : props.placeholder} // Space for floating label
+            disabled={disabled}
+            {...props}
+          />
+
+          {/* Floating Label */}
+          {hasLabel && (
+            <label
+              htmlFor={inputId}
+              className={cn(labelVariants({ variant }))}
+            >
+              {label}
+            </label>
+          )}
+
+          {/* Right Icon */}
+          {rightIcon && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant">
+              {rightIcon}
             </div>
           )}
         </div>
 
-        {(helperText || error || success || warning) && (
-          <div className="text-sm">
+        {/* Helper Text / Error Message */}
+        {hasHelperText && (
+          <div className={cn(
+            'flex items-start gap-1 text-body-sm px-4',
+            error ? 'text-error' : 'text-on-surface-variant'
+          )}>
             {error && (
-              <p className="text-error flex items-center gap-1">
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                {error}
-              </p>
+              <svg className="w-4 h-4 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
             )}
-            {success && (
-              <p className="text-success flex items-center gap-1">
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-                {success}
-              </p>
-            )}
-            {warning && (
-              <p className="text-warning flex items-center gap-1">
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                  />
-                </svg>
-                {warning}
-              </p>
-            )}
-            {helperText && !error && !success && !warning && (
-              <p className="text-text-secondary">{helperText}</p>
-            )}
+            <span>{error || helperText}</span>
           </div>
         )}
       </div>
@@ -209,10 +193,7 @@ const InputBase = forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-InputBase.displayName = 'Input';
+Input.displayName = 'Input';
 
-export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ className = '', ...props }) => (
-  <input className={`border rounded px-3 py-2 w-full border-gray-300 focus:outline-none focus:ring focus:border-blue-300 ${className}`} {...props} />
-);
-
-export default Input;
+export { Input, inputVariants };
+export type { InputProps };

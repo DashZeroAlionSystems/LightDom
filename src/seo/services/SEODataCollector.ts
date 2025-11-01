@@ -13,7 +13,7 @@ import {
   TechnicalSEOData,
   GoogleSearchConsoleResponse,
   PageSpeedInsightsResponse 
-} from '../types/seo-schema';
+} from '@/types/seo-schema';
 
 export interface SEODataCollectorConfig {
   googleSearchConsoleAuth: {
@@ -252,7 +252,8 @@ export class SEODataCollector {
       
       // Extract images
       const images = $('img');
-      const imagesWithAlt = images.filter((_, el) => $(el).attr('alt')).length;
+      // Ensure boolean predicate for Cheerio filter to satisfy strict checks
+      const imagesWithAlt = images.filter((_, el) => !!$(el).attr('alt')).length;
       
       // Extract links
       const internalLinks = $('a[href^="/"], a[href^="' + new URL(url).origin + '"]');

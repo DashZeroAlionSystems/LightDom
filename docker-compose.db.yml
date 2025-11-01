@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: lightdom-postgres
+    environment:
+      POSTGRES_DB: lightdom
+      POSTGRES_USER: lightdom_user
+      POSTGRES_PASSWORD: lightdom_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+      - ./database/blockchain_schema.sql:/docker-entrypoint-initdb.d/01-blockchain.sql
+      - ./database/optimization_schema.sql:/docker-entrypoint-initdb.d/02-optimization.sql
+      - ./database/bridge_schema.sql:/docker-entrypoint-initdb.d/03-bridge.sql
+    ports:
+      - "5434:5432"
+    networks:
+      - lightdom-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lightdom_user -d lightdom"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: lightdom-redis
+    command: redis-server --appendonly yes --requirepass lightdom_redis_password
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - lightdom-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  lightdom-network:
+    driver: bridge
+    external: true
+    name: lightdom_codemap-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

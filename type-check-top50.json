@@ -1,0 +1,552 @@
+[
+  {
+    "key": "TS2353 | Object literal may only specify known properties, and 'offset' does not exist in type 'AnimationKeyframe'.",
+    "code": "TS2353",
+    "message": "Object literal may only specify known properties, and 'offset' does not exist in type 'AnimationKeyframe'.",
+    "count": 46,
+    "sample": {
+      "file": "src/config/MetaverseAnimationPresets.ts",
+      "line": 18,
+      "col": 9
+    }
+  },
+  {
+    "key": "TS2322 | Type '{ backgroundColor: string; border: string; borderRadius: string; padding: string; textAlign: string; }' is not assignable to type 'CSSProperties'. Types of property 'textAlign' are incompatible. Type 'string' is not assignable to type 'TextAlign'.",
+    "code": "TS2322",
+    "message": "Type '{ backgroundColor: string; border: string; borderRadius: string; padding: string; textAlign: string; }' is not assignable to type 'CSSProperties'. Types of property 'textAlign' are incompatible. Type 'string' is not assignable to type 'TextAlign'.",
+    "count": 24,
+    "sample": {
+      "file": "src/components/StandaloneDashboard.tsx",
+      "line": 372,
+      "col": 14
+    }
+  },
+  {
+    "key": "TS2322 | Type '{ background: string; padding: string; borderRadius: string; border: string; textAlign: string; }' is not assignable to type 'CSSProperties'. Types of property 'textAlign' are incompatible. Type 'string' is not assignable to type 'TextAlign'.",
+    "code": "TS2322",
+    "message": "Type '{ background: string; padding: string; borderRadius: string; border: string; textAlign: string; }' is not assignable to type 'CSSProperties'. Types of property 'textAlign' are incompatible. Type 'string' is not assignable to type 'TextAlign'.",
+    "count": 24,
+    "sample": {
+      "file": "src/components/WorkingDashboard.tsx",
+      "line": 206,
+      "col": 14
+    }
+  },
+  {
+    "key": "TS2448 | Block-scoped variable 'Animation' used before its declaration.",
+    "code": "TS2448",
+    "message": "Block-scoped variable 'Animation' used before its declaration.",
+    "count": 12,
+    "sample": {
+      "file": "src/components/EnhancedDesignSystem.tsx",
+      "line": 166,
+      "col": 21
+    }
+  },
+  {
+    "key": "TS2554 | Expected 1 arguments, but got 0.",
+    "code": "TS2554",
+    "message": "Expected 1 arguments, but got 0.",
+    "count": 11,
+    "sample": {
+      "file": "src/components/ui/AnimatedCounter.tsx",
+      "line": 27,
+      "col": 29
+    }
+  },
+  {
+    "key": "TS2820 | Type '\"outline\"' is not assignable to type '\"text\" | \"filled\" | \"elevated\" | \"outlined\" | \"filled-tonal\"'. Did you mean '\"outlined\"'?",
+    "code": "TS2820",
+    "message": "Type '\"outline\"' is not assignable to type '\"text\" | \"filled\" | \"elevated\" | \"outlined\" | \"filled-tonal\"'. Did you mean '\"outlined\"'?",
+    "count": 11,
+    "sample": {
+      "file": "src/components/ui/BillingDashboard.tsx",
+      "line": 426,
+      "col": 23
+    }
+  },
+  {
+    "key": "TS1117 | An object literal cannot have multiple properties with the same name.",
+    "code": "TS1117",
+    "message": "An object literal cannot have multiple properties with the same name.",
+    "count": 10,
+    "sample": {
+      "file": "src/api/metaverseAlchemyApi.ts",
+      "line": 474,
+      "col": 72
+    }
+  },
+  {
+    "key": "TS2393 | Duplicate function implementation.",
+    "code": "TS2393",
+    "message": "Duplicate function implementation.",
+    "count": 10,
+    "sample": {
+      "file": "src/core/CursorBackgroundAgent.ts",
+      "line": 203,
+      "col": 16
+    }
+  },
+  {
+    "key": "TS2339 | Property 'performance' does not exist on type '{ running: boolean; config: FrameworkConfig; queueStatus: any; systemStats: any; metrics: any; }'.",
+    "code": "TS2339",
+    "message": "Property 'performance' does not exist on type '{ running: boolean; config: FrameworkConfig; queueStatus: any; systemStats: any; metrics: any; }'.",
+    "count": 10,
+    "sample": {
+      "file": "src/framework/automation-demo.ts",
+      "line": 299,
+      "col": 57
+    }
+  },
+  {
+    "key": "TS2341 | Property 'post' is private and only accessible within class 'APIClient'.",
+    "code": "TS2341",
+    "message": "Property 'post' is private and only accessible within class 'APIClient'.",
+    "count": 8,
+    "sample": {
+      "file": "src/architecture/APIIntegration.tsx",
+      "line": 187,
+      "col": 17
+    }
+  },
+  {
+    "key": "TS2322 | Type '{ color: string; intensity: number; }' is not assignable to type 'string'.",
+    "code": "TS2322",
+    "message": "Type '{ color: string; intensity: number; }' is not assignable to type 'string'.",
+    "count": 8,
+    "sample": {
+      "file": "src/config/MetaverseAnimationPresets.ts",
+      "line": 300,
+      "col": 7
+    }
+  },
+  {
+    "key": "TS2341 | Property 'get' is private and only accessible within class 'APIClient'.",
+    "code": "TS2341",
+    "message": "Property 'get' is private and only accessible within class 'APIClient'.",
+    "count": 7,
+    "sample": {
+      "file": "src/architecture/APIIntegration.tsx",
+      "line": 169,
+      "col": 17
+    }
+  },
+  {
+    "key": "TS2339 | Property 'stats' does not exist on type 'MLEnhancedDOMHarvestingWorker'.",
+    "code": "TS2339",
+    "message": "Property 'stats' does not exist on type 'MLEnhancedDOMHarvestingWorker'.",
+    "count": 7,
+    "sample": {
+      "file": "src/ml/MLEnhancedDOMHarvestingEngine.ts",
+      "line": 498,
+      "col": 10
+    }
+  },
+  {
+    "key": "TS2353 | Object literal may only specify known properties, and 'id' does not exist in type 'Omit<SEOAttribute, \"id\">'.",
+    "code": "TS2353",
+    "message": "Object literal may only specify known properties, and 'id' does not exist in type 'Omit<SEOAttribute, \"id\">'.",
+    "count": 7,
+    "sample": {
+      "file": "src/seo-training/SEOCategoryTrainingDashboard.tsx",
+      "line": 137,
+      "col": 7
+    }
+  },
+  {
+    "key": "TS2305 | Module '\"antd\"' has no exported member 'MenuProps'.",
+    "code": "TS2305",
+    "message": "Module '\"antd\"' has no exported member 'MenuProps'.",
+    "count": 6,
+    "sample": {
+      "file": "src/components/admin/EnhancedAdminDashboard.tsx",
+      "line": 43,
+      "col": 3
+    }
+  },
+  {
+    "key": "TS2305 | Module '\"antd\"' has no exported member 'ColorPicker'.",
+    "code": "TS2305",
+    "message": "Module '\"antd\"' has no exported member 'ColorPicker'.",
+    "count": 6,
+    "sample": {
+      "file": "src/components/admin/EnhancedAdminDashboard.tsx",
+      "line": 49,
+      "col": 3
+    }
+  },
+  {
+    "key": "TS2305 | Module '\"antd\"' has no exported member 'Descriptions'.",
+    "code": "TS2305",
+    "message": "Module '\"antd\"' has no exported member 'Descriptions'.",
+    "count": 6,
+    "sample": {
+      "file": "src/components/AutomationOrchestrationDashboard.tsx",
+      "line": 23,
+      "col": 3
+    }
+  },
+  {
+    "key": "TS2353 | Object literal may only specify known properties, and 'id' does not exist in type 'Omit<DynamicBacklinkRule, \"id\">'.",
+    "code": "TS2353",
+    "message": "Object literal may only specify known properties, and 'id' does not exist in type 'Omit<DynamicBacklinkRule, \"id\">'.",
+    "count": 6,
+    "sample": {
+      "file": "src/network/DynamicBacklinkingDashboard.tsx",
+      "line": 253,
+      "col": 7
+    }
+  },
+  {
+    "key": "TS2350 | Only a void function can be called with the 'new' keyword.",
+    "code": "TS2350",
+    "message": "Only a void function can be called with the 'new' keyword.",
+    "count": 6,
+    "sample": {
+      "file": "src/neural/SchemaMiningSystem.tsx",
+      "line": 900,
+      "col": 60
+    }
+  },
+  {
+    "key": "TS2694 | Namespace 'global.Express' has no exported member 'Multer'.",
+    "code": "TS2694",
+    "message": "Namespace 'global.Express' has no exported member 'Multer'.",
+    "count": 5,
+    "sample": {
+      "file": "src/api/LightDomStorageApi.ts",
+      "line": 12,
+      "col": 17
+    }
+  },
+  {
+    "key": "TS2322 | Type '\"outlined\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+    "code": "TS2322",
+    "message": "Type '\"outlined\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+    "count": 5,
+    "sample": {
+      "file": "src/components/admin/ProfessionalAdminDashboard.tsx",
+      "line": 419,
+      "col": 23
+    }
+  },
+  {
+    "key": "TS2322 | Type 'string[]' is not assignable to type 'string'.",
+    "code": "TS2322",
+    "message": "Type 'string[]' is not assignable to type 'string'.",
+    "count": 5,
+    "sample": {
+      "file": "src/neural/DataMiningAutomation.tsx",
+      "line": 3341,
+      "col": 7
+    }
+  },
+  {
+    "key": "TS2741 | Property 'schema' is missing in type '{ id: string; name: string; type: \"text\"; description: string; required: true; }' but required in type 'AttributeDefinition'.",
+    "code": "TS2741",
+    "message": "Property 'schema' is missing in type '{ id: string; name: string; type: \"text\"; description: string; required: true; }' but required in type 'AttributeDefinition'.",
+    "count": 5,
+    "sample": {
+      "file": "src/neural/SchemaMapGenerationSystem.tsx",
+      "line": 1010,
+      "col": 11
+    }
+  },
+  {
+    "key": "TS2551 | Property 'extractVisualProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateVisualProperties'?",
+    "code": "TS2551",
+    "message": "Property 'extractVisualProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateVisualProperties'?",
+    "count": 5,
+    "sample": {
+      "file": "src/neural/SchemaMiningSystem.tsx",
+      "line": 921,
+      "col": 24
+    }
+  },
+  {
+    "key": "TS2551 | Property 'extractBehavioralProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateBehavioralProperties'?",
+    "code": "TS2551",
+    "message": "Property 'extractBehavioralProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateBehavioralProperties'?",
+    "count": 5,
+    "sample": {
+      "file": "src/neural/SchemaMiningSystem.tsx",
+      "line": 922,
+      "col": 28
+    }
+  },
+  {
+    "key": "TS2551 | Property 'extractSemanticProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateSemanticProperties'?",
+    "code": "TS2551",
+    "message": "Property 'extractSemanticProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateSemanticProperties'?",
+    "count": 5,
+    "sample": {
+      "file": "src/neural/SchemaMiningSystem.tsx",
+      "line": 923,
+      "col": 26
+    }
+  },
+  {
+    "key": "TS2551 | Property 'extractAccessibilityProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateAccessibilityProperties'?",
+    "code": "TS2551",
+    "message": "Property 'extractAccessibilityProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateAccessibilityProperties'?",
+    "count": 5,
+    "sample": {
+      "file": "src/neural/SchemaMiningSystem.tsx",
+      "line": 924,
+      "col": 31
+    }
+  },
+  {
+    "key": "TS2724 | '\"../utils/Logger\"' has no exported member named 'logger'. Did you mean 'Logger'?",
+    "code": "TS2724",
+    "message": "'\"../utils/Logger\"' has no exported member named 'logger'. Did you mean 'Logger'?",
+    "count": 4,
+    "sample": {
+      "file": "src/api/adminAnalyticsApi.ts",
+      "line": 10,
+      "col": 10
+    }
+  },
+  {
+    "key": "TS2347 | Untyped function calls may not accept type arguments.",
+    "code": "TS2347",
+    "message": "Untyped function calls may not accept type arguments.",
+    "count": 4,
+    "sample": {
+      "file": "src/architecture/APIIntegration.tsx",
+      "line": 405,
+      "col": 31
+    }
+  },
+  {
+    "key": "TS2322 | Type '\"body2\"' is not assignable to type '\"small\" | \"h1\" | \"h2\" | \"h3\" | \"h4\" | \"h5\" | \"h6\" | \"lead\" | \"paragraph\"'.",
+    "code": "TS2322",
+    "message": "Type '\"body2\"' is not assignable to type '\"small\" | \"h1\" | \"h2\" | \"h3\" | \"h4\" | \"h5\" | \"h6\" | \"lead\" | \"paragraph\"'.",
+    "count": 4,
+    "sample": {
+      "file": "src/components/admin/AmazingMD3Dashboard.tsx",
+      "line": 228,
+      "col": 27
+    }
+  },
+  {
+    "key": "TS2305 | Module '\"antd\"' has no exported member 'QRCode'.",
+    "code": "TS2305",
+    "message": "Module '\"antd\"' has no exported member 'QRCode'.",
+    "count": 4,
+    "sample": {
+      "file": "src/components/BlockchainRewards.tsx",
+      "line": 35,
+      "col": 3
+    }
+  },
+  {
+    "key": "TS2724 | '\"antd\"' has no exported member named 'TimePicker'. Did you mean 'DatePicker'?",
+    "code": "TS2724",
+    "message": "'\"antd\"' has no exported member named 'TimePicker'. Did you mean 'DatePicker'?",
+    "count": 4,
+    "sample": {
+      "file": "src/components/EnhancedStyleguide.tsx",
+      "line": 48,
+      "col": 3
+    }
+  },
+  {
+    "key": "TS2339 | Property 'utils' does not exist on type 'typeof import(\"E:/Personal/project/lightdom/LightDom/node_modules/ethers/lib.esm/ethers\")'.",
+    "code": "TS2339",
+    "message": "Property 'utils' does not exist on type 'typeof import(\"E:/Personal/project/lightdom/LightDom/node_modules/ethers/lib.esm/ethers\")'.",
+    "count": 4,
+    "sample": {
+      "file": "src/components/SEOModelMarketplace.tsx",
+      "line": 101,
+      "col": 31
+    }
+  },
+  {
+    "key": "TS2741 | Property '$$typeof' is missing in type 'ReactElement<any, any>' but required in type 'ForwardRefExoticComponent<Omit<LucideProps, \"ref\"> & RefAttributes<SVGSVGElement>>'.",
+    "code": "TS2741",
+    "message": "Property '$$typeof' is missing in type 'ReactElement<any, any>' but required in type 'ForwardRefExoticComponent<Omit<LucideProps, \"ref\"> & RefAttributes<SVGSVGElement>>'.",
+    "count": 4,
+    "sample": {
+      "file": "src/components/ui/admin/UserManagementTab.tsx",
+      "line": 246,
+      "col": 15
+    }
+  },
+  {
+    "key": "TS2307 | Cannot find module '../types/MetaverseAnimationTypes' or its corresponding type declarations.",
+    "code": "TS2307",
+    "message": "Cannot find module '../types/MetaverseAnimationTypes' or its corresponding type declarations.",
+    "count": 4,
+    "sample": {
+      "file": "src/components/ui/MetaverseAnimationDashboard.tsx",
+      "line": 51,
+      "col": 8
+    }
+  },
+  {
+    "key": "TS2339 | Property 'trackEvent' does not exist on type 'BridgeAnalyticsService'.",
+    "code": "TS2339",
+    "message": "Property 'trackEvent' does not exist on type 'BridgeAnalyticsService'.",
+    "count": 4,
+    "sample": {
+      "file": "src/framework/ServiceIntegration.ts",
+      "line": 141,
+      "col": 17
+    }
+  },
+  {
+    "key": "TS2339 | Property 'mlInsights' does not exist on type '{ mlEnhanced: boolean; confidenceMultiplier: number; predictedImprovements: any; visualOptimizations: any; anomalyDetected: any; cssBytes: number; jsBytes: number; domMemory: number; orphanedElementsSize: number; ... 5 more ...; tokenValue: number; }'.",
+    "code": "TS2339",
+    "message": "Property 'mlInsights' does not exist on type '{ mlEnhanced: boolean; confidenceMultiplier: number; predictedImprovements: any; visualOptimizations: any; anomalyDetected: any; cssBytes: number; jsBytes: number; domMemory: number; orphanedElementsSize: number; ... 5 more ...; tokenValue: number; }'.",
+    "count": 4,
+    "sample": {
+      "file": "src/ml/MLEnhancedDOMHarvestingEngine.ts",
+      "line": 282,
+      "col": 18
+    }
+  },
+  {
+    "key": "TS2353 | Object literal may only specify known properties, and 'id' does not exist in type 'Omit<BacklinkBridge, \"id\">'.",
+    "code": "TS2353",
+    "message": "Object literal may only specify known properties, and 'id' does not exist in type 'Omit<BacklinkBridge, \"id\">'.",
+    "count": 4,
+    "sample": {
+      "file": "src/network/DynamicBacklinkingDashboard.tsx",
+      "line": 187,
+      "col": 7
+    }
+  },
+  {
+    "key": "TS2300 | Duplicate identifier 'ShapeStar'.",
+    "code": "TS2300",
+    "message": "Duplicate identifier 'ShapeStar'.",
+    "count": 4,
+    "sample": {
+      "file": "src/neural/SchemaMiningSystem.tsx",
+      "line": 178,
+      "col": 11
+    }
+  },
+  {
+    "key": "TS2345 | Argument of type '{ name: string; category: string; subcategory: string; description: string; expectedOutcome: string; trainingData: { type: string; count: number; quality: number; features: string[]; }; neuralNetworkConfig: { ...; }; }' is not assignable to parameter of type 'Omit<TrainingSection, \"children\" | \"id\" | \"status\" | \"progress\" | \"trainingHistory\" | \"trustRating\" | \"currentAccuracy\" | \"bestAccuracy\" | \"userFeedback\">'. Property 'dependencies' is missing in type '{ name: string; category: string; subcategory: string; description: string; expectedOutcome: string; trainingData: { type: string; count: number; quality: number; features: string[]; }; neuralNetworkConfig: { ...; }; }' but required in type 'Omit<TrainingSection, \"children\" | \"id\" | \"status\" | \"progress\" | \"trainingHistory\" | \"trustRating\" | \"currentAccuracy\" | \"bestAccuracy\" | \"userFeedback\">'.",
+    "code": "TS2345",
+    "message": "Argument of type '{ name: string; category: string; subcategory: string; description: string; expectedOutcome: string; trainingData: { type: string; count: number; quality: number; features: string[]; }; neuralNetworkConfig: { ...; }; }' is not assignable to parameter of type 'Omit<TrainingSection, \"children\" | \"id\" | \"status\" | \"progress\" | \"trainingHistory\" | \"trustRating\" | \"currentAccuracy\" | \"bestAccuracy\" | \"userFeedback\">'. Property 'dependencies' is missing in type '{ name: string; category: string; subcategory: string; description: string; expectedOutcome: string; trainingData: { type: string; count: number; quality: number; features: string[]; }; neuralNetworkConfig: { ...; }; }' but required in type 'Omit<TrainingSection, \"children\" | \"id\" | \"status\" | \"progress\" | \"trainingHistory\" | \"trustRating\" | \"currentAccuracy\" | \"bestAccuracy\" | \"userFeedback\">'.",
+    "count": 4,
+    "sample": {
+      "file": "src/workflow/SectionDividerWorkflowDashboard.tsx",
+      "line": 122,
+      "col": 48
+    }
+  },
+  {
+    "key": "TS2614 | Module '\"../services/HeadlessChromeService\"' has no exported member 'HeadlessChromeService'. Did you mean to use 'import HeadlessChromeService from \"../services/HeadlessChromeService\"' instead?",
+    "code": "TS2614",
+    "message": "Module '\"../services/HeadlessChromeService\"' has no exported member 'HeadlessChromeService'. Did you mean to use 'import HeadlessChromeService from \"../services/HeadlessChromeService\"' instead?",
+    "count": 3,
+    "sample": {
+      "file": "src/api/taskApi.ts",
+      "line": 3,
+      "col": 10
+    }
+  },
+  {
+    "key": "TS2305 | Module '\"antd\"' has no exported member 'theme'.",
+    "code": "TS2305",
+    "message": "Module '\"antd\"' has no exported member 'theme'.",
+    "count": 3,
+    "sample": {
+      "file": "src/App.tsx",
+      "line": 3,
+      "col": 26
+    }
+  },
+  {
+    "key": "TS2339 | Property 'info' does not exist on type '{ primary: string; secondary: string; success: string; warning: string; error: string; }'.",
+    "code": "TS2339",
+    "message": "Property 'info' does not exist on type '{ primary: string; secondary: string; success: string; warning: string; error: string; }'.",
+    "count": 3,
+    "sample": {
+      "file": "src/components/AdvancedDashboardIntegrated.tsx",
+      "line": 514,
+      "col": 43
+    }
+  },
+  {
+    "key": "TS2305 | Module '\"antd\"' has no exported member 'notification'.",
+    "code": "TS2305",
+    "message": "Module '\"antd\"' has no exported member 'notification'.",
+    "count": 3,
+    "sample": {
+      "file": "src/components/AutomationOrchestrationDashboard.tsx",
+      "line": 24,
+      "col": 3
+    }
+  },
+  {
+    "key": "TS2305 | Module '\"antd\"' has no exported member 'Image'.",
+    "code": "TS2305",
+    "message": "Module '\"antd\"' has no exported member 'Image'.",
+    "count": 3,
+    "sample": {
+      "file": "src/components/BlockchainRewards.tsx",
+      "line": 36,
+      "col": 3
+    }
+  },
+  {
+    "key": "TS2307 | Cannot find module '../ui' or its corresponding type declarations.",
+    "code": "TS2307",
+    "message": "Cannot find module '../ui' or its corresponding type declarations.",
+    "count": 3,
+    "sample": {
+      "file": "src/components/EnhancedNeuralNetworkDashboard.tsx",
+      "line": 57,
+      "col": 8
+    }
+  },
+  {
+    "key": "TS2339 | Property 'map' does not exist on type 'number'.",
+    "code": "TS2339",
+    "message": "Property 'map' does not exist on type 'number'.",
+    "count": 3,
+    "sample": {
+      "file": "src/components/specialized/NeuralNetworkComponents.tsx",
+      "line": 168,
+      "col": 43
+    }
+  },
+  {
+    "key": "TS2307 | Cannot find module 'recharts' or its corresponding type declarations.",
+    "code": "TS2307",
+    "message": "Cannot find module 'recharts' or its corresponding type declarations.",
+    "count": 3,
+    "sample": {
+      "file": "src/components/ui/admin/CrawlerDashboard.tsx",
+      "line": 28,
+      "col": 8
+    }
+  },
+  {
+    "key": "TS2305 | Module '\"antd\"' has no exported member 'Result'.",
+    "code": "TS2305",
+    "message": "Module '\"antd\"' has no exported member 'Result'.",
+    "count": 3,
+    "sample": {
+      "file": "src/components/ui/auth/ForgotPasswordPage.tsx",
+      "line": 9,
+      "col": 3
+    }
+  },
+  {
+    "key": "TS2339 | Property 'chrome' does not exist on type 'Window & typeof globalThis'.",
+    "code": "TS2339",
+    "message": "Property 'chrome' does not exist on type 'Window & typeof globalThis'.",
+    "count": 3,
+    "sample": {
+      "file": "src/components/ui/ClientZone.tsx",
+      "line": 158,
+      "col": 20
+    }
+  }
+]

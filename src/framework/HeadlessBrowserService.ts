@@ -4,7 +4,8 @@
  */
 
 import { EventEmitter } from 'events';
-import puppeteer, { Browser, Page, CDPSession } from 'puppeteer';
+import puppeteer, { Browser, Page } from 'puppeteer';
+import type { CDPSession } from 'puppeteer';
 import { performance } from 'perf_hooks';
 
 export interface BrowserConfig {

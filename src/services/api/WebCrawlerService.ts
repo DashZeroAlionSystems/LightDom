@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { Logger } from '../../utils/Logger';
 import HeadlessChromeService from './HeadlessChromeService';
-import { CrawlResult, CrawlOptions, WebsiteData, OptimizationOpportunity } from '../types/CrawlerTypes';
+import { CrawlResult, CrawlOptions, WebsiteData, OptimizationOpportunity } from '@/types/CrawlerTypes';
 let BullQueueWC: any;
 let RedisCtorWC: any;
 

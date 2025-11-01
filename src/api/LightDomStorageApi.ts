@@ -494,6 +494,19 @@ export class LightDomStorageAPI {
   }
 
   /**
+   * Convenience method for scripts to read Chrome limits directly from storage
+   */
+  public getChromeLimits(): { chromeMaxFileSize: number; chromeMaxFileSizeFormatted: string; defaultMaxFileSize: number; defaultMaxFileSizeFormatted: string; allowedFileTypes: string[] } {
+    return {
+      chromeMaxFileSize: this.CHROME_MAX_FILE_SIZE,
+      chromeMaxFileSizeFormatted: this.formatBytes(this.CHROME_MAX_FILE_SIZE),
+      defaultMaxFileSize: this.DEFAULT_MAX_FILE_SIZE,
+      defaultMaxFileSizeFormatted: this.formatBytes(this.DEFAULT_MAX_FILE_SIZE),
+      allowedFileTypes: this.ALLOWED_FILE_TYPES
+    };
+  }
+
+  /**
    * Generate unique file ID
    */
   private generateFileId(): string {

@@ -1,7 +1,8 @@
 import puppeteer, { Browser, Page, LaunchOptions, PDFOptions, ScreenshotOptions } from 'puppeteer';
 import { EventEmitter } from 'events';
 import { Logger } from '../../utils/Logger';
-import { PerformanceMetrics, DOMAnalysis, OptimizationResult } from '../types/HeadlessTypes';
+import { PerformanceMetrics, DOMAnalysis } from '@/types/HeadlessTypes';
+import { OptimizationResult } from '@/types/OptimizationTypes';
 
 export class HeadlessChromeService extends EventEmitter {
   private browser: Browser | null = null;
@@ -21,7 +22,9 @@ export class HeadlessChromeService extends EventEmitter {
   async initialize(options: LaunchOptions = {}): Promise<void> {
     try {
       const defaultOptions: LaunchOptions = {
-        headless: 'new',
+        // Use a conservative boolean headless flag to be compatible with a
+        // variety of puppeteer versions during triage.
+        headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',

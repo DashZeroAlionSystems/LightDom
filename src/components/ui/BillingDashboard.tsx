@@ -28,11 +28,7 @@ import {
   Label 
 } from '@/components/ui/label';
 import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+  Select
 } from '@/components/ui/select';
 import { 
   Tabs, 
@@ -473,18 +469,15 @@ export const BillingDashboard: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="plan-select">Select Plan</Label>
-                  <Select value={selectedPlan} onValueChange={setSelectedPlan}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a billing plan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {billingPlans.map((plan) => (
-                        <SelectItem key={plan.id} value={plan.id}>
-                          {plan.name} - {formatCurrency(plan.price * 100, plan.currency)}/{plan.interval}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Select
+                    options={billingPlans.map(plan => ({
+                      value: plan.id,
+                      label: `${plan.name} - ${formatCurrency(plan.price * 100, plan.currency)}/${plan.interval}`
+                    }))}
+                    value={selectedPlan}
+                    onChange={(e) => setSelectedPlan(e.target.value)}
+                    placeholder="Choose a billing plan"
+                  />
                 </div>
                 <Button 
                   onClick={handleCreateSubscription}

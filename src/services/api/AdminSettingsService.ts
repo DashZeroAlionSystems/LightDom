@@ -17,7 +17,7 @@ import {
   DatabaseSettings,
   EmailSettings,
   MonitoringSettings
-} from '../types/AdminSettingsTypes';
+} from '@/types/api/AdminSettingsTypes';
 
 class AdminSettingsService {
   private settings: AdminSettings;
@@ -144,7 +144,6 @@ class AdminSettingsService {
         enableNotifications: true,
         notificationDuration: 5,
         enableKeyboardShortcuts: true,
-        enableAccessibilityMode: false,
         enableHighContrast: false,
         enableReducedMotion: false,
         defaultPageSize: 20,

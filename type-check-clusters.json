@@ -1,0 +1,2206 @@
+{
+  "generatedAt": "2025-10-31T22:35:01.871Z",
+  "totalClusters": 469,
+  "top": [
+    {
+      "key": "TS2694 | Namespace 'global.Express' has no exported member 'Multer'.",
+      "code": "TS2694",
+      "message": "Namespace 'global.Express' has no exported member 'Multer'.",
+      "count": 5,
+      "sample": {
+        "file": "src/api/LightDomStorageApi.ts",
+        "line": 12,
+        "col": 17
+      }
+    },
+    {
+      "key": "TS2322 | Type '\"outlined\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "code": "TS2322",
+      "message": "Type '\"outlined\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "count": 5,
+      "sample": {
+        "file": "src/components/admin/ProfessionalAdminDashboard.tsx",
+        "line": 419,
+        "col": 23
+      }
+    },
+    {
+      "key": "TS2322 | Type 'string[]' is not assignable to type 'string'.",
+      "code": "TS2322",
+      "message": "Type 'string[]' is not assignable to type 'string'.",
+      "count": 5,
+      "sample": {
+        "file": "src/neural/DataMiningAutomation.tsx",
+        "line": 3341,
+        "col": 7
+      }
+    },
+    {
+      "key": "TS2741 | Property 'schema' is missing in type '{ id: string; name: string; type: \"text\"; description: string; required: true; }' but required in type 'AttributeDefinition'.",
+      "code": "TS2741",
+      "message": "Property 'schema' is missing in type '{ id: string; name: string; type: \"text\"; description: string; required: true; }' but required in type 'AttributeDefinition'.",
+      "count": 5,
+      "sample": {
+        "file": "src/neural/SchemaMapGenerationSystem.tsx",
+        "line": 1010,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2724 | '\"../utils/Logger\"' has no exported member named 'logger'. Did you mean 'Logger'?",
+      "code": "TS2724",
+      "message": "'\"../utils/Logger\"' has no exported member named 'logger'. Did you mean 'Logger'?",
+      "count": 4,
+      "sample": {
+        "file": "src/api/adminAnalyticsApi.ts",
+        "line": 10,
+        "col": 10
+      }
+    },
+    {
+      "key": "TS2347 | Untyped function calls may not accept type arguments.",
+      "code": "TS2347",
+      "message": "Untyped function calls may not accept type arguments.",
+      "count": 4,
+      "sample": {
+        "file": "src/architecture/APIIntegration.tsx",
+        "line": 405,
+        "col": 31
+      }
+    },
+    {
+      "key": "TS2322 | Type '\"body2\"' is not assignable to type '\"small\" | \"h1\" | \"h2\" | \"h3\" | \"h4\" | \"h5\" | \"h6\" | \"lead\" | \"paragraph\"'.",
+      "code": "TS2322",
+      "message": "Type '\"body2\"' is not assignable to type '\"small\" | \"h1\" | \"h2\" | \"h3\" | \"h4\" | \"h5\" | \"h6\" | \"lead\" | \"paragraph\"'.",
+      "count": 4,
+      "sample": {
+        "file": "src/components/admin/AmazingMD3Dashboard.tsx",
+        "line": 228,
+        "col": 27
+      }
+    },
+    {
+      "key": "TS2339 | Property 'utils' does not exist on type 'typeof import(\"E:/Personal/project/lightdom/LightDom/node_modules/ethers/lib.esm/ethers\")'.",
+      "code": "TS2339",
+      "message": "Property 'utils' does not exist on type 'typeof import(\"E:/Personal/project/lightdom/LightDom/node_modules/ethers/lib.esm/ethers\")'.",
+      "count": 4,
+      "sample": {
+        "file": "src/components/SEOModelMarketplace.tsx",
+        "line": 101,
+        "col": 31
+      }
+    },
+    {
+      "key": "TS2741 | Property '$$typeof' is missing in type 'ReactElement<any, any>' but required in type 'ForwardRefExoticComponent<Omit<LucideProps, \"ref\"> & RefAttributes<SVGSVGElement>>'.",
+      "code": "TS2741",
+      "message": "Property '$$typeof' is missing in type 'ReactElement<any, any>' but required in type 'ForwardRefExoticComponent<Omit<LucideProps, \"ref\"> & RefAttributes<SVGSVGElement>>'.",
+      "count": 4,
+      "sample": {
+        "file": "src/components/ui/admin/UserManagementTab.tsx",
+        "line": 246,
+        "col": 15
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../types/MetaverseAnimationTypes' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../types/MetaverseAnimationTypes' or its corresponding type declarations.",
+      "count": 4,
+      "sample": {
+        "file": "src/components/ui/MetaverseAnimationDashboard.tsx",
+        "line": 51,
+        "col": 8
+      }
+    },
+    {
+      "key": "TS2339 | Property 'trackEvent' does not exist on type 'BridgeAnalyticsService'.",
+      "code": "TS2339",
+      "message": "Property 'trackEvent' does not exist on type 'BridgeAnalyticsService'.",
+      "count": 4,
+      "sample": {
+        "file": "src/framework/ServiceIntegration.ts",
+        "line": 146,
+        "col": 17
+      }
+    },
+    {
+      "key": "TS2741 | Property 'variants' is missing in type '{ default: string; }' but required in type 'ColorConfig'.",
+      "code": "TS2741",
+      "message": "Property 'variants' is missing in type '{ default: string; }' but required in type 'ColorConfig'.",
+      "count": 4,
+      "sample": {
+        "file": "src/neural/SchemaMiningSystem.tsx",
+        "line": 1021,
+        "col": 15
+      }
+    },
+    {
+      "key": "TS2345 | Argument of type '{ name: string; category: string; subcategory: string; description: string; expectedOutcome: string; trainingData: { type: string; count: number; quality: number; features: string[]; }; neuralNetworkConfig: { ...; }; }' is not assignable to parameter of type 'Omit<TrainingSection, \"children\" | \"id\" | \"status\" | \"progress\" | \"trainingHistory\" | \"trustRating\" | \"currentAccuracy\" | \"bestAccuracy\" | \"userFeedback\">'. Property 'dependencies' is missing in type '{ name: string; category: string; subcategory: string; description: string; expectedOutcome: string; trainingData: { type: string; count: number; quality: number; features: string[]; }; neuralNetworkConfig: { ...; }; }' but required in type 'Omit<TrainingSection, \"children\" | \"id\" | \"status\" | \"progress\" | \"trainingHistory\" | \"trustRating\" | \"currentAccuracy\" | \"bestAccuracy\" | \"userFeedback\">'.",
+      "code": "TS2345",
+      "message": "Argument of type '{ name: string; category: string; subcategory: string; description: string; expectedOutcome: string; trainingData: { type: string; count: number; quality: number; features: string[]; }; neuralNetworkConfig: { ...; }; }' is not assignable to parameter of type 'Omit<TrainingSection, \"children\" | \"id\" | \"status\" | \"progress\" | \"trainingHistory\" | \"trustRating\" | \"currentAccuracy\" | \"bestAccuracy\" | \"userFeedback\">'. Property 'dependencies' is missing in type '{ name: string; category: string; subcategory: string; description: string; expectedOutcome: string; trainingData: { type: string; count: number; quality: number; features: string[]; }; neuralNetworkConfig: { ...; }; }' but required in type 'Omit<TrainingSection, \"children\" | \"id\" | \"status\" | \"progress\" | \"trainingHistory\" | \"trustRating\" | \"currentAccuracy\" | \"bestAccuracy\" | \"userFeedback\">'.",
+      "count": 4,
+      "sample": {
+        "file": "src/workflow/SectionDividerWorkflowDashboard.tsx",
+        "line": 122,
+        "col": 48
+      }
+    },
+    {
+      "key": "TS2339 | Property 'info' does not exist on type '{ primary: string; secondary: string; success: string; warning: string; error: string; }'.",
+      "code": "TS2339",
+      "message": "Property 'info' does not exist on type '{ primary: string; secondary: string; success: string; warning: string; error: string; }'.",
+      "count": 3,
+      "sample": {
+        "file": "src/components/AdvancedDashboardIntegrated.tsx",
+        "line": 514,
+        "col": 43
+      }
+    },
+    {
+      "key": "TS2339 | Property 'map' does not exist on type 'number'.",
+      "code": "TS2339",
+      "message": "Property 'map' does not exist on type 'number'.",
+      "count": 3,
+      "sample": {
+        "file": "src/components/specialized/NeuralNetworkComponents.tsx",
+        "line": 168,
+        "col": 43
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module 'recharts' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module 'recharts' or its corresponding type declarations.",
+      "count": 3,
+      "sample": {
+        "file": "src/components/ui/admin/CrawlerDashboard.tsx",
+        "line": 28,
+        "col": 8
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../../hooks/useAuth' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../../hooks/useAuth' or its corresponding type declarations.",
+      "count": 3,
+      "sample": {
+        "file": "src/components/ui/dashboard/OptimizationDashboard.tsx",
+        "line": 51,
+        "col": 25
+      }
+    },
+    {
+      "key": "TS2322 | Type '{ children: (string | Element)[]; variant: \"secondary\"; onClick: () => string; style: { display: string; alignItems: string; gap: string; justifyContent: string; }; }' is not assignable to type 'IntrinsicAttributes & DiscordButtonProps'. Property 'style' does not exist on type 'IntrinsicAttributes & DiscordButtonProps'.",
+      "code": "TS2322",
+      "message": "Type '{ children: (string | Element)[]; variant: \"secondary\"; onClick: () => string; style: { display: string; alignItems: string; gap: string; justifyContent: string; }; }' is not assignable to type 'IntrinsicAttributes & DiscordButtonProps'. Property 'style' does not exist on type 'IntrinsicAttributes & DiscordButtonProps'.",
+      "count": 3,
+      "sample": {
+        "file": "src/components/ui/DiscordStyleDashboard.tsx",
+        "line": 467,
+        "col": 23
+      }
+    },
+    {
+      "key": "TS2322 | Type '\"age\"' is not assignable to type '\"performance\" | \"error_rate\" | \"file_size\" | \"code_quality\" | \"storage_usage\" | \"mining_completion\"'.",
+      "code": "TS2322",
+      "message": "Type '\"age\"' is not assignable to type '\"performance\" | \"error_rate\" | \"file_size\" | \"code_quality\" | \"storage_usage\" | \"mining_completion\"'.",
+      "count": 3,
+      "sample": {
+        "file": "src/framework/automation-demo.ts",
+        "line": 66,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2322 | Type 'string' is not assignable to type 'number'.",
+      "code": "TS2322",
+      "message": "Type 'string' is not assignable to type 'number'.",
+      "count": 3,
+      "sample": {
+        "file": "src/framework/automation-demo.ts",
+        "line": 80,
+        "col": 7
+      }
+    },
+    {
+      "key": "TS2339 | Property 'includes' does not exist on type 'never'.",
+      "code": "TS2339",
+      "message": "Property 'includes' does not exist on type 'never'.",
+      "count": 3,
+      "sample": {
+        "file": "src/framework/HeadlessBrowserService.ts",
+        "line": 573,
+        "col": 16
+      }
+    },
+    {
+      "key": "TS2349 | This expression is not callable. Each member of the union type '{ (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array<ArrayBufferLike>) => number): number; (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array<...>) => number, initialValue: number): number; <U>(callbackfn: (previousValue:...' has signatures, but none of those signatures are compatible with each other.",
+      "code": "TS2349",
+      "message": "This expression is not callable. Each member of the union type '{ (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array<ArrayBufferLike>) => number): number; (callbackfn: (previousValue: number, currentValue: number, currentIndex: number, array: Uint8Array<...>) => number, initialValue: number): number; <U>(callbackfn: (previousValue:...' has signatures, but none of those signatures are compatible with each other.",
+      "count": 3,
+      "sample": {
+        "file": "src/ml/DOMComputerVisionAnalyzer.ts",
+        "line": 207,
+        "col": 23
+      }
+    },
+    {
+      "key": "TS2741 | Property 'overrides' is missing in type '{ dataBinding: {}; }' but required in type '{ variant?: string; overrides: Partial<ComponentSchema>; dataBinding: Record<string, DataBinding>; }'.",
+      "code": "TS2741",
+      "message": "Property 'overrides' is missing in type '{ dataBinding: {}; }' but required in type '{ variant?: string; overrides: Partial<ComponentSchema>; dataBinding: Record<string, DataBinding>; }'.",
+      "count": 3,
+      "sample": {
+        "file": "src/neural/SchemaMiningSystem.tsx",
+        "line": 1147,
+        "col": 7
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'GoogleAnalyticsDashboard'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'GoogleAnalyticsDashboard'.",
+      "count": 2,
+      "sample": {
+        "file": "src/analytics/GoogleAnalyticsResearchDashboard.tsx",
+        "line": 797,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'GoogleAnalyticsResearchDashboard'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'GoogleAnalyticsResearchDashboard'.",
+      "count": 2,
+      "sample": {
+        "file": "src/analytics/GoogleAnalyticsResearchDashboard.tsx",
+        "line": 1080,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/BlockchainService' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/BlockchainService' or its corresponding type declarations.",
+      "count": 2,
+      "sample": {
+        "file": "src/api/blockchainApi.ts",
+        "line": 2,
+        "col": 53
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/BrowserbaseService.js' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/BrowserbaseService.js' or its corresponding type declarations.",
+      "count": 2,
+      "sample": {
+        "file": "src/api/BrowserbaseAPI.ts",
+        "line": 9,
+        "col": 86
+      }
+    },
+    {
+      "key": "TS2614 | Module '\"../services/OptimizationEngine.js\"' has no exported member 'OptimizationEngine'. Did you mean to use 'import OptimizationEngine from \"../services/OptimizationEngine.js\"' instead?",
+      "code": "TS2614",
+      "message": "Module '\"../services/OptimizationEngine.js\"' has no exported member 'OptimizationEngine'. Did you mean to use 'import OptimizationEngine from \"../services/OptimizationEngine.js\"' instead?",
+      "count": 2,
+      "sample": {
+        "file": "src/api/BrowserbaseAPI.ts",
+        "line": 11,
+        "col": 10
+      }
+    },
+    {
+      "key": "TS2614 | Module '\"../services/WebCrawlerService\"' has no exported member 'WebCrawlerService'. Did you mean to use 'import WebCrawlerService from \"../services/WebCrawlerService\"' instead?",
+      "code": "TS2614",
+      "message": "Module '\"../services/WebCrawlerService\"' has no exported member 'WebCrawlerService'. Did you mean to use 'import WebCrawlerService from \"../services/WebCrawlerService\"' instead?",
+      "count": 2,
+      "sample": {
+        "file": "src/automation/BlockchainAutomationManager.ts",
+        "line": 12,
+        "col": 10
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'BarChartOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'BarChartOutlined'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/admin/MaterialTailwindDemo.tsx",
+        "line": 56,
+        "col": 32
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'FileTextOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'FileTextOutlined'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/admin/MaterialTailwindDemo.tsx",
+        "line": 58,
+        "col": 30
+      }
+    },
+    {
+      "key": "TS2339 | Property 'success' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; } | { ...; }'. Property 'success' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; }'.",
+      "code": "TS2339",
+      "message": "Property 'success' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; } | { ...; }'. Property 'success' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; }'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/admin/MD3DashboardDemo.tsx",
+        "line": 73,
+        "col": 76
+      }
+    },
+    {
+      "key": "TS2322 | Type '\"filled\" | \"outlined\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'. Type '\"filled\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "code": "TS2322",
+      "message": "Type '\"filled\" | \"outlined\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'. Type '\"filled\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/admin/ProfessionalAdminDashboard.tsx",
+        "line": 376,
+        "col": 19
+      }
+    },
+    {
+      "key": "TS2322 | Type '\"ghost\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "code": "TS2322",
+      "message": "Type '\"ghost\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/admin/ProfessionalAdminDashboard.tsx",
+        "line": 529,
+        "col": 29
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'MinusOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'MinusOutlined'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/AdvancedDashboard.tsx",
+        "line": 427,
+        "col": 15
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'PauseCircleOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'PauseCircleOutlined'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/AdvancedDashboardIntegrated.tsx",
+        "line": 790,
+        "col": 39
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'Rate'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'Rate'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/AutomationWorkflows.tsx",
+        "line": 1070,
+        "col": 28
+      }
+    },
+    {
+      "key": "TS2322 | Type 'RefObject<HTMLElement>' is not assignable to type 'Ref<HTMLDivElement>'. Type 'RefObject<HTMLElement>' is not assignable to type 'RefObject<HTMLDivElement>'. Property 'align' is missing in type 'HTMLElement' but required in type 'HTMLDivElement'.",
+      "code": "TS2322",
+      "message": "Type 'RefObject<HTMLElement>' is not assignable to type 'Ref<HTMLDivElement>'. Type 'RefObject<HTMLElement>' is not assignable to type 'RefObject<HTMLDivElement>'. Property 'align' is missing in type 'HTMLElement' but required in type 'HTMLDivElement'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/LandingPage.tsx",
+        "line": 402,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2322 | Type '{ hidden: { y: number; opacity: number; }; visible: { y: number; opacity: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'. Property 'visible' is incompatible with index signature. Type '{ y: number; opacity: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'. Type '{ y: number; opacity: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'. Type '{ y: number; opacity: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any>; transitionEnd?: ResolvedValues; }'. Types of property 'transition' are incompatible. Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'. Types of property 'ease' are incompatible. Type 'number[]' is not assignable to type 'Easing | Easing[]'. Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'. Type 'number[]' is not assignable to type 'Easing[]'. Type 'number' is not assignable to type 'Easing'.",
+      "code": "TS2322",
+      "message": "Type '{ hidden: { y: number; opacity: number; }; visible: { y: number; opacity: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'. Property 'visible' is incompatible with index signature. Type '{ y: number; opacity: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'. Type '{ y: number; opacity: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'. Type '{ y: number; opacity: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any>; transitionEnd?: ResolvedValues; }'. Types of property 'transition' are incompatible. Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'. Types of property 'ease' are incompatible. Type 'number[]' is not assignable to type 'Easing | Easing[]'. Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'. Type 'number[]' is not assignable to type 'Easing[]'. Type 'number' is not assignable to type 'Easing'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/MotionDesignShowcase.tsx",
+        "line": 233,
+        "col": 17
+      }
+    },
+    {
+      "key": "TS2339 | Property 'gradients' does not exist on type '{ primary: { 0: string; 10: string; 20: string; 30: string; 40: string; 50: string; 60: string; 70: string; 80: string; 90: string; 95: string; 100: string; }; secondary: { 0: string; 10: string; 20: string; 30: string; ... 7 more ...; 100: string; }; ... 4 more ...; info: { ...; }; }'.",
+      "code": "TS2339",
+      "message": "Property 'gradients' does not exist on type '{ primary: { 0: string; 10: string; 20: string; 30: string; 40: string; 50: string; 60: string; 70: string; 80: string; 90: string; 95: string; 100: string; }; secondary: { 0: string; 10: string; 20: string; 30: string; ... 7 more ...; 100: string; }; ... 4 more ...; info: { ...; }; }'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ProfessionalSidebar.tsx",
+        "line": 284,
+        "col": 42
+      }
+    },
+    {
+      "key": "TS2607 | JSX element class does not support attributes because it does not have a 'props' property.",
+      "code": "TS2607",
+      "message": "JSX element class does not support attributes because it does not have a 'props' property.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/settings/SettingsDashboard.tsx",
+        "line": 365,
+        "col": 17
+      }
+    },
+    {
+      "key": "TS2786 | 'Option' cannot be used as a JSX component. Its type 'new (text?: string, value?: string, defaultSelected?: boolean, selected?: boolean) => HTMLOptionElement' is not a valid JSX element type. Type 'new (text?: string, value?: string, defaultSelected?: boolean, selected?: boolean) => HTMLOptionElement' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'. Type 'HTMLOptionElement' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.",
+      "code": "TS2786",
+      "message": "'Option' cannot be used as a JSX component. Its type 'new (text?: string, value?: string, defaultSelected?: boolean, selected?: boolean) => HTMLOptionElement' is not a valid JSX element type. Type 'new (text?: string, value?: string, defaultSelected?: boolean, selected?: boolean) => HTMLOptionElement' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'. Type 'HTMLOptionElement' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/settings/SettingsDashboard.tsx",
+        "line": 365,
+        "col": 18
+      }
+    },
+    {
+      "key": "TS2300 | Duplicate identifier 'MinusOutlined'.",
+      "code": "TS2300",
+      "message": "Duplicate identifier 'MinusOutlined'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/specialized/NeuralNetworkComponents.tsx",
+        "line": 56,
+        "col": 3
+      }
+    },
+    {
+      "key": "TS2300 | Duplicate identifier 'ApiOutlined'.",
+      "code": "TS2300",
+      "message": "Duplicate identifier 'ApiOutlined'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/StyleguideIntegratedDashboard.tsx",
+        "line": 53,
+        "col": 3
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/BridgeNotificationService' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/BridgeNotificationService' or its corresponding type declarations.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/BridgeNotificationCenter.tsx",
+        "line": 3,
+        "col": 39
+      }
+    },
+    {
+      "key": "TS2300 | Duplicate identifier 'Line'.",
+      "code": "TS2300",
+      "message": "Duplicate identifier 'Line'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/charts/InteractiveChart.tsx",
+        "line": 7,
+        "col": 10
+      }
+    },
+    {
+      "key": "TS2353 | Object literal may only specify known properties, and 'type' does not exist in type '{ key: string; icon: Element; label: string; }'.",
+      "code": "TS2353",
+      "message": "Object literal may only specify known properties, and 'type' does not exist in type '{ key: string; icon: Element; label: string; }'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/dashboard/DashboardLayout.tsx",
+        "line": 203,
+        "col": 7
+      }
+    },
+    {
+      "key": "TS2554 | Expected 0 arguments, but got 1.",
+      "code": "TS2554",
+      "message": "Expected 0 arguments, but got 1.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/dashboard/DashboardOverview.tsx",
+        "line": 211,
+        "col": 27
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'OptimizationOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'OptimizationOutlined'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/dashboard/DashboardOverview.tsx",
+        "line": 334,
+        "col": 24
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Button'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Button'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 17,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Card'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Card'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 50,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Input'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Input'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 79,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Badge'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Badge'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 124,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Container'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Container'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 150,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Grid'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Grid'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 177,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Flex'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Flex'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 209,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Modal'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Modal'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 246,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Toast'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Toast'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 287,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Progress'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Progress'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 331,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Skeleton'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Skeleton'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 363,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Spinner'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Spinner'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 396,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'Divider'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'Divider'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/DesignSystem.tsx",
+        "line": 418,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../components/ui/card' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../components/ui/card' or its corresponding type declarations.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/EnterpriseDashboard.tsx",
+        "line": 8,
+        "col": 8
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../components/ui/button' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../components/ui/button' or its corresponding type declarations.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/EnterpriseDashboard.tsx",
+        "line": 9,
+        "col": 24
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../components/ui/badge' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../components/ui/badge' or its corresponding type declarations.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/EnterpriseDashboard.tsx",
+        "line": 10,
+        "col": 23
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../components/ui/tabs' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../components/ui/tabs' or its corresponding type declarations.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/EnterpriseDashboard.tsx",
+        "line": 11,
+        "col": 58
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../components/ui/select' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../components/ui/select' or its corresponding type declarations.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/EnterpriseDashboard.tsx",
+        "line": 36,
+        "col": 8
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../hooks/useAuth' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../hooks/useAuth' or its corresponding type declarations.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/MetaverseMarketplace.tsx",
+        "line": 48,
+        "col": 25
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../hooks/useBlockchain' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../hooks/useBlockchain' or its corresponding type declarations.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/MetaverseMarketplace.tsx",
+        "line": 49,
+        "col": 31
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'ShieldOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'ShieldOutlined'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/MetaverseMarketplace.tsx",
+        "line": 555,
+        "col": 32
+      }
+    },
+    {
+      "key": "TS2322 | Type '{ initial: { opacity: number; y: number; scale: number; }; animate: { opacity: number; y: number; scale: number; transition: { duration: number; ease: string; }; }; hover: { scale: number; transition: { duration: number; ease: string; }; }; }' is not assignable to type 'Variants'. Property 'animate' is incompatible with index signature. Type '{ opacity: number; y: number; scale: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'Variant'. Type '{ opacity: number; y: number; scale: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'. Type '{ opacity: number; y: number; scale: number; transition: { duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any>; transitionEnd?: ResolvedValues; }'. Types of property 'transition' are incompatible. Type '{ duration: number; ease: string; }' is not assignable to type 'Transition<any>'. Type '{ duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'. Type '{ duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'. Types of property 'ease' are incompatible. Type 'string' is not assignable to type 'Easing | Easing[]'.",
+      "code": "TS2322",
+      "message": "Type '{ initial: { opacity: number; y: number; scale: number; }; animate: { opacity: number; y: number; scale: number; transition: { duration: number; ease: string; }; }; hover: { scale: number; transition: { duration: number; ease: string; }; }; }' is not assignable to type 'Variants'. Property 'animate' is incompatible with index signature. Type '{ opacity: number; y: number; scale: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'Variant'. Type '{ opacity: number; y: number; scale: number; transition: { duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'. Type '{ opacity: number; y: number; scale: number; transition: { duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any>; transitionEnd?: ResolvedValues; }'. Types of property 'transition' are incompatible. Type '{ duration: number; ease: string; }' is not assignable to type 'Transition<any>'. Type '{ duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'. Type '{ duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'. Types of property 'ease' are incompatible. Type 'string' is not assignable to type 'Easing | Easing[]'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/MetaverseScene.tsx",
+        "line": 256,
+        "col": 9
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'SelectOption'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'SelectOption'.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/select.tsx",
+        "line": 23,
+        "col": 18
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/SpaceBridgeService' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/SpaceBridgeService' or its corresponding type declarations.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/SpaceBridgeIntegration.tsx",
+        "line": 3,
+        "col": 32
+      }
+    },
+    {
+      "key": "TS2367 | This comparison appears to be unintentional because the types '\"info\"' and '\"error\"' have no overlap.",
+      "code": "TS2367",
+      "message": "This comparison appears to be unintentional because the types '\"info\"' and '\"error\"' have no overlap.",
+      "count": 2,
+      "sample": {
+        "file": "src/components/ui/SystemHealthDashboard.tsx",
+        "line": 416,
+        "col": 17
+      }
+    },
+    {
+      "key": "TS2739 | Type '{ id: string; name: string; category: string; description: string; keyframes: { offset: number; properties: { opacity: number; scale: number; }; }[]; duration: number; easing: string; loop: false; direction: \"normal\"; tags: string[]; }' is missing the following properties from type 'AnimationPreset': type, config",
+      "code": "TS2739",
+      "message": "Type '{ id: string; name: string; category: string; description: string; keyframes: { offset: number; properties: { opacity: number; scale: number; }; }[]; duration: number; easing: string; loop: false; direction: \"normal\"; tags: string[]; }' is missing the following properties from type 'AnimationPreset': type, config",
+      "count": 2,
+      "sample": {
+        "file": "src/config/MetaverseAnimationPresets.ts",
+        "line": 12,
+        "col": 3
+      }
+    },
+    {
+      "key": "TS2739 | Type '{ id: string; name: string; category: string; description: string; keyframes: { offset: number; properties: { translateY: number; opacity: number; }; }[]; duration: number; easing: string; loop: false; direction: \"normal\"; tags: string[]; }' is missing the following properties from type 'AnimationPreset': type, config",
+      "code": "TS2739",
+      "message": "Type '{ id: string; name: string; category: string; description: string; keyframes: { offset: number; properties: { translateY: number; opacity: number; }; }[]; duration: number; easing: string; loop: false; direction: \"normal\"; tags: string[]; }' is missing the following properties from type 'AnimationPreset': type, config",
+      "count": 2,
+      "sample": {
+        "file": "src/config/MetaverseAnimationPresets.ts",
+        "line": 27,
+        "col": 3
+      }
+    },
+    {
+      "key": "TS2739 | Type '{ id: string; name: string; category: string; description: string; keyframes: ({ offset: number; properties: { scale: number; opacity: number; }; } | { offset: number; properties: { scale: number; }; })[]; ... 4 more ...; tags: string[]; }' is missing the following properties from type 'AnimationPreset': type, config",
+      "code": "TS2739",
+      "message": "Type '{ id: string; name: string; category: string; description: string; keyframes: ({ offset: number; properties: { scale: number; opacity: number; }; } | { offset: number; properties: { scale: number; }; })[]; ... 4 more ...; tags: string[]; }' is missing the following properties from type 'AnimationPreset': type, config",
+      "count": 2,
+      "sample": {
+        "file": "src/config/MetaverseAnimationPresets.ts",
+        "line": 42,
+        "col": 3
+      }
+    },
+    {
+      "key": "TS2739 | Type '{ id: string; name: string; category: string; description: string; keyframes: { offset: number; properties: { scale: number; }; }[]; duration: number; easing: string; loop: true; direction: \"normal\"; tags: string[]; }' is missing the following properties from type 'AnimationPreset': type, config",
+      "code": "TS2739",
+      "message": "Type '{ id: string; name: string; category: string; description: string; keyframes: { offset: number; properties: { scale: number; }; }[]; duration: number; easing: string; loop: true; direction: \"normal\"; tags: string[]; }' is missing the following properties from type 'AnimationPreset': type, config",
+      "count": 2,
+      "sample": {
+        "file": "src/config/MetaverseAnimationPresets.ts",
+        "line": 93,
+        "col": 3
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'EnhancedNeuralNetworkDashboard'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'EnhancedNeuralNetworkDashboard'.",
+      "count": 2,
+      "sample": {
+        "file": "src/dashboards/EnhancedNeuralNetworkDashboard.tsx",
+        "line": 963,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'DataMiningDashboard'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'DataMiningDashboard'.",
+      "count": 2,
+      "sample": {
+        "file": "src/data-mining/DataMiningDashboard.tsx",
+        "line": 1152,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2308 | Module './LightDomFramework' has already exported a member named 'SimulationResult'. Consider explicitly re-exporting to resolve the ambiguity.",
+      "code": "TS2308",
+      "message": "Module './LightDomFramework' has already exported a member named 'SimulationResult'. Consider explicitly re-exporting to resolve the ambiguity.",
+      "count": 2,
+      "sample": {
+        "file": "src/framework/index.ts",
+        "line": 9,
+        "col": 1
+      }
+    },
+    {
+      "key": "TS2339 | Property 'on' does not exist on type 'GamificationEngine'.",
+      "code": "TS2339",
+      "message": "Property 'on' does not exist on type 'GamificationEngine'.",
+      "count": 2,
+      "sample": {
+        "file": "src/framework/ServiceIntegration.ts",
+        "line": 127,
+        "col": 34
+      }
+    },
+    {
+      "key": "TS2345 | Argument of type '(value: unknown) => void' is not assignable to parameter of type '() => void'. Target signature provides too few arguments. Expected 1 or more, but got 0.",
+      "code": "TS2345",
+      "message": "Argument of type '(value: unknown) => void' is not assignable to parameter of type '() => void'. Target signature provides too few arguments. Expected 1 or more, but got 0.",
+      "count": 2,
+      "sample": {
+        "file": "src/framework/start.ts",
+        "line": 433,
+        "col": 59
+      }
+    },
+    {
+      "key": "TS2451 | Cannot redeclare block-scoped variable 'completedJobs'.",
+      "code": "TS2451",
+      "message": "Cannot redeclare block-scoped variable 'completedJobs'.",
+      "count": 2,
+      "sample": {
+        "file": "src/framework/storage-examples.ts",
+        "line": 70,
+        "col": 9
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'DynamicBacklinkingDashboard'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'DynamicBacklinkingDashboard'.",
+      "count": 2,
+      "sample": {
+        "file": "src/network/DynamicBacklinkingDashboard.tsx",
+        "line": 869,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2300 | Duplicate identifier 'isTraining'.",
+      "code": "TS2300",
+      "message": "Duplicate identifier 'isTraining'.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/AdvancedUXNeuralNetwork.tsx",
+        "line": 203,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'AdvancedUXNeuralNetworkDashboard'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'AdvancedUXNeuralNetworkDashboard'.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/AdvancedUXNeuralNetwork.tsx",
+        "line": 1246,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2341 | Property 'isTraining' is private and only accessible within class 'AdvancedUXNeuralNetwork'.",
+      "code": "TS2341",
+      "message": "Property 'isTraining' is private and only accessible within class 'AdvancedUXNeuralNetwork'.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/AdvancedUXNeuralNetwork.tsx",
+        "line": 1445,
+        "col": 77
+      }
+    },
+    {
+      "key": "TS2349 | This expression is not callable. Type 'Boolean' has no call signatures.",
+      "code": "TS2349",
+      "message": "This expression is not callable. Type 'Boolean' has no call signatures.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/AdvancedUXNeuralNetwork.tsx",
+        "line": 1445,
+        "col": 77
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'DataMiningAutomationDashboard'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'DataMiningAutomationDashboard'.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/DataMiningAutomation.tsx",
+        "line": 3983,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'NeuralNetworkWorkflowGenerator'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'NeuralNetworkWorkflowGenerator'.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/NeuralNetworkWorkflowGenerator.tsx",
+        "line": 1119,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'SchemaMapGenerationSystem'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'SchemaMapGenerationSystem'.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/SchemaMapGenerationSystem.tsx",
+        "line": 967,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2741 | Property 'schema' is missing in type '{ id: string; name: string; type: \"select\"; description: string; required: true; options: string[]; }' but required in type 'AttributeDefinition'.",
+      "code": "TS2741",
+      "message": "Property 'schema' is missing in type '{ id: string; name: string; type: \"select\"; description: string; required: true; options: string[]; }' but required in type 'AttributeDefinition'.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/SchemaMapGenerationSystem.tsx",
+        "line": 1023,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'SchemaMiningDashboard'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'SchemaMiningDashboard'.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/SchemaMiningSystem.tsx",
+        "line": 1355,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2300 | Duplicate identifier 'ShapeStar'.",
+      "code": "TS2300",
+      "message": "Duplicate identifier 'ShapeStar'.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/TrainingDataCrawler.tsx",
+        "line": 177,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2350 | Only a void function can be called with the 'new' keyword.",
+      "code": "TS2350",
+      "message": "Only a void function can be called with the 'new' keyword.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/TrainingDataCrawler.tsx",
+        "line": 531,
+        "col": 55
+      }
+    },
+    {
+      "key": "TS2554 | Expected 1 arguments, but got 0.",
+      "code": "TS2554",
+      "message": "Expected 1 arguments, but got 0.",
+      "count": 2,
+      "sample": {
+        "file": "src/neural/TrainingDataCrawler.tsx",
+        "line": 531,
+        "col": 55
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'AutomatedUserOnboarding'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'AutomatedUserOnboarding'.",
+      "count": 2,
+      "sample": {
+        "file": "src/onboarding/AutomatedUserOnboarding.tsx",
+        "line": 646,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2323 | Cannot redeclare exported variable 'EnhancedScraperPromptDashboard'.",
+      "code": "TS2323",
+      "message": "Cannot redeclare exported variable 'EnhancedScraperPromptDashboard'.",
+      "count": 2,
+      "sample": {
+        "file": "src/scraper/EnhancedScraperPromptDashboard.tsx",
+        "line": 1222,
+        "col": 14
+      }
+    },
+    {
+      "key": "TS2339 | Property 'lockTokens' does not exist on type 'BaseContract'.",
+      "code": "TS2339",
+      "message": "Property 'lockTokens' does not exist on type 'BaseContract'.",
+      "count": 2,
+      "sample": {
+        "file": "src/services/api/CrossChainService.ts",
+        "line": 117,
+        "col": 52
+      }
+    },
+    {
+      "key": "TS2339 | Property 'lcp' does not exist on type '{ timestamp: number; }'.",
+      "code": "TS2339",
+      "message": "Property 'lcp' does not exist on type '{ timestamp: number; }'.",
+      "count": 2,
+      "sample": {
+        "file": "src/services/api/SEOAnalyticsService.ts",
+        "line": 478,
+        "col": 64
+      }
+    },
+    {
+      "key": "TS2339 | Property 'cls' does not exist on type '{ timestamp: number; }'.",
+      "code": "TS2339",
+      "message": "Property 'cls' does not exist on type '{ timestamp: number; }'.",
+      "count": 2,
+      "sample": {
+        "file": "src/services/api/SEOAnalyticsService.ts",
+        "line": 482,
+        "col": 64
+      }
+    },
+    {
+      "key": "TS2339 | Property 'notification' does not exist on type 'Event'.",
+      "code": "TS2339",
+      "message": "Property 'notification' does not exist on type 'Event'.",
+      "count": 2,
+      "sample": {
+        "file": "src/services/PWANotificationService.ts",
+        "line": 278,
+        "col": 13
+      }
+    },
+    {
+      "key": "TS2345 | Argument of type 'string' is not assignable to parameter of type 'keyof WebSocketEvents'.",
+      "code": "TS2345",
+      "message": "Argument of type 'string' is not assignable to parameter of type 'keyof WebSocketEvents'.",
+      "count": 2,
+      "sample": {
+        "file": "src/services/WebSocketService.tsx",
+        "line": 275,
+        "col": 13
+      }
+    },
+    {
+      "key": "TS2339 | Property 'error' does not exist on type 'WorkflowExecution'.",
+      "code": "TS2339",
+      "message": "Property 'error' does not exist on type 'WorkflowExecution'.",
+      "count": 2,
+      "sample": {
+        "file": "src/workflow/WorkflowEngineDashboard.tsx",
+        "line": 496,
+        "col": 17
+      }
+    },
+    {
+      "key": "TS2367 | This comparison appears to be unintentional because the types 'Omit<WorkflowNode, \"id\">' and 'string' have no overlap.",
+      "code": "TS2367",
+      "message": "This comparison appears to be unintentional because the types 'Omit<WorkflowNode, \"id\">' and 'string' have no overlap.",
+      "count": 2,
+      "sample": {
+        "file": "src/workflow/WorkflowEngineDashboard.tsx",
+        "line": 612,
+        "col": 59
+      }
+    },
+    {
+      "key": "TS2322 | Type '{ id: string; name?: string; description?: string; category?: \"acquisition\" | \"behavior\" | \"conversion\" | \"audience\" | \"search-console\"; dataType?: \"integer\" | \"float\" | \"percentage\" | \"currency\" | \"time\"; ... 7 more ...; sampleValue?: any; }' is not assignable to type 'GAMetric'. Property 'name' is optional in type '{ id: string; name?: string; description?: string; category?: \"behavior\" | \"acquisition\" | \"conversion\" | \"audience\" | \"search-console\"; dataType?: \"time\" | \"currency\" | \"float\" | \"percentage\" | \"integer\"; ... 7 more ...; sampleValue?: any; }' but required in type 'GAMetric'.",
+      "code": "TS2322",
+      "message": "Type '{ id: string; name?: string; description?: string; category?: \"acquisition\" | \"behavior\" | \"conversion\" | \"audience\" | \"search-console\"; dataType?: \"integer\" | \"float\" | \"percentage\" | \"currency\" | \"time\"; ... 7 more ...; sampleValue?: any; }' is not assignable to type 'GAMetric'. Property 'name' is optional in type '{ id: string; name?: string; description?: string; category?: \"behavior\" | \"acquisition\" | \"conversion\" | \"audience\" | \"search-console\"; dataType?: \"time\" | \"currency\" | \"float\" | \"percentage\" | \"integer\"; ... 7 more ...; sampleValue?: any; }' but required in type 'GAMetric'.",
+      "count": 1,
+      "sample": {
+        "file": "src/analytics/GoogleAnalyticsResearchDashboard.tsx",
+        "line": 574,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2322 | Type '{ id: string; name?: string; description?: string; category?: \"standard\" | \"custom\" | \"search-console\"; dataType?: \"string\" | \"integer\"; apiName?: string; uiName?: string; compatibleMetrics?: string[]; importance?: \"high\" | \"medium\" | \"low\"; seoRelevance?: number; }' is not assignable to type 'GADimension'. Property 'name' is optional in type '{ id: string; name?: string; description?: string; category?: \"custom\" | \"standard\" | \"search-console\"; dataType?: \"string\" | \"integer\"; apiName?: string; uiName?: string; compatibleMetrics?: string[]; importance?: \"low\" | ... 1 more ... | \"high\"; seoRelevance?: number; }' but required in type 'GADimension'.",
+      "code": "TS2322",
+      "message": "Type '{ id: string; name?: string; description?: string; category?: \"standard\" | \"custom\" | \"search-console\"; dataType?: \"string\" | \"integer\"; apiName?: string; uiName?: string; compatibleMetrics?: string[]; importance?: \"high\" | \"medium\" | \"low\"; seoRelevance?: number; }' is not assignable to type 'GADimension'. Property 'name' is optional in type '{ id: string; name?: string; description?: string; category?: \"custom\" | \"standard\" | \"search-console\"; dataType?: \"string\" | \"integer\"; apiName?: string; uiName?: string; compatibleMetrics?: string[]; importance?: \"low\" | ... 1 more ... | \"high\"; seoRelevance?: number; }' but required in type 'GADimension'.",
+      "count": 1,
+      "sample": {
+        "file": "src/analytics/GoogleAnalyticsResearchDashboard.tsx",
+        "line": 581,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2322 | Type '{ id: string; name?: string; description?: string; metrics?: string[]; dimensions?: string[]; dateRange?: { startDate: string; endDate: string; }; filters?: any[]; segments?: any[]; ... 4 more ...; generatedQuery?: any; }' is not assignable to type 'GAReport'. Property 'name' is optional in type '{ id: string; name?: string; description?: string; metrics?: string[]; dimensions?: string[]; dateRange?: { startDate: string; endDate: string; }; filters?: any[]; segments?: any[]; orderBy?: any[]; pageSize?: number; category?: \"content\" | ... 3 more ... | \"engagement\"; useCase?: string; generatedQuery?: any; }' but required in type 'GAReport'.",
+      "code": "TS2322",
+      "message": "Type '{ id: string; name?: string; description?: string; metrics?: string[]; dimensions?: string[]; dateRange?: { startDate: string; endDate: string; }; filters?: any[]; segments?: any[]; ... 4 more ...; generatedQuery?: any; }' is not assignable to type 'GAReport'. Property 'name' is optional in type '{ id: string; name?: string; description?: string; metrics?: string[]; dimensions?: string[]; dateRange?: { startDate: string; endDate: string; }; filters?: any[]; segments?: any[]; orderBy?: any[]; pageSize?: number; category?: \"content\" | ... 3 more ... | \"engagement\"; useCase?: string; generatedQuery?: any; }' but required in type 'GAReport'.",
+      "count": 1,
+      "sample": {
+        "file": "src/analytics/GoogleAnalyticsResearchDashboard.tsx",
+        "line": 588,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2484 | Export declaration conflicts with exported declaration of 'GoogleAnalyticsDashboard'.",
+      "code": "TS2484",
+      "message": "Export declaration conflicts with exported declaration of 'GoogleAnalyticsDashboard'.",
+      "count": 1,
+      "sample": {
+        "file": "src/analytics/GoogleAnalyticsResearchDashboard.tsx",
+        "line": 1388,
+        "col": 60
+      }
+    },
+    {
+      "key": "TS2484 | Export declaration conflicts with exported declaration of 'GoogleAnalyticsResearchDashboard'.",
+      "code": "TS2484",
+      "message": "Export declaration conflicts with exported declaration of 'GoogleAnalyticsResearchDashboard'.",
+      "count": 1,
+      "sample": {
+        "file": "src/analytics/GoogleAnalyticsResearchDashboard.tsx",
+        "line": 1388,
+        "col": 86
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module 'express-validator' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module 'express-validator' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/api/billingApi.ts",
+        "line": 14,
+        "col": 54
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/PaymentService' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/PaymentService' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/api/billingApi.ts",
+        "line": 15,
+        "col": 32
+      }
+    },
+    {
+      "key": "TS2673 | Constructor of class 'ErrorHandler' is private and only accessible within the class declaration.",
+      "code": "TS2673",
+      "message": "Constructor of class 'ErrorHandler' is private and only accessible within the class declaration.",
+      "count": 1,
+      "sample": {
+        "file": "src/api/billingApi.ts",
+        "line": 19,
+        "col": 22
+      }
+    },
+    {
+      "key": "TS2614 | Module '\"../services/WebCrawlerService.js\"' has no exported member 'WebCrawlerService'. Did you mean to use 'import WebCrawlerService from \"../services/WebCrawlerService.js\"' instead?",
+      "code": "TS2614",
+      "message": "Module '\"../services/WebCrawlerService.js\"' has no exported member 'WebCrawlerService'. Did you mean to use 'import WebCrawlerService from \"../services/WebCrawlerService.js\"' instead?",
+      "count": 1,
+      "sample": {
+        "file": "src/api/BrowserbaseAPI.ts",
+        "line": 10,
+        "col": 10
+      }
+    },
+    {
+      "key": "TS2551 | Property 'updateUserSettings' does not exist on type 'PersistentBlockchainStorage'. Did you mean 'getUserSettings'?",
+      "code": "TS2551",
+      "message": "Property 'updateUserSettings' does not exist on type 'PersistentBlockchainStorage'. Did you mean 'getUserSettings'?",
+      "count": 1,
+      "sample": {
+        "file": "src/api/LightDomStorageApi.ts",
+        "line": 119,
+        "col": 37
+      }
+    },
+    {
+      "key": "TS2339 | Property 'saveMetaverseAsset' does not exist on type 'PersistentBlockchainStorage'.",
+      "code": "TS2339",
+      "message": "Property 'saveMetaverseAsset' does not exist on type 'PersistentBlockchainStorage'.",
+      "count": 1,
+      "sample": {
+        "file": "src/api/LightDomStorageApi.ts",
+        "line": 327,
+        "col": 39
+      }
+    },
+    {
+      "key": "TS2339 | Property 'maxFileSize' does not exist on type 'UserSettings'.",
+      "code": "TS2339",
+      "message": "Property 'maxFileSize' does not exist on type 'UserSettings'.",
+      "count": 1,
+      "sample": {
+        "file": "src/api/LightDomStorageApi.ts",
+        "line": 443,
+        "col": 61
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/TaskManager' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/TaskManager' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/api/taskApi.ts",
+        "line": 2,
+        "col": 35
+      }
+    },
+    {
+      "key": "TS2339 | Property 'listAttributes' does not exist on type 'WorkflowRepository'.",
+      "code": "TS2339",
+      "message": "Property 'listAttributes' does not exist on type 'WorkflowRepository'.",
+      "count": 1,
+      "sample": {
+        "file": "src/api/workflow-admin.ts",
+        "line": 109,
+        "col": 49
+      }
+    },
+    {
+      "key": "TS2339 | Property 'upsertAttribute' does not exist on type 'WorkflowRepository'.",
+      "code": "TS2339",
+      "message": "Property 'upsertAttribute' does not exist on type 'WorkflowRepository'.",
+      "count": 1,
+      "sample": {
+        "file": "src/api/workflow-admin.ts",
+        "line": 120,
+        "col": 48
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/EnhancedWebCrawlerService.js' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/EnhancedWebCrawlerService.js' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/apps/BrowserbaseDemo.ts",
+        "line": 9,
+        "col": 43
+      }
+    },
+    {
+      "key": "TS2339 | Property 'score' does not exist on type 'NetworkResult'.",
+      "code": "TS2339",
+      "message": "Property 'score' does not exist on type 'NetworkResult'.",
+      "count": 1,
+      "sample": {
+        "file": "src/apps/HeadlessApp.ts",
+        "line": 326,
+        "col": 101
+      }
+    },
+    {
+      "key": "TS2559 | Type '{ score: number; metrics: PerformanceMetrics; }' has no properties in common with type 'PerformanceMetrics'.",
+      "code": "TS2559",
+      "message": "Type '{ score: number; metrics: PerformanceMetrics; }' has no properties in common with type 'PerformanceMetrics'.",
+      "count": 1,
+      "sample": {
+        "file": "src/apps/HeadlessApp.ts",
+        "line": 332,
+        "col": 9
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/WebAuthnService' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/WebAuthnService' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/apps/IdentityPWAApp.ts",
+        "line": 2,
+        "col": 29
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/WebOTPService' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/WebOTPService' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/apps/IdentityPWAApp.ts",
+        "line": 3,
+        "col": 27
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/PWAService' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/PWAService' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/apps/IdentityPWAApp.ts",
+        "line": 4,
+        "col": 24
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/PasswordManagerService' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/PasswordManagerService' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/apps/IdentityPWAApp.ts",
+        "line": 5,
+        "col": 36
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../services/TwoFactorAuthService' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../services/TwoFactorAuthService' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/apps/IdentityPWAApp.ts",
+        "line": 6,
+        "col": 34
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '@tanstack/react-query' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '@tanstack/react-query' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/architecture/APIIntegration.tsx",
+        "line": 1,
+        "col": 68
+      }
+    },
+    {
+      "key": "TS2345 | Argument of type 'string | Event' is not assignable to parameter of type 'Event'. Type 'string' is not assignable to type 'Event'.",
+      "code": "TS2345",
+      "message": "Argument of type 'string | Event' is not assignable to parameter of type 'Event'. Type 'string' is not assignable to type 'Event'.",
+      "count": 1,
+      "sample": {
+        "file": "src/architecture/EdgeComputing.tsx",
+        "line": 417,
+        "col": 21
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module 'react-error-boundary' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module 'react-error-boundary' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/architecture/MicroFrontend.tsx",
+        "line": 2,
+        "col": 31
+      }
+    },
+    {
+      "key": "TS2322 | Type '{ user?: User | null; organization?: Organization | null; isAuthenticated?: boolean; theme?: \"light\" | \"dark\" | \"system\"; sidebarOpen?: boolean; activeView?: string; notifications?: Array<{ id: string; type: \"info\" | \"success\" | \"warning\" | \"error\"; title: string; message: string; timestamp: Date; read: boolean; }>;...' is not assignable to type 'AppState'. Property 'user' is optional in type '{ user?: User; organization?: Organization; isAuthenticated?: boolean; theme?: \"light\" | \"dark\" | \"system\"; sidebarOpen?: boolean; activeView?: string; notifications?: { id: string; ... 4 more ...; read: boolean; }[]; ... 8 more ...; errors?: { ...; }[]; }' but required in type 'AppState'.",
+      "code": "TS2322",
+      "message": "Type '{ user?: User | null; organization?: Organization | null; isAuthenticated?: boolean; theme?: \"light\" | \"dark\" | \"system\"; sidebarOpen?: boolean; activeView?: string; notifications?: Array<{ id: string; type: \"info\" | \"success\" | \"warning\" | \"error\"; title: string; message: string; timestamp: Date; read: boolean; }>;...' is not assignable to type 'AppState'. Property 'user' is optional in type '{ user?: User; organization?: Organization; isAuthenticated?: boolean; theme?: \"light\" | \"dark\" | \"system\"; sidebarOpen?: boolean; activeView?: string; notifications?: { id: string; ... 4 more ...; read: boolean; }[]; ... 8 more ...; errors?: { ...; }[]; }' but required in type 'AppState'.",
+      "count": 1,
+      "sample": {
+        "file": "src/architecture/StateManagement.tsx",
+        "line": 438,
+        "col": 35
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../utils/BlockchainMetricsCollector' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../utils/BlockchainMetricsCollector' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/automation/BlockchainAutomationManager.ts",
+        "line": 15,
+        "col": 44
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../utils/CrawlerSupervisor' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../utils/CrawlerSupervisor' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/automation/BlockchainAutomationManager.ts",
+        "line": 16,
+        "col": 35
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module '../utils/MetricsCollector' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module '../utils/MetricsCollector' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/automation/BlockchainAutomationManager.ts",
+        "line": 17,
+        "col": 34
+      }
+    },
+    {
+      "key": "TS2749 | 'BrowserContext' refers to a value, but is being used as a type here. Did you mean 'typeof BrowserContext'?",
+      "code": "TS2749",
+      "message": "'BrowserContext' refers to a value, but is being used as a type here. Did you mean 'typeof BrowserContext'?",
+      "count": 1,
+      "sample": {
+        "file": "src/automation/BlockchainAutomationManager.ts",
+        "line": 93,
+        "col": 33
+      }
+    },
+    {
+      "key": "TS2307 | Cannot find module './automation' or its corresponding type declarations.",
+      "code": "TS2307",
+      "message": "Cannot find module './automation' or its corresponding type declarations.",
+      "count": 1,
+      "sample": {
+        "file": "src/automation/index.ts",
+        "line": 7,
+        "col": 15
+      }
+    },
+    {
+      "key": "TS2322 | Type '\"success\" | \"warning\" | \"gray\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'. Type '\"gray\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "code": "TS2322",
+      "message": "Type '\"success\" | \"warning\" | \"gray\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'. Type '\"gray\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/AmazingMD3Dashboard.tsx",
+        "line": 258,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2322 | Type '({ key: string; title: string; dataIndex: string; render: (value: any, record: any) => Element; sortable?: undefined; } | { key: string; title: string; dataIndex: string; sortable: boolean; render?: undefined; } | { ...; })[]' is not assignable to type 'DataTableColumn[]'. Type '{ key: string; title: string; dataIndex: string; render: (value: any, record: any) => Element; sortable?: undefined; } | { key: string; title: string; dataIndex: string; sortable: boolean; render?: undefined; } | { ...; }' is not assignable to type 'DataTableColumn'. Type '{ key: string; title: string; render: () => JSX.Element; dataIndex?: undefined; sortable?: undefined; }' is not assignable to type 'DataTableColumn'. Property 'dataIndex' is optional in type '{ key: string; title: string; render: () => Element; dataIndex?: undefined; sortable?: undefined; }' but required in type 'DataTableColumn'.",
+      "code": "TS2322",
+      "message": "Type '({ key: string; title: string; dataIndex: string; render: (value: any, record: any) => Element; sortable?: undefined; } | { key: string; title: string; dataIndex: string; sortable: boolean; render?: undefined; } | { ...; })[]' is not assignable to type 'DataTableColumn[]'. Type '{ key: string; title: string; dataIndex: string; render: (value: any, record: any) => Element; sortable?: undefined; } | { key: string; title: string; dataIndex: string; sortable: boolean; render?: undefined; } | { ...; }' is not assignable to type 'DataTableColumn'. Type '{ key: string; title: string; render: () => JSX.Element; dataIndex?: undefined; sortable?: undefined; }' is not assignable to type 'DataTableColumn'. Property 'dataIndex' is optional in type '{ key: string; title: string; render: () => Element; dataIndex?: undefined; sortable?: undefined; }' but required in type 'DataTableColumn'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/AmazingMD3Dashboard.tsx",
+        "line": 583,
+        "col": 17
+      }
+    },
+    {
+      "key": "TS2339 | Property 'warning' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; } | { ...; }'. Property 'warning' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; }'.",
+      "code": "TS2339",
+      "message": "Property 'warning' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; } | { ...; }'. Property 'warning' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; }'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/MD3DashboardDemo.tsx",
+        "line": 87,
+        "col": 82
+      }
+    },
+    {
+      "key": "TS2339 | Property 'info' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; } | { ...; }'. Property 'info' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; }'.",
+      "code": "TS2339",
+      "message": "Property 'info' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; } | { ...; }'. Property 'info' does not exist on type '{ primary: string; onPrimary: string; primaryContainer: string; onPrimaryContainer: string; secondary: string; onSecondary: string; secondaryContainer: string; onSecondaryContainer: string; ... 24 more ...; surface5: string; }'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/MD3DashboardDemo.tsx",
+        "line": 94,
+        "col": 69
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'RobotOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'RobotOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/MD3DashboardDemo.tsx",
+        "line": 371,
+        "col": 24
+      }
+    },
+    {
+      "key": "TS2322 | Type '\"info\"' is not assignable to type '\"error\" | \"success\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "code": "TS2322",
+      "message": "Type '\"info\"' is not assignable to type '\"error\" | \"success\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/MD3DashboardDemo.tsx",
+        "line": 416,
+        "col": 17
+      }
+    },
+    {
+      "key": "TS2322 | Type '\"success\"' is not assignable to type '\"error\" | \"secondary\" | \"primary\" | \"tertiary\"'.",
+      "code": "TS2322",
+      "message": "Type '\"success\"' is not assignable to type '\"error\" | \"secondary\" | \"primary\" | \"tertiary\"'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/MD3DashboardDemo.tsx",
+        "line": 524,
+        "col": 25
+      }
+    },
+    {
+      "key": "TS2322 | Type '\"warning\"' is not assignable to type '\"error\" | \"secondary\" | \"primary\" | \"tertiary\"'.",
+      "code": "TS2322",
+      "message": "Type '\"warning\"' is not assignable to type '\"error\" | \"secondary\" | \"primary\" | \"tertiary\"'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/MD3DashboardDemo.tsx",
+        "line": 543,
+        "col": 25
+      }
+    },
+    {
+      "key": "TS2339 | Property 'target' does not exist on type 'string'.",
+      "code": "TS2339",
+      "message": "Property 'target' does not exist on type 'string'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/ProfessionalAdminDashboard.tsx",
+        "line": 368,
+        "col": 53
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'CloseCircleOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'CloseCircleOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/ProfessionalAdminDashboard.tsx",
+        "line": 513,
+        "col": 34
+      }
+    },
+    {
+      "key": "TS2322 | Type '\"text\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "code": "TS2322",
+      "message": "Type '\"text\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/ProfessionalAdminDashboard.tsx",
+        "line": 635,
+        "col": 33
+      }
+    },
+    {
+      "key": "TS2322 | Type '\"filled\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "code": "TS2322",
+      "message": "Type '\"filled\"' is not assignable to type '\"error\" | \"success\" | \"info\" | \"warning\" | \"secondary\" | \"primary\"'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/admin/ProfessionalAdminDashboard.tsx",
+        "line": 656,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2614 | Module '\"../services/apiService\"' has no exported member 'apiService'. Did you mean to use 'import apiService from \"../services/apiService\"' instead?",
+      "code": "TS2614",
+      "message": "Module '\"../services/apiService\"' has no exported member 'apiService'. Did you mean to use 'import apiService from \"../services/apiService\"' instead?",
+      "count": 1,
+      "sample": {
+        "file": "src/components/AdvancedDashboard.tsx",
+        "line": 135,
+        "col": 10
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'TrophyFilled'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'TrophyFilled'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/AdvancedDashboard.tsx",
+        "line": 960,
+        "col": 22
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'StarFilled'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'StarFilled'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/AdvancedDashboard.tsx",
+        "line": 972,
+        "col": 22
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'RocketFilled'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'RocketFilled'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/AdvancedDashboard.tsx",
+        "line": 984,
+        "col": 22
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'DiamondFilled'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'DiamondFilled'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/AdvancedDashboard.tsx",
+        "line": 996,
+        "col": 22
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'ReloadOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'ReloadOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/AdvancedDashboard.tsx",
+        "line": 1122,
+        "col": 26
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'MenuUnfoldOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'MenuUnfoldOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/AdvancedDashboard.tsx",
+        "line": 1250,
+        "col": 32
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'MenuFoldOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'MenuFoldOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/AdvancedDashboard.tsx",
+        "line": 1250,
+        "col": 57
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'SecurityScanOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'SecurityScanOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/AdvancedDashboard.tsx",
+        "line": 1300,
+        "col": 22
+      }
+    },
+    {
+      "key": "TS2741 | Property 'startTime' is missing in type '{ id: string; name: string; description: string; category: \"metaverse\"; status: \"inactive\"; priority: \"medium\"; progress: number; steps: ({ id: string; name: string; type: \"trigger\"; status: \"pending\"; config: { ...; }; } | { ...; } | { ...; })[]; ... 5 more ...; errors: { ...; }[]; }' but required in type 'Workflow'.",
+      "code": "TS2741",
+      "message": "Property 'startTime' is missing in type '{ id: string; name: string; description: string; category: \"metaverse\"; status: \"inactive\"; priority: \"medium\"; progress: number; steps: ({ id: string; name: string; type: \"trigger\"; status: \"pending\"; config: { ...; }; } | { ...; } | { ...; })[]; ... 5 more ...; errors: { ...; }[]; }' but required in type 'Workflow'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/AutomationWorkflows.tsx",
+        "line": 471,
+        "col": 9
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'CopyOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'CopyOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/AutomationWorkflows.tsx",
+        "line": 877,
+        "col": 36
+      }
+    },
+    {
+      "key": "TS2339 | Property 'success' does not exist on type '{ primary: { 50: string; 100: string; 200: string; 300: string; 400: string; 500: string; 600: string; 700: string; 800: string; 900: string; }; accent: { purple: string; pink: string; green: string; orange: string; red: string; cyan: string; teal: string; indigo: string; }; dark: { ...; }; gradients: { ...; }; stat...'.",
+      "code": "TS2339",
+      "message": "Property 'success' does not exist on type '{ primary: { 50: string; 100: string; 200: string; 300: string; 400: string; 500: string; 600: string; 700: string; 800: string; 900: string; }; accent: { purple: string; pink: string; green: string; orange: string; red: string; cyan: string; teal: string; indigo: string; }; dark: { ...; }; gradients: { ...; }; stat...'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/DesktopClientDashboard.tsx",
+        "line": 498,
+        "col": 65
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'handleStopMining'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'handleStopMining'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ImprovedProfessionalDashboard.tsx",
+        "line": 606,
+        "col": 30
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'handleMenuSelect'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'handleMenuSelect'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ImprovedProfessionalDashboard.tsx",
+        "line": 1067,
+        "col": 35
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'SettingsPanel'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'SettingsPanel'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ImprovedProfessionalDashboard.tsx",
+        "line": 1297,
+        "col": 10
+      }
+    },
+    {
+      "key": "TS2741 | Property 'description' is missing in type '{ title: string; rarity: \"legendary\"; progress: number; stats: { label: string; value: string; }[]; }' but required in type 'MiningFeature'.",
+      "code": "TS2741",
+      "message": "Property 'description' is missing in type '{ title: string; rarity: \"legendary\"; progress: number; stats: { label: string; value: string; }[]; }' but required in type 'MiningFeature'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/LandingPage.tsx",
+        "line": 232,
+        "col": 5
+      }
+    },
+    {
+      "key": "TS2614 | Module '\"lucide-react\"' has no exported member 'Portal'. Did you mean to use 'import Portal from \"lucide-react\"' instead?",
+      "code": "TS2614",
+      "message": "Module '\"lucide-react\"' has no exported member 'Portal'. Did you mean to use 'import Portal from \"lucide-react\"' instead?",
+      "count": 1,
+      "sample": {
+        "file": "src/components/metaverse/MetaverseChat.tsx",
+        "line": 21,
+        "col": 3
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'spaceBridgeService'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'spaceBridgeService'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/metaverse/MetaverseChat.tsx",
+        "line": 235,
+        "col": 13
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'ShoppingCartOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'ShoppingCartOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/MetaversePortal.tsx",
+        "line": 1056,
+        "col": 22
+      }
+    },
+    {
+      "key": "TS2322 | Type '{ initial: { scale: number; }; hover: { scale: number; transition: { duration: number; ease: number[]; }; }; tap: { scale: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'. Property 'hover' is incompatible with index signature. Type '{ scale: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'. Type '{ scale: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'. Type '{ scale: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any>; transitionEnd?: ResolvedValues; }'. Types of property 'transition' are incompatible. Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'. Types of property 'ease' are incompatible. Type 'number[]' is not assignable to type 'Easing | Easing[]'. Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'. Type 'number[]' is not assignable to type 'Easing[]'. Type 'number' is not assignable to type 'Easing'.",
+      "code": "TS2322",
+      "message": "Type '{ initial: { scale: number; }; hover: { scale: number; transition: { duration: number; ease: number[]; }; }; tap: { scale: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'. Property 'hover' is incompatible with index signature. Type '{ scale: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'. Type '{ scale: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'. Type '{ scale: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any>; transitionEnd?: ResolvedValues; }'. Types of property 'transition' are incompatible. Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'. Types of property 'ease' are incompatible. Type 'number[]' is not assignable to type 'Easing | Easing[]'. Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'. Type 'number[]' is not assignable to type 'Easing[]'. Type 'number' is not assignable to type 'Easing'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/MotionDesignShowcase.tsx",
+        "line": 159,
+        "col": 13
+      }
+    },
+    {
+      "key": "TS2322 | Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'. Types of property 'ease' are incompatible. Type 'number[]' is not assignable to type 'Easing | Easing[]'. Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'. Type 'number[]' is not assignable to type 'Easing[]'. Type 'number' is not assignable to type 'Easing'.",
+      "code": "TS2322",
+      "message": "Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'. Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'. Types of property 'ease' are incompatible. Type 'number[]' is not assignable to type 'Easing | Easing[]'. Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'. Type 'number[]' is not assignable to type 'Easing[]'. Type 'number' is not assignable to type 'Easing'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/MotionDesignShowcase.tsx",
+        "line": 332,
+        "col": 17
+      }
+    },
+    {
+      "key": "TS2551 | Property 'generateSEOReport' does not exist on type '{ metaTags: MetaTags; sitemap: SitemapEntry[]; robotsTxt: string; generatedContent: GeneratedContent; reports: SEOReport[]; isGenerating: boolean; ... 47 more ...; getScheduledContent: () => ContentWorkflow[]; }'. Did you mean 'generateNewReport'?",
+      "code": "TS2551",
+      "message": "Property 'generateSEOReport' does not exist on type '{ metaTags: MetaTags; sitemap: SitemapEntry[]; robotsTxt: string; generatedContent: GeneratedContent; reports: SEOReport[]; isGenerating: boolean; ... 47 more ...; getScheduledContent: () => ContentWorkflow[]; }'. Did you mean 'generateNewReport'?",
+      "count": 1,
+      "sample": {
+        "file": "src/components/pages/SEOContentGeneratorPage.tsx",
+        "line": 150,
+        "col": 33
+      }
+    },
+    {
+      "key": "TS17001 | JSX elements cannot have multiple attributes with the same name.",
+      "code": "TS17001",
+      "message": "JSX elements cannot have multiple attributes with the same name.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ProfessionalDashboard.tsx",
+        "line": 346,
+        "col": 19
+      }
+    },
+    {
+      "key": "TS2614 | Module '\"@/components/ui/layout/Layout\"' has no exported member 'Layout'. Did you mean to use 'import Layout from \"@/components/ui/layout/Layout\"' instead?",
+      "code": "TS2614",
+      "message": "Module '\"@/components/ui/layout/Layout\"' has no exported member 'Layout'. Did you mean to use 'import Layout from \"@/components/ui/layout/Layout\"' instead?",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ProfessionalDashboardIntegrated.tsx",
+        "line": 8,
+        "col": 10
+      }
+    },
+    {
+      "key": "TS2339 | Property 'account' does not exist on type 'BlockchainContextType'.",
+      "code": "TS2339",
+      "message": "Property 'account' does not exist on type 'BlockchainContextType'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/SEOModelMarketplace.tsx",
+        "line": 81,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2339 | Property 'contract' does not exist on type 'BlockchainContextType'.",
+      "code": "TS2339",
+      "message": "Property 'contract' does not exist on type 'BlockchainContextType'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/SEOModelMarketplace.tsx",
+        "line": 81,
+        "col": 20
+      }
+    },
+    {
+      "key": "TS2561 | Object literal may only specify known properties, but 'spaceSavedBytes' does not exist in type 'OptimizationData'. Did you mean to write 'spaceBytes'?",
+      "code": "TS2561",
+      "message": "Object literal may only specify known properties, but 'spaceSavedBytes' does not exist in type 'OptimizationData'. Did you mean to write 'spaceBytes'?",
+      "count": 1,
+      "sample": {
+        "file": "src/components/SEOOptimizationDashboard.tsx",
+        "line": 134,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'LinkOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'LinkOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/SimpleIntegratedDashboard.tsx",
+        "line": 358,
+        "col": 26
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'GiftOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'GiftOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/SimpleIntegratedDashboard.tsx",
+        "line": 454,
+        "col": 26
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'MonitorOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'MonitorOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/SimpleIntegratedDashboard.tsx",
+        "line": 831,
+        "col": 16
+      }
+    },
+    {
+      "key": "TS2614 | Module '\"antd\"' has no exported member 'TreeSelect'. Did you mean to use 'import TreeSelect from \"antd\"' instead?",
+      "code": "TS2614",
+      "message": "Module '\"antd\"' has no exported member 'TreeSelect'. Did you mean to use 'import TreeSelect from \"antd\"' instead?",
+      "count": 1,
+      "sample": {
+        "file": "src/components/TensorFlowAdmin.tsx",
+        "line": 43,
+        "col": 3
+      }
+    },
+    {
+      "key": "TS2741 | Property 'lastDeployed' is missing in type '{ environment: \"development\"; status: \"inactive\"; instances: number; cpuUsage: number; memoryUsage: number; requestsPerMinute: number; averageResponseTime: number; }' but required in type 'DeploymentInfo'.",
+      "code": "TS2741",
+      "message": "Property 'lastDeployed' is missing in type '{ environment: \"development\"; status: \"inactive\"; instances: number; cpuUsage: number; memoryUsage: number; requestsPerMinute: number; averageResponseTime: number; }' but required in type 'DeploymentInfo'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/TensorFlowAdmin.tsx",
+        "line": 524,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2741 | Property 'lastDeployed' is missing in type '{ environment: \"staging\"; status: \"active\"; instances: number; cpuUsage: number; memoryUsage: number; requestsPerMinute: number; averageResponseTime: number; }' but required in type 'DeploymentInfo'.",
+      "code": "TS2741",
+      "message": "Property 'lastDeployed' is missing in type '{ environment: \"staging\"; status: \"active\"; instances: number; cpuUsage: number; memoryUsage: number; requestsPerMinute: number; averageResponseTime: number; }' but required in type 'DeploymentInfo'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/TensorFlowAdmin.tsx",
+        "line": 626,
+        "col": 11
+      }
+    },
+    {
+      "key": "TS2367 | This comparison appears to be unintentional because the types '\"cancelled\" | \"running\" | \"completed\" | \"failed\" | \"queued\"' and '\"paused\"' have no overlap.",
+      "code": "TS2367",
+      "message": "This comparison appears to be unintentional because the types '\"cancelled\" | \"running\" | \"completed\" | \"failed\" | \"queued\"' and '\"paused\"' have no overlap.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/TensorFlowAdmin.tsx",
+        "line": 1244,
+        "col": 22
+      }
+    },
+    {
+      "key": "TS2305 | Module '\"./ui/Checkbox\"' has no exported member 'Switch'.",
+      "code": "TS2305",
+      "message": "Module '\"./ui/Checkbox\"' has no exported member 'Switch'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/TrainingDataPipeline.tsx",
+        "line": 43,
+        "col": 10
+      }
+    },
+    {
+      "key": "TS2305 | Module '\"./ui/Input\"' has no exported member 'Textarea'.",
+      "code": "TS2305",
+      "message": "Module '\"./ui/Input\"' has no exported member 'Textarea'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/TrainingDataPipeline.tsx",
+        "line": 45,
+        "col": 10
+      }
+    },
+    {
+      "key": "TS2769 | No overload matches this call. The last overload gave the following error. Object literal may only specify known properties, and 'ref' does not exist in type 'Partial<unknown> & Attributes'.",
+      "code": "TS2769",
+      "message": "No overload matches this call. The last overload gave the following error. Object literal may only specify known properties, and 'ref' does not exist in type 'Partial<unknown> & Attributes'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/Accordion.tsx",
+        "line": 224,
+        "col": 9
+      }
+    },
+    {
+      "key": "TS2304 | Cannot find name 'DatabaseOutlined'.",
+      "code": "TS2304",
+      "message": "Cannot find name 'DatabaseOutlined'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/EnhancedUserManagement.tsx",
+        "line": 946,
+        "col": 30
+      }
+    },
+    {
+      "key": "TS2306 | File 'E:/Personal/project/lightdom/LightDom/src/types/ant-design-icons-shim.d.ts' is not a module.",
+      "code": "TS2306",
+      "message": "File 'E:/Personal/project/lightdom/LightDom/src/types/ant-design-icons-shim.d.ts' is not a module.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SEOCrawlerWorkflow.tsx",
+        "line": 70,
+        "col": 29
+      }
+    },
+    {
+      "key": "TS2339 | Property 'enableRegistration' does not exist on type 'GeneralSettings'.",
+      "code": "TS2339",
+      "message": "Property 'enableRegistration' does not exist on type 'GeneralSettings'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SettingsOverview.tsx",
+        "line": 110,
+        "col": 95
+      }
+    },
+    {
+      "key": "TS2339 | Property 'maxConcurrentOptimizations' does not exist on type 'PerformanceSettings'.",
+      "code": "TS2339",
+      "message": "Property 'maxConcurrentOptimizations' does not exist on type 'PerformanceSettings'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SettingsOverview.tsx",
+        "line": 122,
+        "col": 43
+      }
+    },
+    {
+      "key": "TS2339 | Property 'enableCDN' does not exist on type 'PerformanceSettings'.",
+      "code": "TS2339",
+      "message": "Property 'enableCDN' does not exist on type 'PerformanceSettings'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SettingsOverview.tsx",
+        "line": 136,
+        "col": 90
+      }
+    },
+    {
+      "key": "TS2339 | Property 'enableAutoGasEstimation' does not exist on type 'BlockchainSettings'.",
+      "code": "TS2339",
+      "message": "Property 'enableAutoGasEstimation' does not exist on type 'BlockchainSettings'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SettingsOverview.tsx",
+        "line": 160,
+        "col": 94
+      }
+    },
+    {
+      "key": "TS2339 | Property 'enableEventLogging' does not exist on type 'BlockchainSettings'.",
+      "code": "TS2339",
+      "message": "Property 'enableEventLogging' does not exist on type 'BlockchainSettings'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SettingsOverview.tsx",
+        "line": 166,
+        "col": 92
+      }
+    },
+    {
+      "key": "TS2339 | Property 'enableHTTPS' does not exist on type 'SecuritySettings'.",
+      "code": "TS2339",
+      "message": "Property 'enableHTTPS' does not exist on type 'SecuritySettings'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SettingsOverview.tsx",
+        "line": 178,
+        "col": 40
+      }
+    },
+    {
+      "key": "TS2339 | Property 'enableTwoFactorAuth' does not exist on type 'SecuritySettings'.",
+      "code": "TS2339",
+      "message": "Property 'enableTwoFactorAuth' does not exist on type 'SecuritySettings'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SettingsOverview.tsx",
+        "line": 191,
+        "col": 87
+      }
+    },
+    {
+      "key": "TS2551 | Property 'apiVersion' does not exist on type 'ApiSettings'. Did you mean 'version'?",
+      "code": "TS2551",
+      "message": "Property 'apiVersion' does not exist on type 'ApiSettings'. Did you mean 'version'?",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SettingsOverview.tsx",
+        "line": 203,
+        "col": 35
+      }
+    },
+    {
+      "key": "TS2339 | Property 'enableGraphQL' does not exist on type 'ApiSettings'.",
+      "code": "TS2339",
+      "message": "Property 'enableGraphQL' does not exist on type 'ApiSettings'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SettingsOverview.tsx",
+        "line": 213,
+        "col": 86
+      }
+    },
+    {
+      "key": "TS2339 | Property 'enableWebSocket' does not exist on type 'ApiSettings'.",
+      "code": "TS2339",
+      "message": "Property 'enableWebSocket' does not exist on type 'ApiSettings'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SettingsOverview.tsx",
+        "line": 216,
+        "col": 88
+      }
+    },
+    {
+      "key": "TS2339 | Property 'enableTooltips' does not exist on type 'UISettings'.",
+      "code": "TS2339",
+      "message": "Property 'enableTooltips' does not exist on type 'UISettings'.",
+      "count": 1,
+      "sample": {
+        "file": "src/components/ui/admin/SettingsOverview.tsx",
+        "line": 243,
+        "col": 86
+      }
+    }
+  ]
+}
