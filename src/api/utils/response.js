@@ -49,10 +49,21 @@ export const noContentResponse = (res) => {
 };
 
 /**
- * Catch async errors
+ * Catch async errors and add request context
  */
 export const catchAsync = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch((err) => next(err));
+  Promise.resolve(fn(req, res, next)).catch((err) => {
+    // Add request context to error for better debugging
+    if (err) {
+      err.requestContext = {
+        method: req.method,
+        path: req.path,
+        userId: req.user?.id,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    next(err);
+  });
 };
 
 export default {

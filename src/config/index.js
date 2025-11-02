@@ -55,7 +55,7 @@ const config = {
   
   // Security Configuration
   security: {
-    jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+    jwtSecret: process.env.JWT_SECRET,
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
     bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || '10', 10),
     rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes
@@ -123,9 +123,14 @@ export function validateConfig() {
     console.warn('Warning: Using default database password');
   }
   
-  // Validate JWT secret in production
-  if (config.env === 'production' && config.security.jwtSecret === 'your-secret-key-change-in-production') {
-    errors.push('JWT_SECRET must be set in production');
+  // Validate JWT secret is set
+  if (!config.security.jwtSecret) {
+    errors.push('JWT_SECRET environment variable is required');
+  }
+  
+  // Validate JWT secret strength
+  if (config.security.jwtSecret && config.security.jwtSecret.length < 32) {
+    errors.push('JWT_SECRET must be at least 32 characters long');
   }
   
   if (errors.length > 0) {

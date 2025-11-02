@@ -29,6 +29,8 @@ export const auth = async (req, res, next) => {
 
 /**
  * API Key authentication
+ * NOTE: API keys should be stored as hashed values in the database
+ * This implementation assumes keys are already hashed using bcrypt
  */
 export const apiKeyAuth = async (req, res, next) => {
   try {
@@ -37,6 +39,10 @@ export const apiKeyAuth = async (req, res, next) => {
     if (!apiKey) {
       throw new ApiError(401, 'API key required');
     }
+    
+    // TODO: Implement proper API key hashing
+    // For now, this is a placeholder - API keys should be hashed
+    // Example: const hashedKey = await bcrypt.hash(apiKey, 10);
     
     // Verify API key from database
     const db = getDatabase();

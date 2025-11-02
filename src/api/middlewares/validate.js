@@ -1,15 +1,21 @@
 /**
  * Validation Middleware
- * Validates request data against schemas
+ * Validates request data against Joi schemas
+ * NOTE: This middleware expects Joi schema objects
  */
 
 import { ApiError } from '../utils/ApiError.js';
 
 /**
  * Generic validation middleware
+ * @param {object} schema - Joi validation schema
  */
 export const validate = (schema) => (req, res, next) => {
   try {
+    if (!schema || typeof schema.validate !== 'function') {
+      throw new Error('Invalid schema: expected Joi schema object');
+    }
+    
     const validationOptions = {
       abortEarly: false,
       allowUnknown: true,

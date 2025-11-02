@@ -56,9 +56,9 @@ src/
 
 ## 📖 Documentation
 
-- **[API Architecture](./docs/API_ARCHITECTURE.md)** - Complete architecture documentation
-- **[Quick Start Guide](./docs/API_QUICK_START.md)** - Get started in minutes
-- **[API Endpoints](./docs/API_ENDPOINTS.md)** - Endpoint reference
+- **[API Architecture](./API_ARCHITECTURE.md)** - Complete architecture documentation
+- **[Quick Start Guide](./API_QUICK_START.md)** - Get started in minutes
+- **[API Endpoints](./API_ENDPOINTS.md)** - Endpoint reference
 
 ## 🎯 Core Endpoints
 

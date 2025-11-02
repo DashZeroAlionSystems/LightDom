@@ -49,6 +49,8 @@ export function getDatabase() {
     return {
       query: async () => ({ rows: [], rowCount: 0 }),
       end: async () => {},
+      connect: async () => ({ release: () => {} }),
+      on: () => {},
     };
   }
   

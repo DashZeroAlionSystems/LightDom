@@ -105,9 +105,13 @@ export const getSession = async (req, res) => {
   
   // TODO: Get session from database
   // const session = await getSessionById(sessionId);
+  // if (!session) {
+  //   throw new ApiError(404, 'Session not found');
+  // }
   
-  if (!sessionId) {
-    throw new ApiError(404, 'Session not found');
+  // Temporary placeholder
+  if (!sessionId || sessionId.length === 0) {
+    throw new ApiError(400, 'Session ID is required');
   }
   
   successResponse(res, {
