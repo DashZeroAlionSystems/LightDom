@@ -14,6 +14,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
+import { getDatabaseService } from '../DatabaseService.js';
 
 export interface OllamaConfig {
     baseURL: string;
@@ -146,8 +147,53 @@ export class OllamaService {
             
             return assistantMessage;
         } catch (error) {
-            Logger.error('Ollama chat error:', error);
+            console.error('Ollama chat error:', error);
             throw new Error('Failed to communicate with Ollama');
+        }
+    }
+    
+    /**
+     * Log AI interaction to database
+     */
+    async logInteraction(
+        prompt: string,
+        response: string,
+        options?: {
+            model?: string;
+            context?: Record<string, any>;
+            metadata?: Record<string, any>;
+            service?: string;
+            userId?: string;
+            sessionId?: string;
+            durationMs?: number;
+            success?: boolean;
+            error?: string;
+        }
+    ): Promise<void> {
+        try {
+            const dbService = getDatabaseService();
+            
+            await dbService.query(
+                `INSERT INTO ai_interactions 
+                (model, prompt, response, context, metadata, service, user_id, session_id, duration_ms, success, error)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+                [
+                    options?.model || this.config.model,
+                    prompt,
+                    response,
+                    JSON.stringify(options?.context || {}),
+                    JSON.stringify(options?.metadata || {}),
+                    options?.service || 'OllamaService',
+                    options?.userId || null,
+                    options?.sessionId || null,
+                    options?.durationMs || null,
+                    options?.success !== undefined ? options.success : true,
+                    options?.error || null,
+                ]
+            );
+        } catch (error) {
+            console.error('Failed to log AI interaction:', error);
+            // Don't throw - logging failures shouldn't break the main flow
         }
     }
     
@@ -198,7 +244,7 @@ export class OllamaService {
                 dependencies: []
             };
         } catch (error) {
-            Logger.error('Failed to parse task delegation response:', error);
+            console.error('Failed to parse task delegation response:', error);
             return {
                 task,
                 analysis: response,
@@ -231,7 +277,7 @@ export class OllamaService {
                 return JSON.parse(jsonStr);
             }
         } catch (error) {
-            Logger.error('Failed to parse SEO optimization response:', error);
+            console.error('Failed to parse SEO optimization response:', error);
         }
         
         // Fallback
@@ -264,7 +310,7 @@ export class OllamaService {
                 return JSON.parse(jsonStr);
             }
         } catch (error) {
-            Logger.error('Failed to parse workflow response:', error);
+            console.error('Failed to parse workflow response:', error);
         }
         
         return {
@@ -296,7 +342,7 @@ export class OllamaService {
                 return JSON.parse(jsonStr);
             }
         } catch (error) {
-            Logger.error('Failed to parse code analysis response:', error);
+            console.error('Failed to parse code analysis response:', error);
         }
         
         return {

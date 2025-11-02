@@ -94,6 +94,7 @@
     "docs:deploy": "echo 'Documentation deployment would run here'",
     "db:health": "node scripts/db-health-check.cjs",
     "db:populate-metaverse": "node scripts/populate-metaverse-data.js",
+    "migrate": "node --loader ts-node/esm migrate.ts",
     "schema:link": "node services/schema-linking-runner.js run-once",
     "schema:link:start": "node services/schema-linking-runner.js start",
     "schema:link:demo": "node schema-linking-demo.js",
