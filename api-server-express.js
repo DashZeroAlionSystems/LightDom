@@ -378,6 +378,14 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load workflow generator routes:', err);
     });
     
+    // Import and register Chrome Layers routes
+    import('./services/chrome-layers-routes.js').then((layersModule) => {
+      this.app.use('/api/layers', layersModule.default);
+      console.log('Chrome layers routes registered');
+    }).catch(err => {
+      console.error('Failed to load chrome layers routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
