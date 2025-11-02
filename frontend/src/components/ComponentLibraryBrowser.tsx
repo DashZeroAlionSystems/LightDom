@@ -262,7 +262,7 @@ const LayoutSlotComponent: React.FC<{
 
 export const ComponentLibraryBrowser: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategory Filter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [selectedComponents, setSelectedComponents] = useState<Set<string>>(new Set());
   const [showCodeView, setShowCodeView] = useState<Record<string, boolean>>({});
   const [layoutSlots, setLayoutSlots] = useState<LayoutSlot[]>([

@@ -1,0 +1,62 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Link",
+  "@id": "lightdom:link",
+  "name": "Link",
+  "description": "Hyperlink component",
+  "lightdom:componentType": "atom",
+  "lightdom:reactComponent": "Link",
+  "lightdom:props": [
+    {
+      "name": "href",
+      "type": "string",
+      "required": true,
+      "description": "Link URL"
+    },
+    {
+      "name": "text",
+      "type": "string",
+      "required": true,
+      "description": "Link text"
+    },
+    {
+      "name": "target",
+      "type": "string",
+      "required": false,
+      "description": "Link target",
+      "enum": ["_self", "_blank", "_parent", "_top"],
+      "default": "_self"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "description": "Disabled state",
+      "default": false
+    },
+    {
+      "name": "underline",
+      "type": "boolean",
+      "required": false,
+      "description": "Show underline",
+      "default": true
+    },
+    {
+      "name": "onClick",
+      "type": "function",
+      "required": false,
+      "description": "Click event handler"
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "link",
+    "hyperlink",
+    "anchor",
+    "navigation",
+    "url"
+  ],
+  "lightdom:semanticMeaning": "Hyperlink for navigation",
+  "lightdom:priority": 1,
+  "lightdom:category": "atom"
+}

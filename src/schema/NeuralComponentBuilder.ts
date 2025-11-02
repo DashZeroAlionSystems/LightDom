@@ -1,12 +1,14 @@
 /**
  * Neural Component Builder
  * AI-powered component generation using neural networks
- * Integrates with SchemaComponentMapper for intelligent component creation
+ * Integrates with SchemaComponentMapper and ComponentGeneratorService for intelligent component creation
  */
 
 import { EventEmitter } from 'events';
 import { Logger } from '../utils/Logger';
 import SchemaComponentMapper, { ComponentSchema, PropDefinition } from '../schema/SchemaComponentMapper';
+import { componentGeneratorService, ComponentGenerationRequest } from '../services/ComponentGeneratorService.js';
+import { componentLibraryService } from '../services/ComponentLibraryService.js';
 
 export interface NeuralBuildRequest {
   useCase: string;
@@ -137,6 +139,110 @@ export default {{componentName}};
     });
 
     this.logger.debug('Loaded component templates', { count: this.templates.size });
+  }
+
+  /**
+   * Generate component from use case using atomic library
+   */
+  async generateComponentFromAtoms(request: NeuralBuildRequest): Promise<GeneratedComponent> {
+    this.logger.info('Generating component from atomic library', { useCase: request.useCase });
+
+    // Step 1: Search for relevant atomic components
+    const atomicComponents = await componentLibraryService.getAtomicComponents();
+    const relevantAtoms = atomicComponents.filter(atom => 
+      atom.tags?.some(tag => request.useCase.toLowerCase().includes(tag.toLowerCase()))
+    );
+
+    if (relevantAtoms.length === 0) {
+      // Fall back to traditional generation
+      return this.generateComponent(request);
+    }
+
+    this.logger.info('Found relevant atomic components', { count: relevantAtoms.length });
+
+    // Step 2: Use ComponentGeneratorService for AI-powered generation
+    const genRequest: ComponentGenerationRequest = {
+      componentName: this.extractComponentName(request.useCase),
+      componentType: this.determineComponentType(request.useCase),
+      baseComponents: relevantAtoms.map(atom => atom.schemaId),
+      requirements: {
+        functionality: request.useCase,
+        designSystem: 'Material Design 3',
+        accessibility: request.constraints?.accessibility ?? true,
+        responsive: request.constraints?.responsive ?? true,
+      },
+      aiGeneration: {
+        useAI: true,
+        model: 'ollama:r1',
+        includeTests: request.context?.testingLibrary !== undefined,
+        includeStories: true,
+      },
+      output: {
+        typescript: request.context?.typescript ?? true,
+        styling: 'CSS Modules',
+      },
+    };
+
+    const generated = await componentGeneratorService.generateComponent(genRequest);
+
+    // Convert to our GeneratedComponent format
+    return {
+      schema: this.convertToComponentSchema(generated.schema),
+      code: generated.code,
+      tests: generated.tests,
+      styles: generated.styles,
+      documentation: generated.stories || '',
+      dependencies: [],
+      linkedComponents: [],
+    };
+  }
+
+  /**
+   * Extract component name from use case
+   */
+  private extractComponentName(useCase: string): string {
+    // Convert use case to PascalCase component name
+    const words = useCase.split(' ').filter(w => w.length > 0);
+    return words.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
+  }
+
+  /**
+   * Determine component type from use case
+   */
+  private determineComponentType(useCase: string): 'atom' | 'molecule' | 'organism' {
+    const lowerUseCase = useCase.toLowerCase();
+    
+    // Simple heuristics
+    if (lowerUseCase.includes('form') || lowerUseCase.includes('dashboard') || lowerUseCase.includes('list')) {
+      return 'organism';
+    }
+    
+    if (lowerUseCase.includes('field') || lowerUseCase.includes('card') || lowerUseCase.includes('search')) {
+      return 'molecule';
+    }
+    
+    return 'atom';
+  }
+
+  /**
+   * Convert ComponentGeneratorService schema to NeuralComponentBuilder schema
+   */
+  private convertToComponentSchema(schema: any): ComponentSchema {
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'WebComponent',
+      '@id': schema.schemaId,
+      name: schema.title,
+      description: schema.description || '',
+      'lightdom:componentType': schema.category,
+      'lightdom:reactComponent': schema.title.replace(/\s+/g, ''),
+      'lightdom:props': [],
+      'lightdom:linkedSchemas': schema.dependencies || [],
+      'lightdom:useCase': schema.tags || [],
+      'lightdom:semanticMeaning': schema.description || '',
+      'lightdom:priority': 1,
+      'lightdom:category': schema.category,
+    };
   }
 
   /**

@@ -1,0 +1,30 @@
+{
+  "$id": "ld:ResearchTopic:database-migrations",
+  "type": "ld:ResearchTopic",
+  "title": "Database Migration Strategies",
+  "description": "Research on implementing database migrations for the LightDom platform using PostgreSQL",
+  "tags": ["database", "postgresql", "migrations", "schema"],
+  "content": {
+    "summary": "This research covers implementing a robust database migration system for evolving the PostgreSQL schema safely.",
+    "keyPoints": [
+      "Use sequential numbered migration files for version control",
+      "Implement idempotent migrations using CREATE IF NOT EXISTS",
+      "Track applied migrations in schema_migrations table",
+      "Support rollback capabilities for critical changes"
+    ],
+    "references": [
+      {
+        "title": "PostgreSQL Documentation",
+        "url": "https://www.postgresql.org/docs/",
+        "type": "documentation"
+      }
+    ],
+    "relatedTopics": ["ld:ResearchTopic:database-design", "ld:ResearchTopic:data-persistence"]
+  },
+  "metadata": {
+    "author": "LightDom Research Team",
+    "createdDate": "2025-11-02",
+    "status": "active",
+    "priority": "high"
+  }
+}

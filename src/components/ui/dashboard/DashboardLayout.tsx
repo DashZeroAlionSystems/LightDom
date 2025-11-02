@@ -41,7 +41,8 @@ import {
   DatabaseOutlined,
   RocketOutlined,
   ApiOutlined,
-  SearchOutlined
+  SearchOutlined,
+  DeploymentUnitOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../../hooks/state/useAuth';
 import { useOptimization } from '../../../hooks/state/useOptimization';
@@ -142,6 +143,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       key: '/dashboard/advanced-nodes',
       icon: <ClusterOutlined />,
       label: 'Advanced Nodes',
+    },
+    {
+      key: '/dashboard/neural-network',
+      icon: <DeploymentUnitOutlined />,
+      label: 'Neural Network',
     },
     {
       key: '/dashboard/blockchain-models',

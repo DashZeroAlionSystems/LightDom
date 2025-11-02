@@ -1,0 +1,59 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Radio",
+  "@id": "lightdom:radio",
+  "name": "Radio",
+  "description": "Radio button component",
+  "lightdom:componentType": "atom",
+  "lightdom:reactComponent": "Radio",
+  "lightdom:props": [
+    {
+      "name": "name",
+      "type": "string",
+      "required": true,
+      "description": "Radio group name"
+    },
+    {
+      "name": "value",
+      "type": "any",
+      "required": true,
+      "description": "Radio button value"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "required": false,
+      "description": "Radio button label"
+    },
+    {
+      "name": "checked",
+      "type": "boolean",
+      "required": false,
+      "description": "Checked state"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "description": "Disabled state",
+      "default": false
+    },
+    {
+      "name": "onChange",
+      "type": "function",
+      "required": false,
+      "description": "Change event handler"
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "radio",
+    "option",
+    "form",
+    "single-choice",
+    "selection"
+  ],
+  "lightdom:semanticMeaning": "Radio button for single choice from multiple options",
+  "lightdom:priority": 1,
+  "lightdom:category": "atom"
+}

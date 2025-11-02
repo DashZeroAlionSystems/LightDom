@@ -1,0 +1,94 @@
+{
+  "@context": "https://schema.org",
+  "@type": "DataGrid",
+  "@id": "lightdom:data-grid",
+  "name": "DataGrid",
+  "description": "Advanced data grid organism with sorting, filtering, and pagination",
+  "lightdom:componentType": "organism",
+  "lightdom:reactComponent": "DataGrid",
+  "lightdom:composedOf": [
+    "lightdom:input",
+    "lightdom:select",
+    "lightdom:button",
+    "lightdom:spinner",
+    "lightdom:badge"
+  ],
+  "lightdom:props": [
+    {
+      "name": "columns",
+      "type": "array",
+      "required": true,
+      "description": "Column definitions",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string" },
+          "label": { "type": "string" },
+          "sortable": { "type": "boolean" },
+          "filterable": { "type": "boolean" }
+        }
+      }
+    },
+    {
+      "name": "data",
+      "type": "array",
+      "required": true,
+      "description": "Data rows"
+    },
+    {
+      "name": "onSort",
+      "type": "function",
+      "required": false,
+      "description": "Sort handler"
+    },
+    {
+      "name": "onFilter",
+      "type": "function",
+      "required": false,
+      "description": "Filter handler"
+    },
+    {
+      "name": "onPageChange",
+      "type": "function",
+      "required": false,
+      "description": "Page change handler"
+    },
+    {
+      "name": "loading",
+      "type": "boolean",
+      "required": false,
+      "description": "Loading state",
+      "default": false
+    },
+    {
+      "name": "pageSize",
+      "type": "number",
+      "required": false,
+      "description": "Rows per page",
+      "default": 10
+    },
+    {
+      "name": "totalRows",
+      "type": "number",
+      "required": false,
+      "description": "Total number of rows"
+    }
+  ],
+  "lightdom:linkedSchemas": [
+    "lightdom:input",
+    "lightdom:select",
+    "lightdom:button",
+    "lightdom:spinner"
+  ],
+  "lightdom:useCase": [
+    "data-grid",
+    "table",
+    "data-table",
+    "list",
+    "spreadsheet",
+    "admin"
+  ],
+  "lightdom:semanticMeaning": "Advanced data grid for displaying and manipulating tabular data",
+  "lightdom:priority": 1,
+  "lightdom:category": "organism"
+}
