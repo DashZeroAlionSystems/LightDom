@@ -306,15 +306,26 @@ router.post('/generate-config', async (req, res) => {
       });
     }
 
+    // Sanitize context values to prevent prompt injection
+    const sanitizeString = (str) => {
+      if (typeof str !== 'string') return 'N/A';
+      return str.replace(/[<>{}]/g, '').substring(0, 500); // Remove dangerous chars and limit length
+    };
+
+    const safeName = sanitizeString(context?.name);
+    const safeModelType = sanitizeString(context?.modelType);
+    const safeClientId = sanitizeString(context?.clientId);
+    const safePrompt = sanitizeString(prompt);
+
     // Build comprehensive prompt with schemas
     const systemPrompt = `You are an expert in neural network configuration and machine learning. 
 Your task is to generate optimal neural network configurations based on user requirements.
 You must generate a JSON configuration that conforms to the provided schemas.
 
 Context:
-- Instance Name: ${context?.name || 'N/A'}
-- Model Type: ${context?.modelType || 'N/A'}
-- Client ID: ${context?.clientId || 'N/A'}
+- Instance Name: ${safeName}
+- Model Type: ${safeModelType}
+- Client ID: ${safeClientId}
 
 Schemas:
 ${JSON.stringify(schemas, null, 2)}
@@ -335,7 +346,7 @@ Return JSON format:
   "analysis": "Brief explanation of configuration choices"
 }`;
 
-    const userPrompt = `User Requirements: ${prompt}
+    const userPrompt = `User Requirements: ${safePrompt}
 
 Based on the requirements above and the context provided, generate an optimal neural network configuration.
 Consider the model type and use case to determine appropriate architecture, training parameters, and data configuration.`;
@@ -388,7 +399,23 @@ async function generateConfigWithDeepSeek(systemPrompt, userPrompt) {
       timeout: 90000
     });
 
-    return JSON.parse(response.data.choices[0].message.content);
+    const content = response.data.choices[0].message.content;
+    
+    // Validate JSON response
+    let parsedConfig;
+    try {
+      parsedConfig = JSON.parse(content);
+    } catch (parseError) {
+      console.error('Failed to parse AI response as JSON:', content);
+      throw new Error('AI returned invalid JSON response');
+    }
+
+    // Validate structure
+    if (!parsedConfig.config || typeof parsedConfig.config !== 'object') {
+      throw new Error('AI response missing required "config" field');
+    }
+
+    return parsedConfig;
 
   } catch (error) {
     console.error('DeepSeek config generation error:', error);
@@ -409,7 +436,23 @@ async function generateConfigWithOllama(systemPrompt, userPrompt) {
       timeout: 90000
     });
 
-    return JSON.parse(response.data.response);
+    const content = response.data.response;
+    
+    // Validate JSON response
+    let parsedConfig;
+    try {
+      parsedConfig = JSON.parse(content);
+    } catch (parseError) {
+      console.error('Failed to parse Ollama response as JSON:', content);
+      throw new Error('Ollama returned invalid JSON response');
+    }
+
+    // Validate structure
+    if (!parsedConfig.config || typeof parsedConfig.config !== 'object') {
+      throw new Error('Ollama response missing required "config" field');
+    }
+
+    return parsedConfig;
 
   } catch (error) {
     console.error('Ollama config generation error:', error);

@@ -43,8 +43,35 @@ const { Step } = Steps;
 const { TextArea } = Input;
 const { Title, Text, Paragraph } = Typography;
 
+interface NeuralNetworkConfig {
+  trainingConfig?: {
+    epochs?: number;
+    batchSize?: number;
+    learningRate?: number;
+    validationSplit?: number;
+    optimizer?: string;
+    earlyStopping?: boolean;
+    patience?: number;
+  };
+  dataConfig?: {
+    source?: string;
+    isolation?: string;
+    minDataPoints?: number;
+  };
+  architecture?: {
+    inputShape?: number[];
+    layers?: Array<{
+      type: string;
+      units?: number;
+      activation?: string;
+      dropout?: number;
+    }>;
+    outputShape?: number[];
+  };
+}
+
 interface Props {
-  onComplete: (config: any) => void;
+  onComplete: (config: NeuralNetworkConfig) => void;
   onCancel: () => void;
 }
 
@@ -52,7 +79,7 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
   const [generating, setGenerating] = useState(false);
-  const [generatedConfig, setGeneratedConfig] = useState<any>(null);
+  const [generatedConfig, setGeneratedConfig] = useState<NeuralNetworkConfig | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<string>('');
 
   const steps = [
@@ -92,10 +119,17 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
       setGenerating(true);
 
       // Load neural network schemas
-      const instanceSchema = await fetch('/schemas/neural-networks/neural-network-instance.json')
-        .then(r => r.json());
-      const workflowSchema = await fetch('/schemas/neural-networks/neural-network-workflow.json')
-        .then(r => r.json());
+      const [instanceSchemaResponse, workflowSchemaResponse] = await Promise.all([
+        fetch('/schemas/neural-networks/neural-network-instance.json'),
+        fetch('/schemas/neural-networks/neural-network-workflow.json')
+      ]);
+
+      if (!instanceSchemaResponse.ok || !workflowSchemaResponse.ok) {
+        throw new Error('Failed to load neural network schemas');
+      }
+
+      const instanceSchema = await instanceSchemaResponse.json();
+      const workflowSchema = await workflowSchemaResponse.json();
 
       // Call Ollama DeepSeek to generate configuration
       const response = await fetch('/api/ai/generate-config', {
@@ -124,11 +158,13 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
         message.success('Configuration generated successfully!');
         setCurrentStep(2); // Skip to review step
       } else {
-        throw new Error('Generation failed');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || errorData.message || 'Generation failed');
       }
     } catch (error) {
       console.error('Failed to generate configuration:', error);
-      message.error('Failed to generate configuration. Using default values.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      message.error(`Failed to generate configuration: ${errorMessage}. Using default values.`);
       
       // Fallback to default configuration
       const values = form.getFieldsValue();
