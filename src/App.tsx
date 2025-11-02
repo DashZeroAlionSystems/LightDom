@@ -167,6 +167,7 @@ const AppContent: React.FC = () => {
           <Route path="design-tools" element={<DesignToolsNavigation />} />
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
+          <Route path="component-schema" element={<ComponentSchemaToolDashboard />} />
           
           {/* Admin Routes within Dashboard */}
           <Route path="admin" element={<AdminDashboard />} />
