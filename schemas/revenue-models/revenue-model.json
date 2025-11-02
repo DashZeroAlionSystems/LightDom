@@ -1,0 +1,319 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "revenue-model.json",
+  "title": "Revenue Model Configuration",
+  "description": "Comprehensive revenue model schema for LightDom platform services including neural network offerings",
+  "type": "object",
+  "required": ["id", "name", "tiers"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the revenue model",
+      "pattern": "^revenue-model-[a-z0-9-]+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the revenue model"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^v\\d+\\.\\d+\\.\\d+$",
+      "default": "v1.0.0"
+    },
+    "currency": {
+      "type": "string",
+      "enum": ["USD", "EUR", "GBP", "LIGHTDOM"],
+      "default": "USD"
+    },
+    "billingCycle": {
+      "type": "string",
+      "enum": ["monthly", "quarterly", "annually", "pay-as-you-go"],
+      "default": "monthly"
+    },
+    "tiers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/serviceTier"
+      }
+    }
+  },
+  "definitions": {
+    "serviceTier": {
+      "type": "object",
+      "required": ["id", "name", "pricing", "services"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "enum": ["free", "basic", "professional", "enterprise", "custom"]
+        },
+        "name": {
+          "type": "string",
+          "examples": ["Free Tier", "Basic", "Professional", "Enterprise", "Custom"]
+        },
+        "description": {
+          "type": "string"
+        },
+        "pricing": {
+          "type": "object",
+          "required": ["basePrice"],
+          "properties": {
+            "basePrice": {
+              "type": "number",
+              "minimum": 0
+            },
+            "setupFee": {
+              "type": "number",
+              "minimum": 0,
+              "default": 0
+            },
+            "discounts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["annual", "volume", "promotional"]
+                  },
+                  "percentage": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "services": {
+          "type": "object",
+          "properties": {
+            "neuralNetworks": {
+              "$ref": "#/definitions/neuralNetworkService"
+            },
+            "webOptimization": {
+              "$ref": "#/definitions/webOptimizationService"
+            },
+            "blockchainMining": {
+              "$ref": "#/definitions/blockchainMiningService"
+            },
+            "analytics": {
+              "$ref": "#/definitions/analyticsService"
+            },
+            "support": {
+              "$ref": "#/definitions/supportService"
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "maxNeuralNetworkInstances": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum number of neural network instances"
+            },
+            "maxTrainingDataPoints": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum training data points per month"
+            },
+            "maxPredictions": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum predictions per month"
+            },
+            "maxWebsites": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxUsers": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "neuralNetworkService": {
+      "type": "object",
+      "properties": {
+        "included": {
+          "type": "boolean",
+          "default": false
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "seo_optimization",
+              "component_generation",
+              "workflow_prediction",
+              "accessibility_improvement",
+              "ux_pattern_recognition",
+              "schema_relationship_learning",
+              "performance_optimization",
+              "design_system_extraction",
+              "content_generation",
+              "sentiment_analysis"
+            ]
+          }
+        },
+        "customModels": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow custom model architectures"
+        },
+        "trainingFrequency": {
+          "type": "string",
+          "enum": ["on-demand", "daily", "weekly", "monthly", "real-time"],
+          "description": "How often models can be retrained"
+        },
+        "maxConcurrentTraining": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 1
+        },
+        "gpuAcceleration": {
+          "type": "boolean",
+          "default": false
+        },
+        "modelVersioning": {
+          "type": "boolean",
+          "default": false
+        },
+        "advancedAnalytics": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "webOptimizationService": {
+      "type": "object",
+      "properties": {
+        "included": {
+          "type": "boolean",
+          "default": false
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "dom_analysis",
+              "performance_optimization",
+              "seo_optimization",
+              "accessibility_audit",
+              "code_splitting",
+              "image_optimization",
+              "caching_strategies"
+            ]
+          }
+        },
+        "crawlFrequency": {
+          "type": "string",
+          "enum": ["on-demand", "daily", "weekly", "monthly"]
+        },
+        "maxPagesPerSite": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "blockchainMiningService": {
+      "type": "object",
+      "properties": {
+        "included": {
+          "type": "boolean",
+          "default": false
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "proof_of_optimization",
+              "token_rewards",
+              "nft_minting",
+              "marketplace_access",
+              "staking"
+            ]
+          }
+        },
+        "rewardMultiplier": {
+          "type": "number",
+          "minimum": 1,
+          "default": 1,
+          "description": "Multiplier for blockchain rewards"
+        }
+      }
+    },
+    "analyticsService": {
+      "type": "object",
+      "properties": {
+        "included": {
+          "type": "boolean",
+          "default": false
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "real_time_dashboards",
+              "custom_reports",
+              "data_export",
+              "api_access",
+              "predictive_analytics",
+              "anomaly_detection"
+            ]
+          }
+        },
+        "dataRetention": {
+          "type": "string",
+          "enum": ["7-days", "30-days", "90-days", "1-year", "unlimited"]
+        }
+      }
+    },
+    "supportService": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["community", "email", "priority", "dedicated"]
+        },
+        "sla": {
+          "type": "object",
+          "properties": {
+            "responseTime": {
+              "type": "string",
+              "examples": ["24-hours", "8-hours", "2-hours", "1-hour"]
+            },
+            "availability": {
+              "type": "string",
+              "examples": ["business-hours", "24/5", "24/7"]
+            }
+          }
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "documentation",
+              "community_forum",
+              "email_support",
+              "chat_support",
+              "phone_support",
+              "dedicated_account_manager",
+              "onboarding_assistance",
+              "training_sessions"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

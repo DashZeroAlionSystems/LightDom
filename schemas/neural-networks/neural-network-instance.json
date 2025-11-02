@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "neural-network-instance.json",
+  "title": "Neural Network Instance Configuration",
+  "description": "Configuration schema for client-specific neural network instances with isolated training data",
+  "type": "object",
+  "required": ["id", "clientId", "modelType", "status"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the neural network instance",
+      "pattern": "^nn-[a-z0-9-]+$",
+      "examples": ["nn-client-001-seo", "nn-client-002-component-gen"]
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Client identifier for data isolation",
+      "pattern": "^client-[a-z0-9-]+$",
+      "examples": ["client-001", "client-acme-corp"]
+    },
+    "modelType": {
+      "type": "string",
+      "description": "Type of neural network model",
+      "enum": [
+        "seo_optimization",
+        "component_generation",
+        "workflow_prediction",
+        "accessibility_improvement",
+        "ux_pattern_recognition",
+        "schema_relationship_learning",
+        "performance_optimization",
+        "design_system_extraction",
+        "content_generation",
+        "sentiment_analysis"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "description": "Current status of the neural network instance",
+      "enum": ["initializing", "training", "ready", "predicting", "updating", "paused", "error", "archived"],
+      "default": "initializing"
+    },
+    "version": {
+      "type": "string",
+      "description": "Model version using semantic versioning",
+      "pattern": "^v\\d+\\.\\d+\\.\\d+$",
+      "examples": ["v1.0.0", "v2.1.3"]
+    },
+    "trainingConfig": {
+      "type": "object",
+      "description": "Training configuration for this instance",
+      "properties": {
+        "epochs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 50
+        },
+        "batchSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256,
+          "default": 32
+        },
+        "learningRate": {
+          "type": "number",
+          "minimum": 0.00001,
+          "maximum": 1,
+          "default": 0.001
+        },
+        "validationSplit": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 0.5,
+          "default": 0.2
+        },
+        "optimizer": {
+          "type": "string",
+          "enum": ["adam", "sgd", "rmsprop", "adagrad"],
+          "default": "adam"
+        }
+      }
+    },
+    "dataConfig": {
+      "type": "object",
+      "required": ["source", "isolation"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["database", "file", "stream", "api"]
+        },
+        "isolation": {
+          "type": "string",
+          "enum": ["strict", "shared", "federated"],
+          "default": "strict"
+        },
+        "dataPath": {
+          "type": "string"
+        },
+        "minDataPoints": {
+          "type": "integer",
+          "minimum": 100,
+          "default": 1000
+        }
+      }
+    }
+  }
+}

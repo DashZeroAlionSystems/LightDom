@@ -1,0 +1,29 @@
+{
+  "$schema": "../../schemas/neural-networks/neural-network-instance.json",
+  "id": "nn-client-001-seo",
+  "clientId": "client-001",
+  "modelType": "seo_optimization",
+  "status": "ready",
+  "version": "v1.2.0",
+  "trainingConfig": {
+    "epochs": 100,
+    "batchSize": 64,
+    "learningRate": 0.0005,
+    "validationSplit": 0.15,
+    "optimizer": "adam"
+  },
+  "dataConfig": {
+    "source": "database",
+    "isolation": "strict",
+    "dataPath": "SELECT * FROM training_data WHERE client_id = 'client-001' AND model_type = 'seo_optimization'",
+    "minDataPoints": 5000
+  },
+  "metadata": {
+    "name": "Acme Corp SEO Optimizer",
+    "description": "SEO optimization model trained on Acme Corp's website data",
+    "tags": ["seo", "optimization", "acme-corp", "production"],
+    "createdAt": "2025-01-15T10:30:00Z",
+    "updatedAt": "2025-01-20T14:45:00Z",
+    "createdBy": "admin@acme-corp.com"
+  }
+}
