@@ -1,0 +1,328 @@
+{
+  "$schema": "../revenue-models/revenue-model.json",
+  "id": "revenue-model-2025-q1",
+  "name": "LightDom Neural Network Platform - 2025 Q1",
+  "version": "v1.0.0",
+  "currency": "USD",
+  "billingCycle": "monthly",
+  "tiers": [
+    {
+      "id": "free",
+      "name": "Free Tier",
+      "description": "Get started with basic neural network capabilities",
+      "pricing": {
+        "basePrice": 0,
+        "setupFee": 0
+      },
+      "services": {
+        "neuralNetworks": {
+          "included": true,
+          "models": ["seo_optimization"],
+          "customModels": false,
+          "trainingFrequency": "weekly",
+          "maxConcurrentTraining": 1,
+          "gpuAcceleration": false,
+          "modelVersioning": false,
+          "advancedAnalytics": false
+        },
+        "webOptimization": {
+          "included": true,
+          "features": ["dom_analysis", "seo_optimization"],
+          "crawlFrequency": "weekly",
+          "maxPagesPerSite": 10
+        },
+        "blockchainMining": {
+          "included": true,
+          "features": ["proof_of_optimization", "token_rewards"],
+          "rewardMultiplier": 1
+        },
+        "analytics": {
+          "included": true,
+          "features": ["real_time_dashboards"],
+          "dataRetention": "7-days"
+        },
+        "support": {
+          "level": "community",
+          "features": ["documentation", "community_forum"]
+        }
+      },
+      "limits": {
+        "maxNeuralNetworkInstances": 1,
+        "maxTrainingDataPoints": 10000,
+        "maxPredictions": 1000,
+        "maxWebsites": 1,
+        "maxUsers": 1
+      }
+    },
+    {
+      "id": "basic",
+      "name": "Basic",
+      "description": "Perfect for small businesses and individual developers",
+      "pricing": {
+        "basePrice": 49,
+        "setupFee": 0,
+        "discounts": [
+          {
+            "type": "annual",
+            "percentage": 20
+          }
+        ]
+      },
+      "services": {
+        "neuralNetworks": {
+          "included": true,
+          "models": [
+            "seo_optimization",
+            "component_generation",
+            "performance_optimization"
+          ],
+          "customModels": false,
+          "trainingFrequency": "daily",
+          "maxConcurrentTraining": 2,
+          "gpuAcceleration": false,
+          "modelVersioning": true,
+          "advancedAnalytics": false
+        },
+        "webOptimization": {
+          "included": true,
+          "features": [
+            "dom_analysis",
+            "performance_optimization",
+            "seo_optimization",
+            "accessibility_audit"
+          ],
+          "crawlFrequency": "daily",
+          "maxPagesPerSite": 100
+        },
+        "blockchainMining": {
+          "included": true,
+          "features": [
+            "proof_of_optimization",
+            "token_rewards",
+            "marketplace_access"
+          ],
+          "rewardMultiplier": 1.2
+        },
+        "analytics": {
+          "included": true,
+          "features": ["real_time_dashboards", "custom_reports", "data_export"],
+          "dataRetention": "30-days"
+        },
+        "support": {
+          "level": "email",
+          "sla": {
+            "responseTime": "24-hours",
+            "availability": "business-hours"
+          },
+          "features": [
+            "documentation",
+            "community_forum",
+            "email_support"
+          ]
+        }
+      },
+      "limits": {
+        "maxNeuralNetworkInstances": 3,
+        "maxTrainingDataPoints": 100000,
+        "maxPredictions": 10000,
+        "maxWebsites": 5,
+        "maxUsers": 3
+      }
+    },
+    {
+      "id": "professional",
+      "name": "Professional",
+      "description": "Advanced neural network capabilities for growing teams",
+      "pricing": {
+        "basePrice": 199,
+        "setupFee": 0,
+        "discounts": [
+          {
+            "type": "annual",
+            "percentage": 25
+          }
+        ]
+      },
+      "services": {
+        "neuralNetworks": {
+          "included": true,
+          "models": [
+            "seo_optimization",
+            "component_generation",
+            "workflow_prediction",
+            "accessibility_improvement",
+            "ux_pattern_recognition",
+            "performance_optimization",
+            "content_generation"
+          ],
+          "customModels": true,
+          "trainingFrequency": "real-time",
+          "maxConcurrentTraining": 5,
+          "gpuAcceleration": true,
+          "modelVersioning": true,
+          "advancedAnalytics": true
+        },
+        "webOptimization": {
+          "included": true,
+          "features": [
+            "dom_analysis",
+            "performance_optimization",
+            "seo_optimization",
+            "accessibility_audit",
+            "code_splitting",
+            "image_optimization",
+            "caching_strategies"
+          ],
+          "crawlFrequency": "daily",
+          "maxPagesPerSite": 1000
+        },
+        "blockchainMining": {
+          "included": true,
+          "features": [
+            "proof_of_optimization",
+            "token_rewards",
+            "nft_minting",
+            "marketplace_access",
+            "staking"
+          ],
+          "rewardMultiplier": 1.5
+        },
+        "analytics": {
+          "included": true,
+          "features": [
+            "real_time_dashboards",
+            "custom_reports",
+            "data_export",
+            "api_access",
+            "predictive_analytics"
+          ],
+          "dataRetention": "90-days"
+        },
+        "support": {
+          "level": "priority",
+          "sla": {
+            "responseTime": "8-hours",
+            "availability": "24/5"
+          },
+          "features": [
+            "documentation",
+            "community_forum",
+            "email_support",
+            "chat_support",
+            "onboarding_assistance"
+          ]
+        }
+      },
+      "limits": {
+        "maxNeuralNetworkInstances": 10,
+        "maxTrainingDataPoints": 1000000,
+        "maxPredictions": 100000,
+        "maxWebsites": 20,
+        "maxUsers": 10
+      }
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "description": "Full-scale neural network platform for large organizations",
+      "pricing": {
+        "basePrice": 999,
+        "setupFee": 500,
+        "discounts": [
+          {
+            "type": "annual",
+            "percentage": 30
+          },
+          {
+            "type": "volume",
+            "percentage": 15
+          }
+        ]
+      },
+      "services": {
+        "neuralNetworks": {
+          "included": true,
+          "models": [
+            "seo_optimization",
+            "component_generation",
+            "workflow_prediction",
+            "accessibility_improvement",
+            "ux_pattern_recognition",
+            "schema_relationship_learning",
+            "performance_optimization",
+            "design_system_extraction",
+            "content_generation",
+            "sentiment_analysis"
+          ],
+          "customModels": true,
+          "trainingFrequency": "real-time",
+          "maxConcurrentTraining": 999,
+          "gpuAcceleration": true,
+          "modelVersioning": true,
+          "advancedAnalytics": true
+        },
+        "webOptimization": {
+          "included": true,
+          "features": [
+            "dom_analysis",
+            "performance_optimization",
+            "seo_optimization",
+            "accessibility_audit",
+            "code_splitting",
+            "image_optimization",
+            "caching_strategies"
+          ],
+          "crawlFrequency": "on-demand",
+          "maxPagesPerSite": 999999
+        },
+        "blockchainMining": {
+          "included": true,
+          "features": [
+            "proof_of_optimization",
+            "token_rewards",
+            "nft_minting",
+            "marketplace_access",
+            "staking"
+          ],
+          "rewardMultiplier": 2
+        },
+        "analytics": {
+          "included": true,
+          "features": [
+            "real_time_dashboards",
+            "custom_reports",
+            "data_export",
+            "api_access",
+            "predictive_analytics",
+            "anomaly_detection"
+          ],
+          "dataRetention": "unlimited"
+        },
+        "support": {
+          "level": "dedicated",
+          "sla": {
+            "responseTime": "1-hour",
+            "availability": "24/7"
+          },
+          "features": [
+            "documentation",
+            "community_forum",
+            "email_support",
+            "chat_support",
+            "phone_support",
+            "dedicated_account_manager",
+            "onboarding_assistance",
+            "training_sessions"
+          ]
+        }
+      },
+      "limits": {
+        "maxNeuralNetworkInstances": 999,
+        "maxTrainingDataPoints": 999999999,
+        "maxPredictions": 999999999,
+        "maxWebsites": 999,
+        "maxUsers": 999
+      }
+    }
+  ]
+}
