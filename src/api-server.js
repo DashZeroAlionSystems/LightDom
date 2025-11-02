@@ -27,8 +27,8 @@ import { errorConverter, errorHandler, notFound } from './api/middlewares/error.
 // Routes
 import healthRoutes from './api/routes/health.routes.js';
 import crawlerRoutes from './api/routes/crawler.routes.js';
+import authRoutes from './api/routes/auth.routes.js';
 // More routes will be added as they are created
-// import authRoutes from './api/routes/auth.routes.js';
 // import blockchainRoutes from './api/routes/blockchain.routes.js';
 // ... more routes
 
@@ -159,9 +159,9 @@ class LightDomAPIServer {
     // Mount API routes
     this.app.use('/api/health', healthRoutes);
     this.app.use('/api/crawler', crawlerRoutes);
+    this.app.use('/api/auth', authRoutes);
     
     // TODO: Add more routes as they are created
-    // this.app.use('/api/auth', authRoutes);
     // this.app.use('/api/blockchain', blockchainRoutes);
     // this.app.use('/api/analytics', analyticsRoutes);
     // this.app.use('/api/seo', seoRoutes);
