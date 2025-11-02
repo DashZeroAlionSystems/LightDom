@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import SEOHead from './SEOHead';
 import {
   Rocket,
   Shield,
@@ -357,12 +358,25 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 text-white">
-      {/* SEO Metadata - Would be in Helmet/Head in production */}
-      <div style={{ display: 'none' }}>
-        <h1 itemProp="name">LightDom - DOM Optimization Platform</h1>
-        <meta itemProp="description" content="Advanced DOM optimization platform with blockchain verification, real-time analytics, and AI-powered insights" />
-        <meta itemProp="keywords" content="DOM optimization, web performance, blockchain, analytics, SEO, page speed" />
-      </div>
+      {/* SEO Metadata */}
+      <SEOHead
+        title="LightDom - Next-Gen DOM Optimization Platform | Blockchain Verified"
+        description="Advanced DOM optimization platform with blockchain verification, real-time analytics, and AI-powered insights. Reduce page load times by up to 80%. Trusted by 10,000+ developers worldwide."
+        keywords={[
+          'DOM optimization',
+          'web performance',
+          'page speed optimization',
+          'blockchain verification',
+          'SEO optimization',
+          'web analytics',
+          'performance monitoring',
+          'frontend optimization',
+          'load time reduction',
+          'web vitals'
+        ]}
+        type="website"
+        url="https://lightdom.io"
+      />
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-lg border-b border-white/10">
