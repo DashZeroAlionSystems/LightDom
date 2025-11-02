@@ -1,0 +1,18 @@
+{
+  "title": "User management workflow",
+  "description": "Example workflow to manage users, roles, and audit logs",
+  "templateId": "user-management",
+  "primaryPrompt": "Create a user-management workflow with CRUD, RBAC, and audit logging",
+  "steps": [
+    { "id": "db", "title": "Database Setup", "enabled": true },
+    { "id": "template", "title": "Template Selection", "enabled": true },
+    { "id": "tasks", "title": "Task Configuration", "enabled": true },
+    { "id": "link", "title": "Schema Linking", "enabled": true },
+    { "id": "review", "title": "Generate & Review", "enabled": true }
+  ],
+  "tasks": [
+    { "task_key": "create_user", "task_label": "Create user record", "prompt": "Generate SQL and API for creating users", "selected": true },
+    { "task_key": "update_user", "task_label": "Update user", "prompt": "Update user attributes and roles", "selected": true },
+    { "task_key": "audit", "task_label": "Audit logging", "prompt": "Emit audit events on write operations", "selected": true }
+  ]
+}

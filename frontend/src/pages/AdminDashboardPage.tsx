@@ -1,171 +1,122 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui';
+import WorkflowWizardModal from '@/components/composites/WorkflowWizardModal';
 import {
-  KpiGrid,
-  KpiCard,
-  WorkflowPanel,
-  WorkflowPanelSection,
-  WorkflowPanelFooter,
-  AsyncStateEmpty,
-  Fab,
-} from '@/components/ui';
-import { Shield, Users, Server, Activity, Plus, ArrowLeft, Brain, Workflow as WorkflowIcon } from 'lucide-react';
-import AdminDashboard from '../../../src/components/ui/admin/AdminDashboard';
-import { NeuralNetworkDashboardPage } from './NeuralNetworkDashboardPage';
+  Shield,
+  Users,
+  Server,
+  Activity,
+  Plus,
+  ArrowLeft,
+  Workflow as WorkflowIcon,
+  AlertTriangle,
+} from 'lucide-react';
+import AdminConsoleWorkspace from '@/components/admin/AdminConsoleWorkspace';
+
+const FallbackCard: React.FC<FallbackProps & { title: string }> = ({ title, error, resetErrorBoundary }) => (
+  <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4">
+    <div className="flex items-center gap-2 text-destructive">
+      <AlertTriangle className="h-4 w-4" />
+      <span className="font-medium">{title}</span>
+    </div>
+    <p className="mt-2 text-sm text-destructive/80">
+      {error?.message || 'We were unable to load this surface. Try again shortly.'}
+    </p>
+    <Button className="mt-4" variant="filled" onClick={resetErrorBoundary}>
+      Retry
+    </Button>
+  </div>
+);
+
+const quickStats = [
+  {
+    label: 'Active administrators',
+    value: '12',
+    context: 'Global coverage',
+    icon: <Users className="h-5 w-5 text-primary" />,
+  },
+  {
+    label: 'Critical services',
+    value: '48',
+    context: 'Monitored in real time',
+    icon: <Server className="h-5 w-5 text-blue-400" />,
+  },
+  {
+    label: 'Open incidents',
+    value: '3',
+    context: 'Requires follow-up',
+    icon: <Shield className="h-5 w-5 text-amber-400" />,
+  },
+  {
+    label: 'Automation jobs (24h)',
+    value: '26',
+    context: 'Crawler + enrichment',
+    icon: <Activity className="h-5 w-5 text-emerald-400" />,
+  },
+];
 
 export const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
-
-  const handleBack = () => {
-    navigate('/dashboard');
-  };
-
-  const handleOpenWorkflows = () => {
-    navigate('/workflows');
-  };
-
-  const overviewMetrics = [
-    {
-      label: 'Active administrators',
-      value: '12',
-      delta: 'Across global teams',
-      tone: 'primary' as const,
-      icon: <Users className="h-4 w-4" />,
-    },
-    {
-      label: 'Live services',
-      value: '48',
-      delta: 'Monitoring real time',
-      tone: 'success' as const,
-      icon: <Server className="h-4 w-4" />,
-    },
-    {
-      label: 'Open incidents',
-      value: '3',
-      delta: 'Requires attention',
-      tone: 'warning' as const,
-      icon: <Shield className="h-4 w-4" />,
-    },
-    {
-      label: 'Automation jobs',
-      value: '26',
-      delta: 'Last 24 hours',
-      tone: 'neutral' as const,
-      icon: <Activity className="h-4 w-4" />,
-    },
-  ];
+  const [isWizardOpen, setWizardOpen] = useState(false);
 
   return (
-    <div className="relative space-y-8 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="md3-headline-large text-on-surface">Administration console</h1>
-          <p className="md3-body-medium text-on-surface-variant">
-            Monitor system health, manage users, and review automation workflows.
+    <div className="space-y-5 overflow-x-hidden p-4 sm:p-6">
+      <header className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-border bg-card/80 p-4 shadow-sm">
+        <div className="space-y-1">
+          <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wide text-primary">
+            <Shield className="h-4 w-4" /> Admin console
+          </span>
+          <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">Enterprise administration</h1>
+          <p className="text-sm text-muted-foreground">
+            Monitor services, orchestrate workflows, and supervise neural operations from a single control plane.
           </p>
         </div>
-        <Fab icon={<ArrowLeft className="h-5 w-5" />} aria-label="Back to dashboard" onClick={handleBack} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="text" leftIcon={<ArrowLeft className="h-4 w-4" />} onClick={() => navigate('/dashboard')}>
+            Overview
+          </Button>
+          <Button variant="outlined" leftIcon={<WorkflowIcon className="h-4 w-4" />} onClick={() => navigate('/workflows')}>
+            Workflows
+          </Button>
+          <Button variant="filled" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setWizardOpen(true)}>
+            Launch workflow wizard
+          </Button>
+        </div>
       </header>
 
-      <KpiGrid columns={4}>
-        {overviewMetrics.map((metric) => (
-          <KpiCard
-            key={metric.label}
-            label={metric.label}
-            value={metric.value}
-            delta={metric.delta}
-            tone={metric.tone}
-            icon={metric.icon}
-          />
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {quickStats.map((stat) => (
+          <article key={stat.label} className="rounded-2xl border border-border bg-card/70 p-4">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-sm font-medium">{stat.label}</span>
+              {stat.icon}
+            </div>
+            <div className="mt-3 text-2xl font-semibold text-foreground sm:text-3xl">{stat.value}</div>
+            <p className="mt-1 text-xs text-muted-foreground">{stat.context}</p>
+          </article>
         ))}
-      </KpiGrid>
+      </section>
 
-      <WorkflowPanel
-        title="Administration overview"
-        description="High-level summary of user management, services, and security posture."
-      >
-        <WorkflowPanelSection>
-          <AsyncStateEmpty
-            title="Drill into the admin console below"
-            description="Use the enhanced administration interface to perform advanced management tasks."
-            icon={<Shield className="h-10 w-10" />}
-            compact
-          />
-        </WorkflowPanelSection>
-        <WorkflowPanelFooter>
-          <span className="md3-label-medium text-on-surface-variant">
-            The detailed administration console remains available for granular controls.
-          </span>
-        </WorkflowPanelFooter>
-      </WorkflowPanel>
+      <section className="space-y-4 rounded-2xl border border-border bg-card/80 p-4 shadow-sm">
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Automation workspace</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Manage crawler orchestration, schema links, and workflow prompts with the embedded console.
+            </p>
+          </div>
+          <span className="text-xs font-medium uppercase tracking-wide text-primary">Live view</span>
+        </header>
+        <div className="overflow-hidden rounded-2xl border border-border/70 bg-background/80">
+          <ErrorBoundary FallbackComponent={(props) => <FallbackCard title="Admin console" {...props} />}>
+            <AdminConsoleWorkspace />
+          </ErrorBoundary>
+        </div>
+      </section>
 
-      <WorkflowPanel
-        title="Advanced administration"
-        description="Leverages the legacy admin console for deep system workflows while migration is in progress."
-      >
-        <WorkflowPanelSection>
-          <div className="rounded-3xl border border-outline bg-surface-container-high p-4">
-            <AdminDashboard onBack={handleBack} />
-          </div>
-        </WorkflowPanelSection>
-        <WorkflowPanelFooter>
-          <span className="md3-label-medium text-on-surface-variant">
-            Use this console to configure automation, user management, and system services.
-          </span>
-          <div className="flex flex-wrap items-center gap-3">
-            <Fab
-              extended
-              icon={<WorkflowIcon className="h-5 w-5" />}
-              aria-label="Open workflows"
-              onClick={handleOpenWorkflows}
-            >
-              Manage workflows
-            </Fab>
-            <Fab extended icon={<Plus className="h-5 w-5" />} aria-label="Create admin workflow">
-              New admin workflow
-            </Fab>
-          </div>
-        </WorkflowPanelFooter>
-      </WorkflowPanel>
-
-      <WorkflowPanel
-        title="Neural workflow orchestration"
-        description="Manage neural training workflows, attribute prompts, and queue mining jobs from the admin cockpit."
-      >
-        <WorkflowPanelSection>
-          <div className="rounded-3xl border border-outline bg-surface-container-high p-4">
-            <div className="mb-4 flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Brain className="h-4 w-4" />
-              </span>
-              <div>
-                <h3 className="md3-title-medium text-on-surface">Neural network dashboard</h3>
-                <p className="md3-body-small text-on-surface-variant">
-                  Review crawler-derived training attributes, edit enrichment prompts, and enqueue mining + training jobs.
-                </p>
-              </div>
-            </div>
-            <div className="max-h-[70vh] overflow-auto rounded-3xl border border-outline/40 bg-surface p-4">
-              <NeuralNetworkDashboardPage />
-            </div>
-          </div>
-        </WorkflowPanelSection>
-        <WorkflowPanelFooter>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="md3-label-medium text-on-surface-variant">
-              Attribute prompts saved here feed directly into the mining queue for prompt-enriched datasets.
-            </span>
-            <Fab
-              extended
-              icon={<WorkflowIcon className="h-5 w-5" />}
-              aria-label="Open workflows"
-              onClick={handleOpenWorkflows}
-            >
-              Open workflows
-            </Fab>
-          </div>
-        </WorkflowPanelFooter>
-      </WorkflowPanel>
+      <WorkflowWizardModal isOpen={isWizardOpen} onClose={() => setWizardOpen(false)} initialStep="ideation" />
     </div>
   );
 };

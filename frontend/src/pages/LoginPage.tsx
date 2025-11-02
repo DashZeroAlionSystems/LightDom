@@ -4,26 +4,7 @@ import { Wallet, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'luci
 import { AuthService } from '@/services/auth';
 
 const sanitizeEmail = (value: string): string => {
-  const trimmed = value.trim().replace(/\s+/g, '');
-  const atIndex = trimmed.indexOf('@');
-
-  if (atIndex === -1) {
-    return trimmed;
-  }
-
-  const localPart = trimmed.slice(0, atIndex);
-  const domainPart = trimmed.slice(atIndex + 1);
-
-  if (!domainPart) {
-    return `${localPart}@`;
-  }
-
-  const normalizedDomain = domainPart
-    .split('.')
-    .filter(segment => segment.length > 0)
-    .join('.');
-
-  return normalizedDomain ? `${localPart}@${normalizedDomain}` : trimmed;
+  return value.replace(/\s+/g, '');
 };
 
 export const LoginPage: React.FC = () => {

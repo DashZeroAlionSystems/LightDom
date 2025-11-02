@@ -98,6 +98,7 @@ import {
 import { Line } from '@ant-design/plots';
 import { UserManagementTab } from './UserManagementTab';
 import CrawlerOrchestrationPanel from './CrawlerOrchestrationPanel';
+import { Card as DSCard } from '../../../utils/AdvancedReusableComponents';
 
 const { Title, Text } = Typography;
 
@@ -148,40 +149,32 @@ const StatCard: React.FC<StatCardProps> = ({
   trend,
   loading = false
 }) => (
-  <Card 
-    loading={loading}
-    hoverable 
-    style={{ 
-      height: '100%',
-      borderLeft: `4px solid ${color}`,
-      borderRadius: '8px',
-      boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-    }}
-    bodyStyle={{ padding: '16px' }}
-  >
-    <Space direction="vertical" size={4} style={{ width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text type="secondary">{title}</Text>
-        <span style={{ color, fontSize: '18px' }}>{icon}</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-        <div>
-          <Title level={3} style={{ margin: 0, lineHeight: 1.2 }}>
-            {prefix}{typeof value === 'number' ? value.toLocaleString(undefined, { maximumFractionDigits: precision }) : value}{suffix}
-          </Title>
-          {trend && (
-            <Tag 
-              color={trend.value > 0 ? 'green' : 'red'} 
-              icon={trend.value > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
-              style={{ marginTop: 4, border: 'none', padding: '0 6px' }}
-            >
-              {Math.abs(trend.value)}% {trend.label}
-            </Tag>
-          )}
+  <DSCard.Root variant="elevated" className={`hoverable ${loading ? 'opacity-70' : ''}`} style={{ height: '100%', borderLeft: `4px solid ${color}`, borderRadius: '8px' }}>
+    <DSCard.Body style={{ padding: 16 }}>
+      <Space direction="vertical" size={4} style={{ width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text type="secondary">{title}</Text>
+          <span style={{ color, fontSize: '18px' }}>{icon}</span>
         </div>
-      </div>
-    </Space>
-  </Card>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          <div>
+            <Title level={3} style={{ margin: 0, lineHeight: 1.2 }}>
+              {prefix}{typeof value === 'number' ? value.toLocaleString(undefined, { maximumFractionDigits: precision }) : value}{suffix}
+            </Title>
+            {trend && (
+              <Tag 
+                color={trend.value > 0 ? 'green' : 'red'} 
+                icon={trend.value > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                style={{ marginTop: 4, border: 'none', padding: '0 6px' }}
+              >
+                {Math.abs(trend.value)}% {trend.label}
+              </Tag>
+            )}
+          </div>
+        </div>
+      </Space>
+    </DSCard.Body>
+  </DSCard.Root>
 );
 
 interface AdminDashboardProps {
@@ -651,135 +644,142 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
     if (!systemHealth) return null;
 
     return (
-      <Card title="Service Status" style={{ marginBottom: 24 }}>
-        <Row gutter={[16, 16]}>
-          {Object.entries(systemHealth).map(([serviceId, service]: [string, any]) => (
-            <Col xs={24} sm={12} md={8} lg={6} key={serviceId}>
-              <Card
-                size="small"
-                title={
-                  <Space>
-                    <Tag color={getStatusColor(service.status)}>
-                      {service.status.charAt(0).toUpperCase() + service.status.slice(1)}
-                    </Tag>
-                    {service.name}
-                  </Space>
-                }
-                style={{ height: '100%' }}
-              >
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  {service.uptime && (
-                    <div>
-                      <Text type="secondary">Uptime:</Text> {service.uptime}
-                    </div>
-                  )}
-                  {service.responseTime && (
-                    <div>
-                      <Text type="secondary">Response Time:</Text> {service.responseTime}
-                    </div>
-                  )}
-                  {service.connections !== undefined && (
-                    <div>
-                      <Text type="secondary">Connections:</Text> {service.connections}
-                    </div>
-                  )}
-                  {service.blockHeight && (
-                    <div>
-                      <Text type="secondary">Block Height:</Text> {service.blockHeight.toLocaleString()}
-                    </div>
-                  )}
-                  {service.runningJobs !== undefined && (
-                    <div>
-                      <Text type="secondary">Jobs:</Text> {service.runningJobs} running
-                      {service.failedJobs > 0 && (
-                        <span style={{ color: '#ff4d4f', marginLeft: 8 }}>
-                          {service.failedJobs} failed
-                        </span>
+      <DSCard.Root>
+        <DSCard.Header title="Service Status" />
+        <DSCard.Body>
+          <Row gutter={[16, 16]}>
+            {Object.entries(systemHealth).map(([serviceId, service]: [string, any]) => (
+              <Col xs={24} sm={12} md={8} lg={6} key={serviceId}>
+                <DSCard.Root variant="outlined" style={{ height: '100%' }}>
+                  <DSCard.Header title={service.name} action={<Tag color={getStatusColor(service.status)}>{service.status.charAt(0).toUpperCase() + service.status.slice(1)}</Tag>} />
+                  <DSCard.Body>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      {service.uptime && (
+                        <div>
+                          <Text type="secondary">Uptime:</Text> {service.uptime}
+                        </div>
                       )}
-                    </div>
-                  )}
-                  <div>
-                    <Text type="secondary">Version:</Text> {service.version}
-                  </div>
-                </Space>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </Card>
+                      {service.responseTime && (
+                        <div>
+                          <Text type="secondary">Response Time:</Text> {service.responseTime}
+                        </div>
+                      )}
+                      {service.connections !== undefined && (
+                        <div>
+                          <Text type="secondary">Connections:</Text> {service.connections}
+                        </div>
+                      )}
+                      {service.blockHeight && (
+                        <div>
+                          <Text type="secondary">Block Height:</Text> {service.blockHeight.toLocaleString()}
+                        </div>
+                      )}
+                      {service.runningJobs !== undefined && (
+                        <div>
+                          <Text type="secondary">Jobs:</Text> {service.runningJobs} running
+                          {service.failedJobs > 0 && (
+                            <span style={{ color: '#ff4d4f', marginLeft: 8 }}>
+                              {service.failedJobs} failed
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <div>
+                        <Text type="secondary">Version:</Text> {service.version}
+                      </div>
+                    </Space>
+                  </DSCard.Body>
+                </DSCard.Root>
+              </Col>
+            ))}
+          </Row>
+        </DSCard.Body>
+      </DSCard.Root>
     );
   };
 
   const renderSystemTab = () => (
-    <Card title="System Administration" loading={loading}>
-      <Row gutter={[16, 16]}>
-        <Col xs={24}>
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Title level={4}>System Configuration</Title>
-              <Space>
-                <Button icon={<SettingOutlined />} onClick={() => handleNavigate('/admin/settings')}>
-                  General Settings
-                </Button>
-                <Button icon={<ThunderboltOutlined />} onClick={() => handleNavigate('/admin/performance')}>
-                  Performance
-                </Button>
-                <Button icon={<CloudServerOutlined />} onClick={() => handleNavigate('/admin/updates')}>
-                  Updates
-                </Button>
-              </Space>
-            </div>
-            <Row gutter={[16, 16]}>
-              <Col xs={24} md={8}>
-                <Card size="small" title="System Health">
-                  <Space direction="vertical" style={{ width: '100%' }}>
-                    <div>
-                      <Text type="secondary">Uptime:</Text> {systemHealth?.performance?.uptime || 'N/A'}
-                    </div>
-                    <div>
-                      <Text type="secondary">Response Time:</Text> {systemHealth?.performance?.responseTime || 'N/A'}
-                    </div>
-                    <Button size="small" type="primary" onClick={() => handleNavigate('/admin/performance')}>
-                      View Details
-                    </Button>
-                  </Space>
-                </Card>
-              </Col>
-              <Col xs={24} md={8}>
-                <Card size="small" title="Resource Usage">
-                  <Space direction="vertical" style={{ width: '100%' }}>
-                    <div>
-                      <Text type="secondary">CPU:</Text> {systemHealth?.resources?.cpu?.current || 'N/A'}%
-                    </div>
-                    <div>
-                      <Text type="secondary">Memory:</Text> {systemHealth?.resources?.memory?.used || 'N/A'}%
-                    </div>
-                    <div>
-                      <Text type="secondary">Storage:</Text> {systemHealth?.resources?.storage?.used || 'N/A'}%
-                    </div>
-                  </Space>
-                </Card>
-              </Col>
-              <Col xs={24} md={8}>
-                <Card size="small" title="Configuration">
-                  <Space direction="vertical" style={{ width: '100%' }}>
-                    <Button size="small" onClick={() => handleNavigate('/admin/settings')}>
-                      General Settings
-                    </Button>
-                    <Button size="small" onClick={() => handleNavigate('/admin/updates')}>
-                      Check Updates
-                    </Button>
-                    <Button size="small" danger onClick={() => handleNavigate('/admin/settings')}>
-                      Advanced Config
-                    </Button>
-                  </Space>
-                </Card>
-              </Col>
-            </Row>
-          </Space>
-        </Col>
-      </Row>
-    </Card>
+    <DSCard.Root className={loading ? 'opacity-70' : ''}>
+      <DSCard.Header title="System Administration" />
+      <DSCard.Body>
+        <Row gutter={[16, 16]}>
+          <Col xs={24}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Title level={4}>System Configuration</Title>
+                <Space>
+                  <Button icon={<SettingOutlined />} onClick={() => handleNavigate('/admin/settings')}>
+                    General Settings
+                  </Button>
+                  <Button icon={<ThunderboltOutlined />} onClick={() => handleNavigate('/admin/performance')}>
+                    Performance
+                  </Button>
+                  <Button icon={<CloudServerOutlined />} onClick={() => handleNavigate('/admin/updates')}>
+                    Updates
+                  </Button>
+                </Space>
+              </div>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={8}>
+                  <DSCard.Root variant="outlined">
+                    <DSCard.Header title="System Health" />
+                    <DSCard.Body>
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                        <div>
+                          <Text type="secondary">Uptime:</Text> {systemHealth?.performance?.uptime || 'N/A'}
+                        </div>
+                        <div>
+                          <Text type="secondary">Response Time:</Text> {systemHealth?.performance?.responseTime || 'N/A'}
+                        </div>
+                        <Button size="small" type="primary" onClick={() => handleNavigate('/admin/performance')}>
+                          View Details
+                        </Button>
+                      </Space>
+                    </DSCard.Body>
+                  </DSCard.Root>
+                </Col>
+                <Col xs={24} md={8}>
+                  <DSCard.Root variant="outlined">
+                    <DSCard.Header title="Resource Usage" />
+                    <DSCard.Body>
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                        <div>
+                          <Text type="secondary">CPU:</Text> {systemHealth?.resources?.cpu?.current || 'N/A'}%
+                        </div>
+                        <div>
+                          <Text type="secondary">Memory:</Text> {systemHealth?.resources?.memory?.used || 'N/A'}%
+                        </div>
+                        <div>
+                          <Text type="secondary">Storage:</Text> {systemHealth?.resources?.storage?.used || 'N/A'}%
+                        </div>
+                      </Space>
+                    </DSCard.Body>
+                  </DSCard.Root>
+                </Col>
+                <Col xs={24} md={8}>
+                  <DSCard.Root variant="outlined">
+                    <DSCard.Header title="Configuration" />
+                    <DSCard.Body>
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                        <Button size="small" onClick={() => handleNavigate('/admin/settings')}>
+                          General Settings
+                        </Button>
+                        <Button size="small" onClick={() => handleNavigate('/admin/updates')}>
+                          Check Updates
+                        </Button>
+                        <Button size="small" danger onClick={() => handleNavigate('/admin/settings')}>
+                          Advanced Config
+                        </Button>
+                      </Space>
+                    </DSCard.Body>
+                  </DSCard.Root>
+                </Col>
+              </Row>
+            </Space>
+          </Col>
+        </Row>
+      </DSCard.Body>
+    </DSCard.Root>
   );
 
   const renderContentTab = () => {
@@ -888,8 +888,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
     ];
 
     return (
-      <Card title="Content Management" loading={loading}>
-        <Space direction="vertical" style={{ width: '100%' }} size="large">
+      <DSCard.Root className={loading ? 'opacity-70' : ''}>
+        <DSCard.Header title="Content Management" />
+        <DSCard.Body>
+          <Space direction="vertical" style={{ width: '100%' }} size="large">
           <Row gutter={[16, 16]}>
             <Col xs={24} md={8}>
               <StatCard 
@@ -920,8 +922,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
             </Col>
           </Row>
 
-          <Card size="small" title="Content Management">
-            <Space direction="vertical" style={{ width: '100%' }}>
+          <DSCard.Root variant="outlined">
+            <DSCard.Header title="Content Management" />
+            <DSCard.Body>
+              <Space direction="vertical" style={{ width: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text strong>Content Items</Text>
                 <Space>
@@ -951,8 +955,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
                 size="small"
                 pagination={{ pageSize: 10 }}
               />
-            </Space>
-          </Card>
+              </Space>
+            </DSCard.Body>
+          </DSCard.Root>
         </Space>
 
         {/* Content Modal */}
@@ -1028,7 +1033,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
             </Form.Item>
           </Form>
         </Modal>
-      </Card>
+        </DSCard.Body>
+      </DSCard.Root>
     );
   };
 
@@ -1053,8 +1059,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
     };
 
     return (
-      <Card title="SEO Management" loading={loading}>
-        <Space direction="vertical" style={{ width: '100%' }} size="large">
+      <DSCard.Root className={loading ? 'opacity-70' : ''}>
+        <DSCard.Header title="SEO Management" />
+        <DSCard.Body>
+          <Space direction="vertical" style={{ width: '100%' }} size="large">
           <Row gutter={[16, 16]}>
             <Col xs={24} md={8}>
               <StatCard 
@@ -1088,8 +1096,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
             </Col>
           </Row>
 
-          <Card size="small" title="SEO Campaigns">
-            <Space direction="vertical" style={{ width: '100%' }}>
+          <DSCard.Root variant="outlined">
+            <DSCard.Header title="SEO Campaigns" />
+            <DSCard.Body>
+              <Space direction="vertical" style={{ width: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text strong>Campaigns</Text>
                 <Space>
@@ -1137,26 +1147,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
                 size="small"
                 pagination={{ pageSize: 5 }}
               />
-            </Space>
-          </Card>
+              </Space>
+            </DSCard.Body>
+          </DSCard.Root>
 
           {crawlerStatus && (
-            <Card size="small" title="SEO Crawler Status">
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={6}>
-                  <Statistic title="Status" value={crawlerStatus.isRunning ? 'Running' : 'Idle'} />
-                </Col>
-                <Col xs={24} md={6}>
-                  <Statistic title="Active Jobs" value={crawlerStatus.activeJobs} />
-                </Col>
-                <Col xs={24} md={6}>
-                  <Statistic title="Training Data" value={crawlerStatus.trainingDataGenerated} />
-                </Col>
-                <Col xs={24} md={6}>
-                  <Statistic title="Success Rate" value="94.2%" />
-                </Col>
-              </Row>
-            </Card>
+            <DSCard.Root variant="outlined">
+              <DSCard.Header title="SEO Crawler Status" />
+              <DSCard.Body>
+                <Row gutter={[16, 16]}>
+                  <Col xs={24} md={6}>
+                    <Statistic title="Status" value={crawlerStatus.isRunning ? 'Running' : 'Idle'} />
+                  </Col>
+                  <Col xs={24} md={6}>
+                    <Statistic title="Active Jobs" value={crawlerStatus.activeJobs} />
+                  </Col>
+                  <Col xs={24} md={6}>
+                    <Statistic title="Training Data" value={crawlerStatus.trainingDataGenerated} />
+                  </Col>
+                  <Col xs={24} md={6}>
+                    <Statistic title="Success Rate" value="94.2%" />
+                  </Col>
+                </Row>
+              </DSCard.Body>
+            </DSCard.Root>
           )}
         </Space>
 
@@ -1204,13 +1218,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
             </Form.Item>
           </Form>
         </Modal>
-      </Card>
+        </DSCard.Body>
+      </DSCard.Root>
     );
   };
 
   const renderNeuralNetworkTab = () => (
-    <Card title="Neural Network Management" loading={loading}>
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
+    <DSCard.Root className={loading ? 'opacity-70' : ''}>
+      <DSCard.Header title="Neural Network Management" />
+      <DSCard.Body>
+        <Space direction="vertical" style={{ width: '100%' }} size="large">
         <Row gutter={[16, 16]}>
           <Col xs={24} md={8}>
             <StatCard 
@@ -1242,26 +1259,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
             />
           </Col>
         </Row>
-        <Card size="small" title="Recent Training Sessions">
-          <Timeline
-            items={[
-              {
-                children: 'Image classification model training completed - 96.2% accuracy',
-                color: 'green',
-              },
-              {
-                children: 'NLP sentiment analysis model deployed to production',
-                color: 'blue',
-              },
-              {
-                children: 'AutoML optimization running for recommendation engine',
-                color: 'orange',
-              },
-            ]}
-          />
-        </Card>
+        <DSCard.Root variant="outlined">
+          <DSCard.Header title="Recent Training Sessions" />
+          <DSCard.Body>
+            <Timeline
+              items={[
+                {
+                  children: 'Image classification model training completed - 96.2% accuracy',
+                  color: 'green',
+                },
+                {
+                  children: 'NLP sentiment analysis model deployed to production',
+                  color: 'blue',
+                },
+                {
+                  children: 'AutoML optimization running for recommendation engine',
+                  color: 'orange',
+                },
+              ]}
+            />
+          </DSCard.Body>
+        </DSCard.Root>
       </Space>
-    </Card>
+      </DSCard.Body>
+    </DSCard.Root>
   );
 
   const renderOverviewTab = () => (
@@ -1310,196 +1331,211 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} lg={16}>
-          <Card 
-            title="Performance Metrics"
-            loading={loading}
-            extra={
+          <DSCard.Root className={loading ? 'opacity-70' : ''}>
+            <DSCard.Header title="Performance Metrics" action={(
               <Space>
                 <Button size="small">Day</Button>
                 <Button size="small" type="primary">Week</Button>
                 <Button size="small">Month</Button>
               </Space>
-            }
-          >
-            <div style={{ height: 300 }}>
-              <Line {...performanceConfig} />
-            </div>
-          </Card>
+            )} />
+            <DSCard.Body>
+              <div style={{ height: 300 }}>
+                <Line {...performanceConfig} />
+              </div>
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
         <Col xs={24} lg={8}>
-          <Card 
-            title="System Status"
-            loading={loading}
-          >
-            <Space direction="vertical" size={16} style={{ width: '100%' }}>
-              <div>
-                <Text strong>API Status</Text>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text type="secondary">Response Time:</Text>
-                  <Text>{systemHealth?.api?.latency || 'N/A'}ms</Text>
+          <DSCard.Root className={loading ? 'opacity-70' : ''}>
+            <DSCard.Header title="System Status" />
+            <DSCard.Body>
+              <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                <div>
+                  <Text strong>API Status</Text>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text type="secondary">Response Time:</Text>
+                    <Text>{systemHealth?.api?.latency || 'N/A'}ms</Text>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <Text strong>Database</Text>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text type="secondary">Connections:</Text>
-                  <Text>{systemHealth?.database?.connections || 'N/A'}</Text>
+                <div>
+                  <Text strong>Database</Text>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text type="secondary">Connections:</Text>
+                    <Text>{systemHealth?.database?.connections || 'N/A'}</Text>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <Text strong>Blockchain</Text>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text type="secondary">Block Height:</Text>
-                  <Text>{systemHealth?.blockchain?.blockHeight?.toLocaleString() || 'N/A'}</Text>
+                <div>
+                  <Text strong>Blockchain</Text>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text type="secondary">Block Height:</Text>
+                    <Text>{systemHealth?.blockchain?.blockHeight?.toLocaleString() || 'N/A'}</Text>
+                  </div>
                 </div>
-              </div>
-            </Space>
-          </Card>
+              </Space>
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
       </Row>
     </>
   );
 
   const renderBlockchainTab = () => (
-    <Card title="Blockchain Management" loading={loading}>
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={8}>
-            <StatCard 
-              title="Block Height" 
-              value={blockchainStats?.blockHeight || 0} 
-              icon={<NodeIndexOutlined />} 
-              color="#1890ff"
-              loading={loading}
-            />
-          </Col>
-          <Col xs={24} md={8}>
-            <StatCard 
-              title="Active Miners" 
-              value={blockchainStats?.activeMiners || 0} 
-              icon={<ThunderboltOutlined />} 
-              color="#52c41a"
-              loading={loading}
-            />
-          </Col>
-          <Col xs={24} md={8}>
-            <StatCard 
-              title="Network Hashrate" 
-              value={blockchainStats?.networkHashrate || 0} 
-              suffix="MH/s"
-              icon={<FireOutlined />} 
-              color="#faad14"
-              loading={loading}
-            />
-          </Col>
-        </Row>
-        <Card size="small" title="Blockchain Network">
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <div>
-              <Text strong>Network Status</Text>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text type="secondary">Mainnet operational</Text>
-                <Tag color="green">Healthy</Tag>
-              </div>
-            </div>
-            <div>
-              <Text strong>Total Transactions</Text>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text type="secondary">All time:</Text>
-                <Text>{blockchainStats?.totalTransactions?.toLocaleString() || 'N/A'}</Text>
-              </div>
-            </div>
-            <div>
-              <Text strong>Network Difficulty</Text>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text type="secondary">Current:</Text>
-                <Text>{blockchainStats?.networkDifficulty?.toLocaleString() || 'N/A'}</Text>
-              </div>
-            </div>
-          </Space>
-        </Card>
-      </Space>
-    </Card>
+    <DSCard.Root className={loading ? 'opacity-70' : ''}>
+      <DSCard.Header title="Blockchain Management" />
+      <DSCard.Body>
+        <Space direction="vertical" style={{ width: '100%' }} size="large">
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={8}>
+              <StatCard 
+                title="Block Height" 
+                value={blockchainStats?.blockHeight || 0} 
+                icon={<NodeIndexOutlined />} 
+                color="#1890ff"
+                loading={loading}
+              />
+            </Col>
+            <Col xs={24} md={8}>
+              <StatCard 
+                title="Active Miners" 
+                value={blockchainStats?.activeMiners || 0} 
+                icon={<ThunderboltOutlined />} 
+                color="#52c41a"
+                loading={loading}
+              />
+            </Col>
+            <Col xs={24} md={8}>
+              <StatCard 
+                title="Network Hashrate" 
+                value={blockchainStats?.networkHashrate || 0} 
+                suffix="MH/s"
+                icon={<FireOutlined />} 
+                color="#faad14"
+                loading={loading}
+              />
+            </Col>
+          </Row>
+          <DSCard.Root variant="outlined">
+            <DSCard.Header title="Blockchain Network" />
+            <DSCard.Body>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <div>
+                  <Text strong>Network Status</Text>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text type="secondary">Mainnet operational</Text>
+                    <Tag color="green">Healthy</Tag>
+                  </div>
+                </div>
+                <div>
+                  <Text strong>Total Transactions</Text>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text type="secondary">All time:</Text>
+                    <Text>{blockchainStats?.totalTransactions?.toLocaleString() || 'N/A'}</Text>
+                  </div>
+                </div>
+                <div>
+                  <Text strong>Network Difficulty</Text>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text type="secondary">Current:</Text>
+                    <Text>{blockchainStats?.networkDifficulty?.toLocaleString() || 'N/A'}</Text>
+                  </div>
+                </div>
+              </Space>
+            </DSCard.Body>
+          </DSCard.Root>
+        </Space>
+      </DSCard.Body>
+    </DSCard.Root>
   );
 
   const renderBillingTab = () => (
-    <Card title="Billing Management" loading={loading}>
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={8}>
-            <StatCard 
-              title="Monthly Revenue" 
-              value={billingData?.revenue?.monthly || 0} 
-              prefix="$"
-              icon={<WalletOutlined />} 
-              color="#52c41a"
-              loading={loading}
-            />
-          </Col>
-          <Col xs={24} md={8}>
-            <StatCard 
-              title="Active Subscriptions" 
-              value={billingData?.subscriptions?.active || 0} 
-              icon={<CheckCircleOutlined />} 
-              color="#1890ff"
-              loading={loading}
-            />
-          </Col>
-          <Col xs={24} md={8}>
-            <StatCard 
-              title="Pending Invoices" 
-              value={billingData?.invoices?.pending || 0} 
-              icon={<WarningOutlined />} 
-              color="#faad14"
-              loading={loading}
-            />
-          </Col>
-        </Row>
-        <Card size="small" title="Billing Tools">
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text strong>Quick Actions</Text>
-              <Space>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => handleNavigate('/admin/billing/invoice')}>
-                  Generate Invoice
-                </Button>
-                <Button icon={<DownloadOutlined />} onClick={() => handleNavigate('/admin/billing/reports')}>
-                  Financial Reports
-                </Button>
-                <Button icon={<SettingOutlined />} onClick={() => handleNavigate('/admin/billing/settings')}>
-                  Billing Settings
-                </Button>
+    <DSCard.Root className={loading ? 'opacity-70' : ''}>
+      <DSCard.Header title="Billing Management" />
+      <DSCard.Body>
+        <Space direction="vertical" style={{ width: '100%' }} size="large">
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={8}>
+              <StatCard 
+                title="Monthly Revenue" 
+                value={billingData?.revenue?.monthly || 0} 
+                prefix="$"
+                icon={<WalletOutlined />} 
+                color="#52c41a"
+                loading={loading}
+              />
+            </Col>
+            <Col xs={24} md={8}>
+              <StatCard 
+                title="Active Subscriptions" 
+                value={billingData?.subscriptions?.active || 0} 
+                icon={<CheckCircleOutlined />} 
+                color="#1890ff"
+                loading={loading}
+              />
+            </Col>
+            <Col xs={24} md={8}>
+              <StatCard 
+                title="Pending Invoices" 
+                value={billingData?.invoices?.pending || 0} 
+                icon={<WarningOutlined />} 
+                color="#faad14"
+                loading={loading}
+              />
+            </Col>
+          </Row>
+          <DSCard.Root variant="outlined">
+            <DSCard.Header title="Billing Tools" />
+            <DSCard.Body>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text strong>Quick Actions</Text>
+                  <Space>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => handleNavigate('/admin/billing/invoice')}>
+                      Generate Invoice
+                    </Button>
+                    <Button icon={<DownloadOutlined />} onClick={() => handleNavigate('/admin/billing/reports')}>
+                      Financial Reports
+                    </Button>
+                    <Button icon={<SettingOutlined />} onClick={() => handleNavigate('/admin/billing/settings')}>
+                      Billing Settings
+                    </Button>
+                  </Space>
+                </div>
+                {billingData?.plans && (
+                  <div>
+                    <Text strong>Subscription Plans</Text>
+                    <Row gutter={[16, 8]} style={{ marginTop: 8 }}>
+                      {billingData.plans.map((plan: any, index: number) => (
+                        <Col key={index} xs={24} sm={8}>
+                          <DSCard.Root variant="outlined">
+                            <DSCard.Body>
+                              <Text strong>{plan.name}</Text>
+                              <div>
+                                <Text type="secondary">Users: {plan.users}</Text>
+                              </div>
+                              <div>
+                                <Text type="secondary">Revenue: ${plan.revenue}</Text>
+                              </div>
+                            </DSCard.Body>
+                          </DSCard.Root>
+                        </Col>
+                      ))}
+                    </Row>
+                  </div>
+                )}
               </Space>
-            </div>
-            {billingData?.plans && (
-              <div>
-                <Text strong>Subscription Plans</Text>
-                <Row gutter={[16, 8]} style={{ marginTop: 8 }}>
-                  {billingData.plans.map((plan: any, index: number) => (
-                    <Col key={index} xs={24} sm={8}>
-                      <Card size="small">
-                        <Text strong>{plan.name}</Text>
-                        <div>
-                          <Text type="secondary">Users: {plan.users}</Text>
-                        </div>
-                        <div>
-                          <Text type="secondary">Revenue: ${plan.revenue}</Text>
-                        </div>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-              </div>
-            )}
-          </Space>
-        </Card>
-      </Space>
-    </Card>
+            </DSCard.Body>
+          </DSCard.Root>
+        </Space>
+      </DSCard.Body>
+    </DSCard.Root>
   );
 
   const renderAutomationTab = () => (
-    <Card title="Automation Management" loading={loading}>
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
+    <DSCard.Root className={loading ? 'opacity-70' : ''}>
+      <DSCard.Header title="Automation Management" />
+      <DSCard.Body>
+        <Space direction="vertical" style={{ width: '100%' }} size="large">
         <Row gutter={[16, 16]}>
           <Col xs={24} md={8}>
             <StatCard 
@@ -1529,96 +1565,106 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
             />
           </Col>
         </Row>
-        <Card size="small" title="Automation Jobs">
-          <Space direction="vertical" style={{ width: '100%' }}>
-            {automationJobs.map((job: any) => (
-              <div key={job.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Space>
-                  <Tag color={job.status === 'running' ? 'blue' : job.status === 'idle' ? 'default' : 'red'}>
-                    {job.status.toUpperCase()}
-                  </Tag>
-                  <Text strong>{job.name}</Text>
-                  <Text type="secondary">{job.type}</Text>
-                </Space>
-                <Space>
-                  <Text type="secondary">Next: {new Date(job.nextRun).toLocaleString()}</Text>
-                  <Button size="small" onClick={() => handleNavigate(`/admin/automation/job/${job.id}`)}>
-                    Configure
-                  </Button>
-                </Space>
+        <DSCard.Root variant="outlined">
+          <DSCard.Header title="Automation Jobs" />
+          <DSCard.Body>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              {automationJobs.map((job: any) => (
+                <div key={job.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Space>
+                    <Tag color={job.status === 'running' ? 'blue' : job.status === 'idle' ? 'default' : 'red'}>
+                      {job.status.toUpperCase()}
+                    </Tag>
+                    <Text strong>{job.name}</Text>
+                    <Text type="secondary">{job.type}</Text>
+                  </Space>
+                  <Space>
+                    <Text type="secondary">Next: {new Date(job.nextRun).toLocaleString()}</Text>
+                    <Button size="small" onClick={() => handleNavigate(`/admin/automation/job/${job.id}`)}>
+                      Configure
+                    </Button>
+                  </Space>
+                </div>
+              ))}
+            </Space>
+          </DSCard.Body>
+        </DSCard.Root>
+        <DSCard.Root variant="outlined">
+          <DSCard.Header title="Automation Settings" />
+          <DSCard.Body>
+            <Space direction="vertical" style={{ width: '100%' }} size="large">
+              <div>
+                <Text strong>Auto-Training</Text>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text type="secondary">Automatically retrain underperforming models</Text>
+                  <Switch defaultChecked />
+                </div>
               </div>
-            ))}
-          </Space>
-        </Card>
-        <Card size="small" title="Automation Settings">
-          <Space direction="vertical" style={{ width: '100%' }} size="large">
-            <div>
-              <Text strong>Auto-Training</Text>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text type="secondary">Automatically retrain underperforming models</Text>
-                <Switch defaultChecked />
+              <div>
+                <Text strong>SEO Optimization</Text>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text type="secondary">Auto-optimize content based on performance</Text>
+                  <Switch defaultChecked />
+                </div>
               </div>
-            </div>
-            <div>
-              <Text strong>SEO Optimization</Text>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text type="secondary">Auto-optimize content based on performance</Text>
-                <Switch defaultChecked />
+              <div>
+                <Text strong>Backup Schedule</Text>
+                <Select defaultValue="daily" style={{ width: '100%' }}>
+                  <Select.Option value="hourly">Hourly</Select.Option>
+                  <Select.Option value="daily">Daily</Select.Option>
+                  <Select.Option value="weekly">Weekly</Select.Option>
+                  <Select.Option value="monthly">Monthly</Select.Option>
+                </Select>
               </div>
-            </div>
-            <div>
-              <Text strong>Backup Schedule</Text>
-              <Select defaultValue="daily" style={{ width: '100%' }}>
-                <Select.Option value="hourly">Hourly</Select.Option>
-                <Select.Option value="daily">Daily</Select.Option>
-                <Select.Option value="weekly">Weekly</Select.Option>
-                <Select.Option value="monthly">Monthly</Select.Option>
-              </Select>
-            </div>
-          </Space>
-        </Card>
+            </Space>
+          </DSCard.Body>
+        </DSCard.Root>
       </Space>
-    </Card>
+    </DSCard.Body>
+  </DSCard.Root>
   );
 
   const renderAlertsTab = () => (
-    <Card title="System Alerts" loading={loading}>
-      <List
-        itemLayout="horizontal"
-        dataSource={systemAlerts}
-        renderItem={alert => (
-          <List.Item>
-            <List.Item.Meta
-              avatar={
-                <Badge 
-                  status={
-                    alert.level === 'error' ? 'error' : 
-                    alert.level === 'warning' ? 'warning' : 'processing'
-                  } 
-                />
-              }
-              title={
-                <Space>
-                  <Text strong>{alert.message}</Text>
-                  <Text type="secondary" style={{ fontSize: 12 }}>{alert.time}</Text>
-                </Space>
-              }
-              description={
-                <Space>
-                  <Tag color={
-                    alert.level === 'error' ? 'red' : 
-                    alert.level === 'warning' ? 'orange' : 'blue'
-                  }>
-                    {alert.level.toUpperCase()}
-                  </Tag>
-                  <Button type="link" size="small">View Details</Button>
-                </Space>
-              }
-            />
-          </List.Item>
-        )}
-      />
-    </Card>
+    <DSCard.Root className={loading ? 'opacity-70' : ''}>
+      <DSCard.Header title="System Alerts" />
+      <DSCard.Body>
+        <List
+          itemLayout="horizontal"
+          dataSource={systemAlerts}
+          renderItem={alert => (
+            <List.Item>
+              <List.Item.Meta
+                avatar={
+                  <Badge 
+                    status={
+                      alert.level === 'error' ? 'error' : 
+                      alert.level === 'warning' ? 'warning' : 'processing'
+                    } 
+                  />
+                }
+                title={
+                  <Space>
+                    <Text strong>{alert.message}</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>{alert.time}</Text>
+                  </Space>
+                }
+                description={
+                  <Space>
+                    <Tag color={
+                      alert.level === 'error' ? 'red' : 
+                      alert.level === 'warning' ? 'orange' : 'blue'
+                    }>
+                      {alert.level.toUpperCase()}
+                    </Tag>
+                    <Button type="link" size="small">View Details</Button>
+                  </Space>
+                }
+              />
+            </List.Item>
+          )}
+        />
+      </DSCard.Body>
+    </DSCard.Root>
   );
 
   if (error) {
@@ -1770,44 +1816,43 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => 
         />
 
         {/* Quick Actions */}
-        <Card 
-          title="Quick Actions"
-          styles={{ body: { padding: '16px' } }}
-          style={{ marginTop: 16 }}
-        >
-          <Space wrap>
-            <Button type="primary" icon={<UserOutlined />} onClick={() => handleNavigate('/admin/users')}>
-              Manage Users
-            </Button>
-            <Button icon={<SyncOutlined />} onClick={() => window.location.reload()}>
-              Refresh Data
-            </Button>
-            <Button icon={<BarChartOutlined />} onClick={() => handleNavigate('/admin/analytics/overview')}>
-              View Analytics
-            </Button>
-            <Button icon={<SettingOutlined />} onClick={() => handleNavigate('/admin/settings')}>
-              System Settings
-            </Button>
-            <Button icon={<FileTextOutlined />} onClick={() => handleNavigate('/admin/pages')}>
-              Content Pages
-            </Button>
-            <Button icon={<GlobalOutlined />} onClick={() => handleNavigate('/admin/seo/analysis')}>
-              SEO Tools
-            </Button>
-            <Button icon={<SafetyOutlined />} onClick={() => handleNavigate('/admin/roles')}>
-              Permissions
-            </Button>
-            <Button icon={<DatabaseOutlined />} onClick={() => handleNavigate('/admin/media')}>
-              Media Library
-            </Button>
-            <Button icon={<ThunderboltOutlined />} onClick={() => handleNavigate('/admin/performance')}>
-              Performance
-            </Button>
-            <Button icon={<RocketOutlined />} onClick={() => handleNavigate('/admin/updates')}>
-              Updates
-            </Button>
-          </Space>
-        </Card>
+        <DSCard.Root style={{ marginTop: 16 }}>
+          <DSCard.Header title="Quick Actions" />
+          <DSCard.Body>
+            <Space wrap>
+              <Button type="primary" icon={<UserOutlined />} onClick={() => handleNavigate('/admin/users')}>
+                Manage Users
+              </Button>
+              <Button icon={<SyncOutlined />} onClick={() => window.location.reload()}>
+                Refresh Data
+              </Button>
+              <Button icon={<BarChartOutlined />} onClick={() => handleNavigate('/admin/analytics/overview')}>
+                View Analytics
+              </Button>
+              <Button icon={<SettingOutlined />} onClick={() => handleNavigate('/admin/settings')}>
+                System Settings
+              </Button>
+              <Button icon={<FileTextOutlined />} onClick={() => handleNavigate('/admin/pages')}>
+                Content Pages
+              </Button>
+              <Button icon={<GlobalOutlined />} onClick={() => handleNavigate('/admin/seo/analysis')}>
+                SEO Tools
+              </Button>
+              <Button icon={<SafetyOutlined />} onClick={() => handleNavigate('/admin/roles')}>
+                Permissions
+              </Button>
+              <Button icon={<DatabaseOutlined />} onClick={() => handleNavigate('/admin/media')}>
+                Media Library
+              </Button>
+              <Button icon={<ThunderboltOutlined />} onClick={() => handleNavigate('/admin/performance')}>
+                Performance
+              </Button>
+              <Button icon={<RocketOutlined />} onClick={() => handleNavigate('/admin/updates')}>
+                Updates
+              </Button>
+            </Space>
+          </DSCard.Body>
+        </DSCard.Root>
       </Space>
     </div>
   );

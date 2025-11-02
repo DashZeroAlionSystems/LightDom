@@ -149,15 +149,5 @@ export {
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
-  cardVariants
-};
-
-export type {
-  CardProps,
-  CardHeaderProps,
-  CardTitleProps,
-  CardDescriptionProps,
-  CardContentProps,
-  CardFooterProps
+  CardFooter
 };

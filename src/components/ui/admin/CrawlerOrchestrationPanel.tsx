@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Card,
   Row,
   Col,
   Form,
@@ -19,6 +18,7 @@ import {
   Progress,
   Tooltip
 } from 'antd';
+import { Card as DSCard } from '../../../utils/AdvancedReusableComponents';
 import {
   RobotOutlined,
   ThunderboltOutlined,
@@ -619,42 +619,46 @@ export const CrawlerOrchestrationPanel: React.FC = () => {
         </Text>
       </div>
 
-      <Card loading={loading}>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} lg={6}>
-            <Statistic
-              title="URLs Crawled (24h)"
-              value={stats?.total_urls_crawled ?? 0}
-              prefix={<RobotOutlined style={{ color: '#1677ff' }} />}
-            />
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Statistic
-              title="Total Space Saved"
-              value={`${((stats?.total_space_saved ?? 0) / 1024 / 1024).toFixed(1)} MB`}
-              prefix={<DatabaseOutlined style={{ color: '#52c41a' }} />}
-            />
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Statistic
-              title="Tokens Earned"
-              value={(stats?.total_tokens_earned ?? 0).toFixed(2)}
-              suffix="LDOM"
-              prefix={<ThunderboltOutlined style={{ color: '#faad14' }} />}
-            />
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Statistic
-              title="Active Crawlers"
-              value={activeCrawlers.filter((crawler) => crawler.status !== 'idle').length}
-              suffix={` / ${activeCrawlers.length}`}
-              prefix={<DeploymentUnitOutlined style={{ color: '#722ed1' }} />}
-            />
-          </Col>
-        </Row>
-      </Card>
+      <DSCard.Root variant="elevated" className={loading ? 'opacity-70' : ''}>
+        <DSCard.Body>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} lg={6}>
+              <Statistic
+                title="URLs Crawled (24h)"
+                value={stats?.total_urls_crawled ?? 0}
+                prefix={<RobotOutlined style={{ color: '#1677ff' }} />}
+              />
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Statistic
+                title="Total Space Saved"
+                value={`${((stats?.total_space_saved ?? 0) / 1024 / 1024).toFixed(1)} MB`}
+                prefix={<DatabaseOutlined style={{ color: '#52c41a' }} />}
+              />
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Statistic
+                title="Tokens Earned"
+                value={(stats?.total_tokens_earned ?? 0).toFixed(2)}
+                suffix="LDOM"
+                prefix={<ThunderboltOutlined style={{ color: '#faad14' }} />}
+              />
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Statistic
+                title="Active Crawlers"
+                value={activeCrawlers.filter((crawler) => crawler.status !== 'idle').length}
+                suffix={` / ${activeCrawlers.length}`}
+                prefix={<DeploymentUnitOutlined style={{ color: '#722ed1' }} />}
+              />
+            </Col>
+          </Row>
+        </DSCard.Body>
+      </DSCard.Root>
 
-      <Card title="Prompt & Schema Configuration" extra={<Tag color="blue">SEO Focus</Tag>}>
+      <DSCard.Root variant="elevated">
+        <DSCard.Header title="Prompt & Schema Configuration" action={<Tag color="blue">SEO Focus</Tag>} />
+        <DSCard.Body>
         <Form
           form={form}
           layout="vertical"
@@ -802,12 +806,15 @@ export const CrawlerOrchestrationPanel: React.FC = () => {
             </Button>
           </Space>
         </Form>
-      </Card>
+        </DSCard.Body>
+      </DSCard.Root>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={14}>
-          <Card title="Workflow status" extra={<SyncOutlined onClick={fetchCrawlerData} style={{ cursor: 'pointer' }} />}>
-            <Timeline>
+          <DSCard.Root>
+            <DSCard.Header title="Workflow status" action={<SyncOutlined onClick={fetchCrawlerData} style={{ cursor: 'pointer' }} />} />
+            <DSCard.Body>
+              <Timeline>
               {workflowEvents.map((event) => (
                 <Timeline.Item key={event.id} color={statusColor(event.status)}>
                   <Space direction="vertical" size={4} style={{ width: '100%' }}>
@@ -826,18 +833,16 @@ export const CrawlerOrchestrationPanel: React.FC = () => {
                   </Space>
                 </Timeline.Item>
               ))}
-            </Timeline>
-          </Card>
+              </Timeline>
+            </DSCard.Body>
+          </DSCard.Root>
 
-          <Card
-            title="Workflow history"
-            extra={
-              <Button type="link" icon={<SearchOutlined />} onClick={restorePersistedWorkflows}>
-                Refresh
-              </Button>
-            }
-            style={{ marginTop: 16 }}
-          >
+          <DSCard.Root>
+            <DSCard.Header
+              title="Workflow history"
+              action={<Button type="text" icon={<SearchOutlined />} onClick={restorePersistedWorkflows}>Refresh</Button>}
+            />
+            <DSCard.Body>
             <List
               dataSource={persistedWorkflows}
               locale={{ emptyText: 'No workflows persisted yet.' }}
@@ -872,10 +877,13 @@ export const CrawlerOrchestrationPanel: React.FC = () => {
                 </List.Item>
               )}
             />
-          </Card>
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
         <Col xs={24} lg={10}>
-          <Card title="Active crawler instances" extra={<Tag color="purple">Live</Tag>}>
+          <DSCard.Root>
+            <DSCard.Header title="Active crawler instances" action={<Tag color="purple">Live</Tag>} />
+            <DSCard.Body>
             <List
               dataSource={activeCrawlers}
               locale={{ emptyText: 'No active crawlers detected.' }}
@@ -899,9 +907,12 @@ export const CrawlerOrchestrationPanel: React.FC = () => {
                 </List.Item>
               )}
             />
-          </Card>
+            </DSCard.Body>
+          </DSCard.Root>
 
-          <Card title="Recent optimization highlights" style={{ marginTop: 16 }}>
+          <DSCard.Root>
+            <DSCard.Header title="Recent optimization highlights" />
+            <DSCard.Body>
             <List
               dataSource={optimizations}
               locale={{ emptyText: 'No optimizations recorded yet.' }}
@@ -923,7 +934,8 @@ export const CrawlerOrchestrationPanel: React.FC = () => {
                 </List.Item>
               )}
             />
-          </Card>
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
       </Row>
     </Space>
