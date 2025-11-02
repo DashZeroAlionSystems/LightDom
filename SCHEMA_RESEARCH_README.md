@@ -45,7 +45,24 @@ This collection contains comprehensive research on schemas, their applications i
 
 ---
 
-### 3. [SCHEMA_IMPLEMENTATION_EXAMPLES.md](./SCHEMA_IMPLEMENTATION_EXAMPLES.md) - **Practical Guide** 💻
+### 3. [ATOMIC_COMPONENT_SCHEMAS.md](./ATOMIC_COMPONENT_SCHEMAS.md) - **Atomic Design** ⚛️
+**Length:** ~830 lines (26KB)  
+**Reading Time:** 45 minutes
+
+**Atomic component schemas with:**
+- LightDom schema format specification
+- Atomic design principles
+- Core atomic component schemas (Button, Input, etc.)
+- Component generation pipeline
+- AI/ML integration for atomic components
+- TypeScript, Zod, and React generation
+- Complete implementation service
+
+**Best for:** Building design systems, component libraries, AI-powered generators
+
+---
+
+### 4. [SCHEMA_IMPLEMENTATION_EXAMPLES.md](./SCHEMA_IMPLEMENTATION_EXAMPLES.md) - **Practical Guide** 💻
 **Length:** ~630 lines (22KB)  
 **Reading Time:** 30 minutes
 
@@ -61,7 +78,7 @@ This collection contains comprehensive research on schemas, their applications i
 
 ---
 
-### 4. [COMPREHENSIVE_SCHEMA_RESEARCH.md](./COMPREHENSIVE_SCHEMA_RESEARCH.md) - **Deep Dive** 📚
+### 5. [COMPREHENSIVE_SCHEMA_RESEARCH.md](./COMPREHENSIVE_SCHEMA_RESEARCH.md) - **Deep Dive** 📚
 **Length:** ~4,303 lines (111KB)  
 **Reading Time:** 2-3 hours
 
