@@ -1,3 +1,16 @@
+// Atomic Design System Components (local)
+export { Avatar } from './Avatar';
+export { Badge } from './Badge';
+export { Button } from './Button';
+export { Card } from './Card';
+export { Checkbox } from './Checkbox';
+export { Divider } from './Divider';
+export { Input } from './Input';
+export { Modal } from './Modal';
+export { Progress } from './Progress';
+export { Tooltip } from './Tooltip';
+
+// Re-exports from main src (for backward compatibility)
 export {
   WorkflowPanel,
   WorkflowPanelSection,
@@ -18,10 +31,6 @@ export {
   AccordionTrigger,
   AccordionContent,
 } from '../../../../src/components/ui/Accordion';
-
-export { Badge } from '../../../../src/components/ui/Badge';
-
-export { Button } from '../../../../src/components/ui/Button';
 
 export {
   Tabs,

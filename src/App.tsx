@@ -45,6 +45,7 @@ import CrawlerDashboard from './components/ui/admin/CrawlerDashboard';
 import TrainingControlPanel from './components/ui/admin/TrainingControlPanel';
 import UserManagementWorkflow from './components/ui/admin/UserManagementWorkflow';
 import SEOCrawlerWorkflow from './components/ui/admin/SEOCrawlerWorkflow';
+import AIAutomationPage from './pages/admin/AIAutomationPage';
 import WorkflowDemo from './components/WorkflowDemo';
 import TrainingDataPipeline from './components/TrainingDataPipeline';
 import DesignSystemGuide from './components/DesignSystemGuide';
@@ -174,6 +175,7 @@ const AppContent: React.FC = () => {
           <Route path="admin/analytics" element={<AdminAnalyticsDashboard />} />
           <Route path="admin/user-workflows" element={<UserManagementWorkflow />} />
           <Route path="admin/seo-workflows" element={<SEOCrawlerWorkflow />} />
+          <Route path="admin/ai-automation" element={<AIAutomationPage />} />
         </Route>
         
         {/* Default Redirect */}

@@ -128,6 +128,14 @@ const AdminLayout: React.FC = () => {
       type: 'divider' as const,
     },
     {
+      key: '/admin/ai-automation',
+      icon: <RocketOutlined />,
+      label: 'AI Automation',
+    },
+    {
+      type: 'divider' as const,
+    },
+    {
       key: 'help',
       icon: <QuestionCircleOutlined />,
       label: 'Help & Support',
