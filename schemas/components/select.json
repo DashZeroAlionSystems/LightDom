@@ -1,0 +1,86 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Select",
+  "@id": "lightdom:select",
+  "name": "Select",
+  "description": "Dropdown select component",
+  "lightdom:componentType": "atom",
+  "lightdom:reactComponent": "Select",
+  "lightdom:props": [
+    {
+      "name": "name",
+      "type": "string",
+      "required": true,
+      "description": "Select field name"
+    },
+    {
+      "name": "options",
+      "type": "array",
+      "required": true,
+      "description": "Array of options {label: string, value: any}",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "value": { "type": "any" }
+        }
+      }
+    },
+    {
+      "name": "value",
+      "type": "any",
+      "required": false,
+      "description": "Selected value"
+    },
+    {
+      "name": "defaultValue",
+      "type": "any",
+      "required": false,
+      "description": "Default selected value"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "required": false,
+      "description": "Placeholder text"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "description": "Disabled state",
+      "default": false
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "required": false,
+      "description": "Required field",
+      "default": false
+    },
+    {
+      "name": "onChange",
+      "type": "function",
+      "required": false,
+      "description": "Change event handler"
+    },
+    {
+      "name": "multiple",
+      "type": "boolean",
+      "required": false,
+      "description": "Allow multiple selection",
+      "default": false
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "select",
+    "dropdown",
+    "picker",
+    "form",
+    "choice"
+  ],
+  "lightdom:semanticMeaning": "Dropdown select for choosing from options",
+  "lightdom:priority": 1,
+  "lightdom:category": "atom"
+}

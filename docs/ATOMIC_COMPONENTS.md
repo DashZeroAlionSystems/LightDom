@@ -1,371 +1,249 @@
-# Atomic Component System - Design Documentation
+# Atomic Component System
 
 ## Overview
 
-This document describes the atomic component system implemented for the LightDom admin interface. The system follows atomic design principles, building complex UIs from simple, reusable components.
+The LightDom platform uses an **Atomic Design** approach to component development, making it easy to generate and compose UI components from smaller, reusable pieces.
 
-## Architecture
+## Component Hierarchy
 
-The component hierarchy follows this structure:
+### Atoms (Level 1)
+The smallest building blocks of the UI. These cannot be broken down further.
 
-```
-Atoms (Foundational) → Molecules (Composed) → Organisms (Complex)
-```
+**Available Atomic Components (13):**
+- `button.json` - Clickable buttons with variants
+- `input.json` - Text input fields
+- `label.json` - Text labels for form fields
+- `card.json` - Container cards
+- `select.json` - Dropdown selects
+- `checkbox.json` - Checkbox inputs
+- `radio.json` - Radio button inputs
+- `textarea.json` - Multi-line text inputs
+- `badge.json` - Status badges and tags
+- `alert.json` - Alert messages
+- `spinner.json` - Loading spinners
+- `link.json` - Hyperlinks
+- `icon.json` - Icons
 
-### Atoms (Building Blocks)
+### Molecules (Level 2)
+Simple combinations of atoms that function together as a unit.
 
-Located in `src/components/ui/atoms/`, these are the smallest, most fundamental components:
+**Available Molecular Components (2):**
+- `form-field.json` - Complete form field (label + input + error)
+- `search-bar.json` - Search input with button
 
-#### 1. **Button.tsx**
-- `Button` - Base button with multiple variants
-- `IconButton` - Button optimized for icons only
+### Organisms (Level 3)
+Complex UI components composed of molecules and atoms.
 
-**Variants:**
-- `primary` - Main actions (blue)
-- `secondary` - Secondary actions (gray)
-- `success` - Positive actions (green)
-- `warning` - Warning actions (yellow)
-- `danger` - Destructive actions (red)
-- `ghost` - Minimal styling
-- `outline` - Outlined style
+**Available Organism Components (5):**
+- `login-form.json` - Complete login form with email, password, remember me
+- `user-profile-card.json` - User profile card with avatar and actions
+- `data-grid.json` - Advanced data grid with sorting, filtering, pagination
+- `nav-bar.json` - Navigation bar with logo, menu items, user actions
+- `modal-dialog.json` - Modal dialog with header, content, and action buttons
 
-**Sizes:** `sm`, `md`, `lg`, `icon`
+## Quick Start
 
-**Example:**
-```tsx
-import { Button } from '@/components/ui/atoms';
+```bash
+# Initialize services and load all atomic schemas
+npm run init:services
 
-<Button variant="primary" size="md">
-  Click Me
-</Button>
-
-<IconButton 
-  icon={<CheckIcon />} 
-  variant="success" 
-  ariaLabel="Confirm"
-/>
-```
-
-#### 2. **Card.tsx**
-- `Card` - Container for content
-- `CardHeader` - Standardized header with title, subtitle, icon, and action
-- `CardSection` - Reusable sections within cards
-
-**Variants:**
-- `default` - Standard card with border
-- `elevated` - Card with shadow
-- `flat` - Flat card with border
-- `outlined` - Outlined card
-- `filled` - Filled background
-- `gradient` - Gradient background
-
-**Padding:** `none`, `sm`, `md`, `lg`, `xl`
-
-**Example:**
-```tsx
-import { Card, CardHeader, CardSection } from '@/components/ui/atoms';
-
-<Card variant="elevated" padding="md">
-  <CardHeader 
-    title="Settings"
-    subtitle="Manage your preferences"
-    icon={<SettingsIcon />}
-    action={<Button>Edit</Button>}
-  />
-  <CardSection title="Notifications">
-    {/* Content */}
-  </CardSection>
-</Card>
+# This will:
+# - Run database migrations
+# - Load 20 component schemas (13 atoms + 2 molecules + 5 organisms)
+# - Make all components available for generation
 ```
 
-#### 3. **Badge.tsx**
-- `Badge` - General purpose badge
-- `StatusBadge` - Status-specific badge
-- `NotificationBadge` - Notification count badge
+## Generating Components
 
-**Variants:**
-- `default`, `primary`, `success`, `warning`, `danger`, `info`, `purple`, `pink`
+### Single Component Generation
 
-**Sizes:** `xs`, `sm`, `md`, `lg`
+```typescript
+import { componentGeneratorService } from './services/ComponentGeneratorService';
 
-**Example:**
-```tsx
-import { Badge, StatusBadge, NotificationBadge } from '@/components/ui/atoms';
-
-<Badge variant="success" dot>Active</Badge>
-
-<StatusBadge status="online" />
-
-<div className="relative">
-  <BellIcon />
-  <NotificationBadge count={5} max={99} />
-</div>
+const component = await componentGeneratorService.generateComponent({
+  componentName: 'UserProfileForm',
+  componentType: 'organism',
+  baseComponents: ['ld:form-field', 'ld:button', 'ld:card'],
+  requirements: {
+    functionality: 'User profile editing form with validation',
+    designSystem: 'Material Design 3',
+    accessibility: true,
+    responsive: true
+  },
+  aiGeneration: {
+    useAI: true,
+    includeTests: true
+  },
+  output: {
+    directory: 'src/components/generated',
+    typescript: true
+  }
+});
 ```
 
-#### 4. **Typography.tsx**
-- `Heading` - Headings (h1-h6)
-- `Text` - Paragraph and text
-- `Label` - Form labels
-- `Caption` - Small supporting text
-- `Code` - Inline or block code
+### Component Assembly Workflow
 
-**Example:**
-```tsx
-import { Heading, Text, Label, Caption } from '@/components/ui/atoms';
+Generate multiple related components at once:
 
-<Heading level="h2" weight="bold">
-  Dashboard
-</Heading>
+```typescript
+import { componentAssemblyWorkflowService } from './services/ComponentAssemblyWorkflowService';
 
-<Text size="lg" color="muted">
-  Welcome back!
-</Text>
+const result = await componentAssemblyWorkflowService.executeAssembly({
+  projectName: 'UserManagement',
+  description: 'Complete user management UI',
+  components: [
+    {
+      name: 'UserList',
+      type: 'organism',
+      useCase: 'Display users in a sortable, filterable grid',
+      baseComponents: ['ld:data-grid']
+    },
+    {
+      name: 'UserForm',
+      type: 'organism',
+      useCase: 'Create and edit user profiles',
+      baseComponents: ['ld:form-field', 'ld:button']
+    },
+    {
+      name: 'UserCard',
+      type: 'molecule',
+      useCase: 'Display user summary card',
+      baseComponents: ['ld:card', 'ld:badge']
+    }
+  ],
+  outputDirectory: 'src/components/users',
+  designSystem: 'Material Design 3',
+  includeTests: true,
+  includeStories: true
+});
 
-<Label required>Email Address</Label>
-<Caption error>This field is required</Caption>
+console.log(`Generated ${result.summary.successCount} components`);
 ```
 
-#### 5. **Icon.tsx**
-- `IconWrapper` - Consistent icon sizing and coloring
-- `StatusIcon` - Icon with status dot
-- `CircularIcon` - Icon in circular background
-- `NavigationIcon` - Icon for navigation items
+### Using NeuralComponentBuilder
 
-**Example:**
-```tsx
-import { IconWrapper, StatusIcon, CircularIcon } from '@/components/ui/atoms';
+The NeuralComponentBuilder provides AI-powered component generation:
 
-<IconWrapper size="lg" color="primary">
-  <StarIcon />
-</IconWrapper>
+```typescript
+import NeuralComponentBuilder from './src/schema/NeuralComponentBuilder';
+import SchemaComponentMapper from './src/schema/SchemaComponentMapper';
 
-<StatusIcon status="active" showDot>
-  <ServerIcon />
-</StatusIcon>
+const mapper = new SchemaComponentMapper();
+const builder = new NeuralComponentBuilder(mapper);
+await builder.initialize();
 
-<CircularIcon 
-  icon={<UserIcon />} 
-  variant="primary" 
-  size="lg"
-/>
+// Generate using atomic library
+const component = await builder.generateComponentFromAtoms({
+  useCase: 'user login form with email and password',
+  context: {
+    framework: 'react',
+    style: 'functional',
+    typescript: true,
+    testingLibrary: 'vitest'
+  },
+  constraints: {
+    accessibility: true,
+    responsive: true
+  }
+});
+
+console.log(component.code);
+console.log(component.tests);
 ```
 
-### Molecules (Composed Components)
+## Complete Example: Building a Dashboard
 
-Located in `src/components/ui/molecules/`, these combine atoms into functional units:
+```typescript
+import { componentAssemblyWorkflowService } from './services/ComponentAssemblyWorkflowService';
 
-#### 1. **StatCard.tsx**
-Displays statistics with icon, value, and trend.
+// Define the dashboard components
+const result = await componentAssemblyWorkflowService.executeAssembly({
+  projectName: 'AdminDashboard',
+  description: 'Complete admin dashboard with navigation, data grid, and modals',
+  components: [
+    {
+      name: 'DashboardLayout',
+      type: 'template',
+      useCase: 'Admin dashboard layout with sidebar and main content area',
+      baseComponents: ['ld:nav-bar']
+    },
+    {
+      name: 'UsersTable',
+      type: 'organism',
+      useCase: 'User management table with sorting and filtering',
+      baseComponents: ['ld:data-grid', 'ld:button']
+    },
+    {
+      name: 'CreateUserModal',
+      type: 'organism',
+      useCase: 'Modal form for creating new users',
+      baseComponents: ['ld:modal-dialog', 'ld:form-field', 'ld:button']
+    },
+    {
+      name: 'UserStatsCard',
+      type: 'molecule',
+      useCase: 'Display user statistics in a card',
+      baseComponents: ['ld:card', 'ld:badge', 'ld:icon']
+    }
+  ],
+  outputDirectory: 'src/components/dashboard',
+  designSystem: 'Material Design 3',
+  includeTests: true,
+  includeStories: true
+});
 
-**Example:**
-```tsx
-import { StatCard } from '@/components/ui/molecules';
-
-<StatCard
-  label="Total Users"
-  value="15,420"
-  icon={<UsersIcon />}
-  variant="primary"
-  trend={{
-    direction: 'up',
-    value: '12.5%',
-    label: 'from last month'
-  }}
-/>
+// All components generated with tests and stories!
+// - src/components/dashboard/DashboardLayout.tsx
+// - src/components/dashboard/UsersTable.tsx
+// - src/components/dashboard/CreateUserModal.tsx
+// - src/components/dashboard/UserStatsCard.tsx
+// - src/components/dashboard/index.ts (auto-generated)
 ```
 
-#### 2. **NavigationItem.tsx**
-Navigation item with icon, label, and optional badge.
+## Features
 
-**Example:**
-```tsx
-import { NavigationItem, NavigationGroup } from '@/components/ui/molecules';
+### 🚀 Rapid Development
+- Generate complete components in seconds
+- Assembly workflows for multiple components
+- Auto-generated tests and Storybook stories
 
-<NavigationGroup title="Management">
-  <NavigationItem
-    label="Users"
-    icon={<UsersIcon />}
-    active={true}
-    badge={{ text: 'New', variant: 'primary' }}
-    onClick={() => navigate('/users')}
-  />
-  <NavigationItem
-    label="Settings"
-    icon={<SettingsIcon />}
-    onClick={() => navigate('/settings')}
-  />
-</NavigationGroup>
+### 🎯 Consistency
+- All components follow atomic design principles
+- Consistent design system implementation
+- Standard code patterns and structure
+
+### 🔍 Discoverability
+- Search components by tags and use cases
+- 20 pre-built component schemas
+- Semantic meaning for intelligent selection
+
+### 🧪 Quality
+- Auto-generated unit tests
+- TypeScript type safety
+- WCAG 2.1 AA accessibility
+
+### 📚 Documentation
+- Auto-generated Storybook stories
+- JSDoc comments in code
+- Comprehensive component docs
+
+## API Reference
+
+### ComponentGeneratorService
+```typescript
+generateComponent(request: ComponentGenerationRequest): Promise<GeneratedComponent>
 ```
 
-#### 3. **InfoPanel.tsx**
-Panel for displaying structured information.
-
-**Example:**
-```tsx
-import { InfoPanel, DetailRow } from '@/components/ui/molecules';
-
-<InfoPanel
-  title="System Health"
-  description="Real-time status"
-  icon={<CheckIcon />}
-  status="active"
->
-  <DetailRow 
-    label="API Service" 
-    value={<StatusBadge status="online" />}
-    icon={<ApiIcon />}
-  />
-  <DetailRow 
-    label="Latency" 
-    value="45ms" 
-  />
-</InfoPanel>
+### ComponentAssemblyWorkflowService
+```typescript
+executeAssembly(request: ComponentAssemblyRequest): Promise<AssemblyResult>
+getWorkflowResults(): Promise<any[]>
 ```
 
-## Admin Navigation Improvements
-
-The admin sidebar navigation has been reorganized into logical categories:
-
-### Navigation Structure
-
-1. **Overview** - Main dashboard
-2. **Users & Access**
-   - User Management
-   - Workflow Automation
-   - Roles & Permissions
-   - Activity Log
-
-3. **Analytics & Monitoring**
-   - Analytics Overview
-   - Advanced Analytics
-   - System Monitoring
-   - System Logs
-
-4. **Content & Media**
-   - Page Management
-   - Media Library
-   - Comments
-
-5. **Automation & AI**
-   - AI Automation
-   - Web Crawler
-   - Crawler Workload
-   - AI Training Control
-   - Training Data Pipeline
-
-6. **SEO & Optimization**
-   - SEO Analysis
-   - SEO Workflows
-   - Sitemap Generator
-   - URL Redirects
-
-7. **Billing & Commerce**
-   - Billing Management
-   - Subscriptions
-   - Transactions
-
-8. **System Configuration**
-   - General Settings
-   - Performance Tuning
-   - Security Settings
-   - System Updates
-
-9. **Design & Development**
-   - Design System
-   - Motion Design
-   - Design Tools
-   - Schema Linking
-   - Workflow Builder
-   - Chrome Layers 3D
-
-10. **Help & Resources**
-    - Help Center
-    - Documentation
-    - Support Tickets
-
-### Key Improvements
-
-✅ **Better Categorization**: Related features grouped logically
-✅ **Clearer Labels**: Descriptive names (e.g., "User Management" instead of "All Users")
-✅ **Proper Hierarchy**: Top-level categories with sub-items
-✅ **Consistent Icons**: Meaningful icons for each category
-✅ **Improved UX**: Easier to find specific features
-
-## Usage Examples
-
-### Building a Dashboard Overview
-
-```tsx
-import React from 'react';
-import { Row, Col } from 'antd';
-import { StatCard } from '@/components/ui/molecules';
-import { InfoPanel, DetailRow } from '@/components/ui/molecules';
-import { Heading, Text } from '@/components/ui/atoms';
-import { UsersIcon, DollarIcon } from '@ant-design/icons';
-
-function DashboardOverview() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <Heading level="h2">Dashboard</Heading>
-        <Text color="muted">Overview of your platform</Text>
-      </div>
-
-      <Row gutter={[16, 16]}>
-        <Col span={6}>
-          <StatCard
-            label="Total Users"
-            value="15,420"
-            icon={<UsersIcon />}
-            variant="primary"
-            trend={{ direction: 'up', value: '12.5%' }}
-          />
-        </Col>
-        <Col span={6}>
-          <StatCard
-            label="Revenue"
-            value="$45,678"
-            icon={<DollarIcon />}
-            variant="success"
-            trend={{ direction: 'up', value: '8.3%' }}
-          />
-        </Col>
-      </Row>
-
-      <InfoPanel
-        title="System Health"
-        icon={<CheckIcon />}
-        status="active"
-      >
-        <DetailRow label="API" value={<StatusBadge status="online" />} />
-        <DetailRow label="Database" value={<StatusBadge status="online" />} />
-      </InfoPanel>
-    </div>
-  );
-}
+### NeuralComponentBuilder
+```typescript
+generateComponentFromAtoms(request: NeuralBuildRequest): Promise<GeneratedComponent>
+generateComponent(request: NeuralBuildRequest): Promise<GeneratedComponent>
 ```
 
-## Design Principles
-
-1. **Composability**: Small components combine to create complex UIs
-2. **Consistency**: Unified styling across the application
-3. **Reusability**: Write once, use everywhere
-4. **Type Safety**: Full TypeScript support with proper types
-5. **Accessibility**: Proper ARIA labels and semantic HTML
-6. **Performance**: Optimized rendering with React.forwardRef
-
-## Testing
-
-All atomic components support:
-- Unit testing with React Testing Library
-- Visual regression testing with Storybook
-- TypeScript type checking
-- Accessibility testing with axe-core
-
-## Future Enhancements
-
-- [ ] Add animation variants using Framer Motion
-- [ ] Add dark mode support
-- [ ] Create Storybook stories for all components
-- [ ] Add more molecule patterns (Forms, Tables, etc.)
-- [ ] Create organism-level dashboard components
+See complete documentation in `docs/ATOMIC_COMPONENTS_OLD.md`.

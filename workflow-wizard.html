@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightDom Platform - Component Workflow Wizard</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1a202c;
+        }
+
+        .container {
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            height: fit-content;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h3 {
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .workflow-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .workflow-item:hover {
+            background: #f7fafc;
+            border-left-color: #667eea;
+        }
+
+        .workflow-item.active {
+            background: #edf2f7;
+            border-left-color: #667eea;
+        }
+
+        .workflow-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-processing {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .wizard-step {
+            margin-bottom: 2rem;
+        }
+
+        .wizard-step h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #1a202c;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+            margin-right: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .config-preview {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            position: relative;
+        }
+
+        .step::after {
+            content: '';
+            position: absolute;
+            top: 1.25rem;
+            right: 0;
+            width: 100%;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: -1;
+        }
+
+        .step:last-child::after {
+            display: none;
+        }
+
+        .step-circle {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #718096;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step.active .step-circle {
+            background: #667eea;
+            color: white;
+        }
+
+        .step.completed .step-circle {
+            background: #10b981;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.875rem;
+            color: #718096;
+        }
+
+        .step.active .step-label {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .component-output {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .code-line {
+            padding: 0.25rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const API_BASE = 'http://localhost:3001/api';
+
+        function ComponentWorkflowWizard() {
+            const [workflows, setWorkflows] = useState([]);
+            const [activeWorkflow, setActiveWorkflow] = useState(null);
+            const [currentStep, setCurrentStep] = useState(1);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+            const [success, setSuccess] = useState(null);
+
+            // Form state
+            const [prompt, setPrompt] = useState('');
+            const [componentName, setComponentName] = useState('');
+            const [componentType, setComponentType] = useState('organism');
+            const [designSystem, setDesignSystem] = useState('Material Design 3');
+            const [generatedConfig, setGeneratedConfig] = useState(null);
+            const [generatedComponent, setGeneratedComponent] = useState(null);
+
+            const steps = [
+                { num: 1, label: 'Describe' },
+                { num: 2, label: 'Configure' },
+                { num: 3, label: 'Generate' },
+                { num: 4, label: 'Review' }
+            ];
+
+            useEffect(() => {
+                loadWorkflows();
+            }, []);
+
+            const loadWorkflows = async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/workflows`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setWorkflows(data);
+                    }
+                } catch (err) {
+                    console.error('Failed to load workflows:', err);
+                }
+            };
+
+            const handlePromptAnalysis = async () => {
+                setLoading(true);
+                setError(null);
+                
+                try {
+                    const response = await fetch(`${API_BASE}/workflow/analyze-prompt`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            prompt,
+                            model: 'deepseek-r1:1.5b' // Using DeepSeek
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to analyze prompt');
+                    }
+
+                    const config = await response.json();
+                    setGeneratedConfig(config);
+                    setComponentName(config.componentName);
+                    setComponentType(config.componentType);
+                    setCurrentStep(2);
+                    setSuccess('Prompt analyzed successfully! Review the configuration.');
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleGenerateComponent = async () => {
+                setLoading(true);
+                setError(null);
+                
+                try {
+                    const response = await fetch(`${API_BASE}/workflow/generate-component`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            prompt,
+                            componentName,
+                            componentType,
+                            designSystem,
+                            baseComponents: generatedConfig?.baseComponents || [],
+                            model: 'deepseek-r1:1.5b'
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to generate component');
+                    }
+
+                    const result = await response.json();
+                    setGeneratedComponent(result);
+                    setCurrentStep(4);
+                    setSuccess('Component generated successfully!');
+                    
+                    // Add to workflows list
+                    setWorkflows([result.workflow, ...workflows]);
+                    setActiveWorkflow(result.workflow);
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleSaveComponent = async () => {
+                setLoading(true);
+                setError(null);
+                
+                try {
+                    const response = await fetch(`${API_BASE}/workflow/save-component`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            workflowId: activeWorkflow?.id,
+                            component: generatedComponent
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to save component');
+                    }
+
+                    setSuccess('Component saved successfully!');
+                    loadWorkflows();
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const resetWizard = () => {
+                setCurrentStep(1);
+                setPrompt('');
+                setComponentName('');
+                setComponentType('organism');
+                setGeneratedConfig(null);
+                setGeneratedComponent(null);
+                setError(null);
+                setSuccess(null);
+            };
+
+            return (
+                <div className="container">
+                    <header className="header">
+                        <h1>🧙‍♂️ Component Workflow Wizard</h1>
+                        <p>AI-Powered Component Generation with DeepSeek</p>
+                    </header>
+
+                    <div className="layout">
+                        <aside className="sidebar">
+                            <h3>📋 Workflows</h3>
+                            {workflows.length === 0 && (
+                                <p style={{ color: '#718096', fontSize: '0.875rem' }}>
+                                    No workflows yet. Create one!
+                                </p>
+                            )}
+                            {workflows.map(workflow => (
+                                <div
+                                    key={workflow.id}
+                                    className={`workflow-item ${activeWorkflow?.id === workflow.id ? 'active' : ''}`}
+                                    onClick={() => setActiveWorkflow(workflow)}
+                                >
+                                    <div style={{ fontWeight: 500 }}>{workflow.name}</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#718096', marginTop: '0.25rem' }}>
+                                        {new Date(workflow.createdAt).toLocaleString()}
+                                    </div>
+                                    <span className={`workflow-status status-${workflow.status}`}>
+                                        {workflow.status}
+                                    </span>
+                                </div>
+                            ))}
+                        </aside>
+
+                        <main className="main-content">
+                            <div className="step-indicator">
+                                {steps.map(step => (
+                                    <div
+                                        key={step.num}
+                                        className={`step ${
+                                            currentStep === step.num ? 'active' :
+                                            currentStep > step.num ? 'completed' : ''
+                                        }`}
+                                    >
+                                        <div className="step-circle">{step.num}</div>
+                                        <div className="step-label">{step.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {error && (
+                                <div className="alert alert-error">
+                                    ❌ {error}
+                                </div>
+                            )}
+
+                            {success && (
+                                <div className="alert alert-success">
+                                    ✅ {success}
+                                </div>
+                            )}
+
+                            {currentStep === 1 && (
+                                <div className="wizard-step">
+                                    <h2>Step 1: Describe Your Component</h2>
+                                    <p style={{ color: '#718096', marginBottom: '1.5rem' }}>
+                                        Describe what you want to build. Be specific about functionality, behavior, and appearance.
+                                    </p>
+
+                                    <div className="form-group">
+                                        <label>Component Description *</label>
+                                        <textarea
+                                            value={prompt}
+                                            onChange={(e) => setPrompt(e.target.value)}
+                                            placeholder="Example: Create a user login form with email and password fields, a remember me checkbox, and a forgot password link. Style it with Material Design 3 guidelines."
+                                        />
+                                    </div>
+
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={handlePromptAnalysis}
+                                        disabled={!prompt || loading}
+                                    >
+                                        {loading && <span className="loading"></span>}
+                                        Analyze with DeepSeek →
+                                    </button>
+                                </div>
+                            )}
+
+                            {currentStep === 2 && (
+                                <div className="wizard-step">
+                                    <h2>Step 2: Review Configuration</h2>
+                                    <p style={{ color: '#718096', marginBottom: '1.5rem' }}>
+                                        DeepSeek analyzed your prompt. Review and adjust the configuration.
+                                    </p>
+
+                                    <div className="form-group">
+                                        <label>Component Name *</label>
+                                        <input
+                                            type="text"
+                                            value={componentName}
+                                            onChange={(e) => setComponentName(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label>Component Type *</label>
+                                        <select
+                                            value={componentType}
+                                            onChange={(e) => setComponentType(e.target.value)}
+                                        >
+                                            <option value="atom">Atom</option>
+                                            <option value="molecule">Molecule</option>
+                                            <option value="organism">Organism</option>
+                                            <option value="template">Template</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label>Design System</label>
+                                        <select
+                                            value={designSystem}
+                                            onChange={(e) => setDesignSystem(e.target.value)}
+                                        >
+                                            <option value="Material Design 3">Material Design 3</option>
+                                            <option value="Ant Design">Ant Design</option>
+                                            <option value="Chakra UI">Chakra UI</option>
+                                            <option value="Custom">Custom</option>
+                                        </select>
+                                    </div>
+
+                                    {generatedConfig && (
+                                        <div className="config-preview">
+                                            <strong>Generated Configuration:</strong>
+                                            <pre>{JSON.stringify(generatedConfig, null, 2)}</pre>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => setCurrentStep(1)}
+                                    >
+                                        ← Back
+                                    </button>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => setCurrentStep(3)}
+                                        disabled={!componentName}
+                                    >
+                                        Continue →
+                                    </button>
+                                </div>
+                            )}
+
+                            {currentStep === 3 && (
+                                <div className="wizard-step">
+                                    <h2>Step 3: Generate Component</h2>
+                                    <p style={{ color: '#718096', marginBottom: '1.5rem' }}>
+                                        Ready to generate your component using DeepSeek AI.
+                                    </p>
+
+                                    <div className="alert alert-info">
+                                        ℹ️ This will create a TypeScript React component with tests and stories.
+                                    </div>
+
+                                    <div style={{ background: '#f7fafc', padding: '1.5rem', borderRadius: '6px', marginBottom: '1.5rem' }}>
+                                        <h3 style={{ marginBottom: '0.5rem' }}>Summary:</h3>
+                                        <p><strong>Component:</strong> {componentName}</p>
+                                        <p><strong>Type:</strong> {componentType}</p>
+                                        <p><strong>Design System:</strong> {designSystem}</p>
+                                        <p><strong>Prompt:</strong> {prompt}</p>
+                                    </div>
+
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => setCurrentStep(2)}
+                                    >
+                                        ← Back
+                                    </button>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={handleGenerateComponent}
+                                        disabled={loading}
+                                    >
+                                        {loading && <span className="loading"></span>}
+                                        🚀 Generate Component
+                                    </button>
+                                </div>
+                            )}
+
+                            {currentStep === 4 && generatedComponent && (
+                                <div className="wizard-step">
+                                    <h2>Step 4: Review Generated Component</h2>
+                                    <p style={{ color: '#718096', marginBottom: '1.5rem' }}>
+                                        Your component has been generated successfully!
+                                    </p>
+
+                                    <div className="alert alert-success">
+                                        ✅ Component "{componentName}" generated and saved to workflows!
+                                    </div>
+
+                                    <div className="component-output">
+                                        <div className="code-line">// {componentName}.tsx</div>
+                                        {generatedComponent.code?.split('\n').slice(0, 30).map((line, i) => (
+                                            <div key={i} className="code-line">{line}</div>
+                                        ))}
+                                        <div className="code-line" style={{ color: '#94a3b8' }}>
+                                            ... ({generatedComponent.code?.split('\n').length} lines total)
+                                        </div>
+                                    </div>
+
+                                    <div style={{ marginTop: '1.5rem' }}>
+                                        <button
+                                            className="btn btn-primary"
+                                            onClick={handleSaveComponent}
+                                            disabled={loading}
+                                        >
+                                            {loading && <span className="loading"></span>}
+                                            💾 Save to Filesystem
+                                        </button>
+                                        <button
+                                            className="btn btn-secondary"
+                                            onClick={resetWizard}
+                                        >
+                                            ✨ Create Another Component
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </main>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<ComponentWorkflowWizard />, document.getElementById('root'));
+    </script>
+</body>
+</html>

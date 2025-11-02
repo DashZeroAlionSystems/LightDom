@@ -1,0 +1,83 @@
+{
+  "$id": "ld:ExecutionPlan",
+  "type": "object",
+  "title": "Execution Plan Schema",
+  "description": "Schema for AI-generated execution plans",
+  "properties": {
+    "planId": {
+      "type": "string",
+      "description": "Unique identifier for the plan"
+    },
+    "templateId": {
+      "type": "string",
+      "description": "ID of the template used to generate this plan"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable plan title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Plan description"
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered list of execution steps",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "description": "Unique step identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Step name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Step description"
+          },
+          "action": {
+            "type": "string",
+            "description": "Action to perform"
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Step parameters"
+          },
+          "dependencies": {
+            "type": "array",
+            "description": "IDs of steps that must complete first",
+            "items": {
+              "type": "string"
+            }
+          },
+          "estimatedDuration": {
+            "type": "string",
+            "description": "Estimated time to complete"
+          }
+        },
+        "required": ["stepId", "name", "action"]
+      }
+    },
+    "variables": {
+      "type": "object",
+      "description": "Plan variables and their values"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional plan metadata"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "ready", "executing", "completed", "failed"],
+      "default": "draft"
+    },
+    "createdAt": {
+      "type": "string",
+      "description": "ISO 8601 timestamp"
+    }
+  },
+  "required": ["planId", "templateId", "title", "steps"]
+}

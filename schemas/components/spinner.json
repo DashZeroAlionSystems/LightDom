@@ -1,0 +1,43 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Spinner",
+  "@id": "lightdom:spinner",
+  "name": "Spinner",
+  "description": "Loading spinner component",
+  "lightdom:componentType": "atom",
+  "lightdom:reactComponent": "Spinner",
+  "lightdom:props": [
+    {
+      "name": "size",
+      "type": "string",
+      "required": false,
+      "description": "Spinner size",
+      "enum": ["small", "medium", "large"],
+      "default": "medium"
+    },
+    {
+      "name": "color",
+      "type": "string",
+      "required": false,
+      "description": "Spinner color",
+      "default": "primary"
+    },
+    {
+      "name": "tip",
+      "type": "string",
+      "required": false,
+      "description": "Loading tip text"
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "spinner",
+    "loading",
+    "loader",
+    "progress",
+    "wait"
+  ],
+  "lightdom:semanticMeaning": "Loading spinner for async operations",
+  "lightdom:priority": 2,
+  "lightdom:category": "atom"
+}

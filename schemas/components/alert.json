@@ -1,0 +1,62 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Alert",
+  "@id": "lightdom:alert",
+  "name": "Alert",
+  "description": "Alert message component",
+  "lightdom:componentType": "atom",
+  "lightdom:reactComponent": "Alert",
+  "lightdom:props": [
+    {
+      "name": "message",
+      "type": "string",
+      "required": true,
+      "description": "Alert message text"
+    },
+    {
+      "name": "type",
+      "type": "string",
+      "required": false,
+      "description": "Alert type",
+      "enum": ["success", "info", "warning", "error"],
+      "default": "info"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "required": false,
+      "description": "Alert title"
+    },
+    {
+      "name": "closable",
+      "type": "boolean",
+      "required": false,
+      "description": "Show close button",
+      "default": false
+    },
+    {
+      "name": "onClose",
+      "type": "function",
+      "required": false,
+      "description": "Close event handler"
+    },
+    {
+      "name": "showIcon",
+      "type": "boolean",
+      "required": false,
+      "description": "Show icon",
+      "default": true
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "alert",
+    "notification",
+    "message",
+    "feedback",
+    "toast"
+  ],
+  "lightdom:semanticMeaning": "Alert message for user feedback and notifications",
+  "lightdom:priority": 2,
+  "lightdom:category": "atom"
+}

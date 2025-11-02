@@ -1,0 +1,48 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Label",
+  "@id": "lightdom:label",
+  "name": "Label",
+  "description": "Text label component",
+  "lightdom:componentType": "atom",
+  "lightdom:reactComponent": "Label",
+  "lightdom:props": [
+    {
+      "name": "text",
+      "type": "string",
+      "required": true,
+      "description": "Label text"
+    },
+    {
+      "name": "htmlFor",
+      "type": "string",
+      "required": false,
+      "description": "Associated input field ID"
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "required": false,
+      "description": "Show required indicator",
+      "default": false
+    },
+    {
+      "name": "size",
+      "type": "string",
+      "required": false,
+      "description": "Label size",
+      "enum": ["small", "medium", "large"],
+      "default": "medium"
+    }
+  ],
+  "lightdom:linkedSchemas": ["lightdom:input"],
+  "lightdom:useCase": [
+    "label",
+    "text",
+    "form-label",
+    "field-label"
+  ],
+  "lightdom:semanticMeaning": "Label for form fields and content",
+  "lightdom:priority": 1,
+  "lightdom:category": "atom"
+}
