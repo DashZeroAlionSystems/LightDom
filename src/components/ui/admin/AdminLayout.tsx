@@ -43,7 +43,7 @@ import {
   ShieldOutlined,
   MenuUnfoldOutlined,
   EditOutlined,
-  DollarOutlined
+  DollarOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../../hooks/state/useAuth';
 import './AdminLayout.css';

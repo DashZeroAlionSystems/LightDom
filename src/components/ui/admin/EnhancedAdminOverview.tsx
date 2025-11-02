@@ -21,6 +21,14 @@ import { InfoPanel, DetailRow } from '../molecules/InfoPanel';
 import { Heading, Text } from '../atoms/Typography';
 import { StatusBadge } from '../atoms/Badge';
 
+// Utility constants
+const BYTES_TO_GB = 1024 * 1024 * 1024;
+
+// Utility function for byte conversion
+const bytesToGB = (bytes: number): string => {
+  return (bytes / BYTES_TO_GB).toFixed(2);
+};
+
 interface SystemHealth {
   api: { status: 'online' | 'offline'; latency: number };
   database: { status: 'online' | 'offline'; connections: number };
@@ -238,12 +246,7 @@ const EnhancedAdminOverview: React.FC = () => {
               />
               <DetailRow
                 label="Space Saved"
-                value={`${(
-                  (quickStats?.spaceSaved || 0) /
-                  1024 /
-                  1024 /
-                  1024
-                ).toFixed(2)} GB`}
+                value={`${bytesToGB(quickStats?.spaceSaved || 0)} GB`}
               />
             </div>
           </InfoPanel>

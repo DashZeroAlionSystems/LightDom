@@ -46,7 +46,7 @@ export interface HeadingProps
 
 export const Heading = React.forwardRef<HTMLHeadingElement, HeadingProps>(
   ({ className, level = 'h2', weight, as, children, ...props }, ref) => {
-    const Component = (as || level) as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+    const Component = as || level;
     
     return (
       <Component
@@ -113,7 +113,7 @@ export interface TextProps
 
 export const Text = React.forwardRef<HTMLParagraphElement, TextProps>(
   ({ className, size, weight, color, align, as = 'p', children, ...props }, ref) => {
-    const Component = as as 'p' | 'span' | 'div' | 'label';
+    const Component = as;
     
     return (
       <Component
