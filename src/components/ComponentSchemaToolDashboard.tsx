@@ -261,7 +261,4 @@ const ComponentSchemaToolDashboard = () => {
   );
 };
 
-// Import Statistic if not already imported
-import { Statistic } from 'antd';
-
 export default ComponentSchemaToolDashboard;
