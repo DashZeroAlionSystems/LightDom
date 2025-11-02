@@ -1,0 +1,208 @@
+{
+  "$schema": "../schemas/neural-networks/neural-network-workflow.json",
+  "id": "workflow-nn-seo-optimization",
+  "name": "SEO Optimization Neural Network Workflow",
+  "description": "Complete workflow for training and deploying SEO optimization neural networks",
+  "modelType": "seo_optimization",
+  "stages": [
+    {
+      "id": "data_collection",
+      "name": "Collect Training Data",
+      "type": "data_collection",
+      "enabled": true,
+      "config": {
+        "sources": ["web_crawler", "user_feedback", "performance_metrics"],
+        "minSamples": 1000,
+        "features": [
+          "meta_tags",
+          "heading_structure",
+          "schema_markup",
+          "page_load_time",
+          "mobile_friendliness",
+          "structured_data",
+          "content_quality",
+          "internal_links",
+          "image_alt_text"
+        ],
+        "labels": ["seo_score", "ranking_position"]
+      },
+      "timeout": 3600,
+      "retryPolicy": {
+        "maxRetries": 3,
+        "backoffMultiplier": 2
+      }
+    },
+    {
+      "id": "data_validation",
+      "name": "Validate Training Data",
+      "type": "data_validation",
+      "enabled": true,
+      "dependsOn": ["data_collection"],
+      "config": {
+        "checks": [
+          "completeness",
+          "quality",
+          "outlier_detection",
+          "schema_validation"
+        ],
+        "minQualityScore": 0.7,
+        "removeOutliers": true
+      },
+      "timeout": 600
+    },
+    {
+      "id": "preprocessing",
+      "name": "Preprocess Data",
+      "type": "preprocessing",
+      "enabled": true,
+      "dependsOn": ["data_validation"],
+      "config": {
+        "normalization": "standard",
+        "encoding": "one-hot",
+        "featureScaling": true,
+        "handleMissing": "mean_imputation"
+      },
+      "timeout": 1800
+    },
+    {
+      "id": "feature_engineering",
+      "name": "Engineer Features",
+      "type": "feature_engineering",
+      "enabled": true,
+      "dependsOn": ["preprocessing"],
+      "config": {
+        "techniques": [
+          "polynomial_features",
+          "interaction_terms",
+          "feature_selection"
+        ],
+        "maxFeatures": 100,
+        "selectionMethod": "mutual_info"
+      },
+      "timeout": 1200
+    },
+    {
+      "id": "model_training",
+      "name": "Train Neural Network",
+      "type": "model_training",
+      "enabled": true,
+      "dependsOn": ["feature_engineering"],
+      "config": {
+        "architecture": {
+          "layers": [
+            {
+              "type": "embedding",
+              "outputDim": 128
+            },
+            {
+              "type": "lstm",
+              "units": 256,
+              "dropout": 0.2
+            },
+            {
+              "type": "dense",
+              "units": 128,
+              "activation": "relu"
+            },
+            {
+              "type": "dropout",
+              "rate": 0.3
+            },
+            {
+              "type": "dense",
+              "units": 1,
+              "activation": "sigmoid"
+            }
+          ]
+        },
+        "training": {
+          "epochs": 50,
+          "batchSize": 32,
+          "learningRate": 0.001,
+          "validationSplit": 0.2,
+          "optimizer": "adam",
+          "earlyStopping": true,
+          "patience": 5
+        }
+      },
+      "timeout": 7200
+    },
+    {
+      "id": "model_validation",
+      "name": "Validate Model Performance",
+      "type": "model_validation",
+      "enabled": true,
+      "dependsOn": ["model_training"],
+      "config": {
+        "metrics": ["accuracy", "precision", "recall", "f1_score", "auc_roc"],
+        "minAccuracy": 0.8,
+        "crossValidation": {
+          "enabled": true,
+          "folds": 5
+        }
+      },
+      "timeout": 1800
+    },
+    {
+      "id": "deployment",
+      "name": "Deploy Model",
+      "type": "deployment",
+      "enabled": true,
+      "dependsOn": ["model_validation"],
+      "config": {
+        "environment": "production",
+        "strategy": "blue-green",
+        "healthChecks": true,
+        "rollbackOnError": true,
+        "endpoints": {
+          "predict": "/api/ml/predict/seo-optimization",
+          "health": "/api/ml/health/seo-optimization"
+        }
+      },
+      "timeout": 600
+    },
+    {
+      "id": "monitoring",
+      "name": "Monitor Model Performance",
+      "type": "monitoring",
+      "enabled": true,
+      "dependsOn": ["deployment"],
+      "config": {
+        "metrics": [
+          "prediction_accuracy",
+          "inference_latency",
+          "throughput",
+          "error_rate"
+        ],
+        "alertThresholds": {
+          "accuracyDrop": 0.05,
+          "maxLatency": 100,
+          "errorRate": 0.01
+        },
+        "dashboardEnabled": true
+      },
+      "timeout": 999999
+    }
+  ],
+  "triggers": {
+    "manual": true,
+    "scheduled": {
+      "enabled": true,
+      "cron": "0 2 * * 0"
+    },
+    "dataThreshold": {
+      "enabled": true,
+      "minNewDataPoints": 5000
+    },
+    "performanceDegradation": {
+      "enabled": true,
+      "accuracyThreshold": 0.75
+    }
+  },
+  "notifications": {
+    "onStart": true,
+    "onComplete": true,
+    "onError": true,
+    "channels": ["email", "dashboard", "slack"]
+  }
+}
