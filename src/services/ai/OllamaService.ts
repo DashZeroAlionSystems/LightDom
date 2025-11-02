@@ -104,7 +104,7 @@ export class OllamaService {
     /**
      * Send a chat message to Ollama
      */
-    async chat(message: string, systemPrompt?: string): Promise<string> {
+    async chat(message: string, systemPrompt?: string, model?: string): Promise<string> {
         const messages: OllamaMessage[] = [];
         
         // Add system prompt if provided
@@ -122,7 +122,7 @@ export class OllamaService {
             const response = await this.client.post<OllamaResponse>(
                 '/api/chat',
                 {
-                    model: this.config.model,
+                    model: model || this.config.model,
                     messages,
                     stream: false,
                     options: {
