@@ -53,6 +53,7 @@ import MotionDesignShowcase from './components/MotionDesignShowcase';
 import DesignToolsNavigation from './components/DesignToolsNavigation';
 import SchemaLinkingDashboard from './components/SchemaLinkingDashboard';
 import WorkflowCreationDashboard from './components/WorkflowCreationDashboard';
+import ChromeLayers3DDashboard from './components/ChromeLayers3DDashboard';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -126,6 +127,7 @@ const AppContent: React.FC = () => {
           <Route path="design-tools" element={<DesignToolsNavigation />} />
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
+          <Route path="chrome-layers" element={<ChromeLayers3DDashboard />} />
         </Route>
         
         {/* Protected Routes */}
