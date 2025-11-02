@@ -29,6 +29,7 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { AIContentPage } from '@/pages/AIContentPage';
 import { SEOModelTrainingPage } from '@/pages/SEOModelTrainingPage';
 import { WorkflowsPage } from '@/pages/WorkflowsPage';
+import { ComponentSchemaToolPage } from '@/pages/ComponentSchemaToolPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 // Hooks
@@ -255,6 +256,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <WorkflowsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/component-schema"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ComponentSchemaToolPage />
                       </Layout>
                     </ProtectedRoute>
                   }
