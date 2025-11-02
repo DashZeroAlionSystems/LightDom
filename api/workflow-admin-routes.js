@@ -13,12 +13,14 @@ import pg from 'pg';
 const { Pool } = pg;
 const router = express.Router();
 
-// Database connection
+// Database connection (for future use when migrating to persistent storage)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// In-memory workflow storage (until we have DB tables)
+// TODO: Replace in-memory storage with database persistence
+// In-memory workflow storage (temporary solution for MVP - not production-ready)
+// This should be migrated to database tables for production use
 let workflows = [];
 let workflowRuns = [];
 let workflowIdCounter = 1;

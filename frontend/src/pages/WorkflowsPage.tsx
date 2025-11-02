@@ -288,10 +288,14 @@ export const WorkflowsPage: React.FC = () => {
         await fetchWorkflows();
       }, 2000);
 
-      // Stop polling after 2 minutes
-      setTimeout(() => clearInterval(pollInterval), 120000);
+      // Store interval ID for cleanup
+      const timeoutId = setTimeout(() => clearInterval(pollInterval), 120000);
 
-      await fetchWorkflows();
+      // Cleanup function
+      return () => {
+        clearInterval(pollInterval);
+        clearTimeout(timeoutId);
+      };
     } catch (error) {
       console.error('Error executing workflow:', error);
       setLoadError(error instanceof Error ? error.message : 'Failed to execute workflow');
@@ -300,6 +304,7 @@ export const WorkflowsPage: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
+    let pollCleanup: (() => void) | undefined;
 
     const initialFetch = async () => {
       setIsLoading(true);
@@ -316,6 +321,10 @@ export const WorkflowsPage: React.FC = () => {
 
     return () => {
       isMounted = false;
+      // Cleanup polling if active
+      if (pollCleanup) {
+        pollCleanup();
+      }
     };
   }, []);
 
