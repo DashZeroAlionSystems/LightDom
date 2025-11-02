@@ -20,6 +20,7 @@ import morgan from 'morgan';
 // Configuration
 import config, { validateConfig } from './config/index.js';
 import { initializeDatabase, testDatabaseConnection } from './config/database.js';
+import setupSwagger from './config/swagger.js';
 
 // Middleware
 import { errorConverter, errorHandler, notFound } from './api/middlewares/error.js';
@@ -72,11 +73,15 @@ class LightDomAPIServer {
       console.log('🛣️  Setting up routes...');
       this.setupRoutes();
       
-      // 5. Setup WebSocket
+      // 5. Setup Swagger documentation
+      console.log('📚 Setting up API documentation...');
+      setupSwagger(this.app);
+      
+      // 6. Setup WebSocket
       console.log('🔌 Setting up WebSocket...');
       this.setupWebSocket();
       
-      // 6. Setup error handlers (must be last)
+      // 7. Setup error handlers (must be last)
       this.setupErrorHandlers();
       
       console.log('✅ Server initialization complete');
