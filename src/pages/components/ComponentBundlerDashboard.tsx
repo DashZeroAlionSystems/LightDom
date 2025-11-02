@@ -145,7 +145,7 @@ const ComponentBundlerDashboard: React.FC = () => {
     if (!generatedConfig) return;
 
     const newBundle: ComponentBundle = {
-      id: \`bundle-\${Date.now()}\`,
+      id: `bundle-\${Date.now()}`,
       name: generatedConfig.name || 'New Bundle',
       description: generatedConfig.description || 'Component bundle',
       components: bundleConfig.selectedComponents,
@@ -251,11 +251,11 @@ const ComponentBundlerDashboard: React.FC = () => {
                         <button
                           onClick={() => handleComponentToggle(component.id)}
                           disabled={!component.implemented}
-                          className={\`w-full rounded-xl border-2 p-4 text-left transition-all \${
+                          className={`w-full rounded-xl border-2 p-4 text-left transition-all \${
                             bundleConfig.selectedComponents.includes(component.id)
                               ? 'border-primary bg-primary-container/20'
                               : 'border-outline hover:bg-surface-container-highest'
-                          }\`}
+                          }`}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">

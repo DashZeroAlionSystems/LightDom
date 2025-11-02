@@ -34,7 +34,7 @@ export class OllamaService {
    */
   async checkServiceHealth(): Promise<boolean> {
     try {
-      const response = await fetch(\`\${this.baseUrl}/api/tags\`, {
+      const response = await fetch(`\${this.baseUrl}/api/tags`, {
         method: 'GET',
       });
       return response.ok;
@@ -54,7 +54,7 @@ export class OllamaService {
     }
 
     try {
-      const response = await fetch(\`\${this.baseUrl}/api/generate\`, {
+      const response = await fetch(`\${this.baseUrl}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -70,7 +70,7 @@ export class OllamaService {
       });
 
       if (!response.ok) {
-        throw new Error(\`Ollama API error: \${response.statusText}\`);
+        throw new Error(`Ollama API error: \${response.statusText}`);
       }
 
       const data: OllamaGenerateResponse = await response.json();
@@ -85,7 +85,7 @@ export class OllamaService {
    * Generate workflow configuration from prompt
    */
   async generateWorkflowConfig(prompt: string, selectedParts: string[]): Promise<any> {
-    const systemPrompt = \`You are a workflow configuration expert. Generate a valid JSON workflow configuration based on the user's requirements.
+    const systemPrompt = `You are a workflow configuration expert. Generate a valid JSON workflow configuration based on the user's requirements.
 
 Selected workflow parts: \${selectedParts.join(', ')}
 
@@ -110,7 +110,7 @@ Generate a JSON configuration with this structure:
   }
 }
 
-Return ONLY the JSON, no additional text.\`;
+Return ONLY the JSON, no additional text.`;
 
     const response = await this.generate({ prompt: systemPrompt });
     
@@ -135,7 +135,7 @@ Return ONLY the JSON, no additional text.\`;
     selectedComponents: string[],
     mockDataEnabled: boolean
   ): Promise<any> {
-    const systemPrompt = \`You are a component configuration expert. Generate a valid JSON component bundle configuration.
+    const systemPrompt = `You are a component configuration expert. Generate a valid JSON component bundle configuration.
 
 Selected components: \${selectedComponents.join(', ')}
 Mock data enabled: \${mockDataEnabled}
@@ -161,7 +161,7 @@ Generate a JSON configuration with this structure:
   "mockData": \${mockDataEnabled}
 }
 
-Return ONLY the JSON, no additional text.\`;
+Return ONLY the JSON, no additional text.`;
 
     const response = await this.generate({ prompt: systemPrompt });
     
@@ -182,7 +182,7 @@ Return ONLY the JSON, no additional text.\`;
    */
   async listModels(): Promise<string[]> {
     try {
-      const response = await fetch(\`\${this.baseUrl}/api/tags\`);
+      const response = await fetch(`\${this.baseUrl}/api/tags`);
       if (!response.ok) {
         return [this.defaultModel];
       }

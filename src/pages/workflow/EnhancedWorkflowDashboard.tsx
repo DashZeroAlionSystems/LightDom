@@ -129,7 +129,7 @@ const EnhancedWorkflowDashboard: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm(\`Are you sure you want to delete workflow "\${id}"?\`)) {
+    if (confirm(`Are you sure you want to delete workflow "\${id}"?`)) {
       setWorkflows(prev => prev.filter(w => w.id !== id));
     }
   };
