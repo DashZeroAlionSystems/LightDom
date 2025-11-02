@@ -38,6 +38,7 @@ import AdminLayout from './components/ui/admin/AdminLayout';
 import AdminDashboard from './components/ui/admin/AdminDashboard';
 import AdminOverview from './components/ui/admin/AdminOverview';
 import EnhancedAdminOverview from './components/ui/admin/EnhancedAdminOverview';
+import CopilotUIDemo from './components/ui/admin/CopilotUIDemo';
 import UserManagement from './components/ui/admin/UserManagement';
 import EnhancedUserManagement from './components/ui/admin/EnhancedUserManagement';
 import SystemMonitoring from './components/ui/admin/SystemMonitoring';
@@ -114,6 +115,7 @@ const AppContent: React.FC = () => {
         >
           <Route index element={<EnhancedAdminOverview />} />
           <Route path="overview" element={<EnhancedAdminOverview />} />
+          <Route path="copilot-ui" element={<CopilotUIDemo />} />
           <Route path="users" element={<EnhancedUserManagement />} />
           <Route path="billing" element={<BillingManagement />} />
           <Route path="crawler" element={<CrawlerDashboard />} />

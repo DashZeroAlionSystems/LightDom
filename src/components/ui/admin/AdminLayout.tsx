@@ -44,6 +44,7 @@ import {
   MenuUnfoldOutlined,
   EditOutlined,
   DollarOutlined,
+  RobotOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../../hooks/state/useAuth';
 import './AdminLayout.css';
@@ -158,6 +159,7 @@ const AdminLayout: React.FC = () => {
       label: 'Design & Development',
       children: [
         { key: '/admin/design-system', label: 'Design System', icon: <AppstoreOutlined /> },
+        { key: '/admin/copilot-ui', label: 'Copilot UI Components', icon: <RobotOutlined /> },
         { key: '/admin/motion-showcase', label: 'Motion Design', icon: <RocketOutlined /> },
         { key: '/admin/design-tools', label: 'Design Tools', icon: <ToolOutlined /> },
         { key: '/admin/schema-linking', label: 'Schema Linking', icon: <SwapOutlined /> },
