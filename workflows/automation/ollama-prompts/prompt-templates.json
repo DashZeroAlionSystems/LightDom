@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Prompt engineering templates for Ollama integration with LightDom",
   "categories": {
     "dom_optimization": {
@@ -14,7 +14,13 @@
             "dom_data"
           ],
           "output_format": "json",
-          "model_recommendation": "llama2:7b"
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "dom_elements",
+            "dom_metrics",
+            "dom_analysis_runs"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'analyze_dom_structure'"
         },
         {
           "id": "generate_optimization_plan",
@@ -24,7 +30,12 @@
             "analysis"
           ],
           "output_format": "json",
-          "model_recommendation": "llama2:7b"
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "optimization_recommendations",
+            "performance_metrics"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_optimization_plan'"
         },
         {
           "id": "suggest_caching_strategy",
@@ -34,7 +45,12 @@
             "resources"
           ],
           "output_format": "json",
-          "model_recommendation": "codellama:7b"
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "cache_policies",
+            "resource_metadata"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'suggest_caching_strategy'"
         }
       ]
     },
@@ -50,7 +66,13 @@
             "description"
           ],
           "output_format": "json",
-          "model_recommendation": "codellama:7b"
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "workflows",
+            "workflow_templates",
+            "workflow_instances"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'create_workflow_from_description'"
         },
         {
           "id": "optimize_existing_workflow",
@@ -60,7 +82,12 @@
             "workflow"
           ],
           "output_format": "json",
-          "model_recommendation": "llama2:7b"
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "workflows",
+            "workflow_execution_logs"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'optimize_existing_workflow'"
         },
         {
           "id": "generate_webhook_handler",
@@ -71,7 +98,12 @@
             "data_schema"
           ],
           "output_format": "json",
-          "model_recommendation": "codellama:7b"
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "workflows",
+            "webhook_configs"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_webhook_handler'"
         }
       ]
     },
@@ -88,7 +120,12 @@
             "requirements"
           ],
           "output_format": "code",
-          "model_recommendation": "codellama:7b"
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "crawler_tasks",
+            "crawler_results"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_crawler_script'"
         },
         {
           "id": "generate_api_endpoint",
@@ -100,7 +137,12 @@
             "output_schema"
           ],
           "output_format": "code",
-          "model_recommendation": "codellama:7b"
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "api_endpoints",
+            "api_schemas"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_api_endpoint'"
         },
         {
           "id": "generate_test_suite",
@@ -110,7 +152,12 @@
             "code"
           ],
           "output_format": "code",
-          "model_recommendation": "codellama:7b"
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "test_suites",
+            "test_cases"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_test_suite'"
         }
       ]
     },
@@ -126,7 +173,12 @@
             "api_code"
           ],
           "output_format": "markdown",
-          "model_recommendation": "llama2:7b"
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "api_endpoints",
+            "api_documentation"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_api_docs'"
         },
         {
           "id": "generate_workflow_docs",
@@ -136,7 +188,12 @@
             "workflow"
           ],
           "output_format": "markdown",
-          "model_recommendation": "llama2:7b"
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "workflows",
+            "workflow_documentation"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_workflow_docs'"
         }
       ]
     },
@@ -152,7 +209,12 @@
             "code"
           ],
           "output_format": "json",
-          "model_recommendation": "codellama:7b"
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "code_reviews",
+            "code_quality_metrics"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'code_review'"
         },
         {
           "id": "performance_analysis",
@@ -163,7 +225,12 @@
             "metrics"
           ],
           "output_format": "json",
-          "model_recommendation": "llama2:7b"
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "performance_metrics",
+            "bottleneck_analysis"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'performance_analysis'"
         }
       ]
     },
@@ -180,7 +247,13 @@
             "design_tokens"
           ],
           "output_format": "code",
-          "model_recommendation": "codellama:7b"
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "component_definitions",
+            "atom_definitions",
+            "design_tokens"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_component'"
         },
         {
           "id": "generate_dashboard_workflow",
@@ -190,7 +263,13 @@
             "dashboard_description"
           ],
           "output_format": "json",
-          "model_recommendation": "llama2:7b"
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "dashboard_definitions",
+            "component_definitions",
+            "workflow_dashboards"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_dashboard_workflow'"
         },
         {
           "id": "enhance_component_reusability",
@@ -200,7 +279,12 @@
             "component_code"
           ],
           "output_format": "json",
-          "model_recommendation": "codellama:7b"
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "component_definitions",
+            "reusability_metrics"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'enhance_component_reusability'"
         },
         {
           "id": "generate_component_variants",
@@ -211,7 +295,12 @@
             "variants_list"
           ],
           "output_format": "json",
-          "model_recommendation": "codellama:7b"
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "component_definitions",
+            "component_variants"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_component_variants'"
         }
       ]
     }
@@ -232,5 +321,6 @@
       },
       "command": "ollama run llama2:7b '<processed_prompt>'"
     }
-  }
+  },
+  "schema_aware": true
 }
