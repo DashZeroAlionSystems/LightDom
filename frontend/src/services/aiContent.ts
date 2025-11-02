@@ -95,6 +95,81 @@ export interface QueuedGeneration {
 }
 
 class AIContentService {
+  private extractErrorMessage(payload: any): string | undefined {
+    if (!payload) {
+      return undefined;
+    }
+
+    if (typeof payload === 'string') {
+      return payload;
+    }
+
+    if (payload.error && typeof payload.error === 'string') {
+      return payload.error;
+    }
+
+    if (payload.message && typeof payload.message === 'string') {
+      return payload.message;
+    }
+
+    if (payload?.data?.error && typeof payload.data.error === 'string') {
+      return payload.data.error;
+    }
+
+    if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+      const first = payload.errors[0];
+      if (typeof first === 'string') {
+        return first;
+      }
+      if (first?.message && typeof first.message === 'string') {
+        return first.message;
+      }
+    }
+
+    return undefined;
+  }
+
+  private extractData<T>(payload: any, errorMessage: string): T {
+    if (!payload || typeof payload !== 'object' || payload.data === undefined) {
+      throw new Error(errorMessage);
+    }
+
+    return payload.data as T;
+  }
+
+  private async handleResponse<T>(
+    response: Response,
+    fallbackMessage: string,
+    resolver?: (payload: any) => T
+  ): Promise<T> {
+    const text = await response.text();
+    let payload: any;
+
+    if (text) {
+      try {
+        payload = JSON.parse(text);
+      } catch {
+        const trimmed = text.trim();
+        payload = trimmed.length > 0 ? trimmed : undefined;
+      }
+    }
+
+    if (!response.ok) {
+      if (typeof payload === 'string') {
+        throw new Error(payload);
+      }
+
+      const message = this.extractErrorMessage(payload) ?? fallbackMessage;
+      throw new Error(message);
+    }
+
+    if (resolver) {
+      return resolver(payload);
+    }
+
+    return payload as T;
+  }
+
   /**
    * Generate content for a URL
    */
@@ -107,13 +182,11 @@ class AIContentService {
       body: JSON.stringify(request),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to generate content');
-    }
-
-    const result = await response.json();
-    return result.data;
+    return this.handleResponse<GeneratedContent>(
+      response,
+      'Failed to generate content',
+      (payload) => this.extractData<GeneratedContent>(payload, 'API returned an invalid content response')
+    );
   }
 
   /**
@@ -128,13 +201,11 @@ class AIContentService {
       body: JSON.stringify({ urls, config }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to queue generation');
-    }
-
-    const result = await response.json();
-    return result.data;
+    return this.handleResponse<QueuedGeneration>(
+      response,
+      'Failed to queue generation',
+      (payload) => this.extractData<QueuedGeneration>(payload, 'API returned an invalid queue response')
+    );
   }
 
   /**
@@ -149,10 +220,7 @@ class AIContentService {
       body: JSON.stringify({ batchSize }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to process queue');
-    }
+    await this.handleResponse<void>(response, 'Failed to process queue', () => undefined);
   }
 
   /**
@@ -161,13 +229,11 @@ class AIContentService {
   async getContent(id: string): Promise<GeneratedContent> {
     const response = await fetch(`${API_BASE_URL}/ai/content/${id}`);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to get content');
-    }
-
-    const result = await response.json();
-    return result.data;
+    return this.handleResponse<GeneratedContent>(
+      response,
+      'Failed to get content',
+      (payload) => this.extractData<GeneratedContent>(payload, 'API returned an invalid content response')
+    );
   }
 
   /**
@@ -177,13 +243,11 @@ class AIContentService {
     const encodedUrl = encodeURIComponent(url);
     const response = await fetch(`${API_BASE_URL}/ai/content/history/${encodedUrl}?limit=${limit}&offset=${offset}`);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to get content history');
-    }
-
-    const result = await response.json();
-    return result.data;
+    return this.handleResponse<GeneratedContent[]>(
+      response,
+      'Failed to get content history',
+      (payload) => this.extractData<GeneratedContent[]>(payload, 'API returned an invalid content history response')
+    );
   }
 
   /**
@@ -192,13 +256,11 @@ class AIContentService {
   async getContentPerformance(id: string): Promise<ContentPerformance[]> {
     const response = await fetch(`${API_BASE_URL}/ai/content/${id}/performance`);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to get performance data');
-    }
-
-    const result = await response.json();
-    return result.data;
+    return this.handleResponse<ContentPerformance[]>(
+      response,
+      'Failed to get performance data',
+      (payload) => this.extractData<ContentPerformance[]>(payload, 'API returned an invalid performance response')
+    );
   }
 
   /**
@@ -223,13 +285,11 @@ class AIContentService {
       body: JSON.stringify(feedback),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to submit feedback');
-    }
-
-    const result = await response.json();
-    return result.data;
+    return this.handleResponse<{ feedbackId: string }>(
+      response,
+      'Failed to submit feedback',
+      (payload) => this.extractData<{ feedbackId: string }>(payload, 'API returned an invalid feedback response')
+    );
   }
 
   /**
@@ -238,13 +298,11 @@ class AIContentService {
   async getActiveContentSummary(): Promise<any[]> {
     const response = await fetch(`${API_BASE_URL}/ai/content/summary/active`);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to get content summary');
-    }
-
-    const result = await response.json();
-    return result.data;
+    return this.handleResponse<any[]>(
+      response,
+      'Failed to get content summary',
+      (payload) => this.extractData<any[]>(payload, 'API returned an invalid content summary response')
+    );
   }
 
   /**
@@ -259,13 +317,26 @@ class AIContentService {
       body: JSON.stringify(config),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to start model training');
-    }
+    return this.handleResponse<{ message: string; config: ModelTrainingRequest }>(
+      response,
+      'Failed to start model training',
+      (payload) => {
+        if (payload && typeof payload === 'object') {
+          return {
+            message:
+              typeof payload.message === 'string'
+                ? payload.message
+                : 'Model training started',
+            config: (payload.config as ModelTrainingRequest) ?? config,
+          };
+        }
 
-    const result = await response.json();
-    return { message: result.message, config: result.config };
+        return {
+          message: 'Model training started',
+          config,
+        };
+      }
+    );
   }
 
   /**
@@ -274,13 +345,11 @@ class AIContentService {
   async getModelPerformance(): Promise<ModelPerformance[]> {
     const response = await fetch(`${API_BASE_URL}/ai/model/performance`);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to get model performance');
-    }
-
-    const result = await response.json();
-    return result.data;
+    return this.handleResponse<ModelPerformance[]>(
+      response,
+      'Failed to get model performance',
+      (payload) => this.extractData<ModelPerformance[]>(payload, 'API returned an invalid model performance response')
+    );
   }
 
   /**
@@ -291,13 +360,17 @@ class AIContentService {
       method: 'POST',
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to start model retraining');
-    }
+    return this.handleResponse<{ message: string }>(
+      response,
+      'Failed to start model retraining',
+      (payload) => {
+        if (payload && typeof payload === 'object' && typeof payload.message === 'string') {
+          return { message: payload.message };
+        }
 
-    const result = await response.json();
-    return { message: result.message };
+        return { message: 'Model retraining started' };
+      }
+    );
   }
 
   /**
@@ -313,13 +386,11 @@ class AIContentService {
 
     const response = await fetch(url);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to get templates');
-    }
-
-    const result = await response.json();
-    return result.data;
+    return this.handleResponse<ContentTemplate[]>(
+      response,
+      'Failed to get templates',
+      (payload) => this.extractData<ContentTemplate[]>(payload, 'API returned an invalid templates response')
+    );
   }
 }
 

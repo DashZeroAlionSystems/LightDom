@@ -87,7 +87,6 @@ const ErrorFallbackComponent: React.FC<{ error: Error; resetErrorBoundary: () =>
 }) => <ErrorFallback error={error} resetErrorBoundary={resetErrorBoundary} />;
 
 const App: React.FC = () => {
-  const isDev = (import.meta as any).env?.DEV;
   return (
     <ErrorBoundary FallbackComponent={ErrorFallbackComponent}>
       <HelmetProvider>
@@ -99,18 +98,9 @@ const App: React.FC = () => {
                 <Route
                   path="/"
                   element={
-                    // During development, show the main dashboard as the landing page
-                    // so designers/devs see the dashboard immediately. In production,
-                    // keep the original HomePage behind PublicRoute.
-                    isDev ? (
-                      <Layout>
-                        <DashboardPage />
-                      </Layout>
-                    ) : (
-                      <PublicRoute>
-                        <HomePage />
-                      </PublicRoute>
-                    )
+                    <PublicRoute>
+                      <HomePage />
+                    </PublicRoute>
                   }
                 />
                 <Route
