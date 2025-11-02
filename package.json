@@ -97,6 +97,8 @@
     "migrate": "node --loader ts-node/esm migrate.ts",
     "init:services": "node --loader ts-node/esm init-services.ts",
     "test:workflow-wizard": "node --loader ts-node/esm test-workflow-wizard.ts",
+    "start:production": "node start-production.js",
+    "test:integration:workflow": "jest tests/integration/workflow-integration.test.ts",
     "schema:link": "node services/schema-linking-runner.js run-once",
     "schema:link:start": "node services/schema-linking-runner.js start",
     "schema:link:demo": "node schema-linking-demo.js",
