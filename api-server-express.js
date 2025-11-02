@@ -410,6 +410,19 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load workflow wizard routes:', err);
     });
     
+    // Import and register Neural Network routes
+    import('./api/neural-network-routes.js').then((neuralModule) => {
+      const neuralRouter = neuralModule.default || neuralModule.createNeuralNetworkRoutes;
+      if (typeof neuralRouter === 'function') {
+        this.app.use('/api/neural-networks', neuralRouter(this.pool));
+      } else {
+        this.app.use('/api/neural-networks', neuralRouter);
+      }
+      console.log('Neural network routes registered');
+    }).catch(err => {
+      console.error('Failed to load neural network routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
