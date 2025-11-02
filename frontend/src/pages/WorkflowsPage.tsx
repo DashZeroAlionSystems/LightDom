@@ -212,6 +212,7 @@ export const WorkflowsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('tasks');
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isCreatingWorkflow, setIsCreatingWorkflow] = useState(false);
+  const pollCleanupRef = React.useRef<(() => void) | null>(null);
 
   const fetchWorkflows = async () => {
     try {
@@ -283,19 +284,29 @@ export const WorkflowsPage: React.FC = () => {
         throw new Error('Failed to execute workflow');
       }
 
+      // Clean up any existing polling
+      if (pollCleanupRef.current) {
+        pollCleanupRef.current();
+      }
+
       // Start polling for updates
       const pollInterval = setInterval(async () => {
         await fetchWorkflows();
       }, 2000);
 
       // Store interval ID for cleanup
-      const timeoutId = setTimeout(() => clearInterval(pollInterval), 120000);
+      const timeoutId = setTimeout(() => {
+        clearInterval(pollInterval);
+        pollCleanupRef.current = null;
+      }, 120000);
 
-      // Cleanup function
-      return () => {
+      // Store cleanup function
+      pollCleanupRef.current = () => {
         clearInterval(pollInterval);
         clearTimeout(timeoutId);
       };
+
+      await fetchWorkflows();
     } catch (error) {
       console.error('Error executing workflow:', error);
       setLoadError(error instanceof Error ? error.message : 'Failed to execute workflow');
@@ -304,7 +315,6 @@ export const WorkflowsPage: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    let pollCleanup: (() => void) | undefined;
 
     const initialFetch = async () => {
       setIsLoading(true);
@@ -322,8 +332,8 @@ export const WorkflowsPage: React.FC = () => {
     return () => {
       isMounted = false;
       // Cleanup polling if active
-      if (pollCleanup) {
-        pollCleanup();
+      if (pollCleanupRef.current) {
+        pollCleanupRef.current();
       }
     };
   }, []);
