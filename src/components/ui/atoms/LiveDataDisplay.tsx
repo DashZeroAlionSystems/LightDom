@@ -43,7 +43,9 @@ export const LiveCounter: React.FC<LiveCounterProps> = ({
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // Easing function for smooth animation
+      // Quadratic ease-in-out function for smooth acceleration and deceleration
+      // This provides natural-feeling counter animations that start slow,
+      // accelerate in the middle, and slow down at the end
       const eased = progress < 0.5
         ? 2 * progress * progress
         : -1 + (4 - 2 * progress) * progress;
@@ -62,16 +64,19 @@ export const LiveCounter: React.FC<LiveCounterProps> = ({
   const formatValue = (val: number): string => {
     switch (format) {
       case 'compact':
-        if (val >= 1e9) return (val / 1e9).toFixed(decimals) + 'B';
-        if (val >= 1e6) return (val / 1e6).toFixed(decimals) + 'M';
-        if (val >= 1e3) return (val / 1e3).toFixed(decimals) + 'K';
-        return val.toFixed(decimals);
+        // Use Intl.NumberFormat for better locale-aware compact notation
+        return new Intl.NumberFormat('en-US', {
+          notation: 'compact',
+          compactDisplay: 'short',
+          maximumFractionDigits: decimals,
+        }).format(val);
       
       case 'bytes':
         if (val === 0) return '0 B';
         const k = 1024;
         const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(val) / Math.log(k));
+        // Ensure index doesn't exceed array bounds
+        const i = Math.min(Math.floor(Math.log(val) / Math.log(k)), sizes.length - 1);
         return (val / Math.pow(k, i)).toFixed(decimals) + ' ' + sizes[i];
       
       default:

@@ -100,11 +100,18 @@ router.post('/crawler/start-job', async (req, res) => {
     // Validate URLs
     for (const seed of seeds) {
       try {
-        new URL(seed);
+        const url = new URL(seed);
+        // Only allow HTTP and HTTPS protocols for security
+        if (!['http:', 'https:'].includes(url.protocol)) {
+          return res.status(400).json({ 
+            error: 'Invalid URL protocol',
+            message: `Only HTTP and HTTPS URLs are allowed. Invalid URL: ${seed}` 
+          });
+        }
       } catch (e) {
         return res.status(400).json({ 
           error: 'Invalid URL',
-          message: `Invalid seed URL: ${seed}` 
+          message: `Invalid seed URL format: ${seed}` 
         });
       }
     }

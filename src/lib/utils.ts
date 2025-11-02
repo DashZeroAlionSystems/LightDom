@@ -9,6 +9,11 @@ import { twMerge } from 'tailwind-merge';
 /**
  * Merge Tailwind classes with proper precedence
  * Uses clsx for conditional classes and twMerge for conflict resolution
+ * 
+ * twMerge intelligently handles Tailwind class conflicts by:
+ * - Deduplicating identical classes
+ * - Resolving conflicts (e.g., "text-red-500 text-blue-500" → "text-blue-500")
+ * - Preserving the last occurrence when classes conflict
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

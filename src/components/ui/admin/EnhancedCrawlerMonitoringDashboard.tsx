@@ -74,10 +74,16 @@ export const EnhancedCrawlerMonitoringDashboard: React.FC = () => {
       
       // Fetch active crawlers
       const crawlersRes = await fetch('/api/crawler/active');
+      if (!crawlersRes.ok) {
+        throw new Error(`Failed to fetch crawlers: ${crawlersRes.statusText}`);
+      }
       const crawlersData = await crawlersRes.json();
       
       // Fetch stats
       const statsRes = await fetch('/api/crawler/stats');
+      if (!statsRes.ok) {
+        throw new Error(`Failed to fetch stats: ${statsRes.statusText}`);
+      }
       const statsData = await statsRes.json();
       
       // Transform data for display
