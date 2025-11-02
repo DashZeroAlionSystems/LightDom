@@ -4,13 +4,14 @@
  */
 
 import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 /**
  * Merge Tailwind classes with proper precedence
- * Uses clsx for conditional classes
+ * Uses clsx for conditional classes and twMerge for conflict resolution
  */
 export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs);
+  return twMerge(clsx(inputs));
 }
 
 /**
