@@ -37,6 +37,7 @@ import { FileUploadSettings } from './components/ui/FileUploadSettings';
 import AdminLayout from './components/ui/admin/AdminLayout';
 import AdminDashboard from './components/ui/admin/AdminDashboard';
 import AdminOverview from './components/ui/admin/AdminOverview';
+import EnhancedAdminOverview from './components/ui/admin/EnhancedAdminOverview';
 import UserManagement from './components/ui/admin/UserManagement';
 import EnhancedUserManagement from './components/ui/admin/EnhancedUserManagement';
 import SystemMonitoring from './components/ui/admin/SystemMonitoring';
@@ -111,8 +112,8 @@ const AppContent: React.FC = () => {
             </ProtectedRoute>
           }
         >
-          <Route index element={<AdminDashboard />} />
-          <Route path="overview" element={<AdminOverview />} />
+          <Route index element={<EnhancedAdminOverview />} />
+          <Route path="overview" element={<EnhancedAdminOverview />} />
           <Route path="users" element={<EnhancedUserManagement />} />
           <Route path="billing" element={<BillingManagement />} />
           <Route path="crawler" element={<CrawlerDashboard />} />
