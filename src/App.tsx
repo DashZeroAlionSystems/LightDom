@@ -43,6 +43,7 @@ import SystemMonitoring from './components/ui/admin/SystemMonitoring';
 import SystemLogs from './components/ui/admin/SystemLogs';
 import BillingManagement from './components/ui/admin/BillingManagement';
 import CrawlerDashboard from './components/ui/admin/CrawlerDashboard';
+import CrawlerWorkloadDashboard from './components/ui/admin/CrawlerWorkloadDashboard';
 import TrainingControlPanel from './components/ui/admin/TrainingControlPanel';
 import UserManagementWorkflow from './components/ui/admin/UserManagementWorkflow';
 import SEOCrawlerWorkflow from './components/ui/admin/SEOCrawlerWorkflow';
@@ -114,6 +115,7 @@ const AppContent: React.FC = () => {
           <Route path="users" element={<EnhancedUserManagement />} />
           <Route path="billing" element={<BillingManagement />} />
           <Route path="crawler" element={<CrawlerDashboard />} />
+          <Route path="crawler-workload" element={<CrawlerWorkloadDashboard />} />
           <Route path="training" element={<TrainingControlPanel />} />
           <Route path="monitoring" element={<SystemMonitoring />} />
           <Route path="logs" element={<SystemLogs />} />
@@ -176,6 +178,7 @@ const AppContent: React.FC = () => {
           <Route path="admin/logs" element={<SystemLogs />} />
           <Route path="admin/billing" element={<BillingManagement />} />
           <Route path="admin/crawler" element={<CrawlerDashboard />} />
+          <Route path="admin/crawler-workload" element={<CrawlerWorkloadDashboard />} />
           <Route path="admin/training" element={<TrainingControlPanel />} />
           <Route path="admin/analytics" element={<AdminAnalyticsDashboard />} />
           <Route path="admin/user-workflows" element={<UserManagementWorkflow />} />
