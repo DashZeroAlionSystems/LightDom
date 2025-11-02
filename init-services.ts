@@ -45,6 +45,7 @@ async function main() {
     // Step 3: Load default component schemas
     console.log('📦 Step 3: Loading Component Schemas');
     await componentLibraryService.loadDefaultComponents();
+    await componentLibraryService.loadAtomicSchemasFromFiles();
     const components = await componentLibraryService.getAtomicComponents();
     console.log(`✅ Loaded ${components.length} atomic components\n`);
 

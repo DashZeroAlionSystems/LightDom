@@ -9,6 +9,12 @@
 
 import { getDatabaseService } from '../DatabaseService.js';
 import { LdSchema } from './ValidationService.js';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export interface ComponentSchema {
   schemaId: string;
@@ -137,6 +143,111 @@ export class ComponentLibraryService {
     );
 
     return result.rows.map(this.mapRowToComponent);
+  }
+
+  /**
+   * Load atomic component schemas from filesystem
+   */
+  async loadAtomicSchemasFromFiles(): Promise<void> {
+    console.log('📦 Loading atomic component schemas from files...');
+
+    const schemasDir = path.resolve(__dirname, '../../schemas/components');
+    
+    try {
+      const files = await fs.readdir(schemasDir);
+      const jsonFiles = files.filter(f => f.endsWith('.json'));
+
+      for (const file of jsonFiles) {
+        try {
+          const filePath = path.join(schemasDir, file);
+          const content = await fs.readFile(filePath, 'utf-8');
+          const schemaData = JSON.parse(content);
+
+          // Convert from lightdom schema format to ComponentSchema format
+          const component: ComponentSchema = {
+            schemaId: schemaData['@id'] || `ld:${schemaData.name}`,
+            schemaType: 'component',
+            version: '1.0.0',
+            title: schemaData.name,
+            description: schemaData.description,
+            category: schemaData['lightdom:category'] || 'atom',
+            isAtomic: schemaData['lightdom:category'] === 'atom',
+            tags: schemaData['lightdom:useCase'] || [],
+            schema: this.convertToLdSchema(schemaData),
+            metadata: {
+              semanticMeaning: schemaData['lightdom:semanticMeaning'],
+              priority: schemaData['lightdom:priority'],
+              reactComponent: schemaData['lightdom:reactComponent'],
+            },
+          };
+
+          await this.addSchema(component);
+          console.log(`  ✅ Loaded schema: ${component.title}`);
+        } catch (error) {
+          console.error(`  ❌ Failed to load schema ${file}:`, error);
+        }
+      }
+
+      console.log(`✨ Loaded ${jsonFiles.length} atomic component schemas from files`);
+    } catch (error) {
+      console.error('Failed to load schemas from directory:', error);
+    }
+  }
+
+  /**
+   * Convert lightdom schema format to ld-schema format
+   */
+  private convertToLdSchema(lightdomSchema: any): LdSchema {
+    const properties: Record<string, any> = {};
+    const required: string[] = [];
+
+    if (lightdomSchema['lightdom:props']) {
+      for (const prop of lightdomSchema['lightdom:props']) {
+        properties[prop.name] = {
+          type: this.mapPropType(prop.type),
+          description: prop.description,
+        };
+
+        if (prop.enum) {
+          properties[prop.name].enum = prop.enum;
+        }
+
+        if (prop.default !== undefined) {
+          properties[prop.name].default = prop.default;
+        }
+
+        if (prop.required) {
+          required.push(prop.name);
+        }
+
+        // Handle array items
+        if (prop.items) {
+          properties[prop.name].items = prop.items;
+        }
+      }
+    }
+
+    return {
+      $id: lightdomSchema['@id'] || `ld:${lightdomSchema.name}`,
+      type: 'object',
+      title: `${lightdomSchema.name} Schema`,
+      description: lightdomSchema.description,
+      properties,
+      required: required.length > 0 ? required : undefined,
+    } as LdSchema;
+  }
+
+  /**
+   * Map lightdom prop types to JSON schema types
+   */
+  private mapPropType(type: string): string {
+    const typeMap: Record<string, string> = {
+      function: 'string', // Functions are referenced by name
+      node: 'object', // React nodes
+      any: 'string',
+    };
+
+    return typeMap[type] || type;
   }
 
   /**

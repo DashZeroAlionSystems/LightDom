@@ -1,0 +1,67 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Card",
+  "@id": "lightdom:card",
+  "name": "Card",
+  "description": "Container card component",
+  "lightdom:componentType": "atom",
+  "lightdom:reactComponent": "Card",
+  "lightdom:props": [
+    {
+      "name": "title",
+      "type": "string",
+      "required": false,
+      "description": "Card title"
+    },
+    {
+      "name": "children",
+      "type": "node",
+      "required": true,
+      "description": "Card content"
+    },
+    {
+      "name": "footer",
+      "type": "node",
+      "required": false,
+      "description": "Card footer content"
+    },
+    {
+      "name": "bordered",
+      "type": "boolean",
+      "required": false,
+      "description": "Show border",
+      "default": true
+    },
+    {
+      "name": "hoverable",
+      "type": "boolean",
+      "required": false,
+      "description": "Add hover effect",
+      "default": false
+    },
+    {
+      "name": "loading",
+      "type": "boolean",
+      "required": false,
+      "description": "Loading state",
+      "default": false
+    },
+    {
+      "name": "onClick",
+      "type": "function",
+      "required": false,
+      "description": "Click event handler"
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "card",
+    "container",
+    "panel",
+    "content-box",
+    "layout"
+  ],
+  "lightdom:semanticMeaning": "Container card for grouping related content",
+  "lightdom:priority": 1,
+  "lightdom:category": "atom"
+}
