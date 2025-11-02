@@ -378,6 +378,22 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load workflow generator routes:', err);
     });
     
+    // Import and register Chrome Layers routes
+    import('./services/chrome-layers-routes.js').then((layersModule) => {
+      this.app.use('/api/layers', layersModule.default);
+      console.log('Chrome layers routes registered');
+    }).catch(err => {
+      console.error('Failed to load chrome layers routes:', err);
+    });
+    
+    // Import and register Enhanced Training Data routes
+    import('./services/training-data-routes.js').then((trainingModule) => {
+      this.app.use('/api/training-data', trainingModule.default);
+      console.log('Enhanced training data routes registered');
+    }).catch(err => {
+      console.error('Failed to load training data routes:', err);
+    });
+    
     // Import and register AI Layout routes
     import('./api/ai-layout-routes.js').then((aiModule) => {
       this.app.use('/api/ai', aiModule.default);
