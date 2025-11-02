@@ -8,6 +8,7 @@
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,9 +68,14 @@ class DevStarter {
 
   async startFrontend() {
     console.log('🌐 Starting Frontend...');
-    
+    // Prefer the dedicated `frontend` directory if it exists. This allows the
+    // newer React app under `./frontend` to be started instead of the root
+    // vite config when present.
+    const frontendDir = path.join(__dirname, 'frontend');
+    const cwd = fs.existsSync(frontendDir) ? frontendDir : __dirname;
+
     const frontendProcess = spawn('npm', ['run', 'dev'], {
-      cwd: __dirname,
+      cwd,
       stdio: 'inherit',
       shell: true,
       env: { ...process.env, VITE_PORT: '3000' }

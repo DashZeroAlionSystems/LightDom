@@ -2,17 +2,17 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Layout,
   FileText,
   Upload,
   Server,
-  FileContract,
+  FileLock,
   Vote,
   Settings,
   User,
   Brain,
   TrendingUp,
   LogOut,
-  PanelsTopLeft,
   Shield,
   UserCircle,
 } from 'lucide-react';
@@ -59,7 +59,7 @@ export const Navigation: React.FC = () => {
 
   const navLinks = [
     { to: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard' },
-    { to: '/complete-dashboard', icon: <PanelsTopLeft className="w-5 h-5" />, label: 'Complete Dashboard' },
+    { to: '/complete-dashboard', icon: <Layout className="w-5 h-5" />, label: 'Complete Dashboard' },
     { to: '/admin-dashboard', icon: <Shield className="w-5 h-5" />, label: 'Admin Dashboard' },
     { to: '/client-dashboard', icon: <UserCircle className="w-5 h-5" />, label: 'Client Dashboard' },
     { to: '/ai-content', icon: <Brain className="w-5 h-5" />, label: 'AI Content' },
@@ -67,7 +67,7 @@ export const Navigation: React.FC = () => {
     { to: '/files', icon: <FileText className="w-5 h-5" />, label: 'Files' },
     { to: '/upload', icon: <Upload className="w-5 h-5" />, label: 'Upload' },
     { to: '/hosts', icon: <Server className="w-5 h-5" />, label: 'Hosts' },
-    { to: '/contracts', icon: <FileContract className="w-5 h-5" />, label: 'Contracts' },
+    { to: '/contracts', icon: <FileLock className="w-5 h-5" />, label: 'Contracts' },
     { to: '/governance', icon: <Vote className="w-5 h-5" />, label: 'Governance' },
     { to: '/settings', icon: <Settings className="w-5 h-5" />, label: 'Settings' },
     { to: '/profile', icon: <User className="w-5 h-5" />, label: 'Profile' },

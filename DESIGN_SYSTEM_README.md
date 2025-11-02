@@ -4,11 +4,13 @@
 
 ## 🎨 Overview
 
-This design system provides a unified, consistent user experience across the entire LightDom platform. Built with Material Design 3 specifications, it ensures accessibility, responsive design, and optimal performance.
+This design system provides a unified, consistent user experience across the entire LightDom platform. Built with Material Design 3 specifications and atomic design methodology, it ensures accessibility, responsive design, and optimal performance.
 
 ## 📚 Documentation
 
-- **[Research & Guidelines](./docs/research/)** - Comprehensive UI/UX patterns and best practices
+- **[Atomic Design Architecture](./docs/ATOMIC_DESIGN_ARCHITECTURE.md)** - Component hierarchy and organization
+- **[UX Research](./docs/research/DESIGN_SYSTEM_UX_RESEARCH.md)** - IDE-styled design patterns and best practices
+- **[Headless API Research](./HEADLESS_API_RESEARCH.md)** - Building better app structures with Puppeteer
 - **[Implementation Guide](./docs/DESIGN_SYSTEM_IMPLEMENTATION.md)** - Practical examples and code patterns
 - **[Consolidation Plan](./DESIGN_SYSTEM_CONSOLIDATION_PLAN.md)** - Migration strategy from legacy systems
 - **[Quick Reference](./docs/research/design-system-quick-reference.md)** - Cheat sheet for common tasks
@@ -99,6 +101,31 @@ Accessible form input with validation support.
 
 **Variants:** `filled` | `outlined`
 
+#### StatusIndicator
+Dynamic status badges with icons and pulse animation.
+
+```tsx
+<StatusIndicator status="running" pulse />
+<StatusIndicator status="completed" label="Workflow Complete" />
+<StatusIndicator status="error" size="lg" />
+```
+
+**Status Types:** `running` | `paused` | `stopped` | `completed` | `error` | `pending` | `idle`  
+**Sizes:** `sm` | `md` | `lg`  
+**Features:** Animated pulse, custom icons, color-coded
+
+#### ProgressIndicator
+Show progress of tasks and workflows.
+
+```tsx
+<ProgressIndicator value={75} variant="success" showLabel />
+<CircularProgress value={60} size="lg" showValue />
+```
+
+**Variants:** `default` | `success` | `warning` | `error`  
+**Types:** Linear, Circular  
+**Features:** Animated, customizable colors
+
 #### Badge
 Semantic status indicators.
 
@@ -148,6 +175,142 @@ Unified layout for admin and client dashboards.
 - User profile section
 - Dark mode toggle
 - Responsive design
+
+### Workflow Components
+
+#### WorkflowList
+Panel list displaying workflows with controls and stats.
+
+```tsx
+<WorkflowList
+  workflows={workflowData}
+  onPlay={handlePlay}
+  onPause={handlePause}
+  onStop={handleStop}
+  onDelete={handleDelete}
+  onEdit={handleEdit}
+  showQuickStats
+/>
+```
+
+**Features:**
+- Individual workflow items with status
+- Play/Pause/Stop/Delete controls
+- Progress indicators
+- Expandable quick stats accordion
+- Gear icon for editing
+- Real-time status updates
+
+#### WorkflowListItem
+Single workflow item with full controls.
+
+```tsx
+<WorkflowListItem
+  workflow={{
+    id: 'workflow-1',
+    name: 'Data Mining Workflow',
+    status: 'running',
+    currentStep: 3,
+    totalSteps: 5,
+    successRate: 94
+  }}
+  onPlay={handlePlay}
+  showQuickStats
+/>
+```
+
+**Features:**
+- Status indicator with pulse animation
+- Progress bar for running workflows
+- Scheduled/last run metadata
+- Action buttons contextual to status
+- Bottom stats accordion
+
+#### Wizard
+Multi-step wizard for workflow creation.
+
+```tsx
+<Wizard
+  title="Create Workflow"
+  steps={wizardSteps}
+  activeStepId="step1"
+  onStepChange={setActiveStep}
+>
+  <WizardContent stepId="step1">
+    {/* Step 1 content */}
+  </WizardContent>
+  <WizardContent stepId="step2">
+    {/* Step 2 content */}
+  </WizardContent>
+</Wizard>
+```
+
+**Features:**
+- Step navigation with status
+- Progress tracking
+- Contextual step descriptions
+- Flexible content areas
+- Action buttons per step
+
+#### PromptInput
+Claude-inspired AI prompt input.
+
+```tsx
+<PromptInput
+  onSend={handlePromptSend}
+  loading={generating}
+  aiModel="deepseek-r1"
+  supportedModels={['deepseek-r1', 'gpt-4']}
+  maxLength={2000}
+  showExamples
+/>
+```
+
+**Features:**
+- Auto-resizing textarea
+- AI model selector
+- Character counter
+- Example prompts
+- Keyboard shortcuts (Cmd/Ctrl+Enter)
+- Attachment buttons (UI only)
+- Loading states
+
+#### WorkflowPanel
+Container for workflow displays.
+
+```tsx
+<WorkflowPanel
+  title="Active Workflows"
+  description="Currently running"
+  status="info"
+  actions={<Button>View All</Button>}
+>
+  {/* Workflow content */}
+</WorkflowPanel>
+```
+
+**Status Variants:** `default` | `info` | `success` | `warning` | `error`  
+**Emphasis:** `normal` | `elevated` | `subtle`
+
+#### NotImplemented
+Wrapper for features not yet built.
+
+```tsx
+<NotImplemented reason="Scheduling coming soon">
+  <Button>Schedule Workflow</Button>
+</NotImplemented>
+
+<NotImplementedWrapper isImplemented={false}>
+  <FeatureComponent />
+</NotImplementedWrapper>
+```
+
+**Features:**
+- Grays out content
+- Overlay with message
+- Disables interactions
+- Subtle or prominent variants
+- Conditional rendering
 
 ## 🎨 Design Tokens
 

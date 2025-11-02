@@ -90,7 +90,10 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom', 'ethers', 'axios'],
   },
+  // Avoid embedding the entire process.env into the client bundle — only expose specific
+  // variables intentionally via import.meta.env in the frontend code. Setting process.env
+  // to an empty object prevents accidental leakage of secrets.
   define: {
-    'process.env': process.env,
+    'process.env': {},
   },
 });

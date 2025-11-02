@@ -1,6 +1,30 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Wallet, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AuthService } from '@/services/auth';
+
+const sanitizeEmail = (value: string): string => {
+  const trimmed = value.trim().replace(/\s+/g, '');
+  const atIndex = trimmed.indexOf('@');
+
+  if (atIndex === -1) {
+    return trimmed;
+  }
+
+  const localPart = trimmed.slice(0, atIndex);
+  const domainPart = trimmed.slice(atIndex + 1);
+
+  if (!domainPart) {
+    return `${localPart}@`;
+  }
+
+  const normalizedDomain = domainPart
+    .split('.')
+    .filter(segment => segment.length > 0)
+    .join('.');
+
+  return normalizedDomain ? `${localPart}@${normalizedDomain}` : trimmed;
+};
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,18 +38,19 @@ export const LoginPage: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const nextValue = name === 'email' ? sanitizeEmail(value) : value;
+    setFormData(prev => ({ ...prev, [name]: nextValue }));
     // Clear error when user types
     if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
   };
 
-  const validateForm = () => {
+  const validateForm = (emailToValidate: string) => {
     const newErrors: typeof errors = {};
-    if (!formData.email) {
+    if (!emailToValidate) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(emailToValidate)) {
       newErrors.email = 'Email is invalid';
     }
     if (!formData.password) {
@@ -39,21 +64,23 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    const normalizedEmail = sanitizeEmail(formData.email);
+
+    if (normalizedEmail !== formData.email) {
+      setFormData(prev => ({ ...prev, email: normalizedEmail }));
+    }
+
+    if (!validateForm(normalizedEmail)) return;
 
     setIsLoading(true);
     setErrors({});
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // For demo purposes - in production, this would be an actual API call
-      if (formData.email && formData.password) {
-        navigate('/dashboard');
-      }
+      await AuthService.login(normalizedEmail, formData.password);
+      navigate('/admin-dashboard');
     } catch (error) {
-      setErrors({ general: 'Invalid email or password' });
+      const message = error instanceof Error ? error.message : 'Invalid email or password';
+      setErrors({ general: message });
     } finally {
       setIsLoading(false);
     }

@@ -4,6 +4,7 @@ import { ConfigProvider, theme, Spin, Typography } from 'antd';
 import { AuthProvider, useAuth } from './hooks/state/useAuth';
 import { EnhancedAuthProvider } from './contexts/EnhancedAuthContext';
 import { BlockchainProvider } from './hooks/useBlockchain';
+import ModernFrontPage from './components/ModernFrontPage';
 import DashboardLayout from './components/ui/dashboard/DashboardLayout';
 import DashboardOverview from './components/ui/dashboard/DashboardOverview';
 import OptimizationDashboard from './components/ui/dashboard/OptimizationDashboard';
@@ -52,8 +53,10 @@ import MotionDesignShowcase from './components/MotionDesignShowcase';
 import DesignToolsNavigation from './components/DesignToolsNavigation';
 import SchemaLinkingDashboard from './components/SchemaLinkingDashboard';
 import WorkflowCreationDashboard from './components/WorkflowCreationDashboard';
-import ComponentSchemaToolDashboard from './components/ComponentSchemaToolDashboard';
+import ChromeLayers3DDashboard from './components/ChromeLayers3DDashboard';
 import './App.css';
+import './styles/design-system.css';
+import './styles/modern-frontpage.css';
 
 // Initialize persistence system
 import './scripts/InitializePersistence';
@@ -124,7 +127,7 @@ const AppContent: React.FC = () => {
           <Route path="design-tools" element={<DesignToolsNavigation />} />
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
-          <Route path="component-schema" element={<ComponentSchemaToolDashboard />} />
+          <Route path="chrome-layers" element={<ChromeLayers3DDashboard />} />
         </Route>
         
         {/* Protected Routes */}
@@ -179,16 +182,10 @@ const AppContent: React.FC = () => {
           <Route path="admin/seo-workflows" element={<SEOCrawlerWorkflow />} />
         </Route>
         
-        {/* Default Redirect */}
+        {/* Public Landing Page */}
         <Route
           path="/"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard" />
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
+          element={<ModernFrontPage />}
         />
         
         {/* Catch All */}

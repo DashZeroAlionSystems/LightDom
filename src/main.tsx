@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
+import ModernFrontPage from './components/ModernFrontPage';
 import LandingPage from './components/ui/LandingPage';
 import SpaceMiningDashboard from './components/ui/SpaceMiningDashboard';
 import BillingDashboard from './components/ui/BillingDashboard';
@@ -20,8 +21,11 @@ import { EnhancedAuthProvider, useEnhancedAuth } from './contexts/EnhancedAuthCo
 import BackButton from './components/ui/BackButton';
 import EnhancedNavigation from './components/ui/EnhancedNavigation';
 import SEOCrawlerWorkflow from './components/ui/admin/SEOCrawlerWorkflow';
-import './discord-theme.css';
+// Legacy Discord theme removed - the new frontend (in ./frontend) implements the design system.
+// If you're developing locally we redirect to the new frontend dev server at :3000.
 import './index.css';
+import './styles/design-system.css';
+import './styles/modern-frontpage.css';
 
 // Import styles
 import './styles/animations.css';
@@ -70,6 +74,28 @@ const AdminRedirectWrapper: React.FC<{ children: React.ReactNode }> = ({ childre
 };
 
 // Simple routing based on URL path
+// Dev-time redirect: prefer the new frontend dev server when running locally.
+if (typeof window !== 'undefined') {
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (isLocal && location.port !== '3000') {
+    const routeMap: Record<string, string> = {
+      '/admin': '/admin-dashboard',
+      '/admin/seo-workflows': '/admin/seo-workflows',
+      '/dashboard': '/dashboard',
+      '/complete-dashboard': '/complete-dashboard',
+      '/': '/'
+    };
+    const mapped = routeMap[location.pathname] || location.pathname;
+    const target = `http://localhost:3000${mapped}${location.search}${location.hash}`;
+    try {
+      // Redirect to the frontend dev server so the design system UI is used.
+      if (location.port !== '3000') window.location.replace(target);
+    } catch (err) {
+      console.warn('Frontend redirect skipped:', err);
+    }
+  }
+}
+
 const App = () => {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   
@@ -123,33 +149,8 @@ const App = () => {
     };
 
     if (currentPath === '/') {
-      // Show landing page at root
-      return (
-        <div className="min-h-screen bg-background-primary text-text-primary flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-6xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
-              LightDom Platform
-            </h1>
-            <p className="text-xl text-text-secondary mb-8">
-              Exodus-Inspired Web Optimization Platform
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                className="px-8 py-4 bg-gradient-primary rounded-xl font-semibold text-lg hover:shadow-glow transition-all duration-300"
-                onClick={() => setCurrentPath('/login')}
-              >
-                Get Started
-              </button>
-              <button 
-                className="px-8 py-4 bg-surface border border-border rounded-xl font-semibold text-lg hover:bg-surface-hover transition-all duration-300"
-                onClick={() => setCurrentPath('/admin')}
-              >
-                Admin Dashboard
-              </button>
-            </div>
-          </div>
-        </div>
-      );
+      // Show modern landing page at root
+      return <ModernFrontPage onNavigate={setCurrentPath} />;
     } else if (currentPath === '/dashboard') {
       return <DashboardOverview />;
     } else if (currentPath.startsWith('/bridge/')) {
@@ -243,12 +244,12 @@ const App = () => {
   };
 
   return (
-    <div className="discord-app">
+    <div className="app-root">
       {!(currentPath === '/' || currentPath === '/login' || currentPath === '/register') && (
         <EnhancedNavigation currentPath={currentPath} onNavigate={handleNavigate} />
       )}
-      <div className="discord-main">
-        <div className="discord-content discord-scrollbar">
+      <div className="app-main">
+        <div className="app-content content-scroll">
           {renderContent()}
         </div>
       </div>

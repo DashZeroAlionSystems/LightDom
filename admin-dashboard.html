@@ -20,7 +20,7 @@
 
         .dashboard {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 1fr;
             grid-template-rows: auto 1fr;
             height: 100vh;
         }
@@ -34,6 +34,13 @@
             justify-content: space-between;
             align-items: center;
             z-index: 1000;
+        }
+
+        /* Top nav link active state */
+        .top-nav .nav-link.internal.active {
+            background: #16213e;
+            color: #667eea !important;
+            border: 1px solid rgba(102,126,234,0.12);
         }
 
         .logo {
@@ -400,59 +407,19 @@
             </div>
         </header>
 
-        <aside class="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-title">Container</div>
-                <div class="sidebar-item active" data-view="overview">
-                    <span>📊</span>
-                    Overview
-                </div>
-                <div class="sidebar-item" data-view="editor">
-                    <span>⚡</span>
-                    Code Editor
-                </div>
-                <div class="sidebar-item" data-view="preview">
-                    <span>👁️</span>
-                    Live Preview
-                </div>
-                <div class="sidebar-item" data-view="logs">
-                    <span>📋</span>
-                    Logs
-                </div>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-title">Management</div>
-                <div class="sidebar-item" data-view="status">
-                    <span>🔍</span>
-                    System Status
-                </div>
-                <div class="sidebar-item" data-view="restart">
-                    <span>🔄</span>
-                    Restart Container
-                </div>
-                <div class="sidebar-item" data-view="settings">
-                    <span>⚙️</span>
-                    Settings
-                </div>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="sidebar-title">Workflow</div>
-                <div class="sidebar-item" data-view="templates">
-                    <span>📝</span>
-                    Code Templates
-                </div>
-                <div class="sidebar-item" data-view="examples">
-                    <span>💡</span>
-                    Examples
-                </div>
-                <div class="sidebar-item" data-view="export">
-                    <span>💾</span>
-                    Export
-                </div>
-            </div>
-        </aside>
+        <!-- Top navigation (replaces sidebar) -->
+        <nav class="top-nav" style="display:flex;align-items:center;gap:12px;padding:0.5rem 2rem;background:linear-gradient(90deg,#0f172a, #0b1220);border-bottom:1px solid rgba(255,255,255,0.03);">
+            <!-- Internal view toggles -->
+            <a href="#" class="nav-link internal active" data-view="overview" style="color:#ffffff;padding:0.5rem 0.75rem;border-radius:6px;">📊 Overview</a>
+            <a href="#" class="nav-link internal" data-view="editor" style="color:#ffffff;padding:0.5rem 0.75rem;border-radius:6px;">⚡ Code Editor</a>
+            <a href="#" class="nav-link internal" data-view="preview" style="color:#ffffff;padding:0.5rem 0.75rem;border-radius:6px;">👁️ Live Preview</a>
+            <a href="#" class="nav-link internal" data-view="logs" style="color:#ffffff;padding:0.5rem 0.75rem;border-radius:6px;">📋 Logs</a>
+            <!-- External dashboard links -->
+            <div style="flex:1"></div>
+            <a href="/dashboard" class="nav-link" style="color:#a4b0be;padding:0.4rem 0.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.03);">Main Dashboard</a>
+            <a href="/complete-dashboard" class="nav-link" style="color:#a4b0be;padding:0.4rem 0.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.03);">Complete Dashboard</a>
+            <a href="/admin-dashboard" class="nav-link" style="color:#a4b0be;padding:0.4rem 0.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.03);">Admin Home</a>
+        </nav>
 
         <main class="main-content">
             <!-- Overview View -->
@@ -818,7 +785,7 @@ ReactDOM.render(<ChromeReactApp />, document.getElementById('output'));</textare
                         </div>
                     </div>
                     <div class="preview-content">
-                        <iframe id="preview-iframe" src="http://localhost:3001" style="width: 100%; height: 100%; border: none;"></iframe>
+                        <iframe id="preview-iframe" src="http://localhost:3000/admin-dashboard" style="width: 100%; height: 100%; border: none;"></iframe>
                     </div>
                 </div>
             </div>
@@ -906,9 +873,10 @@ ReactDOM.render(<ChromeReactApp />, document.getElementById('output'));</textare
             }
 
             setupEventListeners() {
-                // Navigation
-                document.querySelectorAll('.sidebar-item').forEach(item => {
+                // Navigation (top nav now) - internal view toggles
+                document.querySelectorAll('.nav-link.internal').forEach(item => {
                     item.addEventListener('click', (e) => {
+                        e.preventDefault();
                         this.switchView(e.currentTarget.dataset.view);
                     });
                 });
@@ -959,11 +927,12 @@ ReactDOM.render(<ChromeReactApp />, document.getElementById('output'));</textare
             }
 
             switchView(viewName) {
-                // Update sidebar
-                document.querySelectorAll('.sidebar-item').forEach(item => {
+                // Update top navigation active state
+                document.querySelectorAll('.nav-link.internal').forEach(item => {
                     item.classList.remove('active');
                 });
-                document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
+                const activeNav = document.querySelector(`[data-view="${viewName}"]`);
+                if (activeNav) activeNav.classList.add('active');
 
                 // Show view
                 document.querySelectorAll('.view').forEach(view => {

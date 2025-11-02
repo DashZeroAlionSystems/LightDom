@@ -186,9 +186,10 @@ const StatCard: React.FC<StatCardProps> = ({
 
 interface AdminDashboardProps {
   navigate?: (path: string) => void;
+  onBack?: () => void;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigate, onBack }) => {
   const { isAdmin, loading: authLoading, checkPermission } = useAdminAuth();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');

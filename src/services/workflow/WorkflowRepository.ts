@@ -310,7 +310,7 @@ export class WorkflowRepository {
     if (workflowRes.rowCount === 0) return null;
 
     const [attributesRes, seedsRes] = await Promise.all([
-      pool.query('SELECT * FROM workflow_attributes WHERE workflow_id = $1', [id]),
+      pool.query('SELECT * FROM workflow_attributes WHERE workflow_id = $1 ORDER BY attr_key', [id]),
       pool.query('SELECT * FROM workflow_seeds WHERE workflow_id = $1', [id]),
     ]);
 
@@ -319,6 +319,70 @@ export class WorkflowRepository {
       attributes: attributesRes.rows,
       seeds: seedsRes.rows,
     };
+  }
+
+  async listAttributes(workflowId: string): Promise<WorkflowAttributeRecord[]> {
+    await this.initialize();
+    const pool = await getPool();
+    const { rows } = await pool.query(
+      'SELECT * FROM workflow_attributes WHERE workflow_id = $1 ORDER BY attr_key',
+      [workflowId],
+    );
+    return rows;
+  }
+
+  async upsertAttribute(
+    workflowId: string,
+    attrKey: string,
+    updates: Partial<WorkflowAttributeRecord> & { enrichment_prompt?: string | null },
+  ): Promise<WorkflowAttributeRecord> {
+    await this.initialize();
+    const pool = await getPool();
+
+    const existing = await pool.query(
+      'SELECT * FROM workflow_attributes WHERE workflow_id = $1 AND attr_key = $2',
+      [workflowId, attrKey],
+    );
+
+    const current = existing.rows[0] ?? {};
+    const nextLabel = updates.label ?? current.label ?? attrKey;
+    const nextCategory = updates.category ?? current.category ?? null;
+    const nextDescription = updates.description ?? current.description ?? null;
+    const nextWeight =
+      updates.weight !== undefined ? updates.weight : current.weight ?? null;
+    const nextEnrichment =
+      updates.enrichment_prompt ?? (updates as any).enrichmentPrompt ?? current.enrichment_prompt ?? null;
+
+    if (existing.rowCount) {
+      const { rows } = await pool.query(
+        `UPDATE workflow_attributes
+         SET label = $3,
+             category = $4,
+             description = $5,
+             weight = $6,
+             enrichment_prompt = $7
+         WHERE workflow_id = $1 AND attr_key = $2
+         RETURNING *`,
+        [workflowId, attrKey, nextLabel, nextCategory, nextDescription, nextWeight, nextEnrichment],
+      );
+      return rows[0];
+    }
+
+    const { rows } = await pool.query(
+      `INSERT INTO workflow_attributes (
+         workflow_id,
+         attr_key,
+         label,
+         category,
+         description,
+         weight,
+         enrichment_prompt
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING *`,
+      [workflowId, attrKey, nextLabel, nextCategory, nextDescription, nextWeight, nextEnrichment],
+    );
+
+    return rows[0];
   }
 
   async upsertNeuralNetworkInstance(
@@ -381,6 +445,75 @@ export class WorkflowRepository {
         payload.last_trained_at,
       ],
     );
+
+    const row = rows[0];
+    return {
+      ...row,
+      config: row.config ?? {},
+      metrics: row.metrics ?? {},
+    };
+  }
+
+  async updateNeuralNetworkInstance(
+    id: string,
+    updates: {
+      status?: string;
+      automation_enabled?: boolean;
+      config?: Record<string, any>;
+      metrics?: Record<string, any>;
+      last_trained_at?: string | null;
+      current_version?: string | null;
+    },
+  ): Promise<NeuralNetworkInstanceRecord | null> {
+    await this.initialize();
+    const pool = await getPool();
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (typeof updates.status === 'string') {
+      fields.push(`status = $${fields.length + 1}`);
+      values.push(updates.status);
+    }
+
+    if (typeof updates.automation_enabled === 'boolean') {
+      fields.push(`automation_enabled = $${fields.length + 1}`);
+      values.push(updates.automation_enabled);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(updates, 'config')) {
+      fields.push(`config = $${fields.length + 1}`);
+      values.push(JSON.stringify(updates.config ?? {}));
+    }
+
+    if (Object.prototype.hasOwnProperty.call(updates, 'metrics')) {
+      fields.push(`metrics = $${fields.length + 1}`);
+      values.push(JSON.stringify(updates.metrics ?? {}));
+    }
+
+    if (Object.prototype.hasOwnProperty.call(updates, 'last_trained_at')) {
+      fields.push(`last_trained_at = $${fields.length + 1}`);
+      values.push(updates.last_trained_at ?? null);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(updates, 'current_version')) {
+      fields.push(`current_version = $${fields.length + 1}`);
+      values.push(updates.current_version ?? null);
+    }
+
+    if (!fields.length) {
+      return this.getNeuralNetworkInstance(id);
+    }
+
+    fields.push('updated_at = NOW()');
+
+    values.push(id);
+    const { rows } = await pool.query(
+      `UPDATE neural_network_instances SET ${fields.join(', ')} WHERE id = $${values.length} RETURNING *`,
+      values,
+    );
+
+    if (!rows.length) return null;
 
     const row = rows[0];
     return {
@@ -543,6 +676,412 @@ export class WorkflowRepository {
 
   }
 
+  async listWorkflowAdminSummaries(): Promise<WorkflowAdminSummary[]> {
+    await this.initialize();
+    const pool = await getPool();
+
+    const { rows } = await pool.query(
+      `SELECT
+         wi.id,
+         wi.status,
+         wi.prompt_payload,
+         wi.active_tasks,
+         wi.automation_state,
+         wi.automation_threshold,
+         wi.tf_model_id,
+         wi.created_at,
+         wi.updated_at,
+         w.dataset_name,
+         w.created_by,
+         COALESCE(wi.prompt_payload -> 'owner' ->> 'name', w.created_by) AS owner_name,
+         COALESCE(wi.prompt_payload -> 'owner' ->> 'email', w.created_by) AS owner_email
+       FROM workflow_instances wi
+       LEFT JOIN workflows w ON wi.workflow_id = w.id
+       ORDER BY wi.updated_at DESC NULLS LAST, wi.created_at DESC`,
+    );
+
+    const fallbackId = (prefix: string, position: number) => `${prefix}-${position}`;
+
+    return rows.map((row, index) => {
+      const promptPayload = (row.prompt_payload ?? {}) as Record<string, any>;
+      const automationState = (row.automation_state ?? {}) as Record<string, any>;
+      const tasksRaw = Array.isArray(row.active_tasks) ? (row.active_tasks as any[]) : [];
+      const attributesRaw = Array.isArray(promptPayload.attributes) ? promptPayload.attributes : [];
+
+      const tasks: WorkflowAdminTask[] = tasksRaw.map((task: any, taskIndex: number) => ({
+        id: String(task.id ?? task.taskId ?? fallbackId('task', taskIndex)),
+        label: String(task.label ?? task.name ?? `Task ${taskIndex + 1}`),
+        status: String(task.status ?? 'pending'),
+        description: typeof task.description === 'string' ? task.description : undefined,
+        lastRunAt: task.lastRunAt ? String(task.lastRunAt) : undefined,
+      }));
+
+      const attributes: WorkflowAdminAttribute[] = attributesRaw.map((attribute: any, attrIndex: number) => ({
+        id: String(attribute.id ?? attribute.key ?? fallbackId('attr', attrIndex)),
+        label: String(attribute.label ?? attribute.name ?? `Attribute ${attrIndex + 1}`),
+        type: attribute.type ?? attribute.category ?? null,
+        enrichmentPrompt: attribute.enrichmentPrompt ?? attribute.prompt ?? null,
+        drilldownPrompts: Array.isArray(attribute.drilldownPrompts)
+          ? attribute.drilldownPrompts.map((value: any) => String(value))
+          : [],
+        status: attribute.status ?? undefined,
+      }));
+
+      return {
+        id: String(row.id),
+        campaignName: row.dataset_name ?? promptPayload.campaignName ?? `Workflow ${index + 1}`,
+        ownerName: row.owner_name ?? promptPayload.owner?.name ?? row.created_by ?? 'Unknown owner',
+        ownerEmail: row.owner_email ?? promptPayload.owner?.email ?? 'unknown@example.com',
+        status: row.status ?? 'draft',
+        scriptInjected: Boolean(
+          automationState.scriptInjected ?? promptPayload.scriptInjected ?? false,
+        ),
+        n8nWorkflowId: promptPayload.n8nWorkflowId ?? automationState.n8nWorkflowId ?? null,
+        tensorflowInstanceId: row.tf_model_id ?? automationState.tfModelId ?? null,
+        seoScore: promptPayload.seoScore ?? automationState.seoScore ?? null,
+        automationThreshold: row.automation_threshold ?? automationState.threshold ?? null,
+        pendingAutomation: Boolean(
+          automationState.pendingAutomation ?? automationState.pending ?? false,
+        ),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at ?? row.created_at,
+        tasks,
+        attributes,
+      };
+    });
+  }
+
+  async listNeuralNetworkInstances(options: { workflowId?: string; includeMetrics?: boolean } = {}): Promise<NeuralNetworkInstanceRecord[]> {
+    await this.initialize();
+    const pool = await getPool();
+
+    const conditions: string[] = [];
+    const values: any[] = [];
+
+    if (options.workflowId) {
+      conditions.push('workflow_id = $1');
+      values.push(options.workflowId);
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const { rows } = await pool.query(
+      `SELECT * FROM neural_network_instances ${whereClause} ORDER BY updated_at DESC NULLS LAST, created_at DESC`,
+      values,
+    );
+
+    return rows.map((row) => ({
+      ...row,
+      config: row.config ?? {},
+      metrics: options.includeMetrics ? row.metrics ?? {} : {},
+    }));
+  }
+
+  async getNeuralNetworkInstance(id: string): Promise<NeuralNetworkInstanceRecord | null> {
+    await this.initialize();
+    const pool = await getPool();
+    const { rows } = await pool.query('SELECT * FROM neural_network_instances WHERE id = $1', [id]);
+    if (!rows.length) return null;
+    const row = rows[0];
+    return {
+      ...row,
+      config: row.config ?? {},
+      metrics: row.metrics ?? {},
+    };
+  }
+
+  async recordNeuralTrainingRun(
+    instanceId: string,
+    payload: Partial<NeuralTrainingRunRecord> & { status: string },
+  ): Promise<NeuralTrainingRunRecord> {
+    await this.initialize();
+    const pool = await getPool();
+
+    const { rows } = await pool.query(
+      `INSERT INTO neural_training_runs (
+         neural_instance_id,
+         training_job_id,
+         workflow_run_id,
+         status,
+         dataset_overview,
+         hyperparameters,
+         metrics,
+         notes,
+         started_at,
+         completed_at
+       ) VALUES (
+         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
+       ) RETURNING *`,
+      [
+        instanceId,
+        payload.training_job_id ?? null,
+        payload.workflow_run_id ?? null,
+        payload.status,
+        JSON.stringify(payload.dataset_overview ?? {}),
+        JSON.stringify(payload.hyperparameters ?? {}),
+        JSON.stringify(payload.metrics ?? {}),
+        payload.notes ?? null,
+        payload.started_at ?? new Date().toISOString(),
+        payload.completed_at ?? null,
+      ],
+    );
+
+    const row = rows[0];
+    return {
+      ...row,
+      dataset_overview: row.dataset_overview ?? {},
+      hyperparameters: row.hyperparameters ?? {},
+      metrics: row.metrics ?? {},
+    };
+  }
+
+  async updateNeuralTrainingRun(runId: string, updates: Partial<NeuralTrainingRunRecord>): Promise<void> {
+    await this.initialize();
+    const pool = await getPool();
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (updates.status) {
+      fields.push(`status = $${fields.length + 1}`);
+      values.push(updates.status);
+    }
+    if (updates.dataset_overview) {
+      fields.push(`dataset_overview = $${fields.length + 1}`);
+      values.push(JSON.stringify(updates.dataset_overview));
+    }
+    if (updates.hyperparameters) {
+      fields.push(`hyperparameters = $${fields.length + 1}`);
+      values.push(JSON.stringify(updates.hyperparameters));
+    }
+    if (updates.metrics) {
+      fields.push(`metrics = $${fields.length + 1}`);
+      values.push(JSON.stringify(updates.metrics));
+    }
+    if (updates.notes !== undefined) {
+      fields.push(`notes = $${fields.length + 1}`);
+      values.push(updates.notes);
+    }
+    if (updates.started_at) {
+      fields.push(`started_at = $${fields.length + 1}`);
+      values.push(updates.started_at);
+    }
+    if (updates.completed_at) {
+      fields.push(`completed_at = $${fields.length + 1}`);
+      values.push(updates.completed_at);
+    }
+
+    if (!fields.length) return;
+
+    values.push(runId);
+    await pool.query(
+      `UPDATE neural_training_runs SET ${fields.join(', ')} WHERE id = $${fields.length + 1}`,
+      values,
+    );
+  }
+
+  async listNeuralTrainingRuns(instanceId: string): Promise<NeuralTrainingRunRecord[]> {
+    await this.initialize();
+    const pool = await getPool();
+    const { rows } = await pool.query(
+      `SELECT * FROM neural_training_runs WHERE neural_instance_id = $1 ORDER BY started_at DESC NULLS LAST`,
+      [instanceId],
+    );
+
+    return rows.map((row) => ({
+      ...row,
+      dataset_overview: row.dataset_overview ?? {},
+      hyperparameters: row.hyperparameters ?? {},
+      metrics: row.metrics ?? {},
+    }));
+  }
+
+  async recordNeuralSchemaVersion(
+    instanceId: string,
+    payload: Omit<NeuralTrainingSchemaVersionRecord, 'id' | 'neural_instance_id' | 'created_at'>,
+  ): Promise<NeuralTrainingSchemaVersionRecord> {
+    await this.initialize();
+    const pool = await getPool();
+
+    const { rows } = await pool.query(
+      `INSERT INTO neural_training_schema_versions (
+         neural_instance_id,
+         version,
+         schema_snapshot,
+         attributes,
+         discovered_links
+       ) VALUES ($1,$2,$3,$4,$5)
+       ON CONFLICT (neural_instance_id, version)
+       DO UPDATE SET
+         schema_snapshot = EXCLUDED.schema_snapshot,
+         attributes = EXCLUDED.attributes,
+         discovered_links = EXCLUDED.discovered_links
+       RETURNING *`,
+      [
+        instanceId,
+        payload.version,
+        JSON.stringify(payload.schema_snapshot ?? {}),
+        JSON.stringify(payload.attributes ?? []),
+        JSON.stringify(payload.discovered_links ?? []),
+      ],
+    );
+
+    const row = rows[0];
+    return {
+      ...row,
+      schema_snapshot: row.schema_snapshot ?? {},
+      attributes: row.attributes ?? [],
+      discovered_links: row.discovered_links ?? [],
+    };
+  }
+
+  async listNeuralSchemaVersions(instanceId: string): Promise<NeuralTrainingSchemaVersionRecord[]> {
+    await this.initialize();
+    const pool = await getPool();
+    const { rows } = await pool.query(
+      `SELECT * FROM neural_training_schema_versions WHERE neural_instance_id = $1 ORDER BY version DESC`,
+      [instanceId],
+    );
+
+    return rows.map((row) => ({
+      ...row,
+      schema_snapshot: row.schema_snapshot ?? {},
+      attributes: row.attributes ?? [],
+      discovered_links: row.discovered_links ?? [],
+    }));
+  }
+
+  async listNeuralSchemaLinks(workflowId: string): Promise<NeuralSchemaLinkRecord[]> {
+    await this.initialize();
+    const pool = await getPool();
+    const { rows } = await pool.query(
+      `SELECT * FROM neural_schema_links WHERE workflow_id = $1 ORDER BY discovered_at DESC`,
+      [workflowId],
+    );
+    return rows.map((row) => ({
+      ...row,
+      relation: row.relation ?? {},
+      metadata: row.metadata ?? {},
+    }));
+  }
+
+  async upsertNeuralSchemaLink(link: {
+    workflowId: string;
+    sourceType: string;
+    sourceId?: string | null;
+    schemaUri: string;
+    relation?: Record<string, any>;
+    confidence?: number | null;
+    metadata?: Record<string, any>;
+  }): Promise<NeuralSchemaLinkRecord> {
+    await this.initialize();
+    const pool = await getPool();
+
+    const { rows } = await pool.query(
+      `INSERT INTO neural_schema_links (
+         workflow_id,
+         source_type,
+         source_id,
+         schema_uri,
+         relation,
+         confidence,
+         metadata
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7)
+       ON CONFLICT (workflow_id, source_type, source_id, schema_uri)
+       DO UPDATE SET
+         relation = EXCLUDED.relation,
+         confidence = EXCLUDED.confidence,
+         metadata = EXCLUDED.metadata,
+         discovered_at = NOW()
+       RETURNING *`,
+      [
+        link.workflowId,
+        link.sourceType,
+        link.sourceId ?? null,
+        link.schemaUri,
+        JSON.stringify(link.relation ?? {}),
+        link.confidence ?? 0.8,
+        JSON.stringify(link.metadata ?? {}),
+      ],
+    );
+
+    const row = rows[0];
+    return {
+      ...row,
+      relation: row.relation ?? {},
+      metadata: row.metadata ?? {},
+    };
+  }
+
+  async listNeuralAttributeSuggestions(workflowId: string): Promise<NeuralAttributeSuggestionRecord[]> {
+    await this.initialize();
+    const pool = await getPool();
+    const { rows } = await pool.query(
+      `SELECT * FROM neural_attribute_suggestions WHERE workflow_id = $1 ORDER BY created_at DESC`,
+      [workflowId],
+    );
+    return rows.map((row) => ({
+      ...row,
+      suggestion: row.suggestion ?? {},
+    }));
+  }
+
+  async createNeuralAttributeSuggestion(payload: {
+    workflowId: string;
+    suggestion: Record<string, any>;
+    confidence?: number | null;
+  }): Promise<NeuralAttributeSuggestionRecord> {
+    await this.initialize();
+    const pool = await getPool();
+    const { rows } = await pool.query(
+      `INSERT INTO neural_attribute_suggestions (
+         workflow_id,
+         suggestion,
+         confidence
+       ) VALUES ($1,$2,$3) RETURNING *`,
+      [
+        payload.workflowId,
+        JSON.stringify(payload.suggestion ?? {}),
+        payload.confidence ?? 0.75,
+      ],
+    );
+
+    const row = rows[0];
+    return {
+      ...row,
+      suggestion: row.suggestion ?? {},
+    };
+  }
+
+  async markNeuralAttributeSuggestion(
+    suggestionId: string,
+    updates: { status?: string; appliedAttributeId?: string | null },
+  ): Promise<void> {
+    await this.initialize();
+    const pool = await getPool();
+
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    if (updates.status) {
+      fields.push(`status = $${fields.length + 1}`);
+      values.push(updates.status);
+    }
+    if (updates.appliedAttributeId !== undefined) {
+      fields.push(`applied_attribute_id = $${fields.length + 1}`);
+      values.push(updates.appliedAttributeId ?? null);
+      fields.push(`applied_at = $${fields.length + 1}`);
+      values.push(updates.appliedAttributeId ? new Date().toISOString() : null);
+    }
+
+    if (!fields.length) return;
+
+    values.push(suggestionId);
+    await pool.query(
+      `UPDATE neural_attribute_suggestions SET ${fields.join(', ')} WHERE id = $${fields.length + 1}`,
+      values,
+    );
+  }
+
   async listTfBaseModels(): Promise<TfBaseModelRecord[]> {
     await this.initialize();
     const pool = await getPool();
@@ -550,51 +1089,14 @@ export class WorkflowRepository {
       'SELECT * FROM tf_base_models ORDER BY updated_at DESC NULLS LAST, created_at DESC',
     );
 
-    const fallbackId = (prefix: string, seed: string | number) => `${prefix}-${seed}`;
-
-    return rows.map((row) => {
-      const promptPayload = (row.prompt_payload ?? {}) as Record<string, any>;
-      const automationState = (row.automation_state ?? {}) as Record<string, any>;
-      const owner = promptPayload.owner ?? {};
-      const tasksRaw = Array.isArray(row.active_tasks) ? (row.active_tasks as any[]) : [];
-      const attributesRaw = Array.isArray(promptPayload.attributes)
-        ? (promptPayload.attributes as any[])
-        : [];
-
-      const tasks: WorkflowAdminTask[] = tasksRaw.map((task) => ({
-        id: String(task.id ?? task.taskId ?? fallbackId('task', task.label ?? Math.random().toString(36).slice(2))),
-        label: String(task.label ?? task.name ?? 'Task'),
-        status: String(task.status ?? 'pending'),
-        description: task.description ? String(task.description) : undefined,
-        lastRunAt: task.lastRunAt ? String(task.lastRunAt) : undefined,
-      }));
-
-      const attributes: WorkflowAdminAttribute[] = attributesRaw.map((attribute: any) => ({
-        id: String(
-          attribute.id
-            ?? attribute.key
-            ?? fallbackId('attr', attribute.label ?? Math.random().toString(36).slice(2)),
-        ),
-        label: String(attribute.label ?? attribute.name ?? 'Attribute'),
-        type: attribute.type ?? attribute.category ?? null,
-        enrichmentPrompt: attribute.enrichmentPrompt ?? attribute.prompt ?? null,
-        drilldownPrompts: Array.isArray(attribute.drilldownPrompts)
-          ? attribute.drilldownPrompts.map((value: any) => String(value))
-          : [],
-      }));
-
-      return {
-        id: String(row.id),
-        name: String(row.name),
-        description: row.description,
-        tasks,
-        attributes,
-        owner: owner.name ?? owner.email ?? null,
-      } satisfies WorkflowAdminSummary;
-    });
+    return rows.map((row) => ({
+      ...row,
+      feature_schema: row.feature_schema ?? {},
+      last_validated_metrics: row.last_validated_metrics ?? {},
+    }));
   }
-  
-    async applyBlueprint(workflowId: string, blueprint: WorkflowBlueprint) {
+
+  async applyBlueprint(workflowId: string, blueprint: WorkflowBlueprint) {
     const pool = await getPool();
     const client = await pool.connect();
 

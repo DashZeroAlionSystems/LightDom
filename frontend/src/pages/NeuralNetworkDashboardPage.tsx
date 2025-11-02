@@ -351,7 +351,7 @@ export const NeuralNetworkDashboardPage: React.FC = () => {
                     </button>
                   </div>
 
-                  {selectedWorkflow && (
+                  {selectedWorkflow ? (
                     <div className="rounded-2xl border border-outline bg-surface p-4 space-y-4">
                       <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 ${schemaDisplayMeta[selectedWorkflow?.schemaKey ?? '']?.accent ?? 'bg-primary-container text-on-primary-container'}`}>
                         {schemaDisplayMeta[selectedWorkflow?.schemaKey ?? '']?.icon}
@@ -406,11 +406,15 @@ export const NeuralNetworkDashboardPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
+                  ) : (
+                    <div className="rounded-3xl border border-outline-dim bg-surface-variant/30 p-6 text-center text-on-surface-variant">
+                      <p className="md3-body-medium">Select a workflow to view prompt configuration.</p>
+                    </div>
                   )}
                 </div>
 
                 <div className="space-y-4">
-                  {workflowConfig ? (
+                  {selectedWorkflow ? (
                     <>
                       <div className="rounded-3xl border border-outline bg-surface p-6 space-y-4">
                         <div className="flex items-center justify-between">

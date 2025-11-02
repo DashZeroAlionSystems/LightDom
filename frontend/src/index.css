@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Minimal design-system CSS — this file uses Tailwind for utilities but also
+  relies on CSS variables for theming. We avoid using @apply with custom
+  color utilities that reference CSS variables, and instead set colors
+  directly using the variables so Tailwind/PostCSS doesn't need to resolve
+  them at build-time. */
 @layer base {
   :root {
     /* Exodus-inspired dark theme */
@@ -60,141 +65,255 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+    /* Set a sensible default border color using the CSS variable. Using
+       a direct CSS property here avoids Tailwind @apply errors when the
+       utility isn't recognized during PostCSS processing. */
+    * {
+      border-color: hsl(var(--border));
+    }
   body {
-    @apply bg-background text-foreground;
+    /* Don't use @apply for custom color utilities — apply CSS vars directly */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem; /* rounded-md */
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500; /* font-medium */
+    transition: background-color 0.2s ease, color 0.2s ease;
+    outline: none;
+  }
+  .btn:focus-visible {
+    box-shadow: 0 0 0 2px hsl(var(--ring));
+  }
+  .btn:disabled {
+    pointer-events: none;
+    opacity: 0.5;
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+  .btn-primary:hover {
+    filter: brightness(0.92);
   }
 
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+  }
+  .btn-secondary:hover {
+    filter: brightness(0.95);
   }
 
   .btn-destructive {
-    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
+    background-color: hsl(var(--destructive));
+    color: hsl(var(--destructive-foreground));
+  }
+  .btn-destructive:hover {
+    filter: brightness(0.92);
   }
 
   .btn-outline {
-    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+    border: 1px solid hsl(var(--input));
+    background-color: hsl(var(--background));
+  }
+  .btn-outline:hover {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
   }
 
-  .btn-ghost {
-    @apply hover:bg-accent hover:text-accent-foreground;
+  .btn-ghost:hover {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
   }
 
   .btn-link {
-    @apply text-primary underline-offset-4 hover:underline;
+    color: hsl(var(--primary));
+    text-underline-offset: 4px;
+  }
+  .btn-link:hover {
+    text-decoration: underline;
   }
 
   .btn-sm {
-    @apply h-9 rounded-md px-3;
+    height: 2.25rem; /* h-9 */
+    border-radius: 0.375rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
 
   .btn-lg {
-    @apply h-11 rounded-md px-8;
+    height: 2.75rem; /* h-11 */
+    border-radius: 0.375rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 
   .btn-icon {
-    @apply h-10 w-10;
+    height: 2.5rem; /* h-10 */
+    width: 2.5rem;
   }
 
   .card {
-    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* shadow-sm (approx) */
+    border: 1px solid hsl(var(--border));
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
   }
 
   .card-header {
-    @apply flex flex-col space-y-1.5 p-6;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem; /* space-y-1.5 */
+    padding: 1.5rem; /* p-6 */
   }
 
   .card-title {
-    @apply text-2xl font-semibold leading-none tracking-tight;
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 600; /* font-semibold */
+    line-height: 1; /* leading-none */
+    letter-spacing: -0.02em; /* tracking-tight (approx) */
   }
 
   .card-description {
-    @apply text-sm text-muted-foreground;
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
   }
 
   .card-content {
-    @apply p-6 pt-0;
+    padding: 1.5rem;
+    padding-top: 0;
   }
 
   .card-footer {
-    @apply flex items-center p-6 pt-0;
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    padding-top: 0;
   }
 
   .input {
-    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    display: flex;
+    height: 2.5rem;
+    width: 100%;
+    border-radius: 0.375rem;
+    border: 1px solid hsl(var(--input));
+    background-color: hsl(var(--background));
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  .input::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+  .input:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--ring));
   }
 
   .label {
-    @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1;
   }
 
   .badge {
-    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 600; /* font-semibold */
+    transition: background-color 0.2s ease, color 0.2s ease;
+    border: 1px solid hsl(var(--border));
   }
 
   .badge-default {
-    @apply border-transparent bg-primary text-primary-foreground hover:bg-primary/80;
+    border-color: transparent;
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
   }
 
   .badge-secondary {
-    @apply border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    border-color: transparent;
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
   }
 
   .badge-destructive {
-    @apply border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80;
+    border-color: transparent;
+    background-color: hsl(var(--destructive));
+    color: hsl(var(--destructive-foreground));
   }
 
   .badge-outline {
-    @apply text-foreground;
+    color: hsl(var(--foreground));
   }
 
   .alert {
-    @apply relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground;
+    position: relative;
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid hsl(var(--border));
+    padding: 1rem;
   }
+  .alert > svg ~ * { padding-left: 1.75rem; }
+  .alert > svg + div { transform: translateY(-3px); }
+  .alert > svg { position: absolute; left: 1rem; top: 1rem; color: hsl(var(--foreground)); }
 
   .alert-default {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 
   .alert-destructive {
-    @apply border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive;
+    border-color: hsl(var(--destructive) / 0.5);
+    color: hsl(var(--destructive));
   }
 
   .progress {
-    @apply relative h-4 w-full overflow-hidden rounded-full bg-secondary;
+    position: relative;
+    height: 1rem;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 9999px;
+    background-color: hsl(var(--secondary));
   }
 
   .progress-indicator {
-    @apply h-full w-full flex-1 bg-primary transition-all;
+    height: 100%;
+    width: 100%;
+    background-color: hsl(var(--primary));
+    transition: all 0.2s ease;
   }
 
   .skeleton {
-    @apply animate-pulse rounded-md bg-muted;
+    border-radius: 0.375rem;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    background-color: hsl(var(--muted));
   }
 
   .separator {
-    @apply shrink-0 bg-border;
+    flex-shrink: 0;
+    background-color: hsl(var(--border));
   }
 
   .separator-horizontal {
-    @apply h-[1px] w-full;
+    height: 1px;
+    width: 100%;
   }
 
   .separator-vertical {
-    @apply h-full w-[1px];
+    height: 100%;
+    width: 1px;
   }
 
   .scrollbar-hide {
