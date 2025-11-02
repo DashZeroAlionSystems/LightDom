@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
+import ModernFrontPage from './components/ModernFrontPage';
 import LandingPage from './components/ui/LandingPage';
 import SpaceMiningDashboard from './components/ui/SpaceMiningDashboard';
 import BillingDashboard from './components/ui/BillingDashboard';
@@ -23,6 +24,8 @@ import SEOCrawlerWorkflow from './components/ui/admin/SEOCrawlerWorkflow';
 // Legacy Discord theme removed - the new frontend (in ./frontend) implements the design system.
 // If you're developing locally we redirect to the new frontend dev server at :3000.
 import './index.css';
+import './styles/design-system.css';
+import './styles/modern-frontpage.css';
 
 // Import styles
 import './styles/animations.css';
@@ -146,33 +149,8 @@ const App = () => {
     };
 
     if (currentPath === '/') {
-      // Show landing page at root
-      return (
-        <div className="min-h-screen bg-background-primary text-text-primary flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-6xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
-              LightDom Platform
-            </h1>
-            <p className="text-xl text-text-secondary mb-8">
-              Exodus-Inspired Web Optimization Platform
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                className="px-8 py-4 bg-gradient-primary rounded-xl font-semibold text-lg hover:shadow-glow transition-all duration-300"
-                onClick={() => setCurrentPath('/login')}
-              >
-                Get Started
-              </button>
-              <button 
-                className="px-8 py-4 bg-surface border border-border rounded-xl font-semibold text-lg hover:bg-surface-hover transition-all duration-300"
-                onClick={() => setCurrentPath('/admin')}
-              >
-                Admin Dashboard
-              </button>
-            </div>
-          </div>
-        </div>
-      );
+      // Show modern landing page at root
+      return <ModernFrontPage onNavigate={setCurrentPath} />;
     } else if (currentPath === '/dashboard') {
       return <DashboardOverview />;
     } else if (currentPath.startsWith('/bridge/')) {
