@@ -7,6 +7,7 @@ import React from 'react';
 import { Card, CardHeader } from '../atoms/Card';
 import { Text } from '../atoms/Typography';
 import { StatusBadge } from '../atoms/Badge';
+import { cn } from '@/lib/utils';
 
 export interface InfoPanelProps {
   title: string;
@@ -97,7 +98,3 @@ export const DetailRow = React.forwardRef<HTMLDivElement, DetailRowProps>(
 );
 
 DetailRow.displayName = 'DetailRow';
-
-function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ');
-}

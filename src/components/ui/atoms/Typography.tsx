@@ -36,12 +36,17 @@ const headingVariants = cva(
 export interface HeadingProps
   extends React.HTMLAttributes<HTMLHeadingElement>,
     VariantProps<typeof headingVariants> {
+  /**
+   * Override the semantic HTML element while preserving visual styling.
+   * Use with caution: ensure the override maintains proper document outline and accessibility.
+   * For example: level="h2" as="h3" renders an h3 that looks like h2.
+   */
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 }
 
 export const Heading = React.forwardRef<HTMLHeadingElement, HeadingProps>(
   ({ className, level = 'h2', weight, as, children, ...props }, ref) => {
-    const Component = as || level;
+    const Component = (as || level) as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
     
     return (
       <Component
@@ -108,7 +113,7 @@ export interface TextProps
 
 export const Text = React.forwardRef<HTMLParagraphElement, TextProps>(
   ({ className, size, weight, color, align, as = 'p', children, ...props }, ref) => {
-    const Component = as;
+    const Component = as as 'p' | 'span' | 'div' | 'label';
     
     return (
       <Component
