@@ -34,8 +34,10 @@ import {
   SyncOutlined,
   EyeOutlined,
   SettingOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  AppstoreOutlined
 } from '@ant-design/icons';
+import { ComponentLibraryBrowser } from './ComponentLibraryBrowser';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -523,6 +525,10 @@ export const OllamaN8nDashboard: React.FC = () => {
                 </Col>
               </Row>
             </TabPane>
+
+            <TabPane tab={<span><AppstoreOutlined /> Component Library</span>} key="library">
+              <ComponentLibraryBrowser />
+            </TabPane>
           </Tabs>
         </Card>
 
@@ -540,6 +546,9 @@ export const OllamaN8nDashboard: React.FC = () => {
             </Button>
             <Button icon={<MonitorOutlined />} onClick={() => setActiveTab('monitor')}>
               Monitor Workflows
+            </Button>
+            <Button icon={<AppstoreOutlined />} onClick={() => setActiveTab('library')}>
+              Component Library
             </Button>
             <Button icon={<SettingOutlined />}>Settings</Button>
           </Space>
