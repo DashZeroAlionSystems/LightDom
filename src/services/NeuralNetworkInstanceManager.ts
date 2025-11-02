@@ -345,6 +345,13 @@ export class NeuralNetworkInstanceManager extends EventEmitter {
   }
 
   /**
+   * Get all instances (public method for API access)
+   */
+  getAllInstances(): NeuralNetworkInstance[] {
+    return Array.from(this.instances.values());
+  }
+
+  /**
    * Delete an instance
    */
   async deleteInstance(instanceId: string): Promise<void> {
@@ -370,9 +377,20 @@ export class NeuralNetworkInstanceManager extends EventEmitter {
    */
   private async loadTrainingData(instance: NeuralNetworkInstance): Promise<any[]> {
     if (instance.dataConfig.source === 'database') {
-      // Query with client isolation
-      const query = instance.dataConfig.dataPath;
-      const result = await this.dbPool.query(query);
+      // Use parameterized query to prevent SQL injection
+      // The dataPath should be a table name, not a full query for security
+      const query = `
+        SELECT * FROM training_data 
+        WHERE client_id = $1 AND model_type = $2
+        ORDER BY created_at DESC
+        LIMIT $3
+      `;
+      const maxDataPoints = instance.dataConfig.maxDataPoints || 100000;
+      const result = await this.dbPool.query(query, [
+        instance.clientId,
+        instance.modelType,
+        maxDataPoints
+      ]);
       return result.rows;
     }
     

@@ -92,10 +92,13 @@
         "isolation": {
           "type": "string",
           "enum": ["strict", "shared", "federated"],
-          "default": "strict"
+          "default": "strict",
+          "description": "Data isolation strategy - strict uses parameterized queries for security"
         },
-        "dataPath": {
-          "type": "string"
+        "tableName": {
+          "type": "string",
+          "description": "Table name for database source (used with parameterized queries)",
+          "examples": ["training_data", "ml_datasets"]
         },
         "minDataPoints": {
           "type": "integer",

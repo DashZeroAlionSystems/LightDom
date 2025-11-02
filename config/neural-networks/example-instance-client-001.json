@@ -15,7 +15,7 @@
   "dataConfig": {
     "source": "database",
     "isolation": "strict",
-    "dataPath": "SELECT * FROM training_data WHERE client_id = 'client-001' AND model_type = 'seo_optimization'",
+    "tableName": "training_data",
     "minDataPoints": 5000
   },
   "metadata": {

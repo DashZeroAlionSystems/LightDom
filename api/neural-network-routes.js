@@ -22,7 +22,7 @@ export function createNeuralNetworkRoutes(dbPool: Pool): Router {
     try {
       const { clientId, modelType, status } = req.query;
       
-      let instances = Array.from(manager['instances'].values());
+      let instances = manager.getAllInstances();
       
       // Filter by clientId
       if (clientId) {
@@ -207,7 +207,7 @@ export function createNeuralNetworkRoutes(dbPool: Pool): Router {
    */
   router.get('/stats', async (req, res) => {
     try {
-      const instances = Array.from(manager['instances'].values());
+      const instances = manager.getAllInstances();
       
       const stats = {
         total: instances.length,

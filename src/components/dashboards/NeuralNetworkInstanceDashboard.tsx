@@ -212,14 +212,17 @@ export const NeuralNetworkInstanceDashboard: React.FC = () => {
       title: 'Performance',
       key: 'performance',
       render: (_: any, record: NeuralNetworkInstance) => {
-        if (!record.performance) return <Text type="secondary">Not trained</Text>;
+        if (!record.performance || record.performance.accuracy == null) {
+          return <Text type="secondary">Not trained</Text>;
+        }
+        const accuracy = record.performance.accuracy * 100;
         return (
           <Space direction="vertical" size="small">
-            <Text>Accuracy: {(record.performance.accuracy * 100).toFixed(2)}%</Text>
+            <Text>Accuracy: {accuracy.toFixed(2)}%</Text>
             <Progress
-              percent={record.performance.accuracy * 100}
+              percent={accuracy}
               size="small"
-              status={record.performance.accuracy > 0.8 ? 'success' : 'normal'}
+              status={accuracy > 80 ? 'success' : 'normal'}
             />
           </Space>
         );
@@ -463,7 +466,7 @@ export const NeuralNetworkInstanceDashboard: React.FC = () => {
                     <Card>
                       <Statistic
                         title="Accuracy"
-                        value={selectedInstance.performance.accuracy * 100}
+                        value={(selectedInstance.performance.accuracy ?? 0) * 100}
                         precision={2}
                         suffix="%"
                         prefix={<LineChartOutlined />}
@@ -474,7 +477,7 @@ export const NeuralNetworkInstanceDashboard: React.FC = () => {
                     <Card>
                       <Statistic
                         title="Validation Accuracy"
-                        value={selectedInstance.performance.validationAccuracy * 100}
+                        value={(selectedInstance.performance.validationAccuracy ?? 0) * 100}
                         precision={2}
                         suffix="%"
                       />
@@ -484,7 +487,7 @@ export const NeuralNetworkInstanceDashboard: React.FC = () => {
                     <Card>
                       <Statistic
                         title="Training Time"
-                        value={selectedInstance.performance.trainingTime / 1000}
+                        value={(selectedInstance.performance.trainingTime ?? 0) / 1000}
                         precision={2}
                         suffix="sec"
                       />
@@ -494,7 +497,7 @@ export const NeuralNetworkInstanceDashboard: React.FC = () => {
                     <Card>
                       <Statistic
                         title="Predictions Made"
-                        value={selectedInstance.performance.predictionCount || 0}
+                        value={selectedInstance.performance.predictionCount ?? 0}
                       />
                     </Card>
                   </Col>
