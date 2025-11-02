@@ -1,0 +1,164 @@
+{
+  "name": "Example SEO Article Mining",
+  "subject": "seo-articles",
+  "description": "Mine SEO articles and blog posts for training data on content optimization",
+  "seedUrls": [
+    "https://moz.com/blog",
+    "https://searchengineland.com",
+    "https://www.searchenginejournal.com"
+  ],
+  "attributes": [
+    {
+      "name": "article_title",
+      "selector": "h1.article-title, h1.entry-title, article h1",
+      "priority": 10,
+      "schemaVersion": "1.0.0",
+      "dataType": "text",
+      "validation": {
+        "required": true,
+        "minLength": 10,
+        "maxLength": 200
+      }
+    },
+    {
+      "name": "meta_description",
+      "selector": "meta[name='description']",
+      "priority": 9,
+      "schemaVersion": "1.0.0",
+      "dataType": "text",
+      "validation": {
+        "required": false,
+        "maxLength": 300
+      }
+    },
+    {
+      "name": "author",
+      "selector": ".author-name, [rel='author'], .byline",
+      "priority": 7,
+      "schemaVersion": "1.0.0",
+      "dataType": "text",
+      "validation": {
+        "required": false
+      }
+    },
+    {
+      "name": "publish_date",
+      "selector": "time[datetime], .publish-date, .entry-date",
+      "priority": 8,
+      "schemaVersion": "1.0.0",
+      "dataType": "date",
+      "validation": {
+        "required": false
+      }
+    },
+    {
+      "name": "article_content",
+      "selector": "article .content, .entry-content, .article-body",
+      "priority": 10,
+      "schemaVersion": "1.0.0",
+      "dataType": "text",
+      "validation": {
+        "required": true,
+        "minLength": 100
+      }
+    },
+    {
+      "name": "headings",
+      "selector": "article h2, article h3, .content h2, .content h3",
+      "priority": 8,
+      "schemaVersion": "1.0.0",
+      "dataType": "text",
+      "validation": {
+        "required": false
+      }
+    },
+    {
+      "name": "keywords",
+      "selector": "meta[name='keywords']",
+      "priority": 6,
+      "schemaVersion": "1.0.0",
+      "dataType": "text",
+      "validation": {
+        "required": false
+      }
+    },
+    {
+      "name": "images",
+      "selector": "article img, .content img",
+      "priority": 5,
+      "schemaVersion": "1.0.0",
+      "dataType": "image",
+      "validation": {
+        "required": false
+      }
+    },
+    {
+      "name": "internal_links",
+      "selector": "article a[href^='/'], .content a[href^='/']",
+      "priority": 6,
+      "schemaVersion": "1.0.0",
+      "dataType": "url",
+      "validation": {
+        "required": false
+      }
+    },
+    {
+      "name": "external_links",
+      "selector": "article a[href^='http'], .content a[href^='http']",
+      "priority": 5,
+      "schemaVersion": "1.0.0",
+      "dataType": "url",
+      "validation": {
+        "required": false
+      }
+    },
+    {
+      "name": "social_shares",
+      "selector": ".share-count, .social-shares",
+      "priority": 4,
+      "schemaVersion": "1.0.0",
+      "dataType": "number",
+      "validation": {
+        "required": false
+      }
+    },
+    {
+      "name": "comments_count",
+      "selector": ".comment-count, .comments-count",
+      "priority": 3,
+      "schemaVersion": "1.0.0",
+      "dataType": "number",
+      "validation": {
+        "required": false
+      }
+    }
+  ],
+  "config": {
+    "maxDepth": 3,
+    "maxUrls": 500,
+    "respectRobotsTxt": true,
+    "followExternalLinks": false,
+    "urlPatterns": {
+      "include": [
+        "/blog/.*",
+        "/articles/.*",
+        "/\\d{4}/\\d{2}/.*"
+      ],
+      "exclude": [
+        "\\.pdf$",
+        "\\.zip$",
+        "/tag/",
+        "/category/",
+        "/author/",
+        "/page/"
+      ]
+    },
+    "rateLimitMs": 2000,
+    "timeout": 30000
+  },
+  "scheduling": {
+    "enabled": true,
+    "frequency": "daily",
+    "maxRuns": null
+  }
+}
