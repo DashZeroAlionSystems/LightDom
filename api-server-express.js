@@ -378,6 +378,14 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load workflow generator routes:', err);
     });
     
+    // Import and register Component Analyzer routes
+    import('./services/component-analyzer-routes.js').then((analyzerModule) => {
+      this.app.use('/api/component-analyzer', analyzerModule.default);
+      console.log('Component analyzer routes registered');
+    }).catch(err => {
+      console.error('Failed to load component analyzer routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
