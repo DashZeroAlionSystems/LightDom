@@ -72,7 +72,8 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    const target = (user as any)?.role === 'admin' ? '/admin-dashboard' : '/dashboard';
+    return <Navigate to={target} replace />;
   }
 
   return <>{children}</>;
@@ -85,6 +86,7 @@ const ErrorFallbackComponent: React.FC<{ error: Error; resetErrorBoundary: () =>
 }) => <ErrorFallback error={error} resetErrorBoundary={resetErrorBoundary} />;
 
 const App: React.FC = () => {
+  const isDev = (import.meta as any).env?.DEV;
   return (
     <ErrorBoundary FallbackComponent={ErrorFallbackComponent}>
       <HelmetProvider>
@@ -96,9 +98,18 @@ const App: React.FC = () => {
                 <Route
                   path="/"
                   element={
-                    <PublicRoute>
-                      <HomePage />
-                    </PublicRoute>
+                    // During development, show the main dashboard as the landing page
+                    // so designers/devs see the dashboard immediately. In production,
+                    // keep the original HomePage behind PublicRoute.
+                    isDev ? (
+                      <Layout>
+                        <DashboardPage />
+                      </Layout>
+                    ) : (
+                      <PublicRoute>
+                        <HomePage />
+                      </PublicRoute>
+                    )
                   }
                 />
                 <Route

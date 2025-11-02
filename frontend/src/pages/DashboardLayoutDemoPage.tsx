@@ -1,6 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Workflow, Brain, Settings } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Workflow,
+  Brain,
+  Settings,
+} from 'lucide-react';
 
 interface NavItem {
   label: string;
@@ -29,9 +34,9 @@ const navItems: NavItem[] = [
     icon: <Brain className="h-4 w-4" />,
   },
   {
-    label: 'Layout settings',
-    description: 'Customize dashboard surfaces',
-    to: '/settings',
+    label: 'Layout demo',
+    description: 'This clean layout scaffold',
+    to: '/dashboard-layout-demo',
     icon: <Settings className="h-4 w-4" />,
   },
 ];
@@ -105,17 +110,17 @@ const DashboardContentArea: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
-export const DashboardPage: React.FC = () => {
+export const DashboardLayoutDemoPage: React.FC = () => {
   return (
     <main className="min-h-screen bg-background text-on-surface flex">
       <DashboardSideNav />
       <DashboardContentArea>
         <header className="flex flex-col gap-2">
-          <p className="md3-label-medium text-primary uppercase tracking-wide">Dashboard layout</p>
-          <h1 className="md3-headline-medium">Automation control center</h1>
+          <p className="md3-label-medium text-primary uppercase tracking-wide">Layout scaffolding</p>
+          <h1 className="md3-headline-medium">Dashboard layout demo</h1>
           <p className="md3-body-medium text-on-surface-variant">
-            Use the side navigation to move between surfaces. Fill the content canvas with widgets, workflow panels,
-            or KPI grids that follow the design guide spacing and elevation.
+            This page demonstrates a clean separation between a navigation rail and the main dashboard content
+            canvas. Replace the sample blocks with live dashboards and panels.
           </p>
         </header>
 
@@ -123,8 +128,8 @@ export const DashboardPage: React.FC = () => {
           <div className="rounded-3xl border border-outline bg-surface p-6 space-y-4">
             <h2 className="md3-title-medium text-on-surface">Content area</h2>
             <p className="md3-body-medium text-on-surface-variant">
-              Slot dashboard widgets, KPIs, or workflow panels here. The container keeps spacing and max-width aligned
-              with the Material Design 3 layout guidance.
+              Slot dashboard widgets, KPIs, or workflow panels here. The container response keeps spacing and
+              max-width aligned with the design guide.
             </p>
           </div>
           <div className="rounded-3xl border border-outline bg-surface p-6 space-y-4">
