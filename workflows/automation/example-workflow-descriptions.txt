@@ -1,0 +1,19 @@
+# Example Workflow Descriptions for Batch Generation
+# One workflow description per line
+# Lines starting with # are ignored
+
+Create a workflow that monitors a GitHub repository for new issues and sends Slack notifications with issue details
+Build a workflow that processes uploaded CSV files, validates data, and inserts records into PostgreSQL database
+Generate a workflow for automated daily backups of database to S3 storage with error notifications
+Create a workflow that scrapes competitor product prices every 6 hours and stores changes in database
+Build a workflow for email automation that sends personalized welcome emails to new users
+Generate a workflow that monitors API health endpoints and triggers alerts on failures
+Create a workflow that processes image uploads, resizes them, optimizes quality, and stores in CDN
+Build a workflow for aggregating social media metrics from multiple platforms into a dashboard
+Generate a workflow that automatically generates and emails weekly performance reports
+Create a workflow that synchronizes user data between CRM and marketing automation platform
+Build a workflow for webhook-based CI/CD deployment notifications to team channels
+Generate a workflow that monitors server logs for errors and creates support tickets automatically
+Create a workflow that processes video uploads, generates thumbnails, and transcodes to multiple formats
+Build a workflow for automated invoice generation from timesheet data with PDF creation
+Generate a workflow that collects customer feedback from multiple sources and creates sentiment analysis reports

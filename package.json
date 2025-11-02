@@ -146,6 +146,21 @@
     "n8n:stop": "docker-compose stop n8n",
     "n8n:logs": "docker-compose logs -f n8n",
     "n8n:setup": "node scripts/setup-n8n-integration.js",
+    "n8n:workflow:build": "node scripts/automation/n8n-workflow-builder.js",
+    "n8n:workflow:build:interactive": "node scripts/automation/n8n-workflow-builder.js --interactive",
+    "n8n:workflow:batch": "node scripts/automation/n8n-workflow-builder.js --batch",
+    "ollama:test": "node scripts/automation/test-ollama-setup.js",
+    "ollama:prompt:list": "node scripts/automation/ollama-prompt-engine.js --list",
+    "ollama:prompt:interactive": "node scripts/automation/ollama-prompt-engine.js --interactive",
+    "ollama:prompt:execute": "node scripts/automation/ollama-prompt-engine.js --execute",
+    "demo:ollama-n8n": "node scripts/automation/demo-ollama-n8n-integration.js",
+    "design:build": "node scripts/automation/design-system-builder.js",
+    "design:build:interactive": "node scripts/automation/design-system-builder.js --interactive",
+    "design:component": "node scripts/automation/design-system-builder.js --component",
+    "design:dashboard": "node scripts/automation/design-system-builder.js --dashboard",
+    "workflow:monitor": "node scripts/automation/workflow-automation-monitor.js",
+    "workflow:monitor:interactive": "node scripts/automation/workflow-automation-monitor.js --interactive",
+    "workflow:watch": "node scripts/automation/workflow-automation-monitor.js --watch",
     "workflow:mine": "tsx scripts/mine-design-system.ts"
   },
   "dependencies": {
@@ -204,7 +219,11 @@
     "typescript": "^5.9.2",
     "uuid": "^9.0.1",
     "vite": "^7.1.9",
-    "winston": "^3.18.3"
+    "winston": "^3.18.3",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^9.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "prismjs": "^1.29.0"
   },
   "devDependencies": {
     "@types/node": "^24.9.2",

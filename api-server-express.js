@@ -394,6 +394,22 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load training data routes:', err);
     });
     
+    // Import and register AI Layout routes
+    import('./api/ai-layout-routes.js').then((aiModule) => {
+      this.app.use('/api/ai', aiModule.default);
+      console.log('AI layout generation routes registered');
+    }).catch(err => {
+      console.error('Failed to load AI layout routes:', err);
+    });
+    
+    // Import and register Workflow Wizard routes
+    import('./api/workflow-wizard-routes.js').then((wizardModule) => {
+      this.app.use('/api/workflow', wizardModule.default);
+      console.log('Workflow wizard routes registered');
+    }).catch(err => {
+      console.error('Failed to load workflow wizard routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
