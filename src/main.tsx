@@ -23,6 +23,7 @@ import EnhancedNavigation from './components/ui/EnhancedNavigation';
 import SEOCrawlerWorkflow from './components/ui/admin/SEOCrawlerWorkflow';
 import './discord-theme.css';
 import './index.css';
+import './styles/design-system.css';
 import './styles/modern-frontpage.css';
 
 // Import styles

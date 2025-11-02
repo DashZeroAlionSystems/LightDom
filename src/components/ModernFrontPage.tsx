@@ -1,11 +1,12 @@
 /**
  * Modern Front Page Component
- * Inspired by GitHub, Stripe, and modern SaaS landing pages
+ * Enhanced with design system, scroll animations, and micro-interactions
  * Features: SEO optimization, custom SVG graphics, responsive design
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import SEOHead from './SEOHead';
+import useScrollAnimation from '../hooks/useScrollAnimation';
 import {
   Rocket,
   Shield,

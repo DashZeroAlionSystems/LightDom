@@ -54,6 +54,7 @@ import DesignToolsNavigation from './components/DesignToolsNavigation';
 import SchemaLinkingDashboard from './components/SchemaLinkingDashboard';
 import WorkflowCreationDashboard from './components/WorkflowCreationDashboard';
 import './App.css';
+import './styles/design-system.css';
 import './styles/modern-frontpage.css';
 
 // Initialize persistence system
