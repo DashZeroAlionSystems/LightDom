@@ -49,6 +49,24 @@ LightDom is a revolutionary blockchain-based DOM optimization platform that comb
 - **Responsive Design** - Works on all devices
 - **Dark Mode** - Easy on the eyes
 
+### 🤖 **Background Data Mining System** ⭐ NEW
+- **AI-Powered Configuration** - Generate crawler configs from natural language prompts using Ollama (DeepSeek-R1, Llama3)
+- **Smart URL Deduplication** - Intelligent caching with selective re-mining based on schema versions
+- **Attribute-Based Mining** - Break down data extraction into prioritized, independent tasks
+- **Schema-Linked Workflows** - Mining jobs tied to workflows, processes, and tasks for full traceability
+- **Real-Time CLI Monitoring** - Watch mining progress live from terminal with rich status displays
+- **Multi-Worker Architecture** - Concurrent crawling with configurable worker pools for optimal performance
+- **Neural Network Training Data** - Collect structured data for ML model training
+
+📖 **[Quick Start Guide](MINING_QUICKSTART.md)** | **[Full Documentation](MINING_SYSTEM_README.md)** | **[Research & Best Practices](CRAWLER_RESEARCH.md)**
+
+```bash
+# Start mining in 3 commands
+npm run mining:daemon                              # 1. Start service
+npm run mining:generate "mine blog posts about AI" # 2. Generate config with AI
+npm run mining:status                              # 3. Monitor progress
+```
+
 ## 🚀 Quick Start
 
 ### Prerequisites

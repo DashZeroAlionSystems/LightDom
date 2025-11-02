@@ -29,6 +29,7 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { AIContentPage } from '@/pages/AIContentPage';
 import { SEOModelTrainingPage } from '@/pages/SEOModelTrainingPage';
 import { WorkflowsPage } from '@/pages/WorkflowsPage';
+import { ComponentSchemaToolPage } from '@/pages/ComponentSchemaToolPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 // Hooks
@@ -72,7 +73,8 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    const target = (user as any)?.role === 'admin' ? '/admin-dashboard' : '/dashboard';
+    return <Navigate to={target} replace />;
   }
 
   return <>{children}</>;
@@ -255,6 +257,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <WorkflowsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/component-schema"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ComponentSchemaToolPage />
                       </Layout>
                     </ProtectedRoute>
                   }

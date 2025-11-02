@@ -64,12 +64,6 @@
     "jspdf": "^2.5.1",
     "react-confetti": "^6.1.0",
     "react-spring": "^9.7.2",
-    "react-transition-group": "^4.4.5",
-    "react-ga4": "^2.1.0",
-    "react-hotkeys-hook": "^4.4.1",
-    "react-intersection-observer": "^9.5.2",
-    "react-use-gesture": "^9.1.3",
-    "react-spring": "^9.7.2",
     "react-transition-group": "^4.4.5"
   },
   "devDependencies": {

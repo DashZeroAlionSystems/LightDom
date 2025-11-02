@@ -24,7 +24,7 @@ import {
   Edit3,
   Wand2,
   Target,
-  Drill,
+  Search,
   Settings,
   Rocket,
   RefreshCcw,
@@ -555,7 +555,7 @@ export const WorkflowsPage: React.FC = () => {
                               Enrichment prompt
                             </Button>
                             <Button variant="text" className="rounded-full" size="sm">
-                              <Drill className="mr-2 h-4 w-4" />
+                              <Search className="mr-2 h-4 w-4" />
                               Drilldown prompts
                             </Button>
                           </div>

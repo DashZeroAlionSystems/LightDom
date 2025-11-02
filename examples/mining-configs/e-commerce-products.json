@@ -1,0 +1,80 @@
+{
+  "name": "Product Data Mining",
+  "subject": "e-commerce-products",
+  "description": "Mine e-commerce product data for training recommendation systems",
+  "seedUrls": [
+    "https://example-store.com/products"
+  ],
+  "attributes": [
+    {
+      "name": "product_name",
+      "selector": "h1.product-title, .product-name",
+      "priority": 10,
+      "schemaVersion": "1.0.0",
+      "dataType": "text",
+      "validation": {
+        "required": true,
+        "minLength": 1,
+        "maxLength": 300
+      }
+    },
+    {
+      "name": "price",
+      "selector": ".product-price, .price",
+      "priority": 10,
+      "schemaVersion": "1.0.0",
+      "dataType": "number",
+      "validation": {
+        "required": true
+      }
+    },
+    {
+      "name": "description",
+      "selector": ".product-description, .description",
+      "priority": 8,
+      "schemaVersion": "1.0.0",
+      "dataType": "text",
+      "validation": {
+        "required": true,
+        "minLength": 10
+      }
+    },
+    {
+      "name": "category",
+      "selector": ".breadcrumb li:last-child, .product-category",
+      "priority": 9,
+      "schemaVersion": "1.0.0",
+      "dataType": "text",
+      "validation": {
+        "required": false
+      }
+    },
+    {
+      "name": "rating",
+      "selector": ".product-rating, .rating",
+      "priority": 7,
+      "schemaVersion": "1.0.0",
+      "dataType": "number",
+      "validation": {
+        "required": false
+      }
+    }
+  ],
+  "config": {
+    "maxDepth": 2,
+    "maxUrls": 1000,
+    "respectRobotsTxt": true,
+    "followExternalLinks": false,
+    "urlPatterns": {
+      "include": ["/products/.*", "/product/.*"],
+      "exclude": ["/cart", "/checkout", "/account"]
+    },
+    "rateLimitMs": 1500,
+    "timeout": 30000
+  },
+  "scheduling": {
+    "enabled": true,
+    "frequency": "weekly",
+    "maxRuns": null
+  }
+}

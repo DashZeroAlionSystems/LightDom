@@ -794,7 +794,7 @@ class GoogleAnalyticsResearch {
 const googleAnalyticsResearch = new GoogleAnalyticsResearch();
 
 // React Components
-export const GoogleAnalyticsDashboard: React.FC<{
+const GoogleAnalyticsDashboard: React.FC<{
   integrationId: string;
 }> = ({ integrationId }) => {
   const [integration, setIntegration] = useState<GAIntegration | null>(null);
@@ -1077,7 +1077,7 @@ export const GoogleAnalyticsDashboard: React.FC<{
 };
 
 // Google Analytics Research Dashboard
-export const GoogleAnalyticsResearchDashboard: React.FC = () => {
+const GoogleAnalyticsResearchDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'metrics' | 'dimensions' | 'reports' | 'integration'>('metrics');
   const [selectedMetric, setSelectedMetric] = useState<GAMetric | null>(null);
   const [selectedDimension, setSelectedDimension] = useState<GADimension | null>(null);

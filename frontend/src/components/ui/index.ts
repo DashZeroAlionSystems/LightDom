@@ -47,3 +47,9 @@ export {
 } from '../../../../src/components/ui/Wizard';
 
 export { default as Fab } from '../../../../src/components/ui/design-system/Fab';
+
+export {
+  ModelCard,
+  MetricsChart,
+  NeuralNetworkVisualizer,
+} from '../../../../src/components/ui/NeuralNetwork';

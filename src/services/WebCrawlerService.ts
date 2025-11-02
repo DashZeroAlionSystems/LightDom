@@ -29,3 +29,6 @@ export default class WebCrawlerService {
     // triage stub
   }
 }
+
+// Named export for backward compatibility
+export { WebCrawlerService };

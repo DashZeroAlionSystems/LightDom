@@ -32,5 +32,9 @@ export class Logger {
   }
 }
 
-// Default logger instance
+// Default logger instance for convenience
+export const logger = new Logger('App');
+
+// Default export of Logger class
 export default Logger;
+
