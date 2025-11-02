@@ -198,6 +198,466 @@ export class HeadlessBrowserService extends EventEmitter {
 - Multiple concurrent pages
 - CDP session management
 - Event-driven architecture
+
+---
+
+## Building Better App Structures with Headless API
+
+### Architecture Patterns for Workflow Applications
+
+**1. Modular Service Architecture**
+
+```
+┌─────────────────────────────────────────────────┐
+│              Frontend (React + Vite)            │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│  │ Workflow │  │Component │  │  Schema  │     │
+│  │Dashboard │  │ Builder  │  │  Editor  │     │
+│  └──────────┘  └──────────┘  └──────────┘     │
+└─────────────────────────────────────────────────┘
+                      ↕ WebSocket/REST
+┌─────────────────────────────────────────────────┐
+│           API Server (Express + Socket.IO)      │
+│  ┌──────────────┐  ┌──────────────┐            │
+│  │   Workflow   │  │   Component  │            │
+│  │   Generator  │  │   Generator  │            │
+│  └──────────────┘  └──────────────┘            │
+└─────────────────────────────────────────────────┘
+                      ↕
+┌─────────────────────────────────────────────────┐
+│          Background Workers (Headless)          │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│  │Puppeteer │  │  Ollama  │  │  Schema  │     │
+│  │ Worker   │  │  Client  │  │  Linker  │     │
+│  └──────────┘  └──────────┘  └──────────┘     │
+└─────────────────────────────────────────────────┘
+                      ↕
+┌─────────────────────────────────────────────────┐
+│        Data Layer (PostgreSQL + Redis)          │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│  │Workflows │  │Components│  │ Schemas  │     │
+│  └──────────┘  └──────────┘  └──────────┘     │
+└─────────────────────────────────────────────────┘
+```
+
+**2. Workflow Engine Architecture**
+
+```javascript
+// Better structure for workflow execution
+class WorkflowEngine {
+  constructor(db, redis, workerPool) {
+    this.db = db;
+    this.redis = redis;
+    this.workerPool = workerPool;
+    this.executors = new Map();
+  }
+  
+  async execute(workflowId) {
+    const workflow = await this.loadWorkflow(workflowId);
+    const context = await this.createContext(workflow);
+    
+    for (const step of workflow.steps) {
+      const executor = this.getExecutor(step.type);
+      const result = await executor.execute(step, context);
+      await this.saveStepResult(workflowId, step.id, result);
+      
+      // Emit progress updates via WebSocket
+      this.emit('progress', {
+        workflowId,
+        stepId: step.id,
+        status: 'completed',
+        result
+      });
+    }
+  }
+  
+  getExecutor(type) {
+    if (!this.executors.has(type)) {
+      this.executors.set(type, this.createExecutor(type));
+    }
+    return this.executors.get(type);
+  }
+  
+  createExecutor(type) {
+    switch(type) {
+      case 'dataMining': return new DataMiningExecutor(this.workerPool);
+      case 'seoAnalysis': return new SEOExecutor(this.workerPool);
+      case 'contentGen': return new ContentExecutor(this.workerPool);
+      default: throw new Error(`Unknown executor type: ${type}`);
+    }
+  }
+}
+```
+
+**3. Component Generator with Headless Validation**
+
+```javascript
+// Use headless browser to validate generated components
+class ComponentGenerator {
+  constructor(browserService, ollamaClient) {
+    this.browser = browserService;
+    this.ollama = ollamaClient;
+  }
+  
+  async generateFromPrompt(prompt, selectedComponents) {
+    // Generate component code via Ollama
+    const code = await this.ollama.generate({
+      model: 'deepseek-r1',
+      prompt: this.buildPrompt(prompt, selectedComponents)
+    });
+    
+    // Parse and validate structure
+    const component = this.parseComponent(code);
+    
+    // Validate in headless browser
+    const validation = await this.validateComponent(component);
+    
+    if (!validation.success) {
+      // Regenerate with error context
+      return this.generateFromPrompt(
+        `${prompt}\n\nPrevious attempt failed: ${validation.errors.join(', ')}`,
+        selectedComponents
+      );
+    }
+    
+    // Save to database
+    await this.saveComponent(component);
+    
+    return component;
+  }
+  
+  async validateComponent(component) {
+    const page = await this.browser.createPage();
+    
+    try {
+      // Inject component in test page
+      await page.setContent(this.createTestHarness(component));
+      
+      // Check for errors
+      const errors = await page.evaluate(() => {
+        return window.__componentErrors || [];
+      });
+      
+      // Check rendering
+      const rendered = await page.$eval('#test-root', el => {
+        return el.children.length > 0;
+      });
+      
+      // Capture screenshot for visual validation
+      const screenshot = await page.screenshot({ encoding: 'base64' });
+      
+      return {
+        success: errors.length === 0 && rendered,
+        errors,
+        screenshot
+      };
+    } finally {
+      await page.close();
+    }
+  }
+}
+```
+
+### Best Practices for App Structure
+
+**1. Separation of Concerns**
+- Frontend: UI/UX only, no business logic
+- API: Orchestration and validation
+- Workers: Heavy computation, I/O intensive tasks
+- Database: State persistence
+
+**2. Event-Driven Communication**
+```javascript
+// Use EventEmitter pattern for loose coupling
+class WorkflowService extends EventEmitter {
+  async createWorkflow(config) {
+    const workflow = await this.db.createWorkflow(config);
+    this.emit('workflow:created', workflow);
+    return workflow;
+  }
+  
+  async executeWorkflow(id) {
+    this.emit('workflow:started', { id });
+    
+    try {
+      const result = await this.engine.execute(id);
+      this.emit('workflow:completed', { id, result });
+      return result;
+    } catch (error) {
+      this.emit('workflow:failed', { id, error });
+      throw error;
+    }
+  }
+}
+```
+
+**3. Resource Pooling**
+```javascript
+// Reuse expensive resources like browser instances
+class BrowserPool {
+  constructor(size = 5) {
+    this.size = size;
+    this.browsers = [];
+    this.queue = [];
+  }
+  
+  async initialize() {
+    for (let i = 0; i < this.size; i++) {
+      const browser = await puppeteer.launch({ headless: true });
+      this.browsers.push({ instance: browser, inUse: false });
+    }
+  }
+  
+  async acquire() {
+    const available = this.browsers.find(b => !b.inUse);
+    if (available) {
+      available.inUse = true;
+      return available.instance;
+    }
+    
+    // Wait for one to become available
+    return new Promise(resolve => {
+      this.queue.push(resolve);
+    });
+  }
+  
+  release(browser) {
+    const entry = this.browsers.find(b => b.instance === browser);
+    if (entry) {
+      entry.inUse = false;
+      
+      // Serve queued requests
+      if (this.queue.length > 0) {
+        const resolve = this.queue.shift();
+        entry.inUse = true;
+        resolve(entry.instance);
+      }
+    }
+  }
+}
+```
+
+**4. Graceful Error Handling**
+```javascript
+class ResilientWorkflowExecutor {
+  async executeStep(step, retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        return await this.doExecuteStep(step);
+      } catch (error) {
+        if (attempt === retries) throw error;
+        
+        // Exponential backoff
+        await this.sleep(Math.pow(2, attempt) * 1000);
+        
+        // Log retry attempt
+        this.emit('step:retry', {
+          step: step.id,
+          attempt,
+          error: error.message
+        });
+      }
+    }
+  }
+}
+```
+
+**5. Performance Monitoring**
+```javascript
+// Track performance metrics for optimization
+class PerformanceMonitor {
+  async measureOperation(name, operation) {
+    const start = Date.now();
+    let success = true;
+    
+    try {
+      const result = await operation();
+      return result;
+    } catch (error) {
+      success = false;
+      throw error;
+    } finally {
+      const duration = Date.now() - start;
+      
+      await this.recordMetric({
+        name,
+        duration,
+        success,
+        timestamp: new Date()
+      });
+    }
+  }
+  
+  async recordMetric(metric) {
+    await this.db.query(
+      'INSERT INTO performance_metrics (name, duration, success, timestamp) VALUES ($1, $2, $3, $4)',
+      [metric.name, metric.duration, metric.success, metric.timestamp]
+    );
+    
+    // Also store in Redis for real-time dashboard
+    await this.redis.zadd(
+      `metrics:${metric.name}`,
+      metric.timestamp.getTime(),
+      JSON.stringify(metric)
+    );
+  }
+}
+```
+
+### Integration with Ollama DeepSeek-R1
+
+**Starting Ollama Service:**
+```bash
+# Ensure Ollama is installed and running
+ollama serve &
+
+# Pull DeepSeek-R1 model
+ollama pull deepseek-r1:latest
+```
+
+**Client Integration:**
+```javascript
+class OllamaClient {
+  constructor(baseUrl = 'http://localhost:11434') {
+    this.baseUrl = baseUrl;
+  }
+  
+  async generate(options) {
+    const response = await fetch(`${this.baseUrl}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'deepseek-r1',
+        prompt: options.prompt,
+        stream: false,
+        options: {
+          temperature: 0.7,
+          top_p: 0.9,
+          ...options.modelOptions
+        }
+      })
+    });
+    
+    const data = await response.json();
+    return data.response;
+  }
+  
+  async generateWorkflowConfig(prompt, selectedParts) {
+    const systemPrompt = `You are a workflow configuration expert. Generate a valid JSON workflow configuration based on the user's requirements.
+    
+Selected parts: ${selectedParts.join(', ')}
+
+Requirements:
+- Include all necessary steps
+- Define data schemas for each step
+- Set up proper error handling
+- Configure retry logic
+- Define output schema
+
+User request: ${prompt}
+
+Generate a JSON configuration following this structure:
+{
+  "name": "workflow-name",
+  "description": "...",
+  "steps": [...],
+  "schemas": {...},
+  "errorHandling": {...}
+}`;
+    
+    const response = await this.generate({ prompt: systemPrompt });
+    
+    try {
+      return JSON.parse(response);
+    } catch (error) {
+      // Try to extract JSON from response
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      throw new Error('Failed to parse workflow configuration');
+    }
+  }
+}
+```
+
+### Schema-Driven Component Architecture
+
+**Component Schema Structure:**
+```typescript
+interface ComponentSchema {
+  id: string;
+  name: string;
+  type: 'workflow-panel' | 'stat-card' | 'chart' | 'form';
+  version: string;
+  
+  // Data sources
+  dataSources: {
+    schemaId: string;
+    query?: string;
+    realtime?: boolean;
+  }[];
+  
+  // UI configuration
+  ui: {
+    layout: 'grid' | 'flex' | 'stack';
+    variant: string;
+    size: 'sm' | 'md' | 'lg';
+    theme: 'light' | 'dark' | 'auto';
+  };
+  
+  // Interactivity
+  actions: {
+    id: string;
+    type: 'click' | 'submit' | 'delete';
+    handler: string; // Function reference
+    confirmation?: boolean;
+  }[];
+  
+  // State management
+  state: {
+    isImplemented: boolean;
+    mockDataEnabled: boolean;
+    defaultValues?: Record<string, any>;
+  };
+  
+  // Linked schemas
+  linkedSchemas: string[];
+}
+```
+
+**Dynamic Component Renderer:**
+```typescript
+function ComponentRenderer({ schema }: { schema: ComponentSchema }) {
+  const data = useSchemaData(schema.dataSources);
+  const [state, setState] = useState(schema.state.defaultValues || {});
+  
+  if (!schema.state.isImplemented) {
+    return (
+      <NotImplementedWrapper schema={schema}>
+        {renderComponent(schema, data, state)}
+      </NotImplementedWrapper>
+    );
+  }
+  
+  return renderComponent(schema, data, state);
+}
+
+function renderComponent(schema, data, state) {
+  switch (schema.type) {
+    case 'workflow-panel':
+      return <WorkflowPanel config={schema.ui} data={data} />;
+    case 'stat-card':
+      return <StatCard config={schema.ui} value={data[0]} />;
+    case 'chart':
+      return <Chart config={schema.ui} data={data} />;
+    default:
+      return <div>Unknown component type: {schema.type}</div>;
+  }
+}
+```
+
+This comprehensive approach ensures the headless API is used effectively to build robust, scalable application structures.
 - Resource pooling
 
 **Use Cases:**
