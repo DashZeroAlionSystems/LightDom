@@ -1,0 +1,449 @@
+/**
+ * Material Design 3 Motion Tokens
+ * Official motion design tokens from Material Design 3 specification
+ * https://m3.material.io/styles/motion/easing-and-duration/tokens-specs
+ */
+
+:root {
+  /* ============================================================================
+   * DURATION TOKENS
+   * ========================================================================= */
+  
+  /* Extra Short - For small utility changes */
+  --md-motion-duration-extra-short1: 50ms;   /* Icon state changes */
+  --md-motion-duration-extra-short2: 100ms;  /* Simple icon transitions */
+  
+  /* Short - For small to medium area changes */
+  --md-motion-duration-short1: 150ms;  /* Small area changes */
+  --md-motion-duration-short2: 200ms;  /* Area changes */
+  --md-motion-duration-short3: 250ms;  /* Larger area changes */
+  
+  /* Medium - Default motion category */
+  --md-motion-duration-medium1: 300ms;  /* Default medium motion */
+  --md-motion-duration-medium2: 350ms;  /* Area transitions */
+  --md-motion-duration-medium3: 400ms;  /* Large area transitions */
+  --md-motion-duration-medium4: 450ms;  /* Complex transitions */
+  
+  /* Long - For large, complex motion */
+  --md-motion-duration-long1: 500ms;  /* Large, complex motion */
+  --md-motion-duration-long2: 600ms;  /* Very large motion */
+  --md-motion-duration-long3: 700ms;  /* Full screen transitions */
+  --md-motion-duration-long4: 800ms;  /* Complex full screen transitions */
+  
+  /* Extra Long - Special cases */
+  --md-motion-duration-extra-long1: 900ms;   /* Special cases */
+  --md-motion-duration-extra-long2: 1000ms;  /* Special large motion */
+  
+  /* ============================================================================
+   * EASING TOKENS
+   * ========================================================================= */
+  
+  /* Emphasized - Default for most animations */
+  --md-motion-easing-emphasized: cubic-bezier(0.2, 0.0, 0, 1.0);
+  --md-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1.0);  /* Incoming elements */
+  --md-motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0.0, 0.8, 0.15);  /* Outgoing elements */
+  
+  /* Standard - Alternative motion curves */
+  --md-motion-easing-standard: cubic-bezier(0.2, 0.0, 0, 1.0);
+  --md-motion-easing-standard-decelerate: cubic-bezier(0.0, 0.0, 0, 1.0);
+  --md-motion-easing-standard-accelerate: cubic-bezier(0.3, 0.0, 1, 1.0);
+  
+  /* Linear - Constant velocity (use sparingly) */
+  --md-motion-easing-linear: linear;
+  
+  /* ============================================================================
+   * COMBINED MOTION TOKENS (Duration + Easing)
+   * Common combinations for easy use
+   * ========================================================================= */
+  
+  /* Quick Interactions */
+  --md-motion-quick: var(--md-motion-duration-short1) var(--md-motion-easing-emphasized);
+  --md-motion-quick-in: var(--md-motion-duration-short1) var(--md-motion-easing-emphasized-decelerate);
+  --md-motion-quick-out: var(--md-motion-duration-extra-short2) var(--md-motion-easing-emphasized-accelerate);
+  
+  /* Standard Interactions */
+  --md-motion-standard: var(--md-motion-duration-medium1) var(--md-motion-easing-emphasized);
+  --md-motion-standard-in: var(--md-motion-duration-medium2) var(--md-motion-easing-emphasized-decelerate);
+  --md-motion-standard-out: var(--md-motion-duration-medium1) var(--md-motion-easing-emphasized-accelerate);
+  
+  /* Large Motions */
+  --md-motion-large: var(--md-motion-duration-long1) var(--md-motion-easing-emphasized);
+  --md-motion-large-in: var(--md-motion-duration-long2) var(--md-motion-easing-emphasized-decelerate);
+  --md-motion-large-out: var(--md-motion-duration-long1) var(--md-motion-easing-emphasized-accelerate);
+}
+
+/* ============================================================================
+ * ACCESSIBILITY - Reduced Motion Support
+ * ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    /* Instantly complete all animations for users who prefer reduced motion */
+    --md-motion-duration-extra-short1: 1ms;
+    --md-motion-duration-extra-short2: 1ms;
+    --md-motion-duration-short1: 1ms;
+    --md-motion-duration-short2: 1ms;
+    --md-motion-duration-short3: 1ms;
+    --md-motion-duration-medium1: 1ms;
+    --md-motion-duration-medium2: 1ms;
+    --md-motion-duration-medium3: 1ms;
+    --md-motion-duration-medium4: 1ms;
+    --md-motion-duration-long1: 1ms;
+    --md-motion-duration-long2: 1ms;
+    --md-motion-duration-long3: 1ms;
+    --md-motion-duration-long4: 1ms;
+    --md-motion-duration-extra-long1: 1ms;
+    --md-motion-duration-extra-long2: 1ms;
+  }
+}
+
+/* ============================================================================
+ * MATERIAL DESIGN 3 OFFICIAL ANIMATIONS
+ * Pre-built animations following MD3 specifications
+ * ========================================================================= */
+
+/* Fade Animations */
+@keyframes md3-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes md3-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Container Transform */
+@keyframes md3-container-expand {
+  from {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes md3-container-collapse {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* Shared Axis - X */
+@keyframes md3-shared-axis-x-forward {
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes md3-shared-axis-x-backward {
+  from {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Shared Axis - Y */
+@keyframes md3-shared-axis-y-forward {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes md3-shared-axis-y-backward {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Fade Through */
+@keyframes md3-fade-through {
+  0% {
+    opacity: 1;
+  }
+  35% {
+    opacity: 0;
+  }
+  65% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Slide Animations */
+@keyframes md3-slide-in-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes md3-slide-out-down {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes md3-slide-in-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes md3-slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Scale Animations */
+@keyframes md3-scale-in {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes md3-scale-out {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+/* Elevation Changes */
+@keyframes md3-elevation-rise {
+  from {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  }
+  to {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@keyframes md3-elevation-lower {
+  from {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  to {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  }
+}
+
+/* Ripple Effect (for interactive elements) */
+@keyframes md3-ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* ============================================================================
+ * UTILITY CLASSES
+ * Apply animations easily with classes
+ * ========================================================================= */
+
+/* Fade utilities */
+.md3-fade-in {
+  animation: md3-fade-in var(--md-motion-duration-short2) var(--md-motion-easing-emphasized-decelerate) both;
+}
+
+.md3-fade-out {
+  animation: md3-fade-out var(--md-motion-duration-short1) var(--md-motion-easing-emphasized-accelerate) both;
+}
+
+/* Container transform utilities */
+.md3-container-expand {
+  animation: md3-container-expand var(--md-motion-duration-medium2) var(--md-motion-easing-emphasized) both;
+}
+
+.md3-container-collapse {
+  animation: md3-container-collapse var(--md-motion-duration-medium1) var(--md-motion-easing-emphasized) both;
+}
+
+/* Shared axis utilities */
+.md3-shared-axis-x-forward {
+  animation: md3-shared-axis-x-forward var(--md-motion-duration-medium3) var(--md-motion-easing-emphasized) both;
+}
+
+.md3-shared-axis-x-backward {
+  animation: md3-shared-axis-x-backward var(--md-motion-duration-medium3) var(--md-motion-easing-emphasized) both;
+}
+
+.md3-shared-axis-y-forward {
+  animation: md3-shared-axis-y-forward var(--md-motion-duration-medium3) var(--md-motion-easing-emphasized) both;
+}
+
+.md3-shared-axis-y-backward {
+  animation: md3-shared-axis-y-backward var(--md-motion-duration-medium3) var(--md-motion-easing-emphasized) both;
+}
+
+/* Slide utilities */
+.md3-slide-in-up {
+  animation: md3-slide-in-up var(--md-motion-duration-medium2) var(--md-motion-easing-emphasized-decelerate) both;
+}
+
+.md3-slide-out-down {
+  animation: md3-slide-out-down var(--md-motion-duration-medium1) var(--md-motion-easing-emphasized-accelerate) both;
+}
+
+/* Scale utilities */
+.md3-scale-in {
+  animation: md3-scale-in var(--md-motion-duration-medium1) var(--md-motion-easing-emphasized-decelerate) both;
+}
+
+.md3-scale-out {
+  animation: md3-scale-out var(--md-motion-duration-short3) var(--md-motion-easing-emphasized-accelerate) both;
+}
+
+/* ============================================================================
+ * TRANSITION UTILITIES
+ * Common transition patterns
+ * ========================================================================= */
+
+.md3-transition-all {
+  transition: all var(--md-motion-standard);
+}
+
+.md3-transition-transform {
+  transition: transform var(--md-motion-standard);
+}
+
+.md3-transition-opacity {
+  transition: opacity var(--md-motion-quick);
+}
+
+.md3-transition-colors {
+  transition: color var(--md-motion-quick),
+              background-color var(--md-motion-quick),
+              border-color var(--md-motion-quick);
+}
+
+.md3-transition-shadow {
+  transition: box-shadow var(--md-motion-quick);
+}
+
+/* Hover/Focus states with proper easing */
+.md3-interactive {
+  transition: transform var(--md-motion-quick),
+              box-shadow var(--md-motion-quick),
+              background-color var(--md-motion-quick);
+}
+
+.md3-interactive:hover {
+  transform: translateY(-2px);
+}
+
+.md3-interactive:active {
+  transform: translateY(0);
+  transition-duration: var(--md-motion-duration-extra-short1);
+}
+
+/* ============================================================================
+ * STAGGER UTILITIES
+ * For animating lists and groups
+ * ========================================================================= */
+
+.md3-stagger-children > * {
+  animation-delay: calc(var(--stagger-index, 0) * 30ms);
+}
+
+.md3-stagger-children-slow > * {
+  animation-delay: calc(var(--stagger-index, 0) * 50ms);
+}
+
+.md3-stagger-children-fast > * {
+  animation-delay: calc(var(--stagger-index, 0) * 20ms);
+}
+
+/* ============================================================================
+ * PERFORMANCE OPTIMIZATION
+ * ========================================================================= */
+
+/* Only use will-change on elements that will definitely animate */
+.md3-will-animate {
+  will-change: transform, opacity;
+}
+
+/* Remove will-change after animation completes */
+.md3-animating {
+  will-change: transform, opacity;
+}
+
+.md3-animating.complete {
+  will-change: auto;
+}
+
+/* Force GPU acceleration for smoother animations */
+.md3-gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}

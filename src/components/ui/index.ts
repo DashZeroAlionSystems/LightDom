@@ -96,3 +96,22 @@ export type { WizardProps, WizardStepDescriptor, WizardStepStatus } from './Wiza
 
 // Re-export theme hook
 export { useTheme, ThemeProvider, ThemeToggle } from '../../hooks/state/useTheme';
+
+// Status & Progress Components
+export { StatusIndicator } from './StatusIndicator';
+export type { StatusIndicatorProps } from './StatusIndicator';
+
+export { ProgressIndicator, CircularProgress as CircularProgressIndicator } from './ProgressIndicator';
+export type { ProgressIndicatorProps, CircularProgressProps } from './ProgressIndicator';
+
+// Enhanced Workflow Components
+export { WorkflowList, WorkflowListItem } from './WorkflowList';
+export type { WorkflowListProps, WorkflowListItemProps, WorkflowItemData } from './WorkflowList';
+
+// Prompt & Input Components
+export { PromptInput } from './PromptInput';
+export type { PromptInputProps } from './PromptInput';
+
+// Utility Components
+export { NotImplemented, NotImplementedWrapper } from './NotImplemented';
+export type { NotImplementedProps, NotImplementedWrapperProps } from './NotImplemented';

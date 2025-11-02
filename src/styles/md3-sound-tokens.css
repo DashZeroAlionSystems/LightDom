@@ -1,0 +1,182 @@
+/**
+ * Material Design 3 Sound Design Tokens
+ * 
+ * Audio feedback system compliant with Material Design 3 specifications.
+ * Provides standardized sound tokens for common UI interactions.
+ * 
+ * Note: Actual audio playback requires JavaScript implementation.
+ * This file defines the metadata and configurations for sounds.
+ */
+
+:root {
+  /* ============================================================================
+   * SOUND CATEGORIES
+   * ============================================================================ */
+  
+  /* Tap Sounds - Button presses and basic interactions */
+  --md-sound-tap-frequency: 1000;
+  --md-sound-tap-duration: 100;
+  --md-sound-tap-volume: -20;
+  --md-sound-tap-description: 'Short, crisp click';
+  
+  /* Success Sounds - Successful action completion */
+  --md-sound-success-frequency: 800;
+  --md-sound-success-duration: 200;
+  --md-sound-success-volume: -18;
+  --md-sound-success-description: 'Ascending chime';
+  
+  /* Error Sounds - Failed actions or errors */
+  --md-sound-error-frequency: 500;
+  --md-sound-error-duration: 250;
+  --md-sound-error-volume: -15;
+  --md-sound-error-description: 'Descending tone';
+  
+  /* Warning Sounds - Caution or confirmation needed */
+  --md-sound-warning-frequency: 700;
+  --md-sound-warning-duration: 250;
+  --md-sound-warning-volume: -18;
+  --md-sound-warning-description: 'Steady mid tone';
+  
+  /* Notification Sounds - Incoming messages or alerts */
+  --md-sound-notification-frequency: 1200;
+  --md-sound-notification-duration: 150;
+  --md-sound-notification-volume: -20;
+  --md-sound-notification-description: 'Bright, attention-getting';
+  
+  /* Focus Sounds - Input field focus */
+  --md-sound-focus-frequency: 900;
+  --md-sound-focus-duration: 50;
+  --md-sound-focus-volume: -25;
+  --md-sound-focus-description: 'Soft, gentle tone';
+  
+  /* Navigation Sounds - Page or screen transitions */
+  --md-sound-navigation-frequency: 1100;
+  --md-sound-navigation-duration: 100;
+  --md-sound-navigation-volume: -22;
+  --md-sound-navigation-description: 'Neutral transition';
+  
+  /* Selection Sounds - Item selection */
+  --md-sound-selection-frequency: 950;
+  --md-sound-selection-duration: 80;
+  --md-sound-selection-volume: -23;
+  --md-sound-selection-description: 'Quick, positive click';
+  
+  /* Deselection Sounds - Item removal */
+  --md-sound-deselection-frequency: 850;
+  --md-sound-deselection-duration: 80;
+  --md-sound-deselection-volume: -25;
+  --md-sound-deselection-description: 'Muted, negative click';
+  
+  /* Expand Sounds - Panel expansion */
+  --md-sound-expand-frequency: 900;
+  --md-sound-expand-duration: 120;
+  --md-sound-expand-volume: -22;
+  --md-sound-expand-description: 'Rising tone';
+  
+  /* Collapse Sounds - Panel collapse */
+  --md-sound-collapse-frequency: 800;
+  --md-sound-collapse-duration: 120;
+  --md-sound-collapse-volume: -22;
+  --md-sound-collapse-description: 'Falling tone';
+  
+  /* Completion Sounds - Task completion */
+  --md-sound-completion-frequency: 1000;
+  --md-sound-completion-duration: 300;
+  --md-sound-completion-volume: -15;
+  --md-sound-completion-description: 'Celebration chime';
+  
+  /* ============================================================================
+   * ACCESSIBILITY SETTINGS
+   * ============================================================================ */
+  
+  /* Sound preferences - can be overridden by user settings */
+  --md-sound-enabled: 1; /* 0 = disabled, 1 = enabled */
+  --md-sound-volume-multiplier: 1.0; /* User volume preference */
+  --md-sound-use-system-sounds: 0; /* Use system sounds instead of custom */
+  
+  /* Respect system preferences */
+  @media (prefers-reduced-motion: reduce) {
+    --md-sound-enabled: 0; /* Disable sounds when motion is reduced */
+  }
+}
+
+/**
+ * Utility classes for sound-enabled interactions
+ * Note: Requires JavaScript to actually play sounds
+ */
+
+/* Sound-enabled button */
+.md3-sound-button {
+  --sound-category: tap;
+  --sound-on-press: true;
+}
+
+/* Sound-enabled success action */
+.md3-sound-success {
+  --sound-category: success;
+  --sound-on-complete: true;
+}
+
+/* Sound-enabled error state */
+.md3-sound-error {
+  --sound-category: error;
+  --sound-on-error: true;
+}
+
+/* Sound-enabled navigation */
+.md3-sound-navigation {
+  --sound-category: navigation;
+  --sound-on-transition: true;
+}
+
+/* Disable sounds for specific element */
+.md3-sound-disabled {
+  --md-sound-enabled: 0;
+}
+
+/**
+ * JavaScript Usage Example:
+ * 
+ * import { MD3SoundSystem } from '@/utils/md3-sound';
+ * 
+ * // Play sound
+ * MD3SoundSystem.play('tap');
+ * MD3SoundSystem.play('success');
+ * 
+ * // Play with custom volume
+ * MD3SoundSystem.play('error', { volume: -10 });
+ * 
+ * // Synchronized with animation
+ * MD3SoundSystem.playWithAnimation('navigation', animationElement, 0.5);
+ * 
+ * // Respect user preferences
+ * if (MD3SoundSystem.isEnabled()) {
+ *   MD3SoundSystem.play('notification');
+ * }
+ */
+
+/**
+ * Sound-Motion Choreography Guidelines
+ * 
+ * 1. Synchronization:
+ *    - Play sound at key animation moments (start, mid-point, end)
+ *    - Match sound duration with animation duration when possible
+ *    - Use easing to modulate volume (fade in/out)
+ * 
+ * 2. Timing:
+ *    - Tap sounds: Immediate (0ms delay)
+ *    - Success/Error: At completion (end of animation)
+ *    - Navigation: At transition start
+ *    - Focus: Immediate on focus
+ * 
+ * 3. Volume:
+ *    - Quieter for frequent interactions (tap, focus)
+ *    - Louder for important events (error, completion)
+ *    - Respect user volume preferences
+ * 
+ * 4. Accessibility:
+ *    - Always provide visual alternative
+ *    - Make sounds optional (user setting)
+ *    - Respect prefers-reduced-motion
+ *    - Use ARIA live regions for screen readers
+ */
