@@ -453,7 +453,7 @@ const SEOSettingsDashboard = () => {
               prefix={<CheckCircleOutlined />}
             />
             <Progress percent={85} status="success" showInfo={false} />
-            <Text type="secondary">Good (< 2.5s)</Text>
+            <Text type="secondary">Good (&lt; 2.5s)</Text>
           </Card>
         </Col>
         <Col span={8}>
@@ -466,7 +466,7 @@ const SEOSettingsDashboard = () => {
               prefix={<CheckCircleOutlined />}
             />
             <Progress percent={90} status="success" showInfo={false} />
-            <Text type="secondary">Good (< 100ms)</Text>
+            <Text type="secondary">Good (&lt; 100ms)</Text>
           </Card>
         </Col>
         <Col span={8}>
@@ -478,7 +478,7 @@ const SEOSettingsDashboard = () => {
               prefix={<CheckCircleOutlined />}
             />
             <Progress percent={92} status="success" showInfo={false} />
-            <Text type="secondary">Good (< 0.1)</Text>
+            <Text type="secondary">Good (&lt; 0.1)</Text>
           </Card>
         </Col>
       </Row>

@@ -22,7 +22,6 @@ import {
   DownloadOutlined,
   FullscreenOutlined
 } from '@ant-design/icons';
-import mermaid from 'mermaid';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -49,11 +48,12 @@ const SchemaVisualizationDashboard = () => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
-    mermaid.initialize({ 
-      startOnLoad: true,
-      theme: 'default',
-      securityLevel: 'loose'
-    });
+    // Mermaid initialization would go here if installed
+    // mermaid.initialize({ 
+    //   startOnLoad: true,
+    //   theme: 'default',
+    //   securityLevel: 'loose'
+    // });
     fetchAnalyses();
   }, []);
 
@@ -318,15 +318,6 @@ const SchemaVisualizationDashboard = () => {
         const nodeId = `${classification.replace(/\s/g, '_')}_${i}`;
         const label = comp.component_type.substring(0, 15);
         mermaidSyntax += `    ${nodeId}["${label}"]\n`;
-        
-        // Add style based on reuse score
-        if (comp.reuse_score >= 70) {
-          mermaidSyntax += `    style ${nodeId} fill:#52c41a\n`;
-        } else if (comp.reuse_score >= 50) {
-          mermaidSyntax += `    style ${nodeId} fill:#faad14\n`;
-        } else {
-          mermaidSyntax += `    style ${nodeId} fill:#ff4d4f\n`;
-        }
       });
       mermaidSyntax += '  end\n';
     });
@@ -348,13 +339,17 @@ const SchemaVisualizationDashboard = () => {
       }
     });
     
-    try {
-      const { svg } = await mermaid.render('mermaid-diagram', mermaidSyntax);
-      mermaidRef.current.innerHTML = svg;
-    } catch (error) {
-      console.error('Mermaid rendering error:', error);
-      mermaidRef.current.innerHTML = '<pre>' + mermaidSyntax + '</pre>';
-    }
+    // Display mermaid syntax as code until mermaid is installed
+    mermaidRef.current.innerHTML = `<pre style="background: #f5f5f5; padding: 16px; border-radius: 4px; overflow: auto; max-height: 500px;">${mermaidSyntax}</pre>`;
+    
+    // TODO: Uncomment when mermaid is installed
+    // try {
+    //   const { svg } = await mermaid.render('mermaid-diagram', mermaidSyntax);
+    //   mermaidRef.current.innerHTML = svg;
+    // } catch (error) {
+    //   console.error('Mermaid rendering error:', error);
+    //   mermaidRef.current.innerHTML = '<pre>' + mermaidSyntax + '</pre>';
+    // }
   };
 
   const exportVisualization = async (format) => {
@@ -460,7 +455,7 @@ const SchemaVisualizationDashboard = () => {
     <div>
       <Alert
         message="Mermaid Diagram"
-        description="Hierarchical component structure with classifications and relationships."
+        description="Hierarchical component structure with classifications and relationships. (Install mermaid package for visual rendering)"
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
