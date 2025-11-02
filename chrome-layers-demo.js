@@ -11,6 +11,7 @@
  */
 
 import { ChromeLayersService } from './services/chrome-layers-service.js';
+import { LayerInfographicGenerator } from './services/layer-infographic-generator.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -21,6 +22,8 @@ async function runDemo() {
     headless: false, // Set to false to watch the browser work
     cacheEnabled: false
   });
+
+  const infographicGenerator = new LayerInfographicGenerator();
 
   try {
     // Initialize service
@@ -148,6 +151,18 @@ async function runDemo() {
         const htmlPath = path.join(outputDir, `${sanitizedUrl}_visualization.html`);
         generateVisualizationHTML(analysis, htmlPath);
         console.log(`🎨 Visualization saved to: ${htmlPath}`);
+
+        // 7. Generate Infographic
+        console.log('\n📊 Step 7: Generating Infographic...');
+        const infographic = await infographicGenerator.generateInfographic(analysis, trainingData);
+        
+        const infographicPath = path.join(outputDir, `${sanitizedUrl}_infographic.json`);
+        await infographicGenerator.exportJSON(infographic, `${sanitizedUrl}_infographic.json`);
+        console.log(`✅ Infographic saved to: ${infographicPath}`);
+        
+        console.log(`   - Sections: ${infographic.sections.length}`);
+        console.log(`   - Performance Grade: ${infographic.sections.find(s => s.type === 'performance')?.grade || 'N/A'}`);
+        console.log(`   - Compliance: ${infographic.sections.find(s => s.type === 'design-rules')?.compliance.percentage || 0}%`);
 
       } catch (error) {
         console.error(`\n❌ Error analyzing ${url}:`, error.message);

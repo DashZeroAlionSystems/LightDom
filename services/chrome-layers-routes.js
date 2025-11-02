@@ -7,11 +7,13 @@
 
 import express from 'express';
 import { ChromeLayersService } from './chrome-layers-service.js';
+import { LayerInfographicGenerator } from './layer-infographic-generator.js';
 
 const router = express.Router();
 
-// Initialize service
+// Initialize services
 let layersService = null;
+let infographicGenerator = null;
 
 /**
  * Initialize the service on first use
@@ -24,7 +26,12 @@ async function ensureService() {
     });
     await layersService.initialize();
   }
-  return layersService;
+  
+  if (!infographicGenerator) {
+    infographicGenerator = new LayerInfographicGenerator();
+  }
+  
+  return { layersService, infographicGenerator };
 }
 
 /**
@@ -33,13 +40,13 @@ async function ensureService() {
  */
 router.get('/status', async (req, res) => {
   try {
-    const service = await ensureService();
+    const { layersService } = await ensureService();
     res.json({
       success: true,
       data: {
         status: 'operational',
-        initialized: !!service.browser,
-        cacheEnabled: !!service.redisClient,
+        initialized: !!layersService.browser,
+        cacheEnabled: !!layersService.redisClient,
         timestamp: new Date().toISOString()
       }
     });
@@ -75,13 +82,13 @@ router.post('/analyze', async (req, res) => {
       });
     }
 
-    const service = await ensureService();
-    const analysis = await service.analyzeLayersForUrl(url, options);
+    const { layersService } = await ensureService();
+    const analysis = await layersService.analyzeLayersForUrl(url, options);
 
     // Optionally include training data
     let trainingData = null;
     if (options.includeTrainingData) {
-      trainingData = await service.extractTrainingData(url, analysis, options);
+      trainingData = await layersService.extractTrainingData(url, analysis, options);
     }
 
     res.json({
@@ -121,8 +128,8 @@ router.post('/3d-map', async (req, res) => {
       });
     }
 
-    const service = await ensureService();
-    const analysis = await service.analyzeLayersForUrl(url);
+    const { layersService } = await ensureService();
+    const analysis = await layersService.analyzeLayersForUrl(url);
 
     // Transform data based on format
     let map3D = analysis.map3D;
@@ -171,8 +178,8 @@ router.post('/component-map', async (req, res) => {
       });
     }
 
-    const service = await ensureService();
-    const analysis = await service.analyzeLayersForUrl(url);
+    const { layersService } = await ensureService();
+    const analysis = await layersService.analyzeLayersForUrl(url);
 
     // Sort components by position
     const orderedComponents = [...analysis.componentMap].sort((a, b) => {
@@ -228,9 +235,9 @@ router.post('/training-data', async (req, res) => {
       });
     }
 
-    const service = await ensureService();
-    const analysis = await service.analyzeLayersForUrl(url);
-    const trainingData = await service.extractTrainingData(url, analysis, { designRules });
+    const { layersService } = await ensureService();
+    const analysis = await layersService.analyzeLayersForUrl(url);
+    const trainingData = await layersService.extractTrainingData(url, analysis, { designRules });
 
     // Save to database if requested
     let saved = false;
@@ -287,12 +294,12 @@ router.post('/batch-analyze', async (req, res) => {
       });
     }
 
-    const service = await ensureService();
+    const { layersService } = await ensureService();
     const results = [];
 
     for (const url of urls) {
       try {
-        const analysis = await service.analyzeLayersForUrl(url, options);
+        const analysis = await layersService.analyzeLayersForUrl(url, options);
         results.push({
           url,
           success: true,
@@ -368,6 +375,56 @@ router.get('/design-rules', (req, res) => {
       ]
     }
   });
+});
+
+/**
+ * POST /api/layers/infographic
+ * Generate infographic from layer analysis
+ * 
+ * Body:
+ * {
+ *   "url": "https://example.com",
+ *   "format": "json" | "svg"
+ * }
+ */
+router.post('/infographic', async (req, res) => {
+  try {
+    const { url, format = 'json' } = req.body;
+
+    if (!url) {
+      return res.status(400).json({
+        success: false,
+        error: 'URL is required'
+      });
+    }
+
+    const { layersService, infographicGenerator } = await ensureService();
+    
+    // Get analysis and training data
+    const analysis = await layersService.analyzeLayersForUrl(url);
+    const trainingData = await layersService.extractTrainingData(url, analysis);
+    
+    // Generate infographic
+    const infographic = await infographicGenerator.generateInfographic(analysis, trainingData);
+
+    // Return in requested format
+    if (format === 'svg') {
+      const svg = await infographicGenerator.generateSVG(infographic);
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.send(svg);
+    } else {
+      res.json({
+        success: true,
+        data: infographic
+      });
+    }
+  } catch (error) {
+    console.error('Infographic generation error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 });
 
 /**
