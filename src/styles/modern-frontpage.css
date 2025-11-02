@@ -257,10 +257,6 @@ html {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.gradient-blue-purple {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
 /* Text Gradients */
 .text-gradient {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

@@ -46,8 +46,8 @@ const SEOHead: React.FC<SEOProps> = ({
       ratingCount: '10000'
     },
     operatingSystem: 'Web, Windows, macOS, Linux',
-    description: description,
-    url: url,
+    description,
+    url,
     author: {
       '@type': 'Organization',
       name: 'LightDom'

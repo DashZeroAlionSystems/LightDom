@@ -288,70 +288,80 @@ export const ServerRacks: React.FC = () => (
 );
 
 // Rocket Launch Illustration
-export const RocketLaunch: React.FC = () => (
-  <svg width="200" height="250" viewBox="0 0 200 250" fill="none">
-    <defs>
-      <linearGradient id="rocketGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#667eea" />
-        <stop offset="100%" stopColor="#764ba2" />
-      </linearGradient>
-      <linearGradient id="flameGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#f59e0b" />
-        <stop offset="100%" stopColor="#ef4444" />
-      </linearGradient>
-    </defs>
-    
-    {/* Rocket body */}
-    <path
-      d="M 100 20 L 120 80 L 120 150 L 100 180 L 80 150 L 80 80 Z"
-      fill="url(#rocketGrad)"
-      className="animate-bounce-slow"
-    />
-    
-    {/* Rocket window */}
-    <circle cx="100" cy="60" r="15" fill="#1e293b" />
-    <circle cx="100" cy="60" r="12" fill="#60a5fa" opacity="0.5" />
-    
-    {/* Rocket fins */}
-    <path d="M 80 120 L 60 160 L 80 150 Z" fill="#334155" />
-    <path d="M 120 120 L 140 160 L 120 150 Z" fill="#334155" />
-    
-    {/* Flames */}
-    <g className="animate-flicker">
+export const RocketLaunch: React.FC = () => {
+  // Pre-calculated star positions for consistent rendering
+  const starPositions = [
+    { x: 40, y: 30 },
+    { x: 120, y: 50 },
+    { x: 160, y: 35 },
+    { x: 70, y: 70 },
+    { x: 150, y: 85 },
+    { x: 50, y: 95 },
+    { x: 180, y: 60 },
+    { x: 90, y: 45 }
+  ];
+
+  return (
+    <svg width="200" height="250" viewBox="0 0 200 250" fill="none">
+      <defs>
+        <linearGradient id="rocketGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#667eea" />
+          <stop offset="100%" stopColor="#764ba2" />
+        </linearGradient>
+        <linearGradient id="flameGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#f59e0b" />
+          <stop offset="100%" stopColor="#ef4444" />
+        </linearGradient>
+      </defs>
+      
+      {/* Rocket body */}
       <path
-        d="M 85 180 Q 80 200, 85 220 L 95 200 Z"
-        fill="url(#flameGrad)"
-        opacity="0.8"
+        d="M 100 20 L 120 80 L 120 150 L 100 180 L 80 150 L 80 80 Z"
+        fill="url(#rocketGrad)"
+        className="animate-bounce-slow"
       />
-      <path
-        d="M 100 180 Q 100 210, 100 230 L 100 200 Z"
-        fill="url(#flameGrad)"
-      />
-      <path
-        d="M 115 180 Q 120 200, 115 220 L 105 200 Z"
-        fill="url(#flameGrad)"
-        opacity="0.8"
-      />
-    </g>
-    
-    {/* Stars */}
-    {[...Array(8)].map((_, i) => {
-      const x = 20 + Math.random() * 160;
-      const y = 20 + Math.random() * 80;
-      return (
+      
+      {/* Rocket window */}
+      <circle cx="100" cy="60" r="15" fill="#1e293b" />
+      <circle cx="100" cy="60" r="12" fill="#60a5fa" opacity="0.5" />
+      
+      {/* Rocket fins */}
+      <path d="M 80 120 L 60 160 L 80 150 Z" fill="#334155" />
+      <path d="M 120 120 L 140 160 L 120 150 Z" fill="#334155" />
+      
+      {/* Flames */}
+      <g className="animate-flicker">
+        <path
+          d="M 85 180 Q 80 200, 85 220 L 95 200 Z"
+          fill="url(#flameGrad)"
+          opacity="0.8"
+        />
+        <path
+          d="M 100 180 Q 100 210, 100 230 L 100 200 Z"
+          fill="url(#flameGrad)"
+        />
+        <path
+          d="M 115 180 Q 120 200, 115 220 L 105 200 Z"
+          fill="url(#flameGrad)"
+          opacity="0.8"
+        />
+      </g>
+      
+      {/* Stars with fixed positions */}
+      {starPositions.map((pos, i) => (
         <circle
           key={i}
-          cx={x}
-          cy={y}
+          cx={pos.x}
+          cy={pos.y}
           r="2"
           fill="#fff"
           className="animate-twinkle"
           style={{ animationDelay: `${i * 0.2}s` }}
         />
-      );
-    })}
-  </svg>
-);
+      ))}
+    </svg>
+  );
+};
 
 // Shield with Checkmark
 export const SecurityShield: React.FC = () => (
