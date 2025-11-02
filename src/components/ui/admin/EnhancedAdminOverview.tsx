@@ -22,11 +22,11 @@ import { Heading, Text } from '../atoms/Typography';
 import { StatusBadge } from '../atoms/Badge';
 
 // Utility constants
-const BYTES_TO_GB = 1024 * 1024 * 1024;
+const BYTES_TO_GIB = 1024 * 1024 * 1024; // Binary gibibytes (GiB)
 
 // Utility function for byte conversion
-const bytesToGB = (bytes: number): string => {
-  return (bytes / BYTES_TO_GB).toFixed(2);
+const bytesToGiB = (bytes: number): string => {
+  return (bytes / BYTES_TO_GIB).toFixed(2);
 };
 
 interface SystemHealth {
@@ -246,7 +246,7 @@ const EnhancedAdminOverview: React.FC = () => {
               />
               <DetailRow
                 label="Space Saved"
-                value={`${bytesToGB(quickStats?.spaceSaved || 0)} GB`}
+                value={`${bytesToGiB(quickStats?.spaceSaved || 0)} GiB`}
               />
             </div>
           </InfoPanel>

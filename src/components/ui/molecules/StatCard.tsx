@@ -23,14 +23,6 @@ export interface StatCardProps {
   className?: string;
 }
 
-const variantIconMap = {
-  default: 'default' as const,
-  primary: 'primary' as const,
-  success: 'success' as const,
-  warning: 'warning' as const,
-  danger: 'danger' as const,
-};
-
 export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
   ({ label, value, icon, trend, variant = 'default', className }, ref) => {
     const getTrendColor = () => {
@@ -83,7 +75,7 @@ export const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
           {icon && (
             <CircularIcon
               icon={icon}
-              variant={variantIconMap[variant]}
+              variant={variant}
               size="lg"
             />
           )}
