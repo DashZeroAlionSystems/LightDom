@@ -57,6 +57,7 @@ import MotionDesignShowcase from './components/MotionDesignShowcase';
 import DesignToolsNavigation from './components/DesignToolsNavigation';
 import SchemaLinkingDashboard from './components/SchemaLinkingDashboard';
 import WorkflowCreationDashboard from './components/WorkflowCreationDashboard';
+import ComponentSchemaToolDashboard from './components/ComponentSchemaToolDashboard';
 import ChromeLayers3DDashboard from './components/ChromeLayers3DDashboard';
 import NeuralNetworkDashboard from './components/ui/dashboard/NeuralNetworkDashboard';
 import './App.css';

@@ -33,6 +33,8 @@ import {
   Link2,
   ClipboardList,
   ChevronRight,
+  Database,
+  Play,
 } from 'lucide-react';
 
 type WorkflowStatus = 'pending' | 'in_progress' | 'completed' | 'paused' | 'error' | 'draft';
@@ -209,31 +211,115 @@ export const WorkflowsPage: React.FC = () => {
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('tasks');
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isCreatingWorkflow, setIsCreatingWorkflow] = useState(false);
+  const pollCleanupRef = React.useRef<(() => void) | null>(null);
+
+  const fetchWorkflows = async () => {
+    try {
+      const response = await fetch('/api/workflow-admin/workflows/summary');
+      if (!response.ok) {
+        throw new Error(`Failed to load workflows (${response.status})`);
+      }
+      const data = await response.json();
+      const mapped = Array.isArray(data?.workflows)
+        ? (data.workflows as any[]).map(mapWorkflowSummary)
+        : [];
+      setWorkflows(mapped);
+      if (!selectedWorkflowId || !mapped.find(w => w.id === selectedWorkflowId)) {
+        setSelectedWorkflowId(mapped[0]?.id ?? null);
+      }
+      setLoadError(null);
+    } catch (error) {
+      setWorkflows([]);
+      setSelectedWorkflowId(null);
+      setLoadError(error instanceof Error ? error.message : 'Failed to load workflows');
+    }
+  };
+
+  const handleCreateDataminingWorkflow = async (executeImmediately: boolean = false) => {
+    setIsCreatingWorkflow(true);
+    try {
+      const response = await fetch('/api/workflow-admin/workflows/datamining', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `Data Mining Workflow ${new Date().toLocaleDateString()}`,
+          description: 'Automated data mining and SEO optimization workflow',
+          executeImmediately,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create datamining workflow');
+      }
+
+      const data = await response.json();
+      
+      // Refresh workflow list
+      await fetchWorkflows();
+      
+      // Select the newly created workflow
+      if (data.workflow) {
+        setSelectedWorkflowId(data.workflow.id);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating datamining workflow:', error);
+      setLoadError(error instanceof Error ? error.message : 'Failed to create datamining workflow');
+      throw error;
+    } finally {
+      setIsCreatingWorkflow(false);
+    }
+  };
+
+  const handleExecuteWorkflow = async (workflowId: string) => {
+    try {
+      const response = await fetch(`/api/workflow-admin/workflows/${workflowId}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to execute workflow');
+      }
+
+      // Clean up any existing polling
+      if (pollCleanupRef.current) {
+        pollCleanupRef.current();
+      }
+
+      // Start polling for updates
+      const pollInterval = setInterval(async () => {
+        await fetchWorkflows();
+      }, 2000);
+
+      // Store interval ID for cleanup
+      const timeoutId = setTimeout(() => {
+        clearInterval(pollInterval);
+        pollCleanupRef.current = null;
+      }, 120000);
+
+      // Store cleanup function
+      pollCleanupRef.current = () => {
+        clearInterval(pollInterval);
+        clearTimeout(timeoutId);
+      };
+
+      await fetchWorkflows();
+    } catch (error) {
+      console.error('Error executing workflow:', error);
+      setLoadError(error instanceof Error ? error.message : 'Failed to execute workflow');
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchWorkflows = async () => {
+    const initialFetch = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch('/api/workflow-admin/workflows/summary');
-        if (!response.ok) {
-          throw new Error(`Failed to load workflows (${response.status})`);
-        }
-        const data = await response.json();
-        if (isMounted) {
-          const mapped = Array.isArray(data?.workflows)
-            ? (data.workflows as any[]).map(mapWorkflowSummary)
-            : [];
-          setWorkflows(mapped);
-          setSelectedWorkflowId(mapped[0]?.id ?? null);
-          setLoadError(null);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setWorkflows([]);
-          setSelectedWorkflowId(null);
-          setLoadError(error instanceof Error ? error.message : 'Failed to load workflows');
-        }
+        await fetchWorkflows();
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -241,10 +327,14 @@ export const WorkflowsPage: React.FC = () => {
       }
     };
 
-    fetchWorkflows();
+    initialFetch();
 
     return () => {
       isMounted = false;
+      // Cleanup polling if active
+      if (pollCleanupRef.current) {
+        pollCleanupRef.current();
+      }
     };
   }, []);
 
@@ -291,13 +381,23 @@ export const WorkflowsPage: React.FC = () => {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Button className="rounded-full" variant="outlined">
-            <ClipboardList className="h-4 w-4" />
-            <span className="ml-2">Workflow templates</span>
+          <Button 
+            className="rounded-full" 
+            variant="outlined"
+            onClick={() => handleCreateDataminingWorkflow(false)}
+            disabled={isCreatingWorkflow}
+          >
+            <Database className="h-4 w-4" />
+            <span className="ml-2">Create Data Mining Workflow</span>
           </Button>
-          <Button className="rounded-full" variant="filled">
-            <Wand2 className="h-4 w-4" />
-            <span className="ml-2">New workflow from prompt</span>
+          <Button 
+            className="rounded-full" 
+            variant="filled"
+            onClick={() => handleCreateDataminingWorkflow(true)}
+            disabled={isCreatingWorkflow}
+          >
+            <Play className="h-4 w-4" />
+            <span className="ml-2">Launch Data Mining Now</span>
           </Button>
         </div>
       </header>
@@ -625,8 +725,14 @@ export const WorkflowsPage: React.FC = () => {
                 <Button variant="text" className="rounded-full">
                   Preview workflow run
                 </Button>
-                <Button variant="filled" className="rounded-full">
-                  Launch workflow
+                <Button 
+                  variant="filled" 
+                  className="rounded-full"
+                  onClick={() => handleExecuteWorkflow(selectedWorkflow.id)}
+                  disabled={selectedWorkflow.status === 'in_progress'}
+                >
+                  <Rocket className="mr-2 h-4 w-4" />
+                  {selectedWorkflow.status === 'in_progress' ? 'Running...' : 'Launch workflow'}
                 </Button>
               </div>
             </WorkflowPanelFooter>

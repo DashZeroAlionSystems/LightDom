@@ -29,6 +29,7 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { AIContentPage } from '@/pages/AIContentPage';
 import { SEOModelTrainingPage } from '@/pages/SEOModelTrainingPage';
 import { WorkflowsPage } from '@/pages/WorkflowsPage';
+import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
 import { ComponentSchemaToolPage } from '@/pages/ComponentSchemaToolPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ComprehensiveWorkflowsPage } from '@/pages/ComprehensiveWorkflowsPage';
@@ -263,11 +264,11 @@ const App: React.FC = () => {
                   }
                 />
                 <Route
-                  path="/workflows-enhanced"
+                  path="/workflow-builder"
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <ComprehensiveWorkflowsPage />
+                        <WorkflowBuilderPage />
                       </Layout>
                     </ProtectedRoute>
                   }
