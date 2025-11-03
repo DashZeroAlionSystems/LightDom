@@ -46,6 +46,7 @@ import {
   DatabaseOutlined,
   CodeOutlined,
 } from '@ant-design/icons';
+import DOM3DVisualization from '../visualizations/DOM3DVisualization';
 
 const { TabPane } = Tabs;
 const { TextArea } = Input;
@@ -87,6 +88,8 @@ export const CampaignTrainingAdminDashboard: React.FC = () => {
   const [trainingModels, setTrainingModels] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [simulateModalVisible, setSimulateModalVisible] = useState(false);
+  const [visualizationModalVisible, setVisualizationModalVisible] = useState(false);
+  const [selectedMiningResult, setSelectedMiningResult] = useState<any>(null);
   const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null);
   const [form] = Form.useForm();
 
@@ -329,6 +332,24 @@ export const CampaignTrainingAdminDashboard: React.FC = () => {
       key: 'created_at',
       render: (date: string) => new Date(date).toLocaleString(),
     },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: any) => (
+        <Button
+          icon={<EyeOutlined />}
+          onClick={async () => {
+            // Fetch full mining result
+            const response = await fetch(`/api/workflow/mining/results/${record.id}`);
+            const fullResult = await response.json();
+            setSelectedMiningResult(fullResult);
+            setVisualizationModalVisible(true);
+          }}
+        >
+          View 3D
+        </Button>
+      ),
+    },
   ];
 
   // Calculate summary stats
@@ -570,6 +591,25 @@ export const CampaignTrainingAdminDashboard: React.FC = () => {
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* 3D Visualization Modal */}
+      <Modal
+        title="3D DOM Visualization & Schema Analysis"
+        visible={visualizationModalVisible}
+        onCancel={() => setVisualizationModalVisible(false)}
+        width="95%"
+        style={{ top: 20 }}
+        footer={null}
+      >
+        {selectedMiningResult && (
+          <DOM3DVisualization
+            miningResult={selectedMiningResult}
+            onElementSelect={(elementId) => {
+              console.log('Selected element:', elementId);
+            }}
+          />
+        )}
       </Modal>
     </div>
   );

@@ -61,6 +61,13 @@ CREATE TABLE IF NOT EXISTS dom_3d_mining_results (
     schema_graph JSONB NOT NULL,
     seo_score DECIMAL(5,2) NOT NULL,
     recommendations JSONB NOT NULL,
+    framework_detection JSONB,
+    design_system JSONB,
+    theme JSONB,
+    component_schemas JSONB,
+    predicted_schemas JSONB,
+    style_guide JSONB,
+    visualization_3d JSONB,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     CONSTRAINT fk_campaign_mining
         FOREIGN KEY (campaign_id)
