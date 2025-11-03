@@ -439,6 +439,14 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load payment routes:', err);
     });
     
+    // Import and register Crawler Campaign routes (DeepSeek Integration)
+    import('./src/api/routes/campaign.routes.js').then((campaignModule) => {
+      this.app.use('/api/campaigns', campaignModule.default);
+      console.log('✅ Crawler campaign routes registered (DeepSeek integration enabled)');
+    }).catch(err => {
+      console.error('Failed to load campaign routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
