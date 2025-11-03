@@ -151,7 +151,7 @@ class DOMSpaceHarvesterAPI {
     // Setup unused APIs - connecting overlooked code
     this.setupUnusedAPIs();
     
-    // Setup blockchain API routes
+    // Setup blockchain API routes (renamed from duplicate setupRoutes)
     this.setupBlockchainRoutes();
     
     // Setup optimization API routes
@@ -3204,7 +3204,7 @@ class DOMSpaceHarvesterAPI {
     this.io.emit(event, data);
   }
 
-  setupRoutes() {
+  setupBlockchainRoutes() {
     // =====================================================
     // BLOCKCHAIN ENDPOINTS
     // =====================================================
