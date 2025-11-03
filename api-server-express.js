@@ -471,6 +471,14 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load pattern mining routes:', err);
     });
     
+    // Import and register Automated SEO Campaign routes
+    import('./src/api/routes/automated-seo.routes.js').then((seoModule) => {
+      this.app.use('/api/seo', seoModule.default);
+      console.log('✅ Automated SEO campaign routes registered (192+ attributes, neural network, SVG widgets enabled)');
+    }).catch(err => {
+      console.error('Failed to load automated SEO routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
