@@ -1,0 +1,13 @@
+{
+  "title": "Explore what's new",
+  "items": [
+    { "id": "a1", "title": "Copilot CLI updates", "description": "Install and manage custom agents from the CLI." },
+    { "id": "a2", "title": "Manage agents and sessions" }
+  ],
+  "right": {
+    "heading": "Fresh updates for Copilot CLI",
+    "body": "Discover custom agents, a new command to push your sessions to coding agent, and more.",
+    "primaryAction": { "label": "Install now" },
+    "secondaryAction": { "label": "Learn more" }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Textarea",
+  "@id": "lightdom:textarea",
+  "name": "Textarea",
+  "description": "Multi-line text input component",
+  "lightdom:componentType": "atom",
+  "lightdom:reactComponent": "Textarea",
+  "lightdom:props": [
+    {
+      "name": "name",
+      "type": "string",
+      "required": true,
+      "description": "Textarea name attribute"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "required": false,
+      "description": "Placeholder text"
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "required": false,
+      "description": "Textarea value"
+    },
+    {
+      "name": "defaultValue",
+      "type": "string",
+      "required": false,
+      "description": "Default value"
+    },
+    {
+      "name": "rows",
+      "type": "number",
+      "required": false,
+      "description": "Number of visible rows",
+      "default": 4
+    },
+    {
+      "name": "maxLength",
+      "type": "number",
+      "required": false,
+      "description": "Maximum character length"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "description": "Disabled state",
+      "default": false
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "required": false,
+      "description": "Required field",
+      "default": false
+    },
+    {
+      "name": "onChange",
+      "type": "function",
+      "required": false,
+      "description": "Change event handler"
+    },
+    {
+      "name": "autoResize",
+      "type": "boolean",
+      "required": false,
+      "description": "Auto-resize to content",
+      "default": false
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "textarea",
+    "text-area",
+    "form",
+    "multi-line",
+    "long-text",
+    "comment"
+  ],
+  "lightdom:semanticMeaning": "Multi-line text input for longer content",
+  "lightdom:priority": 1,
+  "lightdom:category": "atom"
+}

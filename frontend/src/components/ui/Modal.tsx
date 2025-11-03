@@ -5,7 +5,7 @@ import { cn } from '@/utils/validation/cn';
 import { Button } from './Button';
 
 const modalVariants = cva(
-  'relative bg-surface-elevated rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out',
+  'relative rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out',
   {
     variants: {
       size: {
@@ -126,7 +126,11 @@ const Modal: React.FC<ModalProps> = ({
     >
       <div
         ref={modalRef}
-        className={cn(modalVariants({ size, animation }), className)}
+        className={cn(
+          'bg-surface-container-highest/95 backdrop-blur-xl border border-outline/20',
+          modalVariants({ size, animation }),
+          className
+        )}
         tabIndex={-1}
         {...props}
       >

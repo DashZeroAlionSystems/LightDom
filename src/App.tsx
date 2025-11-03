@@ -58,6 +58,7 @@ import DesignToolsNavigation from './components/DesignToolsNavigation';
 import SchemaLinkingDashboard from './components/SchemaLinkingDashboard';
 import WorkflowCreationDashboard from './components/WorkflowCreationDashboard';
 import ChromeLayers3DDashboard from './components/ChromeLayers3DDashboard';
+import NeuralNetworkDashboard from './components/ui/dashboard/NeuralNetworkDashboard';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -156,6 +157,7 @@ const AppContent: React.FC = () => {
           <Route path="workflow-simulation" element={<WorkflowSimulationDashboard />} />
           <Route path="testing" element={<TestingDashboard />} />
           <Route path="advanced-nodes" element={<AdvancedNodeDashboard />} />
+          <Route path="neural-network" element={<NeuralNetworkDashboard />} />
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />
           <Route path="seo-optimization" element={<SEOOptimizationDashboard />} />

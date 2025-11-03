@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Announcement Modal Configuration",
+  "type": "object",
+  "properties": {
+    "title": { "type": "string" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string" }
+        },
+        "required": ["id","title"]
+      }
+    },
+    "right": {
+      "type": "object",
+      "properties": {
+        "heading": { "type": "string" },
+        "body": { "type": "string" },
+        "image": { "type": "string" },
+        "primaryAction": { "type": "object" },
+        "secondaryAction": { "type": "object" }
+      }
+    }
+  }
+}

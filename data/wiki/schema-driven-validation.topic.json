@@ -1,0 +1,30 @@
+{
+  "$id": "ld:ResearchTopic:schema-driven-validation",
+  "type": "ld:ResearchTopic",
+  "title": "Schema-Driven Validation with Zod",
+  "description": "Research on implementing schema-driven validation using Zod for type-safe data validation across the LightDom platform",
+  "tags": ["validation", "zod", "typescript", "schema"],
+  "content": {
+    "summary": "This research topic explores the implementation of schema-driven validation using Zod library to create dynamic validators from ld-schema definitions.",
+    "keyPoints": [
+      "Zod provides runtime type validation for TypeScript",
+      "Dynamic schema generation from JSON schema definitions",
+      "Integration at API boundaries for request validation",
+      "Support for complex nested schemas and custom validation rules"
+    ],
+    "references": [
+      {
+        "title": "Zod Documentation",
+        "url": "https://zod.dev/",
+        "type": "documentation"
+      }
+    ],
+    "relatedTopics": ["ld:ResearchTopic:api-validation", "ld:ResearchTopic:type-safety"]
+  },
+  "metadata": {
+    "author": "LightDom Research Team",
+    "createdDate": "2025-11-02",
+    "status": "active",
+    "priority": "high"
+  }
+}

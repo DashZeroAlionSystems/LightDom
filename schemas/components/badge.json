@@ -1,0 +1,58 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Badge",
+  "@id": "lightdom:badge",
+  "name": "Badge",
+  "description": "Badge component for status indicators",
+  "lightdom:componentType": "atom",
+  "lightdom:reactComponent": "Badge",
+  "lightdom:props": [
+    {
+      "name": "text",
+      "type": "string",
+      "required": true,
+      "description": "Badge text content"
+    },
+    {
+      "name": "variant",
+      "type": "string",
+      "required": false,
+      "description": "Badge style variant",
+      "enum": ["primary", "secondary", "success", "warning", "danger", "info"],
+      "default": "primary"
+    },
+    {
+      "name": "size",
+      "type": "string",
+      "required": false,
+      "description": "Badge size",
+      "enum": ["small", "medium", "large"],
+      "default": "medium"
+    },
+    {
+      "name": "dot",
+      "type": "boolean",
+      "required": false,
+      "description": "Show as dot indicator",
+      "default": false
+    },
+    {
+      "name": "count",
+      "type": "number",
+      "required": false,
+      "description": "Numeric count to display"
+    }
+  ],
+  "lightdom:linkedSchemas": [],
+  "lightdom:useCase": [
+    "badge",
+    "tag",
+    "status",
+    "label",
+    "indicator",
+    "count"
+  ],
+  "lightdom:semanticMeaning": "Badge for displaying status, labels, or counts",
+  "lightdom:priority": 2,
+  "lightdom:category": "atom"
+}

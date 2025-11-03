@@ -1,0 +1,93 @@
+{
+  "@context": "https://schema.org",
+  "@type": "SearchBar",
+  "@id": "lightdom:search-bar",
+  "name": "SearchBar",
+  "description": "Search bar molecule with input and button",
+  "lightdom:componentType": "molecule",
+  "lightdom:reactComponent": "SearchBar",
+  "lightdom:composedOf": [
+    "lightdom:input",
+    "lightdom:button",
+    "lightdom:icon"
+  ],
+  "lightdom:props": [
+    {
+      "name": "placeholder",
+      "type": "string",
+      "required": false,
+      "description": "Search placeholder",
+      "default": "Search..."
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "required": false,
+      "description": "Search value"
+    },
+    {
+      "name": "onSearch",
+      "type": "function",
+      "required": true,
+      "description": "Search handler"
+    },
+    {
+      "name": "onChange",
+      "type": "function",
+      "required": false,
+      "description": "Change handler"
+    },
+    {
+      "name": "loading",
+      "type": "boolean",
+      "required": false,
+      "description": "Loading state",
+      "default": false
+    },
+    {
+      "name": "size",
+      "type": "string",
+      "required": false,
+      "description": "Size",
+      "enum": ["small", "medium", "large"],
+      "default": "medium"
+    }
+  ],
+  "lightdom:linkedSchemas": [
+    "lightdom:input",
+    "lightdom:button",
+    "lightdom:icon"
+  ],
+  "lightdom:useCase": [
+    "search",
+    "search-bar",
+    "filter",
+    "query"
+  ],
+  "lightdom:semanticMeaning": "Search input with submit button",
+  "lightdom:priority": 2,
+  "lightdom:category": "molecule",
+  "lightdom:assemblyPattern": {
+    "structure": "horizontal",
+    "components": [
+      {
+        "atom": "lightdom:input",
+        "props": {
+          "type": "search",
+          "placeholder": "{{placeholder}}",
+          "value": "{{value}}",
+          "onChange": "{{onChange}}"
+        }
+      },
+      {
+        "atom": "lightdom:button",
+        "props": {
+          "label": "Search",
+          "onClick": "{{onSearch}}",
+          "variant": "primary",
+          "size": "{{size}}"
+        }
+      }
+    ]
+  }
+}

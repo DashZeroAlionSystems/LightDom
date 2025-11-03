@@ -1,0 +1,12 @@
+{
+  "placeholder": "Describe a task, try '/task' or ask for help...",
+  "hero": {
+    "title": "LightDom Copilot",
+    "subtitle": "Start a new task or resume a session",
+    "showBanner": true
+  },
+  "recentSessions": [
+    { "id": "s1", "title": "Add SEO crawler", "repo": "DashZeroAlionSystems/LightDom", "timestamp": "2025-11-02 09:12" },
+    { "id": "s2", "title": "Generate sitemap", "repo": "DashZeroAlionSystems/LightDom", "timestamp": "2025-11-01 16:45" }
+  ]
+}

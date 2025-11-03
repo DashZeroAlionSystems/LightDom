@@ -1,0 +1,89 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Modal",
+  "@id": "lightdom:modal-dialog",
+  "name": "ModalDialog",
+  "description": "Modal dialog organism with header, content, and action buttons",
+  "lightdom:componentType": "organism",
+  "lightdom:reactComponent": "ModalDialog",
+  "lightdom:composedOf": [
+    "lightdom:button",
+    "lightdom:icon",
+    "lightdom:card"
+  ],
+  "lightdom:props": [
+    {
+      "name": "title",
+      "type": "string",
+      "required": true,
+      "description": "Modal title"
+    },
+    {
+      "name": "children",
+      "type": "node",
+      "required": true,
+      "description": "Modal content"
+    },
+    {
+      "name": "open",
+      "type": "boolean",
+      "required": true,
+      "description": "Modal open state"
+    },
+    {
+      "name": "onClose",
+      "type": "function",
+      "required": true,
+      "description": "Close handler"
+    },
+    {
+      "name": "onConfirm",
+      "type": "function",
+      "required": false,
+      "description": "Confirm button handler"
+    },
+    {
+      "name": "confirmLabel",
+      "type": "string",
+      "required": false,
+      "description": "Confirm button label",
+      "default": "Confirm"
+    },
+    {
+      "name": "cancelLabel",
+      "type": "string",
+      "required": false,
+      "description": "Cancel button label",
+      "default": "Cancel"
+    },
+    {
+      "name": "size",
+      "type": "string",
+      "required": false,
+      "description": "Modal size",
+      "enum": ["small", "medium", "large", "fullscreen"],
+      "default": "medium"
+    },
+    {
+      "name": "closable",
+      "type": "boolean",
+      "required": false,
+      "description": "Show close button",
+      "default": true
+    }
+  ],
+  "lightdom:linkedSchemas": [
+    "lightdom:button",
+    "lightdom:icon"
+  ],
+  "lightdom:useCase": [
+    "modal",
+    "dialog",
+    "popup",
+    "overlay",
+    "confirmation"
+  ],
+  "lightdom:semanticMeaning": "Modal dialog for user interactions and confirmations",
+  "lightdom:priority": 2,
+  "lightdom:category": "organism"
+}

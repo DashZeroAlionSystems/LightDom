@@ -1,0 +1,128 @@
+{
+  "@context": "https://schema.org",
+  "@type": "LoginForm",
+  "@id": "lightdom:login-form",
+  "name": "LoginForm",
+  "description": "Complete login form organism with email, password, and remember me",
+  "lightdom:componentType": "organism",
+  "lightdom:reactComponent": "LoginForm",
+  "lightdom:composedOf": [
+    "lightdom:form-field",
+    "lightdom:checkbox",
+    "lightdom:button",
+    "lightdom:link",
+    "lightdom:alert",
+    "lightdom:card"
+  ],
+  "lightdom:props": [
+    {
+      "name": "onSubmit",
+      "type": "function",
+      "required": true,
+      "description": "Login submission handler"
+    },
+    {
+      "name": "onForgotPassword",
+      "type": "function",
+      "required": false,
+      "description": "Forgot password handler"
+    },
+    {
+      "name": "loading",
+      "type": "boolean",
+      "required": false,
+      "description": "Loading state",
+      "default": false
+    },
+    {
+      "name": "error",
+      "type": "string",
+      "required": false,
+      "description": "Error message to display"
+    },
+    {
+      "name": "showRememberMe",
+      "type": "boolean",
+      "required": false,
+      "description": "Show remember me checkbox",
+      "default": true
+    }
+  ],
+  "lightdom:linkedSchemas": [
+    "lightdom:form-field",
+    "lightdom:checkbox",
+    "lightdom:button",
+    "lightdom:link",
+    "lightdom:alert"
+  ],
+  "lightdom:useCase": [
+    "login",
+    "authentication",
+    "sign-in",
+    "user-auth",
+    "form"
+  ],
+  "lightdom:semanticMeaning": "Login form for user authentication",
+  "lightdom:priority": 1,
+  "lightdom:category": "organism",
+  "lightdom:assemblyPattern": {
+    "structure": "vertical",
+    "container": "lightdom:card",
+    "components": [
+      {
+        "component": "lightdom:alert",
+        "condition": "{{error}}",
+        "props": {
+          "message": "{{error}}",
+          "type": "error",
+          "closable": true
+        }
+      },
+      {
+        "component": "lightdom:form-field",
+        "props": {
+          "name": "email",
+          "label": "Email",
+          "type": "email",
+          "required": true,
+          "placeholder": "Enter your email"
+        }
+      },
+      {
+        "component": "lightdom:form-field",
+        "props": {
+          "name": "password",
+          "label": "Password",
+          "type": "password",
+          "required": true,
+          "placeholder": "Enter your password"
+        }
+      },
+      {
+        "component": "lightdom:checkbox",
+        "condition": "{{showRememberMe}}",
+        "props": {
+          "name": "rememberMe",
+          "label": "Remember me"
+        }
+      },
+      {
+        "component": "lightdom:button",
+        "props": {
+          "label": "Sign In",
+          "variant": "primary",
+          "onClick": "{{onSubmit}}",
+          "disabled": "{{loading}}"
+        }
+      },
+      {
+        "component": "lightdom:link",
+        "condition": "{{onForgotPassword}}",
+        "props": {
+          "text": "Forgot password?",
+          "onClick": "{{onForgotPassword}}"
+        }
+      }
+    ]
+  }
+}

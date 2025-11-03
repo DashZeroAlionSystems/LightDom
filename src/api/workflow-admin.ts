@@ -6,12 +6,82 @@ import { runPromptBasedMining } from '../services/workflow/MiningQueueProcessor'
 
 const router = express.Router();
 
+const FALLBACK_FLAG = { fallback: true, source: 'workflow-admin-fallback' };
+
+const fallbackWorkflows = [
+  {
+    id: 'demo-campaign-seo',
+    schema_key: 'seo-content',
+    prompt: 'Generate SEO-optimized landing page copy for the LightDom platform with clear value props.',
+    dataset_name: 'LightDom SEO Launch Campaign',
+    dataset_description: 'Starter workflow showing how crawler output feeds the neural training pipeline.',
+    categories: ['seo', 'landing-page', 'copywriting'],
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'demo-competitor-analysis',
+    schema_key: 'competitor-landscape',
+    prompt: 'Summarize competitor positioning for decentralized storage and mining solutions.',
+    dataset_name: 'Competitor Landscape Insights',
+    dataset_description: 'Example analysis workflow populated when the analytics DB is offline.',
+    categories: ['analysis', 'competitive-intel'],
+    created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+const fallbackSummaries = fallbackWorkflows.map((workflow, index) => ({
+  id: workflow.id,
+  campaignName: workflow.dataset_name,
+  ownerName: 'Demo Owner',
+  ownerEmail: 'demo@lightdom.io',
+  status: index === 0 ? 'active' : 'draft',
+  scriptInjected: index === 0,
+  n8nWorkflowId: null,
+  tensorflowInstanceId: null,
+  seoScore: index === 0 ? 86 : 72,
+  automationThreshold: 0.7,
+  pendingAutomation: index !== 0,
+  createdAt: workflow.created_at,
+  updatedAt: workflow.created_at,
+  tasks: [
+    {
+      id: `${workflow.id}-crawl`,
+      label: 'Crawl seed URLs',
+      status: index === 0 ? 'completed' : 'pending',
+      description: 'Fetch fresh content and map metadata for the campaign.',
+      lastRunAt: workflow.created_at,
+    },
+    {
+      id: `${workflow.id}-train`,
+      label: 'Train TensorFlow model',
+      status: index === 0 ? 'running' : 'queued',
+      description: 'Fine-tune neural model on curated dataset.',
+      lastRunAt: workflow.created_at,
+    },
+  ],
+  attributes: [
+    {
+      id: `${workflow.id}-primary-keyword`,
+      label: 'Primary keyword',
+      type: 'seo',
+      enrichmentPrompt: 'Highlight the top keyword focus for this workflow.',
+      drilldownPrompts: ['List secondary variations', 'Provide supporting FAQs'],
+      status: index === 0 ? 'active' : 'draft',
+    },
+  ],
+}));
+
+const sendFallback = (res: express.Response, payload: Record<string, unknown>) => {
+  res.status(200).json({ ok: true, meta: FALLBACK_FLAG, ...payload });
+};
+
 router.get('/workflows', async (_req, res) => {
   try {
     const workflows = await workflowRepository.listWorkflows();
     res.json({ ok: true, workflows });
   } catch (error: any) {
-    res.status(500).json({ ok: false, error: error?.message || 'Failed to list workflows' });
+    console.warn('⚠️  Falling back to demo workflows - /workflow-admin/workflows failed:', error?.message);
+    sendFallback(res, { workflows: fallbackWorkflows });
   }
 });
 
@@ -20,9 +90,8 @@ router.get('/workflows/summary', async (_req, res) => {
     const workflows = await workflowRepository.listWorkflowAdminSummaries();
     res.json({ ok: true, workflows });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({ ok: false, error: error?.message || 'Failed to load workflow summaries' });
+    console.warn('⚠️  Falling back to demo workflow summaries - /workflow-admin/workflows/summary failed:', error?.message);
+    sendFallback(res, { workflows: fallbackSummaries });
   }
 });
 

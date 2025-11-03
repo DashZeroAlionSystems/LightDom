@@ -292,4 +292,172 @@ async function generateWorkflowWithDeepSeek(prompt, schema) {
   }
 }
 
+/**
+ * Generate neural network configuration using AI
+ * POST /api/ai/generate-config
+ */
+router.post('/generate-config', async (req, res) => {
+  try {
+    const { prompt, context, schemas, provider = 'deepseek', model = 'deepseek-chat' } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({
+        error: 'Missing required field: prompt'
+      });
+    }
+
+    // Sanitize context values to prevent prompt injection
+    const sanitizeString = (str) => {
+      if (typeof str !== 'string') return 'N/A';
+      return str.replace(/[<>{}]/g, '').substring(0, 500); // Remove dangerous chars and limit length
+    };
+
+    const safeName = sanitizeString(context?.name);
+    const safeModelType = sanitizeString(context?.modelType);
+    const safeClientId = sanitizeString(context?.clientId);
+    const safePrompt = sanitizeString(prompt);
+
+    // Build comprehensive prompt with schemas
+    const systemPrompt = `You are an expert in neural network configuration and machine learning. 
+Your task is to generate optimal neural network configurations based on user requirements.
+You must generate a JSON configuration that conforms to the provided schemas.
+
+Context:
+- Instance Name: ${safeName}
+- Model Type: ${safeModelType}
+- Client ID: ${safeClientId}
+
+Schemas:
+${JSON.stringify(schemas, null, 2)}
+
+Generate a complete configuration with:
+1. trainingConfig: epochs, batchSize, learningRate, validationSplit, optimizer, earlyStopping, patience
+2. dataConfig: source, isolation, minDataPoints
+3. architecture: inputShape, layers (array of layer configs), outputShape
+4. Brief analysis explaining the configuration choices
+
+Return JSON format:
+{
+  "config": {
+    "trainingConfig": { ... },
+    "dataConfig": { ... },
+    "architecture": { ... }
+  },
+  "analysis": "Brief explanation of configuration choices"
+}`;
+
+    const userPrompt = `User Requirements: ${safePrompt}
+
+Based on the requirements above and the context provided, generate an optimal neural network configuration.
+Consider the model type and use case to determine appropriate architecture, training parameters, and data configuration.`;
+
+    let result;
+    if (provider === 'deepseek' && DEEPSEEK_API_KEY) {
+      result = await generateConfigWithDeepSeek(systemPrompt, userPrompt);
+    } else {
+      result = await generateConfigWithOllama(systemPrompt, userPrompt);
+    }
+
+    res.json({
+      success: true,
+      config: result.config,
+      analysis: result.analysis,
+      provider: provider === 'deepseek' && DEEPSEEK_API_KEY ? 'deepseek' : 'ollama'
+    });
+
+  } catch (error) {
+    console.error('AI config generation error:', error);
+    res.status(500).json({
+      error: 'Failed to generate configuration',
+      message: error.message
+    });
+  }
+});
+
+async function generateConfigWithDeepSeek(systemPrompt, userPrompt) {
+  try {
+    const response = await axios.post(`${DEEPSEEK_API_URL}/v1/chat/completions`, {
+      model: 'deepseek-chat',
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt
+        },
+        {
+          role: 'user',
+          content: userPrompt
+        }
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.7,
+      max_tokens: 2000
+    }, {
+      headers: {
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      timeout: 90000
+    });
+
+    const content = response.data.choices[0].message.content;
+    
+    // Validate JSON response
+    let parsedConfig;
+    try {
+      parsedConfig = JSON.parse(content);
+    } catch (parseError) {
+      console.error('Failed to parse AI response as JSON:', content);
+      throw new Error('AI returned invalid JSON response');
+    }
+
+    // Validate structure
+    if (!parsedConfig.config || typeof parsedConfig.config !== 'object') {
+      throw new Error('AI response missing required "config" field');
+    }
+
+    return parsedConfig;
+
+  } catch (error) {
+    console.error('DeepSeek config generation error:', error);
+    throw new Error(`DeepSeek API error: ${error.message}`);
+  }
+}
+
+async function generateConfigWithOllama(systemPrompt, userPrompt) {
+  try {
+    const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+    
+    const response = await axios.post(`${OLLAMA_API_URL}/api/generate`, {
+      model: 'llama2',
+      prompt: fullPrompt,
+      stream: false,
+      format: 'json'
+    }, {
+      timeout: 90000
+    });
+
+    const content = response.data.response;
+    
+    // Validate JSON response
+    let parsedConfig;
+    try {
+      parsedConfig = JSON.parse(content);
+    } catch (parseError) {
+      console.error('Failed to parse Ollama response as JSON:', content);
+      throw new Error('Ollama returned invalid JSON response');
+    }
+
+    // Validate structure
+    if (!parsedConfig.config || typeof parsedConfig.config !== 'object') {
+      throw new Error('Ollama response missing required "config" field');
+    }
+
+    return parsedConfig;
+
+  } catch (error) {
+    console.error('Ollama config generation error:', error);
+    throw new Error(`Ollama API error: ${error.message}`);
+  }
+}
+
 module.exports = router;

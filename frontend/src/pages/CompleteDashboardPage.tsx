@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Activity,
   Database,
@@ -11,7 +11,8 @@ import {
   Users,
   BarChart3,
   Shield,
-  Target
+  Target,
+  AlertTriangle
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -38,6 +39,8 @@ export const CompleteDashboardPage: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<CompleteDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const hasWarnedRef = useRef(false);
 
   useEffect(() => {
     fetchAllData();
@@ -53,8 +56,24 @@ export const CompleteDashboardPage: React.FC = () => {
       const response = await axios.get(`${API_BASE}/api/dashboard/complete`);
       setDashboardData(response.data);
       setLoading(false);
+      setErrorMessage(null);
+      hasWarnedRef.current = false;
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+      const message =
+        axios.isAxiosError?.(error) && error.response
+          ? `API responded with ${error.response.status}`
+          : 'Unable to reach the dashboard backend service.';
+      if (!hasWarnedRef.current) {
+        console.warn('Complete dashboard request failed. Showing fallback data.', error);
+        hasWarnedRef.current = true;
+      }
+      setDashboardData((previous) =>
+        previous ?? {
+          timestamp: new Date().toISOString(),
+          services: {},
+        }
+      );
+      setErrorMessage(message);
       setLoading(false);
     }
   };
@@ -71,9 +90,23 @@ export const CompleteDashboardPage: React.FC = () => {
   }
 
   const services = dashboardData?.services || {};
+  const systemHealthy = !errorMessage;
 
   return (
     <div className="p-6 space-y-6">
+      {errorMessage && (
+        <div className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+          <AlertTriangle className="mt-1 h-5 w-5 text-destructive" />
+          <div className="space-y-1">
+            <h2 className="font-semibold text-destructive">Dashboard data unavailable</h2>
+            <p className="text-sm text-on-surface-variant">
+              {errorMessage}. Please ensure the API at {`${API_BASE}/api/dashboard/complete`} is running or retry once the
+              backend is healthy.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -84,8 +117,12 @@ export const CompleteDashboardPage: React.FC = () => {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-border">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-sm font-medium">System Online</span>
+            <div
+              className={`w-2 h-2 rounded-full ${systemHealthy ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}
+            ></div>
+            <span className="text-sm font-medium">
+              {systemHealthy ? 'System Online' : 'Awaiting backend response'}
+            </span>
           </div>
         </div>
       </div>
