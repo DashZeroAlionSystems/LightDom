@@ -1,4 +1,5 @@
 -- Wrapper for bridge schema ordering
-INSERT INTO schema_migrations(name) VALUES ('03-bridge')
-ON CONFLICT (name) DO NOTHING;
+INSERT INTO schema_migrations(filename)
+VALUES ('03-bridge.sql')
+ON CONFLICT (filename) DO NOTHING;
 
