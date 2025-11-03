@@ -58,7 +58,7 @@ LightDom is a revolutionary blockchain-based DOM optimization platform that comb
 - **Multi-Worker Architecture** - Concurrent crawling with configurable worker pools for optimal performance
 - **Neural Network Training Data** - Collect structured data for ML model training
 
-📖 **[Quick Start Guide](MINING_QUICKSTART.md)** | **[Full Documentation](MINING_SYSTEM_README.md)** | **[Research & Best Practices](CRAWLER_RESEARCH.md)**
+📖 **[Quick Start Guide](MINING_QUICKSTART.md)** | **[Full Documentation](MINING_SYSTEM_README.md)** | **[Research & Best Practices](CRAWLER_RESEARCH.md)** | **[GPU & Performance Research](GPU_HEADLESS_CHROME_LEARNING_RATE_RESEARCH.md)** | **[Quick Reference](GPU_HEADLESS_CHROME_QUICK_REFERENCE.md)**
 
 ```bash
 # Start mining in 3 commands
@@ -192,6 +192,12 @@ NODE_ENV=development
 - **[Complete System Documentation](COMPLETE_SYSTEM_DOCUMENTATION.md)** - Comprehensive technical documentation
 - **[Quick Start Guide](QUICK_START_GUIDE.md)** - Get started in 5 minutes
 - **[Frontend Setup](FRONTEND_SETUP_COMPLETE.md)** - Frontend configuration details
+
+### 🔬 Research & Optimization
+- **[GPU & Headless Chrome Research](GPU_HEADLESS_CHROME_LEARNING_RATE_RESEARCH.md)** - Comprehensive research on GPU acceleration, headless Chrome optimization, and adaptive learning rate strategies (2024-2025)
+- **[GPU Quick Reference](GPU_HEADLESS_CHROME_QUICK_REFERENCE.md)** - Quick reference guide for GPU and headless Chrome configuration
+- **[Crawler Research](CRAWLER_RESEARCH.md)** - Web crawler best practices and patterns
+- **[Headless API Research](HEADLESS_API_RESEARCH.md)** - Headless browser APIs and worker patterns
 
 ## 🏗️ Architecture
 

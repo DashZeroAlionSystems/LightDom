@@ -3394,6 +3394,15 @@ class DOMSpaceHarvesterAPI {
     } catch (error) {
       console.warn('⚠️ Admin API load error:', error?.message || error);
     }
+
+    // Import and register Workflow Admin routes
+    console.log('🔧 Loading workflow admin routes...');
+    import('./api/workflow-admin-routes.js').then((adminModule) => {
+      this.app.use('/api/workflow-admin', adminModule.default);
+      console.log('✅ Workflow admin routes registered');
+    }).catch(err => {
+      console.error('❌ Failed to load workflow admin routes:', err);
+    });
   }
 
   // Verify batch signature (simplified)

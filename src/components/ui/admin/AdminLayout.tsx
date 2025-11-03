@@ -75,110 +75,51 @@ const AdminLayout: React.FC = () => {
       type: 'divider' as const,
     },
     {
+      key: 'workflow',
+      icon: <ExperimentOutlined />,
+      label: 'Workflow',
+      children: [
+        { key: '/admin/user-workflows', label: 'User Workflows', icon: <TeamOutlined /> },
+        { key: '/admin/seo-workflows', label: 'SEO Workflows', icon: <GlobalOutlined /> },
+        { key: '/admin/workflow-creation', label: 'Workflow Builder', icon: <ExperimentOutlined /> },
+      ],
+    },
+    {
+      key: 'datamining',
+      icon: <DatabaseOutlined />,
+      label: 'Data Mining',
+      children: [
+        { key: '/admin/crawler', label: 'Web Crawler', icon: <GlobalOutlined /> },
+        { key: '/admin/crawler-workload', label: 'Crawler Workload', icon: <ApiOutlined /> },
+        { key: '/admin/analytics', label: 'Analytics', icon: <BarChartOutlined /> },
+      ],
+    },
+    {
+      key: 'training',
+      icon: <DeploymentUnitOutlined />,
+      label: 'Training',
+      children: [
+        { key: '/admin/training', label: 'AI Training Control', icon: <RobotOutlined /> },
+        { key: '/admin/training-data', label: 'Training Data Pipeline', icon: <DatabaseOutlined /> },
+      ],
+    },
+    {
+      type: 'divider' as const,
+    },
+    {
       key: 'users',
       icon: <TeamOutlined />,
       label: 'Users & Access',
       children: [
         { key: '/admin/users', label: 'User Management', icon: <UserOutlined /> },
-        { key: '/admin/user-workflows', label: 'Workflow Automation', icon: <ThunderboltOutlined /> },
-        { key: '/admin/roles', label: 'Roles & Permissions', icon: <SafetyOutlined /> },
-        { key: '/admin/activity', label: 'Activity Log', icon: <EditOutlined /> },
-      ],
-    },
-    {
-      key: 'analytics-monitoring',
-      icon: <BarChartOutlined />,
-      label: 'Analytics & Monitoring',
-      children: [
-        { key: '/admin/overview', label: 'Analytics Overview', icon: <DashboardOutlined /> },
-        { key: '/admin/analytics', label: 'Advanced Analytics', icon: <RiseOutlined /> },
         { key: '/admin/monitoring', label: 'System Monitoring', icon: <ApiOutlined /> },
         { key: '/admin/logs', label: 'System Logs', icon: <FileTextOutlined /> },
       ],
     },
     {
-      key: 'content-management',
-      icon: <AppstoreOutlined />,
-      label: 'Content & Media',
-      children: [
-        { key: '/admin/pages', label: 'Page Management', icon: <FileTextOutlined /> },
-        { key: '/admin/media', label: 'Media Library', icon: <DatabaseOutlined /> },
-        { key: '/admin/comments', label: 'Comments', icon: <CommentOutlined /> },
-      ],
-    },
-    {
-      key: 'automation',
-      icon: <RocketOutlined />,
-      label: 'Automation & AI',
-      children: [
-        { key: '/admin/ai-automation', label: 'AI Automation', icon: <ExperimentOutlined /> },
-        { key: '/admin/crawler', label: 'Web Crawler', icon: <GlobalOutlined /> },
-        { key: '/admin/crawler-workload', label: 'Crawler Workload', icon: <ApiOutlined /> },
-        { key: '/admin/training', label: 'AI Training Control', icon: <ExperimentOutlined /> },
-        { key: '/admin/training-data', label: 'Training Data Pipeline', icon: <DatabaseOutlined /> },
-      ],
-    },
-    {
-      key: 'seo-optimization',
-      icon: <GlobalOutlined />,
-      label: 'SEO & Optimization',
-      children: [
-        { key: '/admin/seo/analysis', label: 'SEO Analysis', icon: <SearchOutlined /> },
-        { key: '/admin/seo-workflows', label: 'SEO Workflows', icon: <ThunderboltOutlined /> },
-        { key: '/admin/seo/sitemap', label: 'Sitemap Generator', icon: <SwapOutlined /> },
-        { key: '/admin/seo/redirects', label: 'URL Redirects', icon: <SwapOutlined /> },
-      ],
-    },
-    {
-      key: 'billing-commerce',
-      icon: <DollarOutlined />,
-      label: 'Billing & Commerce',
-      children: [
-        { key: '/admin/billing', label: 'Billing Management', icon: <DollarOutlined /> },
-        { key: '/admin/subscriptions', label: 'Subscriptions', icon: <SnippetsOutlined /> },
-        { key: '/admin/transactions', label: 'Transactions', icon: <SwapOutlined /> },
-      ],
-    },
-    {
-      type: 'divider' as const,
-    },
-    {
-      key: 'system-settings',
+      key: '/admin/settings',
       icon: <SettingOutlined />,
-      label: 'System Configuration',
-      children: [
-        { key: '/admin/settings', label: 'General Settings', icon: <ToolOutlined /> },
-        { key: '/admin/performance', label: 'Performance Tuning', icon: <ThunderboltOutlined /> },
-        { key: '/admin/security', label: 'Security Settings', icon: <ShieldOutlined /> },
-        { key: '/admin/updates', label: 'System Updates', icon: <CloudDownloadOutlined /> },
-      ],
-    },
-    {
-      key: 'design-tools',
-      icon: <AppstoreOutlined />,
-      label: 'Design & Development',
-      children: [
-        { key: '/admin/design-system', label: 'Design System', icon: <AppstoreOutlined /> },
-        { key: '/admin/copilot-ui', label: 'Copilot UI Components', icon: <RobotOutlined /> },
-        { key: '/admin/motion-showcase', label: 'Motion Design', icon: <RocketOutlined /> },
-        { key: '/admin/design-tools', label: 'Design Tools', icon: <ToolOutlined /> },
-        { key: '/admin/schema-linking', label: 'Schema Linking', icon: <SwapOutlined /> },
-        { key: '/admin/workflow-creation', label: 'Workflow Builder', icon: <ThunderboltOutlined /> },
-        { key: '/admin/chrome-layers', label: 'Chrome Layers 3D', icon: <RocketOutlined /> },
-      ],
-    },
-    {
-      type: 'divider' as const,
-    },
-    {
-      key: 'help-resources',
-      icon: <InfoCircleOutlined />,
-      label: 'Help & Resources',
-      children: [
-        { key: '/admin/help', label: 'Help Center', icon: <QuestionCircleOutlined /> },
-        { key: '/admin/documentation', label: 'Documentation', icon: <FileTextOutlined /> },
-        { key: '/admin/support', label: 'Support Tickets', icon: <CommentOutlined /> },
-      ],
+      label: 'Settings',
     },
   ], []);
 
