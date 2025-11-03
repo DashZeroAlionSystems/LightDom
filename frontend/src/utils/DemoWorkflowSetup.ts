@@ -18,7 +18,7 @@ export const demoWorkflows: DemoWorkflow[] = [
   {
     name: 'Product Price Monitoring',
     description: 'Scrapes product prices from e-commerce sites daily and stores in database',
-    prompt: 'Scrape product prices from https://example.com/products daily and store the results in the database',
+    prompt: 'Scrape product prices from https://demo-shop.example.localhost/products daily and store the results in the database',
     category: 'data-mining',
     expectedTasks: 3,
   },

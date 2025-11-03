@@ -154,11 +154,20 @@ export class PromptAnalyzerService {
     entities: PromptAnalysis['entities']
   ): TaskReference[] {
     const tasks: TaskReference[] = [];
-    let taskId = 1;
+    let previousTaskName: string | undefined;
+
+    // Helper to add a task and track its name for dependencies
+    const addTask = (task: TaskReference, name: string): void => {
+      tasks.push({
+        ...task,
+        dependsOn: previousTaskName ? [previousTaskName] : [],
+      });
+      previousTaskName = name;
+    };
 
     // Web scraping tasks
     if (keywords.includes('webScraping') && entities.urls) {
-      tasks.push({
+      addTask({
         '@type': 'WebScrapingTask',
         name: 'Fetch Web Data',
         execution: {
@@ -169,14 +178,12 @@ export class PromptAnalyzerService {
             selectors: [],
           },
         },
-        dependsOn: [],
-      });
-      taskId++;
+      }, 'Fetch Web Data');
     }
 
     // Data processing tasks
     if (keywords.includes('dataProcessing') || keywords.includes('webScraping')) {
-      tasks.push({
+      addTask({
         '@type': 'DataProcessingTask',
         name: 'Process and Clean Data',
         execution: {
@@ -186,15 +193,13 @@ export class PromptAnalyzerService {
             transformations: ['clean', 'normalize'],
           },
         },
-        dependsOn: tasks.length > 0 ? [`task-${taskId - 1}`] : [],
-      });
-      taskId++;
+      }, 'Process and Clean Data');
     }
 
     // ML training tasks
     if (keywords.includes('mlTraining')) {
       // Load data
-      tasks.push({
+      addTask({
         '@type': 'DataLoaderTask',
         name: 'Load Training Data',
         execution: {
@@ -202,12 +207,13 @@ export class PromptAnalyzerService {
           operation: 'select',
           table: 'training_data',
         },
-        dependsOn: [],
-      });
-      const dataLoadTaskId = taskId++;
+        dependsOn: [], // Reset dependencies for ML workflow
+      }, 'Load Training Data');
+      
+      previousTaskName = 'Load Training Data'; // Reset chain
 
       // Preprocess
-      tasks.push({
+      addTask({
         '@type': 'DataPreprocessingTask',
         name: 'Preprocess Training Data',
         execution: {
@@ -218,12 +224,10 @@ export class PromptAnalyzerService {
             split: 0.8,
           },
         },
-        dependsOn: [`task-${dataLoadTaskId}`],
-      });
-      const preprocessTaskId = taskId++;
+      }, 'Preprocess Training Data');
 
       // Train model
-      tasks.push({
+      addTask({
         '@type': 'MLTrainingTask',
         name: 'Train TensorFlow Model',
         execution: {
@@ -235,12 +239,10 @@ export class PromptAnalyzerService {
             learningRate: 0.001,
           },
         },
-        dependsOn: [`task-${preprocessTaskId}`],
-      });
-      const trainTaskId = taskId++;
+      }, 'Train TensorFlow Model');
 
       // Evaluate
-      tasks.push({
+      addTask({
         '@type': 'MLEvaluationTask',
         name: 'Evaluate Model',
         execution: {
@@ -250,14 +252,12 @@ export class PromptAnalyzerService {
             metrics: ['accuracy', 'loss', 'precision', 'recall'],
           },
         },
-        dependsOn: [`task-${trainTaskId}`],
-      });
-      taskId++;
+      }, 'Evaluate Model');
     }
 
     // Analysis tasks
     if (keywords.includes('analysis')) {
-      tasks.push({
+      addTask({
         '@type': 'AnalysisTask',
         name: 'Analyze Data',
         execution: {
@@ -267,11 +267,9 @@ export class PromptAnalyzerService {
             metrics: ['mean', 'median', 'std'],
           },
         },
-        dependsOn: tasks.length > 0 ? [`task-${taskId - 1}`] : [],
-      });
-      taskId++;
+      }, 'Analyze Data');
 
-      tasks.push({
+      addTask({
         '@type': 'ReportGenerationTask',
         name: 'Generate Report',
         execution: {
@@ -282,14 +280,12 @@ export class PromptAnalyzerService {
             template: 'analysis',
           },
         },
-        dependsOn: [`task-${taskId - 1}`],
-      });
-      taskId++;
+      }, 'Generate Report');
     }
 
     // Storage tasks (if other tasks exist)
     if (tasks.length > 0 && (keywords.includes('storage') || keywords.includes('webScraping'))) {
-      tasks.push({
+      addTask({
         '@type': 'DatabaseStorageTask',
         name: 'Store Results',
         execution: {
@@ -301,14 +297,12 @@ export class PromptAnalyzerService {
             timestamp: '${Date.now()}',
           },
         },
-        dependsOn: [`task-${taskId - 1}`],
-      });
-      taskId++;
+      }, 'Store Results');
     }
 
     // Notification tasks
     if (keywords.includes('notification')) {
-      tasks.push({
+      addTask({
         '@type': 'NotificationTask',
         name: 'Send Notification',
         execution: {
@@ -320,9 +314,7 @@ export class PromptAnalyzerService {
             status: '${context.status}',
           },
         },
-        dependsOn: tasks.length > 0 ? [`task-${taskId - 1}`] : [],
-      });
-      taskId++;
+      }, 'Send Notification');
     }
 
     // Default task if no specific tasks were generated

@@ -95,14 +95,14 @@ export class TensorFlowService {
     switch (config.type.toLowerCase()) {
       case 'dense':
         return tf.layers.dense({
-          units: config.units!,
+          units: config.units || 64,
           activation: config.activation,
           ...baseConfig,
         });
       
       case 'lstm':
         return tf.layers.lstm({
-          units: config.units!,
+          units: config.units || 64,
           returnSequences: config.returnSequences,
           ...baseConfig,
         });
@@ -114,14 +114,14 @@ export class TensorFlowService {
       
       case 'embedding':
         return tf.layers.embedding({
-          inputDim: config.units!,
-          outputDim: config.inputShape![0],
+          inputDim: config.units || 1000,
+          outputDim: config.inputShape?.[0] || 128,
           ...baseConfig,
         });
       
       case 'conv2d':
         return tf.layers.conv2d({
-          filters: config.units!,
+          filters: config.units || 32,
           kernelSize: 3,
           activation: config.activation,
           ...baseConfig,
@@ -166,9 +166,9 @@ export class TensorFlowService {
         const progress: TrainingProgress = {
           epoch: epoch + 1,
           loss: logs?.loss || 0,
-          accuracy: logs?.acc || 0,
+          accuracy: logs?.accuracy || 0,
           valLoss: logs?.val_loss,
-          valAccuracy: logs?.val_acc,
+          valAccuracy: logs?.val_accuracy,
         };
         
         if (onProgress) {
@@ -197,9 +197,9 @@ export class TensorFlowService {
     const lastEpoch = history.history.loss.length - 1;
 
     return {
-      accuracy: history.history.acc?.[lastEpoch] || 0,
+      accuracy: (history.history.accuracy?.[lastEpoch] as number) || 0,
       loss: history.history.loss[lastEpoch],
-      valAccuracy: history.history.val_acc?.[lastEpoch],
+      valAccuracy: (history.history.val_accuracy?.[lastEpoch] as number),
       valLoss: history.history.val_loss?.[lastEpoch],
       trainingTime,
       totalEpochs: config.hyperparameters.epochs,

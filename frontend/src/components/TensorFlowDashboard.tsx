@@ -169,7 +169,10 @@ export const TensorFlowDashboard: React.FC = () => {
       setModels(models.map(m => m.id === modelId ? { ...m, status: 'training' } : m));
 
       // Generate sample training data (in real app, fetch from backend)
-      const data = tensorFlowService.generateSampleData(1000, 10, model.type === 'classification' ? 5 : 1);
+      const sampleSize = 1000;
+      const inputDim = 10;
+      const outputDim = model.type === 'classification' ? 5 : 1;
+      const data = tensorFlowService.generateSampleData(sampleSize, inputDim, outputDim);
 
       const config: ModelConfig = {
         id: modelId,
@@ -427,7 +430,11 @@ export const TensorFlowDashboard: React.FC = () => {
                     <Card>
                       <Statistic
                         title="Current Accuracy"
-                        value={(trainingProgress[trainingProgress.length - 1]?.accuracy * 100 || 0).toFixed(2)}
+                        value={
+                          trainingProgress.length > 0
+                            ? ((trainingProgress[trainingProgress.length - 1]?.accuracy || 0) * 100).toFixed(2)
+                            : 0
+                        }
                         suffix="%"
                       />
                     </Card>
