@@ -436,6 +436,19 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load TensorFlow workflow routes:', err);
     });
     
+    // Import and register Client SEO Dashboard routes
+    import('./api/client-seo-routes.js').then((clientModule) => {
+      const clientRouter = clientModule.default || clientModule.createClientAPIRoutes;
+      if (typeof clientRouter === 'function') {
+        this.app.use('/api/tensorflow/client', clientRouter(this.db));
+      } else {
+        this.app.use('/api/tensorflow/client', clientRouter);
+      }
+      console.log('✅ Client SEO Dashboard routes registered');
+    }).catch(err => {
+      console.error('Failed to load client SEO routes:', err);
+    });
+    
     // Import and register Onboarding routes
     import('./api/onboarding-routes.js').then((onboardingModule) => {
       this.app.use('/api/onboarding', onboardingModule.default);
