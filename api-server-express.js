@@ -455,6 +455,22 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load workflow orchestration routes:', err);
     });
     
+    // Import and register N8N Workflow Creator routes
+    import('./src/api/routes/n8n-workflow.routes.js').then((n8nModule) => {
+      this.app.use('/api/n8n', n8nModule.default);
+      console.log('✅ N8N workflow creator routes registered (Sub-task orchestration enabled)');
+    }).catch(err => {
+      console.error('Failed to load N8N workflow routes:', err);
+    });
+    
+    // Import and register Pattern Mining routes
+    import('./src/api/routes/pattern-mining.routes.js').then((patternModule) => {
+      this.app.use('/api/pattern-mining', patternModule.default);
+      console.log('✅ Pattern mining routes registered (JS/HTML detection & 3D layers enabled)');
+    }).catch(err => {
+      console.error('Failed to load pattern mining routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
