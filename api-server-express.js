@@ -462,6 +462,19 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load extended workflow routes:', err);
     });
     
+    // Import and register Advanced Workflow Orchestration routes
+    import('./api/advanced-workflow-routes.js').then((advancedModule) => {
+      const { initializeAdvancedWorkflowRoutes } = advancedModule;
+      if (typeof initializeAdvancedWorkflowRoutes === 'function') {
+        this.app.use('/api/advanced', initializeAdvancedWorkflowRoutes(this.db));
+      } else {
+        this.app.use('/api/advanced', advancedModule.default);
+      }
+      console.log('✅ Advanced Workflow Orchestration routes registered');
+    }).catch(err => {
+      console.error('Failed to load advanced workflow routes:', err);
+    });
+    
     // Import and register Onboarding routes
     import('./api/onboarding-routes.js').then((onboardingModule) => {
       this.app.use('/api/onboarding', onboardingModule.default);

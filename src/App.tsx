@@ -62,6 +62,7 @@ import ChromeLayers3DDashboard from './components/ChromeLayers3DDashboard';
 import NeuralNetworkDashboard from './components/ui/dashboard/NeuralNetworkDashboard';
 import TensorFlowNeuralNetworkDashboard from './components/dashboards/TensorFlowNeuralNetworkDashboard';
 import CampaignTrainingAdminDashboard from './components/dashboards/CampaignTrainingAdminDashboard';
+import PaintTimelineViewer from './components/visualizations/PaintTimelineViewer';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -163,6 +164,7 @@ const AppContent: React.FC = () => {
           <Route path="neural-network" element={<NeuralNetworkDashboard />} />
           <Route path="tensorflow-workflow" element={<TensorFlowNeuralNetworkDashboard />} />
           <Route path="campaign-training-admin" element={<CampaignTrainingAdminDashboard />} />
+          <Route path="paint-timeline-viewer" element={<PaintTimelineViewer />} />
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />
           <Route path="seo-optimization" element={<SEOOptimizationDashboard />} />
