@@ -32,6 +32,7 @@ import { WorkflowsPage } from '@/pages/WorkflowsPage';
 import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
 import { ComponentSchemaToolPage } from '@/pages/ComponentSchemaToolPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { ComprehensiveWorkflowsPage } from '@/pages/ComprehensiveWorkflowsPage';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
