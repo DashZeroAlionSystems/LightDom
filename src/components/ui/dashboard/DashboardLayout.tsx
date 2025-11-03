@@ -114,6 +114,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           icon: <ApiOutlined />,
           label: 'Workflow Creation',
         },
+        {
+          key: '/dashboard/workflow-demo',
+          icon: <ExperimentOutlined />,
+          label: 'Workflow Demo',
+        },
       ],
     },
     {
@@ -121,11 +126,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       icon: <DatabaseOutlined />,
       label: 'Data Mining',
       children: [
-        {
-          key: '/dashboard/seo-datamining',
-          icon: <SearchOutlined />,
-          label: 'SEO Data Mining',
-        },
         {
           key: '/dashboard/optimization',
           icon: <ThunderboltOutlined />,
@@ -157,6 +157,28 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           key: '/dashboard/training-data',
           icon: <DatabaseOutlined />,
           label: 'Training Data',
+        },
+      ],
+    },
+    {
+      key: 'seo',
+      icon: <SearchOutlined />,
+      label: 'SEO',
+      children: [
+        {
+          key: '/dashboard/seo-optimization',
+          icon: <SearchOutlined />,
+          label: 'SEO Optimization',
+        },
+        {
+          key: '/dashboard/seo-datamining',
+          icon: <DatabaseOutlined />,
+          label: 'SEO Data Mining',
+        },
+        {
+          key: '/dashboard/seo-marketplace',
+          icon: <ShoppingCartOutlined />,
+          label: 'SEO Marketplace',
         },
       ],
     },
@@ -286,11 +308,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <button className="rail-icon" onClick={() => navigate('/dashboard/workflow-simulation')} title="Workflow">
             <ExperimentOutlined />
           </button>
-          <button className="rail-icon" onClick={() => navigate('/dashboard/seo-datamining')} title="Data Mining">
+          <button className="rail-icon" onClick={() => navigate('/dashboard/optimization')} title="Data Mining">
             <DatabaseOutlined />
           </button>
           <button className="rail-icon" onClick={() => navigate('/dashboard/neural-network')} title="Training">
             <DeploymentUnitOutlined />
+          </button>
+          <button className="rail-icon" onClick={() => navigate('/dashboard/seo-optimization')} title="SEO">
+            <SearchOutlined />
           </button>
         </div>
         <div className="rail-bottom">
@@ -305,6 +330,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <div className="rail-status" title={`Training: ${serviceStatus.optimization ? 'Operational' : 'Down'}`}>
             <span className={`dot ${serviceStatus.optimization ? 'ok' : 'down'}`} />
             <DeploymentUnitOutlined />
+          </div>
+          <div className="rail-status" title={`SEO: ${serviceStatus.api ? 'Operational' : 'Down'}`}>
+            <span className={`dot ${serviceStatus.api ? 'ok' : 'down'}`} />
+            <SearchOutlined />
           </div>
         </div>
       </div>

@@ -247,6 +247,7 @@
     "jsdom": "^27.1.0",
     "prettier": "^3.0.0",
     "vite-bundle-analyzer": "^0.7.0",
+    "vite-plugin-pwa": "^1.1.0",
     "vitest": "^1.0.0",
     "wait-on": "^9.0.0"
   },
