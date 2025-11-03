@@ -31,6 +31,7 @@ import { SEOModelTrainingPage } from '@/pages/SEOModelTrainingPage';
 import { WorkflowsPage } from '@/pages/WorkflowsPage';
 import { ComponentSchemaToolPage } from '@/pages/ComponentSchemaToolPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { ComprehensiveWorkflowsPage } from '@/pages/ComprehensiveWorkflowsPage';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -257,6 +258,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <WorkflowsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/workflows-enhanced"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ComprehensiveWorkflowsPage />
                       </Layout>
                     </ProtectedRoute>
                   }
