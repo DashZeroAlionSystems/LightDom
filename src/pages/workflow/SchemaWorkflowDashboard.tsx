@@ -550,6 +550,18 @@ export const SchemaWorkflowDashboard: React.FC = () => {
           }}
         />
       )}
+      
+      {/* DataMining Workflow Creator Modal */}
+      {showDataMiningModal && (
+        <DataMiningWorkflowCreator
+          visible={showDataMiningModal}
+          onClose={() => setShowDataMiningModal(false)}
+          onWorkflowCreated={(workflow: any) => {
+            setShowDataMiningModal(false);
+            loadWorkflows(); // Reload workflows to show the new one
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -845,19 +857,6 @@ const CreateWorkflowModal: React.FC<{
           </div>
         </form>
       </div>
-    </div>
-  );
-};
-
-      {/* DataMining Workflow Creator Modal */}
-      <DataMiningWorkflowCreator
-        visible={showDataMiningModal}
-        onClose={() => setShowDataMiningModal(false)}
-        onWorkflowCreated={(workflow: DataMiningWorkflow) => {
-          setShowDataMiningModal(false);
-          loadWorkflows(); // Reload workflows to show the new one
-        }}
-      />
     </div>
   );
 };
