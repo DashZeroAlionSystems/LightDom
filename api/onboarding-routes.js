@@ -4,6 +4,7 @@
  */
 
 import { Router } from 'express';
+import crypto from 'crypto';
 
 const router = Router();
 
@@ -400,19 +401,17 @@ router.get('/campaign/:clientId', (req, res) => {
 
 // Helper functions
 function generateId() {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 }
 
 function generateSessionToken() {
-  return Array.from({ length: 64 }, () => 
-    Math.floor(Math.random() * 16).toString(16)
-  ).join('');
+  // Use crypto for secure token generation (64 bytes = 128 hex chars)
+  return crypto.randomBytes(64).toString('hex');
 }
 
 function generateApiKey(prefix) {
-  const random = Array.from({ length: 32 }, () => 
-    Math.floor(Math.random() * 16).toString(16)
-  ).join('');
+  // Use crypto for secure API key generation
+  const random = crypto.randomBytes(16).toString('hex');
   return `${prefix}_${random}`;
 }
 

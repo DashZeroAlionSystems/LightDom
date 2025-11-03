@@ -9,6 +9,9 @@ import express from 'express';
 
 const router = Router();
 
+// Stripe API version - update this when upgrading Stripe
+const STRIPE_API_VERSION = '2023-10-16';
+
 // Payment plan configurations (matches onboarding plans)
 const PRICING_PLANS = {
   starter: {
@@ -114,7 +117,7 @@ router.post('/checkout', async (req, res) => {
     // Initialize Stripe
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16'
+      apiVersion: STRIPE_API_VERSION
     });
     
     const price = billingCycle === 'annual' ? plan.annualPrice * 12 : plan.monthlyPrice;
@@ -182,7 +185,7 @@ router.get('/session/:sessionId', async (req, res) => {
     
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16'
+      apiVersion: STRIPE_API_VERSION
     });
     
     const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -218,7 +221,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16'
+      apiVersion: STRIPE_API_VERSION
     });
     
     const sig = req.headers['stripe-signature'];
@@ -327,7 +330,7 @@ router.get('/subscription/:customerId', async (req, res) => {
     
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16'
+      apiVersion: STRIPE_API_VERSION
     });
     
     const subscriptions = await stripe.subscriptions.list({
@@ -379,7 +382,7 @@ router.post('/subscription/:subscriptionId/cancel', async (req, res) => {
     
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16'
+      apiVersion: STRIPE_API_VERSION
     });
     
     let subscription;
