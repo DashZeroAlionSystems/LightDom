@@ -32,6 +32,7 @@ import {
   LinkOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
+import { promptAnalyzerService } from '../services/PromptAnalyzerService';
 
 const { Step } = Steps;
 const { TextArea } = Input;
@@ -88,11 +89,26 @@ export const PromptWorkflowCreator: React.FC<PromptWorkflowCreatorProps> = ({
 
     setAnalyzing(true);
     try {
-      // Simulate AI analysis (in production, call WorkflowWizardService)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Use PromptAnalyzerService to analyze the prompt
+      const workflowSchema = await promptAnalyzerService.createWorkflowFromPrompt(prompt);
+      
+      // Convert to our WorkflowConfig format
+      const config: WorkflowConfig = {
+        name: workflowSchema.name || 'New Workflow',
+        description: workflowSchema.description || prompt,
+        category: workflowSchema.category || 'automation',
+        trigger: workflowSchema.trigger?.type || 'manual',
+        tasks: (workflowSchema.tasks || []).map((task, index) => ({
+          id: `task-${index + 1}`,
+          name: task.name || `Task ${index + 1}`,
+          type: task['@type'] || 'generic',
+          description: task.execution?.config?.description || task.name || '',
+          dependencies: task.dependsOn || [],
+          config: task.execution?.config || {},
+          selected: true,
+        })),
+      };
 
-      // Generate workflow configuration based on prompt
-      const config = generateWorkflowFromPrompt(prompt);
       setGeneratedConfig(config);
       setSelectedTasks(config.tasks.filter(t => t.selected).map(t => t.id));
       
@@ -104,134 +120,6 @@ export const PromptWorkflowCreator: React.FC<PromptWorkflowCreatorProps> = ({
     } finally {
       setAnalyzing(false);
     }
-  };
-
-  const generateWorkflowFromPrompt = (prompt: string): WorkflowConfig => {
-    // Simple keyword-based generation (in production, use AI service)
-    const isDataMining = /scrape|extract|mine|crawl|collect/i.test(prompt);
-    const isTraining = /train|model|ml|ai|neural/i.test(prompt);
-    const isAnalysis = /analyze|evaluate|measure|assess/i.test(prompt);
-
-    const tasks: Task[] = [];
-
-    if (isDataMining) {
-      tasks.push(
-        {
-          id: 'task-1',
-          name: 'Fetch Web Data',
-          type: 'web-scraper',
-          description: 'Extract data from target website',
-          dependencies: [],
-          config: { url: '', selectors: [] },
-          selected: true,
-        },
-        {
-          id: 'task-2',
-          name: 'Transform Data',
-          type: 'data-transform',
-          description: 'Clean and format extracted data',
-          dependencies: ['task-1'],
-          config: { transformations: [] },
-          selected: true,
-        },
-        {
-          id: 'task-3',
-          name: 'Store Results',
-          type: 'database-store',
-          description: 'Save processed data to database',
-          dependencies: ['task-2'],
-          config: { table: 'workflow_results' },
-          selected: true,
-        }
-      );
-    }
-
-    if (isTraining) {
-      tasks.push(
-        {
-          id: 'task-4',
-          name: 'Load Training Data',
-          type: 'data-loader',
-          description: 'Load training dataset',
-          dependencies: [],
-          config: { source: 'database' },
-          selected: true,
-        },
-        {
-          id: 'task-5',
-          name: 'Preprocess Data',
-          type: 'data-preprocessing',
-          description: 'Normalize and prepare data',
-          dependencies: ['task-4'],
-          config: { normalization: 'standard' },
-          selected: true,
-        },
-        {
-          id: 'task-6',
-          name: 'Train Model',
-          type: 'model-training',
-          description: 'Train TensorFlow model',
-          dependencies: ['task-5'],
-          config: { epochs: 50, batchSize: 32 },
-          selected: true,
-        },
-        {
-          id: 'task-7',
-          name: 'Evaluate Model',
-          type: 'model-evaluation',
-          description: 'Evaluate model performance',
-          dependencies: ['task-6'],
-          config: { metrics: ['accuracy', 'loss'] },
-          selected: true,
-        }
-      );
-    }
-
-    if (isAnalysis) {
-      tasks.push(
-        {
-          id: 'task-8',
-          name: 'Collect Metrics',
-          type: 'metrics-collection',
-          description: 'Gather performance metrics',
-          dependencies: [],
-          config: { metrics: [] },
-          selected: true,
-        },
-        {
-          id: 'task-9',
-          name: 'Generate Report',
-          type: 'report-generation',
-          description: 'Create analysis report',
-          dependencies: ['task-8'],
-          config: { format: 'pdf' },
-          selected: true,
-        }
-      );
-    }
-
-    // Default workflow if no keywords matched
-    if (tasks.length === 0) {
-      tasks.push(
-        {
-          id: 'task-default',
-          name: 'Execute Workflow',
-          type: 'generic',
-          description: 'Execute custom workflow task',
-          dependencies: [],
-          config: {},
-          selected: true,
-        }
-      );
-    }
-
-    return {
-      name: `Workflow: ${prompt.slice(0, 50)}`,
-      description: prompt,
-      category: isDataMining ? 'data-mining' : isTraining ? 'ml-training' : isAnalysis ? 'analysis' : 'custom',
-      trigger: 'manual',
-      tasks,
-    };
   };
 
   const handleTaskToggle = (taskId: string) => {
