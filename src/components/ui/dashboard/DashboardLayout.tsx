@@ -161,7 +161,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       ],
     },
     {
-      type: 'divider' as any,
+      type: 'divider' as const,
     },
     {
       key: '/dashboard/settings',
