@@ -382,7 +382,7 @@ Output JSON with structured recommendations.`;
     if (!cached) return null;
     
     const { data, timestamp } = cached;
-    if (Date.now() - timestamp > this.cacheHTL) {
+    if (Date.now() - timestamp > this.cacheTTL) {
       this.cache.delete(key);
       return null;
     }
