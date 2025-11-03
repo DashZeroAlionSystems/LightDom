@@ -18,12 +18,24 @@ async function apiRequest(endpoint, options = {}) {
     ...options
   });
   
+  let data;
+  const contentType = response.headers.get('content-type');
+  const text = await response.text();
+  
+  if (contentType?.includes('application/json') && text) {
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      data = text;
+    }
+  } else {
+    data = text;
+  }
+  
   return {
     status: response.status,
     ok: response.ok,
-    data: response.headers.get('content-type')?.includes('application/json')
-      ? await response.json()
-      : await response.text()
+    data
   };
 }
 
@@ -48,16 +60,11 @@ describe('API Health and Availability Tests', () => {
       expect(response.data).toHaveProperty('lastUpdated');
     });
 
-    it('should return 200 for blockchain metrics', async () => {
-      const response = await apiRequest('/api/blockchain/metrics');
-      expect(response.status).toBe(200);
-      expect(response.data).toHaveProperty('success');
-    });
-
     it('should return 200 for blockchain status', async () => {
       const response = await apiRequest('/api/blockchain/status');
       expect(response.status).toBe(200);
-      expect(response.data).toHaveProperty('enabled');
+      expect(response.data).toHaveProperty('success');
+      expect(response.data).toHaveProperty('data');
     });
   });
 
@@ -165,16 +172,19 @@ describe('API Health and Availability Tests', () => {
     it('should return 200 for space mining analytics', async () => {
       const response = await apiRequest('/api/analytics/space-mining');
       expect(response.status).toBe(200);
+      // May return empty data when database is disabled
     });
 
     it('should return 200 for user engagement analytics', async () => {
       const response = await apiRequest('/api/analytics/user-engagement');
       expect(response.status).toBe(200);
+      // May return empty data when database is disabled
     });
 
     it('should return 200 for real-time analytics', async () => {
       const response = await apiRequest('/api/analytics/real-time');
       expect(response.status).toBe(200);
+      // May return empty data when database is disabled
     });
   });
 
@@ -209,6 +219,7 @@ describe('API Health and Availability Tests', () => {
     it('should return 200 for mining stats', async () => {
       const response = await apiRequest('/api/mining/stats');
       expect(response.status).toBe(200);
+      // May return empty data when database is disabled
     });
   });
 

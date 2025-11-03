@@ -9019,6 +9019,7 @@ class DOMSpaceHarvesterAPI {
     // Initialize middleware and routes
     this.setupMiddleware();
     this.setupRoutes();
+    this.setupBlockchainRoutes(); // Add blockchain routes
 
     // Initialize WebSocket
     this.setupWebSocket();
