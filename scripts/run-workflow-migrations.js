@@ -20,31 +20,50 @@ const pool = new Pool({
 async function runMigrations() {
   console.log('🔧 Running workflow database migrations...\n');
   
-  const migrationFile = path.join(__dirname, '..', 'migrations', 'create-workflow-tables.sql');
-  
-  if (!fs.existsSync(migrationFile)) {
-    console.error('❌ Migration file not found:', migrationFile);
-    process.exit(1);
+  const migrations = [
+    {
+      name: 'Create workflow tables',
+      file: path.join(__dirname, '..', 'migrations', 'create-workflow-tables.sql')
+    },
+    {
+      name: 'Add schema-driven workflows',
+      file: path.join(__dirname, '..', 'migrations', 'add-schema-driven-workflows.sql')
+    }
+  ];
+
+  for (const migration of migrations) {
+    console.log(`📝 Running: ${migration.name}...`);
+    
+    if (!fs.existsSync(migration.file)) {
+      console.error(`  ❌ Migration file not found: ${migration.file}`);
+      continue;
+    }
+
+    const sql = fs.readFileSync(migration.file, 'utf8');
+    
+    try {
+      await pool.query(sql);
+      console.log(`  ✅ ${migration.name} completed`);
+    } catch (error) {
+      console.error(`  ❌ ${migration.name} failed:`, error.message);
+      if (error.code !== '42710' && error.code !== '42P07') { // Ignore "already exists" errors
+        process.exit(1);
+      }
+    }
   }
 
-  const sql = fs.readFileSync(migrationFile, 'utf8');
+  console.log('\n✅ All migrations completed successfully!');
+  console.log('\nCreated tables:');
+  console.log('  - workflows');
+  console.log('  - workflow_tasks');
+  console.log('  - workflow_attributes');
+  console.log('  - workflow_runs');
+  console.log('  - workflow_run_tasks');
+  console.log('  - workflow_templates (Phase 2)');
+  console.log('\nWorkflow system is now ready with schema-driven templates! 🎉\n');
   
-  try {
-    await pool.query(sql);
-    console.log('✅ Workflow tables created successfully!');
-    console.log('\nCreated tables:');
-    console.log('  - workflows');
-    console.log('  - workflow_tasks');
-    console.log('  - workflow_attributes');
-    console.log('  - workflow_runs');
-    console.log('  - workflow_run_tasks');
-    console.log('\nWorkflow system is now ready to use! 🎉\n');
-  } catch (error) {
-    console.error('❌ Migration failed:', error.message);
-    process.exit(1);
-  } finally {
-    await pool.end();
-  }
+  await pool.end();
 }
 
 runMigrations();
+

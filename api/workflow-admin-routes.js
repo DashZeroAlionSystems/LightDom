@@ -6,6 +6,7 @@
  * - Creating and executing datamining workflows
  * - Managing workflow runs and status
  * - Database persistence with real API integration
+ * - Schema-driven workflow templates (Phase 2)
  */
 
 import express from 'express';
@@ -13,6 +14,7 @@ import pg from 'pg';
 import { WorkflowGenerator } from '../services/workflow-generator.js';
 import ConfigurationManager from '../services/configuration-manager.js';
 import SchemaLinkingService from '../services/schema-linking-service.js';
+import templateManager from '../services/workflow-template-manager.js';
 
 const { Pool } = pg;
 const router = express.Router();
@@ -853,6 +855,213 @@ router.post('/workflows/datamining', async (req, res) => {
     });
   } finally {
     client.release();
+  }
+});
+
+// =====================================================
+// PHASE 2: SCHEMA-DRIVEN WORKFLOW TEMPLATES
+// =====================================================
+
+/**
+ * GET /api/workflow-admin/templates
+ * List all available workflow templates
+ */
+router.get('/templates', (req, res) => {
+  try {
+    const templates = templateManager.listTemplates();
+    
+    res.json({
+      success: true,
+      templates,
+      total: templates.length
+    });
+  } catch (error) {
+    console.error('Error listing templates:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to list templates',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/workflow-admin/templates/:templateId
+ * Get a specific workflow template
+ */
+router.get('/templates/:templateId', (req, res) => {
+  try {
+    const template = templateManager.getTemplate(req.params.templateId);
+    
+    res.json({
+      success: true,
+      template
+    });
+  } catch (error) {
+    console.error('Error fetching template:', error);
+    res.status(404).json({
+      success: false,
+      error: 'Template not found',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/workflow-admin/workflows/from-template
+ * Create a workflow instance from a template
+ */
+router.post('/workflows/from-template', async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { templateId, customization = {} } = req.body;
+
+    if (!templateId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Template ID is required'
+      });
+    }
+
+    // Instantiate workflow from template
+    const workflowInstance = templateManager.instantiateFromTemplate(templateId, customization);
+
+    // Convert to database format
+    const dbFormat = templateManager.toDatabase(workflowInstance);
+
+    await client.query('BEGIN');
+
+    // Insert workflow
+    const workflowResult = await client.query(`
+      INSERT INTO workflows (
+        workflow_id, name, description, type, version, template_id, config, metadata,
+        owner_name, owner_email, status, script_injected, automation_threshold, pending_automation
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      RETURNING *
+    `, [
+      dbFormat.workflow_id,
+      dbFormat.name,
+      dbFormat.description,
+      dbFormat.type,
+      dbFormat.version,
+      templateId,
+      dbFormat.config,
+      dbFormat.metadata,
+      customization.ownerName || 'Admin User',
+      customization.ownerEmail || 'admin@lightdom.io',
+      dbFormat.status,
+      false,
+      120,
+      true
+    ]);
+
+    const workflow = workflowResult.rows[0];
+
+    // Insert tasks
+    const insertedTasks = [];
+    for (const task of dbFormat.tasks) {
+      const taskResult = await client.query(`
+        INSERT INTO workflow_tasks (
+          task_id, workflow_id, label, description, handler_type,
+          handler_config, dependencies, is_optional, ordering, condition, output_mapping, status
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING *
+      `, [
+        task.task_id,
+        task.workflow_id,
+        task.label,
+        task.description,
+        task.handler_type,
+        task.handler_config,
+        task.dependencies,
+        task.is_optional,
+        task.ordering,
+        task.condition,
+        task.output_mapping,
+        task.status
+      ]);
+      
+      insertedTasks.push(taskResult.rows[0]);
+    }
+
+    // Insert attributes
+    const insertedAttributes = [];
+    for (const attr of dbFormat.attributes) {
+      const attrResult = await client.query(`
+        INSERT INTO workflow_attributes (
+          attribute_id, workflow_id, label, type, enrichment_prompt, drilldown_prompts, validation
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+      `, [
+        attr.attribute_id,
+        attr.workflow_id,
+        attr.label,
+        attr.type,
+        attr.enrichment_prompt,
+        attr.drilldown_prompts,
+        attr.validation
+      ]);
+      
+      insertedAttributes.push(attrResult.rows[0]);
+    }
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      workflow: {
+        ...workflow,
+        id: workflow.workflow_id,
+        tasks: insertedTasks,
+        attributes: insertedAttributes
+      },
+      message: `Workflow created from template "${templateId}"`
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error creating workflow from template:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create workflow from template',
+      details: error.message
+    });
+  } finally {
+    client.release();
+  }
+});
+
+/**
+ * POST /api/workflow-admin/templates/validate
+ * Validate a workflow definition against schema
+ */
+router.post('/templates/validate', (req, res) => {
+  try {
+    const { workflow } = req.body;
+
+    if (!workflow) {
+      return res.status(400).json({
+        success: false,
+        error: 'Workflow definition is required'
+      });
+    }
+
+    const validation = templateManager.validate(workflow);
+
+    res.json({
+      success: true,
+      validation
+    });
+  } catch (error) {
+    console.error('Error validating workflow:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to validate workflow',
+      details: error.message
+    });
   }
 });
 
