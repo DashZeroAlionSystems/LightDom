@@ -151,7 +151,7 @@ class DOMSpaceHarvesterAPI {
     // Setup unused APIs - connecting overlooked code
     this.setupUnusedAPIs();
     
-    // Setup blockchain API routes
+    // Setup blockchain API routes (renamed from duplicate setupRoutes)
     this.setupBlockchainRoutes();
     
     // Setup optimization API routes
@@ -421,6 +421,22 @@ class DOMSpaceHarvesterAPI {
       console.log('Neural network routes registered');
     }).catch(err => {
       console.error('Failed to load neural network routes:', err);
+    });
+    
+    // Import and register Onboarding routes
+    import('./api/onboarding-routes.js').then((onboardingModule) => {
+      this.app.use('/api/onboarding', onboardingModule.default);
+      console.log('✅ Onboarding routes registered');
+    }).catch(err => {
+      console.error('Failed to load onboarding routes:', err);
+    });
+    
+    // Import and register Payment routes
+    import('./api/payment-routes.js').then((paymentModule) => {
+      this.app.use('/api/payment', paymentModule.default);
+      console.log('✅ Payment routes registered');
+    }).catch(err => {
+      console.error('Failed to load payment routes:', err);
     });
     
     // Admin middleware (bearer token)
@@ -3204,7 +3220,7 @@ class DOMSpaceHarvesterAPI {
     this.io.emit(event, data);
   }
 
-  setupRoutes() {
+  setupBlockchainRoutes() {
     // =====================================================
     // BLOCKCHAIN ENDPOINTS
     // =====================================================
@@ -9003,6 +9019,7 @@ class DOMSpaceHarvesterAPI {
     // Initialize middleware and routes
     this.setupMiddleware();
     this.setupRoutes();
+    this.setupBlockchainRoutes(); // Add blockchain routes
 
     // Initialize WebSocket
     this.setupWebSocket();
