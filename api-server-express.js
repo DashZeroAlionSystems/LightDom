@@ -423,6 +423,22 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load neural network routes:', err);
     });
     
+    // Import and register Onboarding routes
+    import('./api/onboarding-routes.js').then((onboardingModule) => {
+      this.app.use('/api/onboarding', onboardingModule.default);
+      console.log('✅ Onboarding routes registered');
+    }).catch(err => {
+      console.error('Failed to load onboarding routes:', err);
+    });
+    
+    // Import and register Payment routes
+    import('./api/payment-routes.js').then((paymentModule) => {
+      this.app.use('/api/payment', paymentModule.default);
+      console.log('✅ Payment routes registered');
+    }).catch(err => {
+      console.error('Failed to load payment routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
