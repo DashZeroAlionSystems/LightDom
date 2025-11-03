@@ -76,7 +76,7 @@ const AdminLayout: React.FC = () => {
     },
     {
       key: 'workflow',
-      icon: <ThunderboltOutlined />,
+      icon: <ExperimentOutlined />,
       label: 'Workflow',
       children: [
         { key: '/admin/user-workflows', label: 'User Workflows', icon: <TeamOutlined /> },
@@ -96,10 +96,10 @@ const AdminLayout: React.FC = () => {
     },
     {
       key: 'training',
-      icon: <ExperimentOutlined />,
+      icon: <DeploymentUnitOutlined />,
       label: 'Training',
       children: [
-        { key: '/admin/training', label: 'AI Training Control', icon: <ExperimentOutlined /> },
+        { key: '/admin/training', label: 'AI Training Control', icon: <RobotOutlined /> },
         { key: '/admin/training-data', label: 'Training Data Pipeline', icon: <DatabaseOutlined /> },
       ],
     },
