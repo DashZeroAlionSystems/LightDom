@@ -449,6 +449,19 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load client SEO routes:', err);
     });
     
+    // Import and register Extended Workflow Monitoring routes
+    import('./api/extended-workflow-routes.js').then((extendedModule) => {
+      const extendedRouter = extendedModule.default || extendedModule.createExtendedWorkflowRoutes;
+      if (typeof extendedRouter === 'function') {
+        this.app.use('/api/workflow', extendedRouter(this.db));
+      } else {
+        this.app.use('/api/workflow', extendedRouter);
+      }
+      console.log('✅ Extended Workflow Monitoring routes registered');
+    }).catch(err => {
+      console.error('Failed to load extended workflow routes:', err);
+    });
+    
     // Import and register Onboarding routes
     import('./api/onboarding-routes.js').then((onboardingModule) => {
       this.app.use('/api/onboarding', onboardingModule.default);
