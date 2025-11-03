@@ -60,6 +60,7 @@ import WorkflowCreationDashboard from './components/WorkflowCreationDashboard';
 import ComponentSchemaToolDashboard from './components/ComponentSchemaToolDashboard';
 import ChromeLayers3DDashboard from './components/ChromeLayers3DDashboard';
 import NeuralNetworkDashboard from './components/ui/dashboard/NeuralNetworkDashboard';
+import TensorFlowNeuralNetworkDashboard from './components/dashboards/TensorFlowNeuralNetworkDashboard';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -159,6 +160,7 @@ const AppContent: React.FC = () => {
           <Route path="testing" element={<TestingDashboard />} />
           <Route path="advanced-nodes" element={<AdvancedNodeDashboard />} />
           <Route path="neural-network" element={<NeuralNetworkDashboard />} />
+          <Route path="tensorflow-workflow" element={<TensorFlowNeuralNetworkDashboard />} />
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />
           <Route path="seo-optimization" element={<SEOOptimizationDashboard />} />

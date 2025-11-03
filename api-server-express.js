@@ -423,6 +423,19 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load neural network routes:', err);
     });
     
+    // Import and register TensorFlow Workflow Orchestration routes
+    import('./api/tensorflow-workflow-routes.js').then((tfModule) => {
+      const tfRouter = tfModule.default || tfModule.createTensorFlowWorkflowRoutes;
+      if (typeof tfRouter === 'function') {
+        this.app.use('/api/tensorflow', tfRouter(this.db));
+      } else {
+        this.app.use('/api/tensorflow', tfRouter);
+      }
+      console.log('✅ TensorFlow Workflow Orchestration routes registered');
+    }).catch(err => {
+      console.error('Failed to load TensorFlow workflow routes:', err);
+    });
+    
     // Import and register Onboarding routes
     import('./api/onboarding-routes.js').then((onboardingModule) => {
       this.app.use('/api/onboarding', onboardingModule.default);
