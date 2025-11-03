@@ -100,99 +100,68 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       label: 'Overview',
     },
     {
-      key: '/dashboard/optimization',
-      icon: <ThunderboltOutlined />,
-      label: 'DOM Optimization',
-    },
-    {
-      key: '/dashboard/blockchain',
-      icon: <WalletOutlined />,
-      label: 'Blockchain',
-    },
-    {
-      key: '/dashboard/space-mining',
-      icon: <GlobalOutlined />,
-      label: 'Space Mining',
-    },
-    {
-      key: '/dashboard/metaverse-mining',
-      icon: <TrophyOutlined />,
-      label: 'Metaverse Mining',
-    },
-    {
-      key: '/dashboard/metaverse-marketplace',
-      icon: <ShoppingCartOutlined />,
-      label: 'Metaverse Marketplace',
-    },
-    {
-      key: '/dashboard/metaverse-mining-rewards',
-      icon: <GiftOutlined />,
-      label: 'Mining Rewards',
-    },
-    {
-      key: '/dashboard/workflow-simulation',
+      key: 'workflow',
       icon: <ExperimentOutlined />,
-      label: 'Workflow Simulation',
+      label: 'Workflow',
+      children: [
+        {
+          key: '/dashboard/workflow-simulation',
+          icon: <ExperimentOutlined />,
+          label: 'Workflow Simulation',
+        },
+        {
+          key: '/dashboard/workflow-creation',
+          icon: <ApiOutlined />,
+          label: 'Workflow Creation',
+        },
+      ],
     },
     {
-      key: '/dashboard/testing',
-      icon: <BugOutlined />,
-      label: 'Testing',
-    },
-    {
-      key: '/dashboard/advanced-nodes',
-      icon: <ClusterOutlined />,
-      label: 'Advanced Nodes',
-    },
-    {
-      key: '/dashboard/neural-network',
-      icon: <DeploymentUnitOutlined />,
-      label: 'Neural Network',
-    },
-    {
-      key: '/dashboard/blockchain-models',
+      key: 'datamining',
       icon: <DatabaseOutlined />,
-      label: 'Blockchain Models',
+      label: 'Data Mining',
+      children: [
+        {
+          key: '/dashboard/seo-datamining',
+          icon: <SearchOutlined />,
+          label: 'SEO Data Mining',
+        },
+        {
+          key: '/dashboard/optimization',
+          icon: <ThunderboltOutlined />,
+          label: 'DOM Optimization',
+        },
+        {
+          key: '/dashboard/space-mining',
+          icon: <GlobalOutlined />,
+          label: 'Space Mining',
+        },
+        {
+          key: '/dashboard/analytics',
+          icon: <BarChartOutlined />,
+          label: 'Analytics',
+        },
+      ],
     },
     {
-      key: '/dashboard/space-optimization',
-      icon: <RocketOutlined />,
-      label: 'Space Optimization',
+      key: 'training',
+      icon: <DeploymentUnitOutlined />,
+      label: 'Training',
+      children: [
+        {
+          key: '/dashboard/neural-network',
+          icon: <DeploymentUnitOutlined />,
+          label: 'Neural Network',
+        },
+        {
+          key: '/dashboard/training-data',
+          icon: <DatabaseOutlined />,
+          label: 'Training Data',
+        },
+      ],
     },
     {
-      key: '/dashboard/seo-optimization',
-      icon: <SearchOutlined />,
-      label: 'SEO Optimization',
-    },
-    {
-      key: '/dashboard/seo-marketplace',
-      icon: <ShoppingCartOutlined />,
-      label: 'SEO Marketplace',
-    },
-    {
-      key: '/dashboard/analytics',
-      icon: <BarChartOutlined />,
-      label: 'Analytics',
-    },
-    {
-      key: '/dashboard/websites',
-      icon: <GlobalOutlined />,
-      label: 'My Websites',
-    },
-    {
-      key: '/dashboard/history',
-      icon: <HistoryOutlined />,
-      label: 'Optimization History',
-    },
-    {
-      key: '/dashboard/wallet',
-      icon: <WalletOutlined />,
-      label: 'Wallet & Tokens',
-    },
-    {
-      key: '/dashboard/achievements',
-      icon: <TrophyOutlined />,
-      label: 'Achievements',
+      type: 'divider' as any,
     },
     {
       key: '/dashboard/settings',
@@ -314,32 +283,28 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <button className="rail-icon" onClick={() => navigate('/dashboard')} title="Dashboard">
             <DashboardOutlined />
           </button>
-          <button className="rail-icon" onClick={() => navigate('/dashboard/optimization')} title="Optimization">
-            <ThunderboltOutlined />
+          <button className="rail-icon" onClick={() => navigate('/dashboard/workflow-simulation')} title="Workflow">
+            <ExperimentOutlined />
           </button>
-          <button className="rail-icon" onClick={() => navigate('/dashboard/space-mining')} title="Space Mining">
-            <GlobalOutlined />
+          <button className="rail-icon" onClick={() => navigate('/dashboard/seo-datamining')} title="Data Mining">
+            <DatabaseOutlined />
           </button>
-          <button className="rail-icon" onClick={() => navigate('/dashboard/analytics')} title="Analytics">
-            <BarChartOutlined />
+          <button className="rail-icon" onClick={() => navigate('/dashboard/neural-network')} title="Training">
+            <DeploymentUnitOutlined />
           </button>
         </div>
         <div className="rail-bottom">
-          <div className="rail-status" title={`API: ${serviceStatus.api ? 'Operational' : 'Down'}`}>
+          <div className="rail-status" title={`Workflow: ${serviceStatus.api ? 'Operational' : 'Down'}`}>
             <span className={`dot ${serviceStatus.api ? 'ok' : 'down'}`} />
-            <ApiOutlined />
+            <ExperimentOutlined />
           </div>
-          <div className="rail-status" title={`Crawler: ${serviceStatus.crawler ? 'Operational' : 'Down'}`}>
+          <div className="rail-status" title={`Data Mining: ${serviceStatus.crawler ? 'Operational' : 'Down'}`}>
             <span className={`dot ${serviceStatus.crawler ? 'ok' : 'down'}`} />
-            <BugOutlined />
+            <DatabaseOutlined />
           </div>
-          <div className="rail-status" title={`Optimization: ${serviceStatus.optimization ? 'Operational' : 'Down'}`}>
+          <div className="rail-status" title={`Training: ${serviceStatus.optimization ? 'Operational' : 'Down'}`}>
             <span className={`dot ${serviceStatus.optimization ? 'ok' : 'down'}`} />
-            <ThunderboltOutlined />
-          </div>
-          <div className="rail-status" title={`Blockchain: ${serviceStatus.blockchain ? 'Operational' : 'Down'}`}>
-            <span className={`dot ${serviceStatus.blockchain ? 'ok' : 'down'}`} />
-            <WalletOutlined />
+            <DeploymentUnitOutlined />
           </div>
         </div>
       </div>
