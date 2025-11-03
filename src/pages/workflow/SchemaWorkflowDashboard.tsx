@@ -48,6 +48,8 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { cn } from '@/lib/utils';
+import DataMiningWorkflowCreator from '@/components/workflow/DataMiningWorkflowCreator';
+import { DataMiningWorkflow } from '@/services/DataMiningWorkflowService';
 
 // Types from our research
 interface WorkflowSchema {
@@ -169,6 +171,7 @@ export const SchemaWorkflowDashboard: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowDefinition | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDataMiningModal, setShowDataMiningModal] = useState(false);
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [stats, setStats] = useState({
     total: 0,
@@ -314,6 +317,15 @@ export const SchemaWorkflowDashboard: React.FC = () => {
                 leftIcon={<RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />}
               >
                 Refresh
+              </Button>
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={() => setShowDataMiningModal(true)}
+                leftIcon={<Database className="h-4 w-4" />}
+                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
+              >
+                AI DataMining
               </Button>
               <Button
                 variant="filled"
@@ -833,6 +845,19 @@ const CreateWorkflowModal: React.FC<{
           </div>
         </form>
       </div>
+    </div>
+  );
+};
+
+      {/* DataMining Workflow Creator Modal */}
+      <DataMiningWorkflowCreator
+        visible={showDataMiningModal}
+        onClose={() => setShowDataMiningModal(false)}
+        onWorkflowCreated={(workflow: DataMiningWorkflow) => {
+          setShowDataMiningModal(false);
+          loadWorkflows(); // Reload workflows to show the new one
+        }}
+      />
     </div>
   );
 };
