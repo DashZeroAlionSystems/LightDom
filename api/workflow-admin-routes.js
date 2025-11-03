@@ -7,6 +7,7 @@
  * - Managing workflow runs and status
  * - Database persistence with real API integration
  * - Schema-driven workflow templates (Phase 2)
+ * - AI-powered workflow generation (Phase 3)
  */
 
 import express from 'express';
@@ -15,6 +16,7 @@ import { WorkflowGenerator } from '../services/workflow-generator.js';
 import ConfigurationManager from '../services/configuration-manager.js';
 import SchemaLinkingService from '../services/schema-linking-service.js';
 import templateManager from '../services/workflow-template-manager.js';
+import AIWorkflowGenerator from '../services/ai-workflow-generator.js';
 
 const { Pool } = pg;
 const router = express.Router();
@@ -28,6 +30,7 @@ const pool = new Pool({
 const workflowGenerator = new WorkflowGenerator();
 const configManager = new ConfigurationManager();
 const schemaService = new SchemaLinkingService();
+const aiGenerator = new AIWorkflowGenerator();
 
 /**
  * GET /api/workflow-admin/workflows/summary
@@ -1061,6 +1064,290 @@ router.post('/templates/validate', (req, res) => {
       success: false,
       error: 'Failed to validate workflow',
       details: error.message
+    });
+  }
+});
+
+// =====================================================
+// PHASE 3: AI-POWERED WORKFLOW GENERATION
+// =====================================================
+
+/**
+ * POST /api/workflow-admin/ai/generate
+ * Generate workflow from natural language prompt using AI
+ */
+router.post('/ai/generate', async (req, res) => {
+  try {
+    const { prompt, model, options = {} } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({
+        success: false,
+        error: 'Prompt is required'
+      });
+    }
+
+    // Set model if provided
+    if (model) {
+      aiGenerator.model = model;
+    }
+
+    console.log(`\n🤖 AI Workflow Generation Request:`);
+    console.log(`   Prompt: "${prompt}"`);
+    console.log(`   Model: ${aiGenerator.model}`);
+
+    // Generate workflow schema from prompt
+    const workflowSchema = await aiGenerator.generateWorkflowFromPrompt(prompt, options);
+
+    res.json({
+      success: true,
+      workflow: workflowSchema,
+      message: 'Workflow schema generated successfully',
+      metadata: {
+        model: aiGenerator.model,
+        prompt,
+        generatedAt: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Error generating workflow with AI:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate workflow',
+      details: error.message,
+      suggestion: 'Ensure Ollama is installed and running. Try: ollama run llama2'
+    });
+  }
+});
+
+/**
+ * POST /api/workflow-admin/ai/generate-and-save
+ * Generate workflow from prompt and save to database
+ */
+router.post('/ai/generate-and-save', async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const { prompt, model, options = {}, ownerName, ownerEmail } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({
+        success: false,
+        error: 'Prompt is required'
+      });
+    }
+
+    // Set model if provided
+    if (model) {
+      aiGenerator.model = model;
+    }
+
+    console.log(`\n🤖 AI Workflow Generation & Save:`);
+    console.log(`   Prompt: "${prompt}"`);
+
+    // Generate workflow schema
+    const workflowSchema = await aiGenerator.generateWorkflowFromPrompt(prompt, options);
+
+    // Enhance with AI if requested
+    if (options.enhance) {
+      await aiGenerator.enhanceWorkflow(workflowSchema);
+    }
+
+    // Convert to database format
+    const dbFormat = templateManager.toDatabase(workflowSchema);
+
+    await client.query('BEGIN');
+
+    // Insert workflow
+    const workflowResult = await client.query(`
+      INSERT INTO workflows (
+        workflow_id, name, description, type, version, config, metadata,
+        owner_name, owner_email, status, script_injected, automation_threshold, pending_automation
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING *
+    `, [
+      dbFormat.workflow_id,
+      dbFormat.name,
+      dbFormat.description,
+      dbFormat.type,
+      dbFormat.version,
+      dbFormat.config,
+      JSON.stringify({
+        ...(dbFormat.metadata || {}),
+        generatedBy: 'ai',
+        model: aiGenerator.model,
+        prompt,
+        generatedAt: new Date().toISOString()
+      }),
+      ownerName || 'AI Generator',
+      ownerEmail || 'ai@lightdom.io',
+      dbFormat.status,
+      false,
+      120,
+      true
+    ]);
+
+    const workflow = workflowResult.rows[0];
+
+    // Insert tasks
+    const insertedTasks = [];
+    for (const task of dbFormat.tasks) {
+      const taskResult = await client.query(`
+        INSERT INTO workflow_tasks (
+          task_id, workflow_id, label, description, handler_type,
+          handler_config, dependencies, is_optional, ordering, status
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        RETURNING *
+      `, [
+        task.task_id,
+        task.workflow_id,
+        task.label,
+        task.description,
+        task.handler_type,
+        task.handler_config,
+        task.dependencies,
+        task.is_optional,
+        task.ordering,
+        task.status
+      ]);
+      
+      insertedTasks.push(taskResult.rows[0]);
+    }
+
+    // Insert attributes if any
+    const insertedAttributes = [];
+    for (const attr of dbFormat.attributes) {
+      const attrResult = await client.query(`
+        INSERT INTO workflow_attributes (
+          attribute_id, workflow_id, label, type, enrichment_prompt, drilldown_prompts
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `, [
+        attr.attribute_id,
+        attr.workflow_id,
+        attr.label,
+        attr.type,
+        attr.enrichment_prompt,
+        attr.drilldown_prompts
+      ]);
+      
+      insertedAttributes.push(attrResult.rows[0]);
+    }
+
+    await client.query('COMMIT');
+
+    res.json({
+      success: true,
+      workflow: {
+        ...workflow,
+        id: workflow.workflow_id,
+        tasks: insertedTasks,
+        attributes: insertedAttributes
+      },
+      message: 'AI-generated workflow saved successfully'
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error generating and saving AI workflow:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate and save workflow',
+      details: error.message
+    });
+  } finally {
+    client.release();
+  }
+});
+
+/**
+ * POST /api/workflow-admin/ai/suggest-tasks
+ * Get AI suggestions for tasks based on workflow goal
+ */
+router.post('/ai/suggest-tasks', async (req, res) => {
+  try {
+    const { goal } = req.body;
+
+    if (!goal) {
+      return res.status(400).json({
+        success: false,
+        error: 'Workflow goal is required'
+      });
+    }
+
+    const tasks = await aiGenerator.suggestTasks(goal);
+
+    res.json({
+      success: true,
+      tasks,
+      goal
+    });
+  } catch (error) {
+    console.error('Error suggesting tasks:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to suggest tasks',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/workflow-admin/ai/enhance
+ * Enhance existing workflow with AI suggestions
+ */
+router.post('/ai/enhance', async (req, res) => {
+  try {
+    const { workflow } = req.body;
+
+    if (!workflow) {
+      return res.status(400).json({
+        success: false,
+        error: 'Workflow is required'
+      });
+    }
+
+    const enhanced = await aiGenerator.enhanceWorkflow(workflow);
+
+    res.json({
+      success: true,
+      workflow: enhanced,
+      message: 'Workflow enhanced with AI suggestions'
+    });
+  } catch (error) {
+    console.error('Error enhancing workflow:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to enhance workflow',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/workflow-admin/ai/status
+ * Check if AI service (Ollama) is available
+ */
+router.get('/ai/status', async (req, res) => {
+  try {
+    const isAvailable = await aiGenerator.checkOllamaAvailability();
+
+    res.json({
+      success: true,
+      available: isAvailable,
+      model: aiGenerator.model,
+      availableModels: aiGenerator.availableModels,
+      message: isAvailable 
+        ? 'AI service is available' 
+        : 'Ollama not found. Install it from https://ollama.ai'
+    });
+  } catch (error) {
+    res.json({
+      success: true,
+      available: false,
+      error: error.message
     });
   }
 });
