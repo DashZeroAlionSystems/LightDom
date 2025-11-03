@@ -447,6 +447,14 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load campaign routes:', err);
     });
     
+    // Import and register Workflow Orchestration routes
+    import('./src/api/routes/workflow-orchestration.routes.js').then((workflowModule) => {
+      this.app.use('/api/workflows', workflowModule.default);
+      console.log('✅ Workflow orchestration routes registered (Schema-driven automation enabled)');
+    }).catch(err => {
+      console.error('Failed to load workflow orchestration routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');

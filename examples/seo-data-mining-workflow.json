@@ -1,0 +1,462 @@
+{
+  "workflow": {
+    "id": "seo-data-mining-complete",
+    "version": "1.0.0",
+    "name": "Complete SEO Data Mining & ML Training Workflow",
+    "description": "Automated end-to-end workflow for SEO data collection, analysis, enrichment, and ML model training",
+    
+    "metadata": {
+      "author": "LightDom AI",
+      "createdAt": "2025-11-03T18:00:00Z",
+      "tags": ["seo", "ml", "automation", "data-mining"],
+      "category": "data-mining",
+      "estimatedDuration": "7200s"
+    },
+    
+    "services": [
+      {
+        "id": "deepseek-service",
+        "type": "ai",
+        "schema": "@schemas/services/deepseek-service.json",
+        "config": {
+          "model": "deepseek-chat",
+          "temperature": 0.7,
+          "streaming": false
+        }
+      },
+      {
+        "id": "crawler-service",
+        "type": "crawler",
+        "schema": "@schemas/services/crawler-service.json",
+        "config": {
+          "parallelWorkers": 10,
+          "loadBalancing": "least-busy",
+          "payloadSize": 100,
+          "respectRobotsTxt": true,
+          "rateLimit": 100,
+          "timeout": 30000,
+          "retryPolicy": {
+            "maxRetries": 3,
+            "backoffMs": 1000,
+            "backoffMultiplier": 2
+          }
+        }
+      },
+      {
+        "id": "seo-analyzer",
+        "type": "analyzer",
+        "schema": "@schemas/services/seo-analyzer.json",
+        "config": {
+          "metrics": [
+            "title_optimization",
+            "meta_description",
+            "heading_structure",
+            "content_quality",
+            "keyword_density",
+            "readability_score",
+            "technical_seo",
+            "mobile_friendliness",
+            "page_speed"
+          ],
+          "includeCompetitors": true,
+          "includeAccessibility": true,
+          "includePerformance": true
+        }
+      },
+      {
+        "id": "schema-linker",
+        "type": "schema",
+        "schema": "@schemas/services/schema-linking.json",
+        "config": {
+          "vocabularies": ["schema.org", "opengraph", "twitter"],
+          "validate": true,
+          "enrich": true
+        }
+      },
+      {
+        "id": "data-processor",
+        "type": "processor",
+        "schema": "@schemas/services/data-processor.json",
+        "config": {
+          "deduplicate": true,
+          "normalize": true,
+          "validate": true,
+          "enrichmentRules": "@schemas/enrichment/seo-enrichment.json"
+        }
+      },
+      {
+        "id": "ml-training-service",
+        "type": "ml-engine",
+        "schema": "@schemas/neural-networks/neural-network-workflow.json",
+        "config": {
+          "modelType": "xgboost",
+          "algorithm": "gradient_boosting",
+          "hyperparameters": {
+            "learning_rate": 0.05,
+            "max_depth": 6,
+            "n_estimators": 400,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8,
+            "min_child_weight": 1,
+            "gamma": 0
+          },
+          "validation": {
+            "method": "cross_validation",
+            "folds": 5,
+            "testSize": 0.2
+          },
+          "evaluation": {
+            "metrics": ["ndcg@10", "accuracy", "precision", "recall", "f1"],
+            "earlyStoppingRounds": 50
+          }
+        }
+      }
+    ],
+    
+    "tasks": [
+      {
+        "id": "workflow-planning",
+        "label": "AI Workflow Planning",
+        "description": "Use DeepSeek to analyze and optimize workflow configuration",
+        "service": "deepseek-service",
+        "action": "optimize_workflow",
+        "input": {
+          "currentConfig": "${workflow.config}",
+          "constraints": {
+            "maxDuration": 7200,
+            "maxConcurrency": 10,
+            "budgetLimit": 100
+          },
+          "goals": [
+            "maximize data quality",
+            "minimize execution time",
+            "optimize resource usage"
+          ]
+        },
+        "output": {
+          "schema": "@schemas/workflow/optimization-result.json",
+          "destination": "task:url-discovery"
+        },
+        "dependencies": [],
+        "optional": false,
+        "timeout": 60
+      },
+      {
+        "id": "url-discovery",
+        "label": "URL Discovery & Prioritization",
+        "description": "Discover all URLs to crawl and prioritize based on importance",
+        "service": "crawler-service",
+        "action": "discover_urls",
+        "input": {
+          "seedUrl": "${input.clientSiteUrl}",
+          "maxDepth": 3,
+          "followExternal": false,
+          "filters": {
+            "includePatterns": [
+              "/products/",
+              "/blog/",
+              "/category/",
+              "/pages/"
+            ],
+            "excludePatterns": [
+              "/cart/",
+              "/checkout/",
+              "/account/",
+              "/api/"
+            ]
+          },
+          "prioritization": {
+            "method": "pagerank",
+            "boostFactors": {
+              "hasStructuredData": 2.0,
+              "isIndexable": 1.5,
+              "hasImages": 1.2
+            }
+          }
+        },
+        "output": {
+          "schema": "@schemas/data/url-list.json",
+          "destination": ["task:page-crawl", "database:discovered_urls"]
+        },
+        "dependencies": ["workflow-planning"],
+        "parallel": false,
+        "timeout": 600
+      },
+      {
+        "id": "page-crawl",
+        "label": "Page Crawling & DOM Extraction",
+        "description": "Crawl discovered URLs and extract DOM content",
+        "service": "crawler-service",
+        "action": "crawl_pages",
+        "input": {
+          "urls": "${task:url-discovery.output}",
+          "extractors": [
+            "html_content",
+            "meta_tags",
+            "headings",
+            "links",
+            "images",
+            "structured_data",
+            "performance_metrics"
+          ],
+          "rendering": {
+            "waitFor": "networkidle",
+            "javascript": true,
+            "screenshots": false
+          }
+        },
+        "output": {
+          "schema": "@schemas/data/page-data.json",
+          "destination": ["task:seo-analysis", "task:schema-linking", "database:pages"]
+        },
+        "dependencies": ["url-discovery"],
+        "parallel": true,
+        "maxConcurrency": 10,
+        "timeout": 3600
+      },
+      {
+        "id": "seo-analysis",
+        "label": "SEO Analysis & Scoring",
+        "description": "Analyze SEO metrics and calculate quality scores",
+        "service": "seo-analyzer",
+        "action": "analyze_seo",
+        "input": {
+          "pages": "${task:page-crawl.output}",
+          "competitors": {
+            "enabled": true,
+            "urls": "${input.competitorUrls}"
+          },
+          "benchmarks": {
+            "industry": "${input.industry}",
+            "targetKeywords": "${input.keywords}"
+          }
+        },
+        "output": {
+          "schema": "@schemas/data/seo-metrics.json",
+          "destination": ["task:data-enrichment", "database:seo_metrics"]
+        },
+        "dependencies": ["page-crawl"],
+        "parallel": false,
+        "timeout": 1800
+      },
+      {
+        "id": "schema-linking",
+        "label": "Schema.org Linking & Validation",
+        "description": "Link data to schema.org vocabularies and validate structured data",
+        "service": "schema-linker",
+        "action": "link_schemas",
+        "input": {
+          "pages": "${task:page-crawl.output}",
+          "vocabularies": ["Product", "Article", "WebPage", "Organization"],
+          "validation": {
+            "strict": false,
+            "reportErrors": true
+          }
+        },
+        "output": {
+          "schema": "@schemas/data/linked-data.json",
+          "destination": ["task:data-enrichment", "database:structured_data"]
+        },
+        "dependencies": ["page-crawl"],
+        "parallel": true,
+        "timeout": 900
+      },
+      {
+        "id": "data-enrichment",
+        "label": "Data Enrichment & Feature Engineering",
+        "description": "Enrich crawled data with computed features for ML training",
+        "service": "data-processor",
+        "action": "enrich_data",
+        "input": {
+          "pageData": "${task:page-crawl.output}",
+          "seoMetrics": "${task:seo-analysis.output}",
+          "linkedData": "${task:schema-linking.output}",
+          "enrichmentRules": {
+            "contentQuality": {
+              "wordCount": true,
+              "readabilityScore": true,
+              "keywordDensity": true,
+              "uniqueness": true
+            },
+            "technicalSEO": {
+              "loadTime": true,
+              "mobileScore": true,
+              "structuredData": true,
+              "canonicalUrl": true
+            },
+            "engagement": {
+              "estimatedReadTime": true,
+              "multimediaRatio": true,
+              "linkDiversity": true
+            }
+          }
+        },
+        "output": {
+          "schema": "@schemas/data/training-data.json",
+          "destination": ["task:quality-filtering", "database:enriched_data"]
+        },
+        "dependencies": ["seo-analysis", "schema-linking"],
+        "parallel": false,
+        "timeout": 1200
+      },
+      {
+        "id": "quality-filtering",
+        "label": "Data Quality Filtering",
+        "description": "Filter data based on quality thresholds for ML training",
+        "service": "data-processor",
+        "action": "filter_data",
+        "input": {
+          "data": "${task:data-enrichment.output}",
+          "filters": {
+            "minQualityScore": 70,
+            "minWordCount": 300,
+            "maxDuplicates": 0.1,
+            "requiredFields": ["url", "title", "content", "seo_score"]
+          }
+        },
+        "output": {
+          "schema": "@schemas/data/filtered-training-data.json",
+          "destination": ["task:ml-training", "database:training_data"]
+        },
+        "dependencies": ["data-enrichment"],
+        "parallel": false,
+        "timeout": 600
+      },
+      {
+        "id": "ml-training",
+        "label": "ML Model Training",
+        "description": "Train machine learning model for SEO ranking prediction",
+        "service": "ml-training-service",
+        "action": "train_model",
+        "input": {
+          "trainingData": "${task:quality-filtering.output}",
+          "features": [
+            "content_quality_score",
+            "technical_seo_score",
+            "keyword_relevance",
+            "page_speed",
+            "mobile_score",
+            "structured_data_present",
+            "internal_links",
+            "external_links",
+            "word_count",
+            "readability_score"
+          ],
+          "target": "ranking_position",
+          "splitStrategy": {
+            "method": "stratified",
+            "testSize": 0.2,
+            "validationSize": 0.1
+          }
+        },
+        "output": {
+          "schema": "@schemas/models/trained-model.json",
+          "destination": ["task:model-evaluation", "database:ml_models"]
+        },
+        "dependencies": ["quality-filtering"],
+        "parallel": false,
+        "timeout": 7200
+      },
+      {
+        "id": "model-evaluation",
+        "label": "Model Evaluation & Metrics",
+        "description": "Evaluate trained model and calculate performance metrics",
+        "service": "ml-training-service",
+        "action": "evaluate_model",
+        "input": {
+          "model": "${task:ml-training.output}",
+          "testData": "${task:quality-filtering.output.testSet}",
+          "metrics": ["ndcg@10", "accuracy", "precision", "recall", "f1", "auc"],
+          "generateReport": true
+        },
+        "output": {
+          "schema": "@schemas/models/evaluation-result.json",
+          "destination": ["task:workflow-completion", "database:model_metrics"]
+        },
+        "dependencies": ["ml-training"],
+        "parallel": false,
+        "timeout": 300
+      },
+      {
+        "id": "workflow-completion",
+        "label": "Workflow Completion & Reporting",
+        "description": "Generate final report and update workflow status",
+        "service": "data-processor",
+        "action": "generate_report",
+        "input": {
+          "workflowResults": {
+            "urlsDiscovered": "${task:url-discovery.output.count}",
+            "pagesCrawled": "${task:page-crawl.output.count}",
+            "dataQuality": "${task:data-enrichment.output.quality}",
+            "modelMetrics": "${task:model-evaluation.output}"
+          },
+          "format": "json",
+          "includeSummary": true,
+          "includeRecommendations": true
+        },
+        "output": {
+          "schema": "@schemas/workflow/completion-report.json",
+          "destination": ["database:workflow_reports", "notification:email"]
+        },
+        "dependencies": ["model-evaluation"],
+        "parallel": false,
+        "timeout": 120
+      }
+    ],
+    
+    "schedule": {
+      "type": "cron",
+      "expression": "0 2 * * *",
+      "timezone": "UTC",
+      "enabled": true,
+      "onSuccess": ["notify_admin", "update_dashboard"],
+      "onFailure": ["alert_team", "create_incident"]
+    },
+    
+    "state": {
+      "persistenceType": "database",
+      "checkpointFrequency": "per-task",
+      "resumable": true,
+      "retentionDays": 30
+    },
+    
+    "errorHandling": {
+      "strategy": "retry-then-skip",
+      "maxRetries": 3,
+      "retryDelay": 60,
+      "notifications": {
+        "onFailure": ["email:admin@example.com", "slack:#alerts"],
+        "onSuccess": ["dashboard:workflow-status"]
+      },
+      "fallback": {
+        "enabled": true,
+        "actions": ["save_partial_results", "notify_admin"]
+      }
+    },
+    
+    "resources": {
+      "maxConcurrentTasks": 10,
+      "maxMemoryMB": 8192,
+      "maxCPUPercent": 80,
+      "timeoutSeconds": 7200,
+      "priority": "high"
+    },
+    
+    "monitoring": {
+      "enabled": true,
+      "metrics": [
+        "execution_time",
+        "task_success_rate",
+        "data_quality_score",
+        "resource_utilization",
+        "error_rate"
+      ],
+      "dashboards": ["grafana", "lightdom-admin"],
+      "alerts": {
+        "slowExecution": { "threshold": 9000, "action": "notify" },
+        "highErrorRate": { "threshold": 0.1, "action": "alert" },
+        "lowDataQuality": { "threshold": 60, "action": "review" }
+      }
+    }
+  }
+}
