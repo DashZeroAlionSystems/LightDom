@@ -568,6 +568,17 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load Campaign Orchestration routes:', err);
     });
     
+    // Import and register Campaign Worker routes (Containers, Workers, Simulations)
+    import('./api/campaign-worker-routes.js').then((workerModule) => {
+      const router = workerModule.default;
+      if (router) {
+        this.app.use('/api/workers', router);
+        console.log('✅ Campaign Worker routes registered (Containers, Real-time streaming, LLM integration)');
+      }
+    }).catch(err => {
+      console.error('Failed to load Campaign Worker routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
