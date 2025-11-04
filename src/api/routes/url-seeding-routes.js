@@ -24,9 +24,9 @@
  */
 
 import express from 'express';
-import { URLSeedingService } from '../url-seeding-service.js';
-import { BacklinkService } from '../backlink-service.js';
-import SeedingConfigManager from '../seeding-config-manager.js';
+import { URLSeedingService } from '../../services/url-seeding-service.js';
+import { BacklinkService } from '../../services/backlink-service.js';
+import SeedingConfigManager from '../../services/seeding-config-manager.js';
 
 const router = express.Router();
 
@@ -560,5 +560,4 @@ router.post('/template', async (req, res) => {
   }
 });
 
-export { router as urlSeedingRoutes, initializeSeedingServices };
-export default router;
+export { router as urlSeedingRoutes };
