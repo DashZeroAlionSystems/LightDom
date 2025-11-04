@@ -38,7 +38,7 @@ class DataMiningInstanceService extends EventEmitter {
     try {
       console.log(`⛏️ Creating data mining instance: ${name}`);
 
-      const miningId = `mining_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const miningId = `mining_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
       const instance = {
         mining_id: miningId,
@@ -248,7 +248,7 @@ class DataMiningInstanceService extends EventEmitter {
       // Create tasks for each URL x Attribute combination
       for (const url of instance.target_urls) {
         for (const attrId of targetAttributes) {
-          const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          const taskId = `task_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
           
           const task = {
             task_id: taskId,

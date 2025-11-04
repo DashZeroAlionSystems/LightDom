@@ -38,7 +38,7 @@ class CampaignOrchestrationService extends EventEmitter {
     try {
       console.log(`🚀 Creating campaign from prompt: "${prompt.substring(0, 50)}..."`);
 
-      const campaignId = `campaign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const campaignId = `campaign_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
       // Parse campaign name from prompt or use default
       const campaignName = options.name || this.extractCampaignName(prompt);
@@ -256,7 +256,7 @@ class CampaignOrchestrationService extends EventEmitter {
    * Create seeding instance for the campaign
    */
   async createSeedingInstance(campaign, mining, options = {}) {
-    const seedingId = `seeding_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const seedingId = `seeding_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
     const seeding = {
       seeding_id: seedingId,
@@ -290,7 +290,7 @@ class CampaignOrchestrationService extends EventEmitter {
    * Create workflow instance for the campaign
    */
   async createWorkflowInstance(campaign, mining, options = {}) {
-    const workflowInstanceId = `workflow_inst_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const workflowInstanceId = `workflow_inst_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
     const workflowInstance = {
       workflow_instance_id: workflowInstanceId,
@@ -322,7 +322,7 @@ class CampaignOrchestrationService extends EventEmitter {
     const serviceTypes = options.types || ['crawler', 'storage', 'analytics'];
 
     for (const type of serviceTypes) {
-      const serviceId = `service_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const serviceId = `service_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
       const service = {
         service_instance_id: serviceId,
@@ -358,7 +358,7 @@ class CampaignOrchestrationService extends EventEmitter {
     const apiConfigs = options.apis || [];
 
     for (const config of apiConfigs) {
-      const apiId = `api_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const apiId = `api_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
       const api = {
         api_instance_id: apiId,
@@ -499,7 +499,7 @@ class CampaignOrchestrationService extends EventEmitter {
    * Log campaign event
    */
   async logEvent(campaignId, eventType, eventData = {}, severity = 'info') {
-    const logId = `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const logId = `log_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
     const log = {
       log_id: logId,

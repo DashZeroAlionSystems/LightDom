@@ -37,7 +37,7 @@ class ResearchInstanceService extends EventEmitter {
     try {
       console.log(`🔬 Initiating research on topic: "${topic}"`);
 
-      const researchId = `research_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const researchId = `research_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
       
       const research = {
         research_id: researchId,

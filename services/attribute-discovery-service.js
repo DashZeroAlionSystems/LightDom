@@ -585,7 +585,7 @@ class AttributeDiscoveryService extends EventEmitter {
    * Save attribute definition
    */
   async saveAttribute(researchId, attribute) {
-    const attributeId = `attr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const attributeId = `attr_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
     const attrRecord = {
       attribute_id: attributeId,
