@@ -557,6 +557,19 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load SEO campaign CRUD routes:', err);
     });
     
+    // Import and register MCP Server Management routes (Agent instances with schema linking)
+    import('./api/mcp-server-routes.js').then((mcpModule) => {
+      const createRoutes = mcpModule.default || mcpModule.createMCPServerRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/mcp', createRoutes(this.db, this.io));
+      } else {
+        this.app.use('/api/mcp', mcpModule.default);
+      }
+      console.log('✅ MCP Server Management routes registered (DeepSeek agent instances, schema linking enabled)');
+    }).catch(err => {
+      console.error('Failed to load MCP server routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');

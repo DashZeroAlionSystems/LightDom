@@ -161,6 +161,12 @@ const ProfessionalSidebar: React.FC<SidebarProps> = ({
       description: 'SEO tools marketplace',
     },
     {
+      key: 'mcp-servers',
+      icon: <ApiOutlined />,
+      label: 'MCP Servers',
+      description: 'Agent instance management',
+    },
+    {
       key: 'workflow-simulation',
       icon: <ExperimentOutlined />,
       label: 'Workflow Simulation',
