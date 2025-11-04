@@ -8648,6 +8648,30 @@ class DOMSpaceHarvesterAPI {
       console.error('⚠️ Failed to setup SEO Service routes:', error.message);
       console.log('SEO Service will not be available. This is expected if TypeScript files are not compiled yet.');
     }
+
+    // Setup URL Seeding Service routes
+    await this.setupURLSeedingServiceRoutes();
+  }
+
+  async setupURLSeedingServiceRoutes() {
+    try {
+      const { urlSeedingRoutes, initializeSeedingServices } = await import('./src/api/routes/url-seeding-routes.js');
+
+      // Initialize seeding services with database
+      initializeSeedingServices(this.db);
+
+      // Make crawler available to seeding service
+      this.app.locals.db = this.db;
+      this.app.locals.crawler = this.crawlerSystem;
+
+      // Mount URL Seeding API routes
+      this.app.use('/api/seeding', urlSeedingRoutes);
+
+      console.log('✅ URL Seeding Service API routes configured');
+    } catch (error) {
+      console.error('⚠️ Failed to setup URL Seeding Service routes:', error.message);
+      console.log('URL Seeding Service will not be available.');
+    }
   }
 
   // Helper methods for authentication

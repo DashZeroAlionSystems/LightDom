@@ -1,0 +1,247 @@
+{
+  "workflowName": "URL Seeding Configuration Workflow",
+  "description": "Step-by-step prompt engineering workflow for creating and managing URL seeding service configurations using DeepSeek AI",
+  "version": "1.0.0",
+  "steps": [
+    {
+      "step": 1,
+      "name": "Initialize Configuration",
+      "prompt": "Create a new URL seeding configuration for the following:\n\nClient: {clientName}\nClient Website: {clientSiteUrl}\nCampaign Goal: {campaignGoal}\nTarget Industry: {targetIndustry}\n\nPlease provide:\n1. A descriptive configuration name\n2. Campaign description\n3. Recommended search depth (1-5)\n4. Maximum seeds per instance (100-10000)",
+      "expectedOutput": {
+        "name": "string",
+        "description": "string",
+        "searchDepth": "number",
+        "maxSeedsPerInstance": "number"
+      },
+      "validation": {
+        "name": "required, min 3 chars",
+        "searchDepth": "1-5",
+        "maxSeedsPerInstance": "100-10000"
+      }
+    },
+    {
+      "step": 2,
+      "name": "Generate Initial URL Seeds",
+      "prompt": "Based on the following information, generate a list of initial URL seeds:\n\nClient Site: {clientSiteUrl}\nIndustry: {targetIndustry}\nGoal: {campaignGoal}\n\nGenerate:\n1. 5-10 primary seeds (client's own pages)\n2. 5-10 competitor seeds (similar businesses)\n3. 5-10 authority seeds (industry leaders)\n4. 5-10 training data seeds (educational content)\n\nReturn as JSON with categories: primarySeeds, competitorSeeds, authoritySeeds, trainingDataSeeds",
+      "expectedOutput": {
+        "primarySeeds": "array",
+        "competitorSeeds": "array",
+        "authoritySeeds": "array",
+        "trainingDataSeeds": "array"
+      },
+      "validation": {
+        "minSeedsPerCategory": 3,
+        "maxSeedsPerCategory": 15,
+        "validUrl": true
+      }
+    },
+    {
+      "step": 3,
+      "name": "Define Search Algorithms",
+      "prompt": "Configure search algorithms for URL discovery:\n\nIndustry: {targetIndustry}\nGoal: {campaignGoal}\n\nDefine:\n1. Keywords (5-10 relevant terms)\n2. Topics (3-5 main topics)\n3. Competitor domains (3-5 main competitors)\n4. Authority domains (5-10 trusted sources)\n\nReturn as JSON with keys: keywords, topics, competitors, authorityDomains",
+      "expectedOutput": {
+        "keywords": "array",
+        "topics": "array",
+        "competitors": "array",
+        "authorityDomains": "array"
+      },
+      "validation": {
+        "keywords": "min 5, max 15",
+        "topics": "min 3, max 10",
+        "competitors": "min 2, max 10",
+        "authorityDomains": "min 3, max 15"
+      }
+    },
+    {
+      "step": 4,
+      "name": "Configure Crawler Settings",
+      "prompt": "Configure crawler integration for:\n\nCampaign: {configurationName}\nSearch Depth: {searchDepth}\n\nRecommend:\n1. Maximum crawl depth (1-5)\n2. Number of parallel crawlers (1-20)\n3. Request delay in milliseconds (500-5000)\n4. Should respect robots.txt? (true/false)\n\nReturn as JSON with keys: maxDepth, parallelCrawlers, requestDelay, respectRobotsTxt",
+      "expectedOutput": {
+        "maxDepth": "number",
+        "parallelCrawlers": "number",
+        "requestDelay": "number",
+        "respectRobotsTxt": "boolean"
+      },
+      "validation": {
+        "maxDepth": "1-5",
+        "parallelCrawlers": "1-20",
+        "requestDelay": "500-5000"
+      }
+    },
+    {
+      "step": 5,
+      "name": "Configure Backlink Settings",
+      "prompt": "Configure backlink generation for:\n\nClient: {clientName}\nGoal: {campaignGoal}\n\nSpecify:\n1. Minimum backlink quality threshold (0.0-1.0)\n2. Enable rich snippets? (true/false)\n3. Schema types to use (select from: Organization, Article, Product, Service, LocalBusiness, WebPage)\n4. Should exclude same-domain links? (true/false)\n\nReturn as JSON with keys: minBacklinkQuality, enableRichSnippets, schemaTypes, excludeSameDomain",
+      "expectedOutput": {
+        "minBacklinkQuality": "number",
+        "enableRichSnippets": "boolean",
+        "schemaTypes": "array",
+        "excludeSameDomain": "boolean"
+      },
+      "validation": {
+        "minBacklinkQuality": "0.0-1.0",
+        "schemaTypes": "valid schema.org types"
+      }
+    },
+    {
+      "step": 6,
+      "name": "Configure Reporting",
+      "prompt": "Set up reporting for:\n\nClient: {clientName}\nCampaign: {configurationName}\n\nConfigure:\n1. Reporting interval in hours (1-168)\n2. Enable email reports? (true/false)\n3. Email addresses (comma-separated if enabled)\n4. Include backlink analysis in reports? (true/false)\n\nReturn as JSON with keys: reportingIntervalHours, emailReports, emailAddresses, includeBacklinkAnalysis",
+      "expectedOutput": {
+        "reportingIntervalHours": "number",
+        "emailReports": "boolean",
+        "emailAddresses": "array",
+        "includeBacklinkAnalysis": "boolean"
+      },
+      "validation": {
+        "reportingIntervalHours": "1-168",
+        "emailAddresses": "valid emails if emailReports is true"
+      }
+    },
+    {
+      "step": 7,
+      "name": "Review and Finalize",
+      "prompt": "Review the complete configuration:\n\nName: {configurationName}\nClient: {clientName}\nSeeds: {totalSeeds}\nAlgorithms: {algorithmCount}\n\nProvide:\n1. Overall configuration quality score (0-100)\n2. Potential issues or warnings\n3. Optimization recommendations\n4. Estimated crawl time and resource usage\n\nReturn as JSON with keys: qualityScore, warnings, recommendations, estimates",
+      "expectedOutput": {
+        "qualityScore": "number",
+        "warnings": "array",
+        "recommendations": "array",
+        "estimates": "object"
+      },
+      "validation": {
+        "qualityScore": "0-100"
+      }
+    }
+  ],
+  "crudOperations": {
+    "create": {
+      "description": "Create a new seeding configuration",
+      "requiredSteps": [1, 2, 3, 4, 5, 6],
+      "prompt": "I want to create a new URL seeding configuration for:\n- Client: {clientName}\n- Website: {clientSiteUrl}\n- Industry: {targetIndustry}\n- Campaign Goal: {campaignGoal}\n\nPlease guide me through the configuration process step by step.",
+      "endpoint": "POST /api/seeding/config"
+    },
+    "read": {
+      "description": "Read an existing configuration",
+      "requiredSteps": [],
+      "prompt": "Show me the configuration for instance: {instanceId}\n\nInclude:\n1. All configuration settings\n2. Current status\n3. Performance metrics\n4. Recent activity",
+      "endpoint": "GET /api/seeding/config/:id"
+    },
+    "update": {
+      "description": "Update an existing configuration",
+      "requiredSteps": [],
+      "prompt": "I want to update the configuration {instanceId}. What changes would you like to make?\n\nOptions:\n1. Update search algorithms\n2. Modify crawler settings\n3. Change backlink thresholds\n4. Update reporting settings\n5. Add/remove URL seeds\n\nSpecify the changes needed.",
+      "endpoint": "PUT /api/seeding/config/:id"
+    },
+    "delete": {
+      "description": "Delete a configuration",
+      "requiredSteps": [],
+      "prompt": "Are you sure you want to delete configuration {instanceId}?\n\nThis will:\n1. Stop the running instance (if active)\n2. Remove all configuration data\n3. Archive historical data\n\nType 'CONFIRM' to proceed with deletion.",
+      "endpoint": "DELETE /api/seeding/config/:id"
+    }
+  },
+  "serviceOperations": {
+    "start": {
+      "description": "Start a seeding service instance",
+      "prompt": "Starting seeding service for configuration: {instanceId}\n\nThis will:\n1. Initialize the URL seeding service\n2. Load configured seeds\n3. Start search algorithms\n4. Begin crawler monitoring\n5. Enable backlink tracking\n\nConfirm to proceed?",
+      "endpoint": "POST /api/seeding/start/:id"
+    },
+    "stop": {
+      "description": "Stop a running instance",
+      "prompt": "Stopping seeding service: {instanceId}\n\nThis will:\n1. Pause all discovery operations\n2. Save current state\n3. Stop crawler monitoring\n4. Generate final report\n\nConfirm to stop?",
+      "endpoint": "POST /api/seeding/stop/:id"
+    },
+    "status": {
+      "description": "Check instance status",
+      "prompt": "Get current status of seeding service: {instanceId}\n\nShow:\n1. Running state (active/paused/stopped)\n2. Total seeds discovered\n3. Backlinks mapped\n4. Performance metrics\n5. Recent activity",
+      "endpoint": "GET /api/seeding/status/:id"
+    }
+  },
+  "templates": {
+    "ecommerce": {
+      "name": "E-commerce SEO Campaign",
+      "description": "Optimized for e-commerce websites",
+      "defaults": {
+        "searchDepth": 3,
+        "maxSeedsPerInstance": 1000,
+        "keywords": ["product", "shop", "buy", "store", "discount"],
+        "topics": ["e-commerce", "retail", "shopping"],
+        "authorityDomains": ["shopify.com", "bigcommerce.com", "amazon.com"],
+        "crawlerConfig": {
+          "maxDepth": 3,
+          "parallelCrawlers": 10,
+          "requestDelay": 2000
+        },
+        "richSnippets": {
+          "enabled": true,
+          "schemaTypes": ["Product", "Organization", "WebPage"]
+        }
+      }
+    },
+    "blog": {
+      "name": "Blog Content Marketing",
+      "description": "Optimized for blogs and content sites",
+      "defaults": {
+        "searchDepth": 4,
+        "maxSeedsPerInstance": 2000,
+        "keywords": ["blog", "article", "content", "tutorial", "guide"],
+        "topics": ["blogging", "content-marketing", "seo"],
+        "authorityDomains": ["medium.com", "wordpress.com", "blogger.com"],
+        "crawlerConfig": {
+          "maxDepth": 4,
+          "parallelCrawlers": 8,
+          "requestDelay": 1500
+        },
+        "richSnippets": {
+          "enabled": true,
+          "schemaTypes": ["Article", "BlogPosting", "WebPage"]
+        }
+      }
+    },
+    "local-business": {
+      "name": "Local Business SEO",
+      "description": "Optimized for local businesses",
+      "defaults": {
+        "searchDepth": 2,
+        "maxSeedsPerInstance": 500,
+        "keywords": ["local", "near-me", "location", "business"],
+        "topics": ["local-seo", "local-business"],
+        "authorityDomains": ["yelp.com", "google.com/maps", "yellowpages.com"],
+        "crawlerConfig": {
+          "maxDepth": 2,
+          "parallelCrawlers": 5,
+          "requestDelay": 3000
+        },
+        "richSnippets": {
+          "enabled": true,
+          "schemaTypes": ["LocalBusiness", "Organization", "Place"]
+        }
+      }
+    },
+    "saas": {
+      "name": "SaaS Product Marketing",
+      "description": "Optimized for SaaS products",
+      "defaults": {
+        "searchDepth": 3,
+        "maxSeedsPerInstance": 1500,
+        "keywords": ["saas", "software", "platform", "tool", "service"],
+        "topics": ["software", "technology", "saas"],
+        "authorityDomains": ["producthunt.com", "g2.com", "capterra.com"],
+        "crawlerConfig": {
+          "maxDepth": 3,
+          "parallelCrawlers": 12,
+          "requestDelay": 2000
+        },
+        "richSnippets": {
+          "enabled": true,
+          "schemaTypes": ["SoftwareApplication", "Product", "Organization"]
+        }
+      }
+    }
+  },
+  "promptExamples": {
+    "basic": "Create a URL seeding configuration for my e-commerce site selling outdoor gear at https://example.com. I want to improve SEO and find relevant backlink opportunities.",
+    "detailed": "Set up a comprehensive URL seeding campaign for:\n- Client: Acme Corp\n- Website: https://acmecorp.com\n- Industry: B2B Software\n- Goal: Increase organic traffic and build high-quality backlinks\n- Focus: Enterprise software, productivity tools\n- Competitors: competitor1.com, competitor2.com\n- Target keywords: project management, team collaboration, workflow automation",
+    "update": "Update the seeding configuration 'seed_123_abc' to:\n- Increase search depth to 4\n- Add new competitors: newcompetitor.com\n- Enable rich snippets with Article and Product schemas\n- Set minimum backlink quality to 0.7",
+    "template": "Create a seeding configuration using the 'local-business' template for my restaurant at https://myrestaurant.com in San Francisco."
+  }
+}
