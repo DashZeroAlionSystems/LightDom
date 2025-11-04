@@ -557,6 +557,26 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load SEO campaign CRUD routes:', err);
     });
     
+    // Import and register Campaign Orchestration routes (Research, Attributes, Mining)
+    import('./api/campaign-orchestration-routes.js').then((orchestrationModule) => {
+      const router = orchestrationModule.default;
+      if (router) {
+        this.app.use('/api/campaigns', router);
+        console.log('✅ Campaign Orchestration routes registered (Research, Attributes, Mining instances)');
+      }
+    }).catch(err => {
+      console.error('Failed to load Campaign Orchestration routes:', err);
+    });
+    
+    // Import and register Campaign Worker routes (Containers, Workers, Simulations)
+    import('./api/campaign-worker-routes.js').then((workerModule) => {
+      const router = workerModule.default;
+      if (router) {
+        this.app.use('/api/workers', router);
+        console.log('✅ Campaign Worker routes registered (Containers, Real-time streaming, LLM integration)');
+      }
+    }).catch(err => {
+      console.error('Failed to load Campaign Worker routes:', err);
     // Import and register MCP Server Management routes (Agent instances with schema linking)
     import('./api/mcp-server-routes.js').then((mcpModule) => {
       const createRoutes = mcpModule.default || mcpModule.createMCPServerRoutes;
