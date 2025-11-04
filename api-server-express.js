@@ -583,6 +583,19 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load MCP bidirectional routes:', err);
     });
     
+    // Import and register Advanced MCP routes (Trust scoring, campaign governance, self-learning)
+    import('./api/mcp-advanced-bidi-routes.js').then((advancedModule) => {
+      const createRoutes = advancedModule.default || advancedModule.createAdvancedBidiRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/mcp', createRoutes(this.db, this.io));
+      } else {
+        this.app.use('/api/mcp', advancedModule.default);
+      }
+      console.log('✅ Advanced MCP routes registered (Trust scoring, campaign governance, atomic data mining, self-learning enabled)');
+    }).catch(err => {
+      console.error('Failed to load advanced MCP routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
