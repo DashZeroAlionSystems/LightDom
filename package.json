@@ -118,6 +118,15 @@
     "component:api:health": "curl -s http://localhost:3001/api/component-analyzer/health | jq .",
     "component:api:stats": "curl -s http://localhost:3001/api/component-analyzer/components/statistics | jq .",
     "health:check": "curl -f http://localhost:3001/health || exit 1",
+    "storybook": "storybook dev -p 6006",
+    "storybook:build": "storybook build",
+    "storybook:serve": "npx http-server storybook-static",
+    "styleguide:demo": "node demo-styleguide-generator.js",
+    "styleguide:mine": "node demo-styleguide-generator.js",
+    "styleguide:generate": "node services/styleguide-to-storybook-orchestrator.js",
+    "component:generate": "node services/deepseek-component-finetuning-service.js",
+    "finetune:generate-data": "node scripts/generate-finetuning-data.js",
+    "finetune:train": "node scripts/train-deepseek-model.js",
     "monitor:deployment": "echo 'Deployment monitoring would run here'",
     "deploy:staging": "echo 'Staging deployment would run here'",
     "deploy:production": "echo 'Production deployment would run here'",
@@ -177,7 +186,9 @@
     "workflow:monitor": "node scripts/automation/workflow-automation-monitor.js",
     "workflow:monitor:interactive": "node scripts/automation/workflow-automation-monitor.js --interactive",
     "workflow:watch": "node scripts/automation/workflow-automation-monitor.js --watch",
-    "workflow:mine": "tsx scripts/mine-design-system.ts"
+    "workflow:mine": "tsx scripts/mine-design-system.ts",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.2",
@@ -260,7 +271,11 @@
     "vite-bundle-analyzer": "^0.7.0",
     "vite-plugin-pwa": "^1.1.0",
     "vitest": "^1.0.0",
-    "wait-on": "^9.0.0"
+    "wait-on": "^9.0.0",
+    "storybook": "^10.0.4",
+    "@storybook/react-vite": "^10.0.4",
+    "@storybook/addon-docs": "^10.0.4",
+    "@storybook/addon-onboarding": "^10.0.4"
   },
   "jest": {
     "preset": "ts-jest",
