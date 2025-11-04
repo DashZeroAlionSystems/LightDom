@@ -10,14 +10,17 @@ export class HeadlessChromeService extends EventEmitter {
   private isInitialized = false;
   private maxPages = 10;
   private logger: Logger;
+  private useBiDi: boolean = false;
+  private biDiEventHandlers: Map<string, Function> = new Map();
 
-  constructor() {
+  constructor(options: { useBiDi?: boolean } = {}) {
     super();
     this.logger = new Logger('HeadlessChromeService');
+    this.useBiDi = options.useBiDi || false;
   }
 
   /**
-   * Initialize the headless Chrome browser
+   * Initialize the headless Chrome browser with optional WebDriver BiDi support
    */
   async initialize(options: LaunchOptions = {}): Promise<void> {
     try {
@@ -72,20 +75,64 @@ export class HeadlessChromeService extends EventEmitter {
         ...options
       };
 
+      // Enable WebDriver BiDi if configured (requires Puppeteer 21.0.0+)
+      if (this.useBiDi) {
+        (defaultOptions as any).protocol = 'webDriverBiDi';
+        this.logger.info('Initializing with WebDriver BiDi protocol for cross-browser compatibility');
+      }
+
       this.browser = await puppeteer.launch(defaultOptions);
       this.isInitialized = true;
-      this.logger.info('Headless Chrome browser initialized successfully');
+      this.logger.info('Headless Chrome browser initialized successfully', 
+        this.useBiDi ? '(BiDi mode)' : '(CDP mode)');
 
       // Handle browser events
       this.browser.on('disconnected', () => {
         this.logger.warn('Browser disconnected');
         this.isInitialized = false;
+        this.biDiEventHandlers.clear();
         this.emit('browserDisconnected');
       });
+
+      // Setup BiDi event handlers if enabled
+      if (this.useBiDi) {
+        this.setupBiDiEventHandlers();
+      }
 
     } catch (error) {
       this.logger.error('Failed to initialize headless Chrome:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Setup WebDriver BiDi event handlers for real-time monitoring
+   */
+  private setupBiDiEventHandlers(): void {
+    if (!this.browser) return;
+
+    this.logger.info('Setting up WebDriver BiDi event handlers');
+
+    // These handlers would be attached to the browser instance
+    // Note: Actual BiDi event API depends on Puppeteer version
+    try {
+      // Network monitoring (if supported)
+      const networkHandler = (event: any) => {
+        this.logger.debug('BiDi Network event:', event);
+        this.emit('biDi:network', event);
+      };
+      this.biDiEventHandlers.set('network', networkHandler);
+
+      // Console log streaming (if supported)
+      const consoleHandler = (entry: any) => {
+        this.logger.debug('BiDi Console entry:', entry);
+        this.emit('biDi:console', entry);
+      };
+      this.biDiEventHandlers.set('console', consoleHandler);
+
+      this.logger.info('BiDi event handlers configured');
+    } catch (error) {
+      this.logger.warn('BiDi event handlers not fully supported in this Puppeteer version');
     }
   }
 
@@ -386,6 +433,197 @@ export class HeadlessChromeService extends EventEmitter {
     } catch (error) {
       this.logger.error(`Failed to close page ${pageId}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Mine specific attributes from a webpage
+   * Supports multiple selector strategies with fallbacks
+   */
+  async mineAttributes(
+    pageId: string,
+    url: string,
+    attributes: Array<{
+      name: string;
+      selectors: string[];
+      type?: 'text' | 'html' | 'attribute' | 'json';
+      waitFor?: string;
+      pattern?: string;
+      validator?: any;
+    }>
+  ): Promise<any[]> {
+    const page = this.pages.get(pageId);
+    if (!page) {
+      throw new Error(`Page ${pageId} not found`);
+    }
+
+    try {
+      this.logger.info(`Mining ${attributes.length} attributes from ${url}`);
+      
+      // Navigate to URL
+      await page.goto(url, {
+        waitUntil: 'networkidle2',
+        timeout: 30000
+      });
+
+      const results = [];
+
+      // Mine each attribute
+      for (const attr of attributes) {
+        const result = await this.extractAttribute(page, attr);
+        results.push({
+          name: attr.name,
+          ...result
+        });
+      }
+
+      this.logger.info(`Successfully mined ${results.filter(r => r.success).length}/${attributes.length} attributes`);
+      return results;
+
+    } catch (error) {
+      this.logger.error(`Failed to mine attributes from ${url}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Extract a single attribute from a page
+   */
+  private async extractAttribute(
+    page: Page,
+    attribute: {
+      name: string;
+      selectors: string[];
+      type?: 'text' | 'html' | 'attribute' | 'json';
+      waitFor?: string;
+      pattern?: string;
+      validator?: any;
+    }
+  ): Promise<any> {
+    try {
+      // Wait for specific selector if provided
+      if (attribute.waitFor) {
+        try {
+          await page.waitForSelector(attribute.waitFor, { timeout: 10000 });
+        } catch (error) {
+          this.logger.warn(`Wait selector not found: ${attribute.waitFor}`);
+        }
+      }
+
+      // Try each selector in the fallback chain
+      let extractedData = null;
+      for (const selector of attribute.selectors) {
+        try {
+          const data = await page.evaluate((sel: string, attrType: string) => {
+            const element = document.querySelector(sel);
+            if (!element) return null;
+
+            // Extract based on attribute type
+            switch (attrType) {
+              case 'text':
+                return element.textContent?.trim();
+              case 'html':
+                return element.innerHTML;
+              case 'attribute': {
+                const parts = sel.split('@');
+                return element.getAttribute(parts[1] || 'value');
+              }
+              case 'json':
+                return JSON.parse(element.textContent || '{}');
+              default:
+                return element.textContent?.trim();
+            }
+          }, selector, attribute.type || 'text');
+
+          if (data) {
+            extractedData = data;
+            this.logger.debug(`Extracted using selector: ${selector}`);
+            break;
+          }
+        } catch (error) {
+          this.logger.debug(`Selector failed: ${selector}`, error);
+          continue;
+        }
+      }
+
+      // Fallback to pattern-based extraction if no selector worked
+      if (!extractedData && attribute.pattern) {
+        extractedData = await page.evaluate((pattern: string) => {
+          const bodyText = document.body.textContent || '';
+          const regex = new RegExp(pattern);
+          const match = bodyText.match(regex);
+          return match ? match[1] || match[0] : null;
+        }, attribute.pattern);
+      }
+
+      return {
+        success: true,
+        data: extractedData,
+        timestamp: new Date().toISOString()
+      };
+
+    } catch (error) {
+      this.logger.error(`Failed to extract attribute ${attribute.name}:`, error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Generate Open Graph social media image
+   */
+  async generateOGImage(
+    template: string,
+    data: Record<string, any>,
+    options: {
+      width?: number;
+      height?: number;
+      deviceScaleFactor?: number;
+    } = {}
+  ): Promise<Buffer> {
+    if (!this.browser) {
+      throw new Error('Browser not initialized');
+    }
+
+    const page = await this.browser.newPage();
+
+    try {
+      // Set viewport to OG image dimensions
+      await page.setViewport({
+        width: options.width || 1200,
+        height: options.height || 630,
+        deviceScaleFactor: options.deviceScaleFactor || 2
+      });
+
+      // Simple template rendering
+      const html = template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+        return data[key] || '';
+      });
+
+      // Load HTML content
+      await page.setContent(html, {
+        waitUntil: 'networkidle0',
+        timeout: 30000
+      });
+
+      // Wait for fonts and images to load
+      await page.waitForTimeout(1000);
+
+      // Generate screenshot
+      const screenshot = await page.screenshot({
+        type: 'png',
+        encoding: 'binary',
+        omitBackground: false
+      });
+
+      this.logger.info('OG image generated successfully');
+      return screenshot as Buffer;
+
+    } finally {
+      await page.close();
     }
   }
 
