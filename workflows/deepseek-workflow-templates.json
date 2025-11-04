@@ -1,0 +1,637 @@
+{
+  "templates": [
+    {
+      "id": "seo-crawler-analysis",
+      "name": "SEO Crawler & Analysis Pipeline",
+      "description": "Complete SEO analysis pipeline with crawling, AI analysis, and reporting",
+      "category": "seo",
+      "workflow": {
+        "workflow_id": "template_seo_crawler",
+        "name": "SEO Crawler & Analysis",
+        "workflow_type": "sequential",
+        "configuration": {
+          "maxRetries": 3,
+          "timeout": 7200
+        },
+        "tags": ["seo", "crawler", "ai", "reporting"]
+      },
+      "tasks": [
+        {
+          "task_id": "crawl_website",
+          "name": "Crawl Website",
+          "task_type": "crawler",
+          "ordering": 1,
+          "handler_config": {
+            "startUrl": "{{input.website}}",
+            "maxDepth": "{{input.crawlDepth || 3}}",
+            "maxPages": "{{input.maxPages || 100}}",
+            "respectRobotsTxt": true,
+            "userAgent": "LightDom SEO Bot/1.0"
+          },
+          "timeout_seconds": 1800,
+          "dependencies": []
+        },
+        {
+          "task_id": "extract_metadata",
+          "name": "Extract SEO Metadata",
+          "task_type": "api",
+          "ordering": 2,
+          "handler_config": {
+            "method": "POST",
+            "url": "{{apiUrl}}/seo/extract-metadata",
+            "body": {
+              "pages": "{{task_crawl_website.output.pages}}"
+            }
+          },
+          "timeout_seconds": 300,
+          "dependencies": ["crawl_website"]
+        },
+        {
+          "task_id": "ai_analysis",
+          "name": "AI SEO Analysis",
+          "task_type": "deepseek",
+          "ordering": 3,
+          "handler_config": {
+            "promptTemplateId": "seo-analysis-v1",
+            "variables": {
+              "pages": "{{task_extract_metadata.output}}",
+              "targetKeywords": "{{input.targetKeywords}}",
+              "competitorUrls": "{{input.competitorUrls}}"
+            },
+            "parseJson": true,
+            "temperature": 0.3
+          },
+          "timeout_seconds": 600,
+          "dependencies": ["extract_metadata"]
+        },
+        {
+          "task_id": "generate_report",
+          "name": "Generate SEO Report",
+          "task_type": "n8n",
+          "ordering": 4,
+          "handler_config": {
+            "n8nWorkflowId": "seo_report_generator",
+            "input": {
+              "analysis": "{{task_ai_analysis.output}}",
+              "crawlData": "{{task_crawl_website.output}}",
+              "metadata": "{{task_extract_metadata.output}}"
+            }
+          },
+          "timeout_seconds": 300,
+          "dependencies": ["ai_analysis"]
+        },
+        {
+          "task_id": "store_results",
+          "name": "Store Analysis Results",
+          "task_type": "database",
+          "ordering": 5,
+          "handler_config": {
+            "query": "INSERT INTO seo_analyses (website, analysis, report_url, created_at) VALUES ($1, $2, $3, NOW())",
+            "params": [
+              "{{input.website}}",
+              "{{task_ai_analysis.output}}",
+              "{{task_generate_report.output.reportUrl}}"
+            ]
+          },
+          "timeout_seconds": 30,
+          "dependencies": ["generate_report"]
+        }
+      ],
+      "inputSchema": {
+        "type": "object",
+        "required": ["website"],
+        "properties": {
+          "website": {
+            "type": "string",
+            "description": "Website URL to analyze"
+          },
+          "crawlDepth": {
+            "type": "number",
+            "default": 3,
+            "description": "Maximum crawl depth"
+          },
+          "maxPages": {
+            "type": "number",
+            "default": 100,
+            "description": "Maximum pages to crawl"
+          },
+          "targetKeywords": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Target keywords for analysis"
+          },
+          "competitorUrls": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Competitor URLs for comparison"
+          }
+        }
+      }
+    },
+    {
+      "id": "competitive-intelligence",
+      "name": "Competitive Intelligence Gathering",
+      "description": "Monitor and analyze competitor websites with parallel crawling",
+      "category": "competitive-analysis",
+      "workflow": {
+        "workflow_id": "template_competitive_intel",
+        "name": "Competitive Intelligence",
+        "workflow_type": "parallel",
+        "configuration": {
+          "maxRetries": 2,
+          "timeout": 3600
+        },
+        "tags": ["competitive", "parallel", "monitoring"]
+      },
+      "tasks": [
+        {
+          "task_id": "crawl_competitor_1",
+          "name": "Crawl Competitor 1",
+          "task_type": "crawler",
+          "ordering": 1,
+          "handler_config": {
+            "startUrl": "{{input.competitors[0]}}",
+            "maxDepth": 2,
+            "maxPages": 50
+          },
+          "timeout_seconds": 900,
+          "dependencies": []
+        },
+        {
+          "task_id": "crawl_competitor_2",
+          "name": "Crawl Competitor 2",
+          "task_type": "crawler",
+          "ordering": 1,
+          "handler_config": {
+            "startUrl": "{{input.competitors[1]}}",
+            "maxDepth": 2,
+            "maxPages": 50
+          },
+          "timeout_seconds": 900,
+          "dependencies": [],
+          "is_optional": true
+        },
+        {
+          "task_id": "crawl_competitor_3",
+          "name": "Crawl Competitor 3",
+          "task_type": "crawler",
+          "ordering": 1,
+          "handler_config": {
+            "startUrl": "{{input.competitors[2]}}",
+            "maxDepth": 2,
+            "maxPages": 50
+          },
+          "timeout_seconds": 900,
+          "dependencies": [],
+          "is_optional": true
+        },
+        {
+          "task_id": "comparative_analysis",
+          "name": "AI Comparative Analysis",
+          "task_type": "deepseek",
+          "ordering": 2,
+          "handler_config": {
+            "promptTemplateId": "competitive-analysis-v1",
+            "variables": {
+              "competitor1Data": "{{task_crawl_competitor_1.output}}",
+              "competitor2Data": "{{task_crawl_competitor_2.output}}",
+              "competitor3Data": "{{task_crawl_competitor_3.output}}",
+              "focusAreas": "{{input.focusAreas}}"
+            },
+            "parseJson": true
+          },
+          "timeout_seconds": 600,
+          "dependencies": ["crawl_competitor_1", "crawl_competitor_2", "crawl_competitor_3"]
+        },
+        {
+          "task_id": "generate_insights",
+          "name": "Generate Actionable Insights",
+          "task_type": "deepseek",
+          "ordering": 3,
+          "handler_config": {
+            "promptTemplateId": "insights-generation-v1",
+            "variables": {
+              "analysis": "{{task_comparative_analysis.output}}",
+              "ourStrengths": "{{input.ourStrengths}}",
+              "ourWeaknesses": "{{input.ourWeaknesses}}"
+            },
+            "parseJson": true
+          },
+          "timeout_seconds": 300,
+          "dependencies": ["comparative_analysis"]
+        }
+      ],
+      "inputSchema": {
+        "type": "object",
+        "required": ["competitors"],
+        "properties": {
+          "competitors": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1,
+            "maxItems": 3,
+            "description": "Competitor website URLs (1-3)"
+          },
+          "focusAreas": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Areas to focus analysis on (e.g., pricing, features, content)"
+          },
+          "ourStrengths": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Our known strengths"
+          },
+          "ourWeaknesses": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Our known weaknesses"
+          }
+        }
+      }
+    },
+    {
+      "id": "schema-generation-pipeline",
+      "name": "Auto Schema Generation Pipeline",
+      "description": "Generate linked database schemas from natural language descriptions",
+      "category": "schema-generation",
+      "workflow": {
+        "workflow_id": "template_schema_gen",
+        "name": "Auto Schema Generation",
+        "workflow_type": "sequential",
+        "configuration": {
+          "maxRetries": 2,
+          "timeout": 1800
+        },
+        "tags": ["schema", "ai", "database", "generation"]
+      },
+      "tasks": [
+        {
+          "task_id": "generate_main_schema",
+          "name": "Generate Main Schema",
+          "task_type": "deepseek",
+          "ordering": 1,
+          "handler_config": {
+            "promptTemplateId": "schema-generation-v1",
+            "variables": {
+              "description": "{{input.description}}",
+              "requirements": "{{input.requirements}}",
+              "schemaType": "{{input.schemaType}}"
+            },
+            "parseJson": true,
+            "temperature": 0.2
+          },
+          "timeout_seconds": 300,
+          "dependencies": []
+        },
+        {
+          "task_id": "identify_relationships",
+          "name": "Identify Schema Relationships",
+          "task_type": "deepseek",
+          "ordering": 2,
+          "handler_config": {
+            "promptTemplateId": "schema-relationships-v1",
+            "variables": {
+              "mainSchema": "{{task_generate_main_schema.output}}",
+              "existingSchemas": "{{input.existingSchemas}}"
+            },
+            "parseJson": true
+          },
+          "timeout_seconds": 300,
+          "dependencies": ["generate_main_schema"]
+        },
+        {
+          "task_id": "generate_related_schemas",
+          "name": "Generate Related Schemas",
+          "task_type": "deepseek",
+          "ordering": 3,
+          "handler_config": {
+            "promptTemplateId": "related-schemas-v1",
+            "variables": {
+              "relationships": "{{task_identify_relationships.output}}",
+              "mainSchema": "{{task_generate_main_schema.output}}"
+            },
+            "parseJson": true
+          },
+          "timeout_seconds": 600,
+          "dependencies": ["identify_relationships"]
+        },
+        {
+          "task_id": "validate_schemas",
+          "name": "Validate Generated Schemas",
+          "task_type": "api",
+          "ordering": 4,
+          "handler_config": {
+            "method": "POST",
+            "url": "{{apiUrl}}/schemas/validate",
+            "body": {
+              "mainSchema": "{{task_generate_main_schema.output}}",
+              "relatedSchemas": "{{task_generate_related_schemas.output}}",
+              "relationships": "{{task_identify_relationships.output}}"
+            }
+          },
+          "timeout_seconds": 120,
+          "dependencies": ["generate_related_schemas"]
+        },
+        {
+          "task_id": "store_schemas",
+          "name": "Store Schema Definitions",
+          "task_type": "database",
+          "ordering": 5,
+          "handler_config": {
+            "query": "SELECT store_generated_schemas($1, $2, $3)",
+            "params": [
+              "{{task_generate_main_schema.output}}",
+              "{{task_generate_related_schemas.output}}",
+              "{{task_identify_relationships.output}}"
+            ]
+          },
+          "timeout_seconds": 60,
+          "dependencies": ["validate_schemas"]
+        }
+      ],
+      "inputSchema": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Natural language description of the schema"
+          },
+          "requirements": {
+            "type": "string",
+            "description": "Specific requirements and constraints"
+          },
+          "schemaType": {
+            "type": "string",
+            "enum": ["json-schema", "graphql", "database", "component"],
+            "default": "json-schema",
+            "description": "Type of schema to generate"
+          },
+          "existingSchemas": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "Existing schemas to consider for relationships"
+          }
+        }
+      }
+    },
+    {
+      "id": "data-mining-training",
+      "name": "Data Mining & Model Training",
+      "description": "Long-running data mining with ML model training",
+      "category": "machine-learning",
+      "workflow": {
+        "workflow_id": "template_ml_training",
+        "name": "Data Mining & ML Training",
+        "workflow_type": "sequential",
+        "configuration": {
+          "maxRetries": 1,
+          "timeout": 14400
+        },
+        "tags": ["ml", "training", "data-mining", "long-running"]
+      },
+      "tasks": [
+        {
+          "task_id": "mine_training_data",
+          "name": "Mine Training Data",
+          "task_type": "crawler",
+          "ordering": 1,
+          "handler_config": {
+            "sources": "{{input.dataSources}}",
+            "maxSamples": "{{input.maxSamples}}",
+            "filters": "{{input.filters}}"
+          },
+          "timeout_seconds": 3600,
+          "dependencies": []
+        },
+        {
+          "task_id": "preprocess_data",
+          "name": "Preprocess & Clean Data",
+          "task_type": "api",
+          "ordering": 2,
+          "handler_config": {
+            "method": "POST",
+            "url": "{{apiUrl}}/ml/preprocess",
+            "body": {
+              "data": "{{task_mine_training_data.output}}",
+              "cleaningRules": "{{input.cleaningRules}}"
+            }
+          },
+          "timeout_seconds": 1800,
+          "dependencies": ["mine_training_data"]
+        },
+        {
+          "task_id": "train_model",
+          "name": "Train ML Model (Long-Running)",
+          "task_type": "custom",
+          "ordering": 3,
+          "handler_config": {
+            "handler": "ml-training-handler",
+            "config": {
+              "modelType": "{{input.modelType}}",
+              "trainingData": "{{task_preprocess_data.output}}",
+              "hyperparameters": "{{input.hyperparameters}}",
+              "maxEpochs": "{{input.maxEpochs}}",
+              "callbackUrl": "{{apiUrl}}/workflows/callback/{{taskId}}"
+            },
+            "isLongRunning": true,
+            "pollingInterval": 30
+          },
+          "timeout_seconds": 7200,
+          "dependencies": ["preprocess_data"]
+        },
+        {
+          "task_id": "evaluate_model",
+          "name": "Evaluate Model Performance",
+          "task_type": "api",
+          "ordering": 4,
+          "handler_config": {
+            "method": "POST",
+            "url": "{{apiUrl}}/ml/evaluate",
+            "body": {
+              "modelId": "{{task_train_model.output.modelId}}",
+              "testData": "{{input.testData}}"
+            }
+          },
+          "timeout_seconds": 600,
+          "dependencies": ["train_model"]
+        },
+        {
+          "task_id": "deploy_model",
+          "name": "Deploy Model if Metrics Pass",
+          "task_type": "api",
+          "ordering": 5,
+          "handler_config": {
+            "method": "POST",
+            "url": "{{apiUrl}}/ml/deploy",
+            "body": {
+              "modelId": "{{task_train_model.output.modelId}}",
+              "metrics": "{{task_evaluate_model.output}}"
+            }
+          },
+          "timeout_seconds": 300,
+          "dependencies": ["evaluate_model"],
+          "conditional_logic": {
+            "variable": "task_evaluate_model.output.accuracy",
+            "operator": ">=",
+            "value": "{{input.minimumAccuracy}}"
+          }
+        }
+      ],
+      "inputSchema": {
+        "type": "object",
+        "required": ["dataSources", "modelType"],
+        "properties": {
+          "dataSources": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "URLs or paths to data sources"
+          },
+          "maxSamples": {
+            "type": "number",
+            "default": 10000,
+            "description": "Maximum training samples"
+          },
+          "filters": {
+            "type": "object",
+            "description": "Data filtering criteria"
+          },
+          "cleaningRules": {
+            "type": "object",
+            "description": "Data cleaning rules"
+          },
+          "modelType": {
+            "type": "string",
+            "enum": ["classification", "regression", "clustering", "neural-network"],
+            "description": "Type of ML model"
+          },
+          "hyperparameters": {
+            "type": "object",
+            "description": "Model hyperparameters"
+          },
+          "maxEpochs": {
+            "type": "number",
+            "default": 100,
+            "description": "Maximum training epochs"
+          },
+          "testData": {
+            "type": "string",
+            "description": "Test dataset URL or path"
+          },
+          "minimumAccuracy": {
+            "type": "number",
+            "default": 0.85,
+            "description": "Minimum accuracy for deployment"
+          }
+        }
+      }
+    },
+    {
+      "id": "content-monitoring",
+      "name": "Content Change Monitoring",
+      "description": "Monitor websites for content changes and notify",
+      "category": "monitoring",
+      "workflow": {
+        "workflow_id": "template_content_monitor",
+        "name": "Content Change Monitor",
+        "workflow_type": "event-driven",
+        "configuration": {
+          "maxRetries": 3,
+          "timeout": 600
+        },
+        "schedule": {
+          "cron": "0 */6 * * *",
+          "enabled": true
+        },
+        "tags": ["monitoring", "alerts", "scheduled"]
+      },
+      "tasks": [
+        {
+          "task_id": "fetch_current_content",
+          "name": "Fetch Current Content",
+          "task_type": "crawler",
+          "ordering": 1,
+          "handler_config": {
+            "urls": "{{input.monitorUrls}}",
+            "extractors": "{{input.contentSelectors}}"
+          },
+          "timeout_seconds": 300,
+          "dependencies": []
+        },
+        {
+          "task_id": "compare_with_previous",
+          "name": "Compare with Previous Version",
+          "task_type": "database",
+          "ordering": 2,
+          "handler_config": {
+            "query": "SELECT compare_content($1, $2)",
+            "params": [
+              "{{input.monitorUrls}}",
+              "{{task_fetch_current_content.output}}"
+            ]
+          },
+          "timeout_seconds": 60,
+          "dependencies": ["fetch_current_content"]
+        },
+        {
+          "task_id": "analyze_changes",
+          "name": "AI Analysis of Changes",
+          "task_type": "deepseek",
+          "ordering": 3,
+          "handler_config": {
+            "promptTemplateId": "change-analysis-v1",
+            "variables": {
+              "changes": "{{task_compare_with_previous.output}}",
+              "urls": "{{input.monitorUrls}}"
+            },
+            "parseJson": true
+          },
+          "timeout_seconds": 180,
+          "dependencies": ["compare_with_previous"],
+          "conditional_logic": {
+            "variable": "task_compare_with_previous.output.hasChanges",
+            "operator": "==",
+            "value": true
+          }
+        },
+        {
+          "task_id": "send_notifications",
+          "name": "Send Change Notifications",
+          "task_type": "n8n",
+          "ordering": 4,
+          "handler_config": {
+            "n8nWorkflowId": "notification_sender",
+            "input": {
+              "recipients": "{{input.notificationRecipients}}",
+              "changes": "{{task_analyze_changes.output}}",
+              "urls": "{{input.monitorUrls}}"
+            }
+          },
+          "timeout_seconds": 120,
+          "dependencies": ["analyze_changes"]
+        }
+      ],
+      "inputSchema": {
+        "type": "object",
+        "required": ["monitorUrls"],
+        "properties": {
+          "monitorUrls": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "URLs to monitor for changes"
+          },
+          "contentSelectors": {
+            "type": "object",
+            "description": "CSS selectors for content extraction"
+          },
+          "notificationRecipients": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Email addresses or webhook URLs for notifications"
+          }
+        }
+      }
+    }
+  ]
+}
