@@ -6,17 +6,21 @@
 import express, { Router, Request, Response } from 'express';
 import { Pool } from 'pg';
 import { AgentManagementService } from '../../services/agent-management.service';
+import { validateRequest, initializeValidation } from '../../middleware/validation.middleware';
 
 export function createAgentManagementRoutes(db: Pool): Router {
   const router = express.Router();
   const service = new AgentManagementService(db);
+
+  // Initialize validation service
+  initializeValidation(db);
 
   // ============================================================================
   // AGENT SESSIONS
   // ============================================================================
 
   // Create a new agent session
-  router.post('/sessions', async (req: Request, res: Response) => {
+  router.post('/sessions', validateRequest('agent_session'), async (req: Request, res: Response) => {
     try {
       const session = await service.createSession(req.body);
       res.status(201).json(session);
@@ -88,7 +92,7 @@ export function createAgentManagementRoutes(db: Pool): Router {
   // ============================================================================
 
   // Create agent instance
-  router.post('/instances', async (req: Request, res: Response) => {
+  router.post('/instances', validateRequest('agent_instance'), async (req: Request, res: Response) => {
     try {
       const instance = await service.createInstance(req.body);
       res.status(201).json(instance);
@@ -183,7 +187,7 @@ export function createAgentManagementRoutes(db: Pool): Router {
   // ============================================================================
 
   // Create tool
-  router.post('/tools', async (req: Request, res: Response) => {
+  router.post('/tools', validateRequest('agent_tool'), async (req: Request, res: Response) => {
     try {
       const tool = await service.createTool(req.body);
       res.status(201).json(tool);
@@ -323,7 +327,7 @@ export function createAgentManagementRoutes(db: Pool): Router {
   // ============================================================================
 
   // Create workflow
-  router.post('/workflows', async (req: Request, res: Response) => {
+  router.post('/workflows', validateRequest('agent_workflow'), async (req: Request, res: Response) => {
     try {
       const workflow = await service.createWorkflow(req.body);
       res.status(201).json(workflow);
