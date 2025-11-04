@@ -183,6 +183,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       ],
     },
     {
+      key: 'ai',
+      icon: <ApiOutlined />,
+      label: 'AI & Agents',
+      children: [
+        {
+          key: '/dashboard/mcp-servers',
+          icon: <ApiOutlined />,
+          label: 'MCP Servers',
+        },
+      ],
+    },
+    {
       type: 'divider' as const,
     },
     {
