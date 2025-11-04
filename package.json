@@ -20,6 +20,8 @@
     "start": "node start-lightdom-complete.js",
     "start:dev": "node start-dev.js",
     "start:docker": "node start-docker.js",
+    "start:deepseek": "node scripts/start-deepseek-service.js",
+    "start:crawler": "node scripts/start-crawler-service.js",
     "start:complete": "node start-complete-system.js",
     "start:blockchain": "node start-blockchain-app.js",
     "test": "vitest",

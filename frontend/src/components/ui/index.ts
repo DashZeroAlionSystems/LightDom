@@ -2,6 +2,8 @@
 export { Avatar } from './Avatar';
 export { Badge } from './Badge';
 export { Button } from './Button';
+export { ServiceActionButton } from './ServiceActionButton';
+export { ServiceActionBar } from './ServiceActionBar';
 export {
   Card,
   CardHeader,

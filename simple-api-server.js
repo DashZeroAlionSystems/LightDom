@@ -118,6 +118,16 @@ let seoAnalyticsService = null;
 let walletService = null;
 */
 
+// Optional services fallbacks when full stack isn't loaded
+let serviceHub = null;
+let miningService = null;
+let blockchainService = null;
+let optimizationEngine = null;
+let spaceMiningEngine = null;
+let metaverseMiningEngine = null;
+let seoAnalyticsService = null;
+let walletService = null;
+
 const app = express();
 const PORT = process.env.PORT || 3002;
 
@@ -193,28 +203,119 @@ if (USE_CRAWLER_STUB) {
       return { success: true };
     }
 
+    function restart() {
+      isRunning = false;
+      crawledCount = 0;
+      discoveredCount = 0;
+      recentCrawls.length = 0;
+      return { success: true };
+    }
+
     return {
       getStatus,
       getStats,
       getRecentCrawls,
       startCrawling,
-      stopCrawling
+      stopCrawling,
+      restart,
+    };
+  })();
+
+  miningService = (function createMiningStub() {
+    let isMining = false;
+    let minedBlocks = 0;
+    let totalRewards = 0;
+    let activeWorkers = 0;
+    let lastStart = null;
+    let currentSessionId = null;
+
+    function getStats() {
+      return {
+        isMining,
+        minedBlocks,
+        totalRewards,
+        activeWorkers,
+        hashRate: isMining ? Math.floor(Math.random() * 400) + 100 : 0,
+        difficulty: 0.42,
+        lastStart,
+        sessionId: currentSessionId,
+      };
+    }
+
+    async function startMining() {
+      if (!isMining) {
+        isMining = true;
+        activeWorkers = 3;
+        lastStart = new Date().toISOString();
+        currentSessionId = `stub-session-${Date.now()}`;
+      }
+      return { sessionId: currentSessionId, stats: getStats() };
+    }
+
+    function stopMining() {
+      isMining = false;
+      activeWorkers = 0;
+      return { sessionId: currentSessionId, stats: getStats() };
+    }
+
+    async function shutdown() {
+      stopMining();
+    }
+
+    async function simulateTick() {
+      if (isMining) {
+        minedBlocks += Math.floor(Math.random() * 3);
+        totalRewards += Math.floor(Math.random() * 5);
+      }
+    }
+
+    // Background tick to update stats
+    setInterval(simulateTick, 5000);
+
+    return {
+      getStats,
+      startMining,
+      stopMining,
+      shutdown,
     };
   })();
 } else {
   try {
-    const realCrawler = await import('./enhanced-web-crawler-service.js');
-    crawler = realCrawler.default || realCrawler;
-    console.log('✅ Real crawler service loaded');
-  } catch (err) {
-    console.warn('⚠️  Real crawler service not available and DEV_CRAWLER_STUB is disabled. Using a minimal no-op stub.');
+    console.log('🚀 Attempting to load real crawler service...');
+    const { default: CrawlerService } = await import('./enhanced-web-crawler-service.js');
+    crawler = new CrawlerService();
+    const { MiningService } = await import('./src/services/api/MiningService.ts');
+    miningService = MiningService.getInstance?.() ?? new MiningService();
+  } catch (error) {
+    console.error('⚠️  Failed to load real crawler service, falling back to stub:', error.message);
     crawler = {
-      getStatus: () => ({ isRunning: false, crawledCount: 0, discoveredCount: 0, lastUpdate: new Date().toISOString() }),
-      getStats: () => ({ isRunning: false, crawledCount: 0, discoveredCount: 0, crawledToday: 0, avgSeoScore: 0 }),
+      getStatus: () => ({
+        isRunning: false,
+        crawledCount: 0,
+        discoveredCount: 0,
+        lastUpdate: new Date().toISOString()
+      }),
+      getStats: () => ({
+        isRunning: false,
+        crawledCount: 0,
+        discoveredCount: 0,
+        crawledToday: 0,
+        avgSeoScore: 0
+      }),
       getRecentCrawls: (limit = 10) => [],
       startCrawling: async () => ({ success: false, error: 'Crawler not available' }),
-      stopCrawling: () => ({ success: false, error: 'Crawler not available' })
+      stopCrawling: async () => ({ success: false, error: 'Crawler not available' }),
+      restart: async () => ({ success: false, error: 'Crawler not available' }),
     };
+
+    miningService = (function fallbackMiningStub() {
+      return {
+        getStats: async () => ({ isMining: false, minedBlocks: 0, totalRewards: 0, activeWorkers: 0, hashRate: 0 }),
+        startMining: async () => ({ sessionId: null, stats: { isMining: true } }),
+        stopMining: async () => ({ sessionId: null, stats: { isMining: false } }),
+        shutdown: async () => ({ success: true }),
+      };
+    })();
   }
 }
 
@@ -905,6 +1006,37 @@ app.post('/api/crawler/start', async (req, res) => {
 app.post('/api/crawler/stop', (req, res) => {
   crawler.stopCrawling();
   res.json({ message: 'Crawler stopped', status: 'success' });
+});
+
+// ---------------------------------------------------------------------------
+// Stub endpoints for dashboards relying on AI and storage APIs
+// ---------------------------------------------------------------------------
+app.get('/api/storage/stats', (_req, res) => {
+  res.json({
+    data: {
+      totalSpace: 1_000_000_000,
+      usedSpace: 0,
+      usedSpaceGb: 0,
+      usageByProject: [],
+    },
+  });
+});
+
+app.get('/api/ai/content/summary/active', (_req, res) => {
+  res.json({ data: [] });
+});
+
+app.get('/api/ai/model/performance', (_req, res) => {
+  res.json({ data: [] });
+});
+
+app.post('/api/ai/model/train', (req, res) => {
+  res.json({
+    data: {
+      message: 'Stub model training started',
+      config: req.body ?? {},
+    },
+  });
 });
 
 // ============================================================================
