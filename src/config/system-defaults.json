@@ -1,0 +1,378 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LightDom System Defaults Configuration",
+  "description": "Default configurations for naming conventions, behaviors, and system settings",
+  "version": "1.0.0",
+  
+  "naming": {
+    "schemas": {
+      "pattern": "{domain}_{entity}_schema",
+      "examples": [
+        "ecommerce_product_schema",
+        "seo_campaign_schema",
+        "user_profile_schema"
+      ],
+      "style": "snake_case"
+    },
+    "workflows": {
+      "pattern": "{purpose}_{timestamp}_workflow",
+      "examples": [
+        "seo_analysis_1234567890_workflow",
+        "data_mining_1234567890_workflow"
+      ],
+      "style": "snake_case"
+    },
+    "components": {
+      "pattern": "{Component}{Type}",
+      "examples": [
+        "UserForm",
+        "ProductCard",
+        "DashboardLayout"
+      ],
+      "style": "PascalCase"
+    },
+    "variables": {
+      "style": "camelCase",
+      "constants": "SCREAMING_SNAKE_CASE",
+      "private": "_camelCase"
+    },
+    "files": {
+      "components": "kebab-case",
+      "services": "kebab-case",
+      "utilities": "kebab-case",
+      "types": "kebab-case"
+    }
+  },
+  
+  "behavior": {
+    "deepseek": {
+      "defaultMode": "workflow-generation",
+      "autoValidate": true,
+      "autoOptimize": true,
+      "safetyChecks": {
+        "enabled": true,
+        "level": "strict",
+        "sandboxExecution": true,
+        "requireApproval": true,
+        "maxModifications": 5
+      },
+      "reasoning": {
+        "defaultPattern": "chain-of-thought",
+        "enableReflection": true,
+        "enableCriticism": true,
+        "maxSteps": 10,
+        "thinkingDepth": "detailed"
+      },
+      "memory": {
+        "contextWindow": 8000,
+        "retentionDays": 30,
+        "persistenceType": "database",
+        "enableSemanticSearch": true,
+        "indexingStrategy": "real-time"
+      }
+    },
+    "workflow": {
+      "defaultSchedule": "manual",
+      "autoRetry": true,
+      "maxRetries": 3,
+      "retryBackoff": "exponential",
+      "checkpointing": "per-task",
+      "resumable": true,
+      "parallelExecution": true,
+      "maxConcurrentTasks": 10
+    },
+    "schema": {
+      "autoGenerate": true,
+      "autoLink": true,
+      "autoValidate": true,
+      "versionControl": true,
+      "breakingChangeDetection": true,
+      "backwardsCompatibility": true
+    }
+  },
+  
+  "trends": {
+    "seo": {
+      "currentFocus": [
+        "Core Web Vitals optimization",
+        "Schema.org structured data",
+        "Mobile-first indexing",
+        "Page experience signals",
+        "AI content quality",
+        "E-A-T (Expertise, Authoritativeness, Trustworthiness)"
+      ],
+      "schemaOrgPriority": [
+        "Product",
+        "Article",
+        "FAQPage",
+        "HowTo",
+        "LocalBusiness",
+        "BreadcrumbList",
+        "Organization"
+      ],
+      "technicalSEO": [
+        "Fast page load (< 2.5s LCP)",
+        "Low layout shift (< 0.1 CLS)",
+        "Quick interactivity (< 100ms FID)",
+        "Mobile responsiveness",
+        "HTTPS security",
+        "Crawlability optimization"
+      ]
+    },
+    "llm": {
+      "schemaPatterns": [
+        "JSON Schema for validation",
+        "GraphQL for API design",
+        "TypeScript interfaces for type safety",
+        "Zod for runtime validation",
+        "OpenAPI for REST documentation"
+      ],
+      "promptEngineering": [
+        "Chain-of-thought reasoning",
+        "Few-shot learning",
+        "Role-based prompts",
+        "Structured output formats",
+        "Context injection"
+      ],
+      "bestPractices": [
+        "Clear, specific instructions",
+        "Examples and templates",
+        "Explicit output formats",
+        "Error handling patterns",
+        "Iterative refinement"
+      ]
+    },
+    "architecture": {
+      "microservices": true,
+      "eventDriven": true,
+      "apiFirst": true,
+      "schemaFirst": true,
+      "containerization": true,
+      "serverless": false,
+      "edgeComputing": true
+    }
+  },
+  
+  "dataToMine": {
+    "seo": {
+      "onPage": [
+        "title tags",
+        "meta descriptions",
+        "heading hierarchy (H1-H6)",
+        "content quality metrics",
+        "keyword density",
+        "internal linking structure",
+        "image alt text",
+        "schema markup"
+      ],
+      "technical": [
+        "page load time",
+        "Core Web Vitals metrics",
+        "mobile responsiveness",
+        "crawl errors",
+        "robots.txt configuration",
+        "sitemap structure",
+        "canonical URLs",
+        "redirect chains"
+      ],
+      "offPage": [
+        "backlink profile",
+        "domain authority",
+        "referring domains",
+        "anchor text distribution",
+        "competitor analysis"
+      ]
+    },
+    "content": {
+      "structure": [
+        "DOM hierarchy",
+        "semantic HTML usage",
+        "heading structure",
+        "list usage",
+        "table data",
+        "multimedia content"
+      ],
+      "quality": [
+        "readability scores",
+        "content length",
+        "unique content ratio",
+        "keyword relevance",
+        "topic coverage",
+        "user engagement metrics"
+      ]
+    },
+    "userBehavior": {
+      "engagement": [
+        "time on page",
+        "bounce rate",
+        "pages per session",
+        "click patterns",
+        "scroll depth",
+        "interaction events"
+      ],
+      "conversion": [
+        "form submissions",
+        "button clicks",
+        "purchase events",
+        "signup rates",
+        "cart abandonment"
+      ]
+    }
+  },
+  
+  "monitoring": {
+    "campaign": {
+      "metrics": [
+        "organic traffic",
+        "keyword rankings",
+        "conversion rate",
+        "bounce rate",
+        "page load time",
+        "crawl budget usage",
+        "indexed pages",
+        "schema validation errors"
+      ],
+      "alerts": {
+        "rankingDrop": {
+          "threshold": -5,
+          "window": "24h"
+        },
+        "trafficDrop": {
+          "threshold": -20,
+          "window": "7d"
+        },
+        "errorRate": {
+          "threshold": 5,
+          "window": "1h"
+        }
+      },
+      "reporting": {
+        "frequency": "daily",
+        "format": "dashboard",
+        "recipients": ["admin@lightdom.com"]
+      }
+    },
+    "workflow": {
+      "metrics": [
+        "execution duration",
+        "success rate",
+        "task completion rate",
+        "error rate",
+        "retry count",
+        "resource usage"
+      ],
+      "healthChecks": {
+        "interval": "5m",
+        "timeout": "30s",
+        "failureThreshold": 3
+      }
+    }
+  },
+  
+  "n8n": {
+    "integration": {
+      "enabled": true,
+      "apiUrl": "${N8N_API_URL}",
+      "webhookUrl": "${N8N_WEBHOOK_URL}",
+      "authentication": "api-key"
+    },
+    "workflowBlocks": [
+      {
+        "id": "crawler-block",
+        "name": "Web Crawler",
+        "type": "data-collection",
+        "inputs": ["url", "config"],
+        "outputs": ["pages", "links", "errors"]
+      },
+      {
+        "id": "seo-analyzer-block",
+        "name": "SEO Analyzer",
+        "type": "analysis",
+        "inputs": ["pageData"],
+        "outputs": ["metrics", "recommendations"]
+      },
+      {
+        "id": "schema-generator-block",
+        "name": "Schema Generator",
+        "type": "generation",
+        "inputs": ["description", "context"],
+        "outputs": ["schema", "validation"]
+      },
+      {
+        "id": "data-processor-block",
+        "name": "Data Processor",
+        "type": "transformation",
+        "inputs": ["rawData", "rules"],
+        "outputs": ["processedData"]
+      },
+      {
+        "id": "ml-training-block",
+        "name": "ML Training",
+        "type": "machine-learning",
+        "inputs": ["trainingData", "config"],
+        "outputs": ["model", "metrics"]
+      }
+    ],
+    "templates": [
+      {
+        "id": "seo-campaign",
+        "name": "SEO Campaign Automation",
+        "description": "Complete SEO campaign with crawling, analysis, and reporting",
+        "blocks": ["crawler-block", "seo-analyzer-block", "data-processor-block"]
+      },
+      {
+        "id": "content-generation",
+        "name": "Content Generation Workflow",
+        "description": "AI-powered content generation with SEO optimization",
+        "blocks": ["schema-generator-block", "data-processor-block"]
+      }
+    ]
+  },
+  
+  "git": {
+    "stateManagement": {
+      "enabled": true,
+      "repository": "${GIT_STATE_REPO}",
+      "branch": "state/${ENVIRONMENT}",
+      "autoCommit": true,
+      "commitMessage": "chore: auto-commit workflow state [skip ci]",
+      "conflictResolution": "theirs"
+    },
+    "componentVersioning": {
+      "enabled": true,
+      "tagPattern": "component/${COMPONENT_NAME}/v${VERSION}",
+      "changelogGeneration": true,
+      "semanticVersioning": true
+    }
+  },
+  
+  "plans": {
+    "starter": {
+      "features": ["basic workflows", "schema generation", "5 campaigns"],
+      "limits": {
+        "workflows": 10,
+        "executions": 1000,
+        "schemas": 50
+      },
+      "price": 29
+    },
+    "professional": {
+      "features": ["advanced workflows", "unlimited schemas", "50 campaigns", "priority support"],
+      "limits": {
+        "workflows": 100,
+        "executions": 10000,
+        "schemas": -1
+      },
+      "price": 99
+    },
+    "enterprise": {
+      "features": ["custom workflows", "dedicated support", "unlimited campaigns", "SLA"],
+      "limits": {
+        "workflows": -1,
+        "executions": -1,
+        "schemas": -1
+      },
+      "price": 499
+    }
+  }
+}
