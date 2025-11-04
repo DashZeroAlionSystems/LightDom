@@ -491,6 +491,46 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load payment routes:', err);
     });
     
+    // Import and register Crawler Campaign routes (DeepSeek Integration)
+    import('./src/api/routes/campaign.routes.js').then((campaignModule) => {
+      this.app.use('/api/campaigns', campaignModule.default);
+      console.log('✅ Crawler campaign routes registered (DeepSeek integration enabled)');
+    }).catch(err => {
+      console.error('Failed to load campaign routes:', err);
+    });
+    
+    // Import and register Workflow Orchestration routes
+    import('./src/api/routes/workflow-orchestration.routes.js').then((workflowModule) => {
+      this.app.use('/api/workflows', workflowModule.default);
+      console.log('✅ Workflow orchestration routes registered (Schema-driven automation enabled)');
+    }).catch(err => {
+      console.error('Failed to load workflow orchestration routes:', err);
+    });
+    
+    // Import and register N8N Workflow Creator routes
+    import('./src/api/routes/n8n-workflow.routes.js').then((n8nModule) => {
+      this.app.use('/api/n8n', n8nModule.default);
+      console.log('✅ N8N workflow creator routes registered (Sub-task orchestration enabled)');
+    }).catch(err => {
+      console.error('Failed to load N8N workflow routes:', err);
+    });
+    
+    // Import and register Pattern Mining routes
+    import('./src/api/routes/pattern-mining.routes.js').then((patternModule) => {
+      this.app.use('/api/pattern-mining', patternModule.default);
+      console.log('✅ Pattern mining routes registered (JS/HTML detection & 3D layers enabled)');
+    }).catch(err => {
+      console.error('Failed to load pattern mining routes:', err);
+    });
+    
+    // Import and register Automated SEO Campaign routes
+    import('./src/api/routes/automated-seo.routes.js').then((seoModule) => {
+      this.app.use('/api/seo', seoModule.default);
+      console.log('✅ Automated SEO campaign routes registered (192+ attributes, neural network, SVG widgets enabled)');
+    }).catch(err => {
+      console.error('Failed to load automated SEO routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
