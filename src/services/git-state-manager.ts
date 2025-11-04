@@ -326,11 +326,23 @@ export class GitStateManager {
   }
 
   /**
+   * Sanitize input to prevent command injection
+   */
+  private sanitizeInput(input: string): string {
+    // Remove potentially dangerous characters
+    return input.replace(/[;&|`$(){}[\]<>]/g, '');
+  }
+
+  /**
    * Commit changes to Git
    */
   private async commitChanges(filePath: string, message: string): Promise<string> {
-    execSync(`git add ${filePath}`, { cwd: this.stateDir });
-    execSync(`git commit -m "${message}"`, { cwd: this.stateDir });
+    // Sanitize inputs to prevent command injection
+    const sanitizedPath = this.sanitizeInput(filePath);
+    const sanitizedMessage = this.sanitizeInput(message);
+    
+    execSync(`git add ${sanitizedPath}`, { cwd: this.stateDir });
+    execSync(`git commit -m "${sanitizedMessage}"`, { cwd: this.stateDir });
     
     const hash = execSync('git rev-parse HEAD', {
       cwd: this.stateDir,

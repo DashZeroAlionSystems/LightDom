@@ -3,7 +3,7 @@
  * Multi-step workflow execution engine with live data streams and monitoring
  */
 
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 import { DeepSeekSystemConfig } from '../config/deepseek-config.js';
 import { DeepSeekPromptEngine } from './deepseek-prompt-engine.js';
 import { SchemaGeneratorService, GeneratedSchema } from './schema-generator.js';

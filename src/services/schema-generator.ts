@@ -265,35 +265,64 @@ OUTPUT FORMAT (JSON):
   }
 
   /**
-   * Call DeepSeek API
+   * Call DeepSeek API with improved error handling
    */
   private async callDeepSeekAPI(prompt: string): Promise<any> {
     const { api } = this.config;
 
     if (!api.apiKey) {
-      throw new Error('DeepSeek API key not configured');
+      throw new Error('DeepSeek API key not configured. Set DEEPSEEK_API_KEY environment variable.');
     }
 
-    const response = await axios.post(
-      `${api.apiUrl}/chat/completions`,
-      {
-        model: api.model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: api.defaultTemperature,
-        max_tokens: api.defaultMaxTokens,
-        stream: api.streamEnabled,
-        response_format: { type: 'json_object' },
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${api.apiKey}`,
-          'Content-Type': 'application/json',
+    try {
+      const response = await axios.post(
+        `${api.apiUrl}/chat/completions`,
+        {
+          model: api.model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: api.defaultTemperature,
+          max_tokens: api.defaultMaxTokens,
+          stream: api.streamEnabled,
+          response_format: { type: 'json_object' },
         },
-        timeout: api.timeout,
-      }
-    );
+        {
+          headers: {
+            'Authorization': `Bearer ${api.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: api.timeout,
+        }
+      );
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          // HTTP error response from API
+          const status = error.response.status;
+          const message = error.response.data?.error?.message || 'Unknown API error';
+          
+          if (status === 401) {
+            throw new Error('Invalid DeepSeek API key. Please check your credentials.');
+          } else if (status === 429) {
+            throw new Error('DeepSeek API rate limit exceeded. Please try again later.');
+          } else if (status >= 500) {
+            throw new Error(`DeepSeek API server error (${status}): ${message}`);
+          } else {
+            throw new Error(`DeepSeek API error (${status}): ${message}`);
+          }
+        } else if (error.request) {
+          // Network error - no response received
+          throw new Error('Network error: Unable to reach DeepSeek API. Check your internet connection.');
+        } else {
+          // Request setup error
+          throw new Error(`Request error: ${error.message}`);
+        }
+      }
+      
+      // Re-throw non-Axios errors
+      throw error;
+    }
   }
 
   /**

@@ -240,12 +240,35 @@ router.post('/workflow/generate', async (req: Request, res: Response) => {
 
 /**
  * POST /api/deepseek/workflow/:workflowId/execute
- * Execute a workflow
+ * Execute a workflow with input validation
  */
 router.post('/workflow/:workflowId/execute', async (req: Request, res: Response) => {
   try {
     const { workflowId } = req.params;
     const { input } = req.body;
+
+    // Get workflow to validate input
+    const workflow = orchestrator.getWorkflow(workflowId);
+    if (!workflow) {
+      return res.status(404).json({
+        success: false,
+        error: `Workflow not found: ${workflowId}`,
+      });
+    }
+
+    // Validate input if workflow has input schema
+    if (workflow.metadata?.inputSchema) {
+      // Basic validation - in production, use a schema validator like Ajv
+      const requiredFields = workflow.metadata.inputSchema.required || [];
+      const missingFields = requiredFields.filter((field: string) => !input?.[field]);
+      
+      if (missingFields.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: `Missing required input fields: ${missingFields.join(', ')}`,
+        });
+      }
+    }
 
     const execution = await orchestrator.executeWorkflow(workflowId, input);
 
