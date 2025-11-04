@@ -66,6 +66,7 @@ import CampaignTrainingAdminDashboard from './components/dashboards/CampaignTrai
 import PaintTimelineViewer from './components/visualizations/PaintTimelineViewer';
 import InteractiveSEOWorkflowDashboard from './components/InteractiveSEOWorkflowDashboard';
 import SEOCampaignManagementDashboard from './components/SEOCampaignManagementDashboard';
+import MCPServerDashboard from './components/MCPServerDashboard';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -176,6 +177,7 @@ const AppContent: React.FC = () => {
           <Route path="seo-marketplace" element={<SEOModelMarketplace />} />
           <Route path="seo-workflow" element={<InteractiveSEOWorkflowDashboard />} />
           <Route path="seo-campaigns" element={<SEOCampaignManagementDashboard />} />
+          <Route path="mcp-servers" element={<MCPServerDashboard />} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="websites" element={<WebsitesManagementPage />} />
           <Route path="history" element={<HistoryPage />} />

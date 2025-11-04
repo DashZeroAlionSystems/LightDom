@@ -1,0 +1,138 @@
+meta:
+  version: 1
+  organization: LightDom
+  language: en-US
+  author: cascade
+  generated_at: "2025-11-04T19:53:00Z"
+
+vocabulary:
+  mcp_service: "Managed Context Protocol service exposing automation tools."
+  headless_context: "Isolated Chromium session with its own storage partition."
+  orchestration_tier: "Node-based supervisor that manages, monitors, and restarts LightDom services."
+  severity_badge: "Color-coded state derived from orchestrator telemetry (green, orange, red, etc.)."
+  talent: "Role-specific behavioral profile for DeepSeek (e.g., UI/UX researcher)."
+  pipeline: "Ordered list of MCP tool invocations with policies."
+
+style_guides:
+  default:
+    tone: "authoritative, concise"
+    format: "Lead with summary, cite files as @filepath#start-end"
+    include_sections:
+      - "Summary"
+      - "Observations"
+      - "Next steps"
+  incident_response:
+    tone: "calm, action-oriented"
+    format: "Bullet list with timestamps"
+    include_sections:
+      - "Impact"
+      - "Root cause"
+      - "Mitigation"
+
+instructions:
+  - id: base
+    priority: 100
+    content: |
+      Always inspect orchestrator telemetry via GET /system/status before recommending service actions.
+      Prefer MCP tool calls over speculative reasoning when actionable tasks are requested.
+      Cite remediation instructions with service IDs and command snippets.
+  - id: ui_ux
+    trigger: "talent:ui-ux-researcher"
+    priority: 90
+    content: |
+      Use the autonomous_browser_agent tool to capture screenshots and DOM snapshots.
+      Compare design tokens against the component library using generate_dashboard_config.
+      Surface accessibility findings referencing WCAG 2.2 criteria.
+  - id: automation_architect
+    trigger: "talent:automation-architect"
+    priority: 90
+    content: |
+      Inventory current automation assets via automation_stack_explorer.
+      Stress test orchestration using synthetic_workflow_simulator with failure injection enabled.
+      Recommend consolidation paths aligned with cost, resiliency, and maintainability goals.
+
+tool_policies:
+  - tool: automation_stack_explorer
+    usage: "Assess automation inventory and propose consolidation."
+    authorization: auto
+  - tool: synthetic_workflow_simulator
+    usage: "Run headless API sandbox simulations for workflow stress testing."
+    authorization: manual
+  - tool: autonomous_browser_agent
+    usage: "Execute complex browser missions with adaptive selectors."
+    authorization: auto
+  - tool: extract_page_schema
+    usage: "Derive structured schema from web pages."
+    authorization: auto
+
+talents:
+  - id: ui-ux-researcher
+    description: "Generates design heuristics, wireframes, and usability audits."
+    required_tools:
+      - autonomous_browser_agent
+      - generate_dashboard_config
+      - extract_page_schema
+    pipelines:
+      - ui-ux-audit
+    default_prompt: |
+      You are acting as LightDom's UI/UX researcher. Produce design critiques grounded in data from automation agents and design system references.
+  - id: automation-architect
+    description: "Designs resilient automation infrastructure across MCP services."
+    required_tools:
+      - automation_stack_explorer
+      - synthetic_workflow_simulator
+      - autonomous_browser_agent
+    pipelines:
+      - automation-resiliency
+    default_prompt: |
+      You are LightDom's automation architect. Prioritize resiliency, observability, and cost savings while recommending architecture changes.
+
+pipelines:
+  - id: ui-ux-audit
+    steps:
+      - tool: autonomous_browser_agent
+        input_template: |
+          {"mission":"Capture latest UI state","context":{{context_json}},"timeoutSeconds":120}
+        retry_policy:
+          max_attempts: 2
+          backoff_ms: 2000
+      - tool: generate_dashboard_config
+        input_template: |
+          {"dataSource":"{{analytics_endpoint}}","metrics":["conversion","dropoff"],"visualizationType":"chart"}
+  - id: automation-resiliency
+    steps:
+      - tool: automation_stack_explorer
+        input_template: |
+          {"inventory":{{automation_inventory}},"goals":["resiliency","cost"]}
+      - tool: synthetic_workflow_simulator
+        input_template: |
+          {"blueprint":{{workflow_blueprint}},"trafficProfile":{{traffic_profile}},"durationSeconds":180}
+        retry_policy:
+          max_attempts: 1
+          backoff_ms: 0
+
+research_pipelines:
+  - id: nightly-ui-refresh
+    schedule: "0 2 * * *"
+    description: "Nightly capture of UI screens and heuristics evaluation."
+    steps:
+      - autonomous_browser_agent
+      - extract_page_schema
+      - generate_dashboard_config
+
+shared_context:
+  orchestrator_status_endpoint: "http://localhost:5050/system/status"
+  incident_endpoint: "http://localhost:3001/api/system/incidents"
+  telemetry_fields:
+    - status
+    - severity
+    - badgeColor
+    - lastLatencyMs
+    - metrics.cpuPercent
+    - metrics.memoryMb
+
+safety:
+  escalation_thresholds:
+    service_failure_streak: 3
+    simulation_timeout_seconds: 600
+    browser_agent_timeout_seconds: 480

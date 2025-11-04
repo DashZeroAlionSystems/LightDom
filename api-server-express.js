@@ -577,6 +577,43 @@ class DOMSpaceHarvesterAPI {
       }
     }).catch(err => {
       console.error('Failed to load Campaign Worker routes:', err);
+    // Import and register MCP Server Management routes (Agent instances with schema linking)
+    import('./api/mcp-server-routes.js').then((mcpModule) => {
+      const createRoutes = mcpModule.default || mcpModule.createMCPServerRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/mcp', createRoutes(this.db, this.io));
+      } else {
+        this.app.use('/api/mcp', mcpModule.default);
+      }
+      console.log('✅ MCP Server Management routes registered (DeepSeek agent instances, schema linking enabled)');
+    }).catch(err => {
+      console.error('Failed to load MCP server routes:', err);
+    });
+    
+    // Import and register MCP Bi-Directional routes (Streaming, bundling, auto-config)
+    import('./api/mcp-bidirectional-routes.js').then((bidirModule) => {
+      const createRoutes = bidirModule.default || bidirModule.createMCPBidirectionalRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/mcp', createRoutes(this.db, this.io));
+      } else {
+        this.app.use('/api/mcp', bidirModule.default);
+      }
+      console.log('✅ MCP Bi-Directional routes registered (WebSocket streaming, auto-bundling, config optimization enabled)');
+    }).catch(err => {
+      console.error('Failed to load MCP bidirectional routes:', err);
+    });
+    
+    // Import and register Advanced MCP routes (Trust scoring, campaign governance, self-learning)
+    import('./api/mcp-advanced-bidi-routes.js').then((advancedModule) => {
+      const createRoutes = advancedModule.default || advancedModule.createAdvancedBidiRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/mcp', createRoutes(this.db, this.io));
+      } else {
+        this.app.use('/api/mcp', advancedModule.default);
+      }
+      console.log('✅ Advanced MCP routes registered (Trust scoring, campaign governance, atomic data mining, self-learning enabled)');
+    }).catch(err => {
+      console.error('Failed to load advanced MCP routes:', err);
     });
     
     // Admin middleware (bearer token)
