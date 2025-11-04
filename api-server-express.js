@@ -531,6 +531,19 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load automated SEO routes:', err);
     });
     
+    // Import and register Interactive SEO Workflow routes (DeepSeek + N8N)
+    import('./api/seo-workflow-routes.js').then((workflowModule) => {
+      const createRoutes = workflowModule.default || workflowModule.createSEOWorkflowRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/seo-workflow', createRoutes(this.db, this.io));
+      } else {
+        this.app.use('/api/seo-workflow', workflowModule.default);
+      }
+      console.log('✅ Interactive SEO Workflow routes registered (DeepSeek AI, N8N integration, 192 attributes)');
+    }).catch(err => {
+      console.error('Failed to load SEO workflow routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
