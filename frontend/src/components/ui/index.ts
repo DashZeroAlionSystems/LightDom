@@ -48,6 +48,8 @@ export {
   TabsContent,
 } from '../../../../src/components/ui/tabs';
 
+export { LoadingBar } from './LoadingBar';
+
 export {
   Wizard,
   WizardContent,

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LoaderStyleGuide",
+  "description": "Default visual configuration for MD3-aligned loading components.",
+  "type": "object",
+  "properties": {
+    "loadingBar": {
+      "type": "object",
+      "properties": {
+        "variant": { "type": "string", "enum": ["primary", "secondary", "success", "warning", "info"], "default": "primary" },
+        "rhythm": { "type": "string", "enum": ["steady", "pulse", "wave"], "default": "steady" },
+        "showCompletionBadge": { "type": "boolean", "default": true },
+        "label": { "type": "string", "default": "Loading" },
+        "ariaDescription": { "type": "string", "default": "Component is loading resources" }
+      },
+      "required": ["variant", "rhythm", "showCompletionBadge"],
+      "default": {
+        "variant": "primary",
+        "rhythm": "steady",
+        "showCompletionBadge": true,
+        "label": "Loading",
+        "ariaDescription": "Component is loading resources"
+      }
+    }
+  }
+}
