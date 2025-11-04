@@ -531,6 +531,32 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load automated SEO routes:', err);
     });
     
+    // Import and register Interactive SEO Workflow routes (DeepSeek + N8N)
+    import('./api/seo-workflow-routes.js').then((workflowModule) => {
+      const createRoutes = workflowModule.default || workflowModule.createSEOWorkflowRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/seo-workflow', createRoutes(this.db, this.io));
+      } else {
+        this.app.use('/api/seo-workflow', workflowModule.default);
+      }
+      console.log('✅ Interactive SEO Workflow routes registered (DeepSeek AI, N8N integration, 192 attributes)');
+    }).catch(err => {
+      console.error('Failed to load SEO workflow routes:', err);
+    });
+    
+    // Import and register SEO Campaign CRUD routes (Schema-based campaign management)
+    import('./api/seo-campaign-crud-routes.js').then((campaignModule) => {
+      const createRoutes = campaignModule.default || campaignModule.createSEOCampaignCRUDRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/seo-campaign', createRoutes(this.db, this.io));
+      } else {
+        this.app.use('/api/seo-campaign', campaignModule.default);
+      }
+      console.log('✅ SEO Campaign CRUD routes registered (Schema-based, auto-wiring enabled)');
+    }).catch(err => {
+      console.error('Failed to load SEO campaign CRUD routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
