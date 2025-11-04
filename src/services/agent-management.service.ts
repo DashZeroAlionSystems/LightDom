@@ -860,4 +860,115 @@ export class AgentManagementService {
     const result = await this.db.query(query, values);
     return result.rows;
   }
+
+  // ============================================================================
+  // NESTED WORKFLOWS (Sub-workflows)
+  // ============================================================================
+
+  /**
+   * Add a sub-workflow to a parent workflow
+   */
+  async addSubWorkflow(
+    parentWorkflowId: string,
+    childWorkflowId: string,
+    executionOrder: number = 0,
+    condition?: Record<string, any>
+  ): Promise<any> {
+    const query = `
+      INSERT INTO workflow_subworkflows (parent_workflow_id, child_workflow_id, execution_order, condition)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `;
+
+    const result = await this.db.query(query, [
+      parentWorkflowId,
+      childWorkflowId,
+      executionOrder,
+      JSON.stringify(condition || {})
+    ]);
+
+    return result.rows[0];
+  }
+
+  /**
+   * Get all sub-workflows for a parent workflow
+   */
+  async getSubWorkflows(parentWorkflowId: string): Promise<any[]> {
+    const query = `
+      SELECT sw.*, w.name as child_workflow_name, w.workflow_type
+      FROM workflow_subworkflows sw
+      JOIN agent_workflows w ON sw.child_workflow_id = w.workflow_id
+      WHERE sw.parent_workflow_id = $1 AND sw.is_active = true
+      ORDER BY sw.execution_order
+    `;
+
+    const result = await this.db.query(query, [parentWorkflowId]);
+    return result.rows;
+  }
+
+  /**
+   * Remove a sub-workflow
+   */
+  async removeSubWorkflow(subworkflowId: string): Promise<void> {
+    const query = `UPDATE workflow_subworkflows SET is_active = false WHERE subworkflow_id = $1`;
+    await this.db.query(query, [subworkflowId]);
+  }
+
+  /**
+   * Execute workflow with sub-workflows
+   */
+  async executeWorkflowWithSubWorkflows(
+    workflowId: string,
+    inputData: Record<string, any>
+  ): Promise<AgentExecution> {
+    const client = await this.db.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Execute parent workflow
+      const execution = await this.executeWorkflow({
+        workflow_id: workflowId,
+        input_data: inputData
+      });
+
+      // Get and execute sub-workflows
+      const subWorkflows = await this.getSubWorkflows(workflowId);
+      
+      for (const subWorkflow of subWorkflows) {
+        // Check condition if exists
+        if (subWorkflow.condition && Object.keys(subWorkflow.condition).length > 0) {
+          const conditionMet = this.evaluateCondition(subWorkflow.condition, execution.output_data);
+          if (!conditionMet) continue;
+        }
+
+        // Execute sub-workflow
+        await this.executeWorkflow({
+          workflow_id: subWorkflow.child_workflow_id,
+          input_data: execution.output_data || inputData
+        });
+      }
+
+      await client.query('COMMIT');
+      return execution;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Evaluate condition for sub-workflow execution
+   */
+  private evaluateCondition(condition: Record<string, any>, data: Record<string, any>): boolean {
+    // Simple condition evaluation
+    // You can extend this for more complex conditions
+    for (const [key, value] of Object.entries(condition)) {
+      if (data[key] !== value) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
