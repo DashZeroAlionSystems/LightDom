@@ -52,6 +52,7 @@ export class ServiceOrchestrator extends EventEmitter {
   private services: Map<string, ServiceInstance> = new Map();
   private console: ConsoleFormatter;
   private deepseekManager: DeepSeekInstanceManager;
+  private portCounter: number = 3000; // Counter for port allocation
 
   constructor() {
     super();
@@ -396,8 +397,8 @@ export class ServiceOrchestrator extends EventEmitter {
   }
 
   private async startApiInstance(service: ServiceInstance): Promise<void> {
-    // Implement API instance startup
-    service.port = 3000 + this.services.size; // Simple port allocation
+    // Implement API instance startup with reliable port allocation
+    service.port = this.portCounter++;
     console.log(
       this.console.formatServiceMessage(
         service.schema.name,

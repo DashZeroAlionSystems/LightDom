@@ -170,7 +170,11 @@ export class RichSnippetEngine extends EventEmitter {
         }
 
         const container = document.createElement('div');
-        container.innerHTML = html;
+        // Sanitize HTML before injection to prevent XSS
+        const sanitizedHtml = html
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+          .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
+        container.innerHTML = sanitizedHtml;
         container.className = 'rich-snippet-container';
 
         switch (position) {

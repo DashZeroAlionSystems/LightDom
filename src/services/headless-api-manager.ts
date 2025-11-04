@@ -443,8 +443,19 @@ export class HeadlessAPIManager extends EventEmitter {
 
         // Inject content based on schema
         if (schemaData.template) {
-          container.innerHTML = schemaData.template
-            .replace(/\{\{(\w+)\}\}/g, (_: any, key: string) => injectionData[key] || '');
+          // Sanitize template data to prevent XSS
+          const sanitizedTemplate = schemaData.template
+            .replace(/\{\{(\w+)\}\}/g, (_: any, key: string) => {
+              const value = injectionData[key] || '';
+              // Escape HTML entities
+              return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+            });
+          container.innerHTML = sanitizedTemplate;
         }
 
         // Inject into DOM

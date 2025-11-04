@@ -5,11 +5,11 @@
  * Initializes and manages service bundles with rich console output
  */
 
-import { serviceOrchestrator } from './src/services/service-orchestrator.js';
-import { deepseekInstanceManager } from './src/services/deepseek-instance-manager.js';
-import { richSnippetEngine } from './src/services/rich-snippet-engine.js';
-import { headlessAPIManager } from './src/services/headless-api-manager.js';
-import { ConsoleFormatter } from './src/config/console-config.js';
+import { serviceOrchestrator } from '../src/services/service-orchestrator.js';
+import { deepseekInstanceManager } from '../src/services/deepseek-instance-manager.js';
+import { richSnippetEngine } from '../src/services/rich-snippet-engine.js';
+import { headlessAPIManager } from '../src/services/headless-api-manager.js';
+import { ConsoleFormatter } from '../src/config/console-config.js';
 
 const console = new ConsoleFormatter();
 
