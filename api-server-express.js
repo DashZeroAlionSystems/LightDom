@@ -423,6 +423,58 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load neural network routes:', err);
     });
     
+    // Import and register TensorFlow Workflow Orchestration routes
+    import('./api/tensorflow-workflow-routes.js').then((tfModule) => {
+      const tfRouter = tfModule.default || tfModule.createTensorFlowWorkflowRoutes;
+      if (typeof tfRouter === 'function') {
+        this.app.use('/api/tensorflow', tfRouter(this.db));
+      } else {
+        this.app.use('/api/tensorflow', tfRouter);
+      }
+      console.log('✅ TensorFlow Workflow Orchestration routes registered');
+    }).catch(err => {
+      console.error('Failed to load TensorFlow workflow routes:', err);
+    });
+    
+    // Import and register Client SEO Dashboard routes
+    import('./api/client-seo-routes.js').then((clientModule) => {
+      const clientRouter = clientModule.default || clientModule.createClientAPIRoutes;
+      if (typeof clientRouter === 'function') {
+        this.app.use('/api/tensorflow/client', clientRouter(this.db));
+      } else {
+        this.app.use('/api/tensorflow/client', clientRouter);
+      }
+      console.log('✅ Client SEO Dashboard routes registered');
+    }).catch(err => {
+      console.error('Failed to load client SEO routes:', err);
+    });
+    
+    // Import and register Extended Workflow Monitoring routes
+    import('./api/extended-workflow-routes.js').then((extendedModule) => {
+      const extendedRouter = extendedModule.default || extendedModule.createExtendedWorkflowRoutes;
+      if (typeof extendedRouter === 'function') {
+        this.app.use('/api/workflow', extendedRouter(this.db));
+      } else {
+        this.app.use('/api/workflow', extendedRouter);
+      }
+      console.log('✅ Extended Workflow Monitoring routes registered');
+    }).catch(err => {
+      console.error('Failed to load extended workflow routes:', err);
+    });
+    
+    // Import and register Advanced Workflow Orchestration routes
+    import('./api/advanced-workflow-routes.js').then((advancedModule) => {
+      const { initializeAdvancedWorkflowRoutes } = advancedModule;
+      if (typeof initializeAdvancedWorkflowRoutes === 'function') {
+        this.app.use('/api/advanced', initializeAdvancedWorkflowRoutes(this.db));
+      } else {
+        this.app.use('/api/advanced', advancedModule.default);
+      }
+      console.log('✅ Advanced Workflow Orchestration routes registered');
+    }).catch(err => {
+      console.error('Failed to load advanced workflow routes:', err);
+    });
+    
     // Import and register Onboarding routes
     import('./api/onboarding-routes.js').then((onboardingModule) => {
       this.app.use('/api/onboarding', onboardingModule.default);
