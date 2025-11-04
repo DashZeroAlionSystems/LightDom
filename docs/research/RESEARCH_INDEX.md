@@ -52,6 +52,7 @@ This index connects all research documentation through semantic relationships, m
       ],
       "relatedTo": [
         "webdriver-bidi-puppeteer",
+        "nodejs-llm-communication-2025",
         "deepseek-integration-guide",
         "automated-seo-campaign",
         "schema-linking-architecture"
@@ -68,6 +69,43 @@ This index connects all research documentation through semantic relationships, m
         "Container orchestration",
         "Auto-component generation",
         "ML-driven optimization"
+      ]
+    },
+    {
+      "id": "nodejs-llm-communication-2025",
+      "path": "docs/research/NODEJS_LLM_BIDIRECTIONAL_COMMUNICATION_2025.md",
+      "title": "Node.js LLM Bidirectional Communication & Fine-Tuning Research 2025",
+      "topics": [
+        "WebSockets & Socket.IO",
+        "SSE + HTTP POST",
+        "gRPC Bidirectional Streaming",
+        "LangGraph.js & LangChain.js",
+        "VoltAgent Framework",
+        "Real-Time Model Training",
+        "Tool Chaining Architecture",
+        "TokenRing Parallelization",
+        "Streaming Pipelines"
+      ],
+      "relatedTo": [
+        "deepseek-bidi-datamining",
+        "webdriver-bidi-puppeteer",
+        "schema-driven-agent-architecture",
+        "bidi-orchestration-technical",
+        "implementation-roadmap"
+      ],
+      "schemas": [
+        "BiDiConnectionPool",
+        "LLMWorkflowGraph",
+        "ToolChainDefinition",
+        "StreamingTrainingConfig",
+        "AgentOrchestratorConfig"
+      ],
+      "implements": [
+        "WebSocket-based two-way communication",
+        "LLM orchestration frameworks",
+        "Real-time fine-tuning pipelines",
+        "Tool dependency graphs",
+        "Event-driven architecture"
       ]
     },
     {
