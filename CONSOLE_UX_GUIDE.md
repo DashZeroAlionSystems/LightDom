@@ -1,6 +1,6 @@
 # Console UX & Service Orchestration System
 
-Complete guide for the LightDom console UX system with DeepSeek integration, service orchestration, and rich snippet generation.
+Complete guide for the LightDom console UX system with DeepSeek integration, service orchestration, rich snippet generation, and headless API management.
 
 ## 🎯 Overview
 
@@ -10,6 +10,8 @@ This system provides:
 - **DeepSeek Integration** - Two-way communication with AI instances running in headless Chrome
 - **Service Orchestration** - Manage bundled services with schema-based communication
 - **Rich Snippet Engine** - Generate SEO-friendly content with real-time DOM injection
+- **Headless API Management** - Worker pool for concurrent URL processing with service workers
+- **Real-time Analytics** - Comprehensive performance and DOM metrics collection
 - **Custom CLI** - Interactive command-line interface for service management
 
 ## 🚀 Quick Start
@@ -24,19 +26,33 @@ npm install
 
 ```bash
 node scripts/startup-orchestrator.js
+# or
+npm run orchestrator
+```
+
+### Run Complete Demo
+
+```bash
+npm run demo:complete
 ```
 
 ### Use the CLI
 
 ```bash
 # List all service bundles
-node cli/service-cli.js bundle:list
+npm run services bundle:list
 
 # Create a DeepSeek instance
-node cli/service-cli.js deepseek:create my-instance
+npm run services deepseek:create my-instance
 
 # Generate a product snippet
-node cli/service-cli.js snippet:product --name "Premium Product" --price 99.99
+npm run services snippet:product --name "Premium Product" --price 99.99
+
+# Initialize headless API
+npm run services api:init --workers 5
+
+# Process a URL
+npm run services api:process https://example.com --text --links
 ```
 
 ## 📋 Architecture
@@ -65,6 +81,12 @@ Console UX System
 │   ├── DOM Injection
 │   ├── SEO Optimization
 │   └── Real-time Analytics
+│
+├── Headless API Manager (headless-api-manager.ts)
+│   ├── Worker Pool Management
+│   ├── Service Worker Integration
+│   ├── DOM Painting with Schemas
+│   └── Performance Analytics
 │
 ├── Startup Orchestrator (startup-orchestrator.js)
 │   └── System Initialization
@@ -376,6 +398,22 @@ node cli/service-cli.js deepseek:prompt my-instance "Analyze this page"
 node cli/service-cli.js deepseek:stop my-instance
 ```
 
+### Headless API Management
+
+```bash
+# Initialize headless API with workers
+npm run services api:init --workers 5 --cache network-first
+
+# Process a URL
+npm run services api:process https://example.com --text --links --images
+
+# View worker status
+npm run services api:workers
+
+# View analytics
+npm run services api:analytics
+```
+
 ### Rich Snippet Generation
 
 ```bash
@@ -461,6 +499,202 @@ const workerSchema = {
 
 serviceOrchestrator.registerBundle('workers', [workerSchema]);
 await serviceOrchestrator.startBundle('workers');
+```
+
+
+## 🚀 Headless API Management
+
+### Overview
+
+The Headless API Manager provides a worker pool for concurrent URL processing with service workers, real-time analytics, and DOM painting capabilities.
+
+### Initializing Headless API
+
+```typescript
+import { HeadlessAPIManager } from './src/services/headless-api-manager';
+
+const apiManager = new HeadlessAPIManager({
+  workers: 5,
+  enableServiceWorkers: true,
+  enableAnalytics: true,
+  cacheStrategy: 'network-first', // or 'cache-first', 'stale-while-revalidate'
+  maxConcurrentRequests: 10,
+  timeout: 30000,
+});
+
+await apiManager.initialize();
+```
+
+### Processing URLs
+
+```typescript
+// Process single URL
+const result = await apiManager.processURL('https://example.com', {
+  extractText: true,
+  extractLinks: true,
+  extractImages: true,
+});
+
+console.log('Load time:', result.analytics.metrics.loadTime);
+console.log('DOM nodes:', result.analytics.domMetrics.nodeCount);
+console.log('Data:', result.data);
+
+// Process multiple URLs concurrently
+const urls = [
+  'https://example.com',
+  'https://example.org',
+  'https://example.net',
+];
+
+const results = await Promise.all(
+  urls.map(url => apiManager.processURL(url, { extractText: true }))
+);
+```
+
+### Worker Pool Management
+
+```typescript
+// Get worker status
+const workers = apiManager.getWorkerStatus();
+workers.forEach(worker => {
+  console.log(`${worker.id}: ${worker.status}, ${worker.requestsProcessed} requests`);
+});
+
+// Workers automatically scale based on load
+// Idle workers are reused, failed workers are recreated
+```
+
+### Real-time Analytics
+
+```typescript
+// Get analytics for specific URL
+const urlAnalytics = apiManager.getAnalytics({ url: 'https://example.com' });
+
+// Get recent analytics
+const recentAnalytics = apiManager.getAnalytics({ limit: 10 });
+
+// Get aggregated analytics
+const aggregated = apiManager.getAggregatedAnalytics();
+console.log('Total requests:', aggregated.totalRequests);
+console.log('Avg load time:', aggregated.avgLoadTime);
+console.log('Avg node count:', aggregated.avgNodeCount);
+```
+
+### DOM Painting with Schemas
+
+```typescript
+// Define a schema for DOM injection
+const schema = {
+  target: '.main-content',
+  position: 'prepend',
+  template: `
+    <div class="injected-banner">
+      <h2>{{title}}</h2>
+      <p>{{description}}</p>
+      <a href="{{link}}">{{cta}}</a>
+    </div>
+  `,
+  styles: {
+    padding: '20px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'white',
+    borderRadius: '12px',
+  },
+};
+
+// Paint DOM with data
+await apiManager.paintDOM('worker-0', schema, {
+  title: 'Special Offer',
+  description: 'Get 50% off premium features',
+  link: '/pricing',
+  cta: 'Learn More',
+});
+```
+
+### Service Worker Integration
+
+The Headless API Manager automatically sets up service workers in each Chrome instance for advanced caching strategies:
+
+```typescript
+// Service workers are configured based on cache strategy
+// 'network-first' - Try network first, fall back to cache
+// 'cache-first' - Use cache if available, fetch otherwise
+// 'stale-while-revalidate' - Return cached, update in background
+```
+
+### Performance Metrics
+
+Analytics collected for each request include:
+
+- **Load Time** - Full page load duration
+- **DOM Content Loaded** - Time to DOM ready
+- **First Paint** - Time to first pixel rendered
+- **First Contentful Paint** - Time to first content rendered
+- **Time to Interactive** - Time until page is fully interactive
+- **Resource Metrics** - Size and duration of all resources
+- **DOM Metrics** - Node count, depth, and element count
+
+### Event Listeners
+
+```typescript
+// Listen for URL processing
+apiManager.on('url:processed', (data) => {
+  console.log(`Processed ${data.url} in ${data.analytics.metrics.loadTime}ms`);
+});
+
+// Listen for DOM painting
+apiManager.on('dom:painted', (data) => {
+  console.log(`DOM painted for worker ${data.worker}`);
+});
+
+// Listen for initialization
+apiManager.on('initialized', (data) => {
+  console.log(`Initialized with ${data.workers} workers`);
+});
+```
+
+### Advanced Usage
+
+```typescript
+// Complete workflow: Process, Analyze, Paint
+async function processAndEnhance(url: string) {
+  // 1. Process URL and get analytics
+  const result = await apiManager.processURL(url, {
+    extractText: true,
+    extractLinks: true,
+    extractImages: true,
+  });
+
+  // 2. Analyze performance
+  const analytics = result.analytics;
+  if (analytics.metrics.loadTime > 3000) {
+    console.warn('Slow page load detected');
+  }
+
+  // 3. Generate enhancement schema based on data
+  const schema = {
+    target: 'body',
+    position: 'prepend',
+    template: '<div>{{message}}</div>',
+  };
+
+  // 4. Paint DOM with improvements
+  const workers = apiManager.getWorkerStatus();
+  if (workers.length > 0) {
+    await apiManager.paintDOM(workers[0].id, schema, {
+      message: 'Page enhanced with real-time analytics',
+    });
+  }
+
+  return { result, analytics };
+}
+```
+
+### Shutdown
+
+```typescript
+// Gracefully shutdown all workers
+await apiManager.shutdown();
 ```
 
 ## 📊 Advanced Features

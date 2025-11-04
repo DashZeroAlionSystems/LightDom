@@ -11,6 +11,7 @@ import Table from 'cli-table3';
 import { serviceOrchestrator } from '../src/services/service-orchestrator.js';
 import { deepseekInstanceManager } from '../src/services/deepseek-instance-manager.js';
 import { richSnippetEngine } from '../src/services/rich-snippet-engine.js';
+import { headlessAPIManager } from '../src/services/headless-api-manager.js';
 import { ConsoleFormatter } from '../src/config/console-config.js';
 
 const program = new Command();
@@ -365,6 +366,113 @@ program
     
     console.log(chalk.white('\nRegistered Bundles:'), bundles.length);
     console.log(chalk.white('Active Instances:'), instances.length);
+    console.log('');
+  });
+
+// Headless API Commands
+program
+  .command('api:init')
+  .description('Initialize headless API manager')
+  .option('--workers <count>', 'Number of workers', '3')
+  .option('--cache <strategy>', 'Cache strategy', 'network-first')
+  .action(async (options) => {
+    try {
+      console.log(
+        console.formatServiceMessage('CLI', 'Initializing headless API', 'info')
+      );
+
+      const manager = new (await import('../src/services/headless-api-manager.js')).HeadlessAPIManager({
+        workers: parseInt(options.workers),
+        enableServiceWorkers: true,
+        enableAnalytics: true,
+        cacheStrategy: options.cache,
+      });
+
+      await manager.initialize();
+
+      console.log(
+        console.formatServiceMessage('CLI', 'Headless API initialized', 'success')
+      );
+    } catch (error) {
+      console.error(
+        console.formatError('CLI', error as Error)
+      );
+      process.exit(1);
+    }
+  });
+
+program
+  .command('api:process <url>')
+  .description('Process a URL with headless API')
+  .option('--text', 'Extract text', false)
+  .option('--links', 'Extract links', false)
+  .option('--images', 'Extract images', false)
+  .action(async (url, options) => {
+    try {
+      console.log(
+        console.formatServiceMessage('CLI', `Processing URL: ${url}`, 'info')
+      );
+
+      const result = await headlessAPIManager.processURL(url, {
+        extractText: options.text,
+        extractLinks: options.links,
+        extractImages: options.images,
+      });
+
+      console.log(
+        console.formatDataStream('Result', result, 'api')
+      );
+    } catch (error) {
+      console.error(
+        console.formatError('CLI', error as Error)
+      );
+      process.exit(1);
+    }
+  });
+
+program
+  .command('api:workers')
+  .description('Display worker status')
+  .action(() => {
+    const workers = headlessAPIManager.getWorkerStatus();
+    
+    const table = new Table({
+      head: ['Worker ID', 'Status', 'Requests Processed'],
+      style: { head: ['cyan'] },
+    });
+
+    workers.forEach(worker => {
+      table.push([
+        worker.id,
+        worker.status === 'idle' ? chalk.green(worker.status) :
+        worker.status === 'busy' ? chalk.yellow(worker.status) :
+        chalk.red(worker.status),
+        worker.requestsProcessed,
+      ]);
+    });
+
+    console.log(table.toString());
+  });
+
+program
+  .command('api:analytics')
+  .description('Display aggregated analytics')
+  .action(() => {
+    const analytics = headlessAPIManager.getAggregatedAnalytics();
+    
+    if (!analytics) {
+      console.log(chalk.yellow('No analytics data available'));
+      return;
+    }
+
+    console.log(chalk.cyan.bold('\n=== Headless API Analytics ===\n'));
+    console.log(chalk.white('Total Requests:'), analytics.totalRequests);
+    console.log(chalk.white('Avg Load Time:'), `${analytics.avgLoadTime.toFixed(2)}ms`);
+    console.log(chalk.white('Min Load Time:'), `${analytics.minLoadTime}ms`);
+    console.log(chalk.white('Max Load Time:'), `${analytics.maxLoadTime}ms`);
+    console.log(chalk.white('Avg Node Count:'), Math.round(analytics.avgNodeCount));
+    console.log(chalk.white('Workers:'), analytics.workers);
+    console.log(chalk.white('Queue Length:'), analytics.queueLength);
     console.log('');
   });
 

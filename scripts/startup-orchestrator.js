@@ -8,6 +8,7 @@
 import { serviceOrchestrator } from './src/services/service-orchestrator.js';
 import { deepseekInstanceManager } from './src/services/deepseek-instance-manager.js';
 import { richSnippetEngine } from './src/services/rich-snippet-engine.js';
+import { headlessAPIManager } from './src/services/headless-api-manager.js';
 import { ConsoleFormatter } from './src/config/console-config.js';
 
 const console = new ConsoleFormatter();
@@ -315,6 +316,37 @@ async function setupEventListeners() {
   richSnippetEngine.on('snippet:injected', data => {
     console.log(
       console.formatDataStream('RichSnippet', data, 'snippet')
+    );
+  });
+
+  // Listen for headless API events
+  headlessAPIManager.on('initialized', data => {
+    console.log(
+      console.formatServiceMessage(
+        'HeadlessAPI',
+        `Initialized with ${data.workers} workers`,
+        'success'
+      )
+    );
+  });
+
+  headlessAPIManager.on('url:processed', data => {
+    console.log(
+      console.formatDataStream('HeadlessAPI', {
+        worker: data.worker,
+        url: data.url,
+        loadTime: data.analytics?.metrics.loadTime,
+      }, 'api')
+    );
+  });
+
+  headlessAPIManager.on('dom:painted', data => {
+    console.log(
+      console.formatServiceMessage(
+        'HeadlessAPI',
+        `DOM painted for worker ${data.worker}`,
+        'success'
+      )
     );
   });
 }
