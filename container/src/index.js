@@ -11,6 +11,12 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import pino from 'pino';
 import dotenv from 'dotenv';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Services
 import { EntityService } from './services/entity-service.js';
@@ -18,6 +24,9 @@ import { RelationshipService } from './services/relationship-service.js';
 import { EnrichmentService } from './services/enrichment-service.js';
 import { ScriptingEngine } from './services/scripting-engine.js';
 import { UIGenerator } from './services/ui-generator.js';
+
+// Automation system
+import { initializeOrchestrator } from '../automations/automation-routes.js';
 
 // Load environment variables
 dotenv.config();
@@ -64,6 +73,93 @@ const relationshipService = new RelationshipService();
 const enrichmentService = new EnrichmentService();
 const scriptingEngine = new ScriptingEngine();
 const uiGenerator = new UIGenerator();
+
+// Initialize automation orchestrator
+const orchestrator = initializeOrchestrator({
+  enrichmentService,
+  entityService,
+  relationshipService
+});
+
+/**
+ * Load automation config from file
+ */
+async function loadAutomationConfig(configName) {
+  const configPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '../automations/configs', `${configName}.json`);
+  const configData = await fs.readFile(configPath, 'utf-8');
+  return JSON.parse(configData);
+}
+
+// Automation routes
+fastify.post('/api/automations/run/:configName', async (request, reply) => {
+  const { configName } = request.params;
+  const context = request.body.context || {};
+  
+  const config = await loadAutomationConfig(configName);
+  const automationPromise = orchestrator.runAutomation(config, context);
+  
+  const automationStatus = Array.from(orchestrator.runningAutomations.values())
+    .find(a => a.name === config.name);
+  
+  if (automationStatus) {
+    return {
+      success: true,
+      automationId: automationStatus.id,
+      name: config.name,
+      status: 'running'
+    };
+  } else {
+    return { success: true, message: 'Automation queued' };
+  }
+});
+
+fastify.get('/api/automations/status/:automationId', async (request, reply) => {
+  const { automationId } = request.params;
+  const status = orchestrator.getAutomationStatus(automationId);
+  
+  if (!status) {
+    reply.code(404);
+    return { error: 'Automation not found' };
+  }
+  
+  return { automation: status };
+});
+
+fastify.get('/api/automations/metrics', async (request, reply) => {
+  return { metrics: orchestrator.getMetrics() };
+});
+
+fastify.get('/api/automations/history', async (request, reply) => {
+  const limit = parseInt(request.query.limit) || 50;
+  return { history: orchestrator.getHistory(limit) };
+});
+
+fastify.get('/api/automations/configs', async (request, reply) => {
+  const configsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../automations/configs');
+  const files = await fs.readdir(configsDir);
+  
+  const configs = await Promise.all(
+    files
+      .filter(f => f.endsWith('.json'))
+      .map(async (file) => {
+        const configData = await fs.readFile(path.join(configsDir, file), 'utf-8');
+        const config = JSON.parse(configData);
+        return {
+          name: file.replace('.json', ''),
+          title: config.name,
+          description: config.description,
+          taskCount: config.tasks.length
+        };
+      })
+  );
+  
+  return { configs };
+});
+
+fastify.get('/api/automations/running', async (request, reply) => {
+  const running = Array.from(orchestrator.runningAutomations.values());
+  return { automations: running };
+});
 
 // Health check
 fastify.get('/health', async (request, reply) => {
