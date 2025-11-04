@@ -557,6 +557,17 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load SEO campaign CRUD routes:', err);
     });
     
+    // Import and register Campaign Orchestration routes (Research, Attributes, Mining)
+    import('./api/campaign-orchestration-routes.js').then((orchestrationModule) => {
+      const router = orchestrationModule.default;
+      if (router) {
+        this.app.use('/api/campaigns', router);
+        console.log('✅ Campaign Orchestration routes registered (Research, Attributes, Mining instances)');
+      }
+    }).catch(err => {
+      console.error('Failed to load Campaign Orchestration routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
