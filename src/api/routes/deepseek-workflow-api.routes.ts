@@ -8,6 +8,7 @@ import { Router } from 'express';
 import { Pool } from 'pg';
 import { DeepSeekWorkflowCRUDService } from '../services/deepseek-workflow-crud-service.js';
 import { DeepSeekWorkflowOrchestrator } from '../services/deepseek-workflow-orchestrator.js';
+import { WorkflowTemplateService } from '../services/workflow-template-service.js';
 
 export function createDeepSeekWorkflowRoutes(
   db: Pool,
@@ -17,6 +18,12 @@ export function createDeepSeekWorkflowRoutes(
   const router = Router();
   const crudService = new DeepSeekWorkflowCRUDService(db);
   const orchestrator = new DeepSeekWorkflowOrchestrator(db, deepseekConfig, n8nConfig);
+  const templateService = new WorkflowTemplateService(db);
+
+  // Load workflow templates
+  templateService.loadTemplates().catch(err => {
+    console.error('Failed to load templates:', err);
+  });
 
   // Start polling service
   orchestrator.startPollingService(5000);
@@ -474,6 +481,148 @@ export function createDeepSeekWorkflowRoutes(
     try {
       await crudService.recordSystemHealth(req.body);
       res.json({ success: true, message: 'Health metrics recorded' });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // =========================================================================
+  // WORKFLOW TEMPLATE ROUTES
+  // =========================================================================
+
+  /**
+   * List all workflow templates
+   * GET /api/templates
+   */
+  router.get('/templates', async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const templates = templateService.listTemplates(category);
+      res.json({ success: true, data: templates });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * Get a specific template
+   * GET /api/templates/:templateId
+   */
+  router.get('/templates/:templateId', async (req, res) => {
+    try {
+      const template = templateService.getTemplate(req.params.templateId);
+      if (!template) {
+        return res.status(404).json({ success: false, error: 'Template not found' });
+      }
+      res.json({ success: true, data: template });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * Get template categories
+   * GET /api/templates/categories
+   */
+  router.get('/templates/meta/categories', async (req, res) => {
+    try {
+      const categories = templateService.getCategories();
+      res.json({ success: true, data: categories });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * Search templates
+   * GET /api/templates/search?q=seo
+   */
+  router.get('/templates/search', async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      if (!query) {
+        return res.status(400).json({ success: false, error: 'Query parameter required' });
+      }
+      const templates = templateService.searchTemplates(query);
+      res.json({ success: true, data: templates });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * Instantiate a template
+   * POST /api/templates/:templateId/instantiate
+   */
+  router.post('/templates/:templateId/instantiate', async (req, res) => {
+    try {
+      const { name, description, schedule, tags, customConfig } = req.body;
+      
+      const workflowId = await templateService.instantiateTemplate(
+        req.params.templateId,
+        { name, description, schedule, tags, customConfig }
+      );
+
+      res.status(201).json({ 
+        success: true, 
+        data: { workflow_id: workflowId },
+        message: 'Template instantiated successfully' 
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * Validate template input
+   * POST /api/templates/:templateId/validate
+   */
+  router.post('/templates/:templateId/validate', async (req, res) => {
+    try {
+      const validation = templateService.validateTemplateInput(
+        req.params.templateId,
+        req.body
+      );
+
+      res.json({ success: true, data: validation });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * Get template statistics
+   * GET /api/templates/:templateId/stats
+   */
+  router.get('/templates/:templateId/stats', async (req, res) => {
+    try {
+      const stats = await templateService.getTemplateStats(req.params.templateId);
+      res.json({ success: true, data: stats });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * Save workflow as template
+   * POST /api/workflows/:workflowId/save-as-template
+   */
+  router.post('/workflows/:workflowId/save-as-template', async (req, res) => {
+    try {
+      const { id, name, description, category, inputSchema } = req.body;
+      
+      if (!id || !name || !category) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required fields: id, name, category' 
+        });
+      }
+
+      await templateService.saveWorkflowAsTemplate(req.params.workflowId, {
+        id, name, description, category, inputSchema
+      });
+
+      res.json({ success: true, message: 'Workflow saved as template' });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
     }
