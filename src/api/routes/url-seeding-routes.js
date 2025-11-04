@@ -46,6 +46,22 @@ export function initializeSeedingServices(db) {
 }
 
 /**
+ * Middleware to check if services are initialized
+ */
+function checkServicesInitialized(req, res, next) {
+  if (!configManager || !backlinkService) {
+    return res.status(503).json({
+      success: false,
+      error: 'Seeding services not initialized. Please ensure the API server is fully started.'
+    });
+  }
+  next();
+}
+
+// Apply middleware to all routes
+router.use(checkServicesInitialized);
+
+/**
  * Create new seeding configuration
  * POST /api/seeding/config
  */

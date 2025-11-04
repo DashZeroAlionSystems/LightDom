@@ -17,7 +17,15 @@ import { EventEmitter } from 'events';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
-import deepSeekService from './deepseek-api-service.js';
+
+// Conditionally import DeepSeek service
+let deepSeekService = null;
+try {
+  const module = await import('./deepseek-api-service.js');
+  deepSeekService = module.default;
+} catch (error) {
+  console.warn('⚠️  DeepSeek service not available:', error.message);
+}
 
 export class SeedingConfigManager extends EventEmitter {
   constructor(config = {}) {
@@ -250,6 +258,10 @@ export class SeedingConfigManager extends EventEmitter {
   async generateConfigFromPrompt(prompt, additionalData = {}) {
     if (!this.config.enableDeepSeek) {
       throw new Error('DeepSeek integration is not enabled');
+    }
+
+    if (!deepSeekService) {
+      throw new Error('DeepSeek service is not available. Please check DeepSeek API service is installed and configured.');
     }
 
     console.log('🤖 Generating configuration from prompt using DeepSeek...');

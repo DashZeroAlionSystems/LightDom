@@ -255,6 +255,11 @@ export class URLSeedingService extends EventEmitter {
 
   /**
    * Discover related URLs from a crawled site
+   * 
+   * @param {string} sourceUrl - The source URL that was crawled
+   * @param {Object} crawlData - Crawl data containing links
+   * @param {Array} crawlData.links - Array of link objects with href, text, and context properties
+   * @returns {Promise<Array<string>>} Array of discovered related URLs
    */
   async discoverRelatedUrls(sourceUrl, crawlData) {
     if (!this.config.enableRelatedURLDiscovery) {
@@ -269,7 +274,9 @@ export class URLSeedingService extends EventEmitter {
     
     for (const link of links) {
       try {
-        const linkUrl = new URL(link, sourceUrl);
+        // Handle both string URLs and link objects
+        const linkHref = typeof link === 'string' ? link : (link.href || link);
+        const linkUrl = new URL(linkHref, sourceUrl);
         
         // Skip same domain if configured
         if (this.config.excludeSameDomain && linkUrl.hostname === sourceUrlObj.hostname) {
@@ -286,8 +293,8 @@ export class URLSeedingService extends EventEmitter {
           // Track backlink relationship
           await this.addBacklink(sourceUrl, linkUrl.href, {
             relevance,
-            anchorText: link.text || '',
-            context: link.context || ''
+            anchorText: typeof link === 'object' ? (link.text || '') : '',
+            context: typeof link === 'object' ? (link.context || '') : ''
           });
         }
       } catch (error) {
