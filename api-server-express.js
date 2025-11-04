@@ -570,6 +570,19 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load MCP server routes:', err);
     });
     
+    // Import and register MCP Bi-Directional routes (Streaming, bundling, auto-config)
+    import('./api/mcp-bidirectional-routes.js').then((bidirModule) => {
+      const createRoutes = bidirModule.default || bidirModule.createMCPBidirectionalRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/mcp', createRoutes(this.db, this.io));
+      } else {
+        this.app.use('/api/mcp', bidirModule.default);
+      }
+      console.log('✅ MCP Bi-Directional routes registered (WebSocket streaming, auto-bundling, config optimization enabled)');
+    }).catch(err => {
+      console.error('Failed to load MCP bidirectional routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');

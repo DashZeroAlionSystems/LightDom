@@ -42,6 +42,9 @@ import {
   InfoCircleOutlined,
   ThunderboltOutlined,
   LinkOutlined,
+  BranchesOutlined,
+  LineChartOutlined,
+  EditFilled,
 } from '@ant-design/icons';
 
 const { TextArea } = Input;
@@ -331,6 +334,13 @@ export const MCPServerDashboard: React.FC = () => {
                 setSelectedServer(record);
                 setExecuteModalVisible(true);
               }}
+            />
+          </Tooltip>
+          <Tooltip title="Edit Schema">
+            <Button
+              type="text"
+              icon={<EditFilled />}
+              onClick={() => window.open(`/dashboard/mcp-servers/schema-editor?serverId=${record.id}`, '_blank')}
             />
           </Tooltip>
           <Tooltip title="Edit">
