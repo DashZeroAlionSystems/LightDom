@@ -170,7 +170,11 @@ export const AgentManagementDashboard: React.FC = () => {
   const handleSave = async (values: any) => {
     try {
       if (selectedItem) {
-        await axios.patch(`/api/agent/${activeTab}/${selectedItem.id}`, values);
+        // Get the correct ID field name based on entity type
+        const idField = getIdFieldForEntity(activeTab);
+        const id = selectedItem[idField];
+        
+        await axios.patch(`/api/agent/${activeTab}/${id}`, values);
         message.success('Updated successfully');
       } else {
         await axios.post(`/api/agent/${activeTab}`, values);
@@ -181,6 +185,19 @@ export const AgentManagementDashboard: React.FC = () => {
     } catch (error) {
       message.error('Failed to save');
     }
+  };
+
+  const getIdFieldForEntity = (entityType: string): string => {
+    const idFieldMap: Record<string, string> = {
+      'sessions': 'session_id',
+      'instances': 'instance_id',
+      'tools': 'tool_id',
+      'services': 'service_id',
+      'workflows': 'workflow_id',
+      'campaigns': 'campaign_id',
+      'dataStreams': 'stream_id'
+    };
+    return idFieldMap[entityType] || 'id';
   };
 
   const handleViewDetails = (item: any) => {

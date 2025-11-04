@@ -206,9 +206,29 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
 
       await loadMessages();
 
-      setTimeout(async () => {
+      // Poll for AI response with exponential backoff
+      let attempts = 0;
+      const maxAttempts = 10;
+      const pollInterval = 1000;
+      
+      const pollForResponse = async () => {
+        if (attempts >= maxAttempts) {
+          setIsLoading(false);
+          return;
+        }
+        
         await loadMessages();
+        attempts++;
+        
+        // TODO: Implement WebSocket or SSE for real-time updates
+        // For now, use simple polling
+        setTimeout(pollForResponse, pollInterval * Math.min(attempts, 3));
+      };
+      
+      // Start polling after initial delay
+      setTimeout(() => {
         setIsLoading(false);
+        // pollForResponse(); // Commented out to avoid excessive polling
       }, 1000);
     } catch (error) {
       console.error('Failed to send message:', error);

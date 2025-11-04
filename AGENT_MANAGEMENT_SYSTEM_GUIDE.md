@@ -456,3 +456,24 @@ psql -U postgres -d lightdom -c "\dt"
 - Ensure read permissions on project files
 - Check excluded directories list
 - Verify database write permissions
+
+**Note on Import Parsing**: The current implementation uses regex-based parsing for imports and exports. For production use, consider using a proper AST parser like TypeScript Compiler API (`typescript` package) or Babel (`@babel/parser`) for more reliable and comprehensive code analysis. This would better handle:
+- Dynamic imports
+- Type-only imports
+- Mixed import/export patterns
+- Complex module patterns
+
+Example using TypeScript Compiler API:
+```typescript
+import * as ts from 'typescript';
+
+const sourceFile = ts.createSourceFile(
+  fileName,
+  content,
+  ts.ScriptTarget.Latest,
+  true
+);
+
+// Visit all nodes and extract imports/exports
+ts.forEachChild(sourceFile, visitNode);
+```

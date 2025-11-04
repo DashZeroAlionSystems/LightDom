@@ -47,11 +47,18 @@ export class DeepSeekIntegrationService {
       presence_penalty: config?.presence_penalty || 0
     };
 
+    // Validate API key exists
+    if (!this.defaultConfig.api_key) {
+      console.warn('DeepSeek API key not configured. Set DEEPSEEK_API_KEY environment variable.');
+    }
+
     this.client = axios.create({
       baseURL: this.defaultConfig.api_url,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.defaultConfig.api_key}`
+        ...(this.defaultConfig.api_key && {
+          'Authorization': `Bearer ${this.defaultConfig.api_key}`
+        })
       },
       timeout: 60000
     });
@@ -269,7 +276,9 @@ export class DeepSeekIntegrationService {
         suggestions: analysis.suggestions || []
       };
     } catch (error) {
-      // If response is not JSON, parse it manually
+      // If response is not JSON, log the error and return the content as a suggestion
+      console.warn('Failed to parse AI response as JSON:', error);
+      console.warn('Original response:', response.choices[0].message.content);
       return {
         issues: [],
         suggestions: [response.choices[0].message.content]
