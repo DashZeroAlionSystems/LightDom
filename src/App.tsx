@@ -65,6 +65,7 @@ import TensorFlowNeuralNetworkDashboard from './components/dashboards/TensorFlow
 import CampaignTrainingAdminDashboard from './components/dashboards/CampaignTrainingAdminDashboard';
 import PaintTimelineViewer from './components/visualizations/PaintTimelineViewer';
 import InteractiveSEOWorkflowDashboard from './components/InteractiveSEOWorkflowDashboard';
+import SEOCampaignManagementDashboard from './components/SEOCampaignManagementDashboard';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -174,6 +175,7 @@ const AppContent: React.FC = () => {
           <Route path="seo-datamining" element={<SEODataMiningDashboard />} />
           <Route path="seo-marketplace" element={<SEOModelMarketplace />} />
           <Route path="seo-workflow" element={<InteractiveSEOWorkflowDashboard />} />
+          <Route path="seo-campaigns" element={<SEOCampaignManagementDashboard />} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="websites" element={<WebsitesManagementPage />} />
           <Route path="history" element={<HistoryPage />} />

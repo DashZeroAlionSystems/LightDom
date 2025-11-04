@@ -544,6 +544,19 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load SEO workflow routes:', err);
     });
     
+    // Import and register SEO Campaign CRUD routes (Schema-based campaign management)
+    import('./api/seo-campaign-crud-routes.js').then((campaignModule) => {
+      const createRoutes = campaignModule.default || campaignModule.createSEOCampaignCRUDRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/seo-campaign', createRoutes(this.db, this.io));
+      } else {
+        this.app.use('/api/seo-campaign', campaignModule.default);
+      }
+      console.log('✅ SEO Campaign CRUD routes registered (Schema-based, auto-wiring enabled)');
+    }).catch(err => {
+      console.error('Failed to load SEO campaign CRUD routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
