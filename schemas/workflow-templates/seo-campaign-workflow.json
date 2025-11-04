@@ -1,0 +1,365 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SEO Campaign Workflow Template",
+  "description": "Complete SEO campaign workflow with crawling, analysis, and optimization",
+  "type": "workflow",
+  "version": "1.0.0",
+  
+  "workflow": {
+    "id": "seo-campaign-template",
+    "name": "SEO Campaign Workflow",
+    "description": "Automated SEO campaign with site crawling, content analysis, and optimization recommendations",
+    "version": "1.0.0",
+    
+    "metadata": {
+      "author": "LightDom",
+      "category": "seo",
+      "tags": ["seo", "crawler", "analytics", "optimization"],
+      "estimatedDuration": "2-4 hours",
+      "difficulty": "intermediate"
+    },
+    
+    "services": [
+      {
+        "id": "crawler-service",
+        "type": "crawler",
+        "schema": "@schemas/services/crawler-service.json",
+        "config": {
+          "parallelWorkers": 5,
+          "maxPagesPerDomain": 1000,
+          "respectRobotsTxt": true,
+          "userAgent": "LightDom-SEO-Bot/1.0",
+          "timeout": 30000,
+          "retryPolicy": {
+            "maxRetries": 3,
+            "backoffMs": 1000
+          },
+          "extractors": ["dom", "meta", "performance", "schema"]
+        }
+      },
+      {
+        "id": "seo-analyzer",
+        "type": "analyzer",
+        "schema": "@schemas/services/seo-analyzer.json",
+        "config": {
+          "metrics": [
+            "title_optimization",
+            "meta_description",
+            "heading_structure",
+            "content_quality",
+            "keyword_density",
+            "internal_linking",
+            "schema_markup",
+            "core_web_vitals"
+          ],
+          "includeCompetitorAnalysis": true,
+          "generateRecommendations": true
+        }
+      },
+      {
+        "id": "content-analyzer",
+        "type": "ml-engine",
+        "schema": "@schemas/services/content-analyzer.json",
+        "config": {
+          "analysisType": "nlp",
+          "features": ["readability", "sentiment", "topic_modeling", "keyword_extraction"],
+          "languageDetection": true
+        }
+      },
+      {
+        "id": "data-processor",
+        "type": "data-processor",
+        "schema": "@schemas/services/data-processor.json",
+        "config": {
+          "outputFormat": "json",
+          "aggregationRules": ["by_page_type", "by_performance", "by_seo_score"],
+          "includeVisualizations": true
+        }
+      }
+    ],
+    
+    "tasks": [
+      {
+        "id": "sitemap-discovery",
+        "name": "Discover Sitemap",
+        "service": "crawler-service",
+        "action": "discover_sitemap",
+        "input": {
+          "siteUrl": "${input.targetUrl}",
+          "includeSitemapXml": true,
+          "includeRobotsTxt": true
+        },
+        "output": {
+          "schema": "@schemas/data/sitemap.json",
+          "destination": ["task:url-prioritization", "database:sitemaps"]
+        },
+        "dependencies": [],
+        "timeout": 60000
+      },
+      
+      {
+        "id": "url-prioritization",
+        "name": "Prioritize URLs",
+        "service": "data-processor",
+        "action": "prioritize_urls",
+        "input": {
+          "sitemap": "${task:sitemap-discovery.output}",
+          "priorityRules": {
+            "homepage": 10,
+            "product_pages": 9,
+            "category_pages": 8,
+            "blog_posts": 7,
+            "static_pages": 5
+          },
+          "maxUrls": 1000
+        },
+        "output": {
+          "schema": "@schemas/data/prioritized-urls.json",
+          "destination": "task:page-crawl"
+        },
+        "dependencies": ["sitemap-discovery"],
+        "timeout": 30000
+      },
+      
+      {
+        "id": "page-crawl",
+        "name": "Crawl Pages",
+        "service": "crawler-service",
+        "action": "crawl_pages",
+        "input": {
+          "urls": "${task:url-prioritization.output.urls}",
+          "extractors": ["dom", "meta", "performance", "schema"],
+          "followLinks": false,
+          "captureScreenshots": true
+        },
+        "output": {
+          "schema": "@schemas/data/page-data.json",
+          "destination": ["task:seo-analysis", "task:content-analysis", "database:pages"]
+        },
+        "dependencies": ["url-prioritization"],
+        "parallel": true,
+        "timeout": 7200000,
+        "retryPolicy": {
+          "maxRetries": 3,
+          "backoffMs": 2000
+        }
+      },
+      
+      {
+        "id": "seo-analysis",
+        "name": "SEO Analysis",
+        "service": "seo-analyzer",
+        "action": "analyze_pages",
+        "input": {
+          "pages": "${task:page-crawl.output}",
+          "targetKeywords": "${input.targetKeywords}",
+          "competitorUrls": "${input.competitorUrls}",
+          "analysisDepth": "comprehensive"
+        },
+        "output": {
+          "schema": "@schemas/data/seo-analysis.json",
+          "destination": ["task:generate-recommendations", "database:seo_metrics"]
+        },
+        "dependencies": ["page-crawl"],
+        "timeout": 1800000
+      },
+      
+      {
+        "id": "content-analysis",
+        "name": "Content Quality Analysis",
+        "service": "content-analyzer",
+        "action": "analyze_content",
+        "input": {
+          "pages": "${task:page-crawl.output}",
+          "metrics": ["readability", "uniqueness", "engagement_potential"],
+          "includeTopicModeling": true
+        },
+        "output": {
+          "schema": "@schemas/data/content-analysis.json",
+          "destination": ["task:generate-recommendations", "database:content_metrics"]
+        },
+        "dependencies": ["page-crawl"],
+        "parallel": true,
+        "timeout": 1800000
+      },
+      
+      {
+        "id": "technical-audit",
+        "name": "Technical SEO Audit",
+        "service": "seo-analyzer",
+        "action": "technical_audit",
+        "input": {
+          "siteUrl": "${input.targetUrl}",
+          "pages": "${task:page-crawl.output}",
+          "checkList": [
+            "robots_txt",
+            "sitemap_xml",
+            "canonical_tags",
+            "hreflang_tags",
+            "structured_data",
+            "mobile_friendly",
+            "page_speed",
+            "https_usage",
+            "internal_linking"
+          ]
+        },
+        "output": {
+          "schema": "@schemas/data/technical-audit.json",
+          "destination": ["task:generate-recommendations", "database:technical_audits"]
+        },
+        "dependencies": ["page-crawl"],
+        "timeout": 900000
+      },
+      
+      {
+        "id": "generate-recommendations",
+        "name": "Generate Optimization Recommendations",
+        "service": "data-processor",
+        "action": "generate_recommendations",
+        "input": {
+          "seoAnalysis": "${task:seo-analysis.output}",
+          "contentAnalysis": "${task:content-analysis.output}",
+          "technicalAudit": "${task:technical-audit.output}",
+          "prioritizationCriteria": {
+            "impact": "high",
+            "effort": "low_to_medium"
+          }
+        },
+        "output": {
+          "schema": "@schemas/data/recommendations.json",
+          "destination": ["task:create-report", "database:recommendations"]
+        },
+        "dependencies": ["seo-analysis", "content-analysis", "technical-audit"],
+        "timeout": 600000
+      },
+      
+      {
+        "id": "create-report",
+        "name": "Create SEO Campaign Report",
+        "service": "data-processor",
+        "action": "create_report",
+        "input": {
+          "recommendations": "${task:generate-recommendations.output}",
+          "seoMetrics": "${task:seo-analysis.output}",
+          "contentMetrics": "${task:content-analysis.output}",
+          "technicalAudit": "${task:technical-audit.output}",
+          "format": "html",
+          "includeExecutiveSummary": true,
+          "includeVisualizations": true
+        },
+        "output": {
+          "schema": "@schemas/data/seo-report.json",
+          "destination": ["database:reports", "storage:reports"]
+        },
+        "dependencies": ["generate-recommendations"],
+        "timeout": 300000
+      }
+    ],
+    
+    "schedule": {
+      "type": "cron",
+      "expression": "0 2 * * 1",
+      "timezone": "UTC",
+      "enabled": false,
+      "description": "Run weekly on Monday at 2 AM UTC"
+    },
+    
+    "errorHandling": {
+      "strategy": "retry-then-skip",
+      "maxFailedTasks": 3,
+      "notifications": {
+        "onFailure": ["email", "slack"],
+        "onSuccess": ["dashboard"],
+        "recipients": ["${input.notificationEmail}"]
+      }
+    },
+    
+    "monitoring": {
+      "enabled": true,
+      "metrics": [
+        "total_duration",
+        "pages_crawled",
+        "seo_score_average",
+        "recommendations_generated",
+        "success_rate"
+      ],
+      "alerts": [
+        {
+          "condition": "total_duration > 14400000",
+          "action": "notify_admin",
+          "message": "SEO campaign taking longer than 4 hours"
+        },
+        {
+          "condition": "success_rate < 0.8",
+          "action": "notify_admin",
+          "message": "SEO campaign success rate below 80%"
+        }
+      ],
+      "dashboard": {
+        "enabled": true,
+        "refreshInterval": 30000
+      }
+    },
+    
+    "state": {
+      "persistenceType": "database",
+      "checkpointFrequency": "per-task",
+      "resumable": true,
+      "stateSchema": "@schemas/state/workflow-state.json"
+    },
+    
+    "resources": {
+      "maxConcurrentTasks": 5,
+      "maxMemoryMB": 4096,
+      "maxCPUPercent": 80,
+      "timeoutMs": 14400000
+    }
+  },
+  
+  "inputSchema": {
+    "type": "object",
+    "required": ["targetUrl"],
+    "properties": {
+      "targetUrl": {
+        "type": "string",
+        "format": "uri",
+        "description": "The website URL to analyze"
+      },
+      "targetKeywords": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Target keywords for SEO optimization",
+        "default": []
+      },
+      "competitorUrls": {
+        "type": "array",
+        "items": { "type": "string", "format": "uri" },
+        "description": "Competitor website URLs for comparison",
+        "default": []
+      },
+      "notificationEmail": {
+        "type": "string",
+        "format": "email",
+        "description": "Email for workflow notifications"
+      }
+    }
+  },
+  
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "report": {
+        "type": "object",
+        "description": "Complete SEO campaign report"
+      },
+      "recommendations": {
+        "type": "array",
+        "description": "Prioritized optimization recommendations"
+      },
+      "metrics": {
+        "type": "object",
+        "description": "Aggregated SEO and content metrics"
+      }
+    }
+  }
+}

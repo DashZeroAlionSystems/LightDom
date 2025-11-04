@@ -1,0 +1,164 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Data Mining & Training Workflow Template",
+  "description": "Automated data mining and ML model training workflow",
+  "type": "workflow",
+  "version": "1.0.0",
+  
+  "workflow": {
+    "id": "data-mining-training-template",
+    "name": "Data Mining & ML Training Workflow",
+    "description": "Mine data from web sources and train machine learning models",
+    "version": "1.0.0",
+    
+    "metadata": {
+      "author": "LightDom",
+      "category": "machine-learning",
+      "tags": ["data-mining", "ml", "training", "automation"],
+      "estimatedDuration": "4-8 hours",
+      "difficulty": "advanced"
+    },
+    
+    "services": [
+      {
+        "id": "web-miner",
+        "type": "crawler",
+        "config": {
+          "parallelWorkers": 10,
+          "rateLimit": 100,
+          "extractors": ["structured-data", "text", "metadata"]
+        }
+      },
+      {
+        "id": "data-cleaner",
+        "type": "data-processor",
+        "config": {
+          "cleaningRules": ["remove_duplicates", "normalize", "validate"],
+          "qualityThreshold": 0.8
+        }
+      },
+      {
+        "id": "feature-engineer",
+        "type": "ml-engine",
+        "config": {
+          "autoFeatureSelection": true,
+          "encodingStrategies": ["one-hot", "label", "target"]
+        }
+      },
+      {
+        "id": "model-trainer",
+        "type": "ml-engine",
+        "config": {
+          "algorithms": ["xgboost", "random_forest", "neural_network"],
+          "hyperparameterTuning": true,
+          "crossValidation": 5
+        }
+      }
+    ],
+    
+    "tasks": [
+      {
+        "id": "discover-sources",
+        "name": "Discover Data Sources",
+        "service": "web-miner",
+        "action": "discover_sources",
+        "input": {
+          "seedUrls": "${input.seedUrls}",
+          "maxDepth": 3,
+          "contentType": "${input.contentType}"
+        },
+        "output": {
+          "destination": "task:mine-data"
+        },
+        "dependencies": []
+      },
+      
+      {
+        "id": "mine-data",
+        "name": "Mine Data",
+        "service": "web-miner",
+        "action": "extract_data",
+        "input": {
+          "sources": "${task:discover-sources.output}",
+          "extractionRules": "${input.extractionRules}"
+        },
+        "output": {
+          "destination": ["task:clean-data", "database:raw_data"]
+        },
+        "dependencies": ["discover-sources"],
+        "parallel": true
+      },
+      
+      {
+        "id": "clean-data",
+        "name": "Clean & Validate Data",
+        "service": "data-cleaner",
+        "action": "clean",
+        "input": {
+          "rawData": "${task:mine-data.output}"
+        },
+        "output": {
+          "destination": ["task:engineer-features", "database:clean_data"]
+        },
+        "dependencies": ["mine-data"]
+      },
+      
+      {
+        "id": "engineer-features",
+        "name": "Feature Engineering",
+        "service": "feature-engineer",
+        "action": "create_features",
+        "input": {
+          "cleanData": "${task:clean-data.output}",
+          "targetColumn": "${input.targetColumn}"
+        },
+        "output": {
+          "destination": ["task:train-model", "database:features"]
+        },
+        "dependencies": ["clean-data"]
+      },
+      
+      {
+        "id": "train-model",
+        "name": "Train ML Model",
+        "service": "model-trainer",
+        "action": "train",
+        "input": {
+          "features": "${task:engineer-features.output}",
+          "modelConfig": "${input.modelConfig}"
+        },
+        "output": {
+          "destination": ["task:evaluate-model", "database:models"]
+        },
+        "dependencies": ["engineer-features"]
+      },
+      
+      {
+        "id": "evaluate-model",
+        "name": "Evaluate Model",
+        "service": "model-trainer",
+        "action": "evaluate",
+        "input": {
+          "model": "${task:train-model.output}",
+          "testData": "${task:engineer-features.output.test}"
+        },
+        "output": {
+          "destination": ["database:evaluations", "storage:models"]
+        },
+        "dependencies": ["train-model"]
+      }
+    ],
+    
+    "schedule": {
+      "type": "cron",
+      "expression": "0 0 * * 0",
+      "enabled": false,
+      "description": "Run weekly on Sunday at midnight"
+    },
+    
+    "monitoring": {
+      "enabled": true,
+      "metrics": ["data_quality", "model_accuracy", "training_time"]
+    }
+  }
+}
