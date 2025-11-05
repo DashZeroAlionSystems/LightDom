@@ -55,17 +55,47 @@ export class RealTimeClientAPIService extends EventEmitter {
     this.io.on('connection', (socket) => {
       console.log(`🔌 Client connected: ${socket.id}`);
       
+      // Validation middleware
+      const validateData = (data, requiredFields) => {
+        if (!data || typeof data !== 'object') return false;
+        return requiredFields.every(field => data.hasOwnProperty(field));
+      };
+      
       // Handle client registration
-      socket.on('client:register', (data) => this.handleClientRegister(socket, data));
+      socket.on('client:register', (data) => {
+        if (!validateData(data, ['siteId', 'siteDomain'])) {
+          socket.emit('error', { message: 'Invalid registration data' });
+          return;
+        }
+        this.handleClientRegister(socket, data);
+      });
       
       // Handle site metrics
-      socket.on('metrics:send', (data) => this.handleMetrics(socket, data));
+      socket.on('metrics:send', (data) => {
+        if (!validateData(data, ['metrics'])) {
+          socket.emit('error', { message: 'Invalid metrics data' });
+          return;
+        }
+        this.handleMetrics(socket, data);
+      });
       
       // Handle optimization requests
-      socket.on('optimization:request', (data) => this.handleOptimizationRequest(socket, data));
+      socket.on('optimization:request', (data) => {
+        if (!data) {
+          socket.emit('error', { message: 'Invalid optimization request' });
+          return;
+        }
+        this.handleOptimizationRequest(socket, data);
+      });
       
       // Handle content requests
-      socket.on('content:request', (data) => this.handleContentRequest(socket, data));
+      socket.on('content:request', (data) => {
+        if (!validateData(data, ['contentType'])) {
+          socket.emit('error', { message: 'Invalid content request' });
+          return;
+        }
+        this.handleContentRequest(socket, data);
+      });
       
       // Handle DOM updates
       socket.on('dom:update', (data) => this.handleDOMUpdate(socket, data));

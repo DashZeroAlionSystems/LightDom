@@ -453,11 +453,16 @@ export class BlockchainAlgorithmBenchmarkService extends EventEmitter {
    * Calculate real-time responsiveness score
    */
   calculateRealTimeScore(metrics) {
+    // Constants for real-time scoring
+    const STD_DEV_WEIGHT = 0.7;
+    const ERROR_WEIGHT = 0.3;
+    const STD_DEV_NORMALIZER = 1000;
+    
     // Lower block time variance = better real-time performance
-    const consistency = 1 - (metrics.blockTimeStdDev / 1000);
+    const consistency = 1 - (metrics.blockTimeStdDev / STD_DEV_NORMALIZER);
     const errorFactor = 1 - metrics.errorRate;
     
-    return (consistency * 0.7 + errorFactor * 0.3);
+    return (consistency * STD_DEV_WEIGHT + errorFactor * ERROR_WEIGHT);
   }
 
   /**

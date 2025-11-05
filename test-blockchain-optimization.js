@@ -7,6 +7,13 @@ import { DeepSeekDOMOptimizationEngine } from './services/deepseek-dom-optimizat
 
 console.log('🧪 Testing Blockchain Algorithm Optimization Services\n');
 
+let exitCode = 0;
+
+const handleError = (testName, error) => {
+  console.error(`❌ ${testName} failed:`, error.message);
+  exitCode = 1;
+};
+
 // Test 1: Benchmark Service Initialization
 console.log('Test 1: Benchmark Service Initialization');
 try {
@@ -18,8 +25,7 @@ try {
   console.log('✅ Benchmark service initialized');
   console.log(`   Algorithms available: ${Object.keys(benchmarkService.algorithms).join(', ')}`);
 } catch (error) {
-  console.error('❌ Benchmark service initialization failed:', error.message);
-  process.exit(1);
+  handleError('Test 1', error);
 }
 
 // Test 2: Small Benchmark Run
@@ -49,8 +55,7 @@ try {
   console.log(`   Best algorithm: ${results.recommendation.algorithm}`);
   console.log(`   Reason: ${results.recommendation.reason}`);
 } catch (error) {
-  console.error('❌ Benchmark failed:', error.message);
-  process.exit(1);
+  handleError('Test 2', error);
 }
 
 // Test 3: DOM Optimization Engine
@@ -85,8 +90,7 @@ try {
     console.log(`   - ${s.type} (priority ${s.priority})`);
   });
 } catch (error) {
-  console.error('❌ Optimization engine failed:', error.message);
-  process.exit(1);
+  handleError('Test 3', error);
 }
 
 // Test 4: Pattern Learning
@@ -127,8 +131,7 @@ try {
     console.log(`   Similarity score: ${similarPatterns[0].similarity.toFixed(2)}`);
   }
 } catch (error) {
-  console.error('❌ Pattern learning failed:', error.message);
-  process.exit(1);
+  handleError('Test 4', error);
 }
 
 // Test 5: Algorithm Comparison
@@ -185,12 +188,15 @@ try {
   console.log(`\n   Recommendation: ${recommendation.algorithm.toUpperCase()}`);
   console.log(`   Score: ${recommendation.score.toFixed(2)}`);
 } catch (error) {
-  console.error('❌ Algorithm comparison failed:', error.message);
-  process.exit(1);
+  handleError('Test 5', error);
 }
 
 console.log('\n' + '='.repeat(60));
-console.log('✅ All tests passed!');
+if (exitCode === 0) {
+  console.log('✅ All tests passed!');
+} else {
+  console.log('❌ Some tests failed. Review errors above.');
+}
 console.log('='.repeat(60));
 console.log('\nServices are ready to use:');
 console.log('  - BlockchainAlgorithmBenchmarkService');
@@ -200,3 +206,5 @@ console.log('\nStart the API server to test HTTP endpoints:');
 console.log('  npm run start:dev');
 console.log('\nRun the full demo:');
 console.log('  node demo-blockchain-algorithm-optimization.js');
+
+process.exit(exitCode);
