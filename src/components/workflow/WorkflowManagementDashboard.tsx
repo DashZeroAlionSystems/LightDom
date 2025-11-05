@@ -100,8 +100,9 @@ export const WorkflowManagementDashboard: React.FC = () => {
         setWorkflows(data.workflows || []);
       }
     } catch (error) {
-      console.error('Failed to load workflows:', error);
-      message.error('Failed to load workflows');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Failed to load workflows:', errorMessage, error);
+      message.error(`Failed to load workflows: ${errorMessage}`);
     } finally {
       setLoading(false);
     }

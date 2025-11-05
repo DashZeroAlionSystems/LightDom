@@ -514,8 +514,11 @@ export class MCPWorkflowServer {
 // Export for use in other modules
 export default MCPWorkflowServer;
 
-// CLI entry point
-if (import.meta.url === `file://${process.argv[1]}`) {
+// CLI entry point - start server if run directly
+// Check for direct execution using process.argv
+const isMainModule = process.argv[1] && process.argv[1].includes('mcp-workflow-server');
+
+if (isMainModule) {
   const config: MCPWorkflowServerConfig = {
     // Try to load from environment or config file
     apiUrl: process.env.LIGHTDOM_API_URL,

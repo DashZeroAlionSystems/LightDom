@@ -413,7 +413,8 @@ export const EnhancedWorkflowBuilder: React.FC<EnhancedWorkflowBuilderProps> = (
                       )
                     );
                   } catch (err) {
-                    // Invalid JSON, ignore
+                    // Invalid JSON - user is still typing, don't show error yet
+                    console.debug('Invalid JSON in node config, waiting for valid input');
                   }
                 }}
               />
