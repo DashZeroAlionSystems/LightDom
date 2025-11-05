@@ -151,7 +151,7 @@ export class DesignLibraryIndexer {
     const patterns = this.identifyPatterns(components);
 
     const library: DesignLibrary = {
-      id: `lib_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `lib_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       name: config.name,
       version: '1.0.0',
       url: config.url,
@@ -456,7 +456,7 @@ export class DesignLibraryIndexer {
       if (usedBy.length >= 2) {
         const [, name, type] = key.split(':');
         patterns.push({
-          id: `pattern_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: `pattern_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
           name: `${name} (${type})`,
           category: 'prop-pattern',
           description: `Common prop pattern used across ${usedBy.length} components`,

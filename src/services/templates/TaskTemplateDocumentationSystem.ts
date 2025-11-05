@@ -114,7 +114,7 @@ export class TaskTemplateDocumentationSystem {
   async createTemplate(template: Omit<TaskTemplate, 'id'>): Promise<TaskTemplate> {
     const fullTemplate: TaskTemplate = {
       ...template,
-      id: `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `template_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
     };
 
     this.templates.set(fullTemplate.id, fullTemplate);
@@ -142,7 +142,7 @@ export class TaskTemplateDocumentationSystem {
 
     const fullPart: TemplatePartDefinition = {
       ...part,
-      id: `part_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `part_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
     };
 
     template.parts.push(fullPart);
@@ -231,7 +231,7 @@ export class TaskTemplateDocumentationSystem {
   ): Promise<TaskDocumentation> {
     const fullTask: TaskDocumentation = {
       ...task,
-      id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `task_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       createdAt: new Date(),
     };
 
