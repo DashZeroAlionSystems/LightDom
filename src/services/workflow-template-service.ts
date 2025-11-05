@@ -6,7 +6,7 @@
  */
 
 import { readFile } from 'fs/promises';
-import { join } from path';
+import { join } from 'path';
 import { DeepSeekWorkflowCRUDService } from './deepseek-workflow-crud-service.js';
 import { Pool } from 'pg';
 

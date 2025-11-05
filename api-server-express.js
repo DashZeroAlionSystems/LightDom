@@ -402,6 +402,17 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load AI layout routes:', err);
     });
     
+    // Import and register DeepSeek Chat routes
+    import('./src/api/routes/deepseek-chat.routes.js').then((chatModule) => {
+      const chatRouter = chatModule.createDeepSeekChatRoutes;
+      if (typeof chatRouter === 'function') {
+        this.app.use('/api/deepseek', chatRouter(this.db, {}));
+      }
+      console.log('✅ DeepSeek chat routes registered');
+    }).catch(err => {
+      console.error('Failed to load DeepSeek chat routes:', err);
+    });
+    
     // Import and register Workflow Wizard routes
     import('./api/workflow-wizard-routes.js').then((wizardModule) => {
       this.app.use('/api/workflow', wizardModule.default);
