@@ -225,12 +225,12 @@ export class AtomicComponentGenerator extends EventEmitter {
     const defaultProps = props.filter(p => p.default !== undefined);
     const nonDefaultProps = props.filter(p => p.default === undefined);
     
-    const defaultValues = defaultProps.map(p => {
+    const defaultPropDeclarations = defaultProps.map(p => {
       const value = typeof p.default === 'string' ? `'${p.default}'` : p.default;
       return `  ${p.name} = ${value}`;
     });
     
-    const nonDefaultNames = nonDefaultProps.map(p => `  ${p.name}`);
+    const nonDefaultPropNames = nonDefaultProps.map(p => `  ${p.name}`);
     
     let componentCode = `import React from 'react';\nimport type { ${componentName}Props } from './${componentName}.types';\n`;
     
@@ -246,16 +246,19 @@ export class AtomicComponentGenerator extends EventEmitter {
     componentCode += ` */\n`;
     
     componentCode += `export const ${componentName}: React.FC<${componentName}Props> = ({\n`;
-    if (defaultValues.length > 0) {
-      componentCode += `${defaultValues.join(',\n')}`; 
-      if (nonDefaultNames.length > 0) {
-        componentCode += ',\n';
+    
+    // Combine default and non-default props in destructuring
+    const allPropDeclarations = [...defaultPropDeclarations];
+    if (nonDefaultPropNames.length > 0) {
+      if (defaultPropDeclarations.length > 0) {
+        allPropDeclarations.push(...nonDefaultPropNames);
       } else {
-        componentCode += '\n';
+        allPropDeclarations.push(...nonDefaultPropNames);
       }
     }
-    if (nonDefaultNames.length > 0) {
-      componentCode += `${nonDefaultNames.join(',\n')}\n`;
+    
+    if (allPropDeclarations.length > 0) {
+      componentCode += `${allPropDeclarations.join(',\n')}\n`;
     }
     componentCode += `}) => {\n`;
     

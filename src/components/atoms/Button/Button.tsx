@@ -11,9 +11,6 @@ export const Button: React.FC<ButtonProps> = ({
   size = 'medium',
   disabled = false,
   label,
-  variant,
-  size,
-  disabled,
   onClick
 }) => {
   return (
