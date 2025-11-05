@@ -577,6 +577,30 @@ class DOMSpaceHarvesterAPI {
       }
     }).catch(err => {
       console.error('Failed to load Campaign Worker routes:', err);
+    });
+    
+    // Import and register Enhanced Agent Session routes
+    import('./src/api/routes/enhanced-agent-session.routes.js').then((agentModule) => {
+      const createRoutes = agentModule.createEnhancedAgentSessionRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/agent', createRoutes(this.db));
+        console.log('✅ Enhanced Agent Session routes registered (DeepSeek orchestration, knowledge graph integration)');
+      }
+    }).catch(err => {
+      console.error('Failed to load enhanced agent session routes:', err);
+    });
+    
+    // Import and register Agent Management routes
+    import('./src/api/routes/agent-management.routes.js').then((mgmtModule) => {
+      const createRoutes = mgmtModule.createAgentManagementRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/agent', createRoutes(this.db));
+        console.log('✅ Agent Management routes registered');
+      }
+    }).catch(err => {
+      console.error('Failed to load agent management routes:', err);
+    });
+    
     // Import and register MCP Server Management routes (Agent instances with schema linking)
     import('./api/mcp-server-routes.js').then((mcpModule) => {
       const createRoutes = mcpModule.default || mcpModule.createMCPServerRoutes;
