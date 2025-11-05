@@ -211,6 +211,12 @@ class DOMSpaceHarvesterAPI {
     // Setup SEO injection service API routes
     this.setupSEOServiceRoutes();
 
+    // Setup blockchain optimization API routes
+    this.setupBlockchainOptimizationRoutes();
+
+    // Setup real-time client API
+    this.setupRealtimeClientAPI();
+
     // Statistics cache
     this.statsCache = {
       lastUpdate: 0,
@@ -8791,6 +8797,91 @@ class DOMSpaceHarvesterAPI {
     } catch (error) {
       console.error('⚠️ Failed to setup URL Seeding Service routes:', error.message);
       console.log('URL Seeding Service will not be available.');
+    }
+  }
+
+  async setupBlockchainOptimizationRoutes() {
+    try {
+      const blockchainOptimizationModule = await import('./api/blockchain-optimization-routes.js');
+      this.app.use('/api/blockchain-optimization', blockchainOptimizationModule.default);
+      console.log('✅ Blockchain Algorithm Optimization API routes configured');
+    } catch (error) {
+      console.error('⚠️ Failed to setup Blockchain Optimization routes:', error.message);
+    }
+  }
+
+  setupRealtimeClientAPI() {
+    try {
+      // Import and initialize real-time client service
+      import('./services/realtime-client-api-service.js').then((module) => {
+        const RealTimeClientAPIService = module.default || module.RealTimeClientAPIService;
+        
+        // Initialize the service with the HTTP server
+        this.realtimeClientService = new RealTimeClientAPIService(this.server, {
+          allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || ['*'],
+          heartbeatInterval: 30000,
+          maxConnectionsPerSite: 100
+        });
+
+        // Listen to service events
+        this.realtimeClientService.on('client:registered', (client) => {
+          console.log(`✅ Real-time client registered: ${client.siteDomain}`);
+        });
+
+        this.realtimeClientService.on('optimization:requested', async (data) => {
+          console.log(`🔧 Optimization requested for ${data.domain}`);
+          
+          // Generate optimization config using DeepSeek
+          try {
+            const { DeepSeekDOMOptimizationEngine } = await import('./services/deepseek-dom-optimization-engine.js');
+            const optimizer = new DeepSeekDOMOptimizationEngine();
+            
+            const config = await optimizer.generateOptimizationConfig(data.data);
+            
+            // Send result back to client
+            this.realtimeClientService.sendOptimizationResult(data.clientId, {
+              optimizationId: data.id,
+              config,
+              timestamp: Date.now()
+            });
+          } catch (error) {
+            console.error('Optimization generation failed:', error.message);
+          }
+        });
+
+        this.realtimeClientService.on('content:requested', async (data) => {
+          console.log(`📄 Content requested: ${data.contentType} for site ${data.siteId}`);
+          
+          // Simulate content generation
+          setTimeout(() => {
+            this.realtimeClientService.streamContentChunk(data.streamId, {
+              type: data.contentType,
+              content: `Generated content for ${data.contentType}`,
+              timestamp: Date.now()
+            });
+            
+            setTimeout(() => {
+              this.realtimeClientService.completeContentStream(data.streamId, {
+                contentType: data.contentType,
+                itemsGenerated: 1
+              });
+            }, 1000);
+          }, 500);
+        });
+
+        // Import and mount HTTP routes
+        import('./api/realtime-client-routes.js').then((routesModule) => {
+          const createRealtimeRoutes = routesModule.createRealtimeRoutes || routesModule.default;
+          const routes = createRealtimeRoutes(this.realtimeClientService);
+          this.app.use('/api/realtime', routes);
+          console.log('✅ Real-Time Client API configured (WebSocket + HTTP)');
+        });
+
+      }).catch(error => {
+        console.error('⚠️ Failed to setup Real-Time Client API:', error.message);
+      });
+    } catch (error) {
+      console.error('⚠️ Failed to initialize Real-Time Client API:', error.message);
     }
   }
 
