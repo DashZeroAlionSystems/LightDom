@@ -67,6 +67,27 @@ npm run mining:generate "mine blog posts about AI" # 2. Generate config with AI
 npm run mining:status                              # 3. Monitor progress
 ```
 
+### ⚡ **Blockchain Algorithm Optimization** ⭐ NEW
+- **Algorithm Benchmarking** - Compare PoW, PoS, PoO, DPoS for SEO data mining performance
+- **Real-Time Simulation** - Test algorithms on live pattern detection workloads
+- **AI-Powered DOM Optimization** - DeepSeek generates tree shaking and optimization configs
+- **Two-Way Client Communication** - WebSocket API for live/staging site integration
+- **Self-Generating Content** - Dynamic content streaming to client sites
+- **Pattern Learning** - System improves recommendations over time
+
+📖 **[Algorithm Optimization Guide](BLOCKCHAIN_ALGORITHM_OPTIMIZATION_README.md)** | **[Test Results](test-blockchain-optimization.js)** | **[Demo](demo-blockchain-algorithm-optimization.js)** | **[Client Integration](client-integration-example.html)**
+
+```bash
+# Test blockchain algorithms
+node test-blockchain-optimization.js
+
+# Run full demo
+node demo-blockchain-algorithm-optimization.js
+
+# Start API server
+npm run start:dev
+```
+
 ## 🚀 Quick Start
 
 ### Prerequisites
