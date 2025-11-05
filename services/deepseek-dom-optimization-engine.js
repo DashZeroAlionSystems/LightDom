@@ -13,13 +13,14 @@
  */
 
 import { EventEmitter } from 'events';
-import { DeepSeekAPIService } from './deepseek-api-service.js';
 
 export class DeepSeekDOMOptimizationEngine extends EventEmitter {
   constructor(options = {}) {
     super();
     
-    this.deepseek = new DeepSeekAPIService(options.deepseekConfig);
+    // Lazy load DeepSeek service only when needed
+    this.deepseek = null;
+    this.deepseekConfig = options.deepseekConfig;
     this.optimizationHistory = [];
     this.learnedPatterns = new Map();
     
@@ -34,31 +35,56 @@ export class DeepSeekDOMOptimizationEngine extends EventEmitter {
   }
 
   /**
+   * Initialize DeepSeek service if not already initialized
+   */
+  async initializeDeepSeek() {
+    if (!this.deepseek && this.deepseekConfig) {
+      try {
+        const { DeepSeekAPIService } = await import('./deepseek-api-service.js');
+        this.deepseek = new DeepSeekAPIService(this.deepseekConfig);
+      } catch (error) {
+        console.warn('DeepSeek service not available:', error.message);
+        this.deepseek = null;
+      }
+    }
+  }
+
+  /**
    * Generate optimization configuration for a DOM tree
    */
   async generateOptimizationConfig(domAnalysis) {
-    console.log('🤖 Generating optimization configuration with DeepSeek AI...');
+    console.log('🤖 Generating optimization configuration...');
     
-    const prompt = this.buildOptimizationPrompt(domAnalysis);
+    // Try to use DeepSeek if available
+    await this.initializeDeepSeek();
     
-    try {
-      const response = await this.deepseek.generateWorkflowFromPrompt(prompt, {
-        temperature: 0.3, // Lower temperature for more consistent results
-        maxTokens: 2000
-      });
+    if (this.deepseek) {
+      console.log('   Using DeepSeek AI...');
+      const prompt = this.buildOptimizationPrompt(domAnalysis);
       
-      // Parse AI response into actionable config
-      const config = this.parseOptimizationResponse(response, domAnalysis);
-      
-      console.log('✅ Optimization configuration generated');
-      console.log(`   Strategies: ${config.strategies.length}`);
-      console.log(`   Expected Gain: ${(config.expectedGain * 100).toFixed(1)}%`);
-      
-      return config;
-    } catch (error) {
-      console.error('Error generating optimization config:', error.message);
-      return this.getFallbackConfig(domAnalysis);
+      try {
+        const response = await this.deepseek.generateWorkflowFromPrompt(prompt, {
+          temperature: 0.3, // Lower temperature for more consistent results
+          maxTokens: 2000
+        });
+        
+        // Parse AI response into actionable config
+        const config = this.parseOptimizationResponse(response, domAnalysis);
+        
+        console.log('✅ Optimization configuration generated');
+        console.log(`   Strategies: ${config.strategies.length}`);
+        console.log(`   Expected Gain: ${(config.expectedGain * 100).toFixed(1)}%`);
+        
+        return config;
+      } catch (error) {
+        console.error('Error generating optimization config:', error.message);
+        console.log('   Falling back to heuristic configuration...');
+      }
+    } else {
+      console.log('   Using heuristic configuration (DeepSeek not available)...');
     }
+    
+    return this.getFallbackConfig(domAnalysis);
   }
 
   /**
