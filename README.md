@@ -88,6 +88,28 @@ node demo-blockchain-algorithm-optimization.js
 npm run start:dev
 ```
 
+### 🚀 **Enhanced Startup System** ⭐ NEW
+- **Integrated Demo** - Blockchain algorithm demo runs automatically on startup
+- **Self-Generating Workloads** - Dynamic container generation for different workload types
+- **SEO Data Mining Containers** - Scalable containerized workers for data mining
+- **Multi-Environment** - Support for development, staging, and production
+
+📖 **[Enhanced Startup Guide](ENHANCED_STARTUP_SYSTEM_README.md)** | **[Docker Compose](docker-compose.seo-datamining.yml)**
+
+```bash
+# Quick start with demo
+npm run start:enhanced
+
+# Production deployment
+npm run start:enhanced:production
+
+# Start with all workloads
+npm run start:enhanced:demo
+
+# Docker Compose (scalable workers)
+docker-compose -f docker-compose.seo-datamining.yml up -d
+```
+
 ## 🚀 Quick Start
 
 ### Prerequisites
