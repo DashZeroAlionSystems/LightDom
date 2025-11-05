@@ -211,6 +211,9 @@ class DOMSpaceHarvesterAPI {
     // Setup SEO injection service API routes
     this.setupSEOServiceRoutes();
 
+    // Setup agent orchestration API routes
+    this.setupAgentOrchestratorRoutes();
+
     // Statistics cache
     this.statsCache = {
       lastUpdate: 0,
@@ -8752,6 +8755,38 @@ class DOMSpaceHarvesterAPI {
     });
 
     console.log('✅ Advanced Node API routes configured');
+  }
+
+  async setupAgentOrchestratorRoutes() {
+    try {
+      console.log('🚀 Setting up Agent Orchestrator routes...');
+      
+      // Import agent orchestrator routes
+      const { agentOrchestratorRoutes, initializeAgentServices } = await import('./services/agent-orchestrator-routes.js');
+      
+      // Initialize agent services
+      await initializeAgentServices({
+        deepseek: {
+          apiKey: process.env.DEEPSEEK_API_KEY,
+          model: process.env.DEEPSEEK_MODEL || 'deepseek-chat'
+        },
+        database: {
+          host: process.env.DB_HOST || 'localhost',
+          port: process.env.DB_PORT || 5432,
+          database: process.env.DB_NAME || 'lightdom',
+          user: process.env.DB_USER || 'lightdom_user',
+          password: process.env.DB_PASSWORD || 'lightdom_password'
+        }
+      });
+      
+      // Register routes
+      this.app.use('/api/agent', agentOrchestratorRoutes);
+      
+      console.log('✅ Agent Orchestrator routes registered');
+    } catch (error) {
+      console.error('Failed to setup agent orchestrator routes:', error);
+      console.warn('⚠️ Agent orchestration features will not be available');
+    }
   }
 
   async setupSEOServiceRoutes() {
