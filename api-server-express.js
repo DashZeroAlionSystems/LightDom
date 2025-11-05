@@ -651,6 +651,14 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load advanced MCP routes:', err);
     });
     
+    // Import and register Styleguide Config routes
+    import('./src/api/routes/styleguide-config.routes.js').then((styleguideModule) => {
+      this.app.use('/api/styleguide-config', styleguideModule.default);
+      console.log('✅ Styleguide Configuration routes registered (Categories, workflows, campaigns, containers, simulations)');
+    }).catch(err => {
+      console.error('Failed to load styleguide config routes:', err);
+    });
+    
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
