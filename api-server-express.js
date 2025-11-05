@@ -402,6 +402,17 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load AI layout routes:', err);
     });
     
+    // Import and register DeepSeek Chat routes
+    import('./src/api/routes/deepseek-chat.routes.js').then((chatModule) => {
+      const chatRouter = chatModule.createDeepSeekChatRoutes;
+      if (typeof chatRouter === 'function') {
+        this.app.use('/api/deepseek', chatRouter(this.db, {}));
+      }
+      console.log('✅ DeepSeek chat routes registered');
+    }).catch(err => {
+      console.error('Failed to load DeepSeek chat routes:', err);
+    });
+    
     // Import and register Workflow Wizard routes
     import('./api/workflow-wizard-routes.js').then((wizardModule) => {
       this.app.use('/api/workflow', wizardModule.default);
@@ -577,6 +588,30 @@ class DOMSpaceHarvesterAPI {
       }
     }).catch(err => {
       console.error('Failed to load Campaign Worker routes:', err);
+    });
+    
+    // Import and register Enhanced Agent Session routes
+    import('./src/api/routes/enhanced-agent-session.routes.js').then((agentModule) => {
+      const createRoutes = agentModule.createEnhancedAgentSessionRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/agent', createRoutes(this.db));
+        console.log('✅ Enhanced Agent Session routes registered (DeepSeek orchestration, knowledge graph integration)');
+      }
+    }).catch(err => {
+      console.error('Failed to load enhanced agent session routes:', err);
+    });
+    
+    // Import and register Agent Management routes
+    import('./src/api/routes/agent-management.routes.js').then((mgmtModule) => {
+      const createRoutes = mgmtModule.createAgentManagementRoutes;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/agent', createRoutes(this.db));
+        console.log('✅ Agent Management routes registered');
+      }
+    }).catch(err => {
+      console.error('Failed to load agent management routes:', err);
+    });
+    
     // Import and register MCP Server Management routes (Agent instances with schema linking)
     import('./api/mcp-server-routes.js').then((mcpModule) => {
       const createRoutes = mcpModule.default || mcpModule.createMCPServerRoutes;
