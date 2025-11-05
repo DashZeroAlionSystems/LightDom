@@ -17,14 +17,26 @@
  */
 
 import { EventEmitter } from 'events';
-import { DeepSeekAPIService } from './deepseek-api-service.js';
-import { AtomicComponentGenerator } from './atomic-component-generator.js';
-import { SchemaLinkingService } from './schema-linking-service.js';
 import pg from 'pg';
 import fs from 'fs/promises';
 import path from 'path';
 
 const { Pool } = pg;
+
+// Lazy load dependencies (may not be available)
+let DeepSeekAPIService, AtomicComponentGenerator, SchemaLinkingService;
+try {
+  const deepseekModule = await import('./deepseek-api-service.js');
+  DeepSeekAPIService = deepseekModule.DeepSeekAPIService;
+  
+  const compModule = await import('./atomic-component-generator.js');
+  AtomicComponentGenerator = compModule.AtomicComponentGenerator;
+  
+  const schemaModule = await import('./schema-linking-service.js');
+  SchemaLinkingService = schemaModule.SchemaLinkingService;
+} catch (error) {
+  console.warn('Some services not available:', error.message);
+}
 
 export class AgentWorkflowOrchestrator extends EventEmitter {
   constructor(config = {}) {
@@ -39,19 +51,29 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
     };
 
     // Initialize services
-    this.deepseek = new DeepSeekAPIService({
-      model: this.config.deepseekModel,
-      temperature: this.config.temperature,
-      ...config.deepseek
-    });
+    if (DeepSeekAPIService) {
+      this.deepseek = new DeepSeekAPIService({
+        model: this.config.deepseekModel,
+        temperature: this.config.temperature,
+        ...config.deepseek
+      });
+    } else {
+      console.warn('⚠️ DeepSeek service not available. AI features will be limited.');
+    }
 
-    this.componentGenerator = new AtomicComponentGenerator({
-      outputDir: this.config.componentsDir,
-      useAI: true,
-      deepseek: config.deepseek
-    });
+    if (AtomicComponentGenerator) {
+      this.componentGenerator = new AtomicComponentGenerator({
+        outputDir: this.config.componentsDir,
+        useAI: !!DeepSeekAPIService,
+        deepseek: config.deepseek
+      });
+    } else {
+      console.warn('⚠️ Component generator not available.');
+    }
 
-    this.schemaLinker = new SchemaLinkingService(config.database);
+    if (SchemaLinkingService) {
+      this.schemaLinker = new SchemaLinkingService(config.database);
+    }
 
     // Workflow state
     this.activeWorkflows = new Map();
@@ -66,7 +88,7 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
     
     await Promise.all([
       fs.mkdir(this.config.workflowsDir, { recursive: true }),
-      this.componentGenerator.initialize()
+      this.componentGenerator ? this.componentGenerator.initialize() : Promise.resolve()
     ]);
     
     console.log('✅ Agent Workflow Orchestrator initialized');
@@ -165,6 +187,29 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
    * Analyze prompt intent using DeepSeek
    */
   async analyzeIntent(prompt) {
+    if (!this.deepseek) {
+      // Fallback to simple keyword-based intent detection
+      const lower = prompt.toLowerCase();
+      let type = 'generic';
+      
+      if (lower.includes('component') || lower.includes('button') || lower.includes('input')) {
+        type = 'component';
+      } else if (lower.includes('dashboard') || lower.includes('chart')) {
+        type = 'dashboard';
+      } else if (lower.includes('service') || lower.includes('api')) {
+        type = 'service';
+      } else if (lower.includes('workflow')) {
+        type = 'workflow';
+      }
+      
+      return {
+        type,
+        entities: { name: 'unknown', purpose: prompt },
+        requirements: [],
+        confidence: 0.5
+      };
+    }
+
     const systemPrompt = `You are an AI workflow analyzer. Analyze user prompts and extract:
 1. Intent type: component, dashboard, service, workflow, or generic
 2. Key entities and parameters
@@ -512,7 +557,9 @@ if (import.meta.url === \`file://\${process.argv[1]}\`) {
    * Cleanup
    */
   async cleanup() {
-    await this.componentGenerator.cleanup();
+    if (this.componentGenerator) {
+      await this.componentGenerator.cleanup();
+    }
     this.activeWorkflows.clear();
   }
 }

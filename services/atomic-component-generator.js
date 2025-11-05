@@ -20,10 +20,19 @@ import { EventEmitter } from 'events';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { DeepSeekAPIService } from './deepseek-api-service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Lazy load DeepSeek service (may not be available if dependencies not installed)
+let DeepSeekAPIService;
+try {
+  const module = await import('./deepseek-api-service.js');
+  DeepSeekAPIService = module.DeepSeekAPIService;
+} catch (error) {
+  console.warn('DeepSeek service not available:', error.message);
+  DeepSeekAPIService = null;
+}
 
 export class AtomicComponentGenerator extends EventEmitter {
   constructor(config = {}) {
@@ -38,11 +47,14 @@ export class AtomicComponentGenerator extends EventEmitter {
       ...config
     };
 
-    if (this.config.useAI) {
+    if (this.config.useAI && DeepSeekAPIService) {
       this.deepseek = new DeepSeekAPIService({
         model: config.model || 'deepseek-chat',
         ...config.deepseek
       });
+    } else if (this.config.useAI && !DeepSeekAPIService) {
+      console.warn('⚠️ AI features requested but DeepSeek service not available. Using template-based generation.');
+      this.config.useAI = false;
     }
 
     this.schemaCache = new Map();
@@ -210,14 +222,15 @@ export class AtomicComponentGenerator extends EventEmitter {
     }
     
     // Default template-based generation
-    const defaultValues = props
-      .filter(p => p.default !== undefined)
-      .map(p => {
-        const value = typeof p.default === 'string' ? `'${p.default}'` : p.default;
-        return `${p.name} = ${value}`;
-      });
+    const defaultProps = props.filter(p => p.default !== undefined);
+    const nonDefaultProps = props.filter(p => p.default === undefined);
     
-    const propNames = props.map(p => p.name).join(',\n  ');
+    const defaultValues = defaultProps.map(p => {
+      const value = typeof p.default === 'string' ? `'${p.default}'` : p.default;
+      return `  ${p.name} = ${value}`;
+    });
+    
+    const nonDefaultNames = nonDefaultProps.map(p => `  ${p.name}`);
     
     let componentCode = `import React from 'react';\nimport type { ${componentName}Props } from './${componentName}.types';\n`;
     
@@ -234,9 +247,16 @@ export class AtomicComponentGenerator extends EventEmitter {
     
     componentCode += `export const ${componentName}: React.FC<${componentName}Props> = ({\n`;
     if (defaultValues.length > 0) {
-      componentCode += `  ${defaultValues.join(',\n  ')},\n`;
+      componentCode += `${defaultValues.join(',\n')}`; 
+      if (nonDefaultNames.length > 0) {
+        componentCode += ',\n';
+      } else {
+        componentCode += '\n';
+      }
     }
-    componentCode += `  ${propNames}\n`;
+    if (nonDefaultNames.length > 0) {
+      componentCode += `${nonDefaultNames.join(',\n')}\n`;
+    }
     componentCode += `}) => {\n`;
     
     // Add basic implementation
