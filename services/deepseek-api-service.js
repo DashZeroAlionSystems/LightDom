@@ -24,21 +24,43 @@ class DeepSeekAPIService {
     this.model = config.model || process.env.DEEPSEEK_MODEL || 'deepseek-chat';
     this.timeout = config.timeout || 60000;
     this.maxRetries = config.maxRetries || 3;
-    
-    if (!this.apiKey) {
+
+    const urlHost = (() => {
+      try {
+        return new URL(this.apiUrl).hostname;
+      } catch {
+        return '';
+      }
+    })();
+
+    const allowAnonymous =
+      config.allowAnonymous ??
+      (process.env.DEEPSEEK_ALLOW_ANON === 'true' || /^(localhost|127\.0\.0\.1)$/i.test(urlHost));
+
+    const isLocalhost = /^(localhost|127\.0\.0\.1)$/i.test(urlHost);
+    this.isOllama = isLocalhost;
+
+    if (this.isOllama) {
+      // Ollama expects requests at root; strip common suffixes like /v1
+      this.apiUrl = this.apiUrl.replace(/\/?v1$/i, '');
+    }
+
+    if (!this.apiKey && !allowAnonymous) {
       console.warn('⚠️  DeepSeek API key not configured. Service will operate in mock mode.');
       this.mockMode = true;
     } else {
       this.mockMode = false;
     }
 
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(this.apiKey && { Authorization: `Bearer ${this.apiKey}` }),
+    };
+
     this.client = axios.create({
       baseURL: this.apiUrl,
       timeout: this.timeout,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`
-      }
+      headers,
     });
 
     // Request cache to reduce API calls
@@ -54,7 +76,7 @@ class DeepSeekAPIService {
     const cached = this.getFromCache(cacheKey);
     if (cached) return cached;
 
-    if (this.mockMode) {
+    if (this.mockMode && !this.isOllama) {
       return this.mockGenerateWorkflow(prompt);
     }
 
@@ -90,20 +112,60 @@ Output a JSON object with this structure:
   }
 }`;
 
-      const response = await this.client.post('/chat/completions', {
-        model: this.model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt }
-        ],
-        temperature: options.temperature || 0.7,
-        max_tokens: options.maxTokens || 2000,
-        response_format: { type: 'json_object' }
-      });
+      let content;
 
-      const content = response.data.choices[0].message.content;
-      const workflow = JSON.parse(content);
-      
+      if (this.isOllama) {
+        const payload = {
+          model: this.model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt },
+          ],
+          stream: false,
+          options: {},
+        };
+
+        if (options.temperature !== undefined) {
+          payload.options.temperature = options.temperature;
+        }
+
+        if (options.maxTokens !== undefined) {
+          payload.options.num_predict = options.maxTokens;
+        }
+
+        const response = await this.client.post('/api/chat', payload);
+        content = response.data?.message?.content;
+      } else {
+        const response = await this.client.post('/chat/completions', {
+          model: this.model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt },
+          ],
+          temperature: options.temperature || 0.7,
+          max_tokens: options.maxTokens || 2000,
+          response_format: { type: 'json_object' },
+        });
+
+        content = response.data.choices[0].message.content;
+      }
+
+      let workflow;
+      try {
+        workflow = JSON.parse(content);
+      } catch (parseError) {
+        workflow = {
+          workflowName: 'Generated Workflow',
+          description: typeof content === 'string' ? content : 'No structured response available',
+          summary: typeof content === 'string' ? content : 'No structured response available',
+          rawResponse: content,
+        };
+      }
+
+      if (!workflow.summary) {
+        workflow.summary = workflow.description || `Workflow generated from prompt: ${prompt}`;
+      }
+
       this.setCache(cacheKey, workflow);
       return workflow;
     } catch (error) {
@@ -408,6 +470,7 @@ Output JSON with structured recommendations.`;
     return {
       workflowName: 'SEO Training Data Collection',
       description: `Automated workflow for ${prompt}`,
+      summary: `Generated automation workflow in response to: ${prompt}`,
       seeds: [
         baseUrl,
         `${baseUrl}/blog`,

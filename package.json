@@ -188,8 +188,15 @@
     "workflow:monitor:interactive": "node scripts/automation/workflow-automation-monitor.js --interactive",
     "workflow:watch": "node scripts/automation/workflow-automation-monitor.js --watch",
     "workflow:mine": "tsx scripts/mine-design-system.ts",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "db:migrate": "node scripts/migrate.js migrate",
+    "db:migrate:status": "node scripts/migrate.js status",
+    "db:migrate:rollback": "node scripts/migrate.js rollback",
+    "db:optimize": "node scripts/db-manager.js optimize",
+    "db:health": "node scripts/db-manager.js health",
+    "db:mine": "node scripts/data-mining.js mine",
+    "db:mine:relationships": "node scripts/data-mining.js relationships",
+    "db:mine:quality": "node scripts/data-mining.js quality"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.2",
@@ -209,14 +216,13 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.3",
-    "chokidar": "^4.0.1",
-    "pidusage": "^3.0.2",
     "antd": "^5.27.4",
     "autoprefixer": "^10.4.21",
     "axios": "^1.12.2",
     "better-sqlite3": "^12.4.1",
     "chalk": "^5.6.2",
     "cheerio": "^1.1.2",
+    "chokidar": "^4.0.1",
     "class-variance-authority": "^0.7.1",
     "cli-table3": "^0.6.5",
     "clsx": "^2.1.1",
@@ -237,6 +243,7 @@
     "morgan": "^1.10.1",
     "node-fetch": "^3.3.2",
     "pg": "^8.16.3",
+    "pidusage": "^3.0.2",
     "postcss": "^8.5.6",
     "prismjs": "^1.29.0",
     "puppeteer": "^24.27.0",
@@ -258,6 +265,9 @@
     "winston": "^3.18.3"
   },
   "devDependencies": {
+    "@storybook/addon-docs": "^10.0.4",
+    "@storybook/addon-onboarding": "^10.0.4",
+    "@storybook/react-vite": "^10.0.4",
     "@types/node": "^24.9.2",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",
@@ -271,14 +281,11 @@
     "eslint": "^8.0.0",
     "jsdom": "^27.1.0",
     "prettier": "^3.0.0",
+    "storybook": "^10.0.4",
     "vite-bundle-analyzer": "^0.7.0",
     "vite-plugin-pwa": "^1.1.0",
     "vitest": "^1.0.0",
-    "wait-on": "^9.0.0",
-    "storybook": "^10.0.4",
-    "@storybook/react-vite": "^10.0.4",
-    "@storybook/addon-docs": "^10.0.4",
-    "@storybook/addon-onboarding": "^10.0.4"
+    "wait-on": "^9.0.0"
   },
   "jest": {
     "preset": "ts-jest",

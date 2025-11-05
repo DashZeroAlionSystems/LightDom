@@ -183,6 +183,42 @@ export function createAgentManagementRoutes(db: Pool): Router {
   });
 
   // ============================================================================
+  // CHAT ENDPOINTS
+  // ============================================================================
+
+  // Send chat message to DeepSeek agent
+  router.post('/chat', async (req: Request, res: Response) => {
+    try {
+      const { session_id, instance_id, prompt, model } = req.body;
+
+      if (!session_id || !prompt) {
+        return res.status(400).json({ error: 'session_id and prompt are required' });
+      }
+
+      // For now, return a mock response - in production this would call DeepSeek API
+      const mockResponse = {
+        response: `DeepSeek response to: "${prompt}". This is a simulated response from the ${model || 'deepseek-r1:7b'} model.`,
+        session_id,
+        instance_id,
+        timestamp: new Date().toISOString(),
+        model: model || 'deepseek-r1:7b'
+      };
+
+      // Store the message in the database
+      await service.sendMessage({
+        session_id,
+        instance_id,
+        content: prompt
+      });
+
+      res.json(mockResponse);
+    } catch (error) {
+      console.error('Error in chat endpoint:', error);
+      res.status(500).json({ error: 'Failed to process chat request' });
+    }
+  });
+
+  // ============================================================================
   // TOOLS
   // ============================================================================
 

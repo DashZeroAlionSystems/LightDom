@@ -17,12 +17,16 @@ import {
   Square,
   RefreshCw,
   Settings2,
-  Wrench
+  Wrench,
+  Sparkles,
+  Cpu as CpuIcon,
+  MessageCircle
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import axios from 'axios';
 
 import { ServiceActionBar, ServiceActionButton, Divider } from '@/components/ui';
+import { PromptInput } from '@/components/ui/PromptInput';
 
 interface ServiceStatus {
   [key: string]: any;
@@ -97,6 +101,13 @@ export const CompleteDashboardPage: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activeService, setActiveService] = useState<ServiceKey>('crawler');
+  const [generatingPrompt, setGeneratingPrompt] = useState(false);
+  const [databaseActivity, setDatabaseActivity] = useState({
+    isActive: false,
+    lastActivity: new Date(),
+    activeTables: [] as string[],
+    totalRows: 0
+  });
   const hasWarnedRef = useRef(false);
 
   useEffect(() => {
@@ -108,6 +119,43 @@ export const CompleteDashboardPage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const checkDatabaseActivity = async () => {
+    try {
+      // Use MCP server to check database activity
+      const response = await axios.get(`${API_BASE}/api/dashboard/database-activity`);
+      if (response.data) {
+        setDatabaseActivity({
+          isActive: response.data.isActive,
+          lastActivity: new Date(response.data.lastActivity),
+          activeTables: response.data.activeTables || [],
+          totalRows: response.data.totalRows || 0
+        });
+      }
+    } catch (error) {
+      console.error('Failed to check database activity:', error);
+    }
+  };
+
+  const handlePromptSend = async (prompt: string) => {
+    setGeneratingPrompt(true);
+    try {
+      const response = await axios.post(`${API_BASE}/api/deepseek/workflows/generate`, {
+        prompt,
+        context: 'dashboard-optimization'
+      });
+      if (response.data) {
+        // Refresh dashboard data to see new insights
+        fetchAllData();
+        console.log('Workflow generated:', response.data);
+      }
+    } catch (error) {
+      console.error('Failed to generate workflow from prompt:', error);
+      setErrorMessage('Failed to generate workflow from prompt');
+    } finally {
+      setGeneratingPrompt(false);
+    }
+  };
+
   const fetchAllData = async () => {
     try {
       const response = await axios.get(`${API_BASE}/api/dashboard/complete`);
@@ -115,6 +163,9 @@ export const CompleteDashboardPage: React.FC = () => {
       setLoading(false);
       setErrorMessage(null);
       hasWarnedRef.current = false;
+
+      // Check database activity
+      await checkDatabaseActivity();
     } catch (error) {
       const message =
         axios.isAxiosError?.(error) && error.response
@@ -274,6 +325,10 @@ export const CompleteDashboardPage: React.FC = () => {
     ? `${selectedTab.label} Service Online`
     : 'Awaiting backend response';
 
+  const databaseStatus = databaseActivity.isActive
+    ? `DB Active (${databaseActivity.totalRows} rows, ${databaseActivity.activeTables.length} tables)`
+    : 'DB Idle';
+
   return (
     <div className="p-6 space-y-6">
       {errorMessage && (
@@ -300,6 +355,14 @@ export const CompleteDashboardPage: React.FC = () => {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-border">
             <div
+              className={`w-2 h-2 rounded-full ${databaseActivity.isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`}
+            ></div>
+            <span className="text-sm font-medium">
+              {databaseStatus}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border border-border">
+            <div
               className={`w-2 h-2 rounded-full ${systemHealthy ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}
             ></div>
             <span className="text-sm font-medium">
@@ -307,6 +370,76 @@ export const CompleteDashboardPage: React.FC = () => {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* DeepSeek Prompt Surface */}
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <Zap className="w-5 h-5 text-primary" />
+          AI Workflow Generator
+        </h2>
+        <PromptInput
+          onSend={handlePromptSend}
+          loading={generatingPrompt}
+          placeholder="Describe a workflow or dashboard optimization... (e.g., 'Optimize crawler for better SEO insights')"
+          className="w-full"
+          header={{
+            title: selectedTab.label,
+            subtitle: selectedTab.description,
+            leading: (
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold">{selectedTab.label} Agent</span>
+                  <span className="text-xs text-on-surface-variant">Workflow composer</span>
+                </div>
+              </div>
+            ),
+            trailing: (
+              <div className="flex items-center gap-2 text-xs text-on-surface-variant/80">
+                <MessageCircle className="h-3.5 w-3.5" />
+                Live DeepSeek session
+              </div>
+            )
+          }}
+          tokens={[
+            {
+              id: 'service',
+              label: selectedTab.label,
+              tone: 'accent',
+              icon: <Sparkles className="w-3.5 h-3.5" />
+            },
+            {
+              id: 'database',
+              label: databaseActivity.isActive ? 'DB Active' : 'DB Idle',
+              tone: databaseActivity.isActive ? 'accent' : 'default',
+              icon: <Database className="w-3.5 h-3.5" />
+            },
+            {
+              id: 'tables',
+              label: `${databaseActivity.activeTables.length} tables`,
+              icon: <CpuIcon className="w-3.5 h-3.5" />
+            }
+          ]}
+          actions={[
+            {
+              id: 'refresh',
+              icon: <RefreshCw className="w-4 h-4" />,
+              label: 'Sync services',
+              onClick: () => fetchAllData()
+            },
+            {
+              id: 'settings',
+              icon: <Settings2 className="w-4 h-4" />,
+              label: 'Service settings'
+            }
+          ]}
+          helperText="Use @ to reference data streams, # for campaigns, and /run to trigger workflows."
+          usage={`Shift + Enter for newline · Enter to send · ${databaseActivity.totalRows.toLocaleString()} rows indexed`}
+          maxLength={4000}
+        />
       </div>
 
       {/* Service Tabs */}

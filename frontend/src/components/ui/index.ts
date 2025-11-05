@@ -51,6 +51,19 @@ export {
 export { LoadingBar } from './LoadingBar';
 
 export {
+  PromptCompose,
+  PromptComposeAction,
+  PromptComposeFooter,
+  PromptComposeHeader,
+  PromptComposeInput,
+  PromptComposeShell,
+  PromptComposeToolbar,
+  PromptComposeToken,
+} from './PromptCompose';
+
+export { PromptInput } from './PromptInput';
+
+export {
   Wizard,
   WizardContent,
   WizardFooter,
