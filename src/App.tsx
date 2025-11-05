@@ -68,6 +68,9 @@ import InteractiveSEOWorkflowDashboard from './components/InteractiveSEOWorkflow
 import SEOCampaignManagementDashboard from './components/SEOCampaignManagementDashboard';
 import MCPServerDashboard from './components/MCPServerDashboard';
 import { AgentSessionsPanel } from './components/agent/AgentSessionsPanel';
+import StyleguideConfigManager from './components/admin/StyleguideConfigManager';
+import AdminMenuBuilder from './components/admin/AdminMenuBuilder';
+import VisualComponentBuilder from './components/admin/VisualComponentBuilder';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -145,6 +148,9 @@ const AppContent: React.FC = () => {
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
           <Route path="chrome-layers" element={<ChromeLayers3DDashboard />} />
+          <Route path="styleguide-config" element={<StyleguideConfigManager />} />
+          <Route path="menu-builder" element={<AdminMenuBuilder />} />
+          <Route path="component-builder" element={<VisualComponentBuilder />} />
         </Route>
         
         {/* Protected Routes */}
@@ -208,6 +214,9 @@ const AppContent: React.FC = () => {
           <Route path="admin/user-workflows" element={<UserManagementWorkflow />} />
           <Route path="admin/seo-workflows" element={<SEOCrawlerWorkflow />} />
           <Route path="admin/ai-automation" element={<AIAutomationPage />} />
+          <Route path="admin/styleguide-config" element={<StyleguideConfigManager />} />
+          <Route path="admin/menu-builder" element={<AdminMenuBuilder />} />
+          <Route path="admin/component-builder" element={<VisualComponentBuilder />} />
         </Route>
         
         {/* Public Landing Page */}
