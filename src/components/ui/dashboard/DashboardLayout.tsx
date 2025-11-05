@@ -184,9 +184,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     },
     {
       key: 'ai',
-      icon: <ApiOutlined />,
+      icon: <RobotOutlined />,
       label: 'AI & Agents',
       children: [
+        {
+          key: '/dashboard/agent-sessions',
+          icon: <RobotOutlined />,
+          label: 'Agent Sessions',
+        },
         {
           key: '/dashboard/mcp-servers',
           icon: <ApiOutlined />,
