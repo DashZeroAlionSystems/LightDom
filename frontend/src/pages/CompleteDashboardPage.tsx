@@ -47,6 +47,12 @@ interface CompleteDashboard {
 
 const API_BASE = 'http://localhost:3001';
 
+type PromptChatEntry = {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+};
+
 type ServiceKey = 'crawler' | 'mining' | 'blockchain' | 'spaceMining' | 'metaverse' | 'seo';
 
 interface ServiceTab {
@@ -102,6 +108,8 @@ export const CompleteDashboardPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activeService, setActiveService] = useState<ServiceKey>('crawler');
   const [generatingPrompt, setGeneratingPrompt] = useState(false);
+  const [promptConversation, setPromptConversation] = useState<PromptChatEntry[]>([]);
+  const [promptError, setPromptError] = useState<string | null>(null);
   const [databaseActivity, setDatabaseActivity] = useState({
     isActive: false,
     lastActivity: new Date(),
@@ -137,20 +145,55 @@ export const CompleteDashboardPage: React.FC = () => {
   };
 
   const handlePromptSend = async (prompt: string) => {
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt) {
+      return;
+    }
+
+    const userMessage: PromptChatEntry = {
+      role: 'user',
+      content: trimmedPrompt,
+      timestamp: new Date().toISOString()
+    };
+
+    const updatedConversation: PromptChatEntry[] = [...promptConversation, userMessage];
+    setPromptConversation(updatedConversation);
     setGeneratingPrompt(true);
+
     try {
-      const response = await axios.post(`${API_BASE}/api/deepseek/workflows/generate`, {
-        prompt,
-        context: 'dashboard-optimization'
+      const chatResponse = await axios.post(`${API_BASE}/api/deepseek/chat`, {
+        prompt: trimmedPrompt,
+        conversation: updatedConversation.map(({ role, content }) => ({ role, content }))
       });
-      if (response.data) {
-        // Refresh dashboard data to see new insights
-        fetchAllData();
-        console.log('Workflow generated:', response.data);
+
+      const reply = chatResponse.data?.response || chatResponse.data?.content;
+      if (reply) {
+        setPromptConversation((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: reply,
+            timestamp: new Date().toISOString()
+          }
+        ]);
+        setPromptError(null);
+      } else {
+        setPromptError('DeepSeek responded without content.');
       }
     } catch (error) {
-      console.error('Failed to generate workflow from prompt:', error);
-      setErrorMessage('Failed to generate workflow from prompt');
+      console.error('DeepSeek chat failed:', error);
+      setPromptError('Unable to reach the DeepSeek chat service right now.');
+    }
+
+    try {
+      await axios.post(`${API_BASE}/api/deepseek/workflows/generate`, {
+        prompt: trimmedPrompt,
+        context: 'dashboard-optimization'
+      });
+      fetchAllData();
+    } catch (error) {
+      console.warn('Workflow generator unavailable:', error);
+      setPromptError((prev) => prev ?? 'Workflow generator API is currently unavailable.');
     } finally {
       setGeneratingPrompt(false);
     }
@@ -324,6 +367,11 @@ export const CompleteDashboardPage: React.FC = () => {
   const headerStatus = systemHealthy
     ? `${selectedTab.label} Service Online`
     : 'Awaiting backend response';
+
+  const latestAssistantSummary = useMemo(() => {
+    const replies = promptConversation.filter((entry) => entry.role === 'assistant');
+    return replies.length ? replies[replies.length - 1] : null;
+  }, [promptConversation]);
 
   const databaseStatus = databaseActivity.isActive
     ? `DB Active (${databaseActivity.totalRows} rows, ${databaseActivity.activeTables.length} tables)`

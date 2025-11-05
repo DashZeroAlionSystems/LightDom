@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, User, MessageSquare, Zap, Trash2, Sparkles, Cpu, RefreshCw } from 'lucide-react';
-import { Button, Input, Badge, PromptInput } from '@/components/ui';
+import { Plus, User, MessageSquare, Zap, Trash2, Sparkles, Cpu, RefreshCw, GitBranch, GitPullRequest, Columns, PanelRight } from 'lucide-react';
+import { Button, Input, Badge, PromptInput, PromptSidebar } from '@/components/ui';
 import axios from 'axios';
 
 interface Agent {
@@ -26,8 +26,21 @@ const DeepSeekChatDemo: React.FC = () => {
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [newAgentName, setNewAgentName] = useState('');
   const [pendingRequests, setPendingRequests] = useState(0);
+  const [viewMode, setViewMode] = useState<'primary' | 'extended' | 'complement' | 'custom'>('primary');
 
   const isProcessing = pendingRequests > 0;
+
+  const { Shell: SidebarShell, Section: SidebarSection, Item: SidebarItem, Divider: SidebarDivider } = PromptSidebar;
+
+  const latestAssistantMessage = useMemo(() => {
+    const assistantMessages = messages.filter((message) => message.role === 'assistant');
+    return assistantMessages.length ? assistantMessages[assistantMessages.length - 1] : null;
+  }, [messages]);
+
+  const recentUserPrompts = useMemo(
+    () => messages.filter((message) => message.role === 'user').slice(-5).reverse(),
+    [messages]
+  );
 
   // Load agents on mount
   useEffect(() => {
