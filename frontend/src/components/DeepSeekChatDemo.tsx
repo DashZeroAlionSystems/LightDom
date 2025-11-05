@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, User, MessageSquare, Zap, Settings, Trash2, Sparkles, Cpu } from 'lucide-react';
+import { Plus, User, MessageSquare, Zap, Trash2, Sparkles, Cpu, RefreshCw } from 'lucide-react';
 import { Button, Input, Badge, PromptInput } from '@/components/ui';
 import axios from 'axios';
 
@@ -25,7 +25,9 @@ const DeepSeekChatDemo: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [newAgentName, setNewAgentName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState(0);
+
+  const isProcessing = pendingRequests > 0;
 
   // Load agents on mount
   useEffect(() => {
@@ -181,14 +183,23 @@ const DeepSeekChatDemo: React.FC = () => {
     ];
   }, [selectedAgent]);
 
-  const promptActions = useMemo(() => [
-    {
-      id: 'agent-settings',
-      icon: <Settings className="w-4 h-4" />,
-      label: 'Agent settings',
-      onClick: () => console.info('Open agent settings panel')
+  const promptActions = useMemo((): PromptAction[] => {
+    if (!selectedAgent) {
+      return [];
     }
-  ], []);
+
+    return [
+      {
+        id: 'refresh-context',
+        icon: <RefreshCw className="w-4 h-4" />,
+        label: 'Refresh context',
+        onClick: () => {
+          loadAgentMessages(selectedAgent.session_id);
+          loadAgents();
+        }
+      }
+    ];
+  }, [loadAgents, loadAgentMessages, selectedAgent]);
 
   const promptHeader = useMemo(() => {
     if (!selectedAgent) {
@@ -242,24 +253,33 @@ const DeepSeekChatDemo: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
+    const trimmedPrompt = prompt.trim();
+    if (!trimmedPrompt) return;
 
-    // Add user message
+    // Create user message locally for optimistic UI
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: prompt,
+      content: trimmedPrompt,
       timestamp: new Date().toISOString()
     };
-    setMessages(prev => [...prev, userMessage]);
+
+    const conversationPayload = [...messages, userMessage].map((message) => ({
+      role: message.role,
+      content: message.content
+    }));
+
+    setMessages((prev) => [...prev, userMessage]);
+    setPendingRequests((prev) => prev + 1);
 
     try {
       // Send prompt to DeepSeek
       const response = await axios.post('/api/deepseek/chat', {
         session_id: selectedAgent.session_id,
         instance_id: selectedAgent.instance_id,
-        prompt,
-        model: selectedAgent.model_name
+        prompt: trimmedPrompt,
+        model: selectedAgent.model_name,
+        conversation: conversationPayload
       });
 
       if (response.data) {
@@ -281,7 +301,7 @@ const DeepSeekChatDemo: React.FC = () => {
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
-      setIsLoading(false);
+      setPendingRequests((prev) => Math.max(0, prev - 1));
     }
   };
 
@@ -442,7 +462,7 @@ const DeepSeekChatDemo: React.FC = () => {
               </div>
             ))
           )}
-          {isLoading && (
+          {isProcessing && (
             <div className="flex justify-start">
               <div className="bg-surface-overlay border border-outline rounded-2xl px-4 py-3">
                 <div className="flex items-center gap-2">
@@ -460,7 +480,7 @@ const DeepSeekChatDemo: React.FC = () => {
           {selectedAgent ? (
             <PromptInput
               onSend={handlePromptSend}
-              loading={isLoading}
+              loading={isProcessing}
               placeholder={`Ask ${selectedAgent.name} anything...`}
               tokens={promptTokens}
               actions={promptActions}
@@ -468,6 +488,7 @@ const DeepSeekChatDemo: React.FC = () => {
               helperText="Use @ to reference data streams or # to mention campaigns. /menu for quick commands."
               usage="Shift + Enter for newline · Enter to send"
               maxLength={4000}
+              allowSendWhileLoading
             />
           ) : (
             <div className="text-center text-on-surface-variant py-4">

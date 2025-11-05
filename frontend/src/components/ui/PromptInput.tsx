@@ -60,18 +60,13 @@ export interface PromptInputProps {
   className?: string;
   minRows?: number;
   maxRows?: number;
+  allowSendWhileLoading?: boolean;
 }
 
 const defaultTokens: PromptToken[] = [
   { id: 'workspace', label: 'AI Workspace', icon: <Sparkles className="w-3.5 h-3.5" />, tone: 'accent' },
   { id: 'docs', label: 'Documents' },
   { id: 'sheets', label: 'Sheets' }
-];
-
-const defaultActions: PromptAction[] = [
-  { id: 'attach', icon: <Paperclip className="w-4 h-4" />, label: 'Attach files' },
-  { id: 'voice', icon: <Mic className="w-4 h-4" />, label: 'Start voice' },
-  { id: 'commands', icon: <Command className="w-4 h-4" />, label: 'Commands' }
 ];
 
 export const PromptInput: React.FC<PromptInputProps> = ({
@@ -90,7 +85,8 @@ export const PromptInput: React.FC<PromptInputProps> = ({
   maxLength,
   className,
   minRows = 4,
-  maxRows = 10
+  maxRows = 10,
+  allowSendWhileLoading = false
 }) => {
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [isFocused, setIsFocused] = useState(false);
@@ -102,7 +98,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
   const currentValue = value ?? internalValue;
 
   const resolvedTokens = useMemo(() => tokens ?? defaultTokens, [tokens]);
-  const resolvedActions = useMemo(() => actions ?? defaultActions, [actions]);
+  const resolvedActions = useMemo(() => actions ?? [], [actions]);
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -117,11 +113,12 @@ export const PromptInput: React.FC<PromptInputProps> = ({
   );
 
   const triggerSend = useCallback(async () => {
-    if (!currentValue.trim() || loading || disabled) return;
+    if (!currentValue.trim() || disabled) return;
+    if (loading && !allowSendWhileLoading) return;
     await onSend?.(currentValue.trim());
     setInternalValue('');
     onChange?.('');
-  }, [currentValue, disabled, loading, onChange, onSend]);
+  }, [allowSendWhileLoading, currentValue, disabled, loading, onChange, onSend]);
 
   const handleKeyDown = useCallback(
     async (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -196,12 +193,17 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                 label={action.label}
                 active={action.active}
                 onClick={action.onClick}
+                disabled={disabled || (loading && !allowSendWhileLoading && action.id !== 'cancel')}
               />
             ))}
             <button
               type="button"
               onClick={triggerSend}
-              disabled={disabled || loading || !currentValue.trim()}
+              disabled={
+                disabled ||
+                !currentValue.trim() ||
+                (loading && !allowSendWhileLoading)
+              }
               className={cn(
                 'flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/50 bg-primary text-on-primary transition-all duration-150',
                 'disabled:cursor-not-allowed disabled:border-outline/40 disabled:bg-surface-container-high disabled:text-on-surface-variant'
