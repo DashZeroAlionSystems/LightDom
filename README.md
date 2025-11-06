@@ -18,6 +18,14 @@ LightDom is a revolutionary blockchain-based DOM optimization platform that comb
 - **Performance Metrics** - Hash rate, block time, and mining statistics
 - **Reward System** - Earn LightDom tokens for optimization contributions
 
+### 🤖 **Workflow Prompt System** ⭐ NEW
+- **AI Workflow Assistant** - Create complex workflows with natural language prompts
+- **Intelligent Visualization** - Card panels with accordion steps for workflow details
+- **Real-time Updates** - WebSocket connection for live workflow status
+- **DeepSeek Component Generation** - AI-powered component generation from Storybook
+- **Continuous Styleguide Mining** - Automatic design token and pattern discovery
+- **Context-Aware Navigation** - Role-based menus and quick access to recent items
+
 ### Testing & Quality Assurance
 - **Integration Testing**: Comprehensive test suite for all platform components
 - **Workflow Simulation**: End-to-end user workflow testing
