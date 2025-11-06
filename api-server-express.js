@@ -449,6 +449,19 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load Ollama routes:', err);
     });
     
+    // Import and register Conversation History routes
+    import('./api/conversation-history-routes.js').then((historyModule) => {
+      const historyRouter = historyModule.default || historyModule.createConversationHistoryRoutes;
+      if (typeof historyRouter === 'function') {
+        this.app.use('/api/conversations', historyRouter(this.db));
+      } else {
+        this.app.use('/api/conversations', historyRouter);
+      }
+      console.log('✅ Conversation History routes registered (Knowledge graph & learning enabled)');
+    }).catch(err => {
+      console.error('Failed to load conversation history routes:', err);
+    });
+    
     // Import and register Workflow Wizard routes
     import('./api/workflow-wizard-routes.js').then((wizardModule) => {
       this.app.use('/api/workflow', wizardModule.default);
