@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "cli": "node cli.js",
+    "schema:generate": "tsx src/cli/schema-generator.ts generate",
     "dev": "node ./scripts/dev-seed.cjs && cd frontend && vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
