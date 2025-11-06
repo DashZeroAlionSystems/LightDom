@@ -501,6 +501,24 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load advanced workflow routes:', err);
     });
     
+    // Import and register Advanced Data Mining Orchestration routes
+    import('./api/advanced-datamining-routes.js').then((dataminingModule) => {
+      const { initializeOrchestrator } = dataminingModule;
+      // Initialize the orchestrator with database connection
+      if (typeof initializeOrchestrator === 'function') {
+        initializeOrchestrator({
+          db: this.db,
+          headless: true,
+          maxConcurrentJobs: 10,
+          timeout: 30000
+        });
+      }
+      this.app.use('/api/datamining', dataminingModule.default);
+      console.log('✅ Advanced Data Mining Orchestration routes registered');
+    }).catch(err => {
+      console.error('Failed to load data mining orchestration routes:', err);
+    });
+    
     // Import and register Onboarding routes
     import('./api/onboarding-routes.js').then((onboardingModule) => {
       this.app.use('/api/onboarding', onboardingModule.default);
