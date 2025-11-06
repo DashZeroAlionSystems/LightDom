@@ -19,6 +19,7 @@ import MetricsCollector from './utils/MetricsCollector.js';
 import HeadlessBlockchainRunner from './utils/HeadlessBlockchainRunner.js';
 import BlockchainMetricsCollector from './utils/BlockchainMetricsCollector.js';
 import { addMiningRoutes } from './api-mining-routes.js';
+import createUserRoutes from './api/routes/user-management.js';
 // import { HeadlessChromeService } from './src/services/HeadlessChromeService.ts';
 // import TaskManager from './src/services/TaskManager.ts';
 // import CursorN8nIntegrationService from './src/services/CursorN8nIntegrationService.ts';
@@ -174,6 +175,9 @@ class DOMSpaceHarvesterAPI {
 
     // Setup authentication API routes
     this.setupAuthRoutes();
+    
+    // Setup user management API routes
+    this.setupUserManagementRoutes();
     
     // Setup mining API routes
     this.setupMiningRoutes();
@@ -6528,6 +6532,18 @@ class DOMSpaceHarvesterAPI {
     });
 
     console.log('✅ Authentication API routes configured');
+  }
+
+  setupUserManagementRoutes() {
+    // =====================================================
+    // USER MANAGEMENT API ENDPOINTS
+    // =====================================================
+    
+    // Mount user management routes
+    const userRoutes = createUserRoutes(this.db);
+    this.app.use('/api/users', userRoutes);
+    
+    console.log('✅ User management routes initialized');
   }
 
   setupMiningRoutes() {
