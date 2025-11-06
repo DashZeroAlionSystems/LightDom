@@ -1,0 +1,326 @@
+{
+  "version": "2.0.0",
+  "description": "Prompt engineering templates for Ollama integration with LightDom",
+  "categories": {
+    "dom_optimization": {
+      "name": "DOM Optimization",
+      "description": "Templates for DOM analysis and optimization tasks",
+      "templates": [
+        {
+          "id": "analyze_dom_structure",
+          "name": "Analyze DOM Structure",
+          "prompt": "You are a web performance expert. Analyze the following DOM structure and provide optimization recommendations:\n\nDOM Data:\n{{dom_data}}\n\nProvide your analysis in JSON format with the following structure:\n{\n  \"complexity_score\": <number 0-100>,\n  \"issues\": [\n    {\n      \"type\": \"<issue_type>\",\n      \"severity\": \"<high|medium|low>\",\n      \"description\": \"<description>\",\n      \"recommendation\": \"<recommendation>\"\n    }\n  ],\n  \"metrics\": {\n    \"total_elements\": <number>,\n    \"depth\": <number>,\n    \"scripts\": <number>,\n    \"stylesheets\": <number>\n  }\n}",
+          "parameters": [
+            "dom_data"
+          ],
+          "output_format": "json",
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "dom_elements",
+            "dom_metrics",
+            "dom_analysis_runs"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'analyze_dom_structure'"
+        },
+        {
+          "id": "generate_optimization_plan",
+          "name": "Generate Optimization Plan",
+          "prompt": "Based on the following DOM analysis, create a detailed optimization plan:\n\nAnalysis:\n{{analysis}}\n\nCreate a step-by-step optimization plan in JSON format:\n{\n  \"priority_actions\": [\n    {\n      \"step\": <number>,\n      \"action\": \"<action_description>\",\n      \"expected_impact\": \"<impact_description>\",\n      \"effort\": \"<low|medium|high>\"\n    }\n  ],\n  \"estimated_improvements\": {\n    \"performance_gain\": \"<percentage>\",\n    \"size_reduction\": \"<percentage>\",\n    \"seo_score_increase\": \"<percentage>\"\n  }\n}",
+          "parameters": [
+            "analysis"
+          ],
+          "output_format": "json",
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "optimization_recommendations",
+            "performance_metrics"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_optimization_plan'"
+        },
+        {
+          "id": "suggest_caching_strategy",
+          "name": "Suggest Caching Strategy",
+          "prompt": "You are a web caching expert. Based on this resource analysis, suggest an optimal caching strategy:\n\nResources:\n{{resources}}\n\nProvide recommendations in JSON:\n{\n  \"cache_policies\": [\n    {\n      \"resource_type\": \"<type>\",\n      \"cache_duration\": \"<duration>\",\n      \"strategy\": \"<strategy>\",\n      \"reasoning\": \"<reasoning>\"\n    }\n  ],\n  \"service_worker_config\": {\n    \"enabled\": <boolean>,\n    \"precache_resources\": [<resources>],\n    \"runtime_caching\": [<strategies>]\n  }\n}",
+          "parameters": [
+            "resources"
+          ],
+          "output_format": "json",
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "cache_policies",
+            "resource_metadata"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'suggest_caching_strategy'"
+        }
+      ]
+    },
+    "workflow_generation": {
+      "name": "Workflow Generation",
+      "description": "Templates for generating n8n workflows",
+      "templates": [
+        {
+          "id": "create_workflow_from_description",
+          "name": "Create n8n Workflow from Description",
+          "prompt": "You are an n8n workflow expert. Create a complete n8n workflow based on this description:\n\nDescription:\n{{description}}\n\nGenerate a valid n8n workflow JSON with nodes and connections. The workflow should:\n1. Have clear node names and descriptions\n2. Use appropriate n8n node types\n3. Include error handling\n4. Have proper connections between nodes\n\nReturn ONLY valid JSON in this format:\n{\n  \"name\": \"<workflow_name>\",\n  \"nodes\": [\n    {\n      \"id\": \"<unique_id>\",\n      \"type\": \"<n8n_node_type>\",\n      \"name\": \"<node_name>\",\n      \"parameters\": {},\n      \"position\": [<x>, <y>]\n    }\n  ],\n  \"connections\": {\n    \"<node_id>\": {\n      \"main\": [[\"<connected_node_id>\"]]\n    }\n  }\n}",
+          "parameters": [
+            "description"
+          ],
+          "output_format": "json",
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "workflows",
+            "workflow_templates",
+            "workflow_instances"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'create_workflow_from_description'"
+        },
+        {
+          "id": "optimize_existing_workflow",
+          "name": "Optimize Existing Workflow",
+          "prompt": "You are an n8n workflow optimization expert. Analyze this workflow and suggest improvements:\n\nWorkflow:\n{{workflow}}\n\nProvide optimization suggestions in JSON:\n{\n  \"current_issues\": [\n    {\n      \"node_id\": \"<id>\",\n      \"issue\": \"<description>\",\n      \"severity\": \"<high|medium|low>\"\n    }\n  ],\n  \"optimizations\": [\n    {\n      \"type\": \"<optimization_type>\",\n      \"description\": \"<description>\",\n      \"impact\": \"<impact_description>\"\n    }\n  ],\n  \"improved_workflow\": {}\n}",
+          "parameters": [
+            "workflow"
+          ],
+          "output_format": "json",
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "workflows",
+            "workflow_execution_logs"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'optimize_existing_workflow'"
+        },
+        {
+          "id": "generate_webhook_handler",
+          "name": "Generate Webhook Handler Workflow",
+          "prompt": "Create an n8n workflow that handles incoming webhooks for:\n\nUse Case:\n{{use_case}}\n\nData Schema:\n{{data_schema}}\n\nGenerate a complete workflow with:\n1. Webhook trigger node\n2. Input validation\n3. Data processing\n4. Response handling\n5. Error handling\n\nReturn valid n8n workflow JSON.",
+          "parameters": [
+            "use_case",
+            "data_schema"
+          ],
+          "output_format": "json",
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "workflows",
+            "webhook_configs"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_webhook_handler'"
+        }
+      ]
+    },
+    "code_generation": {
+      "name": "Code Generation",
+      "description": "Templates for generating code snippets and scripts",
+      "templates": [
+        {
+          "id": "generate_crawler_script",
+          "name": "Generate Web Crawler Script",
+          "prompt": "Generate a Node.js web crawler script for:\n\nTarget:\n{{target_description}}\n\nRequirements:\n{{requirements}}\n\nThe script should:\n1. Use Puppeteer for headless browsing\n2. Handle errors gracefully\n3. Extract specified data\n4. Save results to JSON\n5. Include rate limiting\n\nProvide complete, production-ready code with comments.",
+          "parameters": [
+            "target_description",
+            "requirements"
+          ],
+          "output_format": "code",
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "crawler_tasks",
+            "crawler_results"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_crawler_script'"
+        },
+        {
+          "id": "generate_api_endpoint",
+          "name": "Generate Express API Endpoint",
+          "prompt": "Create an Express.js API endpoint for:\n\nEndpoint Purpose:\n{{purpose}}\n\nInput Schema:\n{{input_schema}}\n\nOutput Schema:\n{{output_schema}}\n\nGenerate complete code including:\n1. Route handler\n2. Input validation\n3. Error handling\n4. Response formatting\n5. JSDoc documentation\n\nProvide production-ready code.",
+          "parameters": [
+            "purpose",
+            "input_schema",
+            "output_schema"
+          ],
+          "output_format": "code",
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "api_endpoints",
+            "api_schemas"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_api_endpoint'"
+        },
+        {
+          "id": "generate_test_suite",
+          "name": "Generate Test Suite",
+          "prompt": "Generate a comprehensive test suite for:\n\nCode to Test:\n{{code}}\n\nFramework: Vitest\n\nCreate tests that:\n1. Cover all functions/methods\n2. Test edge cases\n3. Include async operations\n4. Mock external dependencies\n5. Have clear descriptions\n\nProvide complete test file with setup and teardown.",
+          "parameters": [
+            "code"
+          ],
+          "output_format": "code",
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "test_suites",
+            "test_cases"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_test_suite'"
+        }
+      ]
+    },
+    "documentation": {
+      "name": "Documentation",
+      "description": "Templates for generating documentation",
+      "templates": [
+        {
+          "id": "generate_api_docs",
+          "name": "Generate API Documentation",
+          "prompt": "Generate comprehensive API documentation for:\n\nAPI Code:\n{{api_code}}\n\nCreate documentation in Markdown format including:\n1. Overview and purpose\n2. Endpoint list with descriptions\n3. Request/response examples\n4. Error codes and handling\n5. Authentication requirements\n6. Rate limiting information\n\nUse clear, professional language suitable for developers.",
+          "parameters": [
+            "api_code"
+          ],
+          "output_format": "markdown",
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "api_endpoints",
+            "api_documentation"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_api_docs'"
+        },
+        {
+          "id": "generate_workflow_docs",
+          "name": "Generate Workflow Documentation",
+          "prompt": "Create clear documentation for this n8n workflow:\n\nWorkflow:\n{{workflow}}\n\nGenerate Markdown documentation including:\n1. Workflow overview and purpose\n2. Step-by-step process description\n3. Node explanations\n4. Required credentials/configuration\n5. Example usage\n6. Troubleshooting tips\n\nMake it easy to understand for non-technical users.",
+          "parameters": [
+            "workflow"
+          ],
+          "output_format": "markdown",
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "workflows",
+            "workflow_documentation"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_workflow_docs'"
+        }
+      ]
+    },
+    "analysis": {
+      "name": "Analysis and Review",
+      "description": "Templates for code and workflow analysis",
+      "templates": [
+        {
+          "id": "code_review",
+          "name": "Perform Code Review",
+          "prompt": "Perform a thorough code review of:\n\nCode:\n{{code}}\n\nProvide feedback in JSON format:\n{\n  \"overall_quality\": \"<rating 1-10>\",\n  \"strengths\": [\"<strength>\"],\n  \"issues\": [\n    {\n      \"severity\": \"<critical|major|minor>\",\n      \"type\": \"<type>\",\n      \"description\": \"<description>\",\n      \"suggestion\": \"<how_to_fix>\",\n      \"line_number\": <number>\n    }\n  ],\n  \"recommendations\": [\"<recommendation>\"],\n  \"security_concerns\": [\"<concern>\"]\n}",
+          "parameters": [
+            "code"
+          ],
+          "output_format": "json",
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "code_reviews",
+            "code_quality_metrics"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'code_review'"
+        },
+        {
+          "id": "performance_analysis",
+          "name": "Performance Analysis",
+          "prompt": "Analyze the performance characteristics of:\n\nCode/System:\n{{code_or_config}}\n\nMetrics (if available):\n{{metrics}}\n\nProvide analysis in JSON:\n{\n  \"performance_score\": <number 0-100>,\n  \"bottlenecks\": [\n    {\n      \"location\": \"<description>\",\n      \"impact\": \"<high|medium|low>\",\n      \"suggestion\": \"<optimization>\"\n    }\n  ],\n  \"optimization_opportunities\": [\n    {\n      \"type\": \"<type>\",\n      \"potential_gain\": \"<description>\",\n      \"implementation_effort\": \"<low|medium|high>\"\n    }\n  ]\n}",
+          "parameters": [
+            "code_or_config",
+            "metrics"
+          ],
+          "output_format": "json",
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "performance_metrics",
+            "bottleneck_analysis"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'performance_analysis'"
+        }
+      ]
+    },
+    "design_system": {
+      "name": "Design System & Components",
+      "description": "Templates for generating design system components and dashboards",
+      "templates": [
+        {
+          "id": "generate_component",
+          "name": "Generate Reusable Component",
+          "prompt": "You are a React component expert. Generate a reusable, accessible component:\n\nComponent Description:\n{{description}}\n\nDesign System Tokens:\n{{design_tokens}}\n\nRequirements:\n1. TypeScript with proper types\n2. Functional component with hooks\n3. Follow design system tokens\n4. Include accessibility (ARIA, keyboard nav)\n5. JSDoc documentation\n6. Named export\n7. Use Ant Design where appropriate\n8. Error boundaries if needed\n\nReturn ONLY the component code.",
+          "parameters": [
+            "description",
+            "design_tokens"
+          ],
+          "output_format": "code",
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "component_definitions",
+            "atom_definitions",
+            "design_tokens"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_component'"
+        },
+        {
+          "id": "generate_dashboard_workflow",
+          "name": "Generate Dashboard Build Workflow",
+          "prompt": "Create a workflow for building this dashboard:\n\nDashboard: {{dashboard_description}}\n\nGenerate JSON workflow with:\n1. Required components (name, description, type, dependencies, priority 1-10)\n2. Data flow (sources, transformations, destinations)\n3. Layout structure (grid, responsive breakpoints)\n4. Integration points\n5. Testing requirements\n\nReturn ONLY valid JSON.",
+          "parameters": [
+            "dashboard_description"
+          ],
+          "output_format": "json",
+          "model_recommendation": "llama2:7b",
+          "schema_refs": [
+            "dashboard_definitions",
+            "component_definitions",
+            "workflow_dashboards"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_dashboard_workflow'"
+        },
+        {
+          "id": "enhance_component_reusability",
+          "name": "Enhance Component Reusability",
+          "prompt": "Analyze this component and enhance its reusability:\n\nComponent Code:\n{{component_code}}\n\nProvide JSON with:\n{\n  \"reusability_score\": 1-10,\n  \"issues\": [{\"issue\": \"description\", \"fix\": \"solution\"}],\n  \"enhanced_code\": \"improved version\",\n  \"usage_examples\": [\"example code\"]\n}",
+          "parameters": [
+            "component_code"
+          ],
+          "output_format": "json",
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "component_definitions",
+            "reusability_metrics"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'enhance_component_reusability'"
+        },
+        {
+          "id": "generate_component_variants",
+          "name": "Generate Component Variants",
+          "prompt": "Generate variants of this base component:\n\nBase Component:\n{{base_component}}\n\nVariants Needed:\n{{variants_list}}\n\nFor each variant, return:\n{\n  \"variants\": [\n    {\n      \"name\": \"VariantName\",\n      \"description\": \"What makes it different\",\n      \"code\": \"Full component code\",\n      \"props\": [\"Additional props\"]\n    }\n  ]\n}",
+          "parameters": [
+            "base_component",
+            "variants_list"
+          ],
+          "output_format": "json",
+          "model_recommendation": "codellama:7b",
+          "schema_refs": [
+            "component_definitions",
+            "component_variants"
+          ],
+          "training_data_source": "ml_training_data WHERE template_id = 'generate_component_variants'"
+        }
+      ]
+    }
+  },
+  "usage_instructions": {
+    "description": "How to use these prompt templates",
+    "steps": [
+      "1. Select a template from the appropriate category",
+      "2. Replace {{parameter}} placeholders with your actual data",
+      "3. Use the recommended model for best results",
+      "4. Send the prompt to Ollama using the CLI or API",
+      "5. Parse the output according to the output_format field"
+    ],
+    "example": {
+      "template_id": "analyze_dom_structure",
+      "parameters": {
+        "dom_data": "{\"elements\": 150, \"depth\": 8, \"scripts\": 12}"
+      },
+      "command": "ollama run llama2:7b '<processed_prompt>'"
+    }
+  },
+  "schema_aware": true
+}

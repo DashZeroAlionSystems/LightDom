@@ -1,153 +1,267 @@
-/**
- * LightDom Extension Popup Script
- * Handles UI interactions and data display
- */
-
+// LightDom Extension Popup Script v2.0
 class LightDomPopup {
   constructor() {
     this.isMining = false;
-    this.userAddress = null;
-    this.metrics = {
-      optimizations: 0,
+    this.miningStats = {
+      totalMined: 0,
       spaceSaved: 0,
-      blocksMined: 0,
-      peers: 0
+      sessions: 0
     };
     
     this.init();
   }
 
   async init() {
-    // Load data from storage
-    await this.loadData();
-    
+    console.log('LightDom Popup v2.0 loaded');
+
+    // Load initial state
+    await this.loadMiningStatus();
+    await this.loadStats();
+    await this.loadWalletInfo();
+
     // Setup event listeners
     this.setupEventListeners();
-    
+
     // Update UI
     this.updateUI();
-    
-    // Start periodic updates
-    this.startPeriodicUpdates();
-  }
-
-  async loadData() {
-    try {
-      const result = await chrome.storage.local.get([
-        'isMining', 
-        'userAddress', 
-        'metrics'
-      ]);
-      
-      this.isMining = result.isMining || false;
-      this.userAddress = result.userAddress || null;
-      this.metrics = result.metrics || this.metrics;
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    }
   }
 
   setupEventListeners() {
-    // Toggle mining button
-    document.getElementById('toggleMining').addEventListener('click', () => {
-      this.toggleMining();
+    const toggleBtn = document.getElementById('toggleMining');
+    const openSidePanelBtn = document.getElementById('openSidePanel');
+    const openWalletBtn = document.getElementById('openWallet');
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => this.toggleMining());
+    }
+
+    if (openSidePanelBtn) {
+      openSidePanelBtn.addEventListener('click', () => this.openSidePanel());
+    }
+
+    if (openWalletBtn) {
+      openWalletBtn.addEventListener('click', () => this.openWallet());
+    }
+
+    // Listen for mining status changes
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      this.handleMessage(message, sender, sendResponse);
     });
-    
-    // Open dashboard button
-    document.getElementById('openDashboard').addEventListener('click', () => {
-      this.openDashboard();
-    });
-    
-    // Listen for storage changes
-    chrome.storage.onChanged.addListener((changes, namespace) => {
-      if (changes.isMining) {
-        this.isMining = changes.isMining.newValue;
-        this.updateUI();
+  }
+
+  async loadMiningStatus() {
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'GET_MINING_STATUS' });
+      if (response.success) {
+        this.isMining = response.data.isMining;
+        this.miningStats = response.data.stats || this.miningStats;
       }
+    } catch (error) {
+      console.error('Failed to load mining status:', error);
+    }
+  }
+
+  async loadStats() {
+    try {
+      const result = await chrome.storage.local.get([
+        'totalMined', 
+        'spaceSaved', 
+        'sessions',
+        'miningStats'
+      ]);
       
-      if (changes.metrics) {
-        this.metrics = changes.metrics.newValue;
-        this.updateUI();
-      }
-    });
+      this.miningStats = {
+        totalMined: result.totalMined || result.miningStats?.totalSpaceSaved || 0,
+        spaceSaved: result.spaceSaved || result.miningStats?.totalSpaceSaved || 0,
+        sessions: result.sessions || result.miningStats?.optimizationsSubmitted || 0
+      };
+      
+      this.updateStatsDisplay();
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+    }
+  }
+
+  updateStatsDisplay() {
+    const totalMinedEl = document.getElementById('totalMined');
+    const spaceSavedEl = document.getElementById('spaceSaved');
+    const sessionsEl = document.getElementById('sessions');
+    
+    if (totalMinedEl) {
+      totalMinedEl.textContent = `${Math.floor(this.miningStats.totalMined / 100)} DSH`;
+    }
+    
+    if (spaceSavedEl) {
+      spaceSavedEl.textContent = this.formatBytes(this.miningStats.spaceSaved);
+    }
+    
+    if (sessionsEl) {
+      sessionsEl.textContent = this.miningStats.sessions;
+    }
   }
 
   async toggleMining() {
+    const toggleBtn = document.getElementById('toggleMining');
+    
+    // Disable button during operation
+    toggleBtn.disabled = true;
+    toggleBtn.textContent = this.isMining ? 'Stopping...' : 'Starting...';
+    
     try {
-      const newMiningState = !this.isMining;
-      
-      // Send message to background script
       const response = await chrome.runtime.sendMessage({
-        type: newMiningState ? 'START_MINING' : 'STOP_MINING'
+        type: this.isMining ? 'STOP_MINING' : 'START_MINING'
       });
       
       if (response.success) {
-        this.isMining = newMiningState;
-        await chrome.storage.local.set({ isMining: this.isMining });
+        this.isMining = !this.isMining;
         this.updateUI();
+        
+        // Show success feedback
+        this.showNotification(
+          this.isMining ? 'Mining Started' : 'Mining Stopped',
+          this.isMining ? 'DOM optimization is now active' : 'Mining has been stopped'
+        );
       } else {
-        console.error('Failed to toggle mining:', response.error);
+        throw new Error(response.error || 'Failed to toggle mining');
       }
     } catch (error) {
-      console.error('Error toggling mining:', error);
+      console.error('Failed to toggle mining:', error);
+      this.showNotification('Error', 'Failed to toggle mining status');
+    } finally {
+      toggleBtn.disabled = false;
+      toggleBtn.textContent = this.isMining ? 'Stop Mining' : 'Start Mining';
     }
   }
 
-  openDashboard() {
-    chrome.tabs.create({
-      url: 'http://localhost:3001'
-    });
+  async openSidePanel() {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+        await chrome.sidePanel.open({ windowId: tab.windowId });
+        window.close(); // Close popup after opening side panel
+      }
+    } catch (error) {
+      console.error('Failed to open side panel:', error);
+      this.showNotification('Error', 'Failed to open side panel');
+    }
+  }
+
+  async openWallet() {
+    try {
+      await chrome.tabs.create({ url: 'wallet.html' });
+      window.close();
+    } catch (error) {
+      console.error('Failed to open wallet:', error);
+      this.showNotification('Error', 'Failed to open wallet');
+    }
+  }
+
+  async loadWalletInfo() {
+    try {
+      const result = await chrome.storage.local.get(['walletAddress', 'hasWallet']);
+
+      if (result.hasWallet && result.walletAddress) {
+        const walletInfoEl = document.getElementById('walletInfo');
+        const walletAddressEl = document.getElementById('walletAddress');
+
+        if (walletInfoEl && walletAddressEl) {
+          walletInfoEl.style.display = 'block';
+          walletAddressEl.textContent = result.walletAddress;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load wallet info:', error);
+    }
   }
 
   updateUI() {
-    // Update status indicator
-    const statusDot = document.getElementById('statusDot');
-    const statusText = document.getElementById('statusText');
-    const userAddress = document.getElementById('userAddress');
+    const toggleBtn = document.getElementById('toggleMining');
+    const statusDiv = document.getElementById('status');
     
-    if (this.isMining) {
-      statusDot.className = 'status-dot active';
-      statusText.textContent = 'Mining Active';
-    } else {
-      statusDot.className = 'status-dot inactive';
-      statusText.textContent = 'Mining Inactive';
+    if (toggleBtn) {
+      toggleBtn.textContent = this.isMining ? 'Stop Mining' : 'Start Mining';
+      toggleBtn.className = `button ${this.isMining ? 'stop-btn' : 'start-btn'}`;
     }
     
-    // Update user address
-    if (this.userAddress) {
-      userAddress.textContent = `${this.userAddress.slice(0, 6)}...${this.userAddress.slice(-4)}`;
-    } else {
-      userAddress.textContent = 'Not connected';
+    if (statusDiv) {
+      statusDiv.textContent = this.isMining ? '⚡ Mining Active' : '⏹️ Mining Stopped';
+      statusDiv.className = `status ${this.isMining ? 'mining' : 'stopped'}`;
     }
     
-    // Update metrics
-    document.getElementById('optimizations').textContent = this.metrics.optimizations || 0;
-    document.getElementById('spaceSaved').textContent = this.formatBytes(this.metrics.spaceSaved || 0);
-    document.getElementById('blocksMined').textContent = this.metrics.blocksMined || 0;
-    document.getElementById('peers').textContent = this.metrics.peers || 0;
+    // Update stats
+    this.updateStatsDisplay();
+  }
+
+  handleMessage(message, sender, sendResponse) {
+    switch (message.type) {
+      case 'MINING_STATUS_CHANGE':
+        this.isMining = message.data.isMining;
+        this.updateUI();
+        sendResponse({ success: true });
+        break;
+        
+      case 'METRICS_UPDATE':
+        this.miningStats = { ...this.miningStats, ...message.data };
+        this.updateStatsDisplay();
+        sendResponse({ success: true });
+        break;
+        
+      default:
+        sendResponse({ success: false, error: 'Unknown message type' });
+    }
+  }
+
+  showNotification(title, message) {
+    // Create a temporary notification in the popup
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      z-index: 1000;
+      font-size: 12px;
+      animation: slideDown 0.3s ease-out;
+    `;
     
-    // Update button text
-    const toggleButton = document.getElementById('toggleMining');
-    toggleButton.textContent = this.isMining ? 'Stop Mining' : 'Start Mining';
-    toggleButton.className = this.isMining ? 'btn btn-secondary' : 'btn btn-primary';
+    notification.innerHTML = `
+      <div style="font-weight: 600; margin-bottom: 2px;">${title}</div>
+      <div style="font-size: 11px; opacity: 0.9;">${message}</div>
+    `;
+    
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideDown {
+        from { transform: translateY(-100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      notification.style.animation = 'slideDown 0.3s ease-out reverse';
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }, 3000);
   }
 
   formatBytes(bytes) {
     if (bytes === 0) return '0 B';
-    
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  }
-
-  startPeriodicUpdates() {
-    // Update metrics every 5 seconds
-    setInterval(async () => {
-      await this.loadData();
-      this.updateUI();
-    }, 5000);
   }
 }
 

@@ -1,0 +1,102 @@
+[
+  {
+    "file": "src/components/EnhancedProfessionalDashboard.tsx",
+    "count": 199
+  },
+  {
+    "file": "src/config/MetaverseAnimationPresets.ts",
+    "count": 64
+  },
+  {
+    "file": "src/components/StyleguideIntegratedDashboard.tsx",
+    "count": 43
+  },
+  {
+    "file": "src/components/BeautifulAdminDashboard.tsx",
+    "count": 42
+  },
+  {
+    "file": "src/components/AdvancedDashboard.tsx",
+    "count": 40
+  },
+  {
+    "file": "src/components/TensorFlowAdmin.tsx",
+    "count": 40
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx",
+    "count": 40
+  },
+  {
+    "file": "src/components/SimpleIntegratedDashboard.tsx",
+    "count": 37
+  },
+  {
+    "file": "src/components/AutomationWorkflows.tsx",
+    "count": 30
+  },
+  {
+    "file": "src/components/EnhancedStyleguideDashboard.tsx",
+    "count": 24
+  },
+  {
+    "file": "src/components/StandaloneDashboard.tsx",
+    "count": 24
+  },
+  {
+    "file": "src/components/WorkingDashboard.tsx",
+    "count": 24
+  },
+  {
+    "file": "src/components/MetaversePortal.tsx",
+    "count": 22
+  },
+  {
+    "file": "src/components/admin/MD3DashboardDemo.tsx",
+    "count": 21
+  },
+  {
+    "file": "src/components/BlockchainRewards.tsx",
+    "count": 21
+  },
+  {
+    "file": "src/components/SidebarAdminDashboard.tsx",
+    "count": 21
+  },
+  {
+    "file": "src/api/LightDomStorageApi.ts",
+    "count": 19
+  },
+  {
+    "file": "src/components/admin/AdminDashboard.tsx",
+    "count": 19
+  },
+  {
+    "file": "src/components/AdvancedDashboardIntegrated.tsx",
+    "count": 19
+  },
+  {
+    "file": "src/components/UpgradedStyleguide.tsx",
+    "count": 19
+  },
+  {
+    "file": "src/components/ImprovedProfessionalDashboard.tsx",
+    "count": 18
+  },
+  {
+    "file": "src/components/ui/charts/InteractiveChart.tsx",
+    "count": 18
+  },
+  {
+    "file": "src/components/admin/EnhancedAdminDashboard.tsx",
+    "count": 16
+  },
+  {
+    "file": "src/components/pages/BillingManagementPage.tsx",
+    "count": 16
+  },
+  {
+    "file": "src/components/SettingsPage.tsx",
+    "count": 16
+  }
+]

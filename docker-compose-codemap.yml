@@ -1,0 +1,96 @@
+# Memory Workflow CodeMap - Docker Compose
+# Complete containerized environment with CodeMap app and Ollama AI
+
+services:
+  # Memory Workflow CodeMap Application
+  codemap:
+    build:
+      context: .
+      dockerfile: Dockerfile-codemap
+    container_name: memory-codemap-app
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - OLLAMA_HOST=http://ollama:11434
+      - MEMORY_STORE_PATH=/app/memory-store/memory-data.json
+    volumes:
+      - codemap_memory:/app/memory-store
+      - codemap_logs:/app/logs
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - codemap-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/api/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Ollama AI Model Server
+  ollama:
+    image: ollama/ollama:latest
+    container_name: memory-codemap-ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - codemap-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    container_name: memory-codemap-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-codemap.conf:/etc/nginx/nginx.conf:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - codemap
+    networks:
+      - codemap-network
+    restart: unless-stopped
+    profiles:
+      - production
+
+# Named volumes for data persistence
+volumes:
+  codemap_memory:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./memory-store
+
+  codemap_logs:
+    driver: local
+
+  ollama_data:
+    driver: local
+
+  nginx_logs:
+    driver: local
+
+# Custom networks
+networks:
+  codemap-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

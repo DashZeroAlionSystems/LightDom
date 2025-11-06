@@ -1,108 +1,520 @@
+# LightDom Enterprise Platform - Comprehensive .gitignore
+# This file excludes files and directories that should not be tracked in version control
+
+# =============================================================================
+# DEPENDENCY LOCK FILES
+# =============================================================================
+# Exclude lock files to prevent conflicts and allow flexible dependency resolution
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-shrinkwrap.json
+
+# =============================================================================
+# NODE.JS & NPM
+# =============================================================================
 # Dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 .pnpm-debug.log*
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Build outputs
-dist/
-build/
-.next/
-out/
-.nuxt/
-
-# Coverage reports
-coverage/
-*.lcov
-.nyc_output/
-
 # Runtime data
-pids/
+pids
 *.pid
 *.seed
 *.pid.lock
 
-# Logs
-logs/
-*.log
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+.npm-cache/
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+storybook-static
 
 # Temporary folders
 tmp/
 temp/
-.tmp/
 
-# IDE / Editor files
-.vscode/settings.json.bak
+# =============================================================================
+# BUILD OUTPUTS & DISTRIBUTION
+# =============================================================================
+# Vite build output
+dist/
+dist-ssr/
+
+# Electron build output
+dist-electron/
+build/
+out/
+
+# Production builds
+build/
+dist/
+
+# =============================================================================
+# DEVELOPMENT & TESTING
+# =============================================================================
+# Test coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Jest
+jest-cache/
+.jest/
+
+# Vitest
+.vitest/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# Artillery load testing
+artillery-report.html
+
+# =============================================================================
+# IDE & EDITOR FILES
+# =============================================================================
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+# JetBrains IDEs
 .idea/
 *.swp
 *.swo
 *~
 
-# OS generated files
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# OPERATING SYSTEM FILES
+# =============================================================================
+# macOS
 .DS_Store
-.DS_Store?
+.AppleDouble
+.LSOverride
+Icon
 ._*
+.DocumentRevisions-V100
+.fseventsd
 .Spotlight-V100
+.TemporaryItems
 .Trashes
-ehthumbs.db
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
 
-# Cache directories
-.cache/
-.parcel-cache/
-.eslintcache
-.stylelintcache
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
 
-# Backup files
-*.backup
-*.bak
-backup_*/
+# =============================================================================
+# LOGS & DEBUGGING
+# =============================================================================
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
 
-# Database
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Debug files
+debug.log
+error.log
+access.log
+
+# =============================================================================
+# DATABASE & PERSISTENCE
+# =============================================================================
+# SQLite
 *.sqlite
 *.sqlite3
 *.db
 
-# Testing
-test-results/
-playwright-report/
-test-results.xml
+# PostgreSQL
+*.pgsql
+*.sql.backup
 
-# Blockchain
-.secret
-artifacts/cache/
+# Database dumps
+*.dump
+*.sql.gz
+
+# =============================================================================
+# BLOCKCHAIN & CRYPTO
+# =============================================================================
+# Hardhat
 cache/
-typechain/
+artifacts/
+typechain-types/
 
-# Monitoring & Metrics
-.monitor/
-metrics/
+# Foundry
+out/
+cache/
+broadcast/
+
+# Truffle
+build/
+
+# Solidity
+*.sol.backup
+
+# Private keys and wallets
+*.key
+*.pem
+*.p12
+*.pfx
+wallet.json
+keystore/
+wallets/
+
+# =============================================================================
+# DOCKER & CONTAINERIZATION
+# =============================================================================
+# Docker
+.dockerignore
+docker-compose.override.yml
+docker-compose.*.local.yml
+
+# Container volumes
+docker-volumes/
+
+# =============================================================================
+# MONITORING & OBSERVABILITY
+# =============================================================================
+# Grafana
 grafana/data/
 
-# Docker
-.dockerignore.bak
+# Prometheus
+prometheus/data/
 
-# Documentation generated files
-docs/api/
+# ELK Stack
+elasticsearch/data/
+logstash/data/
+kibana/data/
+
+# =============================================================================
+# SECURITY & SECRETS
+# =============================================================================
+# Environment files with secrets
+.env.*
+!.env.example
+!.env.template
+
+# API Keys and Secrets
+linear-api-key.txt
+*-key.txt
+*secret*.txt
+*api-key*.txt
+
+# API keys and secrets
+secrets/
+*.secret
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Certificates
+*.crt
+*.cer
+*.der
+*.p7b
+*.p7r
+*.spc
+
+# =============================================================================
+# CACHING & TEMPORARY FILES
+# =============================================================================
+# Various caches
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# DOCUMENTATION GENERATION
+# =============================================================================
+# Generated documentation
 docs/generated/
+docs/build/
+site/
 
-# Local development files
-.local/
-local_*/
+# =============================================================================
+# BACKUP FILES
+# =============================================================================
+# Backup files
+*.backup
+*.bak
+*.old
+*.orig
+*.rej
 
-# Performance & profiling
-.clinic/
-profile/
+# =============================================================================
+# PROJECT-SPECIFIC EXCLUSIONS
+# =============================================================================
+# LightDom specific
+lightdom-data/
+harvested-data/
+optimization-cache/
+dom-cache/
 
-# Misc
-.sass-cache/
-connect.lock
-typings/
+# Crawler data
+crawler-data/
+crawled-sites/
+web-cache/
+
+# Token data
+token-data/
+wallet-data/
+
+# Space mining data
+mining-data/
+space-data/
+
+# Metaverse data
+metaverse-data/
+virtual-worlds/
+
+# Analytics data
+analytics-data/
+metrics-data/
+
+# =============================================================================
+# CONFIGURATION OVERRIDES
+# =============================================================================
+# Local configuration overrides
+config.local.json
+settings.local.json
+*.local.*
+
+# =============================================================================
+# TESTING ARTIFACTS
+# =============================================================================
+# Test artifacts
+test-results/
+test-reports/
+coverage/
+.nyc_output/
+
+# Screenshots and videos from tests
+screenshots/
+videos/
+test-artifacts/
+
+# =============================================================================
+# PERFORMANCE & PROFILING
+# =============================================================================
+# Performance profiles
+*.cpuprofile
+*.heapprofile
+*.heapsnapshot
+
+# =============================================================================
+# MISC
+# =============================================================================
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Linux
+*~
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# =============================================================================
+# LIGHTDOM PROJECT CLEANUP (2025-10-22)
+# =============================================================================
+# Archive directory - old backups and deprecated files
+archive/
+
+# Runtime data directory
+.data/
+
+# Cursor IDE backups (should not be tracked)
+.cursor/
+
+# Generated reports (tracked in docs/reports/ instead)
+*-report.md
+*-status-*.md
+
+# Legacy test directory (consolidated into tests/)
+# (keeping this in case any are generated)
+
+# =============================================================================
+# DESIGN SYSTEM & WORKFLOW MINING DATA (2025-11-01)
+# =============================================================================
+# Generated component and workflow mining data
+data/design-system/
+data/workflow-patterns/
+data/neural-network-training/
+data/MINING_REPORT.json
+data/MINING_REPORT.md
+
+# n8n workflow data (credentials should never be committed)
+workflows/n8n/credentials/*.json
+!workflows/n8n/credentials/credential-templates.json
+
+# =============================================================================
+# END OF .gitignore
+# =============================================================================
+*storybook.log

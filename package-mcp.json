@@ -1,0 +1,48 @@
+{
+  "name": "memory-workflow-mcp-server",
+  "version": "1.0.0",
+  "description": "A memory-driven MCP server for workflow orchestration using local Ollama models",
+  "main": "memory-workflow-mcp-server.js",
+  "type": "module",
+  "bin": {
+    "memory-workflow-server": "./memory-workflow-mcp-server.js",
+    "memory-codemap-server": "./memory-codemap-server.js"
+  },
+  "scripts": {
+    "start": "node memory-workflow-mcp-server.js",
+    "codemap": "node memory-codemap-server.js",
+    "demo": "node demo-workflow.js",
+    "test": "node test-workflow.js",
+    "interactive": "node memory-codemap-server.js --port 3002",
+    "clean": "rm -f memory-store.json *.log"
+  },
+  "keywords": [
+    "mcp",
+    "workflow",
+    "ollama",
+    "ai",
+    "memory",
+    "automation",
+    "api-orchestration"
+  ],
+  "author": "Cascade AI Assistant",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "."
+  },
+  "files": [
+    "memory-workflow-mcp-server.js",
+    "README.md",
+    "demo-workflow.js",
+    "test-workflow.js"
+  ]
+}

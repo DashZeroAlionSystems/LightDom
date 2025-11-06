@@ -1,0 +1,17 @@
+{
+  "id": "bc-9e8b6d2a-05f3-4ada-9167-36bf79ddc90c",
+  "status": "CREATING",
+  "source": {
+    "repository": "https://github.com/DashZeroAlionSystems/LightDom",
+    "ref": "main"
+  },
+  "target": {
+    "autoCreatePr": false,
+    "openAsCursorGithubApp": false,
+    "skipReviewerRequest": false,
+    "branchName": "cursor/complete-lightdom-platform-development-0e52",
+    "url": "https://cursor.com/agents?id=bc-9e8b6d2a-05f3-4ada-9167-36bf79ddc90c"
+  },
+  "name": "Complete lightdom platform development",
+  "createdAt": "2025-10-16T10:48:47.576Z"
+}

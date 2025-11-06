@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightDom Platform - Unified Dashboard</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1a202c;
+        }
+
+        .container {
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-tabs {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 2rem;
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: #4a5568;
+            transition: all 0.2s;
+        }
+
+        .nav-tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+
+        .content {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #1a202c;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        .plan-step {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+        }
+
+        .plan-step h4 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-visualization {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .list-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #10b981;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function UnifiedDashboard() {
+            const [activeTab, setActiveTab] = useState('templates');
+            const [templates, setTemplates] = useState([
+                { id: 'template-1', name: 'Data Migration Workflow', description: 'Migrate data between systems' },
+                { id: 'template-2', name: 'API Integration', description: 'Connect external APIs' },
+                { id: 'template-3', name: 'Competitor Analysis', description: 'Analyze competitor features' }
+            ]);
+            const [selectedTemplate, setSelectedTemplate] = useState(null);
+            const [variables, setVariables] = useState({
+                projectName: '',
+                targetDate: '',
+                priority: 'medium'
+            });
+            const [plan, setPlan] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [topics, setTopics] = useState([]);
+            const [components, setComponents] = useState([]);
+
+            const tabs = [
+                { id: 'templates', name: 'Templates & Planning', icon: '📋' },
+                { id: 'wiki', name: 'Deep Wiki', icon: '📚' },
+                { id: 'components', name: 'Component Library', icon: '🧩' },
+                { id: 'ai-assistant', name: 'AI Assistant', icon: '🤖' }
+            ];
+
+            useEffect(() => {
+                if (activeTab === 'wiki') {
+                    loadWikiTopics();
+                } else if (activeTab === 'components') {
+                    loadComponents();
+                }
+            }, [activeTab]);
+
+            const loadWikiTopics = async () => {
+                try {
+                    // Simulate API call
+                    const mockTopics = [
+                        { id: '1', title: 'Schema-Driven Validation', tags: ['validation', 'zod', 'typescript'] },
+                        { id: '2', title: 'Database Migrations', tags: ['database', 'postgresql', 'migrations'] }
+                    ];
+                    setTopics(mockTopics);
+                } catch (error) {
+                    console.error('Failed to load topics:', error);
+                }
+            };
+
+            const loadComponents = async () => {
+                try {
+                    // Simulate API call
+                    const mockComponents = [
+                        { schemaId: 'ld:AtomicButton', title: 'Atomic Button', category: 'ui' },
+                        { schemaId: 'ld:AtomicInput', title: 'Atomic Input', category: 'ui' },
+                        { schemaId: 'ld:AtomicCard', title: 'Atomic Card', category: 'layout' }
+                    ];
+                    setComponents(mockComponents);
+                } catch (error) {
+                    console.error('Failed to load components:', error);
+                }
+            };
+
+            const handleGeneratePlan = async () => {
+                if (!selectedTemplate) {
+                    alert('Please select a template first');
+                    return;
+                }
+
+                setLoading(true);
+                try {
+                    // Simulate API call to PlanningService
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    const mockPlan = {
+                        planId: `plan-${Date.now()}`,
+                        templateId: selectedTemplate.id,
+                        title: `Execution Plan for ${selectedTemplate.name}`,
+                        description: `Generated plan based on ${selectedTemplate.name} template`,
+                        steps: [
+                            {
+                                stepId: 'step-1',
+                                name: 'Initialize Project',
+                                description: 'Set up project structure and dependencies',
+                                action: 'initialize',
+                                estimatedDuration: '30 minutes',
+                                dependencies: []
+                            },
+                            {
+                                stepId: 'step-2',
+                                name: 'Configure Database',
+                                description: 'Set up database connections and run migrations',
+                                action: 'configure_db',
+                                estimatedDuration: '45 minutes',
+                                dependencies: ['step-1']
+                            },
+                            {
+                                stepId: 'step-3',
+                                name: 'Implement Core Logic',
+                                description: 'Develop main business logic and services',
+                                action: 'implement',
+                                estimatedDuration: '2 hours',
+                                dependencies: ['step-2']
+                            },
+                            {
+                                stepId: 'step-4',
+                                name: 'Testing & Validation',
+                                description: 'Run tests and validate implementation',
+                                action: 'test',
+                                estimatedDuration: '1 hour',
+                                dependencies: ['step-3']
+                            }
+                        ],
+                        variables,
+                        status: 'ready'
+                    };
+
+                    setPlan(mockPlan);
+                } catch (error) {
+                    console.error('Failed to generate plan:', error);
+                    alert('Failed to generate execution plan');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleLaunchWorkflow = () => {
+                if (!plan) {
+                    alert('Please generate a plan first');
+                    return;
+                }
+
+                alert(`Launching workflow: ${plan.title}\nThis will execute ${plan.steps.length} steps.`);
+                console.log('Launching workflow with plan:', plan);
+            };
+
+            return (
+                <div className="container">
+                    <header className="header">
+                        <h1>🌟 LightDom Platform</h1>
+                        <p>Unified Dashboard for Templates, Wiki, Components & AI Assistant</p>
+                    </header>
+
+                    <nav className="nav-tabs">
+                        {tabs.map(tab => (
+                            <div
+                                key={tab.id}
+                                className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
+                                onClick={() => setActiveTab(tab.id)}
+                            >
+                                {tab.icon} {tab.name}
+                            </div>
+                        ))}
+                    </nav>
+
+                    <div className="content">
+                        {activeTab === 'templates' && (
+                            <div>
+                                <div className="card">
+                                    <h2>📋 Workflow Templates</h2>
+                                    <p style={{ color: '#718096', marginBottom: '1rem' }}>
+                                        Select a template and configure variables to generate an AI-powered execution plan
+                                    </p>
+                                    <div className="grid">
+                                        {templates.map(template => (
+                                            <div
+                                                key={template.id}
+                                                className="card"
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    border: selectedTemplate?.id === template.id ? '2px solid #667eea' : '1px solid #e2e8f0'
+                                                }}
+                                                onClick={() => setSelectedTemplate(template)}
+                                            >
+                                                <h3>{template.name}</h3>
+                                                <p style={{ color: '#718096', fontSize: '0.875rem' }}>
+                                                    {template.description}
+                                                </p>
+                                                {selectedTemplate?.id === template.id && (
+                                                    <span className="badge badge-info" style={{ marginTop: '0.5rem' }}>
+                                                        Selected
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {selectedTemplate && (
+                                    <div className="card">
+                                        <h2>⚙️ Configure Variables</h2>
+                                        <div className="form-group">
+                                            <label>Project Name</label>
+                                            <input
+                                                type="text"
+                                                value={variables.projectName}
+                                                onChange={(e) => setVariables({...variables, projectName: e.target.value})}
+                                                placeholder="Enter project name"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Target Date</label>
+                                            <input
+                                                type="date"
+                                                value={variables.targetDate}
+                                                onChange={(e) => setVariables({...variables, targetDate: e.target.value})}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Priority</label>
+                                            <select
+                                                value={variables.priority}
+                                                onChange={(e) => setVariables({...variables, priority: e.target.value})}
+                                            >
+                                                <option value="low">Low</option>
+                                                <option value="medium">Medium</option>
+                                                <option value="high">High</option>
+                                                <option value="critical">Critical</option>
+                                            </select>
+                                        </div>
+                                        <button
+                                            className="btn btn-primary"
+                                            onClick={handleGeneratePlan}
+                                            disabled={loading}
+                                        >
+                                            {loading ? <><span className="loading"></span> Generating Plan...</> : '🔮 Show Plan'}
+                                        </button>
+                                    </div>
+                                )}
+
+                                {plan && (
+                                    <div className="card">
+                                        <h2>📊 Execution Plan</h2>
+                                        <div style={{ marginBottom: '1rem' }}>
+                                            <h3>{plan.title}</h3>
+                                            <p style={{ color: '#718096' }}>{plan.description}</p>
+                                            <span className="badge badge-success" style={{ marginTop: '0.5rem' }}>
+                                                {plan.status}
+                                            </span>
+                                        </div>
+
+                                        <div className="plan-visualization">
+                                            <h3 style={{ marginBottom: '1rem' }}>🗺️ Execution Steps</h3>
+                                            {plan.steps.map((step, index) => (
+                                                <div key={step.stepId} className="plan-step">
+                                                    <h4>Step {index + 1}: {step.name}</h4>
+                                                    <p style={{ color: '#4a5568', fontSize: '0.875rem' }}>
+                                                        {step.description}
+                                                    </p>
+                                                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#718096' }}>
+                                                        <strong>Action:</strong> {step.action} | 
+                                                        <strong> Duration:</strong> {step.estimatedDuration}
+                                                        {step.dependencies.length > 0 && (
+                                                            <> | <strong>Depends on:</strong> {step.dependencies.join(', ')}</>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <button
+                                            className="btn btn-primary"
+                                            onClick={handleLaunchWorkflow}
+                                            style={{ marginTop: '1rem' }}
+                                        >
+                                            🚀 Launch Workflow
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'wiki' && (
+                            <div className="card">
+                                <h2>📚 Research Topics</h2>
+                                <p style={{ color: '#718096', marginBottom: '1rem' }}>
+                                    Browse and search research topics in the knowledge base
+                                </p>
+                                {topics.map(topic => (
+                                    <div key={topic.id} className="list-item">
+                                        <h3>{topic.title}</h3>
+                                        <div style={{ marginTop: '0.5rem' }}>
+                                            {topic.tags.map(tag => (
+                                                <span
+                                                    key={tag}
+                                                    className="badge badge-info"
+                                                    style={{ marginRight: '0.5rem' }}
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {activeTab === 'components' && (
+                            <div className="card">
+                                <h2>🧩 Component Library</h2>
+                                <p style={{ color: '#718096', marginBottom: '1rem' }}>
+                                    Browse atomic components and schemas
+                                </p>
+                                <div className="grid">
+                                    {components.map(component => (
+                                        <div key={component.schemaId} className="card">
+                                            <h3>{component.title}</h3>
+                                            <p style={{ color: '#718096', fontSize: '0.875rem' }}>
+                                                {component.schemaId}
+                                            </p>
+                                            <span className="badge badge-success" style={{ marginTop: '0.5rem' }}>
+                                                {component.category}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'ai-assistant' && (
+                            <div className="card">
+                                <h2>🤖 AI Assistant</h2>
+                                <p style={{ color: '#718096', marginBottom: '1rem' }}>
+                                    Chat with AI for code generation, task analysis, and workflow planning
+                                </p>
+                                <div className="form-group">
+                                    <label>Message</label>
+                                    <textarea
+                                        rows="4"
+                                        placeholder="Ask the AI assistant anything..."
+                                    ></textarea>
+                                </div>
+                                <button className="btn btn-primary">
+                                    💬 Send Message
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<UnifiedDashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>

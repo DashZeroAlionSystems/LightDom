@@ -735,6 +735,13 @@ export class ClientManagementSystem {
       }
     };
   }
+
+  /**
+   * Get client by ID
+   */
+  public getClientById(clientId: string): Client | null {
+    return this.clients.get(clientId) || null;
+  }
 }
 
 // Export singleton instance

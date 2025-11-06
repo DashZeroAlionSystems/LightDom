@@ -1,0 +1,463 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Minimal design-system CSS — this file uses Tailwind for utilities but also
+  relies on CSS variables for theming. We avoid using @apply with custom
+  color utilities that reference CSS variables, and instead set colors
+  directly using the variables so Tailwind/PostCSS doesn't need to resolve
+  them at build-time. */
+@layer base {
+  :root {
+    /* Exodus-inspired dark theme */
+    --background: 220 27% 7%;
+    --foreground: 210 40% 98%;
+    --card: 220 26% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 220 26% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 237 92% 64%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 220 26% 14%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 220 26% 14%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 237 92% 64%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 26% 18%;
+    --input: 220 26% 14%;
+    --ring: 237 92% 64%;
+    --radius: 0.75rem;
+
+    /* Exodus color palette */
+    --exodus-blue: 237 92% 64%;
+    --exodus-purple: 270 70% 60%;
+    --exodus-dark: 220 27% 7%;
+    --exodus-card: 220 26% 11%;
+    --exodus-card-hover: 220 26% 14%;
+    --exodus-text-primary: 210 40% 98%;
+    --exodus-text-secondary: 220 17% 60%;
+  }
+
+  .dark {
+    --background: 220 27% 7%;
+    --foreground: 210 40% 98%;
+    --card: 220 26% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 220 26% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 237 92% 64%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 220 26% 14%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 220 26% 14%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 237 92% 64%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 26% 18%;
+    --input: 220 26% 14%;
+    --ring: 237 92% 64%;
+  }
+}
+
+@layer base {
+    /* Set a sensible default border color using the CSS variable. Using
+       a direct CSS property here avoids Tailwind @apply errors when the
+       utility isn't recognized during PostCSS processing. */
+    * {
+      border-color: hsl(var(--border));
+    }
+  body {
+    /* Don't use @apply for custom color utilities — apply CSS vars directly */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem; /* rounded-md */
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500; /* font-medium */
+    transition: background-color 0.2s ease, color 0.2s ease;
+    outline: none;
+  }
+  .btn:focus-visible {
+    box-shadow: 0 0 0 2px hsl(var(--ring));
+  }
+  .btn:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  .btn-primary {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+  .btn-primary:hover {
+    filter: brightness(0.92);
+  }
+
+  .btn-secondary {
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+  }
+  .btn-secondary:hover {
+    filter: brightness(0.95);
+  }
+
+  .btn-destructive {
+    background-color: hsl(var(--destructive));
+    color: hsl(var(--destructive-foreground));
+  }
+  .btn-destructive:hover {
+    filter: brightness(0.92);
+  }
+
+  .btn-outline {
+    border: 1px solid hsl(var(--input));
+    background-color: hsl(var(--background));
+  }
+  .btn-outline:hover {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+
+  .btn-ghost:hover {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+
+  .btn-link {
+    color: hsl(var(--primary));
+    text-underline-offset: 4px;
+  }
+  .btn-link:hover {
+    text-decoration: underline;
+  }
+
+  .btn-sm {
+    height: 2.25rem; /* h-9 */
+    border-radius: 0.375rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .btn-lg {
+    height: 2.75rem; /* h-11 */
+    border-radius: 0.375rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .btn-icon {
+    height: 2.5rem; /* h-10 */
+    width: 2.5rem;
+  }
+
+  .card {
+    border-radius: 0.5rem; /* rounded-lg */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* shadow-sm (approx) */
+    border: 1px solid hsl(var(--border));
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+  }
+
+  .card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem; /* space-y-1.5 */
+    padding: 1.5rem; /* p-6 */
+  }
+
+  .card-title {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 600; /* font-semibold */
+    line-height: 1; /* leading-none */
+    letter-spacing: -0.02em; /* tracking-tight (approx) */
+  }
+
+  .card-description {
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .card-content {
+    padding: 1.5rem;
+    padding-top: 0;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    padding-top: 0;
+  }
+
+  .input {
+    display: flex;
+    height: 2.5rem;
+    width: 100%;
+    border-radius: 0.375rem;
+    border: 1px solid hsl(var(--input));
+    background-color: hsl(var(--background));
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  .input::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+  .input:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--ring));
+  }
+
+  .label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 600; /* font-semibold */
+    transition: background-color 0.2s ease, color 0.2s ease;
+    border: 1px solid hsl(var(--border));
+  }
+
+  .badge-default {
+    border-color: transparent;
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .badge-secondary {
+    border-color: transparent;
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+  }
+
+  .badge-destructive {
+    border-color: transparent;
+    background-color: hsl(var(--destructive));
+    color: hsl(var(--destructive-foreground));
+  }
+
+  .badge-outline {
+    color: hsl(var(--foreground));
+  }
+
+  .alert {
+    position: relative;
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid hsl(var(--border));
+    padding: 1rem;
+  }
+  .alert > svg ~ * { padding-left: 1.75rem; }
+  .alert > svg + div { transform: translateY(-3px); }
+  .alert > svg { position: absolute; left: 1rem; top: 1rem; color: hsl(var(--foreground)); }
+
+  .alert-default {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  .alert-destructive {
+    border-color: hsl(var(--destructive) / 0.5);
+    color: hsl(var(--destructive));
+  }
+
+  .progress {
+    position: relative;
+    height: 1rem;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 9999px;
+    background-color: hsl(var(--secondary));
+  }
+
+  .progress-indicator {
+    height: 100%;
+    width: 100%;
+    background-color: hsl(var(--primary));
+    transition: all 0.2s ease;
+  }
+
+  .skeleton {
+    border-radius: 0.375rem;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    background-color: hsl(var(--muted));
+  }
+
+  .separator {
+    flex-shrink: 0;
+    background-color: hsl(var(--border));
+  }
+
+  .separator-horizontal {
+    height: 1px;
+    width: 100%;
+  }
+
+  .separator-vertical {
+    height: 100%;
+    width: 1px;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground));
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--foreground));
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .animate-in {
+    animation: fade-in 0.5s ease-out;
+  }
+
+  .animate-out {
+    animation: fade-out 0.5s ease-out;
+  }
+
+  .animate-in-from-top {
+    animation: slide-in-from-top 0.5s ease-out;
+  }
+
+  .animate-in-from-bottom {
+    animation: slide-in-from-bottom 0.5s ease-out;
+  }
+
+  .animate-in-from-left {
+    animation: slide-in-from-left 0.5s ease-out;
+  }
+
+  .animate-in-from-right {
+    animation: slide-in-from-right 0.5s ease-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounce-in 0.6s ease-out;
+  }
+
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin 20s linear infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(99, 102, 241, 0.8);
+    }
+  }
+
+  /* Exodus-style gradient backgrounds */
+  .bg-gradient-exodus {
+    background: linear-gradient(135deg, hsl(var(--exodus-blue)) 0%, hsl(var(--exodus-purple)) 100%);
+  }
+
+  .bg-gradient-exodus-hover {
+    background: linear-gradient(135deg, hsl(var(--exodus-blue)) 0%, hsl(var(--exodus-purple)) 100%);
+    transition: all 0.3s ease;
+  }
+
+  .bg-gradient-exodus-hover:hover {
+    filter: brightness(1.2);
+    transform: scale(1.02);
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar for Exodus theme */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--exodus-dark));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--exodus-blue));
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--exodus-purple));
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "workflowRules": {
+    "enabled": true,
+    "strictMode": true,
+    "validationRequired": true
+  },
+  "preWorkValidation": {
+    "enabled": true,
+    "timeout": 30000,
+    "requiredChecks": [
+      {
+        "name": "searchExistingFiles",
+        "description": "Search for existing files with similar functionality",
+        "pattern": "**/*.{ts,tsx,js,jsx,md}",
+        "required": true
+      },
+      {
+        "name": "checkDocumentationStatus", 
+        "description": "Check if feature is already documented",
+        "pattern": "**/*.md",
+        "required": true
+      },
+      {
+        "name": "verifyAPIEndpoints",
+        "description": "Check if API endpoints already exist",
+        "pattern": "api-server-express.js",
+        "required": true
+      },
+      {
+        "name": "validateComponentStatus",
+        "description": "Check if React components already exist",
+        "pattern": "src/components/**/*.{ts,tsx}",
+        "required": true
+      },
+      {
+        "name": "checkServiceStatus",
+        "description": "Check if services already exist",
+        "pattern": "src/services/**/*.{ts,js}",
+        "required": true
+      }
+    ]
+  },
+  "fileCreationRules": {
+    "enabled": true,
+    "maxNewFilesPerSession": 3,
+    "requireJustification": true,
+    "duplicateDetection": true,
+    "forbiddenPatterns": [
+      "README-*.md",
+      "*_COMPLETE.md", 
+      "*_STATUS.md",
+      "*_SUMMARY.md",
+      "*_INTEGRATION.md",
+      "*_AUDIT.md",
+      "*_TRACKER.md",
+      "*_GUIDE.md",
+      "CURSOR_*.md",
+      "*_PROGRESS*.md",
+      "*_TODO*.md"
+    ],
+    "allowedPatterns": [
+      "src/**/*.{ts,tsx,js,jsx}",
+      "tests/**/*.{ts,js}",
+      "docs/**/*.md",
+      "scripts/**/*.{js,sh}",
+      "*.{json,yml,yaml,env}"
+    ]
+  },
+  "documentationRules": {
+    "enabled": true,
+    "consolidationRequired": true,
+    "maxDocumentationFiles": 10,
+    "preferredStructure": {
+      "main": "README.md",
+      "setup": "SETUP_GUIDE.md",
+      "architecture": "ARCHITECTURE.md", 
+      "api": "API_DOCUMENTATION.md",
+      "deployment": "DEPLOYMENT.md"
+    },
+    "duplicatePrevention": true,
+    "contentValidation": true,
+    "updateExistingFirst": true
+  },
+  "taskValidation": {
+    "enabled": true,
+    "checkBeforeStart": true,
+    "validationSteps": [
+      {
+        "step": "searchExistingImplementation",
+        "description": "Search for existing implementation",
+        "timeout": 10000,
+        "required": true
+      },
+      {
+        "step": "checkDocumentationStatus",
+        "description": "Check if already documented", 
+        "timeout": 5000,
+        "required": true
+      },
+      {
+        "step": "verifyAPIEndpoints",
+        "description": "Check if API endpoints exist",
+        "timeout": 5000,
+        "required": true
+      },
+      {
+        "step": "validateComponentStatus",
+        "description": "Check if components exist",
+        "timeout": 5000,
+        "required": true
+      },
+      {
+        "step": "checkTestCoverage",
+        "description": "Check if tests exist",
+        "timeout": 5000,
+        "required": false
+      }
+    ]
+  },
+  "memoryEnhancement": {
+    "enabled": true,
+    "contextRetention": "extended",
+    "sessionPersistence": true,
+    "crossSessionMemory": true,
+    "workHistoryTracking": true,
+    "achievementTracking": true,
+    "projectStateTracking": true
+  },
+  "redundancyPrevention": {
+    "enabled": true,
+    "duplicateFileDetection": true,
+    "similarContentDetection": true,
+    "workHistoryValidation": true,
+    "achievementValidation": true,
+    "projectStateValidation": true
+  },
+  "qualityGates": {
+    "enabled": true,
+    "preWorkValidation": true,
+    "postWorkValidation": true,
+    "fileCreationValidation": true,
+    "documentationValidation": true,
+    "redundancyValidation": true
+  },
+  "enforcement": {
+    "strictMode": true,
+    "validationRequired": true,
+    "duplicatePrevention": true,
+    "consolidationRequired": true,
+    "justificationRequired": true
+  }
+}

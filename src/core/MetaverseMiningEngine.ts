@@ -129,7 +129,8 @@ export class MetaverseMiningEngine {
 
   constructor() {
     this.initializeBiomes();
-    this.startContinuousMining();
+    // Don't start mining automatically - let the server control it
+    // this.startContinuousMining();
   }
 
   /**
@@ -170,16 +171,6 @@ export class MetaverseMiningEngine {
         }
       });
     });
-  }
-
-  /**
-   * Start continuous mining process
-   */
-  private startContinuousMining(): void {
-    this.isMining = true;
-    this.miningInterval = setInterval(() => {
-      this.performMiningCycle();
-    }, 5000); // Mine every 5 seconds
   }
 
   /**
@@ -875,6 +866,57 @@ export class MetaverseMiningEngine {
     } catch (error) {
       console.error(`Error analyzing biome ${biomeId}:`, error);
     }
+  }
+
+  /**
+   * Get user mining statistics
+   */
+  public getUserMiningStats(userId: string): any {
+    // Mock implementation - would track real user stats in production
+    return {
+      totalScore: Math.floor(Math.random() * 10000),
+      algorithmsDiscovered: Math.floor(Math.random() * 50),
+      elementsCollected: Math.floor(Math.random() * 100),
+      combinationsCompleted: Math.floor(Math.random() * 200),
+      lastActivity: Date.now() - Math.random() * 86400000
+    };
+  }
+
+  /**
+   * Get total algorithms discovered across all users
+   */
+  public getTotalAlgorithmsDiscovered(): number {
+    return this.algorithms.size;
+  }
+
+  /**
+   * Get all mining data summary
+   */
+  public getAllMiningData(): any {
+    return {
+      totalOperations: this.algorithms.size + this.dataMiningResults.size,
+      totalAlgorithms: this.algorithms.size,
+      totalDataMined: this.dataMiningResults.size,
+      averageScore: 500 + Math.random() * 500,
+      totalTokens: (this.algorithms.size + this.dataMiningResults.size) * 10
+    };
+  }
+
+  /**
+   * Get biome statistics
+   */
+  public getBiomeStatistics(): any[] {
+    const stats = [];
+    for (const [biomeId, biome] of this.biomes) {
+      stats.push({
+        type: biome.type,
+        count: 1,
+        operations: biome.discoveries.algorithms.length + biome.discoveries.dataMining.length,
+        avgAuthority: biome.characteristics.authority,
+        totalRewards: biome.rewards.stakingRate * 100
+      });
+    }
+    return stats;
   }
 }
 

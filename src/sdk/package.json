@@ -1,0 +1,42 @@
+{
+  "name": "@lightdom/seo-sdk",
+  "version": "1.0.0",
+  "description": "LightDom SEO SDK - Injectable JavaScript for automated SEO optimization",
+  "main": "../../dist/sdk/lightdom-seo.js",
+  "module": "../../dist/sdk/lightdom-seo.esm.js",
+  "types": "../../dist/sdk/lightdom-seo.d.ts",
+  "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "build:prod": "NODE_ENV=production rollup -c rollup.config.js",
+    "watch": "rollup -c rollup.config.js -w",
+    "clean": "rm -rf ../../dist/sdk"
+  },
+  "keywords": [
+    "seo",
+    "optimization",
+    "json-ld",
+    "structured-data",
+    "core-web-vitals",
+    "analytics"
+  ],
+  "author": "LightDom",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "rollup": "^4.9.0",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "../../dist/sdk"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

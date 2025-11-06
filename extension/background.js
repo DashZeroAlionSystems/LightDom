@@ -1,102 +1,208 @@
-/**
- * LightDom Blockchain Extension Background Script
- * Handles blockchain mining, notifications, and monitoring
- */
+// LightDom Extension Background Script v2.0
+console.log('LightDom Extension v2.0 loaded');
 
-class LightDomBlockchainService {
+class LightDomBackgroundService {
   constructor() {
     this.isMining = false;
-    this.blockchainUrl = 'http://localhost:3001/blockchain';
     this.userAddress = null;
-    this.metrics = {
+    this.miningStats = {
+      optimizationsSubmitted: 0,
+      totalSpaceSaved: 0,
       blocksMined: 0,
-      domOptimizations: 0,
-      spaceHarvested: 0,
-      notificationsSent: 0,
-      peersConnected: 0
+      lastOptimization: 0
     };
-    this.notificationQueue = [];
-    this.monitoringInterval = null;
+    this.apiBaseUrl = 'http://localhost:3001';
+    this.updateInterval = null;
     
     this.init();
   }
 
   async init() {
-    // Load user data from storage
-    const result = await chrome.storage.local.get(['userAddress', 'isMining']);
-    this.userAddress = result.userAddress;
-    this.isMining = result.isMining || false;
-
-    // Initialize enhanced storage manager
-    await this.initializeStorageManager();
+    // Load initial state from storage
+    await this.loadState();
     
-    // Initialize declarative net request manager
-    await this.initializeDeclarativeNetRequest();
+    // Setup event listeners
+    this.setupEventListeners();
     
     // Setup side panel
-    await this.setupSidePanel();
-    
-    // Setup offscreen document for heavy DOM analysis
-    await this.setupOffscreenDocument();
-    
-    // Start blockchain monitoring
-    this.startMonitoring();
-    
-    // Listen for messages from content scripts
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      this.handleMessage(message, sender, sendResponse);
-      return true; // Keep message channel open for async response
-    });
-
-    // Listen for tab updates to inject blockchain miner
-    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-      if (changeInfo.status === 'complete' && tab.url) {
-        this.injectBlockchainMiner(tabId, tab.url);
-      }
-    });
+    this.setupSidePanel();
     
     // Setup keyboard shortcuts
-    chrome.commands.onCommand.addListener((command) => {
-      this.handleCommand(command);
-    });
+    this.setupKeyboardShortcuts();
     
-    // Setup context menu
-    this.setupContextMenu();
+    // Start periodic updates
+    this.startPeriodicUpdates();
+  }
+
+  async loadState() {
+    try {
+      const result = await chrome.storage.local.get([
+        'isMining', 
+        'userAddress', 
+        'miningStats',
+        'recentOptimizations'
+      ]);
+      
+      this.isMining = result.isMining || false;
+      this.userAddress = result.userAddress;
+      this.miningStats = result.miningStats || this.miningStats;
+      
+      console.log('LightDom state loaded:', { 
+        isMining: this.isMining, 
+        hasUserAddress: !!this.userAddress 
+      });
+    } catch (error) {
+      console.error('Failed to load state:', error);
+    }
+  }
+
+  async saveState() {
+    try {
+      await chrome.storage.local.set({
+        isMining: this.isMining,
+        userAddress: this.userAddress,
+        miningStats: this.miningStats
+      });
+    } catch (error) {
+      console.error('Failed to save state:', error);
+    }
+  }
+
+  setupEventListeners() {
+    // Handle messages from content scripts and popup
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      this.handleMessage(message, sender, sendResponse);
+    });
+
+    // Handle extension installation
+    chrome.runtime.onInstalled.addListener(() => {
+      this.handleInstallation();
+    });
+
+    // Handle storage changes
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+      this.handleStorageChange(changes, namespace);
+    });
+
+    // Handle tab updates
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+      this.handleTabUpdate(tabId, changeInfo, tab);
+    });
   }
 
   async handleMessage(message, sender, sendResponse) {
-    switch (message.type) {
-      case 'START_MINING':
-        await this.startMining();
-        sendResponse({ success: true, message: 'Mining started' });
-        break;
+    try {
+      switch (message.type) {
+        case 'DOM_OPTIMIZATION':
+          await this.handleDOMOptimization(message.data);
+          sendResponse({ success: true });
+          break;
+          
+        case 'START_MINING':
+          await this.startMining();
+          sendResponse({ success: true });
+          break;
+          
+        case 'STOP_MINING':
+          await this.stopMining();
+          sendResponse({ success: true });
+          break;
+          
+        case 'GET_MINING_STATUS':
+          sendResponse({ 
+            success: true, 
+            data: { 
+              isMining: this.isMining, 
+              userAddress: this.userAddress,
+              stats: this.miningStats 
+            } 
+          });
+          break;
+          
+        case 'SET_USER_ADDRESS':
+          this.userAddress = message.address;
+          await this.saveState();
+          sendResponse({ success: true });
+          break;
+          
+        case 'ANALYZE_DOM':
+          const result = await this.analyzeDOM(message.data);
+          sendResponse({ success: true, data: result });
+          break;
+          
+        case 'ITEM_PURCHASED':
+          await this.handleItemPurchase(message.data);
+          sendResponse({ success: true });
+          break;
+          
+        case 'GET_PURCHASED_ITEMS':
+          const items = await this.getPurchasedItems();
+          sendResponse({ success: true, data: items });
+          break;
+          
+        case 'ADD_ITEM_TO_CHAT':
+          await this.addItemToChatRoom(message.data);
+          sendResponse({ success: true });
+          break;
+          
+        default:
+          sendResponse({ success: false, error: 'Unknown message type' });
+      }
+    } catch (error) {
+      console.error('Error handling message:', error);
+      sendResponse({ success: false, error: error.message });
+    }
+  }
+
+  async handleDOMOptimization(data) {
+    if (!this.isMining) return;
+    
+    try {
+      console.log('Submitting DOM optimization:', data);
       
-      case 'STOP_MINING':
-        await this.stopMining();
-        sendResponse({ success: true, message: 'Mining stopped' });
-        break;
+      const response = await fetch(`${this.apiBaseUrl}/api/blockchain/submit-optimization`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-LightDom-User': this.userAddress || 'anonymous'
+        },
+        body: JSON.stringify({
+          url: data.url,
+          userAddress: this.userAddress,
+          domAnalysis: data.domMetrics,
+          spaceSaved: data.potentialSavings,
+          timestamp: Date.now(),
+          optimizations: data.optimizations
+        })
+      });
       
-      case 'GET_METRICS':
-        sendResponse({ success: true, metrics: this.metrics });
-        break;
+      const result = await response.json();
       
-      case 'DOM_OPTIMIZATION_FOUND':
-        await this.handleDOMOptimization(message.data, sender.tab);
-        sendResponse({ success: true });
-        break;
-      
-      case 'BLOCKCHAIN_EVENT':
-        await this.handleBlockchainEvent(message.data);
-        sendResponse({ success: true });
-        break;
-      
-      case 'REQUEST_NOTIFICATION':
-        await this.sendNotification(message.data);
-        sendResponse({ success: true });
-        break;
-      
-      default:
-        sendResponse({ success: false, error: 'Unknown message type' });
+      if (result.success) {
+        // Update mining stats
+        this.miningStats.optimizationsSubmitted++;
+        this.miningStats.totalSpaceSaved += data.potentialSavings;
+        this.miningStats.lastOptimization = Date.now();
+        
+        await this.saveState();
+        
+        // Show notification
+        await this.showMiningNotification(data, result);
+        
+        // Broadcast to side panel
+        this.broadcastToSidePanel('OPTIMIZATION_COMPLETE', {
+          url: data.url,
+          spaceSaved: data.potentialSavings,
+          optimizations: data.optimizations?.length || 0,
+          timestamp: Date.now()
+        });
+        
+        // Update metrics
+        this.broadcastToSidePanel('METRICS_UPDATE', this.miningStats);
+      }
+    } catch (error) {
+      console.error('Failed to submit optimization:', error);
+      await this.showErrorNotification('Optimization failed', error.message);
     }
   }
 
@@ -104,415 +210,297 @@ class LightDomBlockchainService {
     if (this.isMining) return;
     
     this.isMining = true;
-    await chrome.storage.local.set({ isMining: true });
+    await this.saveState();
     
-    // Start headless Chrome blockchain process
-    await this.startHeadlessBlockchain();
+    console.log('LightDom mining started');
     
-    // Notify all tabs about mining start
-    chrome.tabs.query({}, (tabs) => {
-      tabs.forEach(tab => {
-        chrome.tabs.sendMessage(tab.id, {
-          type: 'MINING_STARTED',
-          data: { userAddress: this.userAddress }
-        }).catch(() => {}); // Ignore errors for tabs that don't have content script
-      });
-    });
+    // Broadcast to side panel
+    this.broadcastToSidePanel('MINING_STATUS_CHANGE', { isMining: true });
+    
+    // Show notification
+    await this.showNotification(
+      'Mining Started',
+      'DOM optimization mining is now active'
+    );
   }
 
   async stopMining() {
+    if (!this.isMining) return;
+    
     this.isMining = false;
-    await chrome.storage.local.set({ isMining: false });
+    await this.saveState();
     
-    // Stop headless blockchain process
-    await this.stopHeadlessBlockchain();
+    console.log('LightDom mining stopped');
     
-    // Notify all tabs about mining stop
-    chrome.tabs.query({}, (tabs) => {
-      tabs.forEach(tab => {
-        chrome.tabs.sendMessage(tab.id, {
-          type: 'MINING_STOPPED'
-        }).catch(() => {});
-      });
-    });
+    // Broadcast to side panel
+    this.broadcastToSidePanel('MINING_STATUS_CHANGE', { isMining: false });
+    
+    // Show notification
+    await this.showNotification(
+      'Mining Stopped',
+      'DOM optimization mining has been stopped'
+    );
   }
 
-  async startHeadlessBlockchain() {
-    // Create headless Chrome instance for blockchain mining
+  async showMiningNotification(optimization, result) {
     try {
-      const response = await fetch(`${this.blockchainUrl}/start-mining`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userAddress: this.userAddress,
-          extensionId: chrome.runtime.id
-        })
+      await chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icon48.svg',
+        title: '⚡ LightDom Mining Success!',
+        message: `Earned ${Math.floor(optimization.potentialSavings / 100)} DSH tokens for ${optimization.potentialSavings} bytes saved`
       });
-      
-      const result = await response.json();
-      if (result.success) {
-        console.log('Headless blockchain started:', result);
-      }
     } catch (error) {
-      console.error('Failed to start headless blockchain:', error);
+      console.error('Failed to show notification:', error);
     }
   }
 
-  async stopHeadlessBlockchain() {
+  async showErrorNotification(title, message) {
     try {
-      await fetch(`${this.blockchainUrl}/stop-mining`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userAddress: this.userAddress })
+      await chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icon48.svg',
+        title: `❌ ${title}`,
+        message: message
       });
     } catch (error) {
-      console.error('Failed to stop headless blockchain:', error);
+      console.error('Failed to show error notification:', error);
     }
   }
 
-  async injectBlockchainMiner(tabId, url) {
-    if (!this.isMining || !this.isValidUrl(url)) return;
-    
+  async showNotification(title, message) {
     try {
-      await chrome.scripting.executeScript({
-        target: { tabId },
-        files: ['blockchain-miner.js']
+      await chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icon48.svg',
+        title: title,
+        message: message
       });
     } catch (error) {
-      console.error('Failed to inject blockchain miner:', error);
+      console.error('Failed to show notification:', error);
     }
   }
 
-  isValidUrl(url) {
-    // Only inject on web pages, not chrome:// or extension pages
-    return url.startsWith('http://') || url.startsWith('https://');
+  setupSidePanel() {
+    // Configure side panel behavior
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
   }
 
-  async handleDOMOptimization(data, tab) {
-    this.metrics.domOptimizations++;
-    this.metrics.spaceHarvested += data.spaceSaved || 0;
-    
-    // Send optimization to blockchain
-    await this.submitOptimizationToBlockchain(data, tab);
-    
-    // Send notification to LightDom users
-    await this.notifyLightDomUsers({
-      type: 'DOM_OPTIMIZATION',
-      data: {
-        url: tab.url,
-        spaceSaved: data.spaceSaved,
-        userAddress: this.userAddress,
-        timestamp: Date.now()
+  setupKeyboardShortcuts() {
+    // Handle keyboard shortcuts
+    chrome.commands.onCommand.addListener((command) => {
+      switch (command) {
+        case 'toggle-mining':
+          this.isMining ? this.stopMining() : this.startMining();
+          break;
+        case 'open-sidepanel':
+          this.openSidePanel();
+          break;
+        case 'open-wallet':
+          this.openWallet();
+          break;
       }
     });
   }
 
-  async submitOptimizationToBlockchain(data, tab) {
+  async openWallet() {
     try {
-      const response = await fetch(`${this.blockchainUrl}/submit-optimization`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          url: tab.url,
-          userAddress: this.userAddress,
-          domAnalysis: data.domAnalysis,
-          spaceSaved: data.spaceSaved,
-          timestamp: Date.now()
-        })
-      });
-      
-      const result = await response.json();
-      if (result.success) {
-        this.metrics.blocksMined++;
-        console.log('Optimization submitted to blockchain:', result);
-      }
+      await chrome.tabs.create({ url: 'wallet.html' });
     } catch (error) {
-      console.error('Failed to submit optimization to blockchain:', error);
-    }
-  }
-
-  async handleBlockchainEvent(data) {
-    this.metrics.peersConnected = data.peersConnected || 0;
-    
-    // Process blockchain events
-    switch (data.eventType) {
-      case 'BLOCK_MINED':
-        this.metrics.blocksMined++;
-        await this.notifyLightDomUsers({
-          type: 'BLOCK_MINED',
-          data: {
-            blockNumber: data.blockNumber,
-            userAddress: this.userAddress,
-            timestamp: Date.now()
-          }
-        });
-        break;
-      
-      case 'PEER_CONNECTED':
-        this.metrics.peersConnected++;
-        break;
-      
-      case 'PEER_DISCONNECTED':
-        this.metrics.peersConnected = Math.max(0, this.metrics.peersConnected - 1);
-        break;
-    }
-  }
-
-  async notifyLightDomUsers(notification) {
-    // Only send notifications to LightDom blockchain users
-    if (!this.isLightDomUser()) return;
-    
-    this.notificationQueue.push(notification);
-    this.metrics.notificationsSent++;
-    
-    // Send browser notification
-    await chrome.notifications.create({
-      type: 'basic',
-      iconUrl: 'icon48.png',
-      title: 'LightDom Blockchain',
-      message: this.formatNotificationMessage(notification)
-    });
-    
-    // Broadcast to all tabs
-    chrome.tabs.query({}, (tabs) => {
-      tabs.forEach(tab => {
-        chrome.tabs.sendMessage(tab.id, {
-          type: 'LIGHTDOM_NOTIFICATION',
-          data: notification
-        }).catch(() => {});
-      });
-    });
-  }
-
-  isLightDomUser() {
-    // Check if user is registered in LightDom blockchain
-    return this.userAddress && this.userAddress.startsWith('0x');
-  }
-
-  formatNotificationMessage(notification) {
-    switch (notification.type) {
-      case 'DOM_OPTIMIZATION':
-        return `DOM optimized! ${notification.data.spaceSaved} bytes saved on ${new URL(notification.data.url).hostname}`;
-      case 'BLOCK_MINED':
-        return `Block #${notification.data.blockNumber} mined successfully!`;
-      default:
-        return 'LightDom blockchain update';
-    }
-  }
-
-  async sendNotification(data) {
-    await this.notifyLightDomUsers(data);
-  }
-
-  startMonitoring() {
-    this.monitoringInterval = setInterval(async () => {
-      await this.updateMetrics();
-    }, 5000); // Update every 5 seconds
-  }
-
-  async updateMetrics() {
-    try {
-      const response = await fetch(`${this.blockchainUrl}/metrics`);
-      const blockchainMetrics = await response.json();
-      
-      this.metrics = {
-        ...this.metrics,
-        ...blockchainMetrics
-      };
-      
-      // Save metrics to storage
-      await chrome.storage.local.set({ metrics: this.metrics });
-    } catch (error) {
-      console.error('Failed to update metrics:', error);
-    }
-  }
-}
-
-  // Enhanced initialization methods
-  async initializeStorageManager() {
-    try {
-      // Import and initialize the storage manager
-      await chrome.scripting.executeScript({
-        target: { tabId: null },
-        files: ['storage-manager.js']
-      });
-      console.log('Storage manager initialized');
-    } catch (error) {
-      console.error('Failed to initialize storage manager:', error);
-    }
-  }
-
-  async initializeDeclarativeNetRequest() {
-    try {
-      // Import and initialize the declarative net request manager
-      await chrome.scripting.executeScript({
-        target: { tabId: null },
-        files: ['declarative-net-request-manager.js']
-      });
-      console.log('Declarative net request manager initialized');
-    } catch (error) {
-      console.error('Failed to initialize declarative net request manager:', error);
-    }
-  }
-
-  async setupSidePanel() {
-    try {
-      // Configure side panel behavior
-      await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
-      
-      // Set side panel options
-      await chrome.sidePanel.setOptions({
-        path: 'sidepanel.html',
-        enabled: true
-      });
-      
-      console.log('Side panel configured');
-    } catch (error) {
-      console.error('Failed to setup side panel:', error);
-    }
-  }
-
-  async setupOffscreenDocument() {
-    try {
-      // Check if offscreen document already exists
-      const existingContexts = await chrome.runtime.getContexts({
-        contextTypes: ['OFFSCREEN_DOCUMENT'],
-        documentUrls: [chrome.runtime.getURL('offscreen.html')]
-      });
-      
-      if (existingContexts.length === 0) {
-        // Create offscreen document for DOM analysis
-        await chrome.offscreen.createDocument({
-          url: 'offscreen.html',
-          reasons: ['DOM_ANALYSIS'],
-          justification: 'LightDom DOM optimization analysis'
-        });
-        console.log('Offscreen document created for DOM analysis');
-      }
-    } catch (error) {
-      console.error('Failed to setup offscreen document:', error);
-    }
-  }
-
-  handleCommand(command) {
-    switch (command) {
-      case 'toggle-mining':
-        this.toggleMining();
-        break;
-      case 'open-sidepanel':
-        this.openSidePanel();
-        break;
-    }
-  }
-
-  async toggleMining() {
-    if (this.isMining) {
-      await this.stopMining();
-    } else {
-      await this.startMining();
+      console.error('Failed to open wallet:', error);
     }
   }
 
   async openSidePanel() {
     try {
-      await chrome.sidePanel.open({ windowId: (await chrome.windows.getCurrent()).id });
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+        await chrome.sidePanel.open({ windowId: tab.windowId });
+      }
     } catch (error) {
       console.error('Failed to open side panel:', error);
     }
   }
 
-  setupContextMenu() {
-    chrome.contextMenus.create({
-      id: 'lightdom-optimize-page',
-      title: 'Optimize with LightDom',
-      contexts: ['page'],
-      documentUrlPatterns: ['http://*/*', 'https://*/*']
-    });
-
-    chrome.contextMenus.create({
-      id: 'lightdom-analyze-dom',
-      title: 'Analyze DOM Performance',
-      contexts: ['page'],
-      documentUrlPatterns: ['http://*/*', 'https://*/*']
-    });
-
-    chrome.contextMenus.create({
-      id: 'lightdom-mining-status',
-      title: this.isMining ? 'Stop Mining' : 'Start Mining',
-      contexts: ['page'],
-      documentUrlPatterns: ['http://*/*', 'https://*/*']
-    });
-
-    chrome.contextMenus.onClicked.addListener((info, tab) => {
-      this.handleContextMenuClick(info, tab);
+  broadcastToSidePanel(type, data) {
+    // Send message to side panel if it's open
+    chrome.runtime.sendMessage({
+      type: type,
+      data: data
+    }).catch(() => {
+      // Side panel might not be open, ignore error
     });
   }
 
-  async handleContextMenuClick(info, tab) {
-    switch (info.menuItemId) {
-      case 'lightdom-optimize-page':
-        await this.optimizePage(tab.id);
-        break;
-      case 'lightdom-analyze-dom':
-        await this.analyzeDOM(tab.id);
-        break;
-      case 'lightdom-mining-status':
-        await this.toggleMining();
-        break;
+  handleInstallation() {
+    console.log('LightDom Extension installed');
+    
+    // Set up default storage
+    chrome.storage.local.set({
+      isMining: false,
+      miningStats: this.miningStats,
+      recentOptimizations: []
+    });
+  }
+
+  handleStorageChange(changes, namespace) {
+    if (namespace === 'local') {
+      if (changes.isMining) {
+        this.isMining = changes.isMining.newValue;
+      }
+      if (changes.userAddress) {
+        this.userAddress = changes.userAddress.newValue;
+      }
     }
   }
 
-  async optimizePage(tabId) {
-    try {
-      // Send optimization request to content script
-      await chrome.tabs.sendMessage(tabId, {
-        type: 'OPTIMIZE_PAGE'
-      });
-    } catch (error) {
-      console.error('Failed to optimize page:', error);
+  handleTabUpdate(tabId, changeInfo, tab) {
+    // Handle tab updates for mining context
+    if (changeInfo.status === 'complete' && this.isMining) {
+      // Tab finished loading, could trigger DOM analysis
+      console.log('Tab updated, mining context:', tab.url);
     }
   }
 
-  async analyzeDOM(tabId) {
-    try {
-      // Send DOM analysis request to content script
-      await chrome.tabs.sendMessage(tabId, {
-        type: 'ANALYZE_DOM'
-      });
-    } catch (error) {
-      console.error('Failed to analyze DOM:', error);
-    }
+  startPeriodicUpdates() {
+    // Update metrics every 30 seconds
+    this.updateInterval = setInterval(() => {
+      this.broadcastToSidePanel('METRICS_UPDATE', this.miningStats);
+    }, 30000);
   }
 
-  async performOffscreenDOMAnalysis(domData) {
+  async analyzeDOM(domData) {
+    // Heavy DOM analysis using offscreen document
     try {
-      // Send DOM data to offscreen document for analysis
+      // Create offscreen document if needed
+      await this.ensureOffscreenDocument();
+      
+      // Send analysis request to offscreen document
       const response = await chrome.runtime.sendMessage({
-        type: 'ANALYZE_DOM',
+        type: 'ANALYZE_DOM_OFFSCREEN',
         data: domData
       });
       
-      return response.result;
+      return response;
     } catch (error) {
-      console.error('Failed to perform offscreen DOM analysis:', error);
-      return null;
+      console.error('DOM analysis failed:', error);
+      return { error: error.message };
     }
   }
 
-  async updateActionBadge() {
+  async ensureOffscreenDocument() {
     try {
-      await chrome.action.setBadgeText({
-        text: this.metrics.blocksMined.toString()
-      });
-      
-      await chrome.action.setBadgeBackgroundColor({
-        color: this.isMining ? '#00ff00' : '#ff0000'
+      await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: ['DOM_ANALYSIS'],
+        justification: 'Heavy DOM analysis for optimization mining'
       });
     } catch (error) {
-      console.error('Failed to update action badge:', error);
+      // Document might already exist
+      console.log('Offscreen document already exists or creation failed:', error);
+    }
+  }
+
+  async handleItemPurchase(data) {
+    try {
+      const { item } = data;
+      console.log('Item purchased:', item);
+      
+      // Store purchased item in local storage
+      const result = await chrome.storage.local.get(['purchasedItems']);
+      const purchasedItems = result.purchasedItems || [];
+      
+      const purchase = {
+        id: `purchase-${Date.now()}`,
+        itemId: item.id,
+        item: item,
+        purchasedAt: Date.now(),
+        status: 'active'
+      };
+      
+      purchasedItems.push(purchase);
+      await chrome.storage.local.set({ purchasedItems });
+      
+      // Show notification
+      await chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icon48.svg',
+        title: 'Item Purchased!',
+        message: `You purchased ${item.name}. Add it to your chat room!`,
+        priority: 2
+      });
+      
+      // Broadcast to all tabs
+      const tabs = await chrome.tabs.query({});
+      tabs.forEach(tab => {
+        chrome.tabs.sendMessage(tab.id, {
+          type: 'ITEM_PURCHASED',
+          data: { item, purchase }
+        }).catch(() => {
+          // Ignore errors for tabs that don't have content script
+        });
+      });
+    } catch (error) {
+      console.error('Failed to handle item purchase:', error);
+    }
+  }
+
+  async getPurchasedItems() {
+    try {
+      const result = await chrome.storage.local.get(['purchasedItems']);
+      return result.purchasedItems || [];
+    } catch (error) {
+      console.error('Failed to get purchased items:', error);
+      return [];
+    }
+  }
+
+  async addItemToChatRoom(data) {
+    try {
+      const { itemId, chatRoomId } = data;
+      
+      // Get purchased items
+      const items = await this.getPurchasedItems();
+      const item = items.find(i => i.itemId === itemId);
+      
+      if (!item) {
+        throw new Error('Item not found in inventory');
+      }
+      
+      // Store chat room items mapping
+      const result = await chrome.storage.local.get(['chatRoomItems']);
+      const chatRoomItems = result.chatRoomItems || {};
+      
+      if (!chatRoomItems[chatRoomId]) {
+        chatRoomItems[chatRoomId] = [];
+      }
+      
+      chatRoomItems[chatRoomId].push({
+        itemId: item.itemId,
+        item: item.item,
+        addedAt: Date.now()
+      });
+      
+      await chrome.storage.local.set({ chatRoomItems });
+      
+      // Notify the chat room tab
+      const tabs = await chrome.tabs.query({});
+      tabs.forEach(tab => {
+        chrome.tabs.sendMessage(tab.id, {
+          type: 'CHAT_ROOM_ITEM_ADDED',
+          data: { chatRoomId, item: item.item }
+        }).catch(() => {
+          // Ignore errors
+        });
+      });
+      
+      console.log('Item added to chat room:', { chatRoomId, item: item.item.name });
+    } catch (error) {
+      console.error('Failed to add item to chat room:', error);
+      throw error;
     }
   }
 }
 
-// Initialize the service
-new LightDomBlockchainService();
+// Initialize the background service
+const lightDomService = new LightDomBackgroundService();

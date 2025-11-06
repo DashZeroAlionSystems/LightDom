@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Workflow Wizard Configuration",
+  "type": "object",
+  "properties": {
+    "title": { "type": "string" },
+    "description": { "type": "string" },
+    "templateId": { "type": "string" },
+    "primaryPrompt": { "type": "string" },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "enabled": { "type": "boolean" },
+          "config": { "type": "object" }
+        },
+        "required": ["id", "title"]
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "task_key": { "type": "string" },
+          "task_label": { "type": "string" },
+          "prompt": { "type": "string" },
+          "selected": { "type": "boolean" }
+        },
+        "required": ["task_key", "task_label"]
+      }
+    }
+  },
+  "additionalProperties": false
+}

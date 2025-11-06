@@ -1,0 +1,60 @@
+308 x Type 'string' is not assignable to type 'Gutter'.
+89 x Type 'string' is not assignable to type 'SpaceSize | [SpaceSize, SpaceSize]'.
+46 x Object literal may only specify known properties, and 'offset' does not exist in type 'AnimationKeyframe'.
+29 x Argument of type '{ success: false; error: string; }' is not assignable to parameter of type 'APIResponse<any>'.
+24 x Type '{ backgroundColor: string; border: string; borderRadius: string; padding: string; textAlign: string; }' is not assignable to type 'CSSProperties'.
+24 x Type '{ background: string; padding: string; borderRadius: string; border: string; textAlign: string; }' is not assignable to type 'CSSProperties'.
+18 x Type 'string' is not assignable to type 'string[]'.
+13 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<GAMetric, "id">'.
+12 x Block-scoped variable 'Animation' used before its declaration.
+11 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<GADimension, "id">'.
+11 x Expected 1 arguments, but got 0.
+11 x Type '"outline"' is not assignable to type '"text" | "filled" | "elevated" | "outlined" | "filled-tonal"'. Did you mean '"outlined"'?
+10 x An object literal cannot have multiple properties with the same name.
+10 x Property 'maxFileUploadSize' does not exist on type 'Promise<{ maxFileUploadSize: number; autoSave: boolean; syncInterval: number; preferredBiome: string; }>'.
+10 x Property 'performance' does not exist on type '{ running: boolean; config: FrameworkConfig; queueStatus: any; systemStats: any; metrics: any; }'.
+10 x Duplicate function implementation.
+8 x Property 'post' is private and only accessible within class 'APIClient'.
+8 x Type '{ color: string; intensity: number; }' is not assignable to type 'string'.
+7 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<SEOAttribute, "id">'.
+7 x Type '{ title: string; value: number; suffix: string; prefix: Element; valueStyle: { color: string; fontSize: string; }; titleStyle: { fontSize: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & AriaAttributes & { [key: `data-${string}`]: unknown; } & Pick<HTMLAttributes<HTMLDivElement>, "role"> & StatisticReactProps & RefAttributes<...>'.
+7 x Property 'stats' does not exist on type 'MLEnhancedDOMHarvestingWorker'.
+7 x Type '"medium"' is not assignable to type 'SpaceSize | [SpaceSize, SpaceSize]'.
+7 x Property 'getUserSettings' is private and only accessible within class 'PersistentBlockchainStorage'.
+7 x Property 'get' is private and only accessible within class 'APIClient'.
+6 x Only a void function can be called with the 'new' keyword.
+6 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<DynamicBacklinkRule, "id">'.
+5 x Type '"outlined"' is not assignable to type '"error" | "success" | "info" | "warning" | "primary" | "secondary"'.
+5 x Type 'string[]' is not assignable to type 'string'.
+5 x Property 'extractAccessibilityProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateAccessibilityProperties'?
+5 x Property 'extractBehavioralProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateBehavioralProperties'?
+5 x Property 'extractSemanticProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateSemanticProperties'?
+5 x Type '{ percent: number; size: "small"; style: { width: string; }; }' is not assignable to type 'IntrinsicAttributes & EnhancedProgressProps'.
+5 x Property 'schema' is missing in type '{ id: string; name: string; type: "text"; description: string; required: true; }' but required in type 'AttributeDefinition'.
+5 x Namespace 'global.Express' has no exported member 'Multer'.
+5 x Type '{ children: Element[]; direction: "vertical"; alignItems: string; }' is not assignable to type 'IntrinsicAttributes & SpaceProps & RefAttributes<HTMLDivElement>'.
+5 x Property 'extractVisualProperties' does not exist on type 'SchemaMiningSystem'. Did you mean 'generateVisualProperties'?
+5 x This expression is not callable.
+4 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<BacklinkBridge, "id">'.
+4 x Duplicate identifier 'ShapeStar'.
+4 x '"../utils/Logger"' has no exported member named 'logger'. Did you mean 'Logger'?
+4 x Property '$$typeof' is missing in type 'ReactElement<any, any>' but required in type 'ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>'.
+4 x Property 'mlInsights' does not exist on type '{ mlEnhanced: boolean; confidenceMultiplier: number; predictedImprovements: any; visualOptimizations: any; anomalyDetected: any; cssBytes: number; jsBytes: number; domMemory: number; orphanedElementsSize: number; ... 5 more ...; tokenValue: number; }'.
+4 x Cannot find module '../types/MetaverseAnimationTypes' or its corresponding type declarations.
+4 x Property 'trackEvent' does not exist on type 'BridgeAnalyticsService'.
+4 x Property 'utils' does not exist on type 'typeof import("E:/Personal/project/lightdom/LightDom/node_modules/ethers/lib.esm/ethers")'.
+4 x Type '"#ff4d4f" | "#52c41a" | "#d1d5db" | "#fa8c16"' is not assignable to type '"error" | "success" | "warning" | "default" | "primary" | "secondary"'.
+4 x Type '"body2"' is not assignable to type '"small" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "lead" | "paragraph"'.
+4 x Type '{ children: string; color: string; size: string; }' is not assignable to type 'IntrinsicAttributes & TagProps & RefAttributes<HTMLSpanElement>'.
+4 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<GAReport, "id">'.
+4 x Cannot find module '../services/HeadlessChromeService' or its corresponding type declarations.
+4 x Untyped function calls may not accept type arguments.
+4 x Argument of type '{ success: true; message: string; }' is not assignable to parameter of type 'APIResponse<any>'.
+4 x Argument of type '{ name: string; category: string; subcategory: string; description: string; expectedOutcome: string; trainingData: { type: string; count: number; quality: number; features: string[]; }; neuralNetworkConfig: { ...; }; }' is not assignable to parameter of type 'Omit<TrainingSection, "children" | "id" | "progress" | "status" | "trainingHistory" | "currentAccuracy" | "bestAccuracy" | "trustRating" | "userFeedback">'.
+3 x Module '"@/components/ui"' has no exported member 'TabsTrigger'.
+3 x Property 'autoSync' does not exist on type 'Promise<{ maxFileUploadSize: number; autoSave: boolean; syncInterval: number; preferredBiome: string; }>'.
+3 x Type '"age"' is not assignable to type '"performance" | "error_rate" | "file_size" | "code_quality" | "storage_usage" | "mining_completion"'.
+3 x Property 'info' does not exist on type '{ primary: string; secondary: string; success: string; warning: string; error: string; }'.
+3 x Module '"@/components/ui"' has no exported member 'TabsList'.
+3 x Module '"@/components/ui"' has no exported member 'RefreshCw'.
+3 x Cannot find module '../../hooks/useAuth' or its corresponding type declarations.

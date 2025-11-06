@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LightDom Service Graph Visualizer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .controls {
+      padding: 20px 30px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: auto;
+    }
+
+    .status-connected {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-disconnected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 0;
+      min-height: 600px;
+    }
+
+    .graph-container {
+      padding: 30px;
+      position: relative;
+    }
+
+    #graph-canvas {
+      width: 100%;
+      height: 600px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      background: #f8f9fa;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .node {
+      position: absolute;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      cursor: move;
+      user-select: none;
+      transition: all 0.3s;
+      min-width: 150px;
+      text-align: center;
+    }
+
+    .node:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+    }
+
+    .node-worker {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .node-background {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .node-api {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+    }
+
+    .node-headless {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      color: white;
+    }
+
+    .node-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .node-type {
+      font-size: 11px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .node-status {
+      margin-top: 8px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar {
+      background: #f8f9fa;
+      border-left: 1px solid #dee2e6;
+      padding: 20px;
+      overflow-y: auto;
+      max-height: 600px;
+    }
+
+    .sidebar h3 {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .service-list {
+      list-style: none;
+    }
+
+    .service-item {
+      padding: 12px;
+      margin-bottom: 10px;
+      background: white;
+      border-radius: 6px;
+      border-left: 4px solid #667eea;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .service-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .service-item-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .service-item-info {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .legend {
+      margin-top: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 6px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+
+    svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .edge {
+      stroke: #667eea;
+      stroke-width: 2;
+      fill: none;
+      opacity: 0.6;
+      marker-end: url(#arrowhead);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔗 Service Graph Visualizer</h1>
+      <p>Real-time visualization of LightDom service dependencies</p>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="loadGraph()">🔄 Refresh Graph</button>
+      <button class="btn btn-success" onclick="startAllServices()">▶️ Start All</button>
+      <button class="btn btn-danger" onclick="stopAllServices()">⏹️ Stop All</button>
+      <span class="status-badge status-disconnected" id="connection-status">
+        ⚫ Disconnected
+      </span>
+    </div>
+
+    <div class="main-content">
+      <div class="graph-container">
+        <div id="graph-canvas">
+          <svg id="edges-svg">
+            <defs>
+              <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                <polygon points="0 0, 10 3, 0 6" fill="#667eea" />
+              </marker>
+            </defs>
+          </svg>
+          <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading service graph...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <h3>📊 Statistics</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-services">0</div>
+            <div class="stat-label">Services</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-running">0</div>
+            <div class="stat-label">Running</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-dependencies">0</div>
+            <div class="stat-label">Dependencies</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-depth">0</div>
+            <div class="stat-label">Max Depth</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 30px;">📋 Services</h3>
+        <ul class="service-list" id="service-list"></ul>
+
+        <div class="legend">
+          <h4 style="margin-bottom: 10px;">Legend</h4>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+            <span>Worker Service</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+            <span>Background Service</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+            <span>API Service</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);"></div>
+            <span>Headless Service</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let graphData = null;
+
+    // Load graph data
+    async function loadGraph() {
+      try {
+        document.getElementById('loading').style.display = 'block';
+        
+        // In a real implementation, this would fetch from the API
+        // For now, we'll use mock data
+        graphData = await fetchGraphData();
+        
+        renderGraph(graphData);
+        updateStats(graphData);
+        updateServiceList(graphData);
+        
+        document.getElementById('connection-status').className = 'status-badge status-connected';
+        document.getElementById('connection-status').innerHTML = '🟢 Connected';
+        document.getElementById('loading').style.display = 'none';
+      } catch (error) {
+        console.error('Failed to load graph:', error);
+        document.getElementById('connection-status').className = 'status-badge status-disconnected';
+        document.getElementById('connection-status').innerHTML = '🔴 Error';
+      }
+    }
+
+    // Mock data (in real app, this would call the ServiceLinker API)
+    async function fetchGraphData() {
+      return {
+        nodes: [
+          { id: 'lightdom:api-gateway', label: 'API Gateway', type: 'api', status: 'running' },
+          { id: 'lightdom:crawler-service', label: 'Web Crawler', type: 'worker', status: 'running' },
+          { id: 'lightdom:optimization-service', label: 'DOM Optimizer', type: 'background', status: 'running' }
+        ],
+        edges: [
+          { from: 'lightdom:api-gateway', to: 'lightdom:crawler-service', label: 'depends on' },
+          { from: 'lightdom:api-gateway', to: 'lightdom:optimization-service', label: 'depends on' },
+          { from: 'lightdom:crawler-service', to: 'lightdom:optimization-service', label: 'depends on' }
+        ],
+        stats: {
+          totalServices: 3,
+          runningServices: 3,
+          totalDependencies: 3,
+          maxDepth: 2
+        }
+      };
+    }
+
+    // Render graph
+    function renderGraph(data) {
+      const canvas = document.getElementById('graph-canvas');
+      const svg = document.getElementById('edges-svg');
+      
+      // Clear existing nodes
+      const existingNodes = canvas.querySelectorAll('.node');
+      existingNodes.forEach(node => node.remove());
+      
+      // Clear existing edges
+      svg.innerHTML = svg.innerHTML.replace(/<path.*?\/>/g, '');
+      
+      // Position nodes in a circular layout
+      const centerX = canvas.offsetWidth / 2;
+      const centerY = canvas.offsetHeight / 2;
+      const radius = Math.min(centerX, centerY) - 100;
+      const angleStep = (2 * Math.PI) / data.nodes.length;
+      
+      const nodePositions = {};
+      
+      data.nodes.forEach((node, index) => {
+        const angle = index * angleStep - Math.PI / 2;
+        const x = centerX + radius * Math.cos(angle) - 75;
+        const y = centerY + radius * Math.sin(angle) - 40;
+        
+        nodePositions[node.id] = { x: x + 75, y: y + 20 };
+        
+        const nodeEl = document.createElement('div');
+        nodeEl.className = `node node-${node.type}`;
+        nodeEl.style.left = x + 'px';
+        nodeEl.style.top = y + 'px';
+        nodeEl.innerHTML = `
+          <div class="node-title">${node.label}</div>
+          <div class="node-type">${node.type}</div>
+          <div class="node-status">${node.status}</div>
+        `;
+        
+        canvas.appendChild(nodeEl);
+      });
+      
+      // Draw edges
+      data.edges.forEach(edge => {
+        const from = nodePositions[edge.from];
+        const to = nodePositions[edge.to];
+        
+        if (from && to) {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('class', 'edge');
+          path.setAttribute('d', `M ${from.x} ${from.y} Q ${(from.x + to.x) / 2} ${(from.y + to.y) / 2 - 50} ${to.x} ${to.y}`);
+          svg.appendChild(path);
+        }
+      });
+    }
+
+    // Update statistics
+    function updateStats(data) {
+      document.getElementById('stat-services').textContent = data.stats.totalServices;
+      document.getElementById('stat-running').textContent = data.stats.runningServices;
+      document.getElementById('stat-dependencies').textContent = data.stats.totalDependencies;
+      document.getElementById('stat-depth').textContent = data.stats.maxDepth;
+    }
+
+    // Update service list
+    function updateServiceList(data) {
+      const list = document.getElementById('service-list');
+      list.innerHTML = '';
+      
+      data.nodes.forEach(node => {
+        const li = document.createElement('li');
+        li.className = 'service-item';
+        li.innerHTML = `
+          <div class="service-item-title">${node.label}</div>
+          <div class="service-item-info">Type: ${node.type} | Status: ${node.status}</div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    // Service actions
+    async function startAllServices() {
+      alert('Starting all services... (This would call the API in production)');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await loadGraph();
+    }
+
+    async function stopAllServices() {
+      if (confirm('Are you sure you want to stop all services?')) {
+        alert('Stopping all services... (This would call the API in production)');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await loadGraph();
+      }
+    }
+
+    // Auto-refresh every 30 seconds
+    setInterval(loadGraph, 30000);
+
+    // Initial load
+    loadGraph();
+  </script>
+</body>
+</html>

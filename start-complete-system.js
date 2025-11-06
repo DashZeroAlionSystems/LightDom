@@ -261,7 +261,7 @@ class CompleteSystemStarter {
   async startFrontend() {
     console.log('🎨 Starting Frontend (Discord Style)...');
     
-    const frontendProcess = spawn('yarn', ['dev'], {
+    const frontendProcess = spawn('npm', ['run', 'dev'], {
       cwd: __dirname,
       stdio: ['pipe', 'pipe', 'pipe'],
       env: { 
@@ -323,33 +323,12 @@ class CompleteSystemStarter {
   }
 
   async startBlockchainRunner() {
-    console.log('⛓️  Starting Blockchain Runner...');
-    
-    const blockchainProcess = spawn('node', ['start-blockchain.js'], {
-      cwd: __dirname,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      env: { 
-        ...process.env,
-        BLOCKCHAIN_ENABLED: 'true'
-      }
-    });
+    console.log('⛓️  Blockchain services available');
+    console.log('   To start blockchain, run: npm run start:blockchain');
+    console.log('   Or use start-blockchain-app.js directly');
 
-    this.processes.set('blockchain', blockchainProcess);
-
-    // Don't wait for blockchain to fully start, just start it
-    blockchainProcess.stdout.on('data', (data) => {
-      console.log(`[Blockchain] ${data.toString().trim()}`);
-    });
-
-    blockchainProcess.stderr.on('data', (data) => {
-      const error = data.toString().trim();
-      console.error(`[Blockchain Error] ${error}`);
-    });
-
-    blockchainProcess.on('error', (error) => {
-      console.error(`[Blockchain Error] ${error.message}`);
-    });
-
+    // Blockchain is optional and can be started separately
+    // This allows the complete system to run without requiring blockchain services
     return Promise.resolve();
   }
 

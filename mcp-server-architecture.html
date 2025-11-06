@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Server Management - Architecture Diagram</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    h1 {
+      color: #1a202c;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #718096;
+      font-size: 1.1rem;
+      margin-bottom: 40px;
+    }
+    
+    .architecture {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+    
+    .layer {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 25px;
+      border: 2px solid #e2e8f0;
+    }
+    
+    .layer h2 {
+      color: #2d3748;
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #667eea;
+    }
+    
+    .component {
+      background: white;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .component h3 {
+      color: #4a5568;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+    
+    .component p {
+      color: #718096;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    
+    .feature-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .feature-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+    }
+    
+    .feature-card ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .feature-card li {
+      padding: 6px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    
+    .feature-card li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+    
+    .workflow {
+      background: #f7fafc;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 40px;
+    }
+    
+    .workflow h2 {
+      color: #2d3748;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    
+    .steps {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .step {
+      flex: 1;
+      min-width: 200px;
+      text-align: center;
+      position: relative;
+      padding: 20px;
+    }
+    
+    .step-number {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: 0 auto 15px;
+    }
+    
+    .step h4 {
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+    
+    .step p {
+      color: #718096;
+      font-size: 0.9rem;
+    }
+    
+    .arrow {
+      font-size: 2rem;
+      color: #cbd5e0;
+      margin: 0 10px;
+    }
+    
+    .endpoints {
+      background: #2d3748;
+      color: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 40px;
+    }
+    
+    .endpoints h2 {
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    
+    .endpoint-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+    
+    .endpoint {
+      background: #4a5568;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+    }
+    
+    .method {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      margin-right: 10px;
+      font-size: 0.75rem;
+    }
+    
+    .get { background: #48bb78; }
+    .post { background: #4299e1; }
+    .put { background: #ed8936; }
+    .delete { background: #f56565; }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      text-align: center;
+    }
+    
+    .stat {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 12px;
+    }
+    
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 MCP Server Management System</h1>
+    <p class="subtitle">Agent Instance Orchestration with Schema Linking</p>
+    
+    <!-- Architecture Layers -->
+    <div class="architecture">
+      <div class="layer">
+        <h2>Frontend (React)</h2>
+        <div class="component">
+          <h3>MCPServerDashboard.tsx</h3>
+          <p>Main dashboard component with CRUD UI, schema linking, and execution interface</p>
+        </div>
+        <div class="component">
+          <h3>ProfessionalSidebar.tsx</h3>
+          <p>Navigation menu item for MCP Servers</p>
+        </div>
+        <div class="component">
+          <h3>DashboardLayout.tsx</h3>
+          <p>Route configuration under "AI & Agents"</p>
+        </div>
+      </div>
+      
+      <div class="layer">
+        <h2>Backend (Express)</h2>
+        <div class="component">
+          <h3>mcp-server-routes.js</h3>
+          <p>CRUD API endpoints for server management, schema linking, and tool execution</p>
+        </div>
+        <div class="component">
+          <h3>api-server-express.js</h3>
+          <p>Route registration and WebSocket integration</p>
+        </div>
+        <div class="component">
+          <h3>MCPServer.ts</h3>
+          <p>Core MCP server class with tool registry</p>
+        </div>
+      </div>
+      
+      <div class="layer">
+        <h2>Database (PostgreSQL)</h2>
+        <div class="component">
+          <h3>mcp_servers</h3>
+          <p>Agent instance configuration and settings</p>
+        </div>
+        <div class="component">
+          <h3>mcp_server_schemas</h3>
+          <p>Schema-to-server linking (many-to-many)</p>
+        </div>
+        <div class="component">
+          <h3>mcp_tool_executions</h3>
+          <p>Execution history with performance metrics</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Key Features -->
+    <div class="features">
+      <div class="feature-card">
+        <h3>🎯 CRUD Operations</h3>
+        <ul>
+          <li>Create agent instances</li>
+          <li>Read server details</li>
+          <li>Update configurations</li>
+          <li>Delete servers</li>
+          <li>List with filtering</li>
+        </ul>
+      </div>
+      
+      <div class="feature-card">
+        <h3>🔗 Schema Linking</h3>
+        <ul>
+          <li>Link multiple schemas</li>
+          <li>Topic-specific context</li>
+          <li>Dynamic linking/unlinking</li>
+          <li>Category filtering</li>
+          <li>Search capabilities</li>
+        </ul>
+      </div>
+      
+      <div class="feature-card">
+        <h3>⚡ Tool Execution</h3>
+        <ul>
+          <li>Execute AI tools</li>
+          <li>Context passing</li>
+          <li>Execution history</li>
+          <li>Performance tracking</li>
+          <li>Error handling</li>
+        </ul>
+      </div>
+      
+      <div class="feature-card">
+        <h3>📊 Monitoring</h3>
+        <ul>
+          <li>Health checks</li>
+          <li>Statistics dashboard</li>
+          <li>Real-time updates</li>
+          <li>WebSocket events</li>
+          <li>Audit trail</li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Workflow -->
+    <div class="workflow">
+      <h2>User Workflow</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h4>Create Server</h4>
+          <p>Configure agent instance with model and settings</p>
+        </div>
+        <span class="arrow">→</span>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h4>Link Schemas</h4>
+          <p>Associate relevant schemas for context</p>
+        </div>
+        <span class="arrow">→</span>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h4>Execute Tools</h4>
+          <p>Run AI operations with linked context</p>
+        </div>
+        <span class="arrow">→</span>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h4>Monitor Results</h4>
+          <p>Track execution history and performance</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- API Endpoints -->
+    <div class="endpoints">
+      <h2>API Endpoints</h2>
+      <div class="endpoint-grid">
+        <div class="endpoint">
+          <span class="method get">GET</span> /api/mcp/servers
+        </div>
+        <div class="endpoint">
+          <span class="method get">GET</span> /api/mcp/servers/:id
+        </div>
+        <div class="endpoint">
+          <span class="method post">POST</span> /api/mcp/servers
+        </div>
+        <div class="endpoint">
+          <span class="method put">PUT</span> /api/mcp/servers/:id
+        </div>
+        <div class="endpoint">
+          <span class="method delete">DELETE</span> /api/mcp/servers/:id
+        </div>
+        <div class="endpoint">
+          <span class="method post">POST</span> /api/mcp/servers/:id/execute
+        </div>
+        <div class="endpoint">
+          <span class="method get">GET</span> /api/mcp/servers/:id/executions
+        </div>
+        <div class="endpoint">
+          <span class="method get">GET</span> /api/mcp/schemas
+        </div>
+        <div class="endpoint">
+          <span class="method post">POST</span> /api/mcp/servers/:id/schemas
+        </div>
+        <div class="endpoint">
+          <span class="method delete">DELETE</span> /api/mcp/servers/:id/schemas/:schema_id
+        </div>
+        <div class="endpoint">
+          <span class="method get">GET</span> /api/mcp/health
+        </div>
+      </div>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">11</div>
+        <div class="stat-label">API Endpoints</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">4</div>
+        <div class="stat-label">Agent Types</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">5</div>
+        <div class="stat-label">Schema Categories</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">5</div>
+        <div class="stat-label">Built-in Tools</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

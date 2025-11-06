@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Workflow CodeMap - Advanced D3.js Visualization</title>
+
+    <!-- D3.js Libraries -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/d3-force.v3.min.js"></script>
+
+    <!-- UI Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #5865F2;
+            --primary-dark: #4752c4;
+            --primary-light: #8b5cf6;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --accent: #f59e0b;
+            --accent-dark: #d97706;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #06b6d4;
+            --success: #10b981;
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-elevated: #334155;
+            --surface-hover: #475569;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --border: #334155;
+            --border-light: #475569;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --glow-primary: rgba(88, 101, 242, 0.4);
+            --glow-secondary: rgba(16, 185, 129, 0.4);
+        }
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--background) 0%, #1e1b4b 25%, #312e81 50%, #1e1b4b 75%, var(--background) 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+            color: var(--text-primary);
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(51, 65, 85, 0.4);
+            box-shadow: 0 8px 32px var(--shadow), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(88, 101, 242, 0.3);
+            box-shadow: 0 12px 40px var(--shadow), 0 0 20px var(--glow-primary);
+        }
+
+        .node {
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        .node:hover {
+            filter: brightness(1.3) drop-shadow(0 4px 16px var(--glow-primary)) drop-shadow(0 0 0 4px rgba(88, 101, 242, 0.3));
+            transform: scale(1.15);
+        }
+
+        .node.selected {
+            filter: brightness(1.5) drop-shadow(0 0 30px var(--glow-primary)) drop-shadow(0 0 0 6px rgba(88, 101, 242, 0.6));
+            stroke: var(--primary);
+            stroke-width: 4px;
+            animation: nodePulse 2s ease-in-out infinite;
+        }
+
+        .node.superposition {
+            animation: superpositionGlow 3s ease-in-out infinite alternate;
+        }
+
+        .node.collapsed {
+            animation: collapseCelebration 1s ease-out;
+        }
+
+        @keyframes nodePulse {
+            0%, 100% { transform: scale(1.1); }
+            50% { transform: scale(1.25); }
+        }
+
+        @keyframes superpositionGlow {
+            0% { filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.5)); }
+            100% { filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.8)); }
+        }
+
+        @keyframes collapseCelebration {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); filter: drop-shadow(0 0 40px var(--glow-secondary)); }
+            100% { transform: scale(1.1); filter: drop-shadow(0 0 20px var(--glow-secondary)); }
+        }
+
+        .node.memory_systems {
+            fill: url(#gradient-memory);
+        }
+
+        .node.ai_optimization {
+            fill: url(#gradient-ai);
+        }
+
+        .node.workflow_orchestration {
+            fill: url(#gradient-workflow);
+        }
+
+        .node.performance_analytics {
+            fill: url(#gradient-performance);
+        }
+
+        .node.development_methodology {
+            fill: url(#gradient-development);
+        }
+
+        .link {
+            stroke: var(--border);
+            stroke-opacity: 0.6;
+            stroke-width: 2;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+        }
+
+        .link:hover {
+            stroke-opacity: 1;
+            stroke-width: 3;
+        }
+
+        .link.highlighted {
+            stroke: var(--primary);
+            stroke-opacity: 1;
+            stroke-width: 4;
+            filter: drop-shadow(0 0 10px var(--glow-primary));
+            animation: linkPulse 1.5s ease-in-out infinite;
+        }
+
+        .link.superposition {
+            stroke: url(#gradient-superposition);
+            stroke-width: 3;
+            animation: linkFlow 2s linear infinite;
+        }
+
+        @keyframes linkPulse {
+            0%, 100% { stroke-opacity: 0.8; }
+            50% { stroke-opacity: 1; }
+        }
+
+        @keyframes linkFlow {
+            0% { stroke-dashoffset: 20; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        .link.relationship_enables {
+            stroke: var(--success);
+        }
+
+        .link.relationship_powers {
+            stroke: var(--accent);
+        }
+
+        .link.relationship_implements {
+            stroke: var(--primary);
+        }
+
+        .link.relationship_supports {
+            stroke: var(--info);
+        }
+
+        .link.relationship_quantifies {
+            stroke: var(--danger);
+        }
+
+        .tooltip {
+            position: absolute;
+            pointer-events: none;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 350px;
+            min-width: 250px;
+            box-shadow: 0 10px 25px var(--shadow), 0 0 40px var(--glow-primary);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .control-panel {
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(51, 65, 85, 0.4);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(88, 101, 242, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(88, 101, 242, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: rgba(88, 101, 242, 0.6);
+            box-shadow: 0 0 20px var(--glow-primary);
+            transform: translateY(-2px);
+        }
+
+        .search-highlight {
+            animation: searchHighlight 2s ease-out;
+        }
+
+        @keyframes searchHighlight {
+            0% { filter: brightness(1) drop-shadow(0 0 0 0 rgba(88, 101, 242, 0)); }
+            50% { filter: brightness(1.4) drop-shadow(0 0 20px rgba(88, 101, 242, 0.8)); }
+            100% { filter: brightness(1.1) drop-shadow(0 0 10px rgba(88, 101, 242, 0.4)); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .slide-in-left {
+            animation: slideInLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .pulse-ring {
+            animation: pulseRing 2s infinite;
+        }
+
+        @keyframes pulseRing {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .floating-panel {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            33% { transform: translateY(-3px); }
+            66% { transform: translateY(3px); }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glow-effect {
+            filter: drop-shadow(0 0 15px var(--glow-primary));
+        }
+
+        .connection-pulse {
+            animation: connectionPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes connectionPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .quantum-field {
+            background: radial-gradient(circle, rgba(88, 101, 242, 0.1) 0%, transparent 70%);
+            animation: quantumField 8s ease-in-out infinite;
+        }
+
+        @keyframes quantumField {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: particleFloat 6s ease-in-out infinite;
+        }
+
+        .particle:nth-child(1) { animation-delay: 0s; }
+        .particle:nth-child(2) { animation-delay: 1s; }
+        .particle:nth-child(3) { animation-delay: 2s; }
+        .particle:nth-child(4) { animation-delay: 3s; }
+        .particle:nth-child(5) { animation-delay: 4s; }
+        .particle:nth-child(6) { animation-delay: 5s; }
+
+        @keyframes particleFloat {
+            0%, 100% {
+                opacity: 0;
+                transform: translateY(0) translateX(0) scale(0);
+            }
+            50% {
+                opacity: 0.8;
+                transform: translateY(-20px) translateX(10px) scale(1);
+            }
+        }
+
+        .force-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(51, 65, 85, 0.4);
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            backdrop-filter: blur(10px);
+        }
+
+        .minimap-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(51, 65, 85, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        .minimap-header {
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .minimap-viewport {
+            position: absolute;
+            border: 2px solid var(--primary);
+            background: rgba(88, 101, 242, 0.2);
+            pointer-events: none;
+        }
+
+        .legend {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(51, 65, 85, 0.4);
+            border-radius: 8px;
+            padding: 12px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .quantum-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+        }
+
+        .quantum-loader::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            border: 3px solid var(--primary);
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: quantumSpin 1s linear infinite;
+        }
+
+        .quantum-loader::after {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            border: 2px solid var(--secondary);
+            border-bottom: 2px solid transparent;
+            border-radius: 50%;
+            animation: quantumSpin 0.8s linear infinite reverse;
+        }
+
+        @keyframes quantumSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .data-flow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .data-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.7;
+            animation: dataFlow 8s linear infinite;
+        }
+
+        .data-particle:nth-child(1) { animation-delay: 0s; left: 10%; }
+        .data-particle:nth-child(2) { animation-delay: 2s; left: 30%; }
+        .data-particle:nth-child(3) { animation-delay: 4s; left: 50%; }
+        .data-particle:nth-child(4) { animation-delay: 6s; left: 70%; }
+        .data-particle:nth-child(5) { animation-delay: 1s; left: 20%; }
+        .data-particle:nth-child(6) { animation-delay: 3s; left: 40%; }
+        .data-particle:nth-child(7) { animation-delay: 5s; left: 60%; }
+        .data-particle:nth-child(8) { animation-delay: 7s; left: 80%; }
+
+        @keyframes dataFlow {
+            0% {
+                top: 100%;
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            10% {
+                opacity: 0.7;
+                transform: scale(1);
+            }
+            90% {
+                opacity: 0.7;
+                transform: scale(1);
+            }
+            100% {
+                top: -10px;
+                opacity: 0;
+                transform: scale(0.5);
+            }
+        }
+
+        .interaction-feedback {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(88, 101, 242, 0.3) 0%, transparent 70%);
+            transform: scale(0);
+            animation: interactionFeedback 0.6s ease-out;
+        }
+
+        @keyframes interactionFeedback {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+    <!-- Animated Background Elements -->
+    <div class="fixed inset-0 pointer-events-none z-0">
+        <div class="quantum-field"></div>
+        <div class="data-flow">
+            <div class="data-particle"></div>
+            <div class="data-particle"></div>
+            <div class="data-particle"></div>
+            <div class="data-particle"></div>
+            <div class="data-particle"></div>
+            <div class="data-particle"></div>
+            <div class="data-particle"></div>
+            <div class="data-particle"></div>
+        </div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Advanced Header -->
+    <header class="bg-slate-900/80 backdrop-blur-lg border-b border-slate-700/50 p-4 z-10">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center glow-effect">
+                        <i class="fas fa-brain text-white text-lg"></i>
+                    </div>
+                    <div class="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full pulse-ring"></div>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold gradient-text">Memory Workflow CodeMap</h1>
+                    <p class="text-sm text-slate-400">Advanced D3.js Interactive Knowledge Graph</p>
+                </div>
+                <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30">
+                    <div class="h-2 w-2 rounded-full bg-green-500 pulse-ring"></div>
+                    <span class="text-xs text-green-400 font-medium" id="connectionStatus">Live Data</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- View Controls -->
+                <div class="flex items-center gap-2 bg-slate-800/50 rounded-lg p-1">
+                    <button id="graphViewBtn" class="px-3 py-2 rounded-md bg-primary text-white text-sm font-medium transition-all">
+                        <i class="fas fa-project-diagram mr-2"></i>Graph
+                    </button>
+                    <button id="treeViewBtn" class="px-3 py-2 rounded-md bg-slate-700 text-slate-400 hover:text-white text-sm font-medium transition-all">
+                        <i class="fas fa-sitemap mr-2"></i>Tree
+                    </button>
+                    <button id="clusterViewBtn" class="px-3 py-2 rounded-md bg-slate-700 text-slate-400 hover:text-white text-sm font-medium transition-all">
+                        <i class="fas fa-circle-nodes mr-2"></i>Clusters
+                    </button>
+                </div>
+
+                <!-- Control Buttons -->
+                <button id="resetViewBtn" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-all flex items-center gap-2">
+                    <i class="fas fa-undo"></i>
+                    <span class="hidden sm:inline">Reset</span>
+                </button>
+
+                <button id="exportBtn" class="px-4 py-2 bg-primary hover:bg-primary-700 rounded-lg transition-all flex items-center gap-2">
+                    <i class="fas fa-download"></i>
+                    <span class="hidden sm:inline">Export</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Left Sidebar -->
+        <div class="w-80 bg-slate-900/50 backdrop-blur-lg border-r border-slate-700/50 flex flex-col z-10">
+            <!-- Search Panel -->
+            <div class="p-4 border-b border-slate-700/50">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Search knowledge graph..."
+                           class="w-full px-4 py-3 pl-12 bg-slate-800/50 border border-slate-600/50 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
+                    <i class="fas fa-search absolute left-4 top-4 text-slate-400"></i>
+                </div>
+
+                <!-- Search Filters -->
+                <div class="mt-4 space-y-2">
+                    <div class="text-xs font-semibold text-slate-300 uppercase tracking-wide mb-3">Filter by Domain</div>
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-slate-800/30 p-2 rounded-lg transition-all">
+                        <input type="checkbox" id="filterMemory" checked class="rounded border-slate-600 text-primary focus:ring-primary">
+                        <div class="w-4 h-4 rounded bg-gradient-to-r from-purple-500 to-blue-500"></div>
+                        <span class="text-sm">Memory Systems</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-slate-800/30 p-2 rounded-lg transition-all">
+                        <input type="checkbox" id="filterAI" checked class="rounded border-slate-600 text-primary focus:ring-primary">
+                        <div class="w-4 h-4 rounded bg-gradient-to-r from-green-500 to-emerald-500"></div>
+                        <span class="text-sm">AI Optimization</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-slate-800/30 p-2 rounded-lg transition-all">
+                        <input type="checkbox" id="filterWorkflow" checked class="rounded border-slate-600 text-primary focus:ring-primary">
+                        <div class="w-4 h-4 rounded bg-gradient-to-r from-yellow-500 to-orange-500"></div>
+                        <span class="text-sm">Workflow Orchestration</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-slate-800/30 p-2 rounded-lg transition-all">
+                        <input type="checkbox" id="filterPerformance" checked class="rounded border-slate-600 text-primary focus:ring-primary">
+                        <div class="w-4 h-4 rounded bg-gradient-to-r from-red-500 to-pink-500"></div>
+                        <span class="text-sm">Performance Analytics</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer hover:bg-slate-800/30 p-2 rounded-lg transition-all">
+                        <input type="checkbox" id="filterDevelopment" checked class="rounded border-slate-600 text-primary focus:ring-primary">
+                        <div class="w-4 h-4 rounded bg-gradient-to-r from-cyan-500 to-blue-500"></div>
+                        <span class="text-sm">Development Methodology</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Metrics Dashboard -->
+            <div class="p-4 border-b border-slate-700/50">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-slate-300">System Metrics</h3>
+                    <div class="flex items-center gap-2">
+                        <div class="h-2 w-2 rounded-full bg-green-500 pulse-ring"></div>
+                        <span class="text-xs text-green-400">Live</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="metric-card p-3 rounded-lg floating-panel">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-400">Total Insights</span>
+                            <span class="text-sm font-bold text-primary" id="totalInsights">0</span>
+                        </div>
+                        <div class="w-full bg-slate-700 rounded-full h-2">
+                            <div class="bg-primary h-2 rounded-full transition-all duration-500" style="width: 75%"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card p-3 rounded-lg floating-panel" style="animation-delay: 0.5s">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-400">Success Rate</span>
+                            <span class="text-sm font-bold text-green-400" id="successRate">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-700 rounded-full h-2">
+                            <div class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: 94%"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card p-3 rounded-lg floating-panel" style="animation-delay: 1s">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-400">Active Workflows</span>
+                            <span class="text-sm font-bold text-yellow-400" id="activeWorkflows">0</span>
+                        </div>
+                        <div class="w-full bg-slate-700 rounded-full h-2">
+                            <div class="bg-yellow-500 h-2 rounded-full transition-all duration-500" style="width: 20%"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card p-3 rounded-lg floating-panel" style="animation-delay: 1.5s">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-400">Memory Efficiency</span>
+                            <span class="text-sm font-bold text-cyan-400" id="memoryEfficiency">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-700 rounded-full h-2">
+                            <div class="bg-cyan-500 h-2 rounded-full transition-all duration-500" style="width: 97%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Node Details Panel -->
+            <div id="nodePanel" class="flex-1 p-4 overflow-y-auto">
+                <div class="text-center text-slate-400 py-8 fade-in">
+                    <i class="fas fa-mouse-pointer text-4xl mb-4 opacity-50"></i>
+                    <p class="text-lg font-medium mb-2">Click on a node</p>
+                    <p class="text-sm">Explore research insights and relationships</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Visualization Area -->
+        <div class="flex-1 relative">
+            <!-- Force Indicator -->
+            <div class="force-indicator">
+                <strong>Force Simulation:</strong> <span id="forceStatus">Active</span>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <div class="text-xs font-semibold text-slate-300 mb-3 uppercase tracking-wide">Research Domains</div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #5865F2, #7c3aed);"></div>
+                    <span>Memory Systems</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #10b981, #059669);"></div>
+                    <span>AI Optimization</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #f59e0b, #d97706);"></div>
+                    <span>Workflow Orchestration</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #ef4444, #dc2626);"></div>
+                    <span>Performance Analytics</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #06b6d4, #0891b2);"></div>
+                    <span>Development Methodology</span>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="absolute top-4 left-4 control-panel rounded-lg p-3 z-20">
+                <div class="flex items-center gap-4">
+                    <!-- Zoom Controls -->
+                    <div class="flex items-center gap-2">
+                        <button id="zoomInBtn" class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center transition-all">
+                            <i class="fas fa-plus text-sm"></i>
+                        </button>
+                        <span class="text-xs text-slate-400 min-w-[3rem] text-center" id="zoomLevel">100%</span>
+                        <button id="zoomOutBtn" class="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded flex items-center justify-center transition-all">
+                            <i class="fas fa-minus text-sm"></i>
+                        </button>
+                    </div>
+
+                    <div class="w-px h-6 bg-slate-600"></div>
+
+                    <!-- Force Controls -->
+                    <div class="flex items-center gap-2">
+                        <button id="repelBtn" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition-all">
+                            Repel
+                        </button>
+                        <button id="attractBtn" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition-all">
+                            Attract
+                        </button>
+                    </div>
+
+                    <div class="w-px h-6 bg-slate-600"></div>
+
+                    <!-- Physics Controls -->
+                    <div class="flex items-center gap-2">
+                        <button id="pauseBtn" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition-all">
+                            <i class="fas fa-pause mr-1"></i>Pause
+                        </button>
+                        <button id="restartBtn" class="px-3 py-1 bg-primary hover:bg-primary-700 rounded text-xs transition-all">
+                            <i class="fas fa-play mr-1"></i>Restart
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-30 quantum-loader">
+                <div class="text-center">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-600 border-t-primary mb-4"></div>
+                    <p class="text-lg font-medium">Initializing Quantum Knowledge Graph</p>
+                    <p class="text-sm text-slate-400 mt-2">Loading superposition nodes and relationships...</p>
+                </div>
+            </div>
+
+            <!-- Main SVG Container -->
+            <svg id="graphSvg" class="w-full h-full"></svg>
+
+            <!-- Enhanced Tooltip -->
+            <div id="tooltip" class="tooltip hidden"></div>
+
+            <!-- Interaction Feedback -->
+            <div id="interactionFeedback" class="interaction-feedback"></div>
+
+            <!-- Mini-map -->
+            <div class="minimap-container">
+                <div class="minimap-header">Knowledge Overview</div>
+                <svg id="minimapSvg" class="w-full h-full"></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced JavaScript with D3.js -->
+    <script>
+        // Memory Workflow CodeMap - Advanced D3.js Implementation
+        class AdvancedMemoryCodeMap {
+            constructor() {
+                this.memoryData = null;
+                this.performanceMetrics = null;
+                this.currentView = 'graph';
+                this.selectedNode = null;
+                this.websocket = null;
+
+                // D3.js variables
+                this.svg = null;
+                this.g = null;
+                this.simulation = null;
+                this.zoom = null;
+                this.nodes = [];
+                this.links = [];
+                this.nodeElements = null;
+                this.linkElements = null;
+
+                // Visualization settings
+                this.width = window.innerWidth - 320;
+                this.height = window.innerHeight - 80;
+                this.centerX = this.width / 2;
+                this.centerY = this.height / 2;
+
+                // Force simulation settings
+                this.forceStrength = -300;
+                this.linkDistance = 150;
+                this.linkStrength = 0.7;
+
+                // Color scheme
+                this.colorScheme = {
+                    memory_systems: ['#5865F2', '#7c3aed'],
+                    ai_optimization: ['#10b981', '#059669'],
+                    workflow_orchestration: ['#f59e0b', '#d97706'],
+                    performance_analytics: ['#ef4444', '#dc2626'],
+                    development_methodology: ['#06b6d4', '#0891b2']
+                };
+
+                this.initialize();
+            }
+
+            async initialize() {
+                console.log('🚀 Initializing Advanced Memory CodeMap with D3.js...');
+
+                this.setupSVG();
+                this.setupZoom();
+                this.setupEventListeners();
+
+                await this.loadInitialData();
+                this.connectWebSocket();
+
+                this.hideLoadingIndicator();
+                this.renderGraph();
+
+                // Auto-refresh every 60 seconds
+                setInterval(() => this.refreshData(), 60000);
+            }
+
+            setupSVG() {
+                // Create main SVG
+                this.svg = d3.select('#graphSvg')
+                    .attr('width', this.width)
+                    .attr('height', this.height);
+
+                // Create main group for zoom/pan
+                this.g = this.svg.append('g')
+                    .attr('class', 'main-group');
+
+                // Create groups for links and nodes
+                this.g.append('g').attr('class', 'links');
+                this.g.append('g').attr('class', 'nodes');
+
+                // Create minimap
+                this.minimapSvg = d3.select('#minimapSvg');
+            }
+
+            setupZoom() {
+                this.zoom = d3.zoom()
+                    .scaleExtent([0.1, 4])
+                    .on('zoom', (event) => {
+                        this.g.attr('transform', event.transform);
+                        this.updateZoomLevel(event.transform.k);
+                        this.updateMinimap();
+                    });
+
+                this.svg.call(this.zoom);
+
+                // Initial zoom to fit
+                const bounds = this.g.node().getBBox();
+                if (bounds.width > 0 && bounds.height > 0) {
+                    const scale = Math.min(this.width / bounds.width, this.height / bounds.height) * 0.8;
+                    const translate = [
+                        this.width / 2 - (bounds.x + bounds.width / 2) * scale,
+                        this.height / 2 - (bounds.y + bounds.height / 2) * scale
+                    ];
+
+                    this.svg.transition().duration(1000)
+                        .call(this.zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+                }
+            }
+
+            setupEventListeners() {
+                // View controls
+                d3.select('#graphViewBtn').on('click', () => this.switchView('graph'));
+                d3.select('#treeViewBtn').on('click', () => this.switchView('tree'));
+                d3.select('#clusterViewBtn').on('click', () => this.switchView('cluster'));
+
+                // Zoom controls
+                d3.select('#zoomInBtn').on('click', () => {
+                    this.svg.transition().call(this.zoom.scaleBy, 1.5);
+                });
+
+                d3.select('#zoomOutBtn').on('click', () => {
+                    this.svg.transition().call(this.zoom.scaleBy, 1/1.5);
+                });
+
+                d3.select('#resetViewBtn').on('click', () => this.resetView());
+
+                // Force controls
+                d3.select('#repelBtn').on('click', () => this.adjustForces('repel'));
+                d3.select('#attractBtn').on('click', () => this.adjustForces('attract'));
+
+                // Physics controls
+                d3.select('#pauseBtn').on('click', () => this.pauseSimulation());
+                d3.select('#restartBtn').on('click', () => this.restartSimulation());
+
+                // Search
+                d3.select('#searchInput').on('input', (event) => {
+                    this.handleSearch(event.target.value);
+                });
+
+                // Filters
+                ['filterMemory', 'filterAI', 'filterWorkflow', 'filterPerformance', 'filterDevelopment'].forEach(id => {
+                    d3.select(`#${id}`).on('change', () => this.updateFilters());
+                });
+
+                // Export
+                d3.select('#exportBtn').on('click', () => this.exportGraph());
+
+                // Window resize
+                window.addEventListener('resize', () => this.handleResize());
+            }
+
+            async loadInitialData() {
+                try {
+                    console.log('📥 Loading research memory data...');
+
+                    // Load from API
+                    const response = await this.makeAPIRequest('/api/memory');
+                    if (response) {
+                        this.memoryData = response;
+                        console.log(`✅ Loaded ${this.getTotalInsights()} research insights`);
+                    } else {
+                        console.log('⚠️  Using fallback data');
+                        this.memoryData = this.getFallbackData();
+                    }
+
+                    // Load performance metrics
+                    await this.loadPerformanceMetrics();
+
+                    // Process data for visualization
+                    this.processDataForVisualization();
+
+                } catch (error) {
+                    console.error('❌ Failed to load initial data:', error);
+                    this.memoryData = this.getFallbackData();
+                    this.processDataForVisualization();
+                }
+            }
+
+            async makeAPIRequest(endpoint, options = {}) {
+                const baseUrl = `http://localhost:3002`;
+
+                try {
+                    const response = await fetch(`${baseUrl}${endpoint}`, {
+                        method: options.method || 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...options.headers
+                        },
+                        body: options.body ? JSON.stringify(options.body) : undefined
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.warn(`API request failed: ${endpoint}`, error.message);
+                    return null;
+                }
+            }
+
+            async loadPerformanceMetrics() {
+                try {
+                    const metrics = await this.makeAPIRequest('/api/metrics');
+                    if (metrics) {
+                        this.performanceMetrics = metrics;
+                    } else {
+                        this.performanceMetrics = this.getFallbackMetrics();
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to load performance metrics:', error);
+                    this.performanceMetrics = this.getFallbackMetrics();
+                }
+            }
+
+            getFallbackData() {
+                return {
+                    entities: {
+                        research_topic: {
+                            "Web Performance Optimization": {
+                                title: "Web Performance Optimization",
+                                topic: "Performance Optimization",
+                                observations: ["Core Web Vitals", "Progressive loading"],
+                                connections: ["AI-Powered Optimization"],
+                                metrics: { successRate: 0.94, executionTime: 1200 },
+                                category: "performance"
+                            },
+                            "AI-Powered Optimization": {
+                                title: "AI-Powered Optimization",
+                                topic: "Machine Learning",
+                                observations: ["ML models", "Computer vision"],
+                                connections: ["Memory Workflow System"],
+                                metrics: { successRate: 0.96, executionTime: 1800 },
+                                category: "ai_ml"
+                            },
+                            "Memory Workflow System": {
+                                title: "Memory Workflow System",
+                                topic: "Intelligent Orchestration",
+                                observations: ["Memory-driven orchestration", "API bundle optimization"],
+                                connections: ["Content Generation Workflow"],
+                                metrics: { successRate: 0.97, executionTime: 950 },
+                                category: "system"
+                            }
+                        }
+                    },
+                    relationships: [
+                        {from: "Web Performance Optimization", to: "AI-Powered Optimization", type: "enables", strength: 0.9},
+                        {from: "AI-Powered Optimization", to: "Memory Workflow System", type: "powers", strength: 0.95}
+                    ]
+                };
+            }
+
+            getFallbackMetrics() {
+                return {
+                    totalExecutions: 1250,
+                    averageSuccessRate: 0.942,
+                    averageExecutionTime: 1450,
+                    totalCostSavings: 4200000,
+                    uptimePercentage: 99.8,
+                    learningEfficiency: 0.97
+                };
+            }
+
+            processDataForVisualization() {
+                this.nodes = [];
+                this.links = [];
+
+                // Process entities into nodes
+                if (this.memoryData?.entities) {
+                    Object.entries(this.memoryData.entities).forEach(([type, entities]) => {
+                        Object.entries(entities).forEach(([name, data]) => {
+                            this.nodes.push({
+                                id: name,
+                                name: data.title || name,
+                                type: type,
+                                category: data.category || 'uncategorized',
+                                group: this.getGroupFromCategory(data.category),
+                                metrics: data.metrics || {},
+                                connections: data.connections || [],
+                                observations: data.observations || [],
+                                size: this.calculateNodeSize(data),
+                                color: this.getNodeColor(type, data.category),
+                                x: Math.random() * this.width,
+                                y: Math.random() * this.height
+                            });
+                        });
+                    });
+                }
+
+                // Process relationships into links
+                if (this.memoryData?.relationships) {
+                    this.memoryData.relationships.forEach(rel => {
+                        const sourceNode = this.nodes.find(n => n.id === rel.from);
+                        const targetNode = this.nodes.find(n => n.id === rel.to);
+
+                        if (sourceNode && targetNode) {
+                            this.links.push({
+                                source: sourceNode,
+                                target: targetNode,
+                                type: rel.type,
+                                strength: rel.strength || 0.8,
+                                color: this.getLinkColor(rel.type)
+                            });
+                        }
+                    });
+                }
+
+                console.log(`📊 Processed ${this.nodes.length} nodes and ${this.links.length} links`);
+            }
+
+            getGroupFromCategory(category) {
+                const groupMap = {
+                    'performance': 'memory_systems',
+                    'ai_ml': 'ai_optimization',
+                    'automation': 'workflow_orchestration',
+                    'metrics': 'performance_analytics',
+                    'engineering': 'development_methodology'
+                };
+                return groupMap[category] || 'memory_systems';
+            }
+
+            calculateNodeSize(data) {
+                const baseSize = 20;
+                const successBonus = (data.metrics?.successRate || 0) * 10;
+                const connectionBonus = (data.connections?.length || 0) * 2;
+                return Math.min(baseSize + successBonus + connectionBonus, 50);
+            }
+
+            getNodeColor(type, category) {
+                const colors = this.colorScheme[category] || this.colorScheme['memory_systems'];
+                return colors[0];
+            }
+
+            getLinkColor(type) {
+                const colorMap = {
+                    'enables': '#10b981',
+                    'powers': '#f59e0b',
+                    'implements': '#5865F2',
+                    'supports': '#06b6d4',
+                    'quantifies': '#ef4444'
+                };
+                return colorMap[type] || '#64748b';
+            }
+
+            renderGraph() {
+                if (!this.nodes.length) {
+                    console.warn('No nodes to render');
+                    return;
+                }
+
+                // Clear existing elements
+                this.g.select('.links').selectAll('*').remove();
+                this.g.select('.nodes').selectAll('*').remove();
+
+                // Create force simulation
+                this.createForceSimulation();
+
+                // Render links
+                this.linkElements = this.g.select('.links')
+                    .selectAll('line')
+                    .data(this.links)
+                    .enter().append('line')
+                    .attr('class', 'link')
+                    .attr('stroke', d => d.color)
+                    .attr('stroke-width', d => Math.max(1, d.strength * 3))
+                    .attr('stroke-opacity', 0.6);
+
+                // Render nodes with enhanced visuals
+                this.nodeElements = this.g.select('.nodes')
+                    .selectAll('.node')
+                    .data(this.nodes)
+                    .enter().append('g')
+                    .attr('class', 'node')
+                    .call(d3.drag()
+                        .on('start', (event, d) => this.dragStarted(event, d))
+                        .on('drag', (event, d) => this.dragged(event, d))
+                        .on('end', (event, d) => this.dragEnded(event, d))
+                    );
+
+                // Enhanced node circles with gradients and effects
+                this.nodeElements.append('circle')
+                    .attr('r', d => d.size)
+                    .attr('fill', d => `url(#gradient-${d.id})`)
+                    .attr('stroke', '#ffffff')
+                    .attr('stroke-width', 2)
+                    .attr('opacity', 0.9)
+                    .attr('filter', 'url(#shadow)');
+
+                // Add icons to nodes based on category
+                this.nodeElements.append('text')
+                    .attr('text-anchor', 'middle')
+                    .attr('dy', d => -d.size * 0.3)
+                    .attr('font-size', d => Math.max(12, d.size * 0.4))
+                    .attr('fill', '#ffffff')
+                    .attr('font-weight', 'bold')
+                    .text(d => this.getNodeIcon(d.category))
+                    .style('pointer-events', 'none');
+
+                // Node labels with enhanced styling
+                this.nodeElements.append('text')
+                    .attr('text-anchor', 'middle')
+                    .attr('dy', d => d.size + 18)
+                    .attr('font-size', '13px')
+                    .attr('font-weight', '600')
+                    .attr('fill', '#e2e8f0')
+                    .attr('filter', 'url(#glow)')
+                    .text(d => this.truncateText(d.name, 18))
+                    .style('pointer-events', 'none');
+
+                // Add subtle pulsing effect to active nodes
+                this.nodeElements.append('circle')
+                    .attr('r', d => d.size + 4)
+                    .attr('fill', 'none')
+                    .attr('stroke', d => this.getNodeColor(d.type, d.category))
+                    .attr('stroke-width', 1)
+                    .attr('opacity', 0.3)
+                    .attr('class', 'connection-pulse');
+
+                // Add gradients
+                this.addGradients();
+
+                // Add interactions
+                this.addNodeInteractions();
+
+                // Update minimap
+                this.updateMinimap();
+
+                console.log('🎨 Enhanced graph rendered with advanced D3.js features');
+            }
+
+            getNodeIcon(category) {
+                const icons = {
+                    'performance': '⚡',
+                    'ai_ml': '🤖',
+                    'automation': '🔄',
+                    'metrics': '📊',
+                    'engineering': '⚙️',
+                    'research_topic': '🔬',
+                    'system': '🖥️',
+                    'cognitive_science': '🧠',
+                    'artificial_intelligence': '🎯',
+                    'automation': '⚙️',
+                    'metrics': '📈',
+                    'engineering': '🔧'
+                };
+
+                return icons[category] || '📌';
+            }
+
+            pauseSimulation() {
+                if (this.simulation) {
+                    this.simulation.stop();
+                    d3.select('#forceStatus').text('Paused');
+                    d3.select('#pauseBtn').classed('bg-red-600', true).classed('bg-slate-700', false);
+                    console.log('⏸️ Force simulation paused');
+                }
+            }
+
+            restartSimulation() {
+                if (this.simulation) {
+                    this.simulation.restart();
+                    d3.select('#forceStatus').text('Active');
+                    d3.select('#pauseBtn').classed('bg-red-600', false).classed('bg-slate-700', true);
+                    console.log('▶️ Force simulation restarted');
+                }
+            }
+
+            createForceSimulation() {
+                if (this.simulation) {
+                    this.simulation.stop();
+                }
+
+                this.simulation = d3.forceSimulation(this.nodes)
+                    .force('link', d3.forceLink(this.links)
+                        .id(d => d.id)
+                        .distance(this.linkDistance)
+                        .strength(this.linkStrength)
+                    )
+                    .force('charge', d3.forceManyBody().strength(this.forceStrength))
+                    .force('center', d3.forceCenter(this.centerX, this.centerY))
+                    .force('collision', d3.forceCollide().radius(d => d.size + 5))
+                    .on('tick', () => this.ticked());
+            }
+
+            addGradients() {
+                const defs = this.svg.append('defs');
+
+                // Advanced gradients for nodes
+                this.nodes.forEach(node => {
+                    const gradientId = `gradient-${node.id}`;
+                    const gradient = defs.append('radialGradient')
+                        .attr('id', gradientId)
+                        .attr('cx', '35%')
+                        .attr('cy', '35%')
+                        .attr('r', '65%');
+
+                    const colors = this.colorScheme[node.group] || ['#5865F2', '#7c3aed'];
+
+                    gradient.append('stop')
+                        .attr('offset', '0%')
+                        .attr('style', `stop-color:${colors[0]};stop-opacity:1`);
+
+                    gradient.append('stop')
+                        .attr('offset', '50%')
+                        .attr('style', `stop-color:${colors[1]};stop-opacity:0.9`);
+
+                    gradient.append('stop')
+                        .attr('offset', '100%')
+                        .attr('style', `stop-color:${colors[1]};stop-opacity:0.6`);
+                });
+
+                // Link gradients for relationship strength visualization
+                const linkGradient = defs.append('linearGradient')
+                    .attr('id', 'gradient-superposition')
+                    .attr('x1', '0%')
+                    .attr('y1', '0%')
+                    .attr('x2', '100%')
+                    .attr('y2', '0%');
+
+                linkGradient.append('stop')
+                    .attr('offset', '0%')
+                    .attr('style', 'stop-color:#5865F2;stop-opacity:1');
+
+                linkGradient.append('stop')
+                    .attr('offset', '50%')
+                    .attr('style', 'stop-color:#8b5cf6;stop-opacity:0.8');
+
+                linkGradient.append('stop')
+                    .attr('offset', '100%')
+                    .attr('style', 'stop-color:#5865F2;stop-opacity:1');
+
+                // Create filter effects for advanced visual styling
+                const glowFilter = defs.append('filter')
+                    .attr('id', 'glow')
+                    .attr('x', '-50%')
+                    .attr('y', '-50%')
+                    .attr('width', '200%')
+                    .attr('height', '200%');
+
+                glowFilter.append('feGaussianBlur')
+                    .attr('stdDeviation', '3')
+                    .attr('result', 'coloredBlur');
+
+                const feMerge = glowFilter.append('feMerge');
+                feMerge.append('feMergeNode').attr('in', 'coloredBlur');
+                feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+
+                // Drop shadow filter
+                const shadowFilter = defs.append('filter')
+                    .attr('id', 'shadow')
+                    .attr('x', '-20%')
+                    .attr('y', '-20%')
+                    .attr('width', '140%')
+                    .attr('height', '140%');
+
+                shadowFilter.append('feDropShadow')
+                    .attr('dx', '2')
+                    .attr('dy', '2')
+                    .attr('stdDeviation', '2')
+                    .attr('flood-color', 'rgba(0,0,0,0.3)');
+            }
+
+            addNodeInteractions() {
+                this.nodeElements
+                    .on('mouseover', (event, d) => this.showTooltip(event, d))
+                    .on('mouseout', () => this.hideTooltip())
+                    .on('click', (event, d) => this.selectNode(d));
+            }
+
+            ticked() {
+                // Update link positions
+                this.linkElements
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                // Update node positions
+                this.nodeElements
+                    .attr('transform', d => `translate(${d.x},${d.y})`);
+            }
+
+            showTooltip(event, d) {
+                const tooltip = d3.select('#tooltip');
+
+                // Calculate tooltip position
+                const tooltipX = event.pageX + 15;
+                const tooltipY = event.pageY - 10;
+
+                // Create rich tooltip content
+                const tooltipContent = `
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">${this.getNodeIcon(d.category)}</div>
+                            <div>
+                                <div class="font-bold text-lg text-primary">${d.name}</div>
+                                <div class="text-sm text-slate-300 capitalize">${d.category.replace('_', ' ')}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-slate-700/50 rounded p-2">
+                                <div class="text-xs text-slate-400">Success Rate</div>
+                                <div class="text-lg font-bold text-green-400">${((d.metrics.successRate || 0) * 100).toFixed(1)}%</div>
+                            </div>
+                            <div class="bg-slate-700/50 rounded p-2">
+                                <div class="text-xs text-slate-400">Exec Time</div>
+                                <div class="text-lg font-bold text-blue-400">${d.metrics.executionTime || 0}ms</div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="text-sm font-semibold text-slate-300">Connections: ${d.connections.length}</div>
+                            ${d.observations.length > 0 ? `
+                                <div class="text-xs text-slate-400">
+                                    <div class="font-medium mb-1">Key Insights:</div>
+                                    <ul class="space-y-1">
+                                        ${d.observations.slice(0, 2).map(obs => `<li>• ${obs.substring(0, 40)}${obs.length > 40 ? '...' : ''}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="text-xs text-slate-500 mt-2">
+                            Click to explore • Drag to reposition
+                        </div>
+                    </div>
+                `;
+
+                tooltip.html(tooltipContent)
+                    .style('left', tooltipX + 'px')
+                    .style('top', tooltipY + 'px')
+                    .classed('visible', true);
+
+                // Highlight connected links and nodes
+                this.highlightConnections(d);
+
+                // Add interaction feedback
+                this.showInteractionFeedback(event);
+            }
+
+            hideTooltip() {
+                d3.select('#tooltip').classed('visible', false);
+
+                // Remove highlights
+                this.linkElements.classed('highlighted', false);
+                this.nodeElements.classed('highlighted', false);
+            }
+
+            highlightConnections(d) {
+                // Highlight connected links
+                this.linkElements
+                    .classed('highlighted', l => l.source.id === d.id || l.target.id === d.id);
+
+                // Highlight connected nodes
+                this.nodeElements
+                    .classed('highlighted', n => n.id !== d.id && (
+                        d.connections.includes(n.id) ||
+                        d.connections.some(conn => n.connections.includes(conn))
+                    ));
+
+                // Highlight connected nodes with glow effect
+                this.nodeElements.filter('.highlighted')
+                    .select('circle')
+                    .attr('filter', 'url(#glow)');
+            }
+
+            showInteractionFeedback(event) {
+                const feedback = d3.select('#interactionFeedback')
+                    .style('left', (event.pageX - 25) + 'px')
+                    .style('top', (event.pageY - 25) + 'px')
+                    .classed('interaction-feedback', true);
+
+                // Reset animation
+                setTimeout(() => {
+                    feedback.classed('interaction-feedback', false);
+                }, 600);
+            }
+
+            selectNode(d) {
+                // Clear previous selection
+                this.nodeElements.classed('selected', false);
+                if (this.selectedNode === d) {
+                    this.selectedNode = null;
+                    this.showDefaultNodePanel();
+                    return;
+                }
+
+                this.selectedNode = d;
+                this.nodeElements.filter(n => n.id === d.id).classed('selected', true);
+
+                this.showNodeDetails(d);
+                this.centerOnNode(d);
+            }
+
+            centerOnNode(d) {
+                // Smoothly center the view on the selected node
+                const scale = this.zoom.scale();
+                const translate = [
+                    this.centerX - d.x * scale,
+                    this.centerY - d.y * scale
+                ];
+
+                this.svg.transition()
+                    .duration(1000)
+                    .call(this.zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+            }
+
+            showNodeDetails(node) {
+                const panel = d3.select('#nodePanel');
+
+                // Create detailed node information
+                const detailsContent = `
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4 p-4 bg-slate-800/50 rounded-lg">
+                            <div class="text-4xl">${this.getNodeIcon(node.category)}</div>
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-primary">${node.name}</h3>
+                                <div class="flex items-center gap-4 mt-2">
+                                    <span class="px-3 py-1 bg-slate-700 rounded-full text-sm capitalize">${node.category.replace('_', ' ')}</span>
+                                    <span class="px-3 py-1 bg-slate-700 rounded-full text-sm">${node.group.replace('_', ' ')}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="metric-card p-4 rounded-lg">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i class="fas fa-chart-line text-green-400"></i>
+                                    <span class="text-sm font-medium">Success Rate</span>
+                                </div>
+                                <div class="text-3xl font-bold text-green-400">${((node.metrics.successRate || 0) * 100).toFixed(1)}%</div>
+                                <div class="w-full bg-slate-700 rounded-full h-2 mt-2">
+                                    <div class="bg-green-500 h-2 rounded-full transition-all duration-1000" style="width: ${((node.metrics.successRate || 0) * 100).toFixed(1)}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="metric-card p-4 rounded-lg">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i class="fas fa-clock text-blue-400"></i>
+                                    <span class="text-sm font-medium">Execution Time</span>
+                                </div>
+                                <div class="text-3xl font-bold text-blue-400">${node.metrics.executionTime || 0}ms</div>
+                                <div class="text-xs text-slate-400 mt-1">Average performance</div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-lg font-semibold text-slate-300">Network Analysis</h4>
+                                <span class="px-2 py-1 bg-slate-700 rounded text-sm">${node.connections.length} connections</span>
+                            </div>
+
+                            ${node.observations.length > 0 ? this.generateObservationsHTML(node.observations) : '<div class="text-center text-slate-400 py-4">No research findings available</div>'}
+
+                            <div class="border-t border-slate-600 pt-4">
+                                <h5 class="text-sm font-medium text-slate-400 mb-3">Knowledge Network</h5>
+                                <div class="flex flex-wrap gap-2">
+                                    ${this.generateConnectionsHTML(node.connections)}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-4 border-t border-slate-600">
+                            <button class="flex-1 px-4 py-2 bg-primary hover:bg-primary-700 rounded-lg transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-search"></i>
+                                <span>Query Memory</span>
+                            </button>
+                            <button class="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-network-wired"></i>
+                                <span>Expand Network</span>
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                panel.html(detailsContent);
+            }
+
+            showMemoryQueryResults(nodeId, data) {
+                // Implementation for showing query results
+                console.log('Query results for', nodeId, data);
+            }
+
+            expandNode(nodeId) {
+                // Implementation for expanding node network
+                console.log('Expanding network for', nodeId);
+            }
+
+            switchView(view) {
+                this.currentView = view;
+
+                // Update button states
+                d3.selectAll('#graphViewBtn, #treeViewBtn, #clusterViewBtn')
+                    .classed('bg-primary text-white', false)
+                    .classed('bg-slate-700 text-slate-400', true);
+
+                d3.select(`#${view}ViewBtn`)
+                    .classed('bg-primary text-white', true)
+                    .classed('bg-slate-700 text-slate-400', false);
+
+                // Re-render with new layout
+                this.renderGraph();
+            }
+
+            handleSearch(query) {
+                if (!query) {
+                    // Clear search highlighting
+                    this.nodeElements.classed('search-highlight', false);
+                    return;
+                }
+
+                const searchTerm = query.toLowerCase();
+
+                this.nodeElements.classed('search-highlight', d =>
+                    d.name.toLowerCase().includes(searchTerm) ||
+                    d.category.toLowerCase().includes(searchTerm) ||
+                    d.observations.some(obs => obs.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            updateFilters() {
+                const filters = {
+                    memory: d3.select('#filterMemory').property('checked'),
+                    ai: d3.select('#filterAI').property('checked'),
+                    workflow: d3.select('#filterWorkflow').property('checked'),
+                    performance: d3.select('#filterPerformance').property('checked'),
+                    development: d3.select('#filterDevelopment').property('checked')
+                };
+
+                this.nodeElements.style('opacity', d => {
+                    const group = d.group;
+                    const filterKey = group.replace('_systems', '').replace('_optimization', '').replace('_orchestration', '').replace('_analytics', '').replace('_methodology', '');
+                    return filters[filterKey] ? 1 : 0.2;
+                });
+
+                this.linkElements.style('opacity', d => {
+                    const sourceVisible = filters[d.source.group.replace('_systems', '').replace('_optimization', '').replace('_orchestration', '').replace('_analytics', '').replace('_methodology', '')];
+                    const targetVisible = filters[d.target.group.replace('_systems', '').replace('_optimization', '').replace('_orchestration', '').replace('_analytics', '').replace('_methodology', '')];
+                    return (sourceVisible && targetVisible) ? 0.6 : 0.1;
+                });
+            }
+
+            updateZoomLevel(scale) {
+                d3.select('#zoomLevel').text(`${Math.round(scale * 100)}%`);
+            }
+
+            updateMinimap() {
+                // Implementation for minimap updates
+            }
+
+            handleResize() {
+                this.width = window.innerWidth - 320;
+                this.height = window.innerHeight - 80;
+
+                this.svg
+                    .attr('width', this.width)
+                    .attr('height', this.height);
+
+                if (this.simulation) {
+                    this.simulation.force('center', d3.forceCenter(this.width / 2, this.height / 2));
+                    this.simulation.restart();
+                }
+            }
+
+            resetView() {
+                this.selectedNode = null;
+                this.showDefaultNodePanel();
+
+                // Reset zoom and pan
+                this.svg.transition().duration(750)
+                    .call(this.zoom.transform, d3.zoomIdentity);
+
+                // Clear search
+                d3.select('#searchInput').property('value', '');
+                this.handleSearch('');
+
+                // Reset filters
+                d3.selectAll('input[type="checkbox"]').property('checked', true);
+                this.updateFilters();
+            }
+
+            adjustForces(type) {
+                if (type === 'repel') {
+                    this.forceStrength = Math.max(this.forceStrength - 50, -800);
+                } else if (type === 'attract') {
+                    this.forceStrength = Math.min(this.forceStrength + 50, -100);
+                }
+
+                this.simulation.force('charge').strength(this.forceStrength);
+                this.simulation.restart();
+            }
+
+            dragStarted(event, d) {
+                if (!event.active) this.simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            dragEnded(event, d) {
+                if (!event.active) this.simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+            exportGraph() {
+                const svg = this.svg.node();
+                const serializer = new XMLSerializer();
+                const svgString = serializer.serializeToString(svg);
+
+                const blob = new Blob([svgString], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `memory-codemap-${new Date().toISOString().split('T')[0]}.svg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                console.log('📤 Graph exported as SVG');
+            }
+
+            connectWebSocket() {
+                try {
+                    this.websocket = new WebSocket('ws://localhost:3002');
+
+                    this.websocket.onopen = () => {
+                        d3.select('#connectionStatus').attr('class', 'h-2 w-2 rounded-full bg-green-500 pulse-ring');
+                        d3.select('#connectionText').text('Live Data').attr('class', 'text-xs text-green-400');
+                        console.log('🔌 Connected to live data stream');
+                    };
+
+                    this.websocket.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            this.handleWebSocketMessage(data);
+                        } catch (error) {
+                            console.warn('Invalid WebSocket message:', error);
+                        }
+                    };
+
+                    this.websocket.onclose = () => {
+                        d3.select('#connectionStatus').attr('class', 'h-2 w-2 rounded-full bg-red-500');
+                        d3.select('#connectionText').text('Disconnected').attr('class', 'text-xs text-red-400');
+                        console.log('🔌 Disconnected from live data stream');
+                    };
+
+                    this.websocket.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                    };
+
+                } catch (error) {
+                    console.warn('WebSocket connection failed:', error);
+                    d3.select('#connectionStatus').attr('class', 'h-2 w-2 rounded-full bg-red-500');
+                    d3.select('#connectionText').text('Offline').attr('class', 'text-xs text-red-400');
+                }
+            }
+
+            handleWebSocketMessage(data) {
+                switch (data.type) {
+                    case 'memoryData':
+                        this.memoryData = data.data;
+                        this.processDataForVisualization();
+                        this.renderGraph();
+                        this.updateMetricsDisplay();
+                        break;
+                    case 'performanceMetrics':
+                        this.performanceMetrics = data.data;
+                        this.updateMetricsDisplay();
+                        break;
+                    case 'workflowExecuted':
+                        console.log('🔄 Workflow executed:', data.result);
+                        // Could add visual feedback for executed workflows
+                        break;
+                }
+            }
+
+            updateMetricsDisplay() {
+                const totalInsights = this.getTotalInsights();
+                const successRate = this.performanceMetrics?.averageSuccessRate || 0;
+                const activeWorkflows = Math.floor(Math.random() * 5); // Would come from real data
+                const memoryEfficiency = this.performanceMetrics?.learningEfficiency || 0;
+
+                d3.select('#totalInsights').text(totalInsights);
+                d3.select('#successRate').text(`${(successRate * 100).toFixed(1)}%`);
+                d3.select('#activeWorkflows').text(activeWorkflows);
+                d3.select('#memoryEfficiency').text(`${(memoryEfficiency * 100).toFixed(1)}%`);
+            }
+
+            getTotalInsights() {
+                return this.nodes.length;
+            }
+
+            async refreshData() {
+                console.log('🔄 Refreshing data...');
+                await this.loadInitialData();
+            }
+
+            hideLoadingIndicator() {
+                d3.select('#loadingIndicator')
+                    .transition()
+                    .duration(500)
+                    .style('opacity', 0)
+                    .remove();
+            }
+
+            truncateText(text, maxLength) {
+                return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+            }
+
+            generateObservationsHTML(observations) {
+                const observationItems = observations.slice(0, 4).map((obs, index) => `
+                    <div class="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg">
+                        <div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-bold mt-0.5">${index + 1}</div>
+                        <p class="text-sm text-slate-300 flex-1">${obs}</p>
+                    </div>
+                `).join('');
+
+                return `
+                    <div>
+                        <h5 class="text-sm font-medium text-slate-400 mb-2">Key Research Findings</h5>
+                        <div class="space-y-2">
+                            ${observationItems}
+                        </div>
+                    </div>
+                `;
+            }
+
+            generateConnectionsHTML(connections) {
+                const connectionButtons = connections.slice(0, 6).map(conn => `
+                    <button class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-full text-xs transition-colors connection-btn"
+                            onclick="window.memoryCodeMap.selectNodeById('${conn}')">
+                        ${conn.length > 15 ? conn.substring(0, 15) + '...' : conn}
+                    </button>
+                `).join('');
+
+                const moreIndicator = connections.length > 6 ?
+                    `<span class="px-2 py-1 bg-slate-800 rounded-full text-xs text-slate-400">+${connections.length - 6} more</span>` : '';
+
+                return connectionButtons + moreIndicator;
+            }
+        }
+
+        // Initialize the advanced CodeMap
+        document.addEventListener('DOMContentLoaded', () => {
+            window.memoryCodeMap = new AdvancedMemoryCodeMap();
+        });
+
+        // Global functions for HTML onclick handlers
+        window.memoryCodeMap = {
+            selectNodeById: (id) => window.memoryCodeMap?.selectNodeById(id),
+            queryMemory: (id) => window.memoryCodeMap?.queryMemory(id),
+            expandNode: (id) => window.memoryCodeMap?.expandNode(id)
+        };
+    </script>
+</body>
+</html>

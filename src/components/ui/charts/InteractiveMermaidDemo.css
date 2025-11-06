@@ -1,0 +1,534 @@
+/* Interactive Mermaid Demo Styles */
+
+.interactive-mermaid-demo {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.demo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.demo-title .title-icon {
+  margin-right: 12px;
+  color: #ffd700;
+}
+
+.demo-description {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  margin-bottom: 0;
+}
+
+.demo-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.demo-sidebar {
+  height: fit-content;
+  position: sticky;
+  top: 24px;
+}
+
+.demo-scenario-btn {
+  text-align: left;
+  height: auto;
+  padding: 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.demo-scenario-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.scenario-content {
+  text-align: left;
+}
+
+.feature-highlights {
+  margin-top: 16px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.feature-item:last-child {
+  border-bottom: none;
+}
+
+.feature-icon {
+  color: #1890ff;
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+.main-chart-card {
+  min-height: 700px;
+}
+
+.demo-chart {
+  height: 100%;
+}
+
+.features-showcase {
+  margin-top: 24px;
+}
+
+.feature-card {
+  text-align: center;
+  padding: 24px 16px;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.feature-card:hover {
+  background: #f0f0f0;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon-large {
+  font-size: 48px;
+  color: #1890ff;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.feature-tags {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+.usage-instructions {
+  padding: 16px 0;
+}
+
+.instruction-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.instruction-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Mermaid-specific demo styles */
+.mermaid-demo-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mermaid-demo-content {
+  padding: 24px;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mermaid-demo-content .mermaid {
+  width: 100%;
+  height: auto;
+}
+
+/* Diagram type specific styling */
+.flowchart-demo .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.sequence-demo .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.gantt-demo .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.class-demo .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.state-demo .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Interactive elements */
+.mermaid-demo-content .node {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mermaid-demo-content .node:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.mermaid-demo-content .node.selected {
+  filter: drop-shadow(0 0 8px #1890ff);
+  stroke: #1890ff;
+  stroke-width: 2px;
+}
+
+.mermaid-demo-content .edgePath path {
+  transition: all 0.2s ease;
+}
+
+.mermaid-demo-content .edgePath:hover path {
+  stroke: #1890ff;
+  stroke-width: 3px;
+}
+
+.mermaid-demo-content .edgeLabel {
+  transition: all 0.2s ease;
+}
+
+.mermaid-demo-content .edgeLabel:hover {
+  background: #e6f7ff;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .demo-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .demo-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .interactive-mermaid-demo {
+    padding: 16px;
+  }
+  
+  .demo-header {
+    padding: 16px;
+  }
+  
+  .demo-title h2 {
+    font-size: 20px;
+  }
+  
+  .demo-description {
+    font-size: 14px;
+  }
+  
+  .feature-card {
+    padding: 16px 12px;
+  }
+  
+  .feature-icon-large {
+    font-size: 36px;
+  }
+  
+  .instruction-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+  
+  .mermaid-demo-content {
+    padding: 16px;
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .demo-controls {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .demo-controls .ant-space {
+    width: 100%;
+  }
+  
+  .demo-controls .ant-space .ant-space-item {
+    flex: 1;
+  }
+  
+  .demo-controls .ant-btn {
+    width: 100%;
+  }
+  
+  .feature-card {
+    padding: 12px 8px;
+  }
+  
+  .feature-icon-large {
+    font-size: 28px;
+  }
+  
+  .feature-tags {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Animation Classes */
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Dark Theme Support */
+.interactive-mermaid-demo.dark {
+  background: #1f1f1f;
+  color: #fff;
+}
+
+.interactive-mermaid-demo.dark .demo-sidebar .ant-card,
+.interactive-mermaid-demo.dark .main-chart-card,
+.interactive-mermaid-demo.dark .features-showcase .ant-card {
+  background: #2a2a2a;
+  border-color: #404040;
+}
+
+.interactive-mermaid-demo.dark .feature-card {
+  background: #2a2a2a;
+}
+
+.interactive-mermaid-demo.dark .feature-card:hover {
+  background: #333;
+}
+
+.interactive-mermaid-demo.dark .instruction-item {
+  background: #2a2a2a;
+}
+
+/* Print Styles */
+@media print {
+  .demo-controls,
+  .demo-sidebar,
+  .features-showcase,
+  .usage-instructions {
+    display: none !important;
+  }
+  
+  .main-chart-card {
+    break-inside: avoid;
+  }
+  
+  .mermaid-demo-content {
+    padding: 0;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .demo-header {
+    background: #000;
+    border: 2px solid #fff;
+  }
+  
+  .feature-card {
+    border: 2px solid #000;
+  }
+  
+  .instruction-item {
+    border: 2px solid #000;
+  }
+  
+  .mermaid-demo-content .node {
+    stroke: #000;
+    stroke-width: 2px;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .demo-scenario-btn,
+  .feature-card,
+  .mermaid-demo-content .node,
+  .mermaid-demo-content .edgePath path,
+  .mermaid-demo-content .edgeLabel,
+  .fade-in-up,
+  .slide-in-left,
+  .slide-in-right {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Mermaid theme overrides for demo */
+.mermaid-demo-content .mermaid {
+  font-family: 'Arial', sans-serif;
+}
+
+.mermaid-demo-content .mermaid .node rect,
+.mermaid-demo-content .mermaid .node circle,
+.mermaid-demo-content .mermaid .node ellipse,
+.mermaid-demo-content .mermaid .node polygon {
+  transition: all 0.2s ease;
+}
+
+.mermaid-demo-content .mermaid .node:hover rect,
+.mermaid-demo-content .mermaid .node:hover circle,
+.mermaid-demo-content .mermaid .node:hover ellipse,
+.mermaid-demo-content .mermaid .node:hover polygon {
+  fill: #e6f7ff;
+  stroke: #1890ff;
+  stroke-width: 2px;
+}
+
+/* Sequence diagram specific styles for demo */
+.mermaid-demo-content .mermaid .actor {
+  fill: #e1f5fe;
+  stroke: #01579b;
+}
+
+.mermaid-demo-content .mermaid .actor:hover {
+  fill: #b3e5fc;
+  stroke: #0277bd;
+}
+
+.mermaid-demo-content .mermaid .messageLine0 {
+  stroke: #333;
+  stroke-width: 2px;
+}
+
+.mermaid-demo-content .mermaid .messageLine1 {
+  stroke: #333;
+  stroke-width: 2px;
+  stroke-dasharray: 3 3;
+}
+
+.mermaid-demo-content .mermaid .messageText {
+  fill: #333;
+  font-weight: bold;
+}
+
+/* Gantt chart specific styles for demo */
+.mermaid-demo-content .mermaid .grid .tick {
+  stroke: #ccc;
+  opacity: 0.3;
+}
+
+.mermaid-demo-content .mermaid .grid path {
+  stroke-width: 0;
+}
+
+.mermaid-demo-content .mermaid .today {
+  fill: #ff6b6b;
+  stroke: #ff6b6b;
+}
+
+.mermaid-demo-content .mermaid .section0 {
+  fill: #e8f4fd;
+}
+
+.mermaid-demo-content .mermaid .section1 {
+  fill: #f0f8ff;
+}
+
+.mermaid-demo-content .mermaid .section2 {
+  fill: #f5f5f5;
+}
+
+.mermaid-demo-content .mermaid .section3 {
+  fill: #fafafa;
+}
+
+.mermaid-demo-content .mermaid .task0 {
+  fill: #4fc3f7;
+  stroke: #29b6f6;
+}
+
+.mermaid-demo-content .mermaid .task1 {
+  fill: #81c784;
+  stroke: #66bb6a;
+}
+
+.mermaid-demo-content .mermaid .task2 {
+  fill: #ffb74d;
+  stroke: #ffa726;
+}
+
+.mermaid-demo-content .mermaid .task3 {
+  fill: #f06292;
+  stroke: #ec407a;
+}

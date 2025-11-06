@@ -1,0 +1,45 @@
+name: Research runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      instances:
+        description: 'Number of worker instances to run concurrently (simulated)'
+        required: false
+        default: '1'
+        type: string
+  schedule:
+    - cron: '0 2 * * 1' # weekly run on Monday 02:00 UTC
+
+jobs:
+  run-research:
+    runs-on: ubuntu-latest
+    env:
+      RUN_ID: ${{ github.run_id }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        run: |
+          chmod +x scripts/research_worker.sh
+
+      - name: Run research workers (simulated concurrency)
+        run: |
+          INST=${{ github.event.inputs.instances || '1' }}
+          echo "Starting $INST research worker(s)"
+          for i in $(seq 1 $INST); do
+            export WORKER_ID=$i
+            export TOPIC="ml-workflows"
+            ./scripts/research_worker.sh &
+          done
+          wait
+
+      - name: Upload research artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-artifacts
+          path: docs/research/**
+
+# Note: This workflow simulates running multiple research workers on a single runner by backgrounding processes.
+# If you want to run N truly parallel runners, consider using a strategy.matrix with N entries or dispatching the workflow multiple times.

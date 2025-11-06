@@ -618,3 +618,82 @@ CREATE INDEX IF NOT EXISTS idx_api_keys_owner ON api_keys(owner_email);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_owner ON subscriptions(owner_email);
 CREATE INDEX IF NOT EXISTS idx_bounties_status ON optimization_bounties(status);
 CREATE INDEX IF NOT EXISTS idx_payments_owner ON payments(owner_email);
+
+-- ALGORITHM STORAGE TABLES
+-- ========================
+
+-- Store DOM analysis algorithms
+CREATE TABLE IF NOT EXISTS dom_algorithms (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    algorithm_type VARCHAR(50) NOT NULL CHECK (algorithm_type IN ('detection', 'optimization', 'quantification', 'validation')),
+    code TEXT NOT NULL, -- JavaScript code for the algorithm
+    version VARCHAR(20) DEFAULT '1.0.0',
+    author VARCHAR(255),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Store algorithm performance metrics
+CREATE TABLE IF NOT EXISTS algorithm_performance (
+    id SERIAL PRIMARY KEY,
+    algorithm_id INTEGER REFERENCES dom_algorithms(id) ON DELETE CASCADE,
+    test_url TEXT NOT NULL,
+    execution_time_ms INTEGER NOT NULL,
+    accuracy_score DECIMAL(5,4), -- 0.0000 to 1.0000
+    false_positives INTEGER DEFAULT 0,
+    false_negatives INTEGER DEFAULT 0,
+    space_saved_bytes BIGINT DEFAULT 0,
+    metadata JSONB,
+    tested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Store ML model training data
+CREATE TABLE IF NOT EXISTS ml_training_data (
+    id SERIAL PRIMARY KEY,
+    algorithm_id INTEGER REFERENCES dom_algorithms(id) ON DELETE CASCADE,
+    feature_vector JSONB NOT NULL, -- Input features for ML model
+    target_value DECIMAL(10,4), -- Expected output/target
+    data_source VARCHAR(100), -- e.g., 'crawler', 'manual', 'synthetic'
+    quality_score DECIMAL(3,2) DEFAULT 1.0, -- 0.00 to 1.00
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Store trained ML models
+CREATE TABLE IF NOT EXISTS ml_models (
+    id SERIAL PRIMARY KEY,
+    algorithm_id INTEGER REFERENCES dom_algorithms(id) ON DELETE CASCADE,
+    model_name VARCHAR(255) NOT NULL,
+    model_type VARCHAR(50) NOT NULL, -- e.g., 'linear_regression', 'neural_network', 'decision_tree'
+    model_data JSONB NOT NULL, -- Serialized model parameters/weights
+    training_accuracy DECIMAL(5,4),
+    validation_accuracy DECIMAL(5,4),
+    training_samples INTEGER,
+    version VARCHAR(20) DEFAULT '1.0.0',
+    is_active BOOLEAN DEFAULT true,
+    trained_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    metadata JSONB
+);
+
+-- Store algorithm execution logs
+CREATE TABLE IF NOT EXISTS algorithm_execution_logs (
+    id SERIAL PRIMARY KEY,
+    algorithm_id INTEGER REFERENCES dom_algorithms(id) ON DELETE CASCADE,
+    url TEXT NOT NULL,
+    execution_status VARCHAR(20) DEFAULT 'success' CHECK (execution_status IN ('success', 'error', 'timeout')),
+    execution_time_ms INTEGER,
+    error_message TEXT,
+    results JSONB,
+    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for algorithm tables
+CREATE INDEX IF NOT EXISTS idx_dom_algorithms_type ON dom_algorithms(algorithm_type);
+CREATE INDEX IF NOT EXISTS idx_dom_algorithms_active ON dom_algorithms(is_active);
+CREATE INDEX IF NOT EXISTS idx_algorithm_performance_algorithm ON algorithm_performance(algorithm_id);
+CREATE INDEX IF NOT EXISTS idx_ml_training_data_algorithm ON ml_training_data(algorithm_id);
+CREATE INDEX IF NOT EXISTS idx_ml_models_algorithm ON ml_models(algorithm_id);
+CREATE INDEX IF NOT EXISTS idx_algorithm_logs_algorithm ON algorithm_execution_logs(algorithm_id);
+CREATE INDEX IF NOT EXISTS idx_algorithm_logs_status ON algorithm_execution_logs(execution_status);

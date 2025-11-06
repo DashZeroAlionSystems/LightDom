@@ -1,0 +1,46 @@
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": "lightdom:crawler-service",
+  "name": "Web Crawler Service",
+  "description": "Headless browser-based web crawler with Puppeteer worker pool",
+  "lightdom:serviceType": "worker",
+  "lightdom:config": {
+    "workers": {
+      "type": "puppeteer",
+      "count": 4,
+      "strategy": "least-busy",
+      "timeout": 30000,
+      "retries": 3
+    },
+    "queue": {
+      "type": "redis",
+      "concurrency": 10,
+      "retries": 3,
+      "backoff": {
+        "type": "exponential",
+        "delay": 1000
+      }
+    },
+    "storage": {
+      "type": "postgresql",
+      "table": "crawler_results"
+    }
+  },
+  "lightdom:linkedServices": [
+    "lightdom:optimization-service"
+  ],
+  "lightdom:autoStart": false,
+  "lightdom:priority": 8,
+  "lightdom:healthCheck": {
+    "enabled": true,
+    "interval": 30000,
+    "timeout": 5000
+  },
+  "lightdom:scaling": {
+    "minWorkers": 2,
+    "maxWorkers": 10,
+    "scaleUpThreshold": 0.8,
+    "scaleDownThreshold": 0.2
+  }
+}

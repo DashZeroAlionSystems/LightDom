@@ -1,0 +1,31 @@
+.dashboard-overview {
+  display: block;
+}
+
+.welcome-card {}
+.metrics-row {}
+.charts-row {}
+.websites-row {}
+.activity-row {}
+.settings-row {}
+.alerts-row {}
+.crawler-status-row {}
+
+.welcome-title {
+  margin-bottom: 0;
+}
+
+.chart-card {}
+.websites-list-card {}
+.quick-actions-card {}
+.alerts-card {}
+.crawler-status-card {}
+
+.dashboard-overview-loading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+

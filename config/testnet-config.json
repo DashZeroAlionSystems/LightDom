@@ -1,0 +1,229 @@
+{
+  "name": "LightDom Testnet Configuration",
+  "version": "1.0.0",
+  "description": "Testnet configuration for blockchain, mining, NFTs, metaverse, gamification, and SEO services",
+  "network": {
+    "name": "lightdom-testnet",
+    "chainId": 31337,
+    "rpcUrl": "http://127.0.0.1:8545",
+    "wsUrl": "ws://127.0.0.1:8545",
+    "blockTime": 15,
+    "gasPrice": "20000000000",
+    "gasLimit": "8000000"
+  },
+  "accounts": {
+    "mnemonic": "test test test test test test test test test test test junk",
+    "count": 20,
+    "balance": "10000000000000000000000"
+  },
+  "mining": {
+    "enabled": true,
+    "autoStart": true,
+    "difficulty": 3,
+    "blockReward": "50000000000000000000",
+    "miningInterval": 30000,
+    "minOptimizationsPerBlock": 3,
+    "targetBlockTime": 15000,
+    "healthCheckInterval": 10000,
+    "seoDataMining": {
+      "enabled": true,
+      "features": 194,
+      "baseReward": "10000000000000000",
+      "qualityMultiplier": 3,
+      "rareBonusMultiplier": 5
+    }
+  },
+  "contracts": {
+    "LightDomToken": {
+      "name": "LightDom Token",
+      "symbol": "LDOM",
+      "maxSupply": "1000000000000000000000000000",
+      "initialSupply": "100000000000000000000000000",
+      "blockReward": "50000000000000000000",
+      "halvingInterval": 100000
+    },
+    "ProofOfOptimization": {
+      "challengeWindow": 86400,
+      "minBytesSaved": 100,
+      "ipfsEnabled": true
+    },
+    "OptimizationRegistry": {
+      "enabled": true
+    },
+    "VirtualLandNFT": {
+      "enabled": true,
+      "biomes": {
+        "Digital": {
+          "id": 0,
+          "dailyReward": "1000000000000000000"
+        },
+        "Commercial": {
+          "id": 1,
+          "dailyReward": "2000000000000000000"
+        },
+        "Knowledge": {
+          "id": 2,
+          "dailyReward": "1500000000000000000"
+        },
+        "Entertainment": {
+          "id": 3,
+          "dailyReward": "1200000000000000000"
+        },
+        "Social": {
+          "id": 4,
+          "dailyReward": "1800000000000000000"
+        },
+        "Community": {
+          "id": 5,
+          "dailyReward": "1300000000000000000"
+        },
+        "Professional": {
+          "id": 6,
+          "dailyReward": "2500000000000000000"
+        },
+        "Production": {
+          "id": 7,
+          "dailyReward": "3000000000000000000"
+        }
+      }
+    },
+    "MetaverseCreatureNFT": {
+      "enabled": true,
+      "categories": ["Companion", "Mount", "Guardian", "Harvester", "Mystical", "Mechanical"],
+      "rarityLevels": ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythical"]
+    },
+    "MetaverseItemNFT": {
+      "enabled": true
+    },
+    "MetaverseMarketplace": {
+      "enabled": true,
+      "platformFee": 250,
+      "listingTypes": ["FixedPrice", "Auction", "Offer"]
+    },
+    "SEODataMining": {
+      "enabled": true,
+      "featuresCount": 194,
+      "baseReward": "10000000000000000",
+      "qualityMultiplier": 3,
+      "rareBonusMultiplier": 5
+    },
+    "StorageContract": {
+      "enabled": true
+    },
+    "StorageToken": {
+      "enabled": true
+    },
+    "StorageGovernance": {
+      "enabled": true
+    },
+    "EthereumBridge": {
+      "enabled": false,
+      "requiresMainnet": true
+    },
+    "PolygonBridge": {
+      "enabled": false,
+      "requiresMainnet": true
+    },
+    "FileManager": {
+      "enabled": true
+    },
+    "HostManager": {
+      "enabled": true
+    },
+    "DataEncryption": {
+      "enabled": true
+    },
+    "ModelStorageContract": {
+      "enabled": true
+    },
+    "EnhancedDOMSpaceToken": {
+      "enabled": true
+    },
+    "DOMSpaceToken": {
+      "enabled": true
+    }
+  },
+  "features": {
+    "nfts": {
+      "enabled": true,
+      "autoMint": true,
+      "mintInterval": 300000
+    },
+    "metaverse": {
+      "enabled": true,
+      "loreGeneration": true,
+      "animations": true,
+      "chat": true
+    },
+    "gamification": {
+      "enabled": true,
+      "reputation": true,
+      "staking": {
+        "enabled": true,
+        "minStake": "1000000000000000000000",
+        "annualAPY": 5,
+        "lockPeriod": 2592000
+      },
+      "achievements": true,
+      "leaderboards": true
+    },
+    "seoServices": {
+      "enabled": true,
+      "analytics": true,
+      "optimization": true,
+      "dataCollection": true,
+      "aiTraining": true,
+      "coreWebVitals": true
+    }
+  },
+  "services": {
+    "apiServer": {
+      "enabled": true,
+      "port": 3001,
+      "cors": true
+    },
+    "frontend": {
+      "enabled": true,
+      "port": 3000
+    },
+    "monitoring": {
+      "enabled": true,
+      "port": 3005
+    },
+    "database": {
+      "enabled": true,
+      "type": "postgresql",
+      "host": "localhost",
+      "port": 5432
+    },
+    "redis": {
+      "enabled": true,
+      "host": "localhost",
+      "port": 6379
+    },
+    "crawler": {
+      "enabled": true,
+      "maxConcurrent": 5,
+      "seedUrls": [
+        "https://en.wikipedia.org",
+        "https://github.com",
+        "https://stackoverflow.com",
+        "https://medium.com",
+        "https://dev.to"
+      ]
+    }
+  },
+  "testnet": {
+    "autoDeployContracts": true,
+    "autoStartMining": true,
+    "autoPopulateData": true,
+    "testAccounts": {
+      "deployer": 0,
+      "miner": 1,
+      "nftCreator": 2,
+      "marketplace": 3,
+      "user1": 4,
+      "user2": 5
+    }
+  }
+}

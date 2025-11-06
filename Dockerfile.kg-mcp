@@ -1,0 +1,39 @@
+# Knowledge Graph MCP Server Dockerfile
+FROM node:18-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    curl \
+    bash \
+    postgresql-client \
+    && rm -rf /var/cache/apk/*
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy application code
+COPY knowledge-graph-mcp-server.js ./
+COPY mcp-sequential-thinking.js ./
+COPY mcp-memory.js ./
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Set environment variables
+ENV NODE_ENV=production
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3003/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
+
+# Expose port for MCP communication
+EXPOSE 3003
+
+# Default command
+CMD ["node", "knowledge-graph-mcp-server.js"]

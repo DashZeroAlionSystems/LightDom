@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome React Dev Container - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #0f0f23;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: auto 1fr;
+            height: 100vh;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        /* Top nav link active state */
+        .top-nav .nav-link.internal.active {
+            background: #16213e;
+            color: #667eea !important;
+            border: 1px solid rgba(102,126,234,0.12);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-indicator.healthy {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+            border: 1px solid rgba(46, 213, 115, 0.3);
+        }
+
+        .status-indicator.error {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.3);
+        }
+
+        .status-indicator.loading {
+            background: rgba(255, 165, 2, 0.2);
+            color: #ffa502;
+            border: 1px solid rgba(255, 165, 2, 0.3);
+        }
+
+        .sidebar {
+            background: #1a1a2e;
+            border-right: 1px solid #16213e;
+            overflow-y: auto;
+            padding: 1rem 0;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            padding: 0 1.5rem;
+            font-size: 0.9rem;
+            color: #a4b0be;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-item {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-item:hover {
+            background: #16213e;
+            border-left-color: #667eea;
+        }
+
+        .sidebar-item.active {
+            background: #16213e;
+            border-left-color: #667eea;
+            color: #667eea;
+        }
+
+        .sidebar-item.error {
+            color: #ff4757;
+        }
+
+        .main-content {
+            background: #0f0f23;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid #16213e;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: #a4b0be;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .code-editor {
+            background: #1a1a2e;
+            border-radius: 12px;
+            border: 1px solid #16213e;
+            overflow: hidden;
+        }
+
+        .editor-header {
+            background: #16213e;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-title {
+            font-weight: 600;
+        }
+
+        .editor-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .btn.secondary {
+            background: #4a5568;
+        }
+
+        .btn.secondary:hover {
+            background: #2d3748;
+        }
+
+        .btn.danger {
+            background: #e53e3e;
+        }
+
+        .btn.danger:hover {
+            background: #c53030;
+        }
+
+        .code-textarea {
+            width: 100%;
+            height: 300px;
+            background: #0f0f23;
+            border: none;
+            padding: 1rem;
+            color: #ffffff;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+        }
+
+        .preview-panel {
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .preview-header {
+            background: #f7fafc;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .preview-content {
+            height: 400px;
+            background: #ffffff;
+            overflow-y: auto;
+        }
+
+        .logs-panel {
+            background: #1a1a2e;
+            border-radius: 12px;
+            border: 1px solid #16213e;
+            overflow: hidden;
+        }
+
+        .logs-header {
+            background: #16213e;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logs-content {
+            height: 300px;
+            background: #0f0f23;
+            padding: 1rem;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            color: #a4b0be;
+        }
+
+        .log-entry {
+            margin-bottom: 0.25rem;
+            padding: 0.25rem;
+            border-radius: 3px;
+        }
+
+        .log-entry.info { color: #63b3ed; }
+        .log-entry.success { color: #48bb78; }
+        .log-entry.warning { color: #ed8936; }
+        .log-entry.error { color: #f56565; }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid #16213e;
+        }
+
+        .modal-header {
+            margin-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr;
+            }
+
+            .sidebar {
+                order: 2;
+                height: auto;
+                max-height: 300px;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="logo">
+                <span>🚀</span>
+                Chrome React Dev Container
+            </div>
+            <div class="status-bar">
+                <div class="status-indicator" id="container-status">
+                    <div class="pulse">●</div>
+                    <span>Connecting...</span>
+                </div>
+                <div class="status-indicator healthy" id="browser-status">
+                    <span>●</span>
+                    <span>Browser: Ready</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Top navigation (replaces sidebar) -->
+        <nav class="top-nav" style="display:flex;align-items:center;gap:12px;padding:0.5rem 2rem;background:linear-gradient(90deg,#0f172a, #0b1220);border-bottom:1px solid rgba(255,255,255,0.03);">
+            <!-- Internal view toggles -->
+            <a href="#" class="nav-link internal active" data-view="overview" style="color:#ffffff;padding:0.5rem 0.75rem;border-radius:6px;">📊 Overview</a>
+            <a href="#" class="nav-link internal" data-view="editor" style="color:#ffffff;padding:0.5rem 0.75rem;border-radius:6px;">⚡ Code Editor</a>
+            <a href="#" class="nav-link internal" data-view="preview" style="color:#ffffff;padding:0.5rem 0.75rem;border-radius:6px;">👁️ Live Preview</a>
+            <a href="#" class="nav-link internal" data-view="logs" style="color:#ffffff;padding:0.5rem 0.75rem;border-radius:6px;">📋 Logs</a>
+            <!-- External dashboard links -->
+            <div style="flex:1"></div>
+            <a href="/dashboard" class="nav-link" style="color:#a4b0be;padding:0.4rem 0.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.03);">Main Dashboard</a>
+            <a href="/complete-dashboard" class="nav-link" style="color:#a4b0be;padding:0.4rem 0.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.03);">Complete Dashboard</a>
+            <a href="/admin-dashboard" class="nav-link" style="color:#a4b0be;padding:0.4rem 0.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.03);">Admin Home</a>
+        </nav>
+
+        <main class="main-content">
+            <!-- Overview View -->
+            <div id="overview-view" class="view active">
+                <h1 style="margin-bottom: 2rem; color: #ffffff;">Container Overview</h1>
+
+                <div class="content-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">System Health</div>
+                            <div class="card-icon">💚</div>
+                        </div>
+                        <div class="metric-value" id="health-score">95%</div>
+                        <div class="metric-label">Overall Health</div>
+                        <div style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="color: #a4b0be;">Browser</span>
+                                <span style="color: #48bb78;">Connected</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="color: #a4b0be;">React</span>
+                                <span style="color: #48bb78;">Loaded</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #a4b0be;">WebSocket</span>
+                                <span style="color: #48bb78;">Active</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Performance</div>
+                            <div class="card-icon">⚡</div>
+                        </div>
+                        <div class="metric-value" id="perf-score">98%</div>
+                        <div class="metric-label">Performance Score</div>
+                        <div style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="color: #a4b0be;">Response Time</span>
+                                <span style="color: #63b3ed;">45ms</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="color: #a4b0be;">Memory Usage</span>
+                                <span style="color: #63b3ed;">120MB</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #a4b0be;">Active Sessions</span>
+                                <span style="color: #63b3ed;">1</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Code Metrics</div>
+                            <div class="card-icon">📊</div>
+                        </div>
+                        <div class="metric-value" id="code-lines">0</div>
+                        <div class="metric-label">Lines Executed</div>
+                        <div style="margin-top: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="color: #a4b0be;">Components</span>
+                                <span style="color: #63b3ed;" id="component-count">0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="color: #a4b0be;">Functions</span>
+                                <span style="color: #63b3ed;" id="function-count">0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #a4b0be;">Errors</span>
+                                <span style="color: #f56565;" id="error-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Container Info</div>
+                            <div class="card-icon">🐳</div>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <div style="margin-bottom: 0.5rem;">
+                                <span style="color: #a4b0be;">ID:</span>
+                                <span style="color: #63b3ed; margin-left: 0.5rem;" id="container-id">Loading...</span>
+                            </div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <span style="color: #a4b0be;">Uptime:</span>
+                                <span style="color: #63b3ed; margin-left: 0.5rem;" id="uptime">0s</span>
+                            </div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <span style="color: #a4b0be;">Port:</span>
+                                <span style="color: #63b3ed; margin-left: 0.5rem;">3001</span>
+                            </div>
+                            <div>
+                                <span style="color: #a4b0be;">WebSocket:</span>
+                                <span style="color: #63b3ed; margin-left: 0.5rem;">3002</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="card-header">
+                        <div class="card-title">Quick Actions</div>
+                        <div class="card-icon">⚡</div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn" id="open-editor-btn">
+                            <span>⚡</span>
+                            Open Code Editor
+                        </button>
+                        <button class="btn secondary" id="view-preview-btn">
+                            <span>👁️</span>
+                            View Live Preview
+                        </button>
+                        <button class="btn secondary" id="check-health-btn">
+                            <span>💚</span>
+                            Health Check
+                        </button>
+                        <button class="btn danger" id="restart-container-btn">
+                            <span>🔄</span>
+                            Restart Container
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code Editor View -->
+            <div id="editor-view" class="view">
+                <h1 style="margin-bottom: 2rem; color: #ffffff;">Live Code Editor</h1>
+
+                <div class="code-editor">
+                    <div class="editor-header">
+                        <div class="editor-title">React Code Editor</div>
+                        <div class="editor-controls">
+                            <button class="btn" id="run-code-btn">
+                                <span>▶️</span>
+                                Run Code
+                            </button>
+                            <button class="btn secondary" id="clear-editor-btn">
+                                <span>🗑️</span>
+                                Clear
+                            </button>
+                            <button class="btn secondary" id="load-template-btn">
+                                <span>📝</span>
+                                Template
+                            </button>
+                        </div>
+                    </div>
+                    <textarea class="code-textarea" id="code-editor" placeholder="Write your React code here...
+
+Example:
+const { useState } = React;
+
+function CounterApp() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div style={{ padding: '20px', textAlign: 'center' }}>
+      <h1>Counter: {count}</h1>
+      <button
+        onClick={() => setCount(count + 1)}
+        style={{
+          padding: '10px 20px',
+          fontSize: '16px',
+          margin: '10px',
+          background: '#667eea',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        Increment
+      </button>
+      <button
+        onClick={() => setCount(0)}
+        style={{
+          padding: '10px 20px',
+          fontSize: '16px',
+          margin: '10px',
+          background: '#6c757d',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        Reset
+      </button>
+    </div>
+  );
+}
+
+ReactDOM.render(<CounterApp />, document.getElementById('output'));">const { useState, useEffect } = React;
+
+function ChromeReactApp() {
+  const [count, setCount] = useState(0);
+  const [message, setMessage] = useState('Hello from Chrome React Dev Container!');
+  const [timestamp, setTimestamp] = useState(new Date().toLocaleTimeString());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimestamp(new Date().toLocaleTimeString());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleIncrement = () => {
+    setCount(count + 1);
+    setMessage(\`Count incremented to \${count + 1} at \${new Date().toLocaleTimeString()}\`);
+  };
+
+  const handleReset = () => {
+    setCount(0);
+    setMessage('Counter reset to 0');
+  };
+
+  return (
+    <div style={{
+      padding: '20px',
+      fontFamily: 'Arial, sans-serif',
+      maxWidth: '800px',
+      margin: '0 auto',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      borderRadius: '12px',
+      color: 'white'
+    }}>
+      <h1 style={{
+        textAlign: 'center',
+        marginBottom: '20px',
+        textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+      }}>
+        🚀 Chrome React Dev Container
+      </h1>
+
+      <div style={{
+        background: 'rgba(255,255,255,0.1)',
+        padding: '20px',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <h2 style={{ marginBottom: '10px', color: '#ffffff' }}>Counter Demo</h2>
+        <div style={{
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          textAlign: 'center',
+          marginBottom: '15px',
+          color: '#ffffff'
+        }}>
+          {count}
+        </div>
+
+        <div style={{ textAlign: 'center' }}>
+          <button
+            onClick={handleIncrement}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.3)',
+              padding: '12px 24px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              margin: '0 10px',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.3)'}
+            onMouseOut={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
+          >
+            ➕ Increment
+          </button>
+
+          <button
+            onClick={handleReset}
+            style={{
+              background: 'rgba(255,71,87,0.8)',
+              color: 'white',
+              border: '1px solid rgba(255,71,87,0.9)',
+              padding: '12px 24px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              margin: '0 10px',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.background = 'rgba(255,71,87,0.9)'}
+            onMouseOut={(e) => e.target.style.background = 'rgba(255,71,87,0.8)'}
+          >
+            🔄 Reset
+          </button>
+        </div>
+      </div>
+
+      <div style={{
+        background: 'rgba(0,0,0,0.2)',
+        padding: '15px',
+        borderRadius: '8px',
+        marginBottom: '20px'
+      }}>
+        <h3 style={{ marginBottom: '10px', color: '#ffffff' }}>📋 Status</h3>
+        <div style={{ fontSize: '14px', lineHeight: '1.6' }}>
+          <div><strong>Message:</strong> {message}</div>
+          <div><strong>Time:</strong> {timestamp}</div>
+          <div><strong>Live Updates:</strong> ✅ Active</div>
+          <div><strong>Browser Integration:</strong> ✅ Chrome API</div>
+        </div>
+      </div>
+
+      <div style={{
+        background: 'rgba(46, 213, 115, 0.1)',
+        padding: '15px',
+        borderRadius: '8px',
+        border: '1px solid rgba(46, 213, 115, 0.3)'
+      }}>
+        <h3 style={{ marginBottom: '10px', color: '#2ed573' }}>🎯 Features</h3>
+        <ul style={{ margin: 0, paddingLeft: '20px', color: '#a4b0be' }}>
+          <li>Live React code execution</li>
+          <li>Real-time state updates</li>
+          <li>Chrome DevTools integration</li>
+          <li>Self-healing error recovery</li>
+          <li>WebSocket live synchronization</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<ChromeReactApp />, document.getElementById('output'));</textarea>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Execution Result</div>
+                            <div class="card-icon">📄</div>
+                        </div>
+                        <div id="execution-result" style="background: #16213e; padding: 1rem; border-radius: 6px; min-height: 100px; font-family: monospace; color: #a4b0be;">
+                            Click "Run Code" to execute your React code in the browser...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Preview View -->
+            <div id="preview-view" class="view">
+                <h1 style="margin-bottom: 2rem; color: #ffffff;">Live Preview</h1>
+
+                <div class="preview-panel">
+                    <div class="preview-header">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="font-weight: 600;">React App Preview</span>
+                            <span style="color: #48bb78; font-size: 0.9rem;">● Live</span>
+                        </div>
+                        <div>
+                            <button class="btn secondary" id="refresh-preview-btn">
+                                <span>🔄</span>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="preview-content">
+                        <iframe id="preview-iframe" src="http://localhost:3000/admin-dashboard" style="width: 100%; height: 100%; border: none;"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs View -->
+            <div id="logs-view" class="view">
+                <h1 style="margin-bottom: 2rem; color: #ffffff;">System Logs</h1>
+
+                <div class="logs-panel">
+                    <div class="logs-header">
+                        <div class="editor-title">Container Logs</div>
+                        <div class="editor-controls">
+                            <button class="btn secondary" id="clear-logs-btn">
+                                <span>🗑️</span>
+                                Clear
+                            </button>
+                            <button class="btn secondary" id="export-logs-btn">
+                                <span>💾</span>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="logs-content" id="logs-content">
+                        <div class="log-entry info">[INFO] Chrome React Dev Container initialized</div>
+                        <div class="log-entry success">[SUCCESS] Browser connection established</div>
+                        <div class="log-entry info">[INFO] React environment loaded</div>
+                        <div class="log-entry info">[INFO] WebSocket server started on port 3002</div>
+                        <div class="log-entry success">[SUCCESS] HTTP server started on port 3001</div>
+                        <div class="log-entry info">[INFO] Self-healing monitor activated</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other views would be implemented similarly -->
+            <div id="status-view" class="view" style="display: none;">
+                <h1>System Status</h1>
+                <p>Detailed system status view...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for templates/examples -->
+    <div id="template-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Code Templates</h2>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; gap: 1rem;">
+                    <button class="btn" onclick="loadTemplate('counter')">Counter Component</button>
+                    <button class="btn" onclick="loadTemplate('todo')">Todo App</button>
+                    <button class="btn" onclick="loadTemplate('api')">API Integration</button>
+                    <button class="btn" onclick="loadTemplate('hooks')">Custom Hooks</button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chrome React Dev Container Admin Dashboard
+        class AdminDashboard {
+            constructor() {
+                this.ws = null;
+                this.status = 'connecting';
+                this.containerInfo = null;
+                this.startTime = Date.now();
+
+                this.initializeDashboard();
+                this.setupEventListeners();
+                this.connectWebSocket();
+                this.startStatusUpdates();
+            }
+
+            async initializeDashboard() {
+                console.log('🎛️ Initializing Admin Dashboard...');
+
+                // Set initial status
+                this.updateStatusIndicator('loading', 'Connecting...');
+
+                // Load initial data
+                await this.loadContainerStatus();
+            }
+
+            setupEventListeners() {
+                // Navigation (top nav now) - internal view toggles
+                document.querySelectorAll('.nav-link.internal').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.switchView(e.currentTarget.dataset.view);
+                    });
+                });
+
+                // Overview actions
+                document.getElementById('open-editor-btn').addEventListener('click', () => {
+                    this.switchView('editor');
+                });
+
+                document.getElementById('view-preview-btn').addEventListener('click', () => {
+                    this.switchView('preview');
+                });
+
+                document.getElementById('check-health-btn').addEventListener('click', () => {
+                    this.checkHealth();
+                });
+
+                document.getElementById('restart-container-btn').addEventListener('click', () => {
+                    this.restartContainer();
+                });
+
+                // Editor actions
+                document.getElementById('run-code-btn').addEventListener('click', () => {
+                    this.runCode();
+                });
+
+                document.getElementById('clear-editor-btn').addEventListener('click', () => {
+                    this.clearEditor();
+                });
+
+                document.getElementById('load-template-btn').addEventListener('click', () => {
+                    this.showTemplates();
+                });
+
+                // Logs actions
+                document.getElementById('clear-logs-btn').addEventListener('click', () => {
+                    this.clearLogs();
+                });
+
+                document.getElementById('export-logs-btn').addEventListener('click', () => {
+                    this.exportLogs();
+                });
+
+                // Preview actions
+                document.getElementById('refresh-preview-btn').addEventListener('click', () => {
+                    this.refreshPreview();
+                });
+            }
+
+            switchView(viewName) {
+                // Update top navigation active state
+                document.querySelectorAll('.nav-link.internal').forEach(item => {
+                    item.classList.remove('active');
+                });
+                const activeNav = document.querySelector(`[data-view="${viewName}"]`);
+                if (activeNav) activeNav.classList.add('active');
+
+                // Show view
+                document.querySelectorAll('.view').forEach(view => {
+                    view.style.display = 'none';
+                });
+                document.getElementById(`${viewName}-view`).style.display = 'block';
+            }
+
+            async connectWebSocket() {
+                try {
+                    this.ws = new WebSocket('ws://localhost:3002');
+
+                    this.ws.onopen = () => {
+                        console.log('🔗 WebSocket connected');
+                        this.updateStatusIndicator('healthy', 'Connected');
+                        this.addLogEntry('success', 'WebSocket connection established');
+                    };
+
+                    this.ws.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            this.handleWebSocketMessage(data);
+                        } catch (error) {
+                            console.error('WebSocket message error:', error);
+                        }
+                    };
+
+                    this.ws.onclose = () => {
+                        console.log('🔌 WebSocket disconnected');
+                        this.updateStatusIndicator('error', 'Disconnected');
+                        this.addLogEntry('error', 'WebSocket connection lost');
+
+                        // Attempt reconnection
+                        setTimeout(() => this.connectWebSocket(), 5000);
+                    };
+
+                    this.ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        this.addLogEntry('error', 'WebSocket connection error');
+                    };
+
+                } catch (error) {
+                    console.error('WebSocket connection failed:', error);
+                    this.updateStatusIndicator('error', 'Connection Failed');
+                }
+            }
+
+            handleWebSocketMessage(data) {
+                switch (data.type) {
+                    case 'health':
+                        this.updateHealthStatus(data);
+                        break;
+                    case 'result':
+                        this.displayExecutionResult(data);
+                        break;
+                    case 'error':
+                        this.displayExecutionError(data);
+                        break;
+                    default:
+                        console.log('Unknown WebSocket message:', data);
+                }
+            }
+
+            updateStatusIndicator(status, message) {
+                const indicator = document.getElementById('container-status');
+                indicator.className = `status-indicator ${status}`;
+                indicator.innerHTML = `
+                    <div class="${status === 'loading' ? 'pulse' : ''}">●</div>
+                    <span>${message}</span>
+                `;
+                this.status = status;
+            }
+
+            async loadContainerStatus() {
+                try {
+                    const response = await fetch('/api/container/status');
+                    const data = await response.json();
+
+                    this.containerInfo = data;
+                    this.updateDashboardMetrics(data);
+
+                } catch (error) {
+                    console.error('Failed to load container status:', error);
+                    this.updateStatusIndicator('error', 'Status Check Failed');
+                }
+            }
+
+            updateDashboardMetrics(data) {
+                if (data.containerId) {
+                    document.getElementById('container-id').textContent = data.containerId;
+                }
+
+                const uptime = Math.floor((Date.now() - this.startTime) / 1000);
+                document.getElementById('uptime').textContent = `${uptime}s`;
+
+                // Update other metrics as they become available
+                this.updateHealthScore(data);
+            }
+
+            updateHealthScore(data) {
+                let score = 95; // Default healthy score
+
+                if (!data.browserConnected) score -= 20;
+                if (!data.pageLoaded) score -= 15;
+                if (!data.serverRunning) score -= 30;
+                if (!data.websocketRunning) score -= 10;
+                if (data.retryCount > 0) score -= data.retryCount * 5;
+
+                score = Math.max(0, Math.min(100, score));
+
+                document.getElementById('health-score').textContent = `${score}%`;
+
+                const color = score >= 90 ? '#48bb78' : score >= 70 ? '#ed8936' : '#f56565';
+                document.getElementById('health-score').style.color = color;
+            }
+
+            startStatusUpdates() {
+                // Update status every 5 seconds
+                setInterval(async () => {
+                    await this.loadContainerStatus();
+                }, 5000);
+
+                // Update uptime every second
+                setInterval(() => {
+                    const uptime = Math.floor((Date.now() - this.startTime) / 1000);
+                    document.getElementById('uptime').textContent = `${uptime}s`;
+                }, 1000);
+            }
+
+            async checkHealth() {
+                try {
+                    this.addLogEntry('info', 'Performing health check...');
+
+                    const response = await fetch('/api/container/status');
+                    const data = await response.json();
+
+                    if (data.isRunning) {
+                        this.addLogEntry('success', 'Health check passed - container is healthy');
+                        this.showNotification('Health Check Passed', 'Container is running normally', 'success');
+                    } else {
+                        this.addLogEntry('error', 'Health check failed - container issues detected');
+                        this.showNotification('Health Check Failed', 'Container has issues', 'error');
+                    }
+
+                } catch (error) {
+                    this.addLogEntry('error', `Health check error: ${error.message}`);
+                    this.showNotification('Health Check Error', error.message, 'error');
+                }
+            }
+
+            async restartContainer() {
+                if (!confirm('Are you sure you want to restart the container? This will interrupt any running processes.')) {
+                    return;
+                }
+
+                try {
+                    this.addLogEntry('warning', 'Restarting container...');
+                    this.updateStatusIndicator('loading', 'Restarting...');
+
+                    const response = await fetch('/api/container/restart', { method: 'POST' });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.addLogEntry('success', 'Container restarted successfully');
+                        this.showNotification('Container Restarted', 'Container has been restarted successfully', 'success');
+                        this.updateStatusIndicator('healthy', 'Restarted');
+                    } else {
+                        throw new Error(data.error || 'Restart failed');
+                    }
+
+                } catch (error) {
+                    this.addLogEntry('error', `Container restart failed: ${error.message}`);
+                    this.showNotification('Restart Failed', error.message, 'error');
+                    this.updateStatusIndicator('error', 'Restart Failed');
+                }
+            }
+
+            async runCode() {
+                const code = document.getElementById('code-editor').value;
+
+                if (!code.trim()) {
+                    this.showNotification('No Code', 'Please enter some code to run', 'warning');
+                    return;
+                }
+
+                this.addLogEntry('info', 'Executing code in browser...');
+
+                try {
+                    const response = await fetch('/api/container/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.addLogEntry('success', 'Code executed successfully');
+                        document.getElementById('execution-result').innerHTML =
+                            '<span style="color: #48bb78;">✅ Code executed successfully</span>';
+                    } else {
+                        throw new Error(result.error);
+                    }
+
+                } catch (error) {
+                    this.addLogEntry('error', `Code execution failed: ${error.message}`);
+                    document.getElementById('execution-result').innerHTML =
+                        `<span style="color: #f56565;">❌ Execution Error: ${error.message}</span>`;
+                }
+            }
+
+            clearEditor() {
+                document.getElementById('code-editor').value = '';
+                document.getElementById('execution-result').innerHTML = 'Editor cleared. Ready for new code...';
+                this.addLogEntry('info', 'Code editor cleared');
+            }
+
+            showTemplates() {
+                document.getElementById('template-modal').style.display = 'flex';
+            }
+
+            clearLogs() {
+                document.getElementById('logs-content').innerHTML = '';
+                this.addLogEntry('info', 'Logs cleared by user');
+            }
+
+            exportLogs() {
+                const logs = document.getElementById('logs-content').innerText;
+                const blob = new Blob([logs], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `container-logs-${new Date().toISOString().split('T')[0]}.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                this.addLogEntry('info', 'Logs exported');
+            }
+
+            refreshPreview() {
+                const iframe = document.getElementById('preview-iframe');
+                iframe.src = iframe.src; // Refresh by re-setting src
+                this.addLogEntry('info', 'Preview refreshed');
+            }
+
+            addLogEntry(type, message) {
+                const logsContent = document.getElementById('logs-content');
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+                logsContent.appendChild(logEntry);
+                logsContent.scrollTop = logsContent.scrollHeight;
+            }
+
+            showNotification(title, message, type = 'info') {
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${type === 'success' ? '#48bb78' : type === 'error' ? '#f56565' : '#ed8936'};
+                    color: white;
+                    padding: 1rem;
+                    border-radius: 6px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                    z-index: 10000;
+                    max-width: 400px;
+                    animation: slideIn 0.3s ease-out;
+                `;
+
+                notification.innerHTML = `
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">${title}</div>
+                    <div>${message}</div>
+                `;
+
+                document.body.appendChild(notification);
+
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease-out';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 5000);
+            }
+
+            updateHealthStatus(data) {
+                // Update health metrics based on WebSocket data
+                if (data.status === 'healthy') {
+                    this.updateStatusIndicator('healthy', 'Healthy');
+                } else if (data.status === 'degraded') {
+                    this.updateStatusIndicator('warning', 'Degraded');
+                } else {
+                    this.updateStatusIndicator('error', 'Unhealthy');
+                }
+            }
+
+            displayExecutionResult(data) {
+                document.getElementById('execution-result').innerHTML =
+                    '<span style="color: #48bb78;">✅ Code executed successfully via WebSocket</span>';
+            }
+
+            displayExecutionError(data) {
+                document.getElementById('execution-result').innerHTML =
+                    `<span style="color: #f56565;">❌ WebSocket Error: ${data.message}</span>`;
+            }
+        }
+
+        // Global functions for templates
+        window.loadTemplate = function(templateName) {
+            const templates = {
+                counter: `const { useState } = React;
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div style={{ padding: '20px', textAlign: 'center' }}>
+      <h1>Counter: {count}</h1>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  );
+}
+
+ReactDOM.render(<Counter />, document.getElementById('output'));`,
+
+                todo: `const { useState } = React;
+
+function TodoApp() {
+  const [todos, setTodos] = useState([]);
+  const [input, setInput] = useState('');
+
+  const addTodo = () => {
+    if (input.trim()) {
+      setTodos([...todos, { id: Date.now(), text: input, done: false }]);
+      setInput('');
+    }
+  };
+
+  const toggleTodo = (id) => {
+    setTodos(todos.map(todo =>
+      todo.id === id ? { ...todo, done: !todo.done } : todo
+    ));
+  };
+
+  return (
+    <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
+      <h1>Todo App</h1>
+      <div>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Add todo..."
+        />
+        <button onClick={addTodo}>Add</button>
+      </div>
+      <ul>
+        {todos.map(todo => (
+          <li
+            key={todo.id}
+            onClick={() => toggleTodo(todo.id)}
+            style={{ textDecoration: todo.done ? 'line-through' : 'none' }}
+          >
+            {todo.text}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+ReactDOM.render(<TodoApp />, document.getElementById('output'));`,
+
+                api: `const { useState, useEffect } = React;
+
+function APIApp() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('https://jsonplaceholder.typicode.com/posts/1')
+      .then(res => res.json())
+      .then(data => {
+        setData(data);
+        setLoading(false);
+      })
+      .catch(error => {
+        setData({ error: error.message });
+        setLoading(false);
+      });
+  }, []);
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>API Integration Demo</h1>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <pre>{JSON.stringify(data, null, 2)}</pre>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.render(<APIApp />, document.getElementById('output'));`,
+
+                hooks: `const { useState, useEffect, useCallback } = React;
+
+function useCounter(initialValue = 0) {
+  const [count, setCount] = useState(initialValue);
+
+  const increment = useCallback(() => setCount(c => c + 1), []);
+  const decrement = useCallback(() => setCount(c => c - 1), []);
+  const reset = useCallback(() => setCount(initialValue), [initialValue]);
+
+  return { count, increment, decrement, reset };
+}
+
+function CustomHooksDemo() {
+  const counter1 = useCounter(0);
+  const counter2 = useCounter(10);
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Custom Hooks Demo</h1>
+
+      <div style={{ marginBottom: '20px' }}>
+        <h2>Counter 1: {counter1.count}</h2>
+        <button onClick={counter1.increment}>+</button>
+        <button onClick={counter1.decrement}>-</button>
+        <button onClick={counter1.reset}>Reset</button>
+      </div>
+
+      <div>
+        <h2>Counter 2: {counter2.count}</h2>
+        <button onClick={counter2.increment}>+</button>
+        <button onClick={counter2.decrement}>-</button>
+        <button onClick={counter2.reset}>Reset to 10</button>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<CustomHooksDemo />, document.getElementById('output'));`
+            };
+
+            document.getElementById('code-editor').value = templates[templateName] || templates.counter;
+            document.getElementById('template-modal').style.display = 'none';
+            dashboard.addLogEntry('info', `Loaded ${templateName} template`);
+        };
+
+        window.closeModal = function() {
+            document.getElementById('template-modal').style.display = 'none';
+        };
+
+        // Initialize dashboard
+        const dashboard = new AdminDashboard();
+
+        console.log('🎛️ Chrome React Dev Container Admin Dashboard Loaded');
+    </script>
+</head>
+<body>
+    <!-- Dashboard content defined above -->
+</body>
+</html>

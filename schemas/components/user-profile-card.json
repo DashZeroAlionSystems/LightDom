@@ -1,0 +1,130 @@
+{
+  "@context": "https://schema.org",
+  "@type": "UserProfile",
+  "@id": "lightdom:user-profile-card",
+  "name": "UserProfileCard",
+  "description": "User profile card organism displaying user information and actions",
+  "lightdom:componentType": "organism",
+  "lightdom:reactComponent": "UserProfileCard",
+  "lightdom:composedOf": [
+    "lightdom:card",
+    "lightdom:icon",
+    "lightdom:badge",
+    "lightdom:button"
+  ],
+  "lightdom:props": [
+    {
+      "name": "user",
+      "type": "object",
+      "required": true,
+      "description": "User data object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "avatar": { "type": "string" },
+        "role": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    },
+    {
+      "name": "onEdit",
+      "type": "function",
+      "required": false,
+      "description": "Edit profile handler"
+    },
+    {
+      "name": "onMessage",
+      "type": "function",
+      "required": false,
+      "description": "Message user handler"
+    },
+    {
+      "name": "showActions",
+      "type": "boolean",
+      "required": false,
+      "description": "Show action buttons",
+      "default": true
+    }
+  ],
+  "lightdom:linkedSchemas": [
+    "lightdom:card",
+    "lightdom:icon",
+    "lightdom:badge",
+    "lightdom:button"
+  ],
+  "lightdom:useCase": [
+    "user-profile",
+    "profile-card",
+    "user-info",
+    "avatar",
+    "contact"
+  ],
+  "lightdom:semanticMeaning": "User profile card with avatar and actions",
+  "lightdom:priority": 2,
+  "lightdom:category": "organism",
+  "lightdom:assemblyPattern": {
+    "structure": "vertical",
+    "container": "lightdom:card",
+    "components": [
+      {
+        "section": "header",
+        "layout": "horizontal",
+        "components": [
+          {
+            "element": "img",
+            "props": {
+              "src": "{{user.avatar}}",
+              "alt": "{{user.name}}"
+            }
+          },
+          {
+            "section": "info",
+            "layout": "vertical",
+            "components": [
+              {
+                "element": "h3",
+                "content": "{{user.name}}"
+              },
+              {
+                "element": "p",
+                "content": "{{user.email}}"
+              },
+              {
+                "component": "lightdom:badge",
+                "props": {
+                  "text": "{{user.role}}",
+                  "variant": "info"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "section": "actions",
+        "condition": "{{showActions}}",
+        "layout": "horizontal",
+        "components": [
+          {
+            "component": "lightdom:button",
+            "condition": "{{onEdit}}",
+            "props": {
+              "label": "Edit Profile",
+              "variant": "secondary",
+              "onClick": "{{onEdit}}"
+            }
+          },
+          {
+            "component": "lightdom:button",
+            "condition": "{{onMessage}}",
+            "props": {
+              "label": "Message",
+              "variant": "primary",
+              "onClick": "{{onMessage}}"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

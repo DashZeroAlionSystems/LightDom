@@ -1,0 +1,206 @@
+```mermaid
+graph TB
+    subgraph "LightDom Design System & Admin Dashboard Architecture"
+        
+        subgraph "Design System Layer"
+            DS[Design System] --> |Material Design 3| MD3[Material Design 3 Tokens]
+            DS --> |Component Library| CL[UI Components]
+            DS --> |Utilities| UT[Utils & Helpers]
+            
+            MD3 --> Colors[Color Tokens]
+            MD3 --> Typography[Typography Scale]
+            MD3 --> Spacing[Spacing System]
+            MD3 --> Elevation[Elevation/Shadows]
+            MD3 --> Motion[Animation Tokens]
+            
+            CL --> CoreComponents[Core Components]
+            CL --> LayoutComponents[Layout Components]
+            CL --> AdminComponents[Admin Components]
+            
+            CoreComponents --> Button[Button]
+            CoreComponents --> Card[Card]
+            CoreComponents --> Input[Input]
+            CoreComponents --> Badge[Badge]
+            CoreComponents --> Avatar[Avatar]
+            CoreComponents --> StatCard[StatCard]
+            
+            LayoutComponents --> DashboardShell[DashboardShell]
+            LayoutComponents --> Navigation[Navigation]
+            LayoutComponents --> Sidebar[Sidebar]
+            
+            AdminComponents --> AdminLayout[AdminLayout]
+            AdminComponents --> AdminDashboard[AdminDashboard]
+            AdminComponents --> UserManagement[UserManagement]
+            
+            UT --> cn[cn() - Class Merger]
+            UT --> Formatters[Number/Currency Formatters]
+            UT --> Generators[ID/Name Generators]
+        end
+        
+        subgraph "Application Layer"
+            App[App.tsx] --> |Authentication| Auth[Auth System]
+            App --> |Routing| Router[React Router]
+            App --> |Theme| Theme[Ant Design Theme]
+            
+            Router --> PublicRoutes[Public Routes]
+            Router --> ProtectedRoutes[Protected Routes]
+            Router --> AdminRoutes[Admin Routes]
+            
+            PublicRoutes --> Login[Login Page]
+            PublicRoutes --> Register[Register Page]
+            PublicRoutes --> ForgotPassword[Forgot Password]
+            
+            ProtectedRoutes --> Dashboard[Main Dashboard]
+            ProtectedRoutes --> ClientZone[Client Zone]
+            ProtectedRoutes --> Blockchain[Blockchain Features]
+            
+            AdminRoutes --> AdminMain[Admin Main]
+            AdminRoutes --> AdminSettings[Admin Settings]
+            AdminRoutes --> AdminUsers[Admin Users]
+            AdminRoutes --> AdminMonitoring[Admin Monitoring]
+            AdminRoutes --> AdminLogs[Admin Logs]
+            AdminRoutes --> AdminBilling[Admin Billing]
+        end
+        
+        subgraph "Admin Dashboard Implementation"
+            AdminMain --> Overview[Overview Tab]
+            AdminMain --> Users[Users Tab]
+            AdminMain --> Content[Content Tab]
+            AdminMain --> SEO[SEO Tab]
+            AdminMain --> Neural[Neural Network Tab]
+            AdminMain --> BlockchainTab[Blockchain Tab]
+            AdminMain --> BillingTab[Billing Tab]
+            AdminMain --> Automation[Automation Tab]
+            AdminMain --> Analytics[Analytics Tab]
+            AdminMain --> System[System Tab]
+            AdminMain --> Alerts[Alerts Tab]
+            
+            Overview --> SystemHealth[System Health]
+            Overview --> QuickStats[Quick Statistics]
+            Overview --> ServiceStatus[Service Status]
+            Overview --> PerformanceMetrics[Performance Metrics]
+            
+            Users --> UserList[User List]
+            Users --> UserActions[User Actions]
+            Users --> BulkOperations[Bulk Operations]
+            Users --> UserModal[User Modal]
+            
+            Content --> ContentList[Content List]
+            Content --> ContentActions[Content Actions]
+            Content --> ContentModal[Content Modal]
+            
+            SEO --> SEOCampaigns[SEO Campaigns]
+            SEO --> CrawlerStatus[Crawler Status]
+            SEO --> CrawlerModal[Crawler Modal]
+        end
+        
+        subgraph "Navigation Structure"
+            MainNav[Main Navigation] --> PublicNav[Public Navigation]
+            MainNav --> DashboardNav[Dashboard Navigation]
+            MainNav --> AdminNav[Admin Navigation]
+            
+            DashboardNav --> DashSidebar[Dashboard Sidebar]
+            DashSidebar --> CoreFeatures[Core Features]
+            DashSidebar --> AdminSection[Admin Section]
+            
+            CoreFeatures --> DOMOptimization[DOM Optimization]
+            CoreFeatures --> SpaceMining[Space Mining]
+            CoreFeatures --> MetaverseDash[Metaverse]
+            CoreFeatures --> WalletDash[Wallet]
+            CoreFeatures --> Settings[Settings]
+            
+            AdminSection --> AdminSettingsNav[Admin Settings]
+            AdminSection --> UserMgmtNav[User Management]
+            AdminSection --> MonitoringNav[System Monitoring]
+            AdminSection --> LogsNav[System Logs]
+            AdminSection --> BillingNav[Billing Management]
+            
+            AdminNav --> AdminSidebar[Admin Sidebar]
+            AdminSidebar --> AdminOverview[Overview]
+            AdminSidebar --> AdminUserMgmt[User Management]
+            AdminSidebar --> AdminSystemMgmt[System Management]
+        end
+        
+        subgraph "Data Flow & State Management"
+            State[Application State] --> AuthState[Auth State]
+            State --> AdminState[Admin State]
+            State --> UIState[UI State]
+            
+            AuthState --> UserSession[User Session]
+            AuthState --> Permissions[Permissions]
+            
+            AdminState --> SystemMetrics[System Metrics]
+            AdminState --> UserData[User Data]
+            AdminState --> ContentData[Content Data]
+            AdminState --> BillingData[Billing Data]
+            
+            UIState --> ThemeState[Theme State]
+            UIState --> NavigationState[Navigation State]
+            UIState --> ModalState[Modal State]
+        end
+        
+        subgraph "API Integration"
+            API[API Layer] --> AdminAPI[Admin API]
+            API --> AuthAPI[Auth API]
+            API --> SystemAPI[System API]
+            
+            AdminAPI --> UserAPI[User Management API]
+            AdminAPI --> ContentAPI[Content Management API]
+            AdminAPI --> MonitoringAPI[Monitoring API]
+            AdminAPI --> BillingAPI[Billing API]
+            
+            SystemAPI --> HealthAPI[Health Check API]
+            SystemAPI --> MetricsAPI[Metrics API]
+            SystemAPI --> LogsAPI[Logs API]
+        end
+        
+        subgraph "Component Architecture"
+            ComponentArch[Component Architecture] --> Compound[Compound Components]
+            ComponentArch --> Polymorphic[Polymorphic Components]
+            ComponentArch --> Variants[Variant Components]
+            
+            Compound --> CardCompound[Card.Header/Content/Footer]
+            Compound --> FormCompound[Form.Item/Group]
+            
+            Polymorphic --> TextComponent[Text as="h1|p|span"]
+            Polymorphic --> ButtonComponent[Button as="button|a"]
+            
+            Variants --> ButtonVariants[filled|outlined|text]
+            Variants --> CardVariants[elevated|filled|outlined]
+        end
+        
+        subgraph "Missing Components (To Implement)"
+            Missing[Missing Components] --> DesignTokens[Design Token Components]
+            Missing --> AdvancedLayouts[Advanced Layouts]
+            Missing --> DataViz[Data Visualization]
+            Missing --> Forms[Advanced Forms]
+            
+            DesignTokens --> ColorPalette[Color Palette Display]
+            DesignTokens --> TypographyPreview[Typography Preview]
+            DesignTokens --> SpacingPreview[Spacing Preview]
+            
+            AdvancedLayouts --> SplitPanel[Split Panel]
+            AdvancedLayouts --> Masonry[Masonry Layout]
+            AdvancedLayouts --> VirtualList[Virtual List]
+            
+            DataViz --> Charts[Chart Components]
+            DataViz --> Metrics[Metrics Display]
+            DataViz --> Dashboards[Dashboard Widgets]
+            
+            Forms --> FormBuilder[Form Builder]
+            Forms --> FieldComponents[Advanced Fields]
+            Forms --> Validation[Validation System]
+        end
+    end
+    
+    %% Styling
+    classDef designSystem fill:#e1f5fe
+    classDef adminComponents fill:#f3e5f5
+    classDef navigation fill:#e8f5e8
+    classDef missing fill:#fff3e0
+    
+    class DS,MD3,CL,UT designSystem
+    class AdminComponents,AdminLayout,AdminDashboard,UserManagement adminComponents
+    class MainNav,DashboardNav,AdminNav navigation
+    class Missing,DesignTokens,AdvancedLayouts,DataViz,Forms missing
+```

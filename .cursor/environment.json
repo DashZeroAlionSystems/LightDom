@@ -1,0 +1,23 @@
+{
+  "snapshot": "POPULATED_FROM_SETTINGS",
+  "install": "npm install && npm install -g electron",
+  "start": "sudo service docker start",
+  "terminals": [
+    {
+      "name": "API Server",
+      "command": "node simple-api-server.js"
+    },
+    {
+      "name": "Frontend Dev",
+      "command": "npm run dev"
+    },
+    {
+      "name": "Electron App",
+      "command": "electron . --dev"
+    },
+    {
+      "name": "Database",
+      "command": "docker-compose up -d postgres redis"
+    }
+  ]
+}

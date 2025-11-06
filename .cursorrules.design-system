@@ -1,0 +1,830 @@
+# LightDom Design System - Cursor Rules
+# Research-Based UI/UX Component Development Guidelines
+# Last Updated: 2025-10-28
+
+## Core Design Principles
+
+### 1. Material Design 3 Compliance
+- Follow MD3 color system with tonal palettes (0-100 scale)
+- Implement all 15 Material Design typography scales
+- Use MD3 shape system (extraSmall: 4px, small: 8px, medium: 12px, large: 16px, extraLarge: 28px)
+- Apply elevation levels 0-5 with proper shadows
+- Implement state layers (hover: 8%, focus: 12%, pressed: 12%, dragged: 16%)
+- Use emphasized easing: `cubic-bezier(0.2, 0.0, 0, 1.0)`
+- Support surface tints for depth (surface1-5)
+
+### 2. Tailwind CSS Best Practices
+- Use utility-first approach for one-off styles
+- Extract repeated patterns into React components (NOT @apply)
+- Follow mobile-first responsive design
+- Support dark mode with `dark:` prefix from the start
+- Use complete class names (never concatenate: `text-${color}-500`)
+- Leverage design tokens from tailwind.config.js
+- Respect `prefers-reduced-motion` with `motion-reduce:` utilities
+- Add focus indicators with `focus-visible:ring-2`
+
+### 3. Accessibility Standards (WCAG 2.1 AA)
+- Minimum color contrast: 4.5:1 for text, 3:1 for UI components
+- All interactive elements keyboard accessible (Tab, Enter, Space, Arrows, Escape)
+- Implement focus trap in modals/dialogs
+- Use semantic HTML (`<button>`, `<nav>`, `<main>`, `<article>`)
+- Add ARIA labels where needed (`aria-label`, `aria-labelledby`, `aria-describedby`)
+- Support screen readers with `sr-only` class
+- Include loading and error states with proper ARIA attributes
+
+### 4. Component Architecture
+- Follow Atomic Design: Atoms → Molecules → Organisms → Templates → Pages
+- Use composition over configuration
+- Implement compound components pattern for complex UIs
+- Prefer React hooks over classes
+- Extract logic with custom hooks
+- Memoize expensive computations with `useMemo`
+- Memoize callbacks with `useCallback`
+- Memoize components with `React.memo` when appropriate
+
+---
+
+## Design Tokens
+
+### Color System
+Use Material Design 3 tonal palettes from NewDesignSystem.tsx:
+
+```typescript
+// Primary colors (purple)
+const primary = {
+  0: '#000000',
+  10: '#21005D',
+  20: '#381E72',
+  40: '#6750A4',  // Primary
+  80: '#D0BCFF',  // Primary (Dark mode)
+  90: '#EADDFF',  // Primary Container (Light)
+  30: '#4F378B',  // Primary Container (Dark)
+  100: '#FFFFFF',
+};
+
+// Usage
+<button className="bg-[#6750A4] dark:bg-[#D0BCFF]">
+  Material Design 3 Button
+</button>
+```
+
+### Spacing System
+Use 4px base unit for consistency:
+
+```typescript
+const spacing = {
+  xs: '4px',    // 1 unit
+  sm: '8px',    // 2 units
+  md: '16px',   // 4 units
+  lg: '24px',   // 6 units
+  xl: '32px',   // 8 units
+  xxl: '48px',  // 12 units
+};
+```
+
+### Typography Scale
+Implement all MD3 type scales:
+
+```typescript
+// Display Large
+fontSize: '57px',
+lineHeight: '64px',
+fontWeight: 400,
+letterSpacing: '-0.25px',
+
+// Body Medium (most common)
+fontSize: '14px',
+lineHeight: '20px',
+fontWeight: 400,
+letterSpacing: '0.25px',
+
+// Label Large (buttons)
+fontSize: '14px',
+lineHeight: '20px',
+fontWeight: 500,
+letterSpacing: '0.1px',
+```
+
+### Shadows
+Use MD3 elevation system:
+
+```css
+/* Level 1 */
+box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.30), 
+            0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+
+/* Level 3 */
+box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.30), 
+            0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+```
+
+---
+
+## Component Development Rules
+
+### Button Components
+
+```tsx
+// ✅ GOOD: Full Material Design 3 Button
+interface ButtonProps {
+  variant?: 'filled' | 'outlined' | 'text' | 'elevated' | 'tonal';
+  size?: 'sm' | 'md' | 'lg';
+  icon?: React.ReactNode;
+  disabled?: boolean;
+  loading?: boolean;
+  children: React.ReactNode;
+  onClick?: () => void;
+}
+
+export const Button: React.FC<ButtonProps> = ({
+  variant = 'filled',
+  size = 'md',
+  icon,
+  disabled,
+  loading,
+  children,
+  onClick,
+}) => {
+  const baseClasses = clsx(
+    // Base styles
+    'relative inline-flex items-center justify-center gap-2',
+    'rounded-full font-medium transition-all',
+    'focus-visible:outline-none focus-visible:ring-2',
+    'disabled:opacity-38 disabled:cursor-not-allowed',
+    
+    // Size variants
+    {
+      'h-8 px-3 text-xs': size === 'sm',
+      'h-10 px-6 text-sm': size === 'md',
+      'h-12 px-8 text-base': size === 'lg',
+    },
+    
+    // Variant styles
+    {
+      // Filled
+      'bg-primary text-on-primary shadow-md hover:shadow-lg': 
+        variant === 'filled',
+      
+      // Outlined
+      'bg-transparent text-primary border border-outline hover:bg-primary/8': 
+        variant === 'outlined',
+      
+      // Text
+      'bg-transparent text-primary hover:bg-primary/8': 
+        variant === 'text',
+      
+      // Elevated
+      'bg-surface-1 text-primary shadow-md hover:shadow-lg': 
+        variant === 'elevated',
+      
+      // Tonal
+      'bg-secondary-container text-on-secondary-container hover:shadow-md': 
+        variant === 'tonal',
+    }
+  );
+  
+  return (
+    <button
+      className={baseClasses}
+      disabled={disabled || loading}
+      onClick={onClick}
+      type="button"
+    >
+      {loading && <Spinner size="sm" />}
+      {!loading && icon && <span>{icon}</span>}
+      <span>{children}</span>
+    </button>
+  );
+};
+
+// ❌ BAD: Inconsistent styling, no accessibility, hardcoded values
+export const BadButton = ({ children, onClick }) => (
+  <div 
+    onClick={onClick}
+    style={{ 
+      padding: '10px 15px',  // Use spacing tokens
+      background: '#7c3aed',  // Use design tokens
+      color: 'white',
+      cursor: 'pointer'
+    }}
+  >
+    {children}
+  </div>
+);
+```
+
+### Card Components
+
+```tsx
+// ✅ GOOD: Material Design 3 Card
+interface CardProps {
+  variant?: 'elevated' | 'filled' | 'outlined';
+  clickable?: boolean;
+  children: React.ReactNode;
+  onClick?: () => void;
+}
+
+export const Card: React.FC<CardProps> = ({
+  variant = 'elevated',
+  clickable,
+  children,
+  onClick,
+}) => {
+  const cardClasses = clsx(
+    // Base styles
+    'rounded-xl p-4 transition-all',
+    
+    // Variant styles
+    {
+      'bg-surface-1 shadow-md hover:shadow-lg': variant === 'elevated',
+      'bg-surface-variant': variant === 'filled',
+      'bg-surface border border-outline-variant': variant === 'outlined',
+    },
+    
+    // Clickable state
+    clickable && 'cursor-pointer hover:scale-[1.02]'
+  );
+  
+  return (
+    <div
+      className={cardClasses}
+      onClick={clickable ? onClick : undefined}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.();
+        }
+      } : undefined}
+    >
+      {children}
+    </div>
+  );
+};
+```
+
+### Input Components
+
+```tsx
+// ✅ GOOD: Accessible, validated input with proper states
+interface InputProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: 'text' | 'email' | 'password' | 'number';
+  placeholder?: string;
+  error?: string;
+  helper?: string;
+  required?: boolean;
+  disabled?: boolean;
+  icon?: React.ReactNode;
+}
+
+export const Input: React.FC<InputProps> = ({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  placeholder,
+  error,
+  helper,
+  required,
+  disabled,
+  icon,
+}) => {
+  const [focused, setFocused] = useState(false);
+  const inputId = useId();
+  
+  return (
+    <div className="space-y-1">
+      {/* Label */}
+      <label 
+        htmlFor={inputId}
+        className="block text-sm font-medium text-on-surface"
+      >
+        {label}
+        {required && <span className="text-error ml-1">*</span>}
+      </label>
+      
+      {/* Input wrapper */}
+      <div className="relative">
+        {icon && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">
+            {icon}
+          </div>
+        )}
+        
+        <input
+          id={inputId}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder}
+          disabled={disabled}
+          required={required}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${inputId}-error` : helper ? `${inputId}-helper` : undefined}
+          className={clsx(
+            // Base styles
+            'w-full h-12 px-4 rounded-lg',
+            'bg-surface-variant border border-outline',
+            'text-on-surface placeholder:text-on-surface-variant',
+            'transition-all duration-200',
+            
+            // Icon padding
+            icon && 'pl-10',
+            
+            // Focus state
+            focused && !error && 'border-primary ring-2 ring-primary/20',
+            
+            // Error state
+            error && 'border-error ring-2 ring-error/20',
+            
+            // Disabled state
+            disabled && 'opacity-38 cursor-not-allowed'
+          )}
+        />
+      </div>
+      
+      {/* Helper/Error text */}
+      {(error || helper) && (
+        <p 
+          id={error ? `${inputId}-error` : `${inputId}-helper`}
+          className={clsx(
+            'text-xs',
+            error ? 'text-error' : 'text-on-surface-variant'
+          )}
+        >
+          {error || helper}
+        </p>
+      )}
+    </div>
+  );
+};
+```
+
+---
+
+## Animation & Motion Rules
+
+### Durations
+Use Material Design 3 duration tokens:
+
+```typescript
+const durations = {
+  short1: '50ms',    // Micro-interactions
+  short2: '100ms',
+  short3: '150ms',
+  short4: '200ms',
+  medium1: '250ms',  // Most transitions
+  medium2: '300ms',
+  medium3: '350ms',
+  medium4: '400ms',
+  long1: '450ms',    // Complex transitions
+  long2: '500ms',
+};
+```
+
+### Easing
+Use MD3 emphasized easing:
+
+```css
+/* Default emphasized */
+transition: all 300ms cubic-bezier(0.2, 0.0, 0, 1.0);
+
+/* Emphasized decelerate (enter) */
+transition: all 300ms cubic-bezier(0.05, 0.7, 0.1, 1.0);
+
+/* Emphasized accelerate (exit) */
+transition: all 200ms cubic-bezier(0.3, 0.0, 0.8, 0.15);
+```
+
+### Common Animations
+
+```tsx
+// Fade In
+<motion.div
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ duration: 0.3, ease: [0.2, 0.0, 0, 1.0] }}
+>
+
+// Slide Up
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.3, ease: [0.2, 0.0, 0, 1.0] }}
+>
+
+// Scale In
+<motion.div
+  initial={{ opacity: 0, scale: 0.95 }}
+  animate={{ opacity: 1, scale: 1 }}
+  transition={{ duration: 0.2, ease: [0.2, 0.0, 0, 1.0] }}
+>
+```
+
+### Performance
+Only animate transform and opacity:
+
+```css
+/* ✅ GOOD: Hardware accelerated */
+.animated {
+  transition: transform 300ms, opacity 300ms;
+  will-change: transform, opacity;
+}
+
+/* ❌ BAD: Triggers layout */
+.bad-animated {
+  transition: width 300ms, height 300ms, top 300ms, left 300ms;
+}
+```
+
+---
+
+## Responsive Design Rules
+
+### Breakpoints
+Use Tailwind's mobile-first breakpoints:
+
+```typescript
+const breakpoints = {
+  sm: '640px',   // Tablets
+  md: '768px',   // Small laptops
+  lg: '1024px',  // Desktops
+  xl: '1280px',  // Large screens
+  '2xl': '1536px', // Extra large
+};
+```
+
+### Common Patterns
+
+```tsx
+// ✅ GOOD: Mobile-first responsive grid
+<div className="
+  grid grid-cols-1
+  sm:grid-cols-2
+  lg:grid-cols-3
+  xl:grid-cols-4
+  gap-4
+">
+  {items.map(item => <Card key={item.id} {...item} />)}
+</div>
+
+// ✅ GOOD: Responsive typography
+<h1 className="
+  text-2xl
+  sm:text-3xl
+  lg:text-4xl
+  xl:text-5xl
+  font-bold
+">
+  Responsive Heading
+</h1>
+
+// ✅ GOOD: Responsive spacing
+<div className="
+  p-4
+  sm:p-6
+  lg:p-8
+">
+  Content
+</div>
+
+// ✅ GOOD: Hide/show on different screens
+<div className="hidden lg:block">
+  Desktop only content
+</div>
+
+<div className="block lg:hidden">
+  Mobile only content
+</div>
+```
+
+---
+
+## Dark Mode Rules
+
+### Implementation
+Always implement dark mode from the start:
+
+```tsx
+// ✅ GOOD: Dark mode support
+<div className="
+  bg-white dark:bg-gray-900
+  text-gray-900 dark:text-white
+  border-gray-200 dark:border-gray-700
+">
+  Content
+</div>
+
+// ✅ GOOD: Different images for themes
+<div>
+  <img src="/logo-light.png" className="dark:hidden" alt="Logo" />
+  <img src="/logo-dark.png" className="hidden dark:block" alt="Logo" />
+</div>
+
+// ✅ GOOD: Adjust shadows
+<div className="
+  shadow-md dark:shadow-2xl
+  shadow-gray-200 dark:shadow-gray-900
+">
+```
+
+### Theme Provider
+Implement theme switching:
+
+```tsx
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('auto');
+  
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === 'auto') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches 
+        ? 'dark' 
+        : 'light';
+      root.classList.remove('light', 'dark');
+      root.classList.add(systemTheme);
+    } else {
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme);
+    }
+  }, [theme]);
+  
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+```
+
+---
+
+## Testing Requirements
+
+### Component Testing
+Every component must include:
+
+1. **Unit tests** (Jest/Vitest)
+   - Props validation
+   - Event handlers
+   - Conditional rendering
+   - Edge cases
+
+2. **Accessibility tests**
+   - Keyboard navigation
+   - Screen reader support
+   - Color contrast
+   - ARIA attributes
+
+3. **Visual regression tests** (Chromatic/Percy)
+   - Light/dark modes
+   - All variants
+   - Responsive breakpoints
+   - State changes
+
+```tsx
+// Example test
+describe('Button', () => {
+  it('renders with correct variant styles', () => {
+    const { container } = render(<Button variant="filled">Click me</Button>);
+    expect(container.firstChild).toHaveClass('bg-primary');
+  });
+  
+  it('is keyboard accessible', async () => {
+    const onClick = vi.fn();
+    const { getByRole } = render(<Button onClick={onClick}>Click</Button>);
+    
+    const button = getByRole('button');
+    await userEvent.tab();
+    expect(button).toHaveFocus();
+    
+    await userEvent.keyboard('{Enter}');
+    expect(onClick).toHaveBeenCalled();
+  });
+  
+  it('meets color contrast requirements', () => {
+    const { getByText } = render(<Button>Click me</Button>);
+    const button = getByText('Click me');
+    
+    // Check contrast ratio >= 4.5:1
+    expect(getContrastRatio(button)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+```
+
+---
+
+## Performance Rules
+
+### React Performance
+
+```tsx
+// ✅ GOOD: Memoize expensive computations
+const sortedData = useMemo(() => {
+  return data.sort((a, b) => a.value - b.value);
+}, [data]);
+
+// ✅ GOOD: Memoize callbacks
+const handleClick = useCallback(() => {
+  console.log('Clicked');
+}, []);
+
+// ✅ GOOD: Memoize components
+const ListItem = React.memo(({ item }) => (
+  <div>{item.name}</div>
+), (prev, next) => prev.item.id === next.item.id);
+
+// ✅ GOOD: Code splitting
+const HeavyComponent = lazy(() => import('./HeavyComponent'));
+
+<Suspense fallback={<LoadingSpinner />}>
+  <HeavyComponent />
+</Suspense>
+
+// ✅ GOOD: Virtual scrolling for long lists
+import { FixedSizeList } from 'react-window';
+
+<FixedSizeList
+  height={600}
+  itemCount={items.length}
+  itemSize={50}
+  width="100%"
+>
+  {({ index, style }) => (
+    <div style={style}>{items[index].name}</div>
+  )}
+</FixedSizeList>
+```
+
+### CSS Performance
+
+```css
+/* ✅ GOOD: Hardware accelerated properties */
+.optimized {
+  transform: translateX(100px);
+  opacity: 0.5;
+  will-change: transform, opacity;
+}
+
+/* ❌ BAD: Triggers layout recalculation */
+.unoptimized {
+  left: 100px;
+  width: 50%;
+  margin-left: 10px;
+}
+```
+
+---
+
+## File Organization
+
+```
+src/
+├── components/
+│   ├── atoms/                 # Basic building blocks
+│   │   ├── Button/
+│   │   │   ├── Button.tsx
+│   │   │   ├── Button.test.tsx
+│   │   │   ├── Button.stories.tsx
+│   │   │   └── index.ts
+│   │   ├── Input/
+│   │   ├── Badge/
+│   │   └── Avatar/
+│   │
+│   ├── molecules/             # Simple combinations
+│   │   ├── FormField/
+│   │   ├── SearchBar/
+│   │   └── CardHeader/
+│   │
+│   ├── organisms/             # Complex components
+│   │   ├── Navigation/
+│   │   ├── DataTable/
+│   │   └── Modal/
+│   │
+│   └── templates/             # Page layouts
+│       ├── DashboardLayout/
+│       └── TwoColumnLayout/
+│
+├── hooks/                     # Custom hooks
+│   ├── useTheme.ts
+│   ├── useMediaQuery.ts
+│   └── useLocalStorage.ts
+│
+├── contexts/                  # React contexts
+│   ├── ThemeContext.tsx
+│   └── AuthContext.tsx
+│
+├── styles/                    # Style system
+│   ├── DesignSystem.tsx       # Design tokens
+│   ├── EnhancedDesignSystem.tsx
+│   └── NewDesignSystem.tsx    # MD3 tokens
+│
+├── utils/                     # Utilities
+│   ├── StyleUtils.ts
+│   ├── AccessibilityUtils.ts
+│   └── ColorUtils.ts
+│
+└── types/                     # TypeScript types
+    ├── components.ts
+    └── theme.ts
+```
+
+---
+
+## Code Review Checklist
+
+Before submitting code, verify:
+
+### Design System
+- [ ] Uses design tokens (no hardcoded colors/spacing)
+- [ ] Follows Material Design 3 guidelines
+- [ ] Implements proper typography scales
+- [ ] Uses correct elevation levels
+- [ ] Applies state layers to interactive elements
+
+### Accessibility
+- [ ] Keyboard navigable (Tab, Enter, Space, Arrows, Escape)
+- [ ] Proper ARIA attributes
+- [ ] Sufficient color contrast (4.5:1 minimum)
+- [ ] Focus indicators visible
+- [ ] Screen reader tested
+
+### Responsive Design
+- [ ] Mobile-first approach
+- [ ] Tested on all breakpoints (sm, md, lg, xl, 2xl)
+- [ ] Touch-friendly (min 44x44px targets)
+- [ ] No horizontal scroll on mobile
+
+### Performance
+- [ ] Only transform/opacity animations
+- [ ] Memoization where appropriate
+- [ ] Code splitting for large components
+- [ ] Images optimized and lazy loaded
+
+### Testing
+- [ ] Unit tests pass
+- [ ] Accessibility tests pass
+- [ ] Visual regression tests pass
+- [ ] No console errors/warnings
+
+### Dark Mode
+- [ ] All states work in dark mode
+- [ ] Colors have sufficient contrast
+- [ ] Images/icons adapt to theme
+
+### Code Quality
+- [ ] TypeScript strict mode (no `any`)
+- [ ] ESLint passes
+- [ ] Prettier formatted
+- [ ] No duplicate code
+- [ ] Meaningful variable names
+
+---
+
+## TODO Comments Format
+
+Use this format for tracking work:
+
+```typescript
+// TODO: [Priority] Description
+// - [ ] Sub-task 1
+// - [ ] Sub-task 2
+// @see docs/research/MATERIAL_DESIGN_3_IMPLEMENTATION.md
+
+// Example:
+// TODO: [HIGH] Implement dynamic color system
+// - [ ] Add color extraction from wallpaper
+// - [ ] Generate tonal palettes
+// - [ ] Update theme provider
+// @see docs/research/MATERIAL_DESIGN_3_IMPLEMENTATION.md#dynamic-color
+```
+
+---
+
+## Resources
+
+- [Material Design 3](https://m3.material.io/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [React Accessibility](https://react.dev/learn/accessibility)
+- [Framer Motion](https://www.framer.com/motion/)
+
+## Internal Documentation
+
+- `/docs/research/UI_UX_COMPONENT_PATTERNS.md` - Component patterns research
+- `/docs/research/MATERIAL_DESIGN_3_IMPLEMENTATION.md` - MD3 implementation guide
+- `/docs/research/TAILWIND_BEST_PRACTICES.md` - Tailwind patterns
+- `/src/styles/DesignSystem.tsx` - Design token system
+- `/src/styles/NewDesignSystem.tsx` - MD3 token system
+
+---
+
+**Last Updated**: 2025-10-28
+**Version**: 2.0.0
+**Status**: Active - Research-Based Implementation

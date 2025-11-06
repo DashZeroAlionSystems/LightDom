@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Mining Operations Dashboard</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/socket.io-client@4.7.2/dist/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1a202c;
+            line-height: 1.6;
+        }
+
+        .app-container {
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 2rem;
+        }
+
+        .nav-tabs .tabs {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-tabs .tab {
+            padding: 1rem 1.5rem;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: #4a5568;
+            transition: all 0.2s;
+        }
+
+        .nav-tabs .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .nav-tabs .tab:hover {
+            background: #f7fafc;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-card .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card .stat-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card .stat-icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .stat-change {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .stat-card .stat-change.positive {
+            color: #48bb78;
+        }
+
+        .stat-card .stat-change.negative {
+            color: #f56565;
+        }
+
+        .operations-table {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .operations-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .operations-table th,
+        .operations-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .operations-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .operations-table .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fef5e7; color: #f59e0b; }
+        .status-running { background: #dbeafe; color: #3b82f6; }
+        .status-completed { background: #d1fae5; color: #10b981; }
+        .status-failed { background: #fee2e2; color: #ef4444; }
+
+        .config-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .config-panel h3 {
+            margin-bottom: 1rem;
+            color: #1a202c;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .config-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .config-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .config-field label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        .config-field input,
+        .config-field select,
+        .config-field textarea {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        .config-field textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container h3 {
+            margin-bottom: 1rem;
+            color: #1a202c;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .chart-placeholder {
+            height: 300px;
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0aec0;
+            font-size: 1.125rem;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .header-content,
+            .main-content {
+                padding: 0 1rem;
+            }
+
+            .nav-tabs .tabs {
+                flex-wrap: wrap;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .config-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="data-mining-app"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function DataMiningDashboard() {
+            const [activeTab, setActiveTab] = useState('overview');
+            const [operations, setOperations] = useState([]);
+            const [stats, setStats] = useState({});
+            const [configs, setConfigs] = useState([]);
+            const [datasets, setDatasets] = useState([]);
+            const [isLoading, setIsLoading] = useState(true);
+            const [newConfig, setNewConfig] = useState({
+                name: '',
+                description: '',
+                sourceType: 'website',
+                baseUrl: '',
+                rateLimit: 1000,
+                maxDepth: 3
+            });
+
+            const tabs = [
+                { id: 'overview', name: 'Overview', icon: '📊' },
+                { id: 'operations', name: 'Operations', icon: '⚙️' },
+                { id: 'scraping', name: 'Scraping Config', icon: '🕷️' },
+                { id: 'training', name: 'Training Data', icon: '🎓' },
+                { id: 'models', name: 'Models', icon: '🤖' },
+                { id: 'analytics', name: 'Analytics', icon: '📈' }
+            ];
+
+            useEffect(() => {
+                loadDashboardData();
+            }, []);
+
+            const loadDashboardData = async () => {
+                try {
+                    // In a real implementation, these would be API calls
+                    // For now, we'll simulate the data structure
+                    const mockStats = {
+                        operations: {
+                            total: 15,
+                            byStatus: [
+                                { status: 'completed', count: 12 },
+                                { status: 'running', count: 2 },
+                                { status: 'pending', count: 1 }
+                            ],
+                            byType: [
+                                { type: 'scraping', count: 8 },
+                                { type: 'training', count: 4 },
+                                { type: 'analysis', count: 3 }
+                            ]
+                        },
+                        datasets: {
+                            total: 5,
+                            bySourceType: [
+                                { source_type: 'scraped', count: 3 },
+                                { source_type: 'synthetic', count: 2 }
+                            ],
+                            totalRecords: 50000
+                        },
+                        models: {
+                            total: 3,
+                            byStatus: [
+                                { status: 'deployed', count: 2 },
+                                { status: 'training', count: 1 }
+                            ]
+                        }
+                    };
+
+                    const mockOperations = [
+                        {
+                            id: 'op-seo-mining',
+                            name: 'SEO Data Mining',
+                            type: 'scraping',
+                            status: 'completed',
+                            created_at: '2025-01-15T10:00:00Z',
+                            duration_seconds: 3600
+                        },
+                        {
+                            id: 'op-training-prep',
+                            name: 'Training Data Preparation',
+                            type: 'processing',
+                            status: 'completed',
+                            created_at: '2025-01-15T11:00:00Z',
+                            duration_seconds: 1800
+                        },
+                        {
+                            id: 'op-model-training',
+                            name: 'Schema Generation Model Training',
+                            type: 'training',
+                            status: 'running',
+                            created_at: '2025-01-15T12:00:00Z'
+                        },
+                        {
+                            id: 'op-seo-analysis',
+                            name: 'SEO Component Analysis',
+                            type: 'analysis',
+                            status: 'pending',
+                            created_at: '2025-01-15T13:00:00Z'
+                        },
+                        {
+                            id: 'op-validation',
+                            name: 'Data Quality Validation',
+                            type: 'validation',
+                            status: 'pending',
+                            created_at: '2025-01-15T14:00:00Z'
+                        }
+                    ];
+
+                    const mockConfigs = [
+                        {
+                            id: 'config-material-design',
+                            name: 'Material Design Scraper',
+                            source_type: 'website',
+                            base_url: 'https://material.io',
+                            rate_limit: 1000,
+                            max_depth: 3,
+                            status: 'active'
+                        },
+                        {
+                            id: 'config-ant-design',
+                            name: 'Ant Design Scraper',
+                            source_type: 'website',
+                            base_url: 'https://ant.design',
+                            rate_limit: 1500,
+                            max_depth: 4,
+                            status: 'active'
+                        },
+                        {
+                            id: 'config-chakra-ui',
+                            name: 'Chakra UI Scraper',
+                            source_type: 'website',
+                            base_url: 'https://chakra-ui.com',
+                            rate_limit: 1200,
+                            max_depth: 3,
+                            status: 'active'
+                        }
+                    ];
+
+                    const mockDatasets = [
+                        {
+                            id: 'dataset-material-components',
+                            name: 'Material Design Components',
+                            source_type: 'scraped',
+                            record_count: 15000,
+                            quality_score: 0.92
+                        },
+                        {
+                            id: 'dataset-ant-components',
+                            name: 'Ant Design Components',
+                            source_type: 'scraped',
+                            record_count: 12000,
+                            quality_score: 0.89
+                        },
+                        {
+                            id: 'dataset-chakra-components',
+                            name: 'Chakra UI Components',
+                            source_type: 'scraped',
+                            record_count: 8000,
+                            quality_score: 0.91
+                        },
+                        {
+                            id: 'dataset-synthetic-training',
+                            name: 'Synthetic Training Data',
+                            source_type: 'synthetic',
+                            record_count: 25000,
+                            quality_score: 0.95
+                        },
+                        {
+                            id: 'dataset-combined-analysis',
+                            name: 'Combined Analysis Dataset',
+                            source_type: 'processed',
+                            record_count: 35000,
+                            quality_score: 0.88
+                        }
+                    ];
+
+                    setStats(mockStats);
+                    setOperations(mockOperations);
+                    setConfigs(mockConfigs);
+                    setDatasets(mockDatasets);
+                } catch (error) {
+                    console.error('Failed to load dashboard data:', error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            const handleCreateConfig = () => {
+                const config = {
+                    ...newConfig,
+                    id: `config-${Date.now()}`,
+                    status: 'active'
+                };
+                setConfigs(prev => [...prev, config]);
+                setNewConfig({
+                    name: '',
+                    description: '',
+                    sourceType: 'website',
+                    baseUrl: '',
+                    rateLimit: 1000,
+                    maxDepth: 3
+                });
+                console.log('Created new scraping config:', config);
+            };
+
+            const getStatusColor = (status) => {
+                const colors = {
+                    pending: 'status-pending',
+                    running: 'status-running',
+                    completed: 'status-completed',
+                    failed: 'status-failed'
+                };
+                return colors[status] || 'status-pending';
+            };
+
+            const formatDuration = (seconds) => {
+                if (!seconds) return 'N/A';
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                return `${hours}h ${minutes}m ${secs}s`;
+            };
+
+            if (isLoading) {
+                return (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                        <div>
+                            <div className="loading-spinner" style={{ margin: '0 auto 1rem' }}></div>
+                            <p>Loading Data Mining Dashboard...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="app-container">
+                    <header className="header">
+                        <div className="header-content">
+                            <h1>Data Mining Operations Dashboard</h1>
+                            <p>Comprehensive data mining, scraping configuration, and analytics platform</p>
+                        </div>
+                    </header>
+
+                    <nav className="nav-tabs">
+                        <div className="tabs">
+                            {tabs.map(tab => (
+                                <div
+                                    key={tab.id}
+                                    className={`tab ${activeTab === tab.id ? 'active' : ''}`}
+                                    onClick={() => setActiveTab(tab.id)}
+                                >
+                                    <span style={{ marginRight: '0.5rem' }}>{tab.icon}</span>
+                                    {tab.name}
+                                </div>
+                            ))}
+                        </div>
+                    </nav>
+
+                    <main className="main-content">
+                        {activeTab === 'overview' && (
+                            <div>
+                                <div className="stats-grid">
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Total Operations</div>
+                                            <div className="stat-icon" style={{ background: '#667eea' }}>⚙️</div>
+                                        </div>
+                                        <div className="stat-value">{stats.operations?.total || 0}</div>
+                                        <div className="stat-change positive">+12% from last month</div>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Active Operations</div>
+                                            <div className="stat-icon" style={{ background: '#48bb78' }}>▶️</div>
+                                        </div>
+                                        <div className="stat-value">
+                                            {stats.operations?.byStatus?.find(s => s.status === 'running')?.count || 0}
+                                        </div>
+                                        <div className="stat-change">Currently running</div>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Training Datasets</div>
+                                            <div className="stat-icon" style={{ background: '#f59e0b' }}>📚</div>
+                                        </div>
+                                        <div className="stat-value">{stats.datasets?.total || 0}</div>
+                                        <div className="stat-change">{stats.datasets?.totalRecords?.toLocaleString() || 0} records</div>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Trained Models</div>
+                                            <div className="stat-icon" style={{ background: '#ef4444' }}>🤖</div>
+                                        </div>
+                                        <div className="stat-value">{stats.models?.total || 0}</div>
+                                        <div className="stat-change">
+                                            {stats.models?.byStatus?.find(s => s.status === 'deployed')?.count || 0} deployed
+                                        </div>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Scraping Configs</div>
+                                            <div className="stat-icon" style={{ background: '#10b981' }}>🕷️</div>
+                                        </div>
+                                        <div className="stat-value">{configs.length}</div>
+                                        <div className="stat-change">Active configurations</div>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Success Rate</div>
+                                            <div className="stat-icon" style={{ background: '#8b5cf6' }}>📈</div>
+                                        </div>
+                                        <div className="stat-value">94.2%</div>
+                                        <div className="stat-change positive">+2.1% from last week</div>
+                                    </div>
+                                </div>
+
+                                <div className="chart-container">
+                                    <h3>Operations Overview</h3>
+                                    <div className="chart-placeholder">
+                                        📊 Real-time operation status and performance metrics
+                                        <br />
+                                        <small>Integration with Chart.js for live data visualization</small>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'operations' && (
+                            <div>
+                                <div className="operations-table">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Operation</th>
+                                                <th>Type</th>
+                                                <th>Status</th>
+                                                <th>Created</th>
+                                                <th>Duration</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {operations.map(op => (
+                                                <tr key={op.id}>
+                                                    <td>
+                                                        <div>
+                                                            <div style={{ fontWeight: '600' }}>{op.name}</div>
+                                                            <div style={{ fontSize: '0.75rem', color: '#718096' }}>{op.id}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span style={{
+                                                            padding: '0.25rem 0.5rem',
+                                                            background: '#e2e8f0',
+                                                            borderRadius: '4px',
+                                                            fontSize: '0.75rem',
+                                                            textTransform: 'capitalize'
+                                                        }}>
+                                                            {op.type}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span className={`status-badge ${getStatusColor(op.status)}`}>
+                                                            {op.status}
+                                                        </span>
+                                                    </td>
+                                                    <td>{new Date(op.created_at).toLocaleDateString()}</td>
+                                                    <td>{formatDuration(op.duration_seconds)}</td>
+                                                    <td>
+                                                        <button className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                                                            View Details
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'scraping' && (
+                            <div>
+                                <div className="config-panel">
+                                    <h3>Create New Scraping Configuration</h3>
+                                    <div className="config-form">
+                                        <div className="config-field">
+                                            <label>Name</label>
+                                            <input
+                                                type="text"
+                                                value={newConfig.name}
+                                                onChange={(e) => setNewConfig(prev => ({ ...prev, name: e.target.value }))}
+                                                placeholder="Configuration name"
+                                            />
+                                        </div>
+                                        <div className="config-field">
+                                            <label>Source Type</label>
+                                            <select
+                                                value={newConfig.sourceType}
+                                                onChange={(e) => setNewConfig(prev => ({ ...prev, sourceType: e.target.value }))}
+                                            >
+                                                <option value="website">Website</option>
+                                                <option value="api">API</option>
+                                                <option value="database">Database</option>
+                                                <option value="file">File</option>
+                                            </select>
+                                        </div>
+                                        <div className="config-field">
+                                            <label>Base URL</label>
+                                            <input
+                                                type="url"
+                                                value={newConfig.baseUrl}
+                                                onChange={(e) => setNewConfig(prev => ({ ...prev, baseUrl: e.target.value }))}
+                                                placeholder="https://example.com"
+                                            />
+                                        </div>
+                                        <div className="config-field">
+                                            <label>Rate Limit (ms)</label>
+                                            <input
+                                                type="number"
+                                                value={newConfig.rateLimit}
+                                                onChange={(e) => setNewConfig(prev => ({ ...prev, rateLimit: parseInt(e.target.value) }))}
+                                                min="100"
+                                                max="10000"
+                                            />
+                                        </div>
+                                        <div className="config-field">
+                                            <label>Description</label>
+                                            <textarea
+                                                value={newConfig.description}
+                                                onChange={(e) => setNewConfig(prev => ({ ...prev, description: e.target.value }))}
+                                                placeholder="Configuration description"
+                                                rows="3"
+                                            />
+                                        </div>
+                                        <div className="config-field">
+                                            <label>Max Depth</label>
+                                            <input
+                                                type="number"
+                                                value={newConfig.maxDepth}
+                                                onChange={(e) => setNewConfig(prev => ({ ...prev, maxDepth: parseInt(e.target.value) }))}
+                                                min="1"
+                                                max="10"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div style={{ marginTop: '1rem' }}>
+                                        <button className="btn btn-primary" onClick={handleCreateConfig}>
+                                            Create Configuration
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="operations-table">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Configuration</th>
+                                                <th>Source Type</th>
+                                                <th>Base URL</th>
+                                                <th>Rate Limit</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {configs.map(config => (
+                                                <tr key={config.id}>
+                                                    <td>
+                                                        <div>
+                                                            <div style={{ fontWeight: '600' }}>{config.name}</div>
+                                                            <div style={{ fontSize: '0.75rem', color: '#718096' }}>{config.id}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td>{config.source_type}</td>
+                                                    <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {config.base_url}
+                                                    </td>
+                                                    <td>{config.rate_limit}ms</td>
+                                                    <td>
+                                                        <span className="status-badge status-completed">
+                                                            {config.status}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <button className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                                                            Edit
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'training' && (
+                            <div>
+                                <div className="stats-grid">
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Total Datasets</div>
+                                            <div className="stat-icon" style={{ background: '#f59e0b' }}>📚</div>
+                                        </div>
+                                        <div className="stat-value">{datasets.length}</div>
+                                        <div className="stat-change">Ready for training</div>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Total Records</div>
+                                            <div className="stat-icon" style={{ background: '#10b981' }}>📊</div>
+                                        </div>
+                                        <div className="stat-value">
+                                            {datasets.reduce((sum, d) => sum + d.record_count, 0).toLocaleString()}
+                                        </div>
+                                        <div className="stat-change">Across all datasets</div>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Avg Quality Score</div>
+                                            <div className="stat-icon" style={{ background: '#8b5cf6' }}>⭐</div>
+                                        </div>
+                                        <div className="stat-value">
+                                            {(datasets.reduce((sum, d) => sum + d.quality_score, 0) / datasets.length * 100).toFixed(1)}%
+                                        </div>
+                                        <div className="stat-change positive">High quality data</div>
+                                    </div>
+                                </div>
+
+                                <div className="operations-table">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Dataset</th>
+                                                <th>Source Type</th>
+                                                <th>Records</th>
+                                                <th>Quality Score</th>
+                                                <th>Created</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {datasets.map(dataset => (
+                                                <tr key={dataset.id}>
+                                                    <td>
+                                                        <div>
+                                                            <div style={{ fontWeight: '600' }}>{dataset.name}</div>
+                                                            <div style={{ fontSize: '0.75rem', color: '#718096' }}>{dataset.id}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span style={{
+                                                            padding: '0.25rem 0.5rem',
+                                                            background: '#e2e8f0',
+                                                            borderRadius: '4px',
+                                                            fontSize: '0.75rem',
+                                                            textTransform: 'capitalize'
+                                                        }}>
+                                                            {dataset.source_type}
+                                                        </span>
+                                                    </td>
+                                                    <td>{dataset.record_count.toLocaleString()}</td>
+                                                    <td>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                            <div style={{
+                                                                width: '60px',
+                                                                height: '8px',
+                                                                background: '#e2e8f0',
+                                                                borderRadius: '4px',
+                                                                overflow: 'hidden'
+                                                            }}>
+                                                                <div style={{
+                                                                    width: `${dataset.quality_score * 100}%`,
+                                                                    height: '100%',
+                                                                    background: dataset.quality_score > 0.8 ? '#48bb78' : dataset.quality_score > 0.6 ? '#f59e0b' : '#ef4444'
+                                                                }}></div>
+                                                            </div>
+                                                            {(dataset.quality_score * 100).toFixed(1)}%
+                                                        </div>
+                                                    </td>
+                                                    <td>{new Date(dataset.created_at || Date.now()).toLocaleDateString()}</td>
+                                                    <td>
+                                                        <button className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                                                            View Details
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'models' && (
+                            <div>
+                                <div className="stats-grid">
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Total Models</div>
+                                            <div className="stat-icon" style={{ background: '#ef4444' }}>🤖</div>
+                                        </div>
+                                        <div className="stat-value">{stats.models?.total || 3}</div>
+                                        <div className="stat-change">Active models</div>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Deployed Models</div>
+                                            <div className="stat-icon" style={{ background: '#10b981' }}>🚀</div>
+                                        </div>
+                                        <div className="stat-value">
+                                            {stats.models?.byStatus?.find(s => s.status === 'deployed')?.count || 2}
+                                        </div>
+                                        <div className="stat-change">In production</div>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Training Models</div>
+                                            <div className="stat-icon" style={{ background: '#f59e0b' }}>🎓</div>
+                                        </div>
+                                        <div className="stat-value">
+                                            {stats.models?.byStatus?.find(s => s.status === 'training')?.count || 1}
+                                        </div>
+                                        <div className="stat-change">Currently training</div>
+                                    </div>
+                                </div>
+
+                                <div className="chart-container">
+                                    <h3>Model Performance Analytics</h3>
+                                    <div className="chart-placeholder">
+                                        🤖 Model accuracy, loss curves, and performance metrics
+                                        <br />
+                                        <small>Real-time model monitoring and optimization insights</small>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'analytics' && (
+                            <div>
+                                <div className="stats-grid">
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">System Uptime</div>
+                                            <div className="stat-icon" style={{ background: '#48bb78' }}>🟢</div>
+                                        </div>
+                                        <div className="stat-value">99.9%</div>
+                                        <div className="stat-change positive">Last 30 days</div>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">Data Processed</div>
+                                            <div className="stat-icon" style={{ background: '#667eea' }}>📈</div>
+                                        </div>
+                                        <div className="stat-value">2.4GB</div>
+                                        <div className="stat-change">This month</div>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <div className="stat-header">
+                                            <div className="stat-title">API Requests</div>
+                                            <div className="stat-icon" style={{ background: '#f59e0b' }}>🔗</div>
+                                        </div>
+                                        <div className="stat-value">15.2K</div>
+                                        <div className="stat-change">Per day average</div>
+                                    </div>
+                                </div>
+
+                                <div className="chart-container">
+                                    <h3>Data Mining Analytics Dashboard</h3>
+                                    <div className="chart-placeholder">
+                                        📈 Comprehensive analytics: operation trends, performance metrics,
+                                        resource usage, success rates, and optimization recommendations
+                                        <br />
+                                        <small>Advanced data visualization with filtering and drill-down capabilities</small>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<DataMiningDashboard />, document.getElementById('data-mining-app'));
+    </script>
+</body>
+</html>

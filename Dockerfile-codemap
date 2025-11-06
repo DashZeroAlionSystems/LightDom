@@ -1,0 +1,62 @@
+# Memory Workflow CodeMap - Docker Container
+# Self-contained container with Node.js and Ollama integration
+
+FROM node:18-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    curl \
+    bash \
+    git \
+    && rm -rf /var/cache/apk/*
+
+# Create app directory and user
+RUN addgroup -g 1001 -S codemap && \
+    adduser -S codemap -u 1001 -G codemap
+
+WORKDIR /app
+
+# Copy package files
+COPY package-mcp.json ./package.json
+COPY package-lock.json ./
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy application code
+COPY memory-workflow-mcp-server.js ./
+COPY memory-codemap-server.js ./
+COPY memory-codemap-interactive.html ./
+COPY demo-workflow.js ./
+COPY test-workflow.js ./
+COPY mcp-client-example.js ./
+COPY setup-mcp.sh ./
+COPY setup-mcp.bat ./
+COPY README-MCP.md ./
+COPY README-CodeMap.md ./
+COPY MEMORY-CODEMAP-COMPLETE.md ./
+COPY memory-workflow-calculations.md ./
+COPY memory-workflow-mermaid-simulation.md ./
+
+# Create necessary directories
+RUN mkdir -p /app/memory-store /app/logs /app/public && \
+    chown -R codemap:codemap /app
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3002
+ENV MEMORY_STORE_PATH=/app/memory-store/memory-data.json
+ENV OLLAMA_HOST=http://ollama:11434
+
+# Switch to non-root user
+USER codemap
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:3002/api/metrics || exit 1
+
+# Expose port
+EXPOSE 3002
+
+# Default command
+CMD ["node", "memory-codemap-server.js"]

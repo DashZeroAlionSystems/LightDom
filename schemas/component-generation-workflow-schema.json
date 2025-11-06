@@ -1,0 +1,124 @@
+{
+  "$id": "ld:ComponentGenerationWorkflow",
+  "type": "object",
+  "title": "Component Generation Workflow Schema",
+  "description": "Workflow template for generating components from atomic schemas",
+  "properties": {
+    "workflowId": {
+      "type": "string",
+      "description": "Unique workflow identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Workflow name"
+    },
+    "componentType": {
+      "type": "string",
+      "description": "Type of component to generate",
+      "enum": ["atom", "molecule", "organism", "template", "page"]
+    },
+    "baseComponents": {
+      "type": "array",
+      "description": "Base atomic components to use",
+      "items": {
+        "type": "string"
+      }
+    },
+    "requirements": {
+      "type": "object",
+      "description": "Component requirements",
+      "properties": {
+        "functionality": {
+          "type": "string",
+          "description": "Required functionality"
+        },
+        "designSystem": {
+          "type": "string",
+          "description": "Design system to follow",
+          "enum": ["Material Design 3", "Ant Design", "Chakra UI", "Custom"],
+          "default": "Material Design 3"
+        },
+        "accessibility": {
+          "type": "boolean",
+          "description": "WCAG 2.1 AA compliance required",
+          "default": true
+        },
+        "responsive": {
+          "type": "boolean",
+          "description": "Responsive design required",
+          "default": true
+        }
+      }
+    },
+    "aiGeneration": {
+      "type": "object",
+      "description": "AI generation settings",
+      "properties": {
+        "useAI": {
+          "type": "boolean",
+          "description": "Use AI for code generation",
+          "default": true
+        },
+        "model": {
+          "type": "string",
+          "description": "AI model to use",
+          "default": "ollama:r1"
+        },
+        "includeTests": {
+          "type": "boolean",
+          "description": "Generate unit tests",
+          "default": true
+        },
+        "includeStories": {
+          "type": "boolean",
+          "description": "Generate Storybook stories",
+          "default": false
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "description": "Output configuration",
+      "properties": {
+        "directory": {
+          "type": "string",
+          "description": "Output directory path",
+          "default": "src/components/generated"
+        },
+        "typescript": {
+          "type": "boolean",
+          "description": "Generate TypeScript code",
+          "default": true
+        },
+        "styling": {
+          "type": "string",
+          "description": "Styling approach",
+          "enum": ["CSS Modules", "Styled Components", "Tailwind", "Emotion"],
+          "default": "CSS Modules"
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "description": "Validation settings",
+      "properties": {
+        "validateSchema": {
+          "type": "boolean",
+          "description": "Validate against component schema",
+          "default": true
+        },
+        "lintCode": {
+          "type": "boolean",
+          "description": "Run ESLint on generated code",
+          "default": true
+        },
+        "typeCheck": {
+          "type": "boolean",
+          "description": "Run TypeScript type checking",
+          "default": true
+        }
+      }
+    }
+  },
+  "required": ["workflowId", "name", "componentType", "baseComponents", "requirements"]
+}

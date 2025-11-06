@@ -1,0 +1,50 @@
+{
+  "team": {
+    "name": "LightDom Development",
+    "description": "LightDom Space-Bridge Platform Development Team"
+  },
+  "labels": [
+    {
+      "name": "automation",
+      "color": "#FF6B6B",
+      "description": "Issues created by automation system"
+    },
+    {
+      "name": "lightdom",
+      "color": "#4ECDC4",
+      "description": "LightDom platform related issues"
+    },
+    {
+      "name": "critical",
+      "color": "#FF4757",
+      "description": "Critical issues requiring immediate attention"
+    },
+    {
+      "name": "enhancement",
+      "color": "#2ED573",
+      "description": "Feature enhancements and improvements"
+    },
+    {
+      "name": "bug",
+      "color": "#FFA502",
+      "description": "Bug fixes and corrections"
+    }
+  ],
+  "workflows": [
+    {
+      "name": "Automation Pipeline",
+      "description": "Automated issue creation and tracking",
+      "states": [
+        "Todo",
+        "In Progress",
+        "Done"
+      ]
+    }
+  ],
+  "automation": {
+    "autoAssign": true,
+    "autoLabel": true,
+    "webhookEnabled": false,
+    "syncWithGit": true
+  }
+}

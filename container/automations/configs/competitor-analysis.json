@@ -1,0 +1,208 @@
+{
+  "name": "Competitor Analysis Automation",
+  "description": "Automatically analyze competitor websites and generate insights",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "id": "fetch_competitor_urls",
+      "name": "Fetch Competitor URLs",
+      "type": "api_call",
+      "method": "GET",
+      "endpoint": "http://localhost:3000/api/entities",
+      "input": {
+        "entityType": "Competitor",
+        "filters": {
+          "active": true
+        }
+      },
+      "onFailure": "abort",
+      "timeout": 15000
+    },
+    {
+      "id": "analyze_competitors",
+      "name": "Analyze Each Competitor",
+      "type": "loop",
+      "input": {
+        "items": "${previousResults.fetch_competitor_urls.entities}"
+      },
+      "subtasks": [
+        {
+          "id": "crawl_competitor",
+          "name": "Crawl Competitor Site",
+          "type": "api_call",
+          "method": "POST",
+          "endpoint": "http://localhost:3001/api/workers/containers/create",
+          "input": {
+            "seedUrl": "${loopItem.data.url}",
+            "maxDepth": 3,
+            "maxPages": 500
+          },
+          "timeout": 30000
+        },
+        {
+          "id": "spawn_competitor_worker",
+          "name": "Spawn Worker",
+          "type": "api_call",
+          "method": "POST",
+          "endpoint": "http://localhost:3001/api/workers/containers/${previousResults.crawl_competitor.container_id}/spawn",
+          "input": {},
+          "timeout": 15000
+        },
+        {
+          "id": "start_competitor_crawl",
+          "name": "Start Crawling",
+          "type": "api_call",
+          "method": "POST",
+          "endpoint": "http://localhost:3001/api/workers/containers/${previousResults.crawl_competitor.container_id}/start",
+          "input": {},
+          "timeout": 15000
+        },
+        {
+          "id": "wait_for_completion",
+          "name": "Wait for Crawl Completion",
+          "type": "loop",
+          "input": {
+            "items": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+          },
+          "maxIterations": 10,
+          "subtasks": [
+            {
+              "id": "check_crawler_status",
+              "name": "Check Status",
+              "type": "api_call",
+              "method": "GET",
+              "endpoint": "http://localhost:3001/api/workers/containers/${previousResults.crawl_competitor.container_id}/status",
+              "input": {},
+              "timeout": 10000
+            },
+            {
+              "id": "wait_check",
+              "name": "Wait 60s",
+              "type": "wait",
+              "delay": 60000
+            }
+          ]
+        },
+        {
+          "id": "extract_competitor_data",
+          "name": "Extract Competitor Data",
+          "type": "api_call",
+          "method": "GET",
+          "endpoint": "http://localhost:3000/api/entities",
+          "input": {
+            "entityType": "MinedData",
+            "filters": {
+              "container_id": "${previousResults.crawl_competitor.container_id}"
+            }
+          },
+          "timeout": 30000
+        },
+        {
+          "id": "analyze_seo",
+          "name": "Analyze Competitor SEO",
+          "type": "enrichment",
+          "enrichmentType": "seo-analysis",
+          "input": {
+            "entityIds": "${previousResults.extract_competitor_data.entities.*.id}",
+            "config": {
+              "analyze_keywords": true,
+              "analyze_backlinks": true,
+              "analyze_content_quality": true
+            }
+          },
+          "timeout": 120000
+        },
+        {
+          "id": "save_competitor_analysis",
+          "name": "Save Analysis",
+          "type": "api_call",
+          "method": "POST",
+          "endpoint": "http://localhost:3000/api/entities",
+          "input": {
+            "entityType": "CompetitorAnalysis",
+            "data": {
+              "competitor_id": "${loopItem.id}",
+              "competitor_url": "${loopItem.data.url}",
+              "pages_analyzed": "${previousResults.extract_competitor_data.entities.length}",
+              "seo_insights": "${previousResults.analyze_seo}",
+              "analyzed_at": "${new Date().toISOString()}"
+            }
+          },
+          "timeout": 15000
+        }
+      ],
+      "onFailure": "continue"
+    },
+    {
+      "id": "compare_competitors",
+      "name": "Compare All Competitors",
+      "type": "aggregation",
+      "input": {
+        "data": "${previousResults.analyze_competitors}"
+      },
+      "aggregations": ["count", "avg", "groupBy"],
+      "avgField": "pages_analyzed",
+      "groupByField": "competitor_url",
+      "onFailure": "continue"
+    },
+    {
+      "id": "generate_insights",
+      "name": "Generate Competitive Insights",
+      "type": "enrichment",
+      "enrichmentType": "ai-summary",
+      "input": {
+        "entityIds": "${previousResults.analyze_competitors.*.save_competitor_analysis.id}",
+        "config": {
+          "model": "deepseek-chat",
+          "prompt": "Analyze these competitor websites and provide insights on their SEO strategies, content quality, and market positioning",
+          "temperature": 0.7
+        }
+      },
+      "timeout": 180000,
+      "onFailure": "continue"
+    },
+    {
+      "id": "create_recommendations",
+      "name": "Create Action Recommendations",
+      "type": "data_transformation",
+      "transformation": "custom",
+      "function": "(data) => { return { recommendations: data.insights.split('\\n').filter(line => line.trim().length > 0), priority: 'high', generated_at: new Date().toISOString() }; }",
+      "input": {
+        "data": "${previousResults.generate_insights}"
+      },
+      "onFailure": "continue"
+    },
+    {
+      "id": "save_report",
+      "name": "Save Competitor Report",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/entities",
+      "input": {
+        "entityType": "CompetitorReport",
+        "data": {
+          "competitors_analyzed": "${previousResults.compare_competitors.count}",
+          "insights": "${previousResults.generate_insights}",
+          "recommendations": "${previousResults.create_recommendations}",
+          "comparison": "${previousResults.compare_competitors}",
+          "generated_at": "${new Date().toISOString()}"
+        }
+      },
+      "onSuccess": [
+        {
+          "type": "notify",
+          "message": "Competitor analysis completed for ${previousResults.compare_competitors.count} competitors"
+        },
+        {
+          "type": "webhook",
+          "url": "${context.webhookUrl}",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      ],
+      "onFailure": "retry",
+      "timeout": 15000
+    }
+  ]
+}

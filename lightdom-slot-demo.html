@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Light DOM Slot System Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f7fafc;
+      color: #2d3748;
+    }
+
+    .demo-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .demo-header {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .demo-section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .lightdom-slot {
+      border: 2px dashed #4a5568;
+      border-radius: 4px;
+      padding: 12px;
+      margin: 8px;
+      position: relative;
+      background: #f7fafc;
+    }
+
+    .lightdom-slot::before {
+      content: 'Slot: ' attr(data-lightdom-slot);
+      position: absolute;
+      top: -8px;
+      left: 8px;
+      background: #4a5568;
+      color: white;
+      padding: 2px 8px;
+      font-size: 12px;
+      border-radius: 2px;
+    }
+
+    .lightdom-header {
+      background: #4299e1;
+      color: white;
+      padding: 16px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lightdom-content {
+      background: #edf2f7;
+      padding: 16px;
+      border-radius: 4px;
+      margin: 8px 0;
+    }
+
+    .lightdom-widget {
+      background: #e2e8f0;
+      padding: 12px;
+      border-radius: 4px;
+      margin: 4px 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .lightdom-widget:not(.lightdom-widget-loaded) {
+      opacity: 0.5;
+    }
+
+    .optimization-controls {
+      display: flex;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s ease;
+    }
+
+    .btn-primary {
+      background: #4299e1;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #3182ce;
+    }
+
+    .btn-success {
+      background: #38a169;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #2f855a;
+    }
+
+    .btn-warning {
+      background: #d69e2e;
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #b7791f;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .metric-card {
+      background: #f7fafc;
+      padding: 16px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2d3748;
+    }
+
+    .metric-label {
+      font-size: 14px;
+      color: #4a5568;
+      margin-bottom: 4px;
+    }
+
+    .optimization-log {
+      background: #1a202c;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin: 16px 0;
+    }
+
+    .log-entry {
+      margin: 2px 0;
+      padding: 2px 0;
+    }
+
+    .log-success {
+      color: #68d391;
+    }
+
+    .log-warning {
+      color: #fbd38d;
+    }
+
+    .log-error {
+      color: #feb2b2;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .optimizing {
+      animation: pulse 1s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <!-- Header -->
+    <div class="demo-header">
+      <h1>🔧 Light DOM Slot System Demo</h1>
+      <p>Interactive demonstration of Light DOM slots with real-time optimization monitoring</p>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="demo-section">
+      <h2>Control Panel</h2>
+      <div class="optimization-controls">
+        <button class="btn btn-primary" onclick="optimizeAllSlots()">
+          ⚡ Optimize All Slots
+        </button>
+        <button class="btn btn-success" onclick="startMonitoring()">
+          ▶️ Start Monitoring
+        </button>
+        <button class="btn btn-warning" onclick="resetDemo()">
+          🔄 Reset Demo
+        </button>
+        <button class="btn btn-primary" onclick="addDynamicContent()">
+          ➕ Add Dynamic Content
+        </button>
+      </div>
+
+      <!-- Metrics -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Active Slots</div>
+          <div class="metric-value" id="activeSlots">4</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Total Space Saved</div>
+          <div class="metric-value" id="spaceSaved">0 KB</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Optimizations Applied</div>
+          <div class="metric-value" id="optimizationCount">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Performance Gain</div>
+          <div class="metric-value" id="performanceGain">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo Slots -->
+    <div class="demo-section">
+      <h2>Light DOM Slots Demo</h2>
+      
+      <!-- Header Slot -->
+      <lightdom-header slot-id="demo-header" optimization-level="moderate" priority="high">
+        <div class="lightdom-header">
+          <div>
+            <h2>Website Header</h2>
+            <nav>
+              <a href="#" style="color: white; margin-right: 16px;">Home</a>
+              <a href="#" style="color: white; margin-right: 16px;">Products</a>
+              <a href="#" style="color: white; margin-right: 16px;">About</a>
+              <a href="#" style="color: white;">Contact</a>
+            </nav>
+          </div>
+          <div>
+            <button style="background: white; color: #4299e1; border: none; padding: 8px 16px; border-radius: 4px;">
+              Sign In
+            </button>
+          </div>
+        </div>
+      </lightdom-header>
+
+      <!-- Main Content Slot -->
+      <lightdom-content slot-id="demo-content" optimization-level="aggressive" priority="high">
+        <div class="lightdom-content">
+          <h2>Main Content Area</h2>
+          <p>This is the primary content area with various elements that demonstrate Light DOM slot optimization.</p>
+          <img src="data:image/svg+xml,%3Csvg width='150' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='150' height='100' fill='%23ddd'/%3E%3Ctext x='75' y='55' text-anchor='middle' font-family='Arial' font-size='12'%3EDemo Image%3C/text%3E%3C/svg%3E" alt="Demo image">
+          <p>Additional content that can be optimized through slot-based processing.</p>
+          <div class="feature-list">
+            <h3>Features:</h3>
+            <ul>
+              <li>Automatic space optimization</li>
+              <li>Cross-slot resource sharing</li>
+              <li>Performance monitoring</li>
+              <li>Lazy loading integration</li>
+            </ul>
+          </div>
+        </div>
+      </lightdom-content>
+
+      <!-- Widget Slots -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <lightdom-widget slot-id="demo-widget-1" optimization-level="conservative" priority="medium">
+          <div class="lightdom-widget">
+            <h3>Widget 1</h3>
+            <p>This is a sample widget that demonstrates lazy loading and optimization.</p>
+            <ul>
+              <li>Feature A</li>
+              <li>Feature B</li>
+              <li>Feature C</li>
+            </ul>
+          </div>
+        </lightdom-widget>
+
+        <lightdom-widget slot-id="demo-widget-2" optimization-level="moderate" priority="low">
+          <div class="lightdom-widget">
+            <h3>Widget 2</h3>
+            <p>Another widget with different optimization settings.</p>
+            <div style="background: #e2e8f0; padding: 8px; border-radius: 4px;">
+              <small>Optimized content block</small>
+            </div>
+          </div>
+        </lightdom-widget>
+      </div>
+
+      <!-- Dynamic Content Area -->
+      <div id="dynamicContentArea" style="margin: 16px 0;">
+        <h3>Dynamic Content Area</h3>
+        <p>Content will be added here dynamically to demonstrate real-time optimization.</p>
+      </div>
+    </div>
+
+    <!-- Optimization Log -->
+    <div class="demo-section">
+      <h2>Optimization Log</h2>
+      <div class="optimization-log" id="optimizationLog">
+        <div class="log-entry">🚀 Light DOM Slot System initialized</div>
+        <div class="log-entry">📊 Monitoring system ready</div>
+        <div class="log-entry">⚡ Ready for optimization...</div>
+      </div>
+    </div>
+
+    <!-- Slot Details -->
+    <div class="demo-section">
+      <h2>Slot Details</h2>
+      <div id="slotDetails">
+        <!-- Slot details will be populated by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simulate Light DOM Slot System
+    class DemoLightDomSlotSystem {
+      constructor() {
+        this.slots = new Map();
+        this.optimizations = new Map();
+        this.monitoring = false;
+        this.totalSpaceSaved = 0;
+        this.optimizationCount = 0;
+        this.initializeSlots();
+      }
+
+      initializeSlots() {
+        // Initialize demo slots
+        this.registerSlot({
+          id: 'demo-header',
+          name: 'Header Slot',
+          type: 'static',
+          optimizationLevel: 'moderate',
+          priority: 'high'
+        });
+
+        this.registerSlot({
+          id: 'demo-content',
+          name: 'Content Slot',
+          type: 'dynamic',
+          optimizationLevel: 'aggressive',
+          priority: 'high'
+        });
+
+        this.registerSlot({
+          id: 'demo-widget-1',
+          name: 'Widget 1',
+          type: 'lazy',
+          optimizationLevel: 'conservative',
+          priority: 'medium'
+        });
+
+        this.registerSlot({
+          id: 'demo-widget-2',
+          name: 'Widget 2',
+          type: 'lazy',
+          optimizationLevel: 'moderate',
+          priority: 'low'
+        });
+
+        this.logMessage('✅ Slots initialized', 'success');
+      }
+
+      registerSlot(config) {
+        this.slots.set(config.id, config);
+        this.logMessage(`📦 Registered slot: ${config.name}`, 'success');
+      }
+
+      async optimizeSlot(slotId) {
+        const slot = this.slots.get(slotId);
+        if (!slot) return null;
+
+        this.logMessage(`⚡ Optimizing slot: ${slot.name}...`, 'warning');
+
+        // Simulate optimization
+        const spaceSaved = Math.floor(Math.random() * 5000) + 1000;
+        const renderTime = Math.random() * 50 + 10;
+        
+        const optimization = {
+          slotId,
+          spaceSaved,
+          strategy: `${slot.type}-${slot.optimizationLevel}`,
+          performance: {
+            renderTime,
+            layoutShifts: Math.random() * 0.1,
+            memoryUsage: Math.random() * 100000
+          },
+          timestamp: Date.now()
+        };
+
+        this.optimizations.set(slotId, optimization);
+        this.totalSpaceSaved += spaceSaved;
+        this.optimizationCount++;
+
+        this.logMessage(
+          `✅ Optimized ${slot.name}: ${(spaceSaved/1024).toFixed(2)} KB saved`, 
+          'success'
+        );
+
+        return optimization;
+      }
+
+      async optimizeAllSlots() {
+        this.logMessage('🚀 Starting full optimization...', 'warning');
+        
+        for (const [slotId] of this.slots) {
+          await this.optimizeSlot(slotId);
+          await new Promise(resolve => setTimeout(resolve, 500)); // Simulate async
+        }
+
+        this.logMessage('🎉 Full optimization complete!', 'success');
+        this.updateMetrics();
+      }
+
+      startMonitoring() {
+        if (this.monitoring) return;
+        
+        this.monitoring = true;
+        this.logMessage('👁️ Started monitoring...', 'success');
+        
+        this.monitoringInterval = setInterval(() => {
+          const randomSlot = Array.from(this.slots.keys())[
+            Math.floor(Math.random() * this.slots.size)
+          ];
+          
+          if (Math.random() < 0.3) { // 30% chance of optimization
+            this.optimizeSlot(randomSlot);
+            this.updateMetrics();
+          }
+        }, 3000);
+      }
+
+      stopMonitoring() {
+        this.monitoring = false;
+        if (this.monitoringInterval) {
+          clearInterval(this.monitoringInterval);
+        }
+        this.logMessage('⏹️ Stopped monitoring', 'warning');
+      }
+
+      addDynamicContent() {
+        const dynamicArea = document.getElementById('dynamicContentArea');
+        const contentId = `dynamic-${Date.now()}`;
+        
+        const newContent = document.createElement('div');
+        newContent.id = contentId;
+        newContent.className = 'lightdom-widget';
+        newContent.innerHTML = `
+          <h4>Dynamic Content ${Date.now()}</h4>
+          <p>This content was added dynamically and can be optimized.</p>
+          <button onclick="removeDynamicContent('${contentId}')" class="btn btn-warning">Remove</button>
+        `;
+        
+        dynamicArea.appendChild(newContent);
+        
+        // Register as new slot
+        this.registerSlot({
+          id: contentId,
+          name: `Dynamic Content ${Date.now()}`,
+          type: 'dynamic',
+          optimizationLevel: 'aggressive',
+          priority: 'medium'
+        });
+
+        this.logMessage(`➕ Added dynamic content: ${contentId}`, 'success');
+        this.updateMetrics();
+      }
+
+      reset() {
+        this.stopMonitoring();
+        this.optimizations.clear();
+        this.totalSpaceSaved = 0;
+        this.optimizationCount = 0;
+        
+        // Remove dynamic content
+        const dynamicArea = document.getElementById('dynamicContentArea');
+        const dynamicElements = dynamicArea.querySelectorAll('[id^="dynamic-"]');
+        dynamicElements.forEach(el => el.remove());
+        
+        this.logMessage('🔄 Demo reset', 'warning');
+        this.updateMetrics();
+        this.updateSlotDetails();
+      }
+
+      logMessage(message, type = 'info') {
+        const log = document.getElementById('optimizationLog');
+        const entry = document.createElement('div');
+        entry.className = `log-entry log-${type}`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        log.appendChild(entry);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      updateMetrics() {
+        document.getElementById('activeSlots').textContent = this.slots.size;
+        document.getElementById('spaceSaved').textContent = `${(this.totalSpaceSaved/1024).toFixed(2)} KB`;
+        document.getElementById('optimizationCount').textContent = this.optimizationCount;
+        document.getElementById('performanceGain').textContent = 
+          `${Math.min((this.totalSpaceSaved / 10000) * 100, 100).toFixed(1)}%`;
+        
+        this.updateSlotDetails();
+      }
+
+      updateSlotDetails() {
+        const container = document.getElementById('slotDetails');
+        container.innerHTML = '';
+        
+        for (const [slotId, slot] of this.slots) {
+          const optimization = this.optimizations.get(slotId);
+          
+          const detail = document.createElement('div');
+          detail.className = 'metric-card';
+          detail.style.margin = '8px 0';
+          
+          detail.innerHTML = `
+            <h4>${slot.name}</h4>
+            <p><strong>Type:</strong> ${slot.type} | <strong>Level:</strong> ${slot.optimizationLevel} | <strong>Priority:</strong> ${slot.priority}</p>
+            ${optimization ? `
+              <p><strong>Space Saved:</strong> ${(optimization.spaceSaved/1024).toFixed(2)} KB</p>
+              <p><strong>Strategy:</strong> ${optimization.strategy}</p>
+              <p><strong>Render Time:</strong> ${optimization.performance.renderTime.toFixed(2)}ms</p>
+            ` : '<p><em>Not yet optimized</em></p>'}
+          `;
+          
+          container.appendChild(detail);
+        }
+      }
+    }
+
+    // Initialize demo system
+    const demoSystem = new DemoLightDomSlotSystem();
+
+    // Global functions for buttons
+    function optimizeAllSlots() {
+      demoSystem.optimizeAllSlots();
+    }
+
+    function startMonitoring() {
+      demoSystem.startMonitoring();
+    }
+
+    function resetDemo() {
+      demoSystem.reset();
+    }
+
+    function addDynamicContent() {
+      demoSystem.addDynamicContent();
+    }
+
+    function removeDynamicContent(contentId) {
+      const element = document.getElementById(contentId);
+      if (element) {
+        element.remove();
+        demoSystem.logMessage(`➖ Removed dynamic content: ${contentId}`, 'warning');
+      }
+    }
+
+    // Initialize UI
+    demoSystem.updateMetrics();
+
+    // Simulate some initial activity
+    setTimeout(() => {
+      demoSystem.logMessage('🔍 System ready for optimization', 'success');
+    }, 1000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Bridge - LightDom</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: #1e293b;
+      padding: 1rem;
+      border-bottom: 2px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s infinite;
+    }
+
+    .status-indicator.disconnected {
+      background: #ef4444;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .bridges-list {
+      width: 250px;
+      background: #1e293b;
+      border-right: 2px solid #334155;
+      overflow-y: auto;
+    }
+
+    .bridge-item {
+      padding: 1rem;
+      border-bottom: 1px solid #334155;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .bridge-item:hover {
+      background: #334155;
+    }
+
+    .bridge-item.active {
+      background: #2563eb;
+    }
+
+    .bridge-name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .bridge-info {
+      font-size: 0.875rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      background: #1e293b;
+      padding: 1rem;
+      border-bottom: 1px solid #334155;
+    }
+
+    .chat-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .chat-subtitle {
+      font-size: 0.875rem;
+      color: #94a3b8;
+    }
+
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .message {
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+
+    .message.user {
+      background: #2563eb;
+      align-self: flex-end;
+    }
+
+    .message.other {
+      background: #334155;
+      align-self: flex-start;
+    }
+
+    .message.system {
+      background: #475569;
+      align-self: center;
+      text-align: center;
+      font-size: 0.875rem;
+      max-width: 80%;
+    }
+
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.25rem;
+      font-size: 0.875rem;
+    }
+
+    .message-user {
+      font-weight: 600;
+    }
+
+    .message-time {
+      color: #94a3b8;
+      font-size: 0.75rem;
+    }
+
+    .message-text {
+      line-height: 1.5;
+    }
+
+    .chat-input-area {
+      background: #1e293b;
+      padding: 1rem;
+      border-top: 1px solid #334155;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: #334155;
+      border: 1px solid #475569;
+      border-radius: 0.5rem;
+      color: #ffffff;
+      padding: 0.75rem;
+      font-size: 0.875rem;
+      resize: none;
+      font-family: inherit;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+
+    .send-button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .send-button:hover {
+      background: #1d4ed8;
+    }
+
+    .send-button:disabled {
+      background: #1e40af;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #f8fafc;
+    }
+
+    .create-bridge-button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.2s;
+    }
+
+    .create-bridge-button:hover {
+      background: #1d4ed8;
+    }
+
+    .badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      background: #22c55e;
+      color: white;
+    }
+
+    .badge.offline {
+      background: #ef4444;
+    }
+
+    .capabilities {
+      display: flex;
+      gap: 0.25rem;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .capability {
+      padding: 0.125rem 0.375rem;
+      border-radius: 0.25rem;
+      font-size: 0.7rem;
+      background: #334155;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>
+      🌉 Chat Bridge
+      <span class="status-indicator" id="statusIndicator"></span>
+    </h1>
+    <button class="create-bridge-button" id="createBridgeBtn">+ New Bridge</button>
+  </div>
+
+  <div class="main-content">
+    <!-- Bridges List -->
+    <div class="bridges-list" id="bridgesList">
+      <!-- Bridges will be populated here -->
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-area" id="chatArea">
+      <div class="empty-state">
+        <div class="empty-state-icon">💬</div>
+        <div class="empty-state-title">Select a bridge to start chatting</div>
+        <p>Connect to a metaverse bridge to communicate with other miners</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="chat-bridge.js"></script>
+  <script>
+    // UI Controller
+    class ChatBridgeUI {
+      constructor() {
+        this.activeBridgeId = null;
+        this.bridges = [];
+        this.messages = {};
+        this.initialize();
+      }
+
+      async initialize() {
+        // Load bridges
+        await this.loadBridges();
+        
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        // Update UI
+        this.renderBridges();
+        
+        // Listen for bridge events
+        this.listenForBridgeEvents();
+      }
+
+      async loadBridges() {
+        // In a real implementation, this would call chatBridge.getBridges()
+        // For demo purposes, we'll create mock bridges
+        this.bridges = [
+          {
+            id: 'bridge_1',
+            sourceDomain: 'LightDOM',
+            targetDomain: 'DigitalRealm',
+            status: 'active',
+            connectedUsers: 5,
+            capabilities: ['💬 Chat', '📊 Data Transfer', '🎯 Asset Sharing']
+          },
+          {
+            id: 'bridge_2',
+            sourceDomain: 'LightDOM',
+            targetDomain: 'KnowledgeArchive',
+            status: 'active',
+            connectedUsers: 3,
+            capabilities: ['💬 Chat', '⚡ Cross-Chain Computing']
+          }
+        ];
+
+        // Mock messages
+        this.messages = {
+          'bridge_1': [
+            {
+              id: 'msg1',
+              user: 'System',
+              message: 'Bridge established successfully',
+              timestamp: Date.now() - 300000,
+              type: 'system'
+            },
+            {
+              id: 'msg2',
+              user: 'SpaceMiner_001',
+              message: 'Hey everyone! Ready to optimize some DOM elements?',
+              timestamp: Date.now() - 240000,
+              type: 'other'
+            },
+            {
+              id: 'msg3',
+              user: 'You',
+              message: 'Absolutely! Let\'s start mining!',
+              timestamp: Date.now() - 180000,
+              type: 'user'
+            }
+          ]
+        };
+      }
+
+      renderBridges() {
+        const bridgesList = document.getElementById('bridgesList');
+        
+        if (this.bridges.length === 0) {
+          bridgesList.innerHTML = '<div style="padding: 2rem; text-align: center; color: #94a3b8;">No bridges available</div>';
+          return;
+        }
+
+        bridgesList.innerHTML = this.bridges.map(bridge => `
+          <div class="bridge-item ${bridge.id === this.activeBridgeId ? 'active' : ''}" 
+               data-bridge-id="${bridge.id}">
+            <div class="bridge-name">${bridge.sourceDomain} → ${bridge.targetDomain}</div>
+            <div class="bridge-info">
+              <span class="badge ${bridge.status === 'active' ? '' : 'offline'}">
+                ${bridge.status}
+              </span>
+              <span>👥 ${bridge.connectedUsers}</span>
+            </div>
+            <div class="capabilities">
+              ${bridge.capabilities.map(cap => `<span class="capability">${cap}</span>`).join('')}
+            </div>
+          </div>
+        `).join('');
+
+        // Add click handlers
+        document.querySelectorAll('.bridge-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const bridgeId = item.dataset.bridgeId;
+            this.selectBridge(bridgeId);
+          });
+        });
+      }
+
+      selectBridge(bridgeId) {
+        this.activeBridgeId = bridgeId;
+        this.renderBridges();
+        this.renderChatArea();
+      }
+
+      renderChatArea() {
+        const chatArea = document.getElementById('chatArea');
+        const bridge = this.bridges.find(b => b.id === this.activeBridgeId);
+        
+        if (!bridge) {
+          chatArea.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">💬</div>
+              <div class="empty-state-title">Select a bridge to start chatting</div>
+              <p>Connect to a metaverse bridge to communicate with other miners</p>
+            </div>
+          `;
+          return;
+        }
+
+        const messages = this.messages[this.activeBridgeId] || [];
+
+        chatArea.innerHTML = `
+          <div class="chat-header">
+            <div class="chat-title">${bridge.sourceDomain} → ${bridge.targetDomain}</div>
+            <div class="chat-subtitle">👥 ${bridge.connectedUsers} users connected</div>
+          </div>
+          <div class="messages-container" id="messagesContainer">
+            ${messages.map(msg => this.renderMessage(msg)).join('')}
+          </div>
+          <div class="chat-input-area">
+            <textarea class="chat-input" 
+                      id="messageInput" 
+                      placeholder="Type a message..." 
+                      rows="1"></textarea>
+            <button class="send-button" id="sendButton">Send</button>
+          </div>
+        `;
+
+        // Scroll to bottom
+        const messagesContainer = document.getElementById('messagesContainer');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Setup input handlers
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        sendButton.addEventListener('click', () => this.sendMessage());
+        messageInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.sendMessage();
+          }
+        });
+      }
+
+      renderMessage(msg) {
+        const time = new Date(msg.timestamp).toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+
+        return `
+          <div class="message ${msg.type}">
+            ${msg.type !== 'system' ? `
+              <div class="message-header">
+                <span class="message-user">${msg.user}</span>
+                <span class="message-time">${time}</span>
+              </div>
+            ` : ''}
+            <div class="message-text">${msg.message}</div>
+          </div>
+        `;
+      }
+
+      sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value.trim();
+
+        if (!message || !this.activeBridgeId) return;
+
+        // Add message to local messages
+        if (!this.messages[this.activeBridgeId]) {
+          this.messages[this.activeBridgeId] = [];
+        }
+
+        this.messages[this.activeBridgeId].push({
+          id: `msg_${Date.now()}`,
+          user: 'You',
+          message,
+          timestamp: Date.now(),
+          type: 'user'
+        });
+
+        // Clear input
+        messageInput.value = '';
+
+        // Re-render chat
+        this.renderChatArea();
+
+        // In real implementation, send to server via chatBridge
+        console.log('Sending message:', message);
+      }
+
+      setupEventListeners() {
+        document.getElementById('createBridgeBtn').addEventListener('click', () => {
+          alert('Bridge creation UI would open here. In production, this would allow you to create new metaverse bridges.');
+        });
+      }
+
+      listenForBridgeEvents() {
+        // Listen for messages from background script
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+          chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+            if (request.type === 'chat_bridge_event') {
+              this.handleBridgeEvent(request.event, request.data);
+            }
+          });
+        }
+      }
+
+      handleBridgeEvent(event, data) {
+        switch (event) {
+          case 'chat_message':
+            if (data.bridgeId === this.activeBridgeId) {
+              if (!this.messages[data.bridgeId]) {
+                this.messages[data.bridgeId] = [];
+              }
+              this.messages[data.bridgeId].push(data);
+              this.renderChatArea();
+            }
+            break;
+
+          case 'bridge_status':
+            this.updateBridgeStatus(data.bridgeId, data.status);
+            break;
+        }
+      }
+
+      updateBridgeStatus(bridgeId, status) {
+        const bridge = this.bridges.find(b => b.id === bridgeId);
+        if (bridge) {
+          bridge.status = status;
+          this.renderBridges();
+        }
+      }
+    }
+
+    // Initialize UI
+    const ui = new ChatBridgeUI();
+  </script>
+</body>
+</html>

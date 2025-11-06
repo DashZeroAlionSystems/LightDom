@@ -1,0 +1,60 @@
+91 x Module '"antd"' has no exported member 'Space'.
+88 x Module '"antd"' has no exported member 'Card'.
+87 x Module '"antd"' has no exported member 'Typography'.
+86 x Module '"antd"' has no exported member 'Button'.
+82 x Module '"antd"' has no exported member 'Row'.
+82 x Module '"antd"' has no exported member 'Col'.
+73 x Module '"antd"' has no exported member 'Tag'.
+68 x Module '"antd"' has no exported member 'Progress'.
+68 x Module '"antd"' has no exported member 'Alert'.
+67 x Module '"antd"' has no exported member 'Badge'.
+63 x Module '"antd"' has no exported member 'Statistic'.
+61 x Module '"antd"' has no exported member 'Avatar'.
+61 x Module '"antd"' has no exported member 'Select'.
+61 x Module '"antd"' has no exported member 'Divider'.
+60 x Module '"antd"' has no exported member 'Tooltip'.
+60 x Module '"antd"' has no exported member 'message'.
+57 x Module '"antd"' has no exported member 'Tabs'.
+56 x Module '"antd"' has no exported member 'Modal'.
+55 x Module '"antd"' has no exported member 'Input'.
+54 x Module '"antd"' has no exported member 'List'.
+53 x Module '"antd"' has no exported member 'Form'.
+50 x Module '"antd"' has no exported member 'Table'.
+46 x Object literal may only specify known properties, and 'offset' does not exist in type 'AnimationKeyframe'.
+42 x Module '"antd"' has no exported member 'Switch'.
+38 x Module '"antd"' has no exported member 'Timeline'.
+35 x Module '"antd"' has no exported member 'Drawer'.
+34 x Module '"antd"' has no exported member 'Spin'.
+32 x Module '"antd"' has no exported member 'Layout'.
+29 x Argument of type '{ success: false; error: string; }' is not assignable to parameter of type 'APIResponse<any>'.
+26 x Module '"antd"' has no exported member 'DatePicker'.
+26 x Module '"antd"' has no exported member 'Empty'.
+25 x Module '"antd"' has no exported member 'InputNumber'.
+25 x Module '"antd"' has no exported member 'Slider'.
+24 x Type '{ backgroundColor: string; border: string; borderRadius: string; padding: string; textAlign: string; }' is not assignable to type 'CSSProperties'.
+24 x Type '{ background: string; padding: string; borderRadius: string; border: string; textAlign: string; }' is not assignable to type 'CSSProperties'.
+23 x Module '"antd"' has no exported member 'Menu'.
+21 x Module '"antd"' has no exported member 'Dropdown'.
+18 x Type 'string' is not assignable to type 'string[]'.
+17 x Module '"antd"' has no exported member 'Checkbox'.
+15 x Module '"antd"' has no exported member 'Radio'.
+14 x Module '"antd"' has no exported member 'Upload'.
+13 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<GAMetric, "id">'.
+12 x Block-scoped variable 'Animation' used before its declaration.
+12 x Module '"antd"' has no exported member 'Rate'.
+11 x Type '"outline"' is not assignable to type '"text" | "filled" | "elevated" | "outlined" | "filled-tonal"'. Did you mean '"outlined"'?
+11 x Expected 1 arguments, but got 0.
+11 x Object literal may only specify known properties, and 'id' does not exist in type 'Omit<GADimension, "id">'.
+10 x Duplicate function implementation.
+10 x An object literal cannot have multiple properties with the same name.
+10 x Property 'maxFileUploadSize' does not exist on type 'Promise<{ maxFileUploadSize: number; autoSave: boolean; syncInterval: number; preferredBiome: string; }>'.
+10 x Property 'performance' does not exist on type '{ running: boolean; config: FrameworkConfig; queueStatus: any; systemStats: any; metrics: any; }'.
+10 x Module '"antd"' has no exported member 'Transfer'.
+9 x Module '"antd"' has no exported member 'Tree'.
+8 x Module '"antd"' has no exported member 'Collapse'.
+8 x Type '{ color: string; intensity: number; }' is not assignable to type 'string'.
+8 x Property 'post' is private and only accessible within class 'APIClient'.
+8 x Module '"antd"' has no exported member 'Steps'.
+7 x Property 'stats' does not exist on type 'MLEnhancedDOMHarvestingWorker'.
+7 x Module '"antd"' has no exported member 'Popover'.
+7 x Property 'get' is private and only accessible within class 'APIClient'.

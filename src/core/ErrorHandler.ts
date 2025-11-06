@@ -3,7 +3,14 @@
  * Centralized error management for the LightDom platform
  */
 
+import { v4 as uuidv4 } from 'uuid';
+
 export interface ErrorDetails {
+  /** Unique identifier for this error instance */
+  id?: string;
+  /** Error classification/type (e.g., Error name or custom type) */
+  type?: string;
+  /** Legacy/code field for backward compatibility */
   code: string;
   message: string;
   details?: any;
@@ -55,12 +62,17 @@ export class ErrorHandler {
     context?: ErrorDetails['context'],
     code?: string
   ): ErrorDetails {
+    const generatedId = uuidv4();
+    const inferredType = typeof error === 'object' && (error as Error).name ? (error as Error).name : (typeof error === 'string' ? 'ErrorString' : 'Error');
+
     const errorDetails: ErrorDetails = {
+      id: generatedId,
+      type: inferredType,
       code: code || 'UNKNOWN_ERROR',
-      message: typeof error === 'string' ? error : error.message,
+      message: typeof error === 'string' ? error : (error as Error).message,
       details: typeof error === 'object' ? error : undefined,
       timestamp: Date.now(),
-      stack: typeof error === 'object' && error.stack ? error.stack : undefined,
+      stack: typeof error === 'object' && (error as Error).stack ? (error as Error).stack : undefined,
       context
     };
 

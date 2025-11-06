@@ -1,0 +1,208 @@
+.auth-form-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.auth-card {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-title {
+  color: #1f2937 !important;
+  margin-bottom: 8px !important;
+  font-weight: 700;
+}
+
+.auth-subtitle {
+  color: #6b7280 !important;
+  margin-bottom: 0 !important;
+  font-size: 16px;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.auth-footer a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.auth-footer a:hover {
+  color: #5a67d8;
+  text-decoration: underline;
+}
+
+/* Form styling */
+.ant-form-item-label > label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.ant-input,
+.ant-input-password {
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.ant-input:focus,
+.ant-input-password:focus,
+.ant-input-focused,
+.ant-input-password-focused {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  height: 48px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.ant-btn-primary:active {
+  transform: translateY(0);
+}
+
+.ant-btn {
+  border-radius: 8px;
+  height: 48px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.ant-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Checkbox styling */
+.ant-checkbox-wrapper {
+  color: #6b7280;
+}
+
+.ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+/* Alert styling */
+.ant-alert {
+  border-radius: 8px;
+  border: none;
+}
+
+.ant-alert-error {
+  background-color: #fef2f2;
+  border-left: 4px solid #ef4444;
+}
+
+.ant-alert-success {
+  background-color: #f0fdf4;
+  border-left: 4px solid #22c55e;
+}
+
+/* Divider styling */
+.ant-divider {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .auth-form-container {
+    padding: 10px;
+  }
+  
+  .auth-card {
+    margin: 0;
+  }
+  
+  .auth-title {
+    font-size: 24px !important;
+  }
+  
+  .auth-subtitle {
+    font-size: 14px !important;
+  }
+}
+
+/* Loading states */
+.ant-btn-loading {
+  opacity: 0.8;
+}
+
+/* Focus states for accessibility */
+.ant-input:focus,
+.ant-btn:focus,
+.ant-checkbox:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Animation for form elements */
+.ant-form-item {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Wallet button styling */
+.ant-btn .anticon-wallet {
+  color: #f59e0b;
+}
+
+/* Link styling */
+a {
+  color: #667eea;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #5a67d8;
+}
+
+/* Auth Page Styles */
+.auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(600px 300px at 50% 0%, rgba(124,58,237,0.25), transparent), #0b1020; padding: 24px; }
+.auth-container { width: 100%; max-width: 760px; border: 1px solid rgba(255,255,255,0.08); background: rgba(17,24,39,0.6); backdrop-filter: blur(8px); border-radius: 16px; padding: 24px; color: #e6e8ef; box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+.auth-header { text-align: center; margin-bottom: 16px; }
+.auth-header h1 { margin: 0 0 6px; letter-spacing: .4px; }
+.auth-header p { margin: 0; color: #9aa3ba; }
+
+/* Error banner */
+.error-banner { margin-top: 12px; padding: 10px 12px; border: 1px solid #ef4444; color: #fecaca; background: rgba(239,68,68,.1); border-radius: 10px; }
+
+/* Utility */
+.link { color: #93c5fd; text-decoration: none; }
+.link:hover { text-decoration: underline; }
+
+/* Inputs/buttons are styled inside the forms already via inline styles; keep container polish here. */

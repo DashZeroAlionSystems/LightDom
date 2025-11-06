@@ -1,41 +1,40 @@
-import winston from 'winston';
+/**
+ * Simple Logger utility for services
+ */
 
 export class Logger {
-  private logger: winston.Logger;
+  private context: string;
 
-  constructor(service: string) {
-    this.logger = winston.createLogger({
-      level: process.env.LOG_LEVEL || 'info',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.errors({ stack: true }),
-        winston.format.json()
-      ),
-      defaultMeta: { service },
-      transports: [
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.simple()
-          )
-        })
-      ]
-    });
+  constructor(context: string) {
+    this.context = context;
   }
 
-  info(message: string, meta?: any): void {
-    this.logger.info(message, meta);
+  log(message: string, ...args: any[]) {
+    console.log(`[${this.context}] ${message}`, ...args);
   }
 
-  error(message: string, error?: any): void {
-    this.logger.error(message, error);
+  info(message: string, ...args: any[]) {
+    console.info(`[${this.context}] ℹ️ ${message}`, ...args);
   }
 
-  warn(message: string, meta?: any): void {
-    this.logger.warn(message, meta);
+  warn(message: string, ...args: any[]) {
+    console.warn(`[${this.context}] ⚠️ ${message}`, ...args);
   }
 
-  debug(message: string, meta?: any): void {
-    this.logger.debug(message, meta);
+  error(message: string, ...args: any[]) {
+    console.error(`[${this.context}] ❌ ${message}`, ...args);
+  }
+
+  debug(message: string, ...args: any[]) {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug(`[${this.context}] 🐛 ${message}`, ...args);
+    }
   }
 }
+
+// Default logger instance for convenience
+export const logger = new Logger('App');
+
+// Default export of Logger class
+export default Logger;
+

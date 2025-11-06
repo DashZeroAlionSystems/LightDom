@@ -1,99 +1,93 @@
 {
   "manifest_version": 3,
-  "name": "LightDom Blockchain Extension",
+  "name": "LightDom DOM Space Miner",
   "version": "2.0.0",
-  "description": "Advanced DOM optimization and blockchain mining extension with enhanced Chrome APIs",
+  "description": "Advanced DOM optimization and blockchain mining extension",
   "permissions": [
     "activeTab",
     "storage",
     "notifications",
-    "background",
-    "scripting",
-    "webRequest",
-    "webRequestBlocking",
-    "tabs",
     "sidePanel",
     "offscreen",
     "declarativeNetRequest",
     "declarativeNetRequestFeedback",
-    "userScripts",
     "contextMenus",
-    "alarms"
+    "alarms",
+    "tabs"
   ],
   "host_permissions": [
-    "http://localhost:*/*",
-    "https://*/*",
-    "file://*/*"
+    "http://localhost:3001/*",
+    "http://localhost:3000/*",
+    "<all_urls>"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js", "storage-manager.js"],
-      "run_at": "document_start"
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js",
+        "blockchain-miner.js",
+        "chat-bridge.js"
+      ],
+      "run_at": "document_idle"
     }
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "LightDom Blockchain",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "32": "icons/icon32.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
+    "default_title": "LightDom Miner"
   },
   "side_panel": {
     "default_path": "sidepanel.html"
   },
+  "options_page": "options.html",
+  "offline_enabled": false,
   "declarative_net_request": {
     "rule_resources": [
       {
-        "id": "lightdom_rules",
+        "id": "ruleset_1",
         "enabled": true,
         "path": "declarative-rules.json"
       }
     ]
   },
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "lightdom-blockchain.js", 
-        "blockchain-miner.js",
-        "storage-manager.js",
-        "declarative-net-request-manager.js",
-        "offscreen-analyzer.js",
-        "icons/*.png"
-      ],
-      "matches": ["<all_urls>"]
-    }
-  ],
-  "externally_connectable": {
-    "matches": ["http://localhost:*/*", "https://*/*"]
-  },
-  "icons": {
-    "16": "icons/icon16.png",
-    "32": "icons/icon32.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
-  "options_page": "options.html",
   "commands": {
     "toggle-mining": {
       "suggested_key": {
         "default": "Ctrl+Shift+L",
         "mac": "Command+Shift+L"
       },
-      "description": "Toggle LightDom mining"
+      "description": "Toggle DOM mining"
     },
     "open-sidepanel": {
       "suggested_key": {
         "default": "Ctrl+Shift+D",
         "mac": "Command+Shift+D"
       },
-      "description": "Open LightDom side panel"
+      "description": "Open side panel"
+    },
+    "open-chat-bridge": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+B",
+        "mac": "Command+Shift+B"
+      },
+      "description": "Open chat bridge"
+    },
+    "open-wallet": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+W",
+        "mac": "Command+Shift+W"
+      },
+      "description": "Open wallet"
     }
+  },
+  "icons": {
+    "16": "icon16.svg",
+    "48": "icon48.svg",
+    "128": "icon128.svg"
   }
 }

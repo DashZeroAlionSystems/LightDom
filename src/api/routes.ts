@@ -7,9 +7,14 @@ import { Router } from 'express';
 import { optimizationAPI } from './optimizationApi';
 import { blockchainModelStorageAPI } from './blockchainModelStorageApi';
 import { lightDomStorageAPI } from './LightDomStorageApi';
+import { spaceMiningAPI } from './spaceMiningApi';
+import { metaverseMiningAPI } from './metaverseMiningApi';
+import { adminAnalyticsAPI } from './adminAnalyticsApi';
+import { automationOrchestrationAPI } from './automationOrchestrationApi';
 import { startupScript } from '../scripts/StartupScript';
 import { browserRefreshHandler } from '../scripts/BrowserRefreshHandler';
 import { persistentBlockchainStorage } from '../core/PersistentBlockchainStorage';
+import workflowAdminRouter from './workflow-admin';
 
 const router = Router();
 
@@ -48,6 +53,32 @@ router.delete('/storage/files/:fileId', lightDomStorageAPI.deleteUploadedFile.bi
 router.get('/storage/stats', lightDomStorageAPI.getStorageStats.bind(lightDomStorageAPI));
 router.get('/storage/limits', lightDomStorageAPI.getFileUploadLimits.bind(lightDomStorageAPI));
 
+// Space Mining API routes
+router.post('/space-mining/mine', spaceMiningAPI.mineSpace.bind(spaceMiningAPI));
+router.post('/space-mining/queue', spaceMiningAPI.addToMiningQueue.bind(spaceMiningAPI));
+router.get('/space-mining/bridges', spaceMiningAPI.getMetaverseBridges.bind(spaceMiningAPI));
+router.get('/space-mining/bridge/:bridgeId', spaceMiningAPI.getBridgeDetails.bind(spaceMiningAPI));
+router.get('/space-mining/bridge/:bridgeId/url', spaceMiningAPI.getBridgeURL.bind(spaceMiningAPI));
+router.get('/space-mining/isolated-doms', spaceMiningAPI.getIsolatedDOMs.bind(spaceMiningAPI));
+router.get('/space-mining/isolated-dom/:domId', spaceMiningAPI.getIsolatedDOM.bind(spaceMiningAPI));
+router.get('/space-mining/spatial-structures', spaceMiningAPI.getSpatialStructures.bind(spaceMiningAPI));
+router.get('/space-mining/stats', spaceMiningAPI.getMiningStats.bind(spaceMiningAPI));
+router.post('/space-mining/start-continuous', spaceMiningAPI.startContinuousMining.bind(spaceMiningAPI));
+router.post('/space-mining/generate-routes', spaceMiningAPI.generateBridgeRoutes.bind(spaceMiningAPI));
+router.post('/space-mining/test-bridge/:bridgeId', spaceMiningAPI.testBridgeConnectivity.bind(spaceMiningAPI));
+
+// Metaverse Bridge API routes
+router.get('/metaverse/bridge/:bridgeId', metaverseMiningAPI.getBridgeDetails.bind(metaverseMiningAPI));
+router.get('/metaverse/bridge/:bridgeId/chat', metaverseMiningAPI.getBridgeChat.bind(metaverseMiningAPI));
+
+// Admin Analytics API routes
+router.get('/admin/analytics/overview', adminAnalyticsAPI.getSystemOverview.bind(adminAnalyticsAPI));
+router.get('/admin/analytics/clients', adminAnalyticsAPI.getClientUsageMetrics.bind(adminAnalyticsAPI));
+router.get('/admin/analytics/client/:clientId/activity', adminAnalyticsAPI.getClientActivity.bind(adminAnalyticsAPI));
+router.get('/admin/analytics/mining', adminAnalyticsAPI.getMiningStatistics.bind(adminAnalyticsAPI));
+router.get('/admin/analytics/billing', adminAnalyticsAPI.getBillingAnalytics.bind(adminAnalyticsAPI));
+router.get('/admin/analytics/alerts', adminAnalyticsAPI.getSystemAlerts.bind(adminAnalyticsAPI));
+
 // Startup and Refresh Handler routes
 router.get('/startup/status', (req, res) => {
   try {
@@ -81,10 +112,10 @@ router.post('/startup/restart', async (req, res) => {
 
 router.post('/refresh/save', async (req, res) => {
   try {
-    const result = await browserRefreshHandler.forceSave();
+    await browserRefreshHandler.forceSave();
     res.json({
-      success: result.success,
-      data: result
+      success: true,
+      message: 'Refresh data saved'
     });
   } catch (error) {
     res.status(500).json({
@@ -95,18 +126,14 @@ router.post('/refresh/save', async (req, res) => {
 });
 
 router.get('/refresh/status', (req, res) => {
-  try {
-    const status = browserRefreshHandler.getSaveStatus();
-    res.json({
-      success: true,
-      data: status
+  browserRefreshHandler.getRefreshStats()
+    .then((stats) => res.json({ success: true, data: stats }))
+    .catch((error) => {
+      res.status(500).json({
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     });
-  } catch (error) {
-    res.status(500).json({
-      error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
 });
 
 router.post('/refresh/restore', async (req, res) => {
@@ -157,7 +184,7 @@ router.get('/persistent/stats', async (req, res) => {
 
 router.post('/persistent/sync', async (req, res) => {
   try {
-    await persistentBlockchainStorage.syncWithBlockchain();
+    await persistentBlockchainStorage.forceSync();
     res.json({
       success: true,
       message: 'Data synced with blockchain successfully'
@@ -187,7 +214,7 @@ router.post('/persistent/clear', async (req, res) => {
 
 router.post('/persistent/export', async (req, res) => {
   try {
-    const data = await persistentBlockchainStorage.exportData();
+    const data = await persistentBlockchainStorage.loadAllData();
     res.json({
       success: true,
       data
@@ -211,7 +238,7 @@ router.post('/persistent/import', async (req, res) => {
       return;
     }
 
-    await persistentBlockchainStorage.importData(data);
+    await persistentBlockchainStorage.saveToIndexedDB('persistentData', data);
     res.json({
       success: true,
       message: 'Data imported successfully'
@@ -251,7 +278,7 @@ router.put('/settings', (req, res) => {
       return;
     }
 
-    persistentBlockchainStorage.updateUserSettings(updates);
+    persistentBlockchainStorage.saveToIndexedDB('userSettings', updates);
     res.json({
       success: true,
       message: 'Settings updated successfully'
@@ -264,18 +291,33 @@ router.put('/settings', (req, res) => {
   }
 });
 
+// Automation Orchestration API routes
+router.post('/automation/workflow/start', automationOrchestrationAPI.startWorkflow.bind(automationOrchestrationAPI));
+router.post('/automation/workflow/stop', automationOrchestrationAPI.stopWorkflow.bind(automationOrchestrationAPI));
+router.get('/automation/workflow/:jobId', automationOrchestrationAPI.getWorkflowStatus.bind(automationOrchestrationAPI));
+router.get('/automation/workflows', automationOrchestrationAPI.listWorkflows.bind(automationOrchestrationAPI));
+router.get('/automation/jobs', automationOrchestrationAPI.listJobs.bind(automationOrchestrationAPI));
+router.post('/automation/autopilot/start', automationOrchestrationAPI.startAutopilot.bind(automationOrchestrationAPI));
+router.post('/automation/evaluate', automationOrchestrationAPI.evaluateTasks.bind(automationOrchestrationAPI));
+router.post('/automation/execute', automationOrchestrationAPI.executeTasks.bind(automationOrchestrationAPI));
+router.get('/automation/metrics', automationOrchestrationAPI.getMetrics.bind(automationOrchestrationAPI));
+router.get('/automation/evaluations', automationOrchestrationAPI.getEvaluations.bind(automationOrchestrationAPI));
+router.post('/automation/schedule', automationOrchestrationAPI.scheduleWorkflow.bind(automationOrchestrationAPI));
+router.get('/automation/health', automationOrchestrationAPI.getHealth.bind(automationOrchestrationAPI));
+
+// Workflow persistence & mining routes
+router.use('/workflow-admin', workflowAdminRouter);
+
 // Health check route
 router.get('/health', (req, res) => {
   try {
     const startupStatus = startupScript.getStartupStatus();
-    const refreshStatus = browserRefreshHandler.getSaveStatus();
     
     res.json({
       success: true,
       data: {
         status: 'healthy',
         startup: startupStatus,
-        refresh: refreshStatus,
         timestamp: Date.now()
       }
     });

@@ -1,0 +1,163 @@
+{
+  "name": "Mass Data Enrichment Pipeline",
+  "description": "Enrich thousands of entities in parallel using AI and external APIs",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "id": "fetch_entities",
+      "name": "Fetch Entities to Enrich",
+      "type": "api_call",
+      "method": "GET",
+      "endpoint": "http://localhost:3000/api/entities",
+      "input": {
+        "entityType": "${context.entityType}",
+        "limit": 10000
+      },
+      "onFailure": "abort",
+      "timeout": 30000
+    },
+    {
+      "id": "filter_unenriched",
+      "name": "Filter Un-Enriched Entities",
+      "type": "data_transformation",
+      "transformation": "filter",
+      "predicate": { "enriched": false },
+      "input": {
+        "data": "${previousResults.fetch_entities.entities}"
+      },
+      "onFailure": "continue"
+    },
+    {
+      "id": "batch_entities",
+      "name": "Create Enrichment Batches",
+      "type": "data_transformation",
+      "transformation": "custom",
+      "function": "(data) => { const batches = []; for (let i = 0; i < data.length; i += 100) { batches.push(data.slice(i, i + 100)); } return batches; }",
+      "input": {
+        "data": "${previousResults.filter_unenriched}"
+      },
+      "onFailure": "abort"
+    },
+    {
+      "id": "enrich_batches",
+      "name": "Enrich All Batches",
+      "type": "loop",
+      "input": {
+        "items": "${previousResults.batch_entities}"
+      },
+      "subtasks": [
+        {
+          "id": "enrich_batch",
+          "name": "Enrich Batch ${loopIndex}",
+          "type": "parallel",
+          "subtasks": [
+            {
+              "id": "ai_enrichment",
+              "name": "AI Enrichment",
+              "type": "enrichment",
+              "enrichmentType": "ai-summary",
+              "input": {
+                "entityIds": "${loopItem.*.id}",
+                "config": {
+                  "model": "deepseek-chat",
+                  "temperature": 0.7
+                }
+              },
+              "timeout": 120000
+            },
+            {
+              "id": "seo_enrichment",
+              "name": "SEO Enrichment",
+              "type": "enrichment",
+              "enrichmentType": "seo-analysis",
+              "input": {
+                "entityIds": "${loopItem.*.id}",
+                "config": {
+                  "analyze_keywords": true,
+                  "calculate_score": true
+                }
+              },
+              "timeout": 60000
+            },
+            {
+              "id": "api_enrichment",
+              "name": "External API Enrichment",
+              "type": "enrichment",
+              "enrichmentType": "external-api",
+              "input": {
+                "entityIds": "${loopItem.*.id}",
+                "config": {
+                  "apiUrl": "${context.externalApiUrl}",
+                  "apiKey": "${context.apiKey}"
+                }
+              },
+              "timeout": 90000
+            }
+          ]
+        },
+        {
+          "id": "wait_rate_limit",
+          "name": "Wait for Rate Limit",
+          "type": "wait",
+          "delay": 2000
+        }
+      ],
+      "onFailure": "continue"
+    },
+    {
+      "id": "validate_enriched",
+      "name": "Validate Enriched Data",
+      "type": "validation",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "ai_summary": { "type": "string", "minLength": 10 },
+          "seo_score": { "type": "number", "minimum": 0, "maximum": 100 },
+          "external_data": { "type": "object" }
+        },
+        "required": ["ai_summary"]
+      },
+      "input": {
+        "data": "${previousResults.enrich_batches}"
+      },
+      "onInvalid": "filter",
+      "onFailure": "continue"
+    },
+    {
+      "id": "aggregate_results",
+      "name": "Aggregate Enrichment Results",
+      "type": "aggregation",
+      "input": {
+        "data": "${previousResults.validate_enriched.data}"
+      },
+      "aggregations": ["count", "avg", "groupBy"],
+      "avgField": "seo_score",
+      "groupByField": "entityType",
+      "onFailure": "continue"
+    },
+    {
+      "id": "save_summary",
+      "name": "Save Enrichment Summary",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/entities",
+      "input": {
+        "entityType": "EnrichmentSummary",
+        "data": {
+          "total_enriched": "${previousResults.aggregate_results.count}",
+          "avg_seo_score": "${previousResults.aggregate_results.avg}",
+          "groups": "${previousResults.aggregate_results.groups}",
+          "completed_at": "${new Date().toISOString()}"
+        }
+      },
+      "onSuccess": [
+        {
+          "type": "notify",
+          "message": "Mass enrichment completed: ${previousResults.aggregate_results.count} entities enriched"
+        }
+      ],
+      "onFailure": "retry",
+      "timeout": 15000
+    }
+  ]
+}

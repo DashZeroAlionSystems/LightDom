@@ -1,0 +1,281 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: lightdom-postgres
+    environment:
+      POSTGRES_DB: lightdom
+      POSTGRES_USER: lightdom_user
+      POSTGRES_PASSWORD: lightdom_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+      - ./database/blockchain_schema.sql:/docker-entrypoint-initdb.d/01-blockchain.sql
+      - ./database/optimization_schema.sql:/docker-entrypoint-initdb.d/02-optimization.sql
+      - ./database/bridge_schema.sql:/docker-entrypoint-initdb.d/03-bridge.sql
+    ports:
+      - "5434:5432"
+    networks:
+      - lightdom-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lightdom_user -d lightdom"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: lightdom-redis
+    command: redis-server --appendonly yes --requirepass lightdom_redis_password
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - lightdom-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Main Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lightdom-app
+    environment:
+      # Database Configuration
+      DATABASE_URL: postgresql://lightdom_user:lightdom_password@postgres:5432/lightdom
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: lightdom
+      DB_USER: lightdom_user
+      DB_PASSWORD: lightdom_password
+      
+      # Redis Configuration
+      REDIS_URL: redis://:lightdom_redis_password@redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: lightdom_redis_password
+      
+      # Application Configuration
+      NODE_ENV: production
+      PORT: 3001
+      FRONTEND_PORT: 3000
+      
+      # Blockchain Configuration
+      ETHEREUM_RPC_URL: https://mainnet.infura.io/v3/your-infura-key
+      POLYGON_RPC_URL: https://polygon-mainnet.infura.io/v3/your-infura-key
+      ARBITRUM_RPC_URL: https://arbitrum-mainnet.infura.io/v3/your-infura-key
+      OPTIMISM_RPC_URL: https://optimism-mainnet.infura.io/v3/your-infura-key
+      
+      # Security
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      API_SECRET: your-api-secret-key-change-this-in-production
+      
+      # WebSocket Configuration
+      WS_PORT: 3001
+      
+      # Puppeteer Configuration
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+      
+      # Logging
+      LOG_LEVEL: info
+      LOG_FILE: /app/logs/app.log
+    volumes:
+      - app_logs:/app/logs
+      - app_artifacts:/app/artifacts
+      - app_temp:/app/temp
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lightdom-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: lightdom-nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app
+    networks:
+      - lightdom-network
+    restart: unless-stopped
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lightdom-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - lightdom-network
+    restart: unless-stopped
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: lightdom-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - lightdom-network
+    restart: unless-stopped
+
+  # Background Worker Service
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lightdom-worker
+    environment:
+      # Same environment as app service
+      DATABASE_URL: postgresql://lightdom_user:lightdom_password@postgres:5432/lightdom
+      REDIS_URL: redis://:lightdom_redis_password@redis:6379
+      NODE_ENV: production
+      WORKER_MODE: true
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      API_SECRET: your-api-secret-key-change-this-in-production
+    volumes:
+      - app_logs:/app/logs
+      - app_artifacts:/app/artifacts
+      - app_temp:/app/temp
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lightdom-network
+    command: ["node", "src/services/BackgroundWorkerService.js"]
+    restart: unless-stopped
+
+  # n8n Workflow Engine
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: lightdom-n8n
+    environment:
+      # Database Configuration
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: lightdom_user
+      DB_POSTGRESDB_PASSWORD: lightdom_password
+      
+      # n8n Configuration
+      N8N_BASIC_AUTH_ACTIVE: true
+      N8N_BASIC_AUTH_USER: admin
+      N8N_BASIC_AUTH_PASSWORD: lightdom_n8n_password
+      N8N_HOST: n8n
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:5678/
+      GENERIC_TIMEZONE: UTC
+      
+      # Editor Configuration
+      N8N_EDITOR_BASE_URL: http://localhost:5678/
+      
+      # Execution Configuration
+      EXECUTIONS_PROCESS: main
+      EXECUTIONS_DATA_SAVE_ON_ERROR: all
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: all
+      EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS: true
+      
+      # Performance
+      N8N_PAYLOAD_SIZE_MAX: 16
+      
+      # Integration with LightDom
+      LIGHTDOM_API_URL: http://app:3001
+      LIGHTDOM_API_KEY: ${API_SECRET:-your-api-secret-key-change-this-in-production}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./workflows/n8n:/home/node/.n8n/workflows
+      - ./workflows/n8n/credentials:/home/node/.n8n/credentials
+    ports:
+      - "5678:5678"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lightdom-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+  app_artifacts:
+    driver: local
+  app_temp:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  n8n_data:
+    driver: local
+
+networks:
+  lightdom-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

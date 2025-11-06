@@ -1,0 +1,50 @@
+1	src/analytics/GoogleAnalyticsResearchDashboard.tsx(1080,14): error TS2323: Cannot redeclare exported variable 'GoogleAnalyticsResearchDashboard'.
+1	src/framework/ServiceIntegration.ts(255,7): error TS2353: Object literal may only specify known properties, and 'userId' does not exist in type 'CreateSubscriptionData'.
+1	src/framework/ServiceIntegration.ts(26,10): error TS2614: Module '"../styles/design-system"' has no exported member 'designSystem'. Did you mean to use 'import designSystem from "../styles/design-system"' instead?
+1	src/framework/ServiceIntegration.ts(262,34): error TS2339: Property 'unlockPremiumFeatures' does not exist on type 'GamificationEngine'.
+1	src/framework/ServiceIntegration.ts(282,38): error TS2339: Property 'getOptimizationStats' does not exist on type 'BridgeAnalyticsService'.
+1	src/framework/ServiceIntegration.ts(283,38): error TS2339: Property 'getMiningStats' does not exist on type 'BridgeAnalyticsService'.
+1	src/framework/ServiceIntegration.ts(284,38): error TS2339: Property 'getUserStats' does not exist on type 'BridgeAnalyticsService'.
+1	src/framework/ServiceIntegration.ts(285,38): error TS2339: Property 'getRevenueStats' does not exist on type 'BridgeAnalyticsService'.
+1	src/framework/ServiceIntegration.ts(67,36): error TS2673: Constructor of class 'DOMOptimizationEngine' is private and only accessible within the class declaration.
+1	src/framework/ServiceIntegration.ts(70,41): error TS2554: Expected 3 arguments, but got 0.
+1	src/framework/ServiceIntegration.ts(76,9): error TS2353: Object literal may only specify known properties, and 'chainId' does not exist in type 'BlockchainConfig'.
+1	src/framework/ServiceIntegration.ts(79,40): error TS2554: Expected 3 arguments, but got 0.
+1	src/framework/ServiceIntegration.ts(81,35): error TS2554: Expected 1 arguments, but got 0.
+1	src/framework/start.ts(433,59): error TS2345: Argument of type '(value: unknown) => void' is not assignable to parameter of type '() => void'.
+1	src/framework/start.ts(499,55): error TS2345: Argument of type '(value: unknown) => void' is not assignable to parameter of type '() => void'.
+1	src/framework/storage-examples.ts(104,51): error TS2339: Property 'totalNodes' does not exist on type 'StorageMetrics'.
+1	src/framework/storage-examples.ts(105,52): error TS2339: Property 'activeNodes' does not exist on type 'StorageMetrics'.
+1	src/framework/storage-examples.ts(161,11): error TS2451: Cannot redeclare block-scoped variable 'completedJobs'.
+1	src/learning/IntelligentDashboardManager.tsx(27,3): error TS2305: Module '"@/components/ui"' has no exported member 'TabsContent'.
+1	src/learning/IntelligentDashboardManager.tsx(26,3): error TS2305: Module '"@/components/ui"' has no exported member 'TabsTrigger'.
+1	src/learning/IntelligentDashboardManager.tsx(25,3): error TS2305: Module '"@/components/ui"' has no exported member 'TabsList'.
+1	src/learning/IntelligentDashboardManager.tsx(24,3): error TS2305: Module '"@/components/ui"' has no exported member 'Tabs'.
+1	src/learning/IntelligentDashboardManager.tsx(13,8): error TS2307: Cannot find module '@/components/dashboards' or its corresponding type declarations.
+1	src/hooks/state/useAdminSettings.ts(54,19): error TS2345: Argument of type 'AdminSettings' is not assignable to parameter of type 'SetStateAction<AdminSettings>'.
+1	src/framework/ServiceIntegration.ts(248,61): error TS2339: Property 'verifyUser' does not exist on type 'WebAuthnService'.
+1	src/hooks/state/index.ts(7,15): error TS2307: Cannot find module './state' or its corresponding type declarations.
+1	src/framework/WebAddressMiner.ts(287,53): error TS2339: Property 'analyzePage' does not exist on type 'HeadlessBrowserService'.
+1	src/framework/test-workflows.ts(378,45): error TS2345: Argument of type '{ type: "optimization"; data: { url: string; siteType: string; }; priority: "high"; }' is not assignable to parameter of type 'Omit<WorkerTask, "id" | "status" | "createdAt" | "retryCount">'.
+1	src/framework/test-workflows.ts(174,33): error TS2339: Property 'components' does not exist on type '{ running: boolean; config: FrameworkConfig; queueStatus: any; systemStats: any; metrics: any; }'.
+1	src/framework/StorageOptimizer.ts(439,9): error TS2322: Type '"archived"' is not assignable to type '"digital" | "metaverse" | "cyber" | "virtual"'.
+1	src/framework/storage-examples.ts(70,9): error TS2451: Cannot redeclare block-scoped variable 'completedJobs'.
+1	src/framework/storage-examples.ts(163,37): error TS2339: Property 'slice' does not exist on type 'number'.
+1	src/framework/WorkflowSimulation.ts(217,13): error TS2345: Argument of type 'string' is not assignable to parameter of type '"social" | "other" | "blog" | "portfolio" | "news" | "ecommerce" | "corporate"'.
+1	src/learning/IntelligentDashboardManager.tsx(31,3): error TS2305: Module '"@/components/ui"' has no exported member 'Brain'.
+1	src/framework/ServiceIntegration.ts(230,34): error TS2339: Property 'addMiningReward' does not exist on type 'GamificationEngine'.
+1	src/framework/ServiceIntegration.ts(219,60): error TS2339: Property 'mineBlock' does not exist on type 'MiningService'.
+1	src/framework/HeadlessBrowserService.ts(574,16): error TS2339: Property 'includes' does not exist on type 'never'.
+1	src/framework/HeadlessBrowserService.ts(594,33): error TS2339: Property 'match' does not exist on type 'never'.
+1	src/framework/index.ts(20,1): error TS2308: Module './StorageNodeManager' has already exported a member named 'StorageMetrics'. Consider explicitly re-exporting to resolve the ambiguity.
+1	src/framework/index.ts(21,1): error TS2308: Module './HeadlessBrowserService' has already exported a member named 'Optimization'. Consider explicitly re-exporting to resolve the ambiguity.
+1	src/framework/index.ts(21,1): error TS2308: Module './HeadlessBrowserService' has already exported a member named 'PerformanceMetrics'. Consider explicitly re-exporting to resolve the ambiguity.
+1	src/framework/index.ts(26,1): error TS2308: Module './CursorAPIIntegration' has already exported a member named 'N8NNode'. Consider explicitly re-exporting to resolve the ambiguity.
+1	src/framework/index.ts(26,1): error TS2308: Module './CursorAPIIntegration' has already exported a member named 'N8NWorkflow'. Consider explicitly re-exporting to resolve the ambiguity.
+1	src/framework/index.ts(26,1): error TS2308: Module './CursorAPIIntegration' has already exported a member named 'N8NWorkflowSettings'. Consider explicitly re-exporting to resolve the ambiguity.
+1	src/framework/index.ts(30,1): error TS2308: Module './LightDomFramework' has already exported a member named 'SimulationResult'. Consider explicitly re-exporting to resolve the ambiguity.
+1	src/framework/index.ts(30,1): error TS2308: Module './SimulationEngine' has already exported a member named 'SimulationConfig'. Consider explicitly re-exporting to resolve the ambiguity.
+1	src/framework/index.ts(9,1): error TS2308: Module './LightDomFramework' has already exported a member named 'SimulationResult'. Consider explicitly re-exporting to resolve the ambiguity.
+1	src/framework/ServiceIntegration.ts(101,34): error TS2339: Property 'on' does not exist on type 'DOMOptimizationEngine'.
+1	src/framework/ServiceIntegration.ts(102,35): error TS2339: Property 'processOptimization' does not exist on type 'LightDomSlotSystem'.
+1	src/framework/ServiceIntegration.ts(108,34): error TS2339: Property 'on' does not exist on type 'MetaverseMiningEngine'.

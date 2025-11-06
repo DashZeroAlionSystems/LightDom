@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enterprise-container
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: enterprise-container
+  template:
+    metadata:
+      labels:
+        app: enterprise-container
+    spec:
+      containers:
+      - name: enterprise-container
+        image: enterprise-container:latest
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"

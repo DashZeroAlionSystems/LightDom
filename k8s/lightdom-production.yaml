@@ -1,0 +1,531 @@
+# LightDom Kubernetes Deployment Configuration
+# Complete Kubernetes setup for production deployment
+
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lightdom
+  labels:
+    name: lightdom
+    environment: production
+
+---
+# ConfigMap for environment variables
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lightdom-config
+  namespace: lightdom
+data:
+  NODE_ENV: "production"
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_NAME: "dom_space_harvester"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  MONITORING_ENABLED: "true"
+  MONITORING_PORT: "9090"
+  CRAWLER_MAX_CONCURRENCY: "5"
+  BLOCKCHAIN_RPC_URL: "http://localhost:8545"
+
+---
+# Secret for sensitive data
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lightdom-secrets
+  namespace: lightdom
+type: Opaque
+data:
+  DB_PASSWORD: c2VjdXJlX3Bhc3N3b3JkXzEyMw==  # base64 encoded
+  REDIS_PASSWORD: cmVkaXNfcGFzc3dvcmRfMTIz  # base64 encoded
+  JWT_SECRET: eW91cl9qd3Rfc2VjcmV0X2tleQ==  # base64 encoded
+  ENCRYPTION_KEY: eW91cl9lbmNyeXB0aW9uX2tleQ==  # base64 encoded
+
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: lightdom
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+  type: ClusterIP
+
+---
+# PostgreSQL Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: lightdom
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "dom_space_harvester"
+        - name: POSTGRES_USER
+          value: "lightdom"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: lightdom-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - lightdom
+            - -d
+            - dom_space_harvester
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - lightdom
+            - -d
+            - dom_space_harvester
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+      - name: init-scripts
+        configMap:
+          name: postgres-init-scripts
+
+---
+# PostgreSQL PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: lightdom
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: lightdom
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+  type: ClusterIP
+
+---
+# Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: lightdom
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        command:
+        - redis-server
+        - --appendonly
+        - "yes"
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: lightdom-secrets
+              key: REDIS_PASSWORD
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - --raw
+            - incr
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - --raw
+            - incr
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: redis-pvc
+
+---
+# Redis PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: lightdom
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# LightDom API Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: lightdom-api-service
+  namespace: lightdom
+spec:
+  selector:
+    app: lightdom-api
+  ports:
+    - name: api
+      port: 3001
+      targetPort: 3001
+    - name: monitoring
+      port: 9090
+      targetPort: 9090
+  type: ClusterIP
+
+---
+# LightDom API Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lightdom-api
+  namespace: lightdom
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: lightdom-api
+  template:
+    metadata:
+      labels:
+        app: lightdom-api
+    spec:
+      containers:
+      - name: lightdom-api
+        image: lightdom:latest
+        ports:
+        - containerPort: 3001
+        - containerPort: 9090
+        envFrom:
+        - configMapRef:
+            name: lightdom-config
+        - secretRef:
+            name: lightdom-secrets
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+        - name: artifacts
+          mountPath: /app/artifacts
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3001
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: artifacts
+        emptyDir: {}
+
+---
+# LightDom Enhanced Systems Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lightdom-enhanced
+  namespace: lightdom
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lightdom-enhanced
+  template:
+    metadata:
+      labels:
+        app: lightdom-enhanced
+    spec:
+      containers:
+      - name: lightdom-enhanced
+        image: lightdom:latest
+        command: ["node", "scripts/start-enhanced-systems.js"]
+        envFrom:
+        - configMapRef:
+            name: lightdom-config
+        - secretRef:
+            name: lightdom-secrets
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+        - name: artifacts
+          mountPath: /app/artifacts
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "400m"
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "curl -f http://localhost:3001/api/headless/status || exit 1"
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "curl -f http://localhost:3001/api/headless/status || exit 1"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: artifacts
+        emptyDir: {}
+
+---
+# LightDom Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: lightdom-frontend-service
+  namespace: lightdom
+spec:
+  selector:
+    app: lightdom-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
+
+---
+# LightDom Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lightdom-frontend
+  namespace: lightdom
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lightdom-frontend
+  template:
+    metadata:
+      labels:
+        app: lightdom-frontend
+    spec:
+      containers:
+      - name: lightdom-frontend
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: frontend-files
+          mountPath: /usr/share/nginx/html
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: frontend-files
+        configMap:
+          name: lightdom-frontend-files
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lightdom-ingress
+  namespace: lightdom
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - lightdom.example.com
+    secretName: lightdom-tls
+  rules:
+  - host: lightdom.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: lightdom-frontend-service
+            port:
+              number: 80
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: lightdom-api-service
+            port:
+              number: 3001
+      - path: /monitoring
+        pathType: Prefix
+        backend:
+          service:
+            name: lightdom-api-service
+            port:
+              number: 9090
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: lightdom-api-hpa
+  namespace: lightdom
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: lightdom-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: lightdom-api-pdb
+  namespace: lightdom
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: lightdom-api

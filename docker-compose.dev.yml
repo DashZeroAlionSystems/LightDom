@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (Development)
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: lightdom-postgres-dev
+    environment:
+      POSTGRES_DB: lightdom_dev
+      POSTGRES_USER: lightdom_user
+      POSTGRES_PASSWORD: lightdom_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    networks:
+      - lightdom-dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lightdom_user -d lightdom_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache (Development)
+  redis-dev:
+    image: redis:7-alpine
+    container_name: lightdom-redis-dev
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - lightdom-dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # n8n Workflow Automation (Development)
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: lightdom-n8n
+    restart: unless-stopped
+    environment:
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: admin
+      N8N_BASIC_AUTH_PASSWORD: admin
+      N8N_HOST: n8n
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:5678/
+      NODE_FUNCTION_ALLOW_EXTERNAL: pg, redis
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+      redis-dev:
+        condition: service_healthy
+    networks:
+      - lightdom-dev-network
+
+  # Development Application
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: lightdom-app-dev
+    environment:
+      # Database Configuration
+      DATABASE_URL: postgresql://lightdom_user:lightdom_password@postgres-dev:5432/lightdom_dev
+      DB_HOST: postgres-dev
+      DB_PORT: 5432
+      DB_NAME: lightdom_dev
+      DB_USER: lightdom_user
+      DB_PASSWORD: lightdom_password
+      
+      # Redis Configuration
+      REDIS_URL: redis://redis-dev:6379
+      REDIS_HOST: redis-dev
+      REDIS_PORT: 6379
+      
+      # Application Configuration
+      NODE_ENV: development
+      PORT: 3001
+      FRONTEND_PORT: 3000
+      
+      # Development Settings
+      DEBUG: true
+      LOG_LEVEL: debug
+      
+      # Blockchain Configuration (Testnet)
+      ETHEREUM_RPC_URL: https://goerli.infura.io/v3/your-infura-key
+      POLYGON_RPC_URL: https://polygon-mumbai.infura.io/v3/your-infura-key
+      
+      # Security (Development keys)
+      JWT_SECRET: dev-jwt-secret-key
+      API_SECRET: dev-api-secret-key
+      
+      # Puppeteer Configuration
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - app_dev_logs:/app/logs
+      - app_dev_artifacts:/app/artifacts
+      - app_dev_temp:/app/temp
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+      redis-dev:
+        condition: service_healthy
+      n8n:
+        condition: service_started
+    networks:
+      - lightdom-dev-network
+    command: ["npm", "run", "dev"]
+    restart: unless-stopped
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+  app_dev_logs:
+    driver: local
+  app_dev_artifacts:
+    driver: local
+  app_dev_temp:
+    driver: local
+  n8n_data:
+    driver: local
+
+networks:
+  lightdom-dev-network:
+    driver: bridge

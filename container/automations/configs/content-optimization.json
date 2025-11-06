@@ -1,0 +1,158 @@
+{
+  "name": "Content Quality Optimization",
+  "description": "Analyze existing content and generate optimization recommendations",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "id": "fetch_content",
+      "name": "Fetch All Content",
+      "type": "api_call",
+      "method": "GET",
+      "endpoint": "http://localhost:3000/api/entities",
+      "input": {
+        "entityType": "Content",
+        "limit": 1000
+      },
+      "onFailure": "abort",
+      "timeout": 30000
+    },
+    {
+      "id": "analyze_quality",
+      "name": "Analyze Content Quality",
+      "type": "loop",
+      "input": {
+        "items": "${previousResults.fetch_content.entities}"
+      },
+      "subtasks": [
+        {
+          "id": "seo_analysis",
+          "name": "SEO Analysis",
+          "type": "enrichment",
+          "enrichmentType": "seo-analysis",
+          "input": {
+            "entityIds": ["${loopItem.id}"],
+            "config": {
+              "analyze_keywords": true,
+              "analyze_readability": true,
+              "analyze_structure": true
+            }
+          },
+          "timeout": 30000
+        },
+        {
+          "id": "ai_review",
+          "name": "AI Content Review",
+          "type": "enrichment",
+          "enrichmentType": "ai-summary",
+          "input": {
+            "entityIds": ["${loopItem.id}"],
+            "config": {
+              "model": "deepseek-chat",
+              "prompt": "Review this content for SEO quality, readability, and engagement. Provide specific improvement suggestions.",
+              "temperature": 0.5
+            }
+          },
+          "timeout": 60000
+        },
+        {
+          "id": "calculate_score",
+          "name": "Calculate Quality Score",
+          "type": "data_transformation",
+          "transformation": "custom",
+          "function": "(data) => { const seo = data.seo_analysis || {}; const ai = data.ai_review || {}; return { content_id: data.content_id, quality_score: (seo.score * 0.6 + (ai.sentiment || 50) * 0.4), improvements: ai.suggestions || [] }; }",
+          "input": {
+            "data": {
+              "content_id": "${loopItem.id}",
+              "seo_analysis": "${previousResults.seo_analysis}",
+              "ai_review": "${previousResults.ai_review}"
+            }
+          }
+        }
+      ],
+      "onFailure": "continue"
+    },
+    {
+      "id": "prioritize_improvements",
+      "name": "Prioritize Content for Improvement",
+      "type": "data_transformation",
+      "transformation": "filter",
+      "predicate": { "quality_score": { "$lt": 70 } },
+      "input": {
+        "data": "${previousResults.analyze_quality.*.calculate_score}"
+      },
+      "onFailure": "continue"
+    },
+    {
+      "id": "generate_action_plan",
+      "name": "Generate Optimization Action Plan",
+      "type": "enrichment",
+      "enrichmentType": "ai-summary",
+      "input": {
+        "entityIds": ["${context.siteId}"],
+        "config": {
+          "model": "deepseek-chat",
+          "prompt": "Based on this content quality analysis, create a prioritized action plan for content optimization. Low quality items: ${previousResults.prioritize_improvements}",
+          "temperature": 0.7
+        }
+      },
+      "timeout": 120000,
+      "onFailure": "continue"
+    },
+    {
+      "id": "create_optimization_tasks",
+      "name": "Create Optimization Tasks",
+      "type": "loop",
+      "input": {
+        "items": "${previousResults.prioritize_improvements}"
+      },
+      "maxIterations": 50,
+      "subtasks": [
+        {
+          "id": "create_task",
+          "name": "Create Task for Content ${loopItem.content_id}",
+          "type": "api_call",
+          "method": "POST",
+          "endpoint": "http://localhost:3000/api/entities",
+          "input": {
+            "entityType": "OptimizationTask",
+            "data": {
+              "content_id": "${loopItem.content_id}",
+              "quality_score": "${loopItem.quality_score}",
+              "improvements": "${loopItem.improvements}",
+              "priority": "${loopItem.quality_score < 50 ? 'high' : 'medium'}",
+              "status": "pending",
+              "created_at": "${new Date().toISOString()}"
+            }
+          },
+          "timeout": 10000
+        }
+      ],
+      "onFailure": "continue"
+    },
+    {
+      "id": "save_optimization_report",
+      "name": "Save Optimization Report",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/entities",
+      "input": {
+        "entityType": "OptimizationReport",
+        "data": {
+          "total_content_analyzed": "${previousResults.fetch_content.entities.length}",
+          "needs_optimization": "${previousResults.prioritize_improvements.length}",
+          "action_plan": "${previousResults.generate_action_plan}",
+          "tasks_created": "${previousResults.create_optimization_tasks.length}",
+          "generated_at": "${new Date().toISOString()}"
+        }
+      },
+      "onSuccess": [
+        {
+          "type": "notify",
+          "message": "Content optimization: ${previousResults.prioritize_improvements.length} items need improvement"
+        }
+      ],
+      "onFailure": "retry",
+      "timeout": 15000
+    }
+  ]
+}

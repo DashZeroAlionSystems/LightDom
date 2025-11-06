@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Dev Container</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4757;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.ready {
+            background: #2ed573;
+        }
+
+        .status-dot.analyzing {
+            background: #ffa502;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #2d3436;
+            border-right: 1px solid #404040;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid #404040;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-menu {
+            padding: 0.5rem 0;
+        }
+
+        .menu-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background: #34495e;
+            border-left-color: #667eea;
+        }
+
+        .menu-item.active {
+            background: #34495e;
+            border-left-color: #667eea;
+        }
+
+        .menu-icon {
+            margin-right: 0.5rem;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: #2d3436;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border: 1px solid #404040;
+        }
+
+        .metric-title {
+            font-size: 0.9rem;
+            color: #a4b0be;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-change {
+            font-size: 0.8rem;
+            color: #2ed573;
+        }
+
+        .metric-change.negative {
+            color: #ff4757;
+        }
+
+        .analysis-section {
+            background: #2d3436;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #404040;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .action-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .action-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #404040;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .code-preview {
+            background: #1e1e1e;
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border: 1px solid #404040;
+        }
+
+        .optimization-list {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .optimization-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #34495e;
+            border-radius: 6px;
+            border: 1px solid #404040;
+        }
+
+        .optimization-info h4 {
+            margin-bottom: 0.25rem;
+            color: #ffffff;
+        }
+
+        .optimization-info p {
+            font-size: 0.8rem;
+            color: #a4b0be;
+        }
+
+        .optimization-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary {
+            background: #34495e;
+            color: #a4b0be;
+            border: 1px solid #404040;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #2c3e50;
+            color: #ffffff;
+        }
+
+        .container-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .container-status.ready {
+            background: rgba(46, 213, 115, 0.1);
+            color: #2ed573;
+            border: 1px solid rgba(46, 213, 115, 0.3);
+        }
+
+        .container-status.analyzing {
+            background: rgba(255, 165, 2, 0.1);
+            color: #ffa502;
+            border: 1px solid rgba(255, 165, 2, 0.3);
+        }
+
+        .container-status.error {
+            background: rgba(255, 71, 87, 0.1);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.3);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #404040;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">🚀 Enterprise Dev Container</div>
+                <div class="status-indicator">
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="status-text">Initializing...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">Navigation</div>
+                </div>
+                <nav class="sidebar-menu">
+                    <div class="menu-item active" data-view="dashboard">
+                        <span class="menu-icon">📊</span>
+                        Dashboard
+                    </div>
+                    <div class="menu-item" data-view="analysis">
+                        <span class="menu-icon">🔍</span>
+                        Code Analysis
+                    </div>
+                    <div class="menu-item" data-view="containers">
+                        <span class="menu-icon">🐳</span>
+                        Dev Containers
+                    </div>
+                    <div class="menu-item" data-view="optimizations">
+                        <span class="menu-icon">⚡</span>
+                        Optimizations
+                    </div>
+                    <div class="menu-item" data-view="monitoring">
+                        <span class="menu-icon">📈</span>
+                        Monitoring
+                    </div>
+                    <div class="menu-item" data-view="settings">
+                        <span class="menu-icon">⚙️</span>
+                        Settings
+                    </div>
+                </nav>
+            </aside>
+
+            <main class="content-area">
+                <!-- Dashboard View -->
+                <div id="dashboard-view" class="view active">
+                    <h1 style="margin-bottom: 2rem; color: #ffffff;">Dashboard Overview</h1>
+
+                    <div class="dashboard-grid">
+                        <div class="metric-card">
+                            <div class="metric-title">Code Quality Score</div>
+                            <div class="metric-value" id="quality-score">-</div>
+                            <div class="metric-change" id="quality-change">+2.1%</div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-title">Performance Index</div>
+                            <div class="metric-value" id="performance-score">-</div>
+                            <div class="metric-change" id="performance-change">+5.3%</div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-title">Active Containers</div>
+                            <div class="metric-value" id="active-containers">0</div>
+                            <div class="metric-change">Stable</div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-title">Optimizations Applied</div>
+                            <div class="metric-value" id="optimizations-applied">0</div>
+                            <div class="metric-change" id="optimizations-change">This session</div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Quick Actions</h2>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <button class="action-button" id="run-analysis-btn">
+                                🔍 Run Code Analysis
+                            </button>
+                            <button class="action-button" id="create-container-btn">
+                                🐳 Create Dev Container
+                            </button>
+                            <button class="action-button" id="optimize-btn">
+                                ⚡ Apply Optimizations
+                            </button>
+                            <button class="action-button" id="open-project-btn">
+                                📁 Open Project
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Container Status</h2>
+                        </div>
+                        <div class="container-status" id="container-status-display">
+                            <div class="loading-spinner"></div>
+                            <span>Checking container status...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis View -->
+                <div id="analysis-view" class="view">
+                    <h1 style="margin-bottom: 2rem; color: #ffffff;">Code Analysis</h1>
+
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Analysis Results</h2>
+                            <button class="action-button" id="run-full-analysis-btn">
+                                🔍 Run Full Analysis
+                            </button>
+                        </div>
+                        <div id="analysis-results">
+                            <p style="color: #a4b0be;">No analysis results available. Run analysis to get started.</p>
+                        </div>
+                    </div>
+
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Project Structure</h2>
+                        </div>
+                        <div id="project-structure">
+                            <p style="color: #a4b0be;">Project structure will appear here after analysis.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Containers View -->
+                <div id="containers-view" class="view">
+                    <h1 style="margin-bottom: 2rem; color: #ffffff;">Dev Containers</h1>
+
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Active Containers</h2>
+                            <button class="action-button" id="create-new-container-btn">
+                                ➕ Create New Container
+                            </button>
+                        </div>
+                        <div id="containers-list">
+                            <p style="color: #a4b0be;">No containers created yet.</p>
+                        </div>
+                    </div>
+
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Container Templates</h2>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                            <div class="metric-card">
+                                <h3 style="color: #667eea; margin-bottom: 1rem;">🚀 Performance Optimized</h3>
+                                <p style="color: #a4b0be; font-size: 0.9rem;">High-performance container with advanced caching and optimization.</p>
+                                <button class="action-button" style="margin-top: 1rem; width: 100%;">Use Template</button>
+                            </div>
+                            <div class="metric-card">
+                                <h3 style="color: #667eea; margin-bottom: 1rem;">🔒 Security Hardened</h3>
+                                <p style="color: #a4b0be; font-size: 0.9rem;">Enterprise-grade security with compliance monitoring.</p>
+                                <button class="action-button" style="margin-top: 1rem; width: 100%;">Use Template</button>
+                            </div>
+                            <div class="metric-card">
+                                <h3 style="color: #667eea; margin-bottom: 1rem;">📊 Analytics Focused</h3>
+                                <p style="color: #a4b0be; font-size: 0.9rem;">Built for data analysis with ML capabilities.</p>
+                                <button class="action-button" style="margin-top: 1rem; width: 100%;">Use Template</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optimizations View -->
+                <div id="optimizations-view" class="view">
+                    <h1 style="margin-bottom: 2rem; color: #ffffff;">Optimization Center</h1>
+
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Optimization Plan</h2>
+                            <button class="action-button" id="generate-plan-btn">
+                                📋 Generate Plan
+                            </button>
+                        </div>
+                        <div id="optimization-plan">
+                            <p style="color: #a4b0be;">Click "Generate Plan" to create an optimization strategy.</p>
+                        </div>
+                    </div>
+
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Applied Optimizations</h2>
+                        </div>
+                        <div id="applied-optimizations">
+                            <p style="color: #a4b0be;">No optimizations applied yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monitoring View -->
+                <div id="monitoring-view" class="view">
+                    <h1 style="margin-bottom: 2rem; color: #ffffff;">Performance Monitoring</h1>
+
+                    <div class="dashboard-grid">
+                        <div class="metric-card">
+                            <div class="metric-title">Memory Usage</div>
+                            <div class="metric-value" id="memory-usage">0 MB</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="memory-bar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-title">CPU Usage</div>
+                            <div class="metric-value" id="cpu-usage">0%</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="cpu-bar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-title">Active Processes</div>
+                            <div class="metric-value" id="active-processes">0</div>
+                            <div class="metric-change">Stable</div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-title">Network I/O</div>
+                            <div class="metric-value" id="network-io">0 KB/s</div>
+                            <div class="metric-change">Normal</div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Real-time Logs</h2>
+                            <button class="action-button" id="clear-logs-btn">
+                                🗑️ Clear Logs
+                            </button>
+                        </div>
+                        <div id="logs-container" style="background: #1e1e1e; padding: 1rem; border-radius: 6px; height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;">
+                            <div style="color: #667eea;">[INFO] Enterprise container monitoring started...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings View -->
+                <div id="settings-view" class="view">
+                    <h1 style="margin-bottom: 2rem; color: #ffffff;">Settings</h1>
+
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Container Configuration</h2>
+                        </div>
+                        <div style="display: grid; gap: 1rem;">
+                            <label style="display: flex; align-items: center; gap: 1rem;">
+                                <input type="checkbox" id="auto-optimization" checked>
+                                <span>Enable automatic optimization</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 1rem;">
+                                <input type="checkbox" id="real-time-monitoring" checked>
+                                <span>Enable real-time monitoring</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 1rem;">
+                                <input type="checkbox" id="self-healing" checked>
+                                <span>Enable self-healing capabilities</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="analysis-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Analysis Preferences</h2>
+                        </div>
+                        <div style="display: grid; gap: 1rem;">
+                            <label style="display: flex; align-items: center; gap: 1rem;">
+                                <input type="checkbox" id="deep-analysis" checked>
+                                <span>Enable deep code analysis</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 1rem;">
+                                <input type="checkbox" id="performance-profiling">
+                                <span>Enable performance profiling</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 1rem;">
+                                <input type="checkbox" id="security-scanning" checked>
+                                <span>Enable security scanning</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Enterprise Dev Container Frontend Application
+        class EnterpriseContainerApp {
+            constructor() {
+                this.currentView = 'dashboard';
+                this.analysisResults = null;
+                this.containerStatus = 'initializing';
+                this.optimizationCycle = null;
+
+                this.initializeApp();
+                this.setupEventListeners();
+                this.startMonitoring();
+            }
+
+            async initializeApp() {
+                console.log('🎯 Initializing Enterprise Container App...');
+
+                try {
+                    // Get initial container status
+                    const status = await window.electronAPI.getContainerStatus();
+                    this.updateContainerStatus(status);
+
+                    // Setup navigation
+                    this.setupNavigation();
+
+                    console.log('✅ App initialized successfully');
+
+                } catch (error) {
+                    console.error('❌ App initialization failed:', error);
+                    this.showError('Failed to initialize application');
+                }
+            }
+
+            setupEventListeners() {
+                // Navigation
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const view = e.currentTarget.dataset.view;
+                        this.switchView(view);
+                    });
+                });
+
+                // Dashboard actions
+                document.getElementById('run-analysis-btn').addEventListener('click', () => this.runAnalysis());
+                document.getElementById('create-container-btn').addEventListener('click', () => this.createContainer());
+                document.getElementById('optimize-btn').addEventListener('click', () => this.applyOptimizations());
+                document.getElementById('open-project-btn').addEventListener('click', () => this.openProject());
+
+                // Analysis actions
+                document.getElementById('run-full-analysis-btn').addEventListener('click', () => this.runFullAnalysis());
+
+                // Container actions
+                document.getElementById('create-new-container-btn').addEventListener('click', () => this.createNewContainer());
+
+                // Optimization actions
+                document.getElementById('generate-plan-btn').addEventListener('click', () => this.generateOptimizationPlan());
+
+                // Monitoring actions
+                document.getElementById('clear-logs-btn').addEventListener('click', () => this.clearLogs());
+
+                // IPC event listeners
+                window.electronAPI.onContainerStatus((event, status) => {
+                    this.updateContainerStatus(status);
+                });
+
+                window.electronAPI.onOptimizationCompleted((event, data) => {
+                    this.showOptimizationNotification(data);
+                });
+
+                // Menu triggers
+                window.electronAPI.onTriggerAnalysis(() => this.runAnalysis());
+                window.electronAPI.onTriggerContainerCreation(() => this.createContainer());
+                window.electronAPI.onTriggerProjectOpen(() => this.openProject());
+                window.electronAPI.onTriggerPerformanceProfiling(() => this.switchView('monitoring'));
+                window.electronAPI.onTriggerDependencyAnalysis(() => this.runAnalysis());
+                window.electronAPI.onTriggerContainerStart(() => this.startContainer());
+                window.electronAPI.onTriggerContainerStop(() => this.stopContainer());
+                window.electronAPI.onTriggerContainerMonitor(() => this.switchView('monitoring'));
+                window.electronAPI.onTriggerContainerOptimize(() => this.applyOptimizations());
+            }
+
+            setupNavigation() {
+                // Highlight active menu item
+                this.switchView('dashboard');
+            }
+
+            switchView(viewName) {
+                // Update active menu item
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
+
+                // Show selected view
+                document.querySelectorAll('.view').forEach(view => {
+                    view.classList.remove('active');
+                });
+                document.getElementById(`${viewName}-view`).classList.add('active');
+
+                this.currentView = viewName;
+            }
+
+            updateContainerStatus(status) {
+                this.containerStatus = status.status;
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                const statusDisplay = document.getElementById('container-status-display');
+
+                // Update status indicator
+                statusDot.className = 'status-dot';
+                if (status.status === 'ready') {
+                    statusDot.classList.add('ready');
+                    statusText.textContent = 'Ready';
+                    statusDisplay.className = 'container-status ready';
+                    statusDisplay.innerHTML = '✅ Container ready and operational';
+                } else if (status.status === 'analyzing') {
+                    statusDot.classList.add('analyzing');
+                    statusText.textContent = 'Analyzing...';
+                    statusDisplay.className = 'container-status analyzing';
+                    statusDisplay.innerHTML = '<div class="loading-spinner"></div> Analyzing codebase...';
+                } else if (status.status === 'error') {
+                    statusText.textContent = 'Error';
+                    statusDisplay.className = 'container-status error';
+                    statusDisplay.innerHTML = '❌ Container error - check logs';
+                } else {
+                    statusText.textContent = 'Initializing...';
+                    statusDisplay.className = 'container-status';
+                    statusDisplay.innerHTML = '<div class="loading-spinner"></div> Initializing container...';
+                }
+
+                // Update metrics
+                this.updateMetrics(status);
+            }
+
+            updateMetrics(status) {
+                // Update dashboard metrics based on status
+                const qualityScore = document.getElementById('quality-score');
+                const performanceScore = document.getElementById('performance-score');
+                const activeContainers = document.getElementById('active-containers');
+                const optimizationsApplied = document.getElementById('optimizations-applied');
+
+                if (this.analysisResults) {
+                    qualityScore.textContent = this.analysisResults.codeQuality?.qualityScore || '-';
+                    performanceScore.textContent = this.analysisResults.performance?.overallScore || '-';
+                }
+
+                activeContainers.textContent = status.managerReady ? '1' : '0';
+                optimizationsApplied.textContent = '0'; // Will be updated when optimizations are applied
+            }
+
+            async runAnalysis() {
+                this.showLoading('Running code analysis...');
+
+                try {
+                    const result = await window.electronAPI.runCodeAnalysis();
+
+                    if (result.success) {
+                        this.analysisResults = result.analysis;
+                        this.displayAnalysisResults(result.analysis);
+                        this.showSuccess('Analysis completed successfully');
+                    } else {
+                        this.showError(result.error || 'Analysis failed');
+                    }
+                } catch (error) {
+                    this.showError('Failed to run analysis: ' + error.message);
+                }
+
+                this.hideLoading();
+            }
+
+            async runFullAnalysis() {
+                await this.runAnalysis();
+            }
+
+            displayAnalysisResults(analysis) {
+                const resultsContainer = document.getElementById('analysis-results');
+                const structureContainer = document.getElementById('project-structure');
+
+                // Display analysis summary
+                resultsContainer.innerHTML = `
+                    <div style="margin-bottom: 1rem;">
+                        <h3 style="color: #667eea; margin-bottom: 1rem;">Analysis Summary</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div style="background: #34495e; padding: 1rem; border-radius: 6px;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #2ed573;">${analysis.projectStructure?.files?.length || 0}</div>
+                                <div style="color: #a4b0be; font-size: 0.9rem;">Files Analyzed</div>
+                            </div>
+                            <div style="background: #34495e; padding: 1rem; border-radius: 6px;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #ffa502;">${analysis.codeQuality?.typescriptErrors || 0}</div>
+                                <div style="color: #a4b0be; font-size: 0.9rem;">TypeScript Errors</div>
+                            </div>
+                            <div style="background: #34495e; padding: 1rem; border-radius: 6px;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #ff4757;">${analysis.optimizationOpportunities?.length || 0}</div>
+                                <div style="color: #a4b0be; font-size: 0.9rem;">Optimization Opportunities</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 style="color: #ffffff; margin-bottom: 0.5rem;">Key Findings:</h4>
+                        <ul style="color: #a4b0be; padding-left: 1.5rem;">
+                            <li>Codebase contains ${analysis.projectStructure?.directories?.length || 0} directories</li>
+                            <li>Maintainability index: ${analysis.codeQuality?.maintainabilityIndex || 'N/A'}/100</li>
+                            <li>Performance bottlenecks identified: ${analysis.performance?.bottlenecks?.length || 0}</li>
+                        </ul>
+                    </div>
+                `;
+
+                // Display project structure
+                structureContainer.innerHTML = `
+                    <div style="margin-bottom: 1rem;">
+                        <h4 style="color: #ffffff; margin-bottom: 0.5rem;">Directory Structure:</h4>
+                        <div class="code-preview">
+${this.formatProjectStructure(analysis.projectStructure)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            formatProjectStructure(structure) {
+                if (!structure.directories) return 'No structure data available';
+
+                let output = '';
+                structure.directories.slice(0, 10).forEach(dir => {
+                    output += `${dir.path}/ (${this.formatBytes(dir.size)})\n`;
+                });
+
+                if (structure.directories.length > 10) {
+                    output += `... and ${structure.directories.length - 10} more directories\n`;
+                }
+
+                return output;
+            }
+
+            async createContainer() {
+                if (!this.analysisResults) {
+                    this.showError('Please run analysis first to create a container');
+                    return;
+                }
+
+                this.showLoading('Creating optimized dev container...');
+
+                try {
+                    const result = await window.electronAPI.createDevContainer(this.analysisResults);
+
+                    if (result.success) {
+                        this.showSuccess('Dev container created successfully!');
+                        this.displayContainerInfo(result.container);
+                    } else {
+                        this.showError(result.error || 'Failed to create container');
+                    }
+                } catch (error) {
+                    this.showError('Failed to create container: ' + error.message);
+                }
+
+                this.hideLoading();
+            }
+
+            async createNewContainer() {
+                await this.createContainer();
+            }
+
+            displayContainerInfo(container) {
+                const containerList = document.getElementById('containers-list');
+                containerList.innerHTML = `
+                    <div class="metric-card fade-in">
+                        <h3 style="color: #667eea; margin-bottom: 1rem;">${container.name}</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;">
+                            <div><strong>Status:</strong> Created</div>
+                            <div><strong>Features:</strong> ${container.features?.length || 0}</div>
+                            <div><strong>Optimization:</strong> ${container.optimizationLevel}</div>
+                            <div><strong>Monitoring:</strong> ${container.monitoring ? 'Yes' : 'No'}</div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="action-button" onclick="startContainer('${container.name}')">
+                                🚀 Start
+                            </button>
+                            <button class="btn-secondary" onclick="optimizeContainer('${container.name}')">
+                                ⚡ Optimize
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            async applyOptimizations() {
+                this.showLoading('Applying optimizations...');
+
+                try {
+                    const plan = await window.electronAPI.getOptimizationPlan();
+
+                    if (plan.success && plan.plan.automated.length > 0) {
+                        for (const optimization of plan.plan.automated) {
+                            await window.electronAPI.applyOptimization(optimization);
+                        }
+
+                        this.showSuccess(`${plan.plan.automated.length} optimizations applied successfully!`);
+                        this.displayOptimizationResults(plan.plan);
+                    } else {
+                        this.showSuccess('No automated optimizations available');
+                    }
+                } catch (error) {
+                    this.showError('Failed to apply optimizations: ' + error.message);
+                }
+
+                this.hideLoading();
+            }
+
+            async generateOptimizationPlan() {
+                const planContainer = document.getElementById('optimization-plan');
+
+                try {
+                    const result = await window.electronAPI.getOptimizationPlan();
+
+                    if (result.success) {
+                        this.displayOptimizationPlan(result.plan);
+                    } else {
+                        planContainer.innerHTML = '<p style="color: #ff4757;">Failed to generate optimization plan</p>';
+                    }
+                } catch (error) {
+                    planContainer.innerHTML = '<p style="color: #ff4757;">Error generating plan: ' + error.message + '</p>';
+                }
+            }
+
+            displayOptimizationPlan(plan) {
+                const planContainer = document.getElementById('optimization-plan');
+
+                let html = '<div class="optimization-list">';
+
+                ['immediate', 'shortTerm', 'longTerm', 'automated'].forEach(category => {
+                    if (plan[category] && plan[category].length > 0) {
+                        html += `<h4 style="color: #667eea; margin: 1rem 0 0.5rem 0;">${this.formatCategoryName(category)}</h4>`;
+
+                        plan[category].forEach(opt => {
+                            html += `
+                                <div class="optimization-item">
+                                    <div class="optimization-info">
+                                        <h4>${opt.action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h4>
+                                        <p>${opt.description}</p>
+                                    </div>
+                                    <div class="optimization-actions">
+                                        <span style="color: ${this.getPriorityColor(opt.priority || 'medium')};">${(opt.priority || 'medium').toUpperCase()}</span>
+                                        <button class="btn-secondary" onclick="applySingleOptimization('${opt.action}')">
+                                            Apply
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                });
+
+                html += '</div>';
+                planContainer.innerHTML = html;
+            }
+
+            displayOptimizationResults(plan) {
+                const appliedContainer = document.getElementById('applied-optimizations');
+                appliedContainer.innerHTML = `
+                    <div class="fade-in">
+                        <p style="color: #2ed573; margin-bottom: 1rem;">✅ ${plan.automated.length} optimizations applied successfully</p>
+                        <ul style="color: #a4b0be; padding-left: 1.5rem;">
+                            ${plan.automated.map(opt => `<li>${opt.action.replace(/_/g, ' ')}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+
+                // Update metrics
+                document.getElementById('optimizations-applied').textContent = plan.automated.length;
+            }
+
+            async openProject() {
+                try {
+                    const result = await window.electronAPI.openProjectDialog();
+
+                    if (result.success) {
+                        this.showSuccess(`Project opened: ${result.path}`);
+                        // Could trigger automatic analysis here
+                    }
+                } catch (error) {
+                    this.showError('Failed to open project: ' + error.message);
+                }
+            }
+
+            startMonitoring() {
+                // Update monitoring data every 5 seconds
+                setInterval(() => {
+                    this.updateMonitoringData();
+                }, 5000);
+
+                // Add log entry
+                this.addLogEntry('[INFO] Monitoring system started');
+            }
+
+            updateMonitoringData() {
+                // Simulate monitoring data
+                const memoryUsage = Math.floor(Math.random() * 100) + 200; // 200-300 MB
+                const cpuUsage = Math.floor(Math.random() * 30) + 10; // 10-40%
+                const activeProcesses = Math.floor(Math.random() * 5) + 3; // 3-8 processes
+                const networkIO = Math.floor(Math.random() * 50) + 10; // 10-60 KB/s
+
+                document.getElementById('memory-usage').textContent = `${memoryUsage} MB`;
+                document.getElementById('memory-bar').style.width = `${Math.min(100, (memoryUsage / 500) * 100)}%`;
+
+                document.getElementById('cpu-usage').textContent = `${cpuUsage}%`;
+                document.getElementById('cpu-bar').style.width = `${cpuUsage}%`;
+
+                document.getElementById('active-processes').textContent = activeProcesses;
+                document.getElementById('network-io').textContent = `${networkIO} KB/s`;
+
+                // Add occasional log entries
+                if (Math.random() < 0.1) {
+                    this.addLogEntry(`[INFO] Performance check - Memory: ${memoryUsage}MB, CPU: ${cpuUsage}%`);
+                }
+            }
+
+            addLogEntry(message) {
+                const logsContainer = document.getElementById('logs-container');
+                const logEntry = document.createElement('div');
+                logEntry.style.color = '#a4b0be';
+                logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+                logsContainer.appendChild(logEntry);
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+
+                // Limit log entries to prevent memory issues
+                while (logsContainer.children.length > 100) {
+                    logsContainer.removeChild(logsContainer.firstChild);
+                }
+            }
+
+            clearLogs() {
+                document.getElementById('logs-container').innerHTML = '';
+                this.addLogEntry('[INFO] Logs cleared by user');
+            }
+
+            showOptimizationNotification(data) {
+                this.showSuccess(`${data.optimizationsApplied} optimizations applied automatically`);
+                this.addLogEntry(`[INFO] Self-optimization cycle completed: ${data.optimizationsApplied} optimizations applied`);
+            }
+
+            showLoading(message) {
+                // Simple loading indicator
+                const loading = document.createElement('div');
+                loading.id = 'loading-overlay';
+                loading.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.8);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 9999;
+                    color: white;
+                    font-size: 1.2rem;
+                `;
+                loading.innerHTML = `
+                    <div style="text-align: center;">
+                        <div class="loading-spinner" style="margin: 0 auto 1rem;"></div>
+                        <div>${message}</div>
+                    </div>
+                `;
+                document.body.appendChild(loading);
+            }
+
+            hideLoading() {
+                const loading = document.getElementById('loading-overlay');
+                if (loading) {
+                    loading.remove();
+                }
+            }
+
+            showSuccess(message) {
+                this.showNotification(message, 'success');
+            }
+
+            showError(message) {
+                this.showNotification(message, 'error');
+                this.addLogEntry(`[ERROR] ${message}`);
+            }
+
+            showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 1rem;
+                    border-radius: 6px;
+                    color: white;
+                    font-weight: 500;
+                    z-index: 10000;
+                    animation: fadeIn 0.3s ease-out;
+                    max-width: 400px;
+                `;
+
+                if (type === 'success') {
+                    notification.style.background = 'linear-gradient(135deg, #2ed573 0%, #28a745 100%)';
+                } else {
+                    notification.style.background = 'linear-gradient(135deg, #ff4757 0%, #dc3545 100%)';
+                }
+
+                notification.textContent = message;
+
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'fadeOut 0.3s ease-out';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+
+            // Utility methods
+            formatCategoryName(category) {
+                const names = {
+                    immediate: 'Immediate Actions',
+                    shortTerm: 'Short-term Improvements',
+                    longTerm: 'Long-term Optimizations',
+                    automated: 'Automated Optimizations'
+                };
+                return names[category] || category;
+            }
+
+            getPriorityColor(priority) {
+                const colors = {
+                    critical: '#ff4757',
+                    high: '#ffa502',
+                    medium: '#3742fa',
+                    low: '#2ed573'
+                };
+                return colors[priority] || '#a4b0be';
+            }
+
+            formatBytes(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+        }
+
+        // Global functions for button clicks
+        window.startContainer = async (containerName) => {
+            try {
+                const result = await window.electronAPI.startContainer(containerName);
+                if (result.success) {
+                    app.showSuccess(`Container ${containerName} started successfully`);
+                } else {
+                    app.showError(result.error || 'Failed to start container');
+                }
+            } catch (error) {
+                app.showError('Failed to start container: ' + error.message);
+            }
+        };
+
+        window.optimizeContainer = async (containerName) => {
+            try {
+                const result = await window.electronAPI.optimizeContainer(containerName);
+                if (result.success) {
+                    app.showSuccess(`Container ${containerName} optimized successfully`);
+                } else {
+                    app.showError(result.error || 'Failed to optimize container');
+                }
+            } catch (error) {
+                app.showError('Failed to optimize container: ' + error.message);
+            }
+        };
+
+        window.applySingleOptimization = async (optimizationAction) => {
+            try {
+                const result = await window.electronAPI.applyOptimization({ action: optimizationAction });
+                if (result.success) {
+                    app.showSuccess(`Optimization "${optimizationAction}" applied successfully`);
+                } else {
+                    app.showError(result.error || 'Failed to apply optimization');
+                }
+            } catch (error) {
+                app.showError('Failed to apply optimization: ' + error.message);
+            }
+        };
+
+        // Initialize the application
+        const app = new EnterpriseContainerApp();
+
+        console.log('🚀 Enterprise Dev Container Frontend Loaded');
+    </script>
+</body>
+</html>

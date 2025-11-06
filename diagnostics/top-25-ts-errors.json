@@ -1,0 +1,102 @@
+[
+  {
+    "file": "Property 'titleStyle' does not exist on type 'IntrinsicAttributes & AriaAttributes & { [key",
+    "count": 12
+  },
+  {
+    "file": "Property 'animations' does not exist on type '{ colors",
+    "count": 6
+  },
+  {
+    "file": "Property 'success' does not exist on type '{ primary",
+    "count": 4
+  },
+  {
+    "file": "Type '{ key",
+    "count": 3
+  },
+  {
+    "file": "src/framework/index.ts(26,1)",
+    "count": 3
+  },
+  {
+    "file": "Property 'warning' does not exist on type '{ primary",
+    "count": 2
+  },
+  {
+    "file": "Property 'info' does not exist on type '{ primary",
+    "count": 2
+  },
+  {
+    "file": "Type '{ title",
+    "count": 2
+  },
+  {
+    "file": "Types of property 'target' are incompatible.\r\n      Type '() => Element' is not assignable to type 'HTMLElement | (() => HTMLElement) | (() => null)'.\r\n        Type '() => Element' is not assignable to type '() => HTMLElement'.\r\n          Type 'Element' is missing the following properties from type 'HTMLElement'",
+    "count": 2
+  },
+  {
+    "file": "Its type 'new (text?",
+    "count": 2
+  },
+  {
+    "file": "Type 'new (text?",
+    "count": 2
+  },
+  {
+    "file": "Type 'HTMLOptionElement' is missing the following properties from type 'Component<any, any, any>'",
+    "count": 2
+  },
+  {
+    "file": "Type 'import(\"E",
+    "count": 2
+  },
+  {
+    "file": "Types of property 'general' are incompatible.\r\n      Type 'GeneralSettings' is missing the following properties from type 'GeneralSettings'",
+    "count": 2
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx(437,3)",
+    "count": 2
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx(438,3)",
+    "count": 2
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx(439,3)",
+    "count": 2
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx(440,3)",
+    "count": 2
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx(441,3)",
+    "count": 2
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx(442,3)",
+    "count": 2
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx(443,3)",
+    "count": 2
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx(444,3)",
+    "count": 2
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx(445,3)",
+    "count": 2
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx(446,3)",
+    "count": 2
+  },
+  {
+    "file": "src/components/ui/DesignSystem.tsx(447,3)",
+    "count": 2
+  }
+]
