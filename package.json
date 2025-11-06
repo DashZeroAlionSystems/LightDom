@@ -144,7 +144,7 @@
     "onboard": "./scripts/onboarding.sh",
     "dev:auto": "./scripts/dev-automation.sh dev",
     "quick-start": "./scripts/onboarding.sh",
-    "dev:setup": "./scripts/setup-dev-environment.sh"
+    "dev:setup": "./scripts/setup-dev-environment.sh",
     "security:scan": "npm audit --audit-level=moderate",
     "security:audit": "npm audit",
     "security:pentest": "echo 'Security penetration testing would run here'",
