@@ -36,7 +36,215 @@ const PUSH_NOTIFY_WEBHOOK = process.env.PUSH_NOTIFY_WEBHOOK;
 const INCIDENT_WEBHOOK = process.env.ORCHESTRATOR_INCIDENT_ENDPOINT || 'http://localhost:3001/api/system/incidents';
 const STATUS_PORT = Number(process.env.ORCHESTRATOR_STATUS_PORT || 5050);
 
+const fsp = fs.promises;
+const MANIFEST_DIR = path.join(ROOT_DIR, 'config', 'service-manifests');
+const SERVICE_CONFIG_DIR = path.join(ROOT_DIR, 'config', 'service-configs');
+const FEATURE_FLAG_FILE = path.join(ROOT_DIR, 'config', 'features.json');
+
 const logPrefix = (serviceId) => `\x1b[36m[${serviceId}]\x1b[0m`;
+const ORCHESTRATOR_SCOPE = 'orchestrator';
+
+const isPlainObject = (value) => Object.prototype.toString.call(value) === '[object Object]';
+
+const buildRegistryIndex = (definitions) =>
+  Object.fromEntries(definitions.map((definition) => [definition.id, definition]));
+
+const createInitialState = (definition, previousState) => {
+  if (previousState) {
+    return { ...previousState, severity: previousState.severity ?? 'unknown', badgeColor: previousState.badgeColor ?? 'gray' };
+  }
+
+  return {
+    status: 'stopped',
+    restarts: 0,
+    lastError: null,
+    lastHealthy: null,
+    lastStarted: null,
+    process: null,
+    healthHistory: [],
+    remediation: [],
+    metrics: null,
+    lastExitCode: null,
+    lastFailureAt: null,
+    lastLatencyMs: null,
+    severity: 'unknown',
+    badgeColor: 'gray',
+  };
+};
+
+const buildInitialStateMap = (definitions, previousState = new Map()) => {
+  const nextState = new Map();
+  for (const definition of definitions) {
+    nextState.set(definition.id, createInitialState(definition, previousState.get(definition.id)));
+  }
+  return nextState;
+};
+
+const getMaxRestarts = (definition) => {
+  const candidate = definition?.restartPolicy?.maxRestarts;
+  return Number.isFinite(candidate) && candidate >= 0 ? candidate : MAX_RESTART_ATTEMPTS;
+};
+
+const computeBackoffDelay = (definition, restartCount) => {
+  const policy = definition?.restartPolicy ?? {};
+
+  if (Array.isArray(policy.backoffMs) && policy.backoffMs.length > 0) {
+    const index = Math.max(0, Math.min(restartCount - 1, policy.backoffMs.length - 1));
+    const value = policy.backoffMs[index];
+    if (Number.isFinite(value) && value >= 0) {
+      return value;
+    }
+  }
+
+  const baseDelay = Number.isFinite(policy.baseDelayMs) && policy.baseDelayMs > 0 ? policy.baseDelayMs : 2000;
+  const factor = Number.isFinite(policy.backoffFactor) && policy.backoffFactor > 0 ? policy.backoffFactor : 1.6;
+  const maxDelay = Number.isFinite(policy.maxDelayMs) && policy.maxDelayMs > 0 ? policy.maxDelayMs : 30000;
+
+  return Math.min(maxDelay, baseDelay * Math.pow(factor, Math.max(0, restartCount)));
+};
+
+const safeResolve = (relativePath, baseDir = ROOT_DIR) =>
+  relativePath && typeof relativePath === 'string' ? path.resolve(baseDir, relativePath) : undefined;
+
+const readOptionalFile = async (filePath) => {
+  if (!filePath) return undefined;
+  try {
+    const data = await fsp.readFile(filePath, 'utf8');
+    return data;
+  } catch (error) {
+    console.warn(`${logPrefix(ORCHESTRATOR_SCOPE)} Unable to read ${path.relative(ROOT_DIR, filePath)}:`, error.message);
+    return undefined;
+  }
+};
+
+async function loadJsonFile(filePath) {
+  const raw = await fsp.readFile(filePath, 'utf8');
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`Invalid JSON in ${path.relative(ROOT_DIR, filePath)}: ${error.message}`);
+  }
+}
+
+const validateManifest = (manifest, sourceLabel) => {
+  const errors = [];
+
+  if (!isPlainObject(manifest)) {
+    return [`Manifest must be an object (${sourceLabel})`];
+  }
+
+  if (!manifest.id || typeof manifest.id !== 'string') {
+    errors.push('Missing required "id" (string).');
+  }
+
+  if (!manifest.type || !['process', 'docker', 'oneshot'].includes(manifest.type)) {
+    errors.push('Invalid or missing "type". Supported: process | docker | oneshot.');
+  }
+
+  if (manifest.type === 'process' && (!manifest.command || typeof manifest.command !== 'string')) {
+    errors.push('Process services require a "command" string.');
+  }
+
+  if (manifest.type === 'docker' && (!manifest.start || typeof manifest.start !== 'object')) {
+    errors.push('Docker services require a "start" configuration.');
+  }
+
+  if (manifest.health && !isPlainObject(manifest.health)) {
+    errors.push('"health" should be an object when provided.');
+  }
+
+  return errors;
+};
+
+const manifestHealthToDefinition = (manifest = {}) => {
+  if (!manifest) return undefined;
+  const kind = manifest.kind || manifest.type;
+  if (!kind) return undefined;
+
+  const health = { type: kind };
+  if (manifest.url) health.url = manifest.url;
+  if (manifest.intervalMs) health.intervalMs = manifest.intervalMs;
+  if (manifest.timeoutMs) health.timeoutMs = manifest.timeoutMs;
+  return health;
+};
+
+const manifestToDefinition = async (manifest, manifestPath) => {
+  const cwd = manifest.cwd ? safeResolve(manifest.cwd) : ROOT_DIR;
+  const configSchemaPath = manifest.configSchema ? safeResolve(manifest.configSchema) : undefined;
+  const configPath = manifest.configPath ? safeResolve(manifest.configPath) : undefined;
+
+  if (configSchemaPath) {
+    try {
+      await fsp.access(configSchemaPath);
+    } catch (error) {
+      console.warn(
+        `${logPrefix(ORCHESTRATOR_SCOPE)} Config schema not accessible for ${manifest.id}: ${path.relative(
+          ROOT_DIR,
+          configSchemaPath,
+        )} (${error.message})`,
+      );
+    }
+  }
+
+  if (configPath) {
+    await readOptionalFile(configPath);
+  }
+
+  return {
+    id: manifest.id,
+    name: manifest.name || manifest.id,
+    type: manifest.type || 'process',
+    command: manifest.command,
+    args: Array.isArray(manifest.args) ? manifest.args : [],
+    cwd,
+    env: isPlainObject(manifest.env) ? manifest.env : undefined,
+    dependsOn: Array.isArray(manifest.dependsOn) ? manifest.dependsOn : undefined,
+    watch: Array.isArray(manifest.watch) ? manifest.watch : undefined,
+    health: manifestHealthToDefinition(manifest.health),
+    restartPolicy: manifest.restartPolicy,
+    featureFlags: Array.isArray(manifest.featureFlags) ? manifest.featureFlags : undefined,
+    bundle: manifest.bundle,
+    metadata: {
+      manifestPath,
+      configSchemaPath,
+      configPath,
+      tags: Array.isArray(manifest.tags) ? manifest.tags : undefined,
+    },
+    source: 'manifest',
+  };
+};
+
+async function loadServiceManifests() {
+  try {
+    const entries = await fsp.readdir(MANIFEST_DIR, { withFileTypes: true });
+    const definitions = [];
+
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith('.json')) continue;
+      const manifestPath = path.join(MANIFEST_DIR, entry.name);
+      try {
+        const manifest = await loadJsonFile(manifestPath);
+        const errors = validateManifest(manifest, entry.name);
+        if (errors.length) {
+          console.warn(`${logPrefix(ORCHESTRATOR_SCOPE)} Skipping manifest ${entry.name}: ${errors.join(' ')}`);
+          continue;
+        }
+        const definition = await manifestToDefinition(manifest, manifestPath);
+        definitions.push(definition);
+      } catch (error) {
+        console.error(`${logPrefix(ORCHESTRATOR_SCOPE)} Failed to load manifest ${entry.name}:`, error.message);
+      }
+    }
+
+    return definitions;
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return [];
+    }
+    console.error(`${logPrefix(ORCHESTRATOR_SCOPE)} Unable to read service manifests:`, error.message);
+    return [];
+  }
+}
 
 /**
  * Exec helpers
@@ -126,9 +334,9 @@ async function fetchDeepSeekSuggestions(serviceName, errorMessage) {
 }
 
 /**
- * Service registry definition
+ * Built-in service definitions (fallback when no manifest is provided)
  */
-const serviceRegistry = [
+const BUILTIN_SERVICE_DEFINITIONS = [
   {
     id: 'api',
     name: 'LightDom API',
@@ -224,30 +432,28 @@ const serviceRegistry = [
   },
 ];
 
-const registryById = Object.fromEntries(serviceRegistry.map((service) => [service.id, service]));
+let serviceRegistry = [];
+let registryById = {};
+let serviceState = new Map();
 
-const serviceState = new Map();
+async function initialiseServiceRegistry() {
+  const manifestDefinitions = await loadServiceManifests();
+  if (manifestDefinitions.length > 0) {
+    console.log(`${logPrefix(ORCHESTRATOR_SCOPE)} Loaded ${manifestDefinitions.length} manifest service(s).`);
+  } else {
+    console.log(`${logPrefix(ORCHESTRATOR_SCOPE)} No service manifests found. Falling back to built-in defaults.`);
+  }
 
-/**
- * Initialise state entries
- */
-for (const definition of serviceRegistry) {
-  serviceState.set(definition.id, {
-    status: 'stopped',
-    restarts: 0,
-    lastError: null,
-    lastHealthy: null,
-    lastStarted: null,
-    process: null,
-    healthHistory: [],
-    remediation: [],
-    metrics: null,
-    lastExitCode: null,
-    lastFailureAt: null,
-    lastLatencyMs: null,
-    severity: 'unknown',
-    badgeColor: 'gray',
-  });
+  const manifestIds = new Set(manifestDefinitions.map((definition) => definition.id));
+  const fallbackDefinitions = BUILTIN_SERVICE_DEFINITIONS.filter((definition) => !manifestIds.has(definition.id));
+  if (fallbackDefinitions.length > 0) {
+    console.log(`${logPrefix(ORCHESTRATOR_SCOPE)} Using ${fallbackDefinitions.length} built-in service definition(s).`);
+  }
+
+  const definitions = [...manifestDefinitions, ...fallbackDefinitions];
+  serviceRegistry = definitions;
+  registryById = buildRegistryIndex(definitions);
+  serviceState = buildInitialStateMap(definitions, serviceState);
 }
 
 function updateState(id, patch) {
@@ -704,7 +910,9 @@ async function performHealthCheck(definition) {
 function startHealthLoop() {
   setInterval(() => {
     for (const definition of serviceRegistry) {
-      performHealthCheck(definition);
+      if (definition.health) {
+        performHealthCheck(definition);
+      }
     }
   }, DEFAULT_HEALTH_INTERVAL);
 }
@@ -742,6 +950,8 @@ function startStatusServer() {
  */
 async function main() {
   console.log('🚀 Starting LightDom Orchestrator...');
+
+  await initialiseServiceRegistry();
 
   for (const definition of serviceRegistry) {
     startService(definition);

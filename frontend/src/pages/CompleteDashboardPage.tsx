@@ -24,8 +24,9 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import axios from 'axios';
 
-import { ServiceActionBar, ServiceActionButton, Divider, PromptSidebar } from '@/components/ui';
-import { PromptInput } from '@/components/ui/PromptInput';
+import { ServiceActionBar, ServiceActionButton, Divider } from '@/components/ui';
+import PromptConversationPanel, { PromptWorkflowListItem } from '@/components/dashboard/PromptConversationPanel';
+import type { PromptToken, PromptAction } from '@/components/ui/PromptInput';
 
 interface ServiceStatus {
   [key: string]: any;
@@ -60,6 +61,37 @@ interface ServiceTab {
   Icon: LucideIcon;
   description: string;
 }
+
+type SurfaceTab = 'operations' | 'prompts' | 'workflows' | 'automation';
+
+interface TabMetadata {
+  label: string;
+  Icon: LucideIcon;
+  description: string;
+}
+
+const TAB_METADATA: Record<SurfaceTab, TabMetadata> = {
+  operations: {
+    label: 'Operations',
+    Icon: Settings2,
+    description: 'Manage dashboard operations.',
+  },
+  prompts: {
+    label: 'Prompts',
+    Icon: MessageCircle,
+    description: 'View and manage prompts.',
+  },
+  workflows: {
+    label: 'Workflows',
+    Icon: Code,
+    description: 'Manage workflows.',
+  },
+  automation: {
+    label: 'Automation',
+    Icon: Wrench,
+    description: 'Configure automation settings.',
+  },
+};
 
 const SERVICE_TABS: ServiceTab[] = [
   {
@@ -106,9 +138,12 @@ export const CompleteDashboardPage: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activeService, setActiveService] = useState<ServiceKey>('crawler');
+  const [surfaceTab, setSurfaceTab] = useState<SurfaceTab>('operations');
   const [generatingPrompt, setGeneratingPrompt] = useState(false);
   const [promptConversation, setPromptConversation] = useState<PromptChatEntry[]>([]);
   const [promptError, setPromptError] = useState<string | null>(null);
+  const [promptWorkflowSummaries, setPromptWorkflowSummaries] = useState<PromptWorkflowListItem[]>([]);
+  const [promptWorkflowLoading, setPromptWorkflowLoading] = useState(false);
   const [databaseActivity, setDatabaseActivity] = useState({
     isActive: false,
     lastActivity: new Date(),
@@ -117,13 +152,25 @@ export const CompleteDashboardPage: React.FC = () => {
   });
   const hasWarnedRef = useRef(false);
 
-  const { Shell: SidebarShell, Section: SidebarSection, Item: SidebarItem, Divider: SidebarDivider } = PromptSidebar;
-
-  const formatTimestamp = useCallback((iso: string) => {
+  const fetchPromptWorkflows = useCallback(async () => {
+    setPromptWorkflowLoading(true);
     try {
-      return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const response = await axios.get(`${API_BASE}/api/workflow-generator/config/summary`);
+      const setups = response.data?.setups ?? [];
+      const mapped: PromptWorkflowListItem[] = setups.map((setup: any) => ({
+        id: setup.id ?? setup.name ?? crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
+        name: setup.name ?? 'Untitled workflow',
+        description: setup.description,
+        schema: setup.schema ?? setup.schemaName,
+        status: setup.status ?? (setup.enabled === false ? 'disabled' : undefined),
+        configCount: Array.isArray(setup.configs) ? setup.configs.length : setup.configCount,
+        lastRun: setup.lastRun ? new Date(setup.lastRun).toLocaleString() : undefined,
+      }));
+      setPromptWorkflowSummaries(mapped);
     } catch (error) {
-      return iso;
+      console.warn('Failed to load workflow summaries for prompt panel:', error);
+    } finally {
+      setPromptWorkflowLoading(false);
     }
   }, []);
 
@@ -135,6 +182,10 @@ export const CompleteDashboardPage: React.FC = () => {
     }, 5000); // Update every 5 seconds
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    fetchPromptWorkflows();
+  }, [fetchPromptWorkflows]);
 
   const checkDatabaseActivity = async () => {
     try {
@@ -200,6 +251,7 @@ export const CompleteDashboardPage: React.FC = () => {
         context: 'dashboard-optimization'
       });
       fetchAllData();
+      fetchPromptWorkflows();
     } catch (error) {
       console.warn('Workflow generator unavailable:', error);
       setPromptError((prev) => prev ?? 'Workflow generator API is currently unavailable.');
@@ -377,23 +429,95 @@ export const CompleteDashboardPage: React.FC = () => {
     ? `${selectedTab.label} Service Online`
     : 'Awaiting backend response';
 
-  const latestAssistantSummary = useMemo(() => {
-    const replies = promptConversation.filter((entry) => entry.role === 'assistant');
-    return replies.length ? replies[replies.length - 1] : null;
-  }, [promptConversation]);
-
-  const recentMessages = useMemo(() => {
-    return [...promptConversation].slice(-8).reverse();
-  }, [promptConversation]);
-
-  const lastUserMessage = useMemo(() => {
-    const users = promptConversation.filter((entry) => entry.role === 'user');
-    return users.length ? users[users.length - 1] : null;
-  }, [promptConversation]);
-
   const databaseStatus = databaseActivity.isActive
     ? `DB Active (${databaseActivity.totalRows} rows, ${databaseActivity.activeTables.length} tables)`
     : 'DB Idle';
+
+  const promptTokens = useMemo<PromptToken[]>(() => (
+    [
+      {
+        id: 'service',
+        label: selectedTab.label,
+        tone: 'accent' as PromptToken['tone'],
+        icon: <Sparkles className="h-3.5 w-3.5" />,
+      },
+      {
+        id: 'database',
+        label: databaseActivity.isActive ? 'DB Active' : 'DB Idle',
+        tone: (databaseActivity.isActive ? 'accent' : 'default') as PromptToken['tone'],
+        icon: <Database className="h-3.5 w-3.5" />,
+      },
+      {
+        id: 'tables',
+        label: `${databaseActivity.activeTables.length} tables`,
+        icon: <CpuIcon className="h-3.5 w-3.5" />,
+      },
+    ]
+  ), [selectedTab.label, databaseActivity.isActive, databaseActivity.activeTables.length]);
+
+  const promptActions = useMemo<PromptAction[]>(() => (
+    [
+      {
+        id: 'refresh',
+        icon: <RefreshCw className="h-4 w-4" />,
+        label: 'Sync services',
+        onClick: () => fetchAllData(),
+      },
+      {
+        id: 'settings',
+        icon: <Settings2 className="h-4 w-4" />,
+        label: 'Service settings',
+      },
+    ]
+  ), [fetchAllData]);
+
+  const promptHeader = useMemo(() => ({
+    title: selectedTab.label,
+    subtitle: selectedTab.description,
+    leading: (
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <Sparkles className="h-5 w-5" />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold">{selectedTab.label} Agent</span>
+          <span className="text-xs text-on-surface-variant">Workflow composer</span>
+        </div>
+      </div>
+    ),
+    trailing: (
+      <div className="flex items-center gap-2 text-xs text-on-surface-variant/80">
+        <MessageCircle className="h-3.5 w-3.5" />
+        Live DeepSeek session
+      </div>
+    ),
+  }), [selectedTab.label, selectedTab.description]);
+
+  const surfaceTabs = useMemo(
+    () => [
+      {
+        id: 'operations' as SurfaceTab,
+        label: 'Operations overview',
+        description: 'Service health, metrics, and drill-down panels',
+      },
+      {
+        id: 'prompts' as SurfaceTab,
+        label: 'Prompts & feedback',
+        description: 'DeepSeek conversation, schemas, and live guidance',
+      },
+      {
+        id: 'workflows' as SurfaceTab,
+        label: 'Workflows & schemas',
+        description: 'Complex workflow lists with schema coverage',
+      },
+      {
+        id: 'automation' as SurfaceTab,
+        label: 'Automation studio',
+        description: 'Component generation and CRUD orchestration',
+      },
+    ],
+    [],
+  );
 
   return (
     <div className="space-y-6 p-6">
@@ -427,222 +551,232 @@ export const CompleteDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_minmax(22rem,1fr)]">
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <h2 className="mb-4 flex items-center gap-2 text-xl font-bold">
-            <Zap className="h-5 w-5 text-primary" />
-            AI Workflow Generator
-          </h2>
-          <PromptInput
-            onSend={handlePromptSend}
-            loading={generatingPrompt}
-            placeholder="Describe a workflow or dashboard optimization... (e.g., 'Optimize crawler for better SEO insights')"
-            className="w-full"
-            header={{
-              title: selectedTab.label,
-              subtitle: selectedTab.description,
-              leading: (
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold">{selectedTab.label} Agent</span>
-                    <span className="text-xs text-on-surface-variant">Workflow composer</span>
-                  </div>
-                </div>
-              ),
-              trailing: (
-                <div className="flex items-center gap-2 text-xs text-on-surface-variant/80">
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  Live DeepSeek session
-                </div>
-              )
-            }}
-            tokens={[
-              {
-                id: 'service',
-                label: selectedTab.label,
-                tone: 'accent',
-                icon: <Sparkles className="h-3.5 w-3.5" />
-              },
-              {
-                id: 'database',
-                label: databaseActivity.isActive ? 'DB Active' : 'DB Idle',
-                tone: databaseActivity.isActive ? 'accent' : 'default',
-                icon: <Database className="h-3.5 w-3.5" />
-              },
-              {
-                id: 'tables',
-                label: `${databaseActivity.activeTables.length} tables`,
-                icon: <CpuIcon className="h-3.5 w-3.5" />
-              }
-            ]}
-            actions={[
-              {
-                id: 'refresh',
-                icon: <RefreshCw className="h-4 w-4" />,
-                label: 'Sync services',
-                onClick: () => fetchAllData()
-              },
-              {
-                id: 'settings',
-                icon: <Settings2 className="h-4 w-4" />,
-                label: 'Service settings'
-              }
-            ]}
-            helperText="Use @ to reference data streams, # for campaigns, and /run to trigger workflows."
-            usage={`Shift + Enter for newline · Enter to send · ${databaseActivity.totalRows.toLocaleString()} rows indexed`}
-            maxLength={4000}
-          />
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          {surfaceTabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setSurfaceTab(tab.id)}
+              className={`rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                surfaceTab === tab.id ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card hover:border-primary/50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
+        <p className="text-sm text-on-surface-variant">
+          {surfaceTabs.find((tab) => tab.id === surfaceTab)?.description}
+        </p>
+      </div>
 
-        <SidebarShell className="border border-border bg-card shadow-none">
-          <SidebarSection
-            title="Latest response"
-            icon={<Sparkles className="h-4 w-4" />}
-            meta={latestAssistantSummary ? formatTimestamp(latestAssistantSummary.timestamp) : 'Awaiting response'}
-            tone="accent"
-            actions={
+      {surfaceTab === 'prompts' && (
+        <PromptConversationPanel
+          conversation={promptConversation}
+          loading={generatingPrompt}
+          promptError={promptError}
+          onSend={handlePromptSend}
+          onReset={() => {
+            setPromptConversation([]);
+            setPromptError(null);
+          }}
+          tokens={promptTokens}
+          header={promptHeader}
+          helperText="Use @ to reference data streams, # for campaigns, and /run to trigger workflows."
+          usage={`Shift + Enter for newline · Enter to send · ${databaseActivity.totalRows.toLocaleString()} rows indexed`}
+          actions={promptActions}
+          workflowItems={promptWorkflowSummaries}
+          workflowsLoading={promptWorkflowLoading}
+          onRefreshWorkflows={fetchPromptWorkflows}
+        />
+      )}
+
+      {surfaceTab === 'operations' && (
+        <>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {SERVICE_TABS.map(({ id, label, Icon, description }) => (
+              <ServiceStatusCard
+                key={id}
+                name={label}
+                icon={<Icon className="h-5 w-5" />}
+                status={!!(services[id] && !services[id]?.error)}
+                data={services[id]}
+                isActive={activeService === id}
+                onSelect={() => handleSelectService(id)}
+                description={description}
+              />
+            ))}
+          </div>
+
+          <ServiceActionBar
+            title={`${selectedTab.label} Actions`}
+            description={selectedTab.description}
+            trailing={
               <button
                 type="button"
-                onClick={() => {
-                  setPromptConversation([]);
-                  setPromptError(null);
-                }}
-                className="text-xs font-medium text-on-surface-variant transition hover:text-primary"
+                className="text-xs font-medium text-primary hover:underline"
+                onClick={() => fetchAllData()}
               >
-                Reset
+                Sync Data
               </button>
             }
           >
-            <div className="space-y-3 text-sm text-on-surface-variant">
-              {latestAssistantSummary ? (
-                <p className="leading-relaxed text-on-surface">{latestAssistantSummary.content}</p>
+            {serviceActions.map((action) =>
+              action === 'divider' ? (
+                <Divider key={`divider-${selectedTab.id}`} orientation="horizontal" className="col-span-full" />
               ) : (
-                <p className="text-on-surface-variant/70">Send a prompt to see assistant insights here.</p>
-              )}
-              {promptError && (
-                <div className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
-                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5" />
-                  <span>{promptError}</span>
-                </div>
-              )}
-            </div>
-          </SidebarSection>
+                <ServiceActionButton
+                  key={action.id}
+                  label={action.label}
+                  description={action.description}
+                  icon={action.icon}
+                  variant={action.variant}
+                  onAction={action.onAction}
+                />
+              ),
+            )}
+          </ServiceActionBar>
 
-          <SidebarDivider />
+          <ServiceMetricsGrid serviceKey={activeService} data={selectedServiceData} />
 
-          <SidebarSection
-            title="Recent conversation"
-            icon={<MessageCircle className="h-4 w-4" />}
-            meta={recentMessages.length ? `${recentMessages.length} entries` : undefined}
-          >
-            <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
-              {recentMessages.length === 0 ? (
-                <p className="text-xs text-on-surface-variant/70">No conversation history yet.</p>
-              ) : (
-                recentMessages.map((entry, index) => (
-                  <SidebarItem
-                    key={`${entry.timestamp}-${index}`}
-                    type="button"
-                    title={entry.role === 'user' ? 'You' : 'DeepSeek'}
-                    titleFormat={entry.role === 'assistant' ? 'code' : 'plain'}
-                    description={<span className="line-clamp-2 text-xs text-on-surface-variant/80">{entry.content}</span>}
-                    meta={formatTimestamp(entry.timestamp)}
-                    indicator={entry.role === 'assistant' ? 'gitMerge' : 'none'}
-                    active={index === 0}
-                  />
-                ))
-              )}
-            </div>
-          </SidebarSection>
-
-          {lastUserMessage && (
-            <SidebarSection
-              title="Last prompt"
-              icon={<RefreshCw className="h-4 w-4" />}
-              meta={formatTimestamp(lastUserMessage.timestamp)}
-              tone="subdued"
-              defaultOpen={false}
-            >
-              <p className="leading-relaxed text-xs text-on-surface-variant/80">{lastUserMessage.content}</p>
-            </SidebarSection>
-          )}
-        </SidebarShell>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        {SERVICE_TABS.map(({ id, label, Icon, description }) => (
-          <ServiceStatusCard
-            key={id}
-            name={label}
-            icon={<Icon className="h-5 w-5" />}
-            status={!!(services[id] && !services[id]?.error)}
-            data={services[id]}
-            isActive={activeService === id}
-            onSelect={() => handleSelectService(id)}
-            description={description}
-          />
-        ))}
-      </div>
-
-      {/* Action Toolbar */}
-      <ServiceActionBar
-        title={`${selectedTab.label} Actions`}
-        description={selectedTab.description}
-        trailing={
-          <button
-            type="button"
-            className="text-xs font-medium text-primary hover:underline"
-            onClick={() => fetchAllData()}
-          >
-            Sync Data
-          </button>
-        }
-      >
-        {serviceActions.map((action) =>
-          action === 'divider' ? (
-            <Divider key={`divider-${selectedTab.id}`} orientation="horizontal" className="col-span-full" />
-          ) : (
-            <ServiceActionButton
-              key={action.id}
-              label={action.label}
-              description={action.description}
-              icon={action.icon}
-              variant={action.variant}
-              onAction={action.onAction}
+          {selectedServiceData ? (
+            <ServicePanel
+              title={`${selectedTab.label} Service`}
+              icon={<selectedTab.Icon className="w-5 h-5" />}
+              data={selectedServiceData}
             />
-          ),
-        )}
-      </ServiceActionBar>
+          ) : (
+            <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+              Data for the {selectedTab.label} service is not available yet. Trigger an action to populate metrics.
+            </div>
+          )}
 
-      {/* Metrics for Selected Service */}
-      <ServiceMetricsGrid serviceKey={activeService} data={selectedServiceData} />
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Code className="w-5 h-5" />
+              Raw Service Data
+            </h2>
+            <pre className="bg-background p-4 rounded-lg overflow-auto max-h-96 text-xs">
+              {JSON.stringify(dashboardData, null, 2)}
+            </pre>
+          </div>
+        </>
+      )}
 
-      {/* Detailed panel for active service */}
-      {selectedServiceData ? (
-        <ServicePanel
-          title={`${selectedTab.label} Service`}
-          icon={<selectedTab.Icon className="w-5 h-5" />}
-          data={selectedServiceData}
-        />
-      ) : (
-        <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
-          Data for the {selectedTab.label} service is not available yet. Trigger an action to populate metrics.
+      {surfaceTab === 'workflows' && (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold text-on-surface">Workflow inventory</h3>
+                <p className="text-sm text-on-surface-variant">
+                  Review generated workflows, schema links, and last-run metadata.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fetchPromptWorkflows}
+                className="inline-flex items-center gap-2 rounded-full border border-outline/30 px-3 py-1 text-xs font-medium text-on-surface-variant transition hover:border-primary/40 hover:text-primary"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Refresh
+              </button>
+            </div>
+
+            {promptWorkflowLoading ? (
+              <div className="flex items-center gap-2 py-10 text-sm text-on-surface-variant">
+                <RefreshCw className="h-4 w-4 animate-spin" /> Loading workflow registry…
+              </div>
+            ) : promptWorkflowSummaries.length ? (
+              <div className="mt-4 space-y-3">
+                {promptWorkflowSummaries.map((item) => (
+                  <article
+                    key={item.id}
+                    className="rounded-2xl border border-outline/20 bg-surface p-4 transition hover:border-primary/40 hover:bg-primary/5"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-base font-semibold text-on-surface">{item.name}</h4>
+                          {item.status && (
+                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                              {item.status}
+                            </span>
+                          )}
+                        </div>
+                        {item.description && (
+                          <p className="text-sm text-on-surface-variant/90">{item.description}</p>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-end gap-1 text-xs text-on-surface-variant/70">
+                        {item.lastRun && <span>Last run: {item.lastRun}</span>}
+                        {typeof item.configCount === 'number' && <span>{item.configCount} schema configs</span>}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant/70">
+                      {item.schema ? (
+                        <span className="rounded-full bg-surface-container-low px-3 py-1 font-medium text-primary">
+                          Schema: {item.schema}
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-surface-container-low px-3 py-1">Schema pending configuration</span>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-outline/20 bg-surface-container-low p-6 text-sm text-on-surface-variant">
+                No workflows are registered yet. Use the automation studio to generate new configurations.
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Raw Data Viewer (for debugging) */}
-      <div className="bg-card border border-border rounded-2xl p-6">
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Code className="w-5 h-5" />
-          Raw Service Data
-        </h2>
-        <pre className="bg-background p-4 rounded-lg overflow-auto max-h-96 text-xs">
-          {JSON.stringify(dashboardData, null, 2)}
-        </pre>
-      </div>
+      {surfaceTab === 'automation' && (
+        <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-on-surface">Automation studio</h3>
+            <p className="text-sm text-on-surface-variant">
+              Trigger component generation, workflow CRUD operations, and DeepSeek-guided setup routines.
+            </p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl border border-outline/20 bg-surface p-4 space-y-2">
+              <h4 className="text-sm font-semibold text-on-surface">Generate design-system component</h4>
+              <p className="text-xs text-on-surface-variant">
+                Feed DeepSeek a description and optional schema references to generate new MD3 components automatically.
+              </p>
+              <button
+                type="button"
+                className="text-xs font-medium text-primary hover:underline"
+                onClick={() => setSurfaceTab('prompts')}
+              >
+                Open prompt composer
+              </button>
+            </div>
+            <div className="rounded-2xl border border-outline/20 bg-surface p-4 space-y-2">
+              <h4 className="text-sm font-semibold text-on-surface">Review CRUD schemas</h4>
+              <p className="text-xs text-on-surface-variant">
+                Upcoming surface: bind schema defaults for workflows, services, and pipelines for DeepSeek to execute.
+              </p>
+              <button
+                type="button"
+                className="text-xs font-medium text-primary hover:underline"
+                onClick={() => setSurfaceTab('workflows')}
+              >
+                View workflow registry
+              </button>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-outline/20 bg-surface-container-low p-4 text-xs text-on-surface-variant">
+            Component generation and CRUD orchestration will be wired to admin APIs in the next iteration. Ensure DeepSeek tools are permitted to call the relevant endpoints.
+          </div>
+        </div>
+      )}
     </div>
   );
 };
