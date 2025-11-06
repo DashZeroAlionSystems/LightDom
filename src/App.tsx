@@ -71,6 +71,7 @@ import { AgentSessionsPanel } from './components/agent/AgentSessionsPanel';
 import StyleguideConfigManager from './components/admin/StyleguideConfigManager';
 import AdminMenuBuilder from './components/admin/AdminMenuBuilder';
 import VisualComponentBuilder from './components/admin/VisualComponentBuilder';
+import UserManagementPage from './pages/admin/UserManagementPage';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -129,7 +130,8 @@ const AppContent: React.FC = () => {
           <Route index element={<EnhancedAdminOverview />} />
           <Route path="overview" element={<EnhancedAdminOverview />} />
           <Route path="copilot-ui" element={<CopilotUIDemo />} />
-          <Route path="users" element={<EnhancedUserManagement />} />
+          <Route path="users" element={<UserManagementPage />} />
+          <Route path="users-legacy" element={<EnhancedUserManagement />} />
           <Route path="billing" element={<BillingManagement />} />
           <Route path="crawler" element={<CrawlerDashboard />} />
           <Route path="crawler-workload" element={<CrawlerWorkloadDashboard />} />
