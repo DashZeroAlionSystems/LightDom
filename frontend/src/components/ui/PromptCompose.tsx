@@ -134,7 +134,7 @@ export const PromptComposeInput = React.forwardRef<HTMLTextAreaElement, PromptCo
           ref={ref}
           rows={minRows}
           className={cn(
-            'w-full resize-none rounded-2xl bg-surface-container-high px-4 py-3 text-sm text-on-surface',
+            'w-full resize-none rounded-2xl border border-outline/30 bg-surface px-4 py-3 text-sm text-on-surface',
             'placeholder:text-on-surface-variant/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60',
             'selection:bg-primary/20 selection:text-on-primary',
             className

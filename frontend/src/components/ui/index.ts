@@ -64,6 +64,14 @@ export {
 export { PromptInput } from './PromptInput';
 
 export {
+  PromptSidebar,
+  PromptSidebarShell,
+  PromptSidebarSection,
+  PromptSidebarItem,
+  PromptSidebarDivider
+} from './PromptSidebar';
+
+export {
   Wizard,
   WizardContent,
   WizardFooter,

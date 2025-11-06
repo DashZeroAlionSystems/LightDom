@@ -1,0 +1,64 @@
+import { Meta, Canvas, Story, Description, Source } from '@storybook/blocks';
+import React from 'react';
+import { PromptInput, PromptCompose } from '@/components/ui';
+import PromptComposeStories from './PromptCompose.stories';
+
+<Meta title="AI/PromptCompose/Docs" of={PromptComposeStories} />
+
+# Prompt Compose Surface
+
+The prompt compose primitives provide a Material Design 3 aligned input surface for DeepSeek agents. They are built from:
+
+- `PromptComposeShell` – structural container with header/toolbar/footer slots
+- `PromptComposeHeader` – layout for avatar/title/subtitle/metadata
+- `PromptComposeToolbar` – flexible token + action row
+- `PromptComposeInput` – auto-growing textarea with MD3 focus states
+- `PromptComposeToken` & `PromptComposeAction` – chips and buttons bound to MD3 tokens
+- `PromptComposeFooter` – helper + usage area
+
+## Design Intent
+
+1. **Composable** – surfaces can be assembled for dashboards, modals, or in-flow chat.
+2. **Stateful** – supports focus/disabled/processing states and character usage.
+3. **Token-aware** – chips reflect context (agent, data sources, status).
+4. **Action-safe** – actions are only exposed when they are fully wired to behavioural handlers.
+
+## Styleguide Mapping
+
+| Styleguide key | Usage |
+| --- | --- |
+| `theme.background` | Shell surface background |
+| `theme.accent` | Token accent + send button |
+| `layout.shellRadius` | Matches `rounded-3xl` shell radius |
+| `prompt.placeholder` | Default placeholder text |
+| `prompt.maxHeight` | Mapped to `maxRows` on `PromptComposeInput` |
+
+The MD3 values come from `frontend/src/config/style-guides/deepseek-chat.json`. Tokens and actions should read from live system state (agent status, database telemetry) rather than stubbed values.
+
+## Usage
+
+<Canvas>
+  <Story id="ai-promptcompose--playground" />
+</Canvas>
+
+<Description>
+The playground story demonstrates the full PromptInput with dynamic tokens, actions, helper text, and usage counters.
+</Description>
+
+<Canvas>
+  <Story id="ai-promptcompose--prompt-compose-building-blocks" />
+</Canvas>
+
+<Description>
+The building blocks story showcases the raw primitives. Use this when designing new compound layouts.
+</Description>
+
+## Deep Research Checklist
+
+1. Pull latest styleguide tokens and confirm radius/spacing with MD3 specs.
+2. Audit actions to ensure each button calls a concrete workflow (API, context refresh, etc.).
+3. Verify continuous chat flow by replaying prompts while streaming responses.
+4. Update schema mapping logic (`PromptToSchemaGenerator`) when new prompt paths emerge.
+5. Document interaction patterns (keyboard shortcuts, live updates) in Product Notion.
+
+<Source code={"import { PromptInput } from '@/components/ui';\n\n<PromptInput onSend={...} tokens={contextTokens} actions={toolbarActions} />"} />
