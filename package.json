@@ -308,7 +308,15 @@
     "db:optimize": "node scripts/db-manager.js optimize",
     "db:mine": "node scripts/data-mining.js mine",
     "db:mine:relationships": "node scripts/data-mining.js relationships",
-    "db:mine:quality": "node scripts/data-mining.js quality"
+    "db:mine:quality": "node scripts/data-mining.js quality",
+    "enterprise:generate": "node scripts/master-enterprise-generator.js",
+    "enterprise:generate:dry-run": "node scripts/master-enterprise-generator.js --dry-run",
+    "enterprise:generate:skip-analysis": "node scripts/master-enterprise-generator.js --skip-analysis",
+    "enterprise:kg": "node scripts/codebase-knowledge-graph-generator.js",
+    "enterprise:architecture": "node scripts/enterprise-architecture-designer.js",
+    "enterprise:project": "node scripts/enterprise-project-generator.js",
+    "worker-pool:start": "node services/worker-pool-manager.js",
+    "worker-pool:demo": "MIN_WORKERS=2 MAX_WORKERS=5 node services/worker-pool-manager.js"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.2",
