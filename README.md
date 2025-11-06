@@ -101,6 +101,77 @@ npm run start:dev
 npm run start:enhanced
 
 # Production deployment
+docker-compose -f docker-compose.seo-datamining.yml up -d
+
+# Scale workers
+docker-compose -f docker-compose.seo-datamining.yml up -d --scale seo-worker-1=10
+```
+
+### 📊 **Component Dashboard Generator** ⭐ NEW
+- **Auto-Generated React Components** - Production-ready dashboard components with full CRUD
+- **Storybook Integration** - Components from styleguide with auto-generated stories
+- **AI-Powered Schemas** - DeepSeek generates JSON schemas from natural language
+- **Complete CRUD APIs** - Express.js REST APIs for all entities
+- **7 Generated Dashboards** - Workflows, Services, Templates, Attributes, Campaigns, Mining, Seeding
+
+📖 **[Component Generator Guide](COMPONENT_DASHBOARD_GENERATOR_README.md)** | **[Demo](demo-component-dashboard-generator.js)**
+
+```bash
+# Generate all components
+npm run demo:component-dashboard
+
+# Use in your app
+import { WorkflowManagementDashboard } from './components/generated/blockchain-optimization';
+```
+
+### 🤖 **Agent DeepSeek Management System** ⭐ NEW
+- **AI Agent Configuration** - Create DeepSeek-powered agents with custom modes
+- **Knowledge Graph System** - Semantic knowledge graphs with nodes and relationships
+- **Rules Engine** - Behavioral rules (constraints, requirements, guidelines, preferences)
+- **6 Pre-configured Modes** - Workflow Orchestrator, Code Analyzer, Content Generator, SEO Optimizer, Data Mining, Custom
+- **Learning & Adaptation** - Track learning events and performance metrics
+- **UI Integration** - "Add Agent" button in sidebar with 4-step wizard
+
+📖 **[Agent System Guide](AGENT_DEEPSEEK_SYSTEM_README.md)** | **[Database Schema](database/agent-deepseek-system-schema.sql)**
+
+```bash
+# Create agent via API
+curl -X POST http://localhost:3001/api/agent-deepseek/agents \
+  -d '{"name": "SEO Agent", "mode_id": "seo-optimizer"}'
+
+# Execute with DeepSeek
+curl -X POST http://localhost:3001/api/agent-deepseek/deepseek/execute \
+  -d '{"agent_id": "uuid", "prompt_text": "Analyze SEO..."}'
+```
+
+### 🔄 **Auto-Generated CRUD APIs** ⭐ NEW
+- **Schema-Driven Generation** - Automatically generates REST APIs from database schemas
+- **13 Core Tables** - Workflows, Services, Data Streams, Attributes, Datamining, Seeding, SEO, Users, Tasks, Agents, Schemas, Configs
+- **Use-Case Operations** - Custom endpoints for domain-specific actions (execute, health_check, analyze, etc.)
+- **Complete Integration** - Automatically initialized at startup with full error handling
+
+📖 **[System Integration Guide](COMPREHENSIVE_SYSTEM_INTEGRATION_README.md)** | **[Database Schema](database/comprehensive-system-schema.sql)** | **[API Service](services/api-auto-generator.service.js)**
+
+```bash
+# Start system (auto-generates all APIs)
+npm run start:enhanced
+
+# List all generated APIs
+curl http://localhost:3001/api/auto-generated/routes
+
+# Use generated endpoints
+curl -X POST http://localhost:3001/api/workflows \
+  -d '{"name": "SEO Pipeline", "workflow_type": "seo_automation"}'
+
+curl -X POST http://localhost:3001/api/workflows/{id}/execute
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+npm run start:enhanced
+
+# Production deployment
 npm run start:enhanced:production
 
 # Start with all workloads

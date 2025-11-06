@@ -77,28 +77,34 @@ class LightDomEnhancedStarter {
       // 1. Check prerequisites
       await this.checkPrerequisites();
       
-      // 2. Start core services
+      // 2. Initialize database schema
+      await this.initializeDatabaseSchema();
+      
+      // 3. Start blockchain node
+      await this.startBlockchainNode();
+      
+      // 4. Start core services (with auto-generated APIs)
       await this.startCoreServices();
       
-      // 3. Run blockchain algorithm demo if enabled
+      // 5. Run blockchain algorithm demo if enabled
       if (this.options.runDemo) {
         await this.runBlockchainAlgorithmDemo();
       }
       
-      // 4. Start workload-specific containers
+      // 6. Start workload-specific containers
       if (this.options.enableContainers) {
         await this.startWorkloadContainers();
       }
       
-      // 5. Start data mining containers
+      // 7. Start data mining containers
       if (this.options.enableDataMining) {
         await this.startDataMiningContainers();
       }
       
-      // 6. Display system status
+      // 8. Display system status
       this.displaySystemStatus();
       
-      // 7. Keep alive
+      // 9. Keep alive
       await this.keepAlive();
 
     } catch (error) {
@@ -162,6 +168,135 @@ class LightDomEnhancedStarter {
     
     console.log();
     return checks;
+  }
+
+  async initializeDatabaseSchema() {
+    console.log('💾 Initializing Database Schema...\n');
+    
+    try {
+      // Check if PostgreSQL is available
+      const { Pool } = await import('pg');
+      const pool = new Pool({
+        host: process.env.DB_HOST || 'localhost',
+        port: process.env.DB_PORT || 5432,
+        database: process.env.DB_NAME || 'dom_space_harvester',
+        user: process.env.DB_USER || 'postgres',
+        password: process.env.DB_PASSWORD || 'postgres',
+      });
+
+      // Test connection
+      try {
+        await pool.query('SELECT 1');
+        console.log('✅ Database connection established');
+      } catch (error) {
+        console.log('⚠️  Database not available, skipping schema initialization');
+        console.log('   To enable database, ensure PostgreSQL is running');
+        await pool.end();
+        return;
+      }
+
+      // Execute comprehensive schema
+      console.log('📝 Creating tables...');
+      const schemaPath = path.join(__dirname, 'database', 'comprehensive-system-schema.sql');
+      
+      if (fs.existsSync(schemaPath)) {
+        const schema = fs.readFileSync(schemaPath, 'utf8');
+        await pool.query(schema);
+        console.log('✅ Database schema initialized successfully');
+        
+        // Count created tables
+        const result = await pool.query(`
+          SELECT COUNT(*) as count 
+          FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+            AND table_type = 'BASE TABLE'
+        `);
+        console.log(`   ${result.rows[0].count} tables ready`);
+      } else {
+        console.log('⚠️  Schema file not found, skipping');
+      }
+
+      await pool.end();
+      console.log();
+    } catch (error) {
+      console.log('⚠️  Database initialization skipped:', error.message);
+      console.log();
+    }
+  }
+
+  async startBlockchainNode() {
+    console.log('⛓️  Starting Blockchain Node...\n');
+    
+    try {
+      // Check if Hardhat/Ganache is available
+      const hasHardhat = fs.existsSync(path.join(__dirname, 'hardhat.config.js')) || 
+                         fs.existsSync(path.join(__dirname, 'hardhat.config.cjs'));
+      
+      if (!hasHardhat) {
+        console.log('⚠️  Hardhat config not found, skipping blockchain startup');
+        console.log();
+        return;
+      }
+
+      // Start Hardhat node in the background
+      console.log('🔗 Starting Hardhat local blockchain...');
+      const hardhatProcess = spawn('npx', ['hardhat', 'node'], {
+        cwd: __dirname,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        detached: true
+      });
+      
+      hardhatProcess.stdout.on('data', (data) => {
+        const msg = data.toString().trim();
+        if (msg && msg.includes('Started HTTP')) {
+          console.log(`✅ Blockchain node started on port ${this.ports.blockchain}`);
+        }
+      });
+      
+      hardhatProcess.stderr.on('data', (data) => {
+        const msg = data.toString().trim();
+        if (msg && !msg.includes('ExperimentalWarning')) {
+          console.error(`   [BLOCKCHAIN ERROR] ${msg}`);
+        }
+      });
+      
+      this.processes.set('blockchain', hardhatProcess);
+      
+      // Wait for blockchain to be ready
+      await this.waitForPort(this.ports.blockchain, 15000);
+      console.log('✅ Blockchain node ready');
+      console.log();
+    } catch (error) {
+      console.log('⚠️  Blockchain node startup failed:', error.message);
+      console.log('   Continuing without blockchain...');
+      console.log();
+    }
+  }
+
+  async waitForPort(port, timeout = 10000) {
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < timeout) {
+      try {
+        await new Promise((resolve, reject) => {
+          const net = await import('net');
+          const socket = new net.Socket();
+          socket.setTimeout(1000);
+          socket.once('connect', () => {
+            socket.destroy();
+            resolve();
+          });
+          socket.once('error', reject);
+          socket.once('timeout', reject);
+          socket.connect(port, '127.0.0.1');
+        });
+        return true;
+      } catch (error) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    
+    throw new Error(`Port ${port} not available after ${timeout}ms`);
   }
 
   async startCoreServices() {
