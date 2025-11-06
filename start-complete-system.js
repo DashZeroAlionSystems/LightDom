@@ -29,6 +29,12 @@ class CompleteSystemStarter {
     
     try {
       // Start services in order
+      await this.startOllamaCheck();
+      await this.sleep(1000);
+      
+      await this.startMCPServer();
+      await this.sleep(2000);
+      
       await this.startAPIServer();
       await this.sleep(3000);
       
@@ -45,6 +51,8 @@ class CompleteSystemStarter {
       console.log('🔌 API Server: http://localhost:3001');
       console.log('🤖 Headless Server: http://localhost:3002');
       console.log('⛓️  Blockchain: Running in background');
+      console.log('🧠 Ollama DeepSeek: http://localhost:11434');
+      console.log('🔧 MCP Server: http://localhost:3100');
       console.log('\nPress Ctrl+C to stop all services');
       
       // Keep the process alive
@@ -55,6 +63,79 @@ class CompleteSystemStarter {
       await this.shutdown();
       process.exit(1);
     }
+  }
+
+  async startOllamaCheck() {
+    console.log('🧠 Checking Ollama DeepSeek...');
+    
+    try {
+      const response = await fetch('http://localhost:11434/api/tags');
+      if (response.ok) {
+        const data = await response.json();
+        const hasDeepSeek = data.models?.some(m => m.name.includes('deepseek'));
+        if (hasDeepSeek) {
+          console.log('✅ Ollama DeepSeek is running');
+        } else {
+          console.log('⚠️ Ollama is running but DeepSeek model not found');
+          console.log('   Run: ollama pull deepseek-r1');
+        }
+      }
+    } catch (error) {
+      console.log('⚠️ Ollama not running. Start with: ollama serve');
+      console.log('   Then pull DeepSeek: ollama pull deepseek-r1');
+    }
+  }
+
+  async startMCPServer() {
+    console.log('🔧 Starting MCP Server...');
+    
+    const mcpProcess = spawn('npx', ['tsx', 'src/mcp/n8n-mcp-server.ts'], {
+      cwd: __dirname,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { 
+        ...process.env,
+        PORT: '3100'
+      }
+    });
+
+    this.processes.set('mcp', mcpProcess);
+
+    return new Promise((resolve, reject) => {
+      let resolved = false;
+      
+      mcpProcess.stdout.on('data', (data) => {
+        const output = data.toString();
+        console.log(`[MCP] ${output.trim()}`);
+        
+        if (!resolved && (output.includes('MCP server') || output.includes('Server started'))) {
+          resolved = true;
+          resolve();
+        }
+      });
+
+      mcpProcess.stderr.on('data', (data) => {
+        const error = data.toString().trim();
+        if (!error.includes('Warning')) {
+          console.error(`[MCP Error] ${error}`);
+        }
+      });
+
+      mcpProcess.on('error', (error) => {
+        if (!resolved) {
+          resolved = true;
+          console.log('⚠️ MCP server failed to start:', error.message);
+          resolve(); // Don't fail the whole startup
+        }
+      });
+
+      // Timeout after 15 seconds
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          resolve(); // Continue even if MCP doesn't start
+        }
+      }, 15000);
+    });
   }
 
   async startAPIServer() {
