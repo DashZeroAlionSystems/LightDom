@@ -71,6 +71,10 @@ import { AgentSessionsPanel } from './components/agent/AgentSessionsPanel';
 import StyleguideConfigManager from './components/admin/StyleguideConfigManager';
 import AdminMenuBuilder from './components/admin/AdminMenuBuilder';
 import VisualComponentBuilder from './components/admin/VisualComponentBuilder';
+import UserManagementPage from './pages/admin/UserManagementPage';
+import DeepSeekWorkflowDashboard from './pages/admin/DeepSeekWorkflowDashboard';
+import ClientReportDashboard from './pages/admin/ClientReportDashboard';
+import DeepSeekSkillsDashboard from './pages/admin/DeepSeekSkillsDashboard';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -129,7 +133,8 @@ const AppContent: React.FC = () => {
           <Route index element={<EnhancedAdminOverview />} />
           <Route path="overview" element={<EnhancedAdminOverview />} />
           <Route path="copilot-ui" element={<CopilotUIDemo />} />
-          <Route path="users" element={<EnhancedUserManagement />} />
+          <Route path="users" element={<UserManagementPage />} />
+          <Route path="users-legacy" element={<EnhancedUserManagement />} />
           <Route path="billing" element={<BillingManagement />} />
           <Route path="crawler" element={<CrawlerDashboard />} />
           <Route path="crawler-workload" element={<CrawlerWorkloadDashboard />} />
@@ -151,6 +156,9 @@ const AppContent: React.FC = () => {
           <Route path="styleguide-config" element={<StyleguideConfigManager />} />
           <Route path="menu-builder" element={<AdminMenuBuilder />} />
           <Route path="component-builder" element={<VisualComponentBuilder />} />
+          <Route path="deepseek-workflows" element={<DeepSeekWorkflowDashboard />} />
+          <Route path="client-reports" element={<ClientReportDashboard />} />
+          <Route path="deepseek-skills" element={<DeepSeekSkillsDashboard />} />
         </Route>
         
         {/* Protected Routes */}
