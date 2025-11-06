@@ -203,10 +203,10 @@ class LightDomEnhancedStarter {
   }
 
   async runBlockchainAlgorithmDemo() {
-    console.log('🎯 Running Blockchain Algorithm Optimization Demo...\n');
+    console.log('🎯 Running Component Dashboard Generator Demo...\n');
     
     return new Promise((resolve, reject) => {
-      const demoProcess = spawn('node', ['demo-blockchain-algorithm-optimization.js'], {
+      const demoProcess = spawn('node', ['demo-component-dashboard-generator.js'], {
         cwd: __dirname,
         stdio: ['ignore', 'pipe', 'pipe']
       });
@@ -229,7 +229,7 @@ class LightDomEnhancedStarter {
       demoProcess.on('close', (code) => {
         console.log();
         if (code === 0) {
-          console.log('✅ Blockchain Algorithm Demo completed successfully');
+          console.log('✅ Component Dashboard Generator Demo completed successfully');
           console.log();
           
           // Extract and display key results
@@ -241,11 +241,11 @@ class LightDomEnhancedStarter {
         }
       });
       
-      // Timeout after 2 minutes
+      // Timeout after 3 minutes (component generation can take longer)
       setTimeout(() => {
         demoProcess.kill();
         reject(new Error('Demo timeout'));
-      }, 120000);
+      }, 180000);
     });
   }
 
@@ -253,16 +253,19 @@ class LightDomEnhancedStarter {
     console.log('📊 Demo Results Summary:');
     console.log('-'.repeat(60));
     
-    // Extract algorithm results
-    const algoMatch = output.match(/Best Overall: (\w+)/);
-    if (algoMatch) {
-      console.log(`   ⭐ Best Algorithm: ${algoMatch[1]}`);
+    // Extract component count
+    const componentMatch = output.match(/Generated (\d+) dashboard components/);
+    if (componentMatch) {
+      console.log(`   ⭐ Components Generated: ${componentMatch[1]}`);
     }
     
-    // Extract optimization results
-    const optMatch = output.match(/Expected Gain: ([\d.]+)%/);
-    if (optMatch) {
-      console.log(`   ⚡ Expected Optimization Gain: ${optMatch[1]}%`);
+    // Extract generated features
+    const features = ['Workflow', 'Service', 'Component', 'Data', 'Campaign', 'Mining', 'Seeding'];
+    features.forEach(feature => {
+      if (output.includes(`${feature} Management`) || output.includes(`${feature} Configuration`)) {
+        console.log(`   ✓ ${feature} component ready`);
+      }
+    });
     }
     
     console.log('-'.repeat(60));

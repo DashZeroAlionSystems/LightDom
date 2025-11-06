@@ -110,6 +110,23 @@ npm run start:enhanced:demo
 docker-compose -f docker-compose.seo-datamining.yml up -d
 ```
 
+### 🎨 **Component Dashboard Generator** ⭐ NEW
+- **Auto-Generated React Components** - Full CRUD dashboard components from Storybook/styleguide
+- **DeepSeek Schema Generation** - AI-powered schema creation for workflows, services, templates
+- **Complete CRUD APIs** - Express routes for workflows, services, component templates, data attributes, campaigns, data mining, seeding
+- **Storybook Integration** - Auto-generated stories with interactive controls
+- **Schema-Driven** - DeepSeek controls customization and validation
+
+📖 **[Component Generator Guide](COMPONENT_DASHBOARD_GENERATOR_README.md)** | **[Demo](demo-component-dashboard-generator.js)**
+
+```bash
+# Generate all dashboard components
+npm run demo:component-dashboard
+
+# Components for: workflows, services, templates, attributes, campaigns, mining, seeding
+# Output: React components + API routes + Storybook stories + JSON schemas
+```
+
 ## 🚀 Quick Start
 
 ### Prerequisites
