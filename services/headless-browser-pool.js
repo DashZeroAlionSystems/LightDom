@@ -11,10 +11,33 @@
  * - Task queue management
  */
 
-import puppeteer from 'puppeteer';
 import { EventEmitter } from 'events';
-import { AdaptiveBrowserConfig } from '../utils/AdaptiveBrowserConfig.js';
-import { PerformanceMonitor } from '../utils/PerformanceMonitor.js';
+
+// Conditional imports
+let puppeteer = null;
+let AdaptiveBrowserConfig = null;
+let PerformanceMonitor = null;
+
+try {
+  const puppeteerModule = await import('puppeteer');
+  puppeteer = puppeteerModule.default;
+} catch (e) {
+  console.warn('⚠️  Puppeteer not installed. Install with: npm install puppeteer');
+}
+
+try {
+  const adapterModule = await import('../utils/AdaptiveBrowserConfig.js');
+  AdaptiveBrowserConfig = adapterModule.AdaptiveBrowserConfig;
+} catch (e) {
+  // AdaptiveBrowserConfig is optional
+}
+
+try {
+  const perfModule = await import('../utils/PerformanceMonitor.js');
+  PerformanceMonitor = perfModule.PerformanceMonitor;
+} catch (e) {
+  // PerformanceMonitor is optional
+}
 
 export class HeadlessBrowserPool extends EventEmitter {
   constructor(config = {}) {
@@ -36,8 +59,8 @@ export class HeadlessBrowserPool extends EventEmitter {
     this.browsers = new Map(); // browserId -> browser instance
     this.pages = new Map(); // pageId -> { browser, page, inUse, lastUsed }
     this.taskQueue = [];
-    this.browserConfig = new AdaptiveBrowserConfig();
-    this.perfMonitor = new PerformanceMonitor({ learningRate: 0.1 });
+    this.browserConfig = AdaptiveBrowserConfig ? new AdaptiveBrowserConfig() : null;
+    this.perfMonitor = PerformanceMonitor ? new PerformanceMonitor({ learningRate: 0.1 }) : null;
     
     this.stats = {
       totalBrowsersCreated: 0,
@@ -64,12 +87,18 @@ export class HeadlessBrowserPool extends EventEmitter {
       return;
     }
 
+    if (!puppeteer && this.config.browserType === 'puppeteer') {
+      throw new Error('Puppeteer is not installed. Install it with: npm install puppeteer');
+    }
+
     console.log('🚀 Initializing Headless Browser Pool...');
     console.log(`   Type: ${this.config.browserType}`);
     console.log(`   Pool size: ${this.config.minBrowsers}-${this.config.maxBrowsers} browsers`);
     console.log(`   Pages per browser: ${this.config.maxPagesPerBrowser}`);
 
-    await this.browserConfig.initialize();
+    if (this.browserConfig) {
+      await this.browserConfig.initialize();
+    }
 
     // Create initial browser pool
     for (let i = 0; i < this.config.minBrowsers; i++) {
@@ -101,22 +130,27 @@ export class HeadlessBrowserPool extends EventEmitter {
     const browserId = `browser_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     
     try {
-      const browserConfig = await this.browserConfig.getConfig({
-        task: 'scraping',
-        enableGPU: this.config.enableGPU
-      });
-
-      const launchOptions = {
-        ...browserConfig.config,
+      let launchOptions = {
         headless: this.config.headless,
         args: [
-          ...browserConfig.config.args || [],
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-blink-features=AutomationControlled'
         ]
       };
+
+      // Use adaptive browser config if available
+      if (this.browserConfig) {
+        const browserConfig = await this.browserConfig.getConfig({
+          task: 'scraping',
+          enableGPU: this.config.enableGPU
+        });
+        launchOptions = {
+          ...browserConfig.config,
+          ...launchOptions
+        };
+      }
 
       let browser;
       if (this.config.browserType === 'playwright') {
@@ -125,6 +159,9 @@ export class HeadlessBrowserPool extends EventEmitter {
         browser = await chromium.launch(launchOptions);
       } else {
         // Puppeteer (default)
+        if (!puppeteer) {
+          throw new Error('Puppeteer is not available');
+        }
         browser = await puppeteer.launch(launchOptions);
       }
 
