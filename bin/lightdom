@@ -1,0 +1,270 @@
+#!/usr/bin/env node
+
+/**
+ * LightDom CLI - Main Entry Point
+ * Unified command-line interface for the LightDom platform
+ */
+
+import { program } from 'commander';
+import chalk from 'chalk';
+import ora from 'ora';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { readFileSync } from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Read package.json for version
+const packagePath = join(__dirname, '..', 'package.json');
+const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
+
+program
+  .name('lightdom')
+  .description('LightDom Enterprise Platform CLI')
+  .version(packageJson.version);
+
+// Development Commands
+program
+  .command('dev')
+  .description('Start development environment')
+  .option('-p, --port <port>', 'Port to run on', '3000')
+  .option('-o, --open', 'Open browser automatically')
+  .option('--api-only', 'Start only the API server')
+  .option('--frontend-only', 'Start only the frontend')
+  .action(async (options) => {
+    const spinner = ora('Starting development environment...').start();
+    try {
+      const { runDev } = await import('../src/cli/commands/dev.js');
+      await runDev(options);
+      spinner.succeed('Development environment started');
+    } catch (error) {
+      spinner.fail(`Failed to start development environment: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+// Build Commands
+program
+  .command('build')
+  .description('Build the application')
+  .option('--mode <mode>', 'Build mode (development|production)', 'production')
+  .option('--analyze', 'Analyze bundle size')
+  .option('--clean', 'Clean build directory first')
+  .action(async (options) => {
+    const spinner = ora('Building application...').start();
+    try {
+      const { runBuild } = await import('../src/cli/commands/build.js');
+      await runBuild(options);
+      spinner.succeed('Application built successfully');
+    } catch (error) {
+      spinner.fail(`Build failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+// Test Commands
+program
+  .command('test')
+  .description('Run tests')
+  .option('--unit', 'Run unit tests only')
+  .option('--integration', 'Run integration tests only')
+  .option('--e2e', 'Run e2e tests only')
+  .option('--coverage', 'Generate coverage report')
+  .option('--watch', 'Watch mode')
+  .action(async (options) => {
+    const spinner = ora('Running tests...').start();
+    try {
+      const { runTest } = await import('../src/cli/commands/test.js');
+      await runTest(options);
+      spinner.succeed('Tests completed');
+    } catch (error) {
+      spinner.fail(`Tests failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+// Project Scaffolding Commands
+program
+  .command('init')
+  .description('Initialize a new LightDom project')
+  .option('--template <template>', 'Project template (basic|advanced|enterprise)', 'basic')
+  .option('--name <name>', 'Project name')
+  .action(async (options) => {
+    const spinner = ora('Initializing project...').start();
+    try {
+      const { runInit } = await import('../src/cli/commands/init.js');
+      await runInit(options);
+      spinner.succeed('Project initialized successfully');
+    } catch (error) {
+      spinner.fail(`Initialization failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+// Generate Commands
+const generateCmd = program
+  .command('generate')
+  .alias('g')
+  .description('Generate code components');
+
+generateCmd
+  .command('component <name>')
+  .description('Generate a new React component')
+  .option('--type <type>', 'Component type (functional|class)', 'functional')
+  .option('--styled', 'Include styled components')
+  .action(async (name, options) => {
+    const spinner = ora(`Generating component ${name}...`).start();
+    try {
+      const { generateComponent } = await import('../src/cli/commands/generate.js');
+      await generateComponent(name, options);
+      spinner.succeed(`Component ${name} generated successfully`);
+    } catch (error) {
+      spinner.fail(`Component generation failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+generateCmd
+  .command('service <name>')
+  .description('Generate a new service')
+  .option('--type <type>', 'Service type (api|blockchain|automation)', 'api')
+  .action(async (name, options) => {
+    const spinner = ora(`Generating service ${name}...`).start();
+    try {
+      const { generateService } = await import('../src/cli/commands/generate.js');
+      await generateService(name, options);
+      spinner.succeed(`Service ${name} generated successfully`);
+    } catch (error) {
+      spinner.fail(`Service generation failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+// Automation Commands
+program
+  .command('automation')
+  .description('Blockchain automation commands')
+  .option('--start', 'Start automation system')
+  .option('--stop', 'Stop automation system')
+  .option('--status', 'Check automation status')
+  .option('--debug', 'Enable debug mode')
+  .action(async (options) => {
+    const spinner = ora('Managing automation system...').start();
+    try {
+      const { runAutomation } = await import('../src/cli/commands/automation.js');
+      await runAutomation(options);
+      spinner.succeed('Automation command completed');
+    } catch (error) {
+      spinner.fail(`Automation command failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+// Blockchain Commands
+program
+  .command('blockchain')
+  .description('Blockchain development commands')
+  .option('--deploy', 'Deploy smart contracts')
+  .option('--test', 'Test smart contracts')
+  .option('--verify', 'Verify contracts on explorer')
+  .option('--network <network>', 'Network to use', 'localhost')
+  .action(async (options) => {
+    const spinner = ora('Managing blockchain...').start();
+    try {
+      const { runBlockchain } = await import('../src/cli/commands/blockchain.js');
+      await runBlockchain(options);
+      spinner.succeed('Blockchain command completed');
+    } catch (error) {
+      spinner.fail(`Blockchain command failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+// Deploy Commands
+program
+  .command('deploy')
+  .description('Deploy application')
+  .option('--env <environment>', 'Environment (staging|production)', 'staging')
+  .option('--dry-run', 'Perform a dry run')
+  .option('--rollback', 'Rollback to previous version')
+  .action(async (options) => {
+    const spinner = ora(`Deploying to ${options.env}...`).start();
+    try {
+      const { runDeploy } = await import('../src/cli/commands/deploy.js');
+      await runDeploy(options);
+      spinner.succeed(`Deployed to ${options.env} successfully`);
+    } catch (error) {
+      spinner.fail(`Deployment failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+// Setup Commands
+program
+  .command('setup')
+  .description('Setup development environment')
+  .option('--fresh', 'Fresh installation (removes existing setup)')
+  .option('--deps', 'Install dependencies only')
+  .option('--db', 'Setup database only')
+  .option('--contracts', 'Deploy contracts only')
+  .action(async (options) => {
+    const spinner = ora('Setting up development environment...').start();
+    try {
+      const { runSetup } = await import('../src/cli/commands/setup.js');
+      await runSetup(options);
+      spinner.succeed('Development environment setup complete');
+    } catch (error) {
+      spinner.fail(`Setup failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+// Health Commands
+program
+  .command('health')
+  .description('Check system health')
+  .option('--verbose', 'Verbose output')
+  .action(async (options) => {
+    const spinner = ora('Checking system health...').start();
+    try {
+      const { runHealth } = await import('../src/cli/commands/health.js');
+      await runHealth(options);
+      spinner.succeed('Health check completed');
+    } catch (error) {
+      spinner.fail(`Health check failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+// Doctor Command (diagnose issues)
+program
+  .command('doctor')
+  .description('Diagnose and fix common issues')
+  .option('--fix', 'Automatically fix detected issues')
+  .action(async (options) => {
+    const spinner = ora('Running diagnostics...').start();
+    try {
+      const { runDoctor } = await import('../src/cli/commands/doctor.js');
+      await runDoctor(options);
+      spinner.succeed('Diagnostics completed');
+    } catch (error) {
+      spinner.fail(`Diagnostics failed: ${error.message}`);
+      process.exit(1);
+    }
+  });
+
+// Error handling
+program.on('command:*', () => {
+  console.error(chalk.red(`Invalid command: ${program.args.join(' ')}`));
+  console.log(chalk.yellow('Run `lightdom --help` for available commands'));
+  process.exit(1);
+});
+
+// Show help if no command provided
+if (process.argv.length === 2) {
+  program.help();
+}
+
+// Parse arguments
+program.parse();
