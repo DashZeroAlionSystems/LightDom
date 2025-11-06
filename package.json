@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node start-complete-system.js",
+    "start:complete": "node start-complete-system.js",
     "start:framework": "node dist/framework/start.js",
     "start:blockchain": "node start-blockchain.js",
     "start:dev": "tsx src/framework/start.ts",
@@ -155,7 +156,8 @@
     "web3": "^4.1.1",
     "winston": "^3.10.0",
     "inquirer": "^9.2.7",
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.0",
+    "ws": "^8.14.2"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^6.1.0",
