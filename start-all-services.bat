@@ -8,9 +8,31 @@ REM Kill any existing processes
 echo 🧹 Cleaning up existing processes...
 taskkill /F /IM node.exe /T >nul 2>&1
 taskkill /F /IM electron.exe /T >nul 2>&1
+taskkill /F /IM ollama.exe /T >nul 2>&1
 
 REM Wait a moment
 timeout /t 2 /nobreak >nul
+
+REM Start Ollama serve daemon
+echo 🦾 Starting Ollama serve daemon...
+where ollama >nul 2>&1
+if !errorlevel! == 0 (
+  start "Ollama" cmd /k "ollama serve"
+  echo ✅ Ollama service starting...
+  timeout /t 3 /nobreak >nul
+  
+  REM Pull deepseek model if not present
+  echo 📥 Ensuring deepseek-r1:latest model is available...
+  ollama pull deepseek-r1:latest >nul 2>&1
+  if !errorlevel! == 0 (
+    echo ✅ DeepSeek model ready
+  ) else (
+    echo ⚠️  Could not pull DeepSeek model automatically. Pull manually with: ollama pull deepseek-r1:latest
+  )
+) else (
+  echo ⚠️  Ollama not found. Install from https://ollama.com
+  echo    Continuing without Ollama integration...
+)
 
 REM Start API Server
 echo 📡 Starting API Server...
@@ -20,6 +42,17 @@ REM Wait for API to start
 call :waitForHttp "API Server" "http://localhost:3001/api/health" 30 || goto :cleanup
 
 call :applySchemas
+
+REM Check Ollama health if it was started
+where ollama >nul 2>&1
+if !errorlevel! == 0 (
+  call :waitForHttp "Ollama" "http://localhost:11434/api/tags" 10
+  if !errorlevel! == 0 (
+    echo ✅ Ollama service is ready
+  ) else (
+    echo ⚠️  Ollama may not be fully ready yet
+  )
+)
 
 REM Start Frontend
 echo 🌐 Starting Frontend...
@@ -38,6 +71,7 @@ start "Electron" cmd /k "cd /d %~dp0 && call %ELECTRON_LAUNCH_CMD% . --dev"
 echo ✅ All services started!
 echo 🌐 Frontend: Check the Frontend window for the URL
 echo 🔌 API: http://localhost:3001
+echo 🦾 Ollama: http://localhost:11434 (if installed)
 echo 🖥️  Electron: Desktop app should open
 echo.
 echo Press any key to exit this window...

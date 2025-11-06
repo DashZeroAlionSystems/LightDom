@@ -428,6 +428,40 @@ class DOMSpaceHarvesterAPI {
       console.error('Failed to load DeepSeek chat routes:', err);
     });
     
+    // Import and register Ollama DeepSeek routes
+    import('./api/ollama-deepseek-routes.js').then(async (ollamaModule) => {
+      try {
+        // Initialize Ollama services
+        if (typeof ollamaModule.initializeOllamaServices === 'function') {
+          await ollamaModule.initializeOllamaServices();
+        }
+        
+        // Mount the routes
+        this.app.use('/api/ollama', ollamaModule.default);
+        console.log('✅ Ollama DeepSeek routes registered (Bidirectional streaming enabled)');
+      } catch (error) {
+        console.warn('⚠️ Ollama initialization failed:', error.message);
+        console.warn('   Ollama routes will be available but may not function without Ollama service');
+        // Still mount routes so health checks work
+        this.app.use('/api/ollama', ollamaModule.default);
+      }
+    }).catch(err => {
+      console.error('Failed to load Ollama routes:', err);
+    });
+    
+    // Import and register Conversation History routes
+    import('./api/conversation-history-routes.js').then((historyModule) => {
+      const historyRouter = historyModule.default || historyModule.createConversationHistoryRoutes;
+      if (typeof historyRouter === 'function') {
+        this.app.use('/api/conversations', historyRouter(this.db));
+      } else {
+        this.app.use('/api/conversations', historyRouter);
+      }
+      console.log('✅ Conversation History routes registered (Knowledge graph & learning enabled)');
+    }).catch(err => {
+      console.error('Failed to load conversation history routes:', err);
+    });
+    
     // Import and register Workflow Wizard routes
     import('./api/workflow-wizard-routes.js').then((wizardModule) => {
       this.app.use('/api/workflow', wizardModule.default);

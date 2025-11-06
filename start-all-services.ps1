@@ -60,12 +60,26 @@ if ($crawlerScriptDefined) {
 
 # Start Ollama services
 Write-Host "🦾 Starting Ollama serve daemon..." -ForegroundColor Cyan
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD'; ollama serve" -WindowStyle Normal
-Write-Host "📥 Ensuring deepseek-r1:latest model is available..." -ForegroundColor Cyan
-try {
-    ollama pull deepseek-r1:latest | Out-Null
-} catch {
-    Write-Host "⚠️ Unable to pull deepseek-r1:latest model automatically: $($_.Exception.Message)" -ForegroundColor Yellow
+$ollamaInstalled = Get-Command ollama -ErrorAction SilentlyContinue
+if ($ollamaInstalled) {
+    Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD'; ollama serve" -WindowStyle Normal
+    Write-Host "✅ Ollama service starting..." -ForegroundColor Green
+    Start-Sleep -Seconds 3
+    
+    Write-Host "📥 Ensuring deepseek-r1:latest model is available..." -ForegroundColor Cyan
+    try {
+        $pullOutput = ollama pull deepseek-r1:latest 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ DeepSeek model ready" -ForegroundColor Green
+        } else {
+            Write-Host "⚠️ Could not pull DeepSeek model. Pull manually with: ollama pull deepseek-r1:latest" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "⚠️ Unable to pull deepseek-r1:latest model: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "⚠️ Ollama not installed. Install from https://ollama.com" -ForegroundColor Yellow
+    Write-Host "   Continuing without Ollama integration..." -ForegroundColor Gray
 }
 
 # Wait for backend services to stabilize
@@ -88,7 +102,9 @@ if ($crawlerScriptDefined) {
     }
     Test-HttpHealth -Name "Crawler" -Url $crawlerHealthUrl
 }
-Test-HttpHealth -Name "Ollama" -Url "http://localhost:11434/api/tags"
+if ($ollamaInstalled) {
+    Test-HttpHealth -Name "Ollama" -Url "http://localhost:11434/api/tags"
+}
 
 # Start Frontend
 Write-Host "🌐 Starting Frontend..." -ForegroundColor Cyan
@@ -105,6 +121,7 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD'; npx el
 Write-Host "✅ Startup sequence completed. Verify windows and logs for any issues." -ForegroundColor Green
 Write-Host "🌐 Frontend: Check the Frontend window for the URL" -ForegroundColor White
 Write-Host "🔌 API: http://localhost:3001" -ForegroundColor White
+Write-Host "🦾 Ollama: http://localhost:11434 (if installed)" -ForegroundColor White
 Write-Host "🖥️  Electron: Desktop app should open" -ForegroundColor White
 Write-Host ""
 Write-Host "Press any key to exit..." -ForegroundColor Gray

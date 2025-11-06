@@ -625,6 +625,29 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
   }
 
   /**
+   * Generate text from a prompt (simpler than chat, no history)
+   */
+  async generate(prompt: string, options: any = {}): Promise<string> {
+    try {
+      const response = await this.client.post('/api/generate', {
+        model: this.config.model,
+        prompt,
+        stream: false,
+        options: {
+          temperature: options.temperature ?? this.config.temperature,
+          top_p: options.top_p ?? 0.9,
+          num_predict: options.max_tokens
+        }
+      });
+
+      return response.data.response || '';
+    } catch (error: any) {
+      console.error('Generate error:', error.message);
+      throw new Error(`Failed to generate response: ${error.message}`);
+    }
+  }
+
+  /**
    * Get status
    */
   getStatus(): any {
