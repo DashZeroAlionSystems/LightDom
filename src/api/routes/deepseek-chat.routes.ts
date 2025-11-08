@@ -6,12 +6,14 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { PromptToSchemaGenerator } from '../services/ai/PromptToSchemaGenerator.js';
+import { PromptToSchemaGenerator } from '../../services/ai/PromptToSchemaGenerator.js';
 import { Pool } from 'pg';
+import { DeepSeekIntegrationService } from '../../services/deepseek-integration.service.js';
 
 export function createDeepSeekChatRoutes(db: Pool, deepseekConfig: any): Router {
   const router = Router();
   const schemaGenerator = new PromptToSchemaGenerator(db);
+  const deepseekService = new DeepSeekIntegrationService(db, deepseekConfig);
 
   /**
    * POST /api/deepseek/chat/stream
@@ -59,80 +61,33 @@ Always structure your responses with clear sections and use JSON where appropria
         }
       ];
 
-      // Step 2: Call DeepSeek API (or Ollama for local)
-      const ollamaEndpoint = process.env.OLLAMA_ENDPOINT || 'http://localhost:11434';
-      
+      // Step 2: Call DeepSeek API directly
       sendEvent('status', { message: 'Calling DeepSeek...' });
 
-      const deepseekResponse = await fetch(`${ollamaEndpoint}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: model,
-          messages: messages,
-          stream: true
-        })
-      });
+      const deepseekResponse = await deepseekService.chat(messages, { model });
+      const choice = deepseekResponse.choices?.[0];
+      const assistantMessage = choice?.message?.content ?? '';
 
-      if (!deepseekResponse.ok) {
-        throw new Error(`DeepSeek API error: ${deepseekResponse.statusText}`);
+      if (!assistantMessage) {
+        throw new Error('DeepSeek returned an empty response');
       }
 
-      const reader = deepseekResponse.body?.getReader();
-      const decoder = new TextDecoder();
+      sendEvent('content', { content: assistantMessage });
 
-      if (!reader) {
-        throw new Error('No response body from DeepSeek');
-      }
-
-      let fullResponse = '';
-      let thinkingBuffer = '';
-      let responseBuffer = '';
-
-      // Step 3: Stream the response
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n').filter(line => line.trim());
-
-        for (const line of lines) {
-          try {
-            const parsed = JSON.parse(line);
-            
-            if (parsed.message?.content) {
-              const content = parsed.message.content;
-              fullResponse += content;
-
-              // Send content chunk
-              sendEvent('content', { content });
-
-              // Check for thinking tags
-              if (content.includes('<think>')) {
-                thinkingBuffer += content;
-              } else if (content.includes('</think>')) {
-                thinkingBuffer += content;
-                // Extract thinking content
-                const thinkMatch = thinkingBuffer.match(/<think>(.*?)<\/think>/s);
-                if (thinkMatch) {
-                  sendEvent('thinking', { content: thinkMatch[1].trim() });
-                }
-                thinkingBuffer = '';
-              } else if (thinkingBuffer) {
-                thinkingBuffer += content;
-              } else {
-                responseBuffer += content;
-              }
-            }
-          } catch (e) {
-            // Not JSON, skip
-          }
+      const reasoningEntries = (choice?.message as any)?.reasoning_content;
+      if (Array.isArray(reasoningEntries) && reasoningEntries.length > 0) {
+        const reasoning = reasoningEntries
+          .map((entry: any) => (entry?.type === 'reasoning' ? entry.text : ''))
+          .filter(Boolean)
+          .join('\n');
+        if (reasoning) {
+          sendEvent('thinking', { content: reasoning });
         }
       }
 
-      // Step 4: Analyze response for schemas and components
+      const fullResponse = assistantMessage;
+
+      // Step 3: Analyze response for schemas and components
       sendEvent('status', { message: 'Analyzing response for schemas...' });
 
       try {

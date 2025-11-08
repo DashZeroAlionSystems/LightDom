@@ -5,8 +5,11 @@
  * Provides template management and customization
  */
 
-import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { readFile, readdir, stat } from 'fs/promises';
+import { join, relative, dirname } from 'path';
+import yaml from 'js-yaml';
+import chokidar from 'chokidar';
+import { v4 as uuidv4 } from 'uuid';
 import { DeepSeekWorkflowCRUDService } from './deepseek-workflow-crud-service.js';
 import { Pool } from 'pg';
 
@@ -44,7 +47,7 @@ export class WorkflowTemplateService {
    */
   async loadTemplates(templatePath?: string): Promise<void> {
     const path = templatePath || join(process.cwd(), 'workflows/deepseek-workflow-templates.json');
-    
+
     try {
       const content = await readFile(path, 'utf-8');
       const data = JSON.parse(content);
@@ -55,10 +58,177 @@ export class WorkflowTemplateService {
         }
       }
 
-      console.log(`✓ Loaded ${this.templates.size} workflow templates`);
+      console.log(`✓ Loaded ${this.templates.size} workflow templates (file: ${path})`);
     } catch (error: any) {
+      // If the file doesn't exist, that's fine. We still allow loading from directory.
+      if ((error && error.code) === 'ENOENT') {
+        console.warn('No deepseek workflow templates file found at', path);
+        return;
+      }
       console.error('Error loading templates:', error.message);
       throw error;
+    }
+  }
+
+  /**
+   * Load templates from a directory structure.
+   * Expected layout: n8n/templates/<category>/*.json|yaml|yml
+   */
+  async loadFromDir(dirPath?: string): Promise<void> {
+    const base = dirPath || join(process.cwd(), 'n8n/templates');
+
+    const walk = async (dir: string) => {
+      let entries: string[] = [];
+      try {
+        entries = await readdir(dir);
+      } catch (e) {
+        return;
+      }
+
+      for (const name of entries) {
+        const full = join(dir, name);
+        let s;
+        try {
+          s = await stat(full);
+        } catch (e) {
+          continue;
+        }
+
+        if (s.isDirectory()) {
+          await walk(full);
+        } else if (s.isFile()) {
+          const ext = name.split('.').pop()?.toLowerCase();
+          if (ext === 'json' || ext === 'yml' || ext === 'yaml') {
+            await this.processTemplateFile(full, base);
+          }
+        }
+      }
+    };
+
+    await walk(base);
+
+    console.log(`✓ Loaded ${this.templates.size} templates from directory ${base}`);
+  }
+
+  private async processTemplateFile(filePath: string, baseDir: string) {
+    try {
+      const raw = await readFile(filePath, 'utf-8');
+      let parsed: any = null;
+      const ext = filePath.split('.').pop()?.toLowerCase();
+
+      if (ext === 'json') {
+        parsed = JSON.parse(raw);
+      } else {
+        parsed = yaml.load(raw);
+      }
+
+      // Support either a single template or an array of templates or an object with 'templates'
+      const templatesToRegister: any[] = [];
+
+      if (Array.isArray(parsed)) {
+        templatesToRegister.push(...parsed);
+      } else if (parsed && parsed.templates && Array.isArray(parsed.templates)) {
+        templatesToRegister.push(...parsed.templates);
+      } else if (parsed && (parsed.id || parsed.workflow)) {
+        templatesToRegister.push(parsed);
+      } else {
+        // Unknown shape, ignore
+      }
+
+      for (const t of templatesToRegister) {
+        // Ensure id
+        if (!t.id) t.id = `tmpl_${uuidv4()}`;
+
+        // Derive category from path if not present
+        if (!t.category) {
+          const rel = relative(baseDir, filePath);
+          const parts = rel.split(/[\\/]/).filter(Boolean);
+          // category = first segment or parent directory name
+          t.category = parts.length > 1 ? parts[parts.length - 2] || parts[0] : parts[0] || 'default';
+        }
+
+        // Attach origin path for traceability
+        (t as any)._sourcePath = filePath;
+
+        this.templates.set(t.id, t);
+      }
+    } catch (e: any) {
+      console.warn('Failed to load template file', filePath, e?.message || e);
+    }
+  }
+
+  /**
+   * Watch a templates directory and keep templates in sync.
+   */
+  async watchTemplatesDir(dirPath?: string) {
+    const base = dirPath || join(process.cwd(), 'n8n/templates');
+
+    try {
+      await this.loadFromDir(base);
+    } catch (e) {
+      // ignore
+    }
+
+    try {
+      const watcher = chokidar.watch(base, { ignoreInitial: true, depth: 5 });
+
+      watcher.on('add', async (p: string) => {
+        await this.processTemplateFile(p, base);
+        console.log('Template file added:', p);
+      });
+
+      watcher.on('change', async (p: string) => {
+        await this.processTemplateFile(p, base);
+        console.log('Template file changed:', p);
+      });
+
+      watcher.on('unlink', async (p: string) => {
+        // Remove templates that reference this source path
+        for (const [id, t] of Array.from(this.templates.entries())) {
+          if ((t as any)._sourcePath === p) {
+            this.templates.delete(id);
+            console.log('Template removed due to file delete:', id);
+          }
+        }
+      });
+
+      console.log('Watching templates directory for changes:', base);
+      return watcher;
+    } catch (e: any) {
+      console.warn('Failed to start watcher for templates dir', base, e?.message || e);
+      return null;
+    }
+  }
+
+  /**
+   * Persist discovered templates into database (upsert)
+   */
+  async persistTemplatesToDB() {
+    try {
+      await this.db.query(`
+        CREATE TABLE IF NOT EXISTS workflow_templates (
+          id TEXT PRIMARY KEY,
+          name TEXT,
+          category TEXT,
+          path TEXT,
+          content JSONB,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      for (const [id, t] of this.templates.entries()) {
+        await this.db.query(
+          `INSERT INTO workflow_templates (id, name, category, path, content, updated_at)
+           VALUES ($1,$2,$3,$4,$5,NOW())
+           ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, category=EXCLUDED.category, path=EXCLUDED.path, content=EXCLUDED.content, updated_at=NOW()`,
+          [id, t.name || null, t.category || null, (t as any)._sourcePath || null, JSON.stringify(t)]
+        );
+      }
+
+      console.log('✓ Persisted templates into DB: ', this.templates.size);
+    } catch (e: any) {
+      console.warn('Failed to persist templates to DB:', e?.message || e);
     }
   }
 

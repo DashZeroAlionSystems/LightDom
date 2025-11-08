@@ -22,6 +22,7 @@ import {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
+  DeepSeekCategoryCrud,
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import {
@@ -409,6 +410,12 @@ const AdminConsoleWorkspace: React.FC = () => {
               </div>
             </Card>
           ))}
+        </div>
+      </WorkspaceSection>
+
+      <WorkspaceSection title="DeepSeek categories" meta="Manage category -> service -> workflow mappings">
+        <div className="space-y-4">
+          <DeepSeekCategoryCrud />
         </div>
       </WorkspaceSection>
     </WorkspaceLayout>

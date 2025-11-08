@@ -6,7 +6,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  Card,
   Steps,
   Button,
   Form,
@@ -40,6 +39,7 @@ import {
   Radio,
   DatePicker
 } from 'antd';
+import { Card as DSCard } from '../../../utils/AdvancedReusableComponents';
 import {
   GlobalOutlined,
   ThunderboltOutlined,
@@ -119,115 +119,119 @@ const AdvancedMemoryLogger: React.FC<AdvancedMemoryLoggerProps> = ({
 
   return (
     <div>
-      <Card>
-        <Title level={4}>Advanced Memory Logger</Title>
-        <Text type="secondary">
-          Intelligent memory management with AI-powered insights and workflow suggestions
-        </Text>
+      <DSCard.Root>
+        <DSCard.Body>
+          <Title level={4}>Advanced Memory Logger</Title>
+          <Text type="secondary">
+            Intelligent memory management with AI-powered insights and workflow suggestions
+          </Text>
 
-        {/* Memory Statistics */}
-        <Row gutter={16} style={{ marginTop: '16px', marginBottom: '16px' }}>
-          <Col span={4}>
-            <Statistic title="Total Memories" value={memoryStats.total} />
-          </Col>
-          <Col span={4}>
-            <Statistic title="Success" value={memoryStats.success} valueStyle={{ color: '#3f8600' }} />
-          </Col>
-          <Col span={4}>
-            <Statistic title="Errors" value={memoryStats.error} valueStyle={{ color: '#cf1322' }} />
-          </Col>
-          <Col span={4}>
-            <Statistic title="Running" value={memoryStats.running} valueStyle={{ color: '#1890ff' }} />
-          </Col>
-          <Col span={4}>
-            <Statistic title="Pending" value={memoryStats.pending} valueStyle={{ color: '#faad14' }} />
-          </Col>
-          <Col span={4}>
-            <Statistic title="Success Rate" value={memoryStats.total > 0 ? (memoryStats.success / memoryStats.total * 100).toFixed(1) : 0} suffix="%" />
-          </Col>
-        </Row>
-
-        {/* Filters and Search */}
-        <Card size="small" style={{ marginBottom: '16px' }}>
-          <Row gutter={16} align="middle">
-            <Col span={6}>
-              <Input
-                placeholder="Search memories..."
-                prefix={<SearchOutlined />}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-              />
+          {/* Memory Statistics */}
+          <Row gutter={16} style={{ marginTop: '16px', marginBottom: '16px' }}>
+            <Col span={4}>
+              <Statistic title="Total Memories" value={memoryStats.total} />
             </Col>
             <Col span={4}>
-              <Select value={selectedType} onChange={setSelectedType} style={{ width: '100%' }}>
-                <Select.Option value="all">All Types</Select.Option>
-                <Select.Option value="crawler_start">Crawler Start</Select.Option>
-                <Select.Option value="crawler_progress">Progress</Select.Option>
-                <Select.Option value="crawler_complete">Complete</Select.Option>
-                <Select.Option value="data_processing">Data Processing</Select.Option>
-                <Select.Option value="model_training">Model Training</Select.Option>
-                <Select.Option value="model_evaluation">Evaluation</Select.Option>
-                <Select.Option value="optimization_applied">Optimization</Select.Option>
-              </Select>
+              <Statistic title="Success" value={memoryStats.success} valueStyle={{ color: '#3f8600' }} />
             </Col>
             <Col span={4}>
-              <Select value={selectedStatus} onChange={setSelectedStatus} style={{ width: '100%' }}>
-                <Select.Option value="all">All Status</Select.Option>
-                <Select.Option value="success">Success</Select.Option>
-                <Select.Option value="error">Error</Select.Option>
-                <Select.Option value="running">Running</Select.Option>
-                <Select.Option value="pending">Pending</Select.Option>
-              </Select>
-            </Col>
-            <Col span={6}>
-              <DatePicker.RangePicker
-                value={dateRange}
-                onChange={(dates) => setDateRange(dates as [Date | null, Date | null])}
-                style={{ width: '100%' }}
-              />
+              <Statistic title="Errors" value={memoryStats.error} valueStyle={{ color: '#cf1322' }} />
             </Col>
             <Col span={4}>
-              <Radio.Group value={viewMode} onChange={(e) => setViewMode(e.target.value)}>
-                <Radio.Button value="timeline"><HistoryOutlined /></Radio.Button>
-                <Radio.Button value="table"><DatabaseOutlined /></Radio.Button>
-                <Radio.Button value="graph"><ShareAltOutlined /></Radio.Button>
-              </Radio.Group>
+              <Statistic title="Running" value={memoryStats.running} valueStyle={{ color: '#1890ff' }} />
+            </Col>
+            <Col span={4}>
+              <Statistic title="Pending" value={memoryStats.pending} valueStyle={{ color: '#faad14' }} />
+            </Col>
+            <Col span={4}>
+              <Statistic title="Success Rate" value={memoryStats.total > 0 ? (memoryStats.success / memoryStats.total * 100).toFixed(1) : 0} suffix="%" />
             </Col>
           </Row>
-        </Card>
 
-        {/* Workflow Suggestions */}
-        <WorkflowSuggestions
-          memories={filteredMemories}
-          onSuggestionSelect={(suggestion) => {
-            message.info(`Applied suggestion: ${suggestion.title}`);
-          }}
-        />
+          {/* Filters and Search */}
+          <DSCard.Root style={{ marginBottom: '16px' }}>
+            <DSCard.Body className="p-3">
+              <Row gutter={16} align="middle">
+                <Col span={6}>
+                  <Input
+                    placeholder="Search memories..."
+                    prefix={<SearchOutlined />}
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                  />
+                </Col>
+                <Col span={4}>
+                  <Select value={selectedType} onChange={setSelectedType} style={{ width: '100%' }}>
+                    <Select.Option value="all">All Types</Select.Option>
+                    <Select.Option value="crawler_start">Crawler Start</Select.Option>
+                    <Select.Option value="crawler_progress">Progress</Select.Option>
+                    <Select.Option value="crawler_complete">Complete</Select.Option>
+                    <Select.Option value="data_processing">Data Processing</Select.Option>
+                    <Select.Option value="model_training">Model Training</Select.Option>
+                    <Select.Option value="model_evaluation">Evaluation</Select.Option>
+                    <Select.Option value="optimization_applied">Optimization</Select.Option>
+                  </Select>
+                </Col>
+                <Col span={4}>
+                  <Select value={selectedStatus} onChange={setSelectedStatus} style={{ width: '100%' }}>
+                    <Select.Option value="all">All Status</Select.Option>
+                    <Select.Option value="success">Success</Select.Option>
+                    <Select.Option value="error">Error</Select.Option>
+                    <Select.Option value="running">Running</Select.Option>
+                    <Select.Option value="pending">Pending</Select.Option>
+                  </Select>
+                </Col>
+                <Col span={6}>
+                  <DatePicker.RangePicker
+                    value={dateRange}
+                    onChange={(dates) => setDateRange(dates as [Date | null, Date | null])}
+                    style={{ width: '100%' }}
+                  />
+                </Col>
+                <Col span={4}>
+                  <Radio.Group value={viewMode} onChange={(e) => setViewMode(e.target.value)}>
+                    <Radio.Button value="timeline"><HistoryOutlined /></Radio.Button>
+                    <Radio.Button value="table"><DatabaseOutlined /></Radio.Button>
+                    <Radio.Button value="graph"><ShareAltOutlined /></Radio.Button>
+                  </Radio.Group>
+                </Col>
+              </Row>
+            </DSCard.Body>
+          </DSCard.Root>
 
-        {/* Memory Views */}
-        <div style={{ marginTop: '16px' }}>
-          {viewMode === 'timeline' && (
-            <MemoryTimelineView
-              memories={filteredMemories}
-              onMemorySelect={onMemorySelect}
-              onMemoryReplay={onMemoryReplay}
-            />
-          )}
-          {viewMode === 'table' && (
-            <MemoryTableView
-              memories={filteredMemories}
-              onMemorySelect={onMemorySelect}
-              onMemoryReplay={onMemoryReplay}
-            />
-          )}
-          {viewMode === 'graph' && (
-            <MemoryGraphView
-              memories={filteredMemories}
-              onMemorySelect={onMemorySelect}
-            />
-          )}
-        </div>
-      </Card>
+          {/* Workflow Suggestions */}
+          <WorkflowSuggestions
+            memories={filteredMemories}
+            onSuggestionSelect={(suggestion) => {
+              message.info(`Applied suggestion: ${suggestion.title}`);
+            }}
+          />
+
+          {/* Memory Views */}
+          <div style={{ marginTop: '16px' }}>
+            {viewMode === 'timeline' && (
+              <MemoryTimelineView
+                memories={filteredMemories}
+                onMemorySelect={onMemorySelect}
+                onMemoryReplay={onMemoryReplay}
+              />
+            )}
+            {viewMode === 'table' && (
+              <MemoryTableView
+                memories={filteredMemories}
+                onMemorySelect={onMemorySelect}
+                onMemoryReplay={onMemoryReplay}
+              />
+            )}
+            {viewMode === 'graph' && (
+              <MemoryGraphView
+                memories={filteredMemories}
+                onMemorySelect={onMemorySelect}
+              />
+            )}
+          </div>
+        </DSCard.Body>
+      </DSCard.Root>
     </div>
   );
 };
@@ -290,38 +294,40 @@ const WorkflowSuggestions: React.FC<WorkflowSuggestionsProps> = ({
   if (suggestions.length === 0) return null;
 
   return (
-    <Card size="small" style={{ marginBottom: '16px' }}>
-      <Title level={5}>
-        <BulbOutlined style={{ marginRight: '8px' }} />
-        AI Workflow Suggestions
-      </Title>
-      <List
-        dataSource={suggestions}
-        renderItem={(suggestion) => (
-          <List.Item
-            actions={[
-              <Button
-                type="link"
-                size="small"
-                onClick={() => onSuggestionSelect?.(suggestion)}
-              >
-                Apply
-              </Button>
-            ]}
-          >
-            <List.Item.Meta
-              title={
-                <Space>
-                  {suggestion.title}
-                  <Tag color="blue">{(suggestion.confidence * 100).toFixed(0)}% confidence</Tag>
-                </Space>
-              }
-              description={suggestion.description}
-            />
-          </List.Item>
-        )}
-      />
-    </Card>
+    <DSCard.Root style={{ marginBottom: '16px' }}>
+      <DSCard.Body className="p-3">
+        <Title level={5}>
+          <BulbOutlined style={{ marginRight: '8px' }} />
+          AI Workflow Suggestions
+        </Title>
+        <List
+          dataSource={suggestions}
+          renderItem={(suggestion) => (
+            <List.Item
+              actions={[
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={() => onSuggestionSelect?.(suggestion)}
+                >
+                  Apply
+                </Button>
+              ]}
+            >
+              <List.Item.Meta
+                title={
+                  <Space>
+                    {suggestion.title}
+                    <Tag color="blue">{(suggestion.confidence * 100).toFixed(0)}% confidence</Tag>
+                  </Space>
+                }
+                description={suggestion.description}
+              />
+            </List.Item>
+          )}
+        />
+      </DSCard.Body>
+    </DSCard.Root>
   );
 };
 
@@ -348,25 +354,9 @@ const MemoryTimelineView: React.FC<MemoryTimelineViewProps> = ({
               memory.status === 'running' ? 'blue' : 'gray'
             }
           >
-            <Card
-              size="small"
-              hoverable
-              onClick={() => onMemorySelect?.(memory)}
-              actions={[
-                <Tooltip title="Replay Workflow">
-                  <Button
-                    type="text"
-                    icon={<SyncOutlined />}
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onMemoryReplay?.(memory);
-                    }}
-                  />
-                </Tooltip>
-              ]}
-            >
-              <Space direction="vertical" style={{ width: '100%' }}>
+            <DSCard.Root className="mb-2" onClick={() => onMemorySelect?.(memory)}>
+              <DSCard.Body>
+                <Space direction="vertical" style={{ width: '100%' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Text strong>{memory.action}</Text>
                   <Space>
@@ -397,8 +387,22 @@ const MemoryTimelineView: React.FC<MemoryTimelineViewProps> = ({
                     <Text>Model Accuracy: {memory.metrics.modelAccuracy ? `${(memory.metrics.modelAccuracy * 100).toFixed(1)}%` : 'N/A'}</Text>
                   </div>
                 )}
-              </Space>
-            </Card>
+                </Space>
+              </DSCard.Body>
+              <DSCard.Footer justify="between">
+                <Tooltip title="Replay Workflow">
+                  <Button
+                    type="text"
+                    icon={<SyncOutlined />}
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMemoryReplay?.(memory);
+                    }}
+                  />
+                </Tooltip>
+              </DSCard.Footer>
+            </DSCard.Root>
           </Timeline.Item>
         ))}
       </Timeline>
@@ -557,43 +561,45 @@ const MemoryGraphView: React.FC<MemoryGraphViewProps> = ({
 
       <div style={{ marginTop: '16px' }}>
         {Object.entries(sessionGroups).map(([sessionId, sessionMemories]) => (
-          <Card key={sessionId} size="small" style={{ marginBottom: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Space>
-                <Text strong>Session: {sessionId === 'no-session' ? 'No Session' : sessionId.slice(0, 8)}</Text>
-                <Badge count={sessionMemories.length} />
-              </Space>
-              <Button
-                type="link"
-                size="small"
-                onClick={() => onMemorySelect?.(sessionMemories[0])}
-              >
-                View Details
-              </Button>
-            </div>
+          <DSCard.Root key={sessionId} style={{ marginBottom: '8px' }}>
+            <DSCard.Body>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Space>
+                  <Text strong>Session: {sessionId === 'no-session' ? 'No Session' : sessionId.slice(0, 8)}</Text>
+                  <Badge count={sessionMemories.length} />
+                </Space>
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={() => onMemorySelect?.(sessionMemories[0])}
+                >
+                  View Details
+                </Button>
+              </div>
 
-            <div style={{ marginTop: '8px' }}>
-              <Timeline>
-                {sessionMemories.slice(0, 5).map((memory, index) => (
-                  <Timeline.Item
-                    key={memory.id}
-                    color={
-                      memory.status === 'success' ? 'green' :
-                      memory.status === 'error' ? 'red' :
-                      memory.status === 'running' ? 'blue' : 'gray'
-                    }
-                  >
-                    <Text style={{ fontSize: '12px' }}>{memory.action}</Text>
-                    {index === 4 && sessionMemories.length > 5 && (
-                      <Text type="secondary" style={{ fontSize: '11px' }}>
-                        ... and {sessionMemories.length - 5} more
-                      </Text>
-                    )}
-                  </Timeline.Item>
-                ))}
-              </Timeline>
-            </div>
-          </Card>
+              <div style={{ marginTop: '8px' }}>
+                <Timeline>
+                  {sessionMemories.slice(0, 5).map((memory, index) => (
+                    <Timeline.Item
+                      key={memory.id}
+                      color={
+                        memory.status === 'success' ? 'green' :
+                        memory.status === 'error' ? 'red' :
+                        memory.status === 'running' ? 'blue' : 'gray'
+                      }
+                    >
+                      <Text style={{ fontSize: '12px' }}>{memory.action}</Text>
+                      {index === 4 && sessionMemories.length > 5 && (
+                        <Text type="secondary" style={{ fontSize: '11px' }}>
+                          ... and {sessionMemories.length - 5} more
+                        </Text>
+                      )}
+                    </Timeline.Item>
+                  ))}
+                </Timeline>
+              </div>
+            </DSCard.Body>
+          </DSCard.Root>
         ))}
       </div>
 
@@ -1343,85 +1349,95 @@ const SEOCrawlerWorkflow: React.FC = () => {
       {/* Real-time Metrics */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Active Crawlers"
-              value={realTimeMetrics.activeCrawlers}
-              prefix={<DesktopOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
+          <DSCard.Root variant="elevated">
+            <DSCard.Body>
+              <Statistic
+                title="Active Crawlers"
+                value={realTimeMetrics.activeCrawlers}
+                prefix={<DesktopOutlined />}
+                valueStyle={{ color: '#1890ff' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Pages/Second"
-              value={realTimeMetrics.pagesPerSecond.toFixed(1)}
-              prefix={<BarChartOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
+          <DSCard.Root variant="elevated">
+            <DSCard.Body>
+              <Statistic
+                title="Pages/Second"
+                value={realTimeMetrics.pagesPerSecond.toFixed(1)}
+                prefix={<BarChartOutlined />}
+                valueStyle={{ color: '#52c41a' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Data Processed"
-              value={realTimeMetrics.dataProcessed}
-              prefix={<DatabaseOutlined />}
-              valueStyle={{ color: '#faad14' }}
-            />
-          </Card>
+          <DSCard.Root variant="elevated">
+            <DSCard.Body>
+              <Statistic
+                title="Data Processed"
+                value={realTimeMetrics.dataProcessed}
+                prefix={<DatabaseOutlined />}
+                valueStyle={{ color: '#faad14' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Models Training"
-              value={realTimeMetrics.modelsTraining}
-              prefix={<ExperimentOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
+          <DSCard.Root variant="elevated">
+            <DSCard.Body>
+              <Statistic
+                title="Models Training"
+                value={realTimeMetrics.modelsTraining}
+                prefix={<ExperimentOutlined />}
+                valueStyle={{ color: '#722ed1' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
       </Row>
 
       <Tabs defaultActiveKey="1">
         <TabPane tab="Crawler Sessions" key="1">
-          <Card>
-            {/* Action Bar */}
-            <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-              <Space wrap>
-                <Button
-                  type="primary"
-                  icon={<PlayCircleOutlined />}
-                  onClick={() => setIsWorkflowModalVisible(true)}
-                  size="large"
-                >
-                  Start SEO Crawler
-                </Button>
-              </Space>
-              <Space wrap>
-                <Button icon={<SyncOutlined />}>
-                  Refresh
-                </Button>
-              </Space>
-            </div>
+          <DSCard.Root>
+            <DSCard.Body>
+              {/* Action Bar */}
+              <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+                <Space wrap>
+                  <Button
+                    type="primary"
+                    icon={<PlayCircleOutlined />}
+                    onClick={() => setIsWorkflowModalVisible(true)}
+                    size="large"
+                  >
+                    Start SEO Crawler
+                  </Button>
+                </Space>
+                <Space wrap>
+                  <Button icon={<SyncOutlined />}>
+                    Refresh
+                  </Button>
+                </Space>
+              </div>
 
-            {/* Sessions Table */}
-            <Table
-              columns={sessionColumns}
-              dataSource={crawlerSessions}
-              rowKey="id"
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} sessions`
-              }}
-            />
-          </Card>
+              {/* Sessions Table */}
+              <Table
+                columns={sessionColumns}
+                dataSource={crawlerSessions}
+                rowKey="id"
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: true,
+                  showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} sessions`
+                }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </TabPane>
 
         <TabPane tab="ML Models" key="2">
-          <Card>
+          <DSCard.Root>
             {/* Action Bar */}
             <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
               <Space wrap>
@@ -1455,7 +1471,7 @@ const SEOCrawlerWorkflow: React.FC = () => {
                 showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} models`
               }}
             />
-          </Card>
+          </DSCard.Root>
         </TabPane>
 
         <TabPane tab="Workflow Memories" key="3">
@@ -1473,8 +1489,9 @@ const SEOCrawlerWorkflow: React.FC = () => {
         </TabPane>
 
         <TabPane tab="Active Workflows" key="4">
-          <Card>
-            <Title level={4}>Active SEO Workflows</Title>
+          <DSCard.Root>
+            <DSCard.Body>
+              <Title level={4}>Active SEO Workflows</Title>
             {activeWorkflow ? (
               <div>
                 <Alert
@@ -1514,7 +1531,7 @@ const SEOCrawlerWorkflow: React.FC = () => {
                   </Space>
                 </div>
               </div>
-            ) : (
+              ) : (
               <Alert
                 message="No Active Workflow"
                 description="Start an SEO crawler or ML training workflow to see it here"
@@ -1522,7 +1539,8 @@ const SEOCrawlerWorkflow: React.FC = () => {
                 showIcon
               />
             )}
-          </Card>
+            </DSCard.Body>
+          </DSCard.Root>
         </TabPane>
       </Tabs>
 
@@ -1849,43 +1867,51 @@ const SEOCrawlerWorkflow: React.FC = () => {
             <TabPane tab="Performance" key="2">
               <Row gutter={16}>
                 <Col span={12}>
-                  <Card>
-                    <Statistic
-                      title="Precision"
-                      value={selectedModel.performance.precision ? selectedModel.performance.precision * 100 : 0}
-                      suffix="%"
-                      precision={1}
-                    />
-                  </Card>
+                  <DSCard.Root>
+                    <DSCard.Body>
+                      <Statistic
+                        title="Precision"
+                        value={selectedModel.performance.precision ? selectedModel.performance.precision * 100 : 0}
+                        suffix="%"
+                        precision={1}
+                      />
+                    </DSCard.Body>
+                  </DSCard.Root>
                 </Col>
                 <Col span={12}>
-                  <Card>
-                    <Statistic
-                      title="Recall"
-                      value={selectedModel.performance.recall ? selectedModel.performance.recall * 100 : 0}
-                      suffix="%"
-                      precision={1}
-                    />
-                  </Card>
+                  <DSCard.Root>
+                    <DSCard.Body>
+                      <Statistic
+                        title="Recall"
+                        value={selectedModel.performance.recall ? selectedModel.performance.recall * 100 : 0}
+                        suffix="%"
+                        precision={1}
+                      />
+                    </DSCard.Body>
+                  </DSCard.Root>
                 </Col>
                 <Col span={12}>
-                  <Card>
-                    <Statistic
-                      title="F1 Score"
-                      value={selectedModel.performance.f1Score ? selectedModel.performance.f1Score * 100 : 0}
-                      suffix="%"
-                      precision={1}
-                    />
-                  </Card>
+                  <DSCard.Root>
+                    <DSCard.Body>
+                      <Statistic
+                        title="F1 Score"
+                        value={selectedModel.performance.f1Score ? selectedModel.performance.f1Score * 100 : 0}
+                        suffix="%"
+                        precision={1}
+                      />
+                    </DSCard.Body>
+                  </DSCard.Root>
                 </Col>
                 <Col span={12}>
-                  <Card>
-                    <Statistic
-                      title="MSE"
-                      value={selectedModel.performance.mse || 0}
-                      precision={4}
-                    />
-                  </Card>
+                  <DSCard.Root>
+                    <DSCard.Body>
+                      <Statistic
+                        title="MSE"
+                        value={selectedModel.performance.mse || 0}
+                        precision={4}
+                      />
+                    </DSCard.Body>
+                  </DSCard.Root>
                 </Col>
               </Row>
             </TabPane>

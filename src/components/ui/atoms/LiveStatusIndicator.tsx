@@ -118,7 +118,7 @@ LiveStatusIndicator.displayName = 'LiveStatusIndicator';
  */
 export interface LiveMetricCardProps extends React.HTMLAttributes<HTMLDivElement> {
   label: string;
-  value: number | string;
+  value: number | string | React.ReactNode;
   unit?: string;
   trend?: 'up' | 'down' | 'neutral';
   trendValue?: string;

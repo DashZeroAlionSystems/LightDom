@@ -31,6 +31,7 @@ import SystemSettings from './SystemSettings';
 import AutomationControl from './AutomationControl';
 import BlockchainMonitor from './BlockchainMonitor';
 import DatabaseMonitor from './DatabaseMonitor';
+import { Card as DSCard } from '../../utils/AdvancedReusableComponents';
 
 interface SystemHealth {
   api: { status: 'healthy' | 'degraded' | 'down'; latency: number };
@@ -127,18 +128,15 @@ const AdminDashboard: React.FC = () => {
         <h3 className="admin-section-title">System Health</h3>
         <div className="health-grid">
           {systemHealth && Object.entries(systemHealth).map(([service, health]) => (
-            <div key={service} className={`health-card ${health.status}`}>
-              <div className="health-header">
-                {getHealthIcon(health.status)}
-                <span className="health-service">{service.toUpperCase()}</span>
-              </div>
-              <div className="health-details">
-                {service === 'api' && <span>Latency: {health.latency}ms</span>}
-                {service === 'database' && <span>Connections: {health.connections}</span>}
-                {service === 'blockchain' && <span>Block: #{health.blockHeight}</span>}
-                {service === 'automation' && <span>Jobs: {health.runningJobs}</span>}
-              </div>
-            </div>
+            <DSCard.Root key={service} variant="outlined" className={`health-card ${health.status}`}>
+              <DSCard.Header title={service.toUpperCase()} action={getHealthIcon(health.status)} />
+              <DSCard.Body>
+                {service === 'api' && <div>Latency: {health.latency}ms</div>}
+                {service === 'database' && <div>Connections: {health.connections}</div>}
+                {service === 'blockchain' && <div>Block: #{health.blockHeight}</div>}
+                {service === 'automation' && <div>Jobs: {health.runningJobs}</div>}
+              </DSCard.Body>
+            </DSCard.Root>
           ))}
         </div>
       </div>
@@ -149,61 +147,69 @@ const AdminDashboard: React.FC = () => {
         <div className="stats-grid">
           {quickStats && (
             <>
-              <div className="stat-card">
-                <div className="stat-icon">
-                  <Users size={24} />
-                </div>
-                <div className="stat-content">
-                  <div className="stat-value">{quickStats.totalUsers.toLocaleString()}</div>
-                  <div className="stat-label">Total Users</div>
-                  <div className="stat-change positive">
-                    <TrendingUp size={16} />
-                    <span>{quickStats.activeUsers} active</span>
+              <DSCard.Root variant="outlined" className="stat-card">
+                <DSCard.Body>
+                  <div className="stat-icon">
+                    <Users size={24} />
                   </div>
-                </div>
-              </div>
+                  <div className="stat-content">
+                    <div className="stat-value">{quickStats.totalUsers.toLocaleString()}</div>
+                    <div className="stat-label">Total Users</div>
+                    <div className="stat-change positive">
+                      <TrendingUp size={16} />
+                      <span>{quickStats.activeUsers} active</span>
+                    </div>
+                  </div>
+                </DSCard.Body>
+              </DSCard.Root>
 
-              <div className="stat-card">
-                <div className="stat-icon">
-                  <DollarSign size={24} />
-                </div>
-                <div className="stat-content">
-                  <div className="stat-value">${quickStats.revenue.toLocaleString()}</div>
-                  <div className="stat-label">Monthly Revenue</div>
-                  <div className="stat-change positive">
-                    <TrendingUp size={16} />
-                    <span>+12.5%</span>
+              <DSCard.Root variant="outlined" className="stat-card">
+                <DSCard.Body>
+                  <div className="stat-icon">
+                    <DollarSign size={24} />
                   </div>
-                </div>
-              </div>
+                  <div className="stat-content">
+                    <div className="stat-value">${quickStats.revenue.toLocaleString()}</div>
+                    <div className="stat-label">Monthly Revenue</div>
+                    <div className="stat-change positive">
+                      <TrendingUp size={16} />
+                      <span>+12.5%</span>
+                    </div>
+                  </div>
+                </DSCard.Body>
+              </DSCard.Root>
 
-              <div className="stat-card">
-                <div className="stat-icon">
-                  <Zap size={24} />
-                </div>
-                <div className="stat-content">
-                  <div className="stat-value">{quickStats.optimizations.toLocaleString()}</div>
-                  <div className="stat-label">Optimizations</div>
-                  <div className="stat-change positive">
-                    <TrendingUp size={16} />
-                    <span>+8.3%</span>
+              <DSCard.Root variant="outlined" className="stat-card">
+                <DSCard.Body>
+                  <div className="stat-icon">
+                    <Zap size={24} />
                   </div>
-                </div>
-              </div>
+                  <div className="stat-content">
+                    <div className="stat-value">{quickStats.optimizations.toLocaleString()}</div>
+                    <div className="stat-label">Optimizations</div>
+                    <div className="stat-change positive">
+                      <TrendingUp size={16} />
+                      <span>+8.3%</span>
+                    </div>
+                  </div>
+                </DSCard.Body>
+              </DSCard.Root>
 
-              <div className="stat-card">
-                <div className="stat-icon">
-                  <Database size={24} />
-                </div>
-                <div className="stat-content">
-                  <div className="stat-value">{(quickStats.spaceSaved / 1024 / 1024 / 1024).toFixed(2)} GB</div>
-                  <div className="stat-label">Space Saved</div>
-                  <div className="stat-change positive">
-                    <TrendingUp size={16} />
-                    <span>+15.2%</span>
+              <DSCard.Root variant="outlined" className="stat-card">
+                <DSCard.Body>
+                  <div className="stat-icon">
+                    <Database size={24} />
                   </div>
-                </div>
-              </div>
+                  <div className="stat-content">
+                    <div className="stat-value">{(quickStats.spaceSaved / 1024 / 1024 / 1024).toFixed(2)} GB</div>
+                    <div className="stat-label">Space Saved</div>
+                    <div className="stat-change positive">
+                      <TrendingUp size={16} />
+                      <span>+15.2%</span>
+                    </div>
+                  </div>
+                </DSCard.Body>
+              </DSCard.Root>
             </>
           )}
         </div>
@@ -213,33 +219,41 @@ const AdminDashboard: React.FC = () => {
       <div className="admin-section">
         <h3 className="admin-section-title">Recent Activity</h3>
         <div className="activity-feed">
-          <div className="activity-item">
-            <div className="activity-icon success">
-              <CheckCircle size={16} />
-            </div>
-            <div className="activity-content">
-              <div className="activity-text">New user registration: alice@example.com</div>
-              <div className="activity-time">2 minutes ago</div>
-            </div>
-          </div>
-          <div className="activity-item">
-            <div className="activity-icon warning">
-              <AlertCircle size={16} />
-            </div>
-            <div className="activity-content">
-              <div className="activity-text">High API usage detected from IP 192.168.1.100</div>
-              <div className="activity-time">15 minutes ago</div>
-            </div>
-          </div>
-          <div className="activity-item">
-            <div className="activity-icon info">
-              <Server size={16} />
-            </div>
-            <div className="activity-content">
-              <div className="activity-text">Blockchain sync completed at block #12345</div>
-              <div className="activity-time">1 hour ago</div>
-            </div>
-          </div>
+          <DSCard.Root variant="outlined" className="activity-item">
+            <DSCard.Body className="flex items-center gap-3">
+              <div className="activity-icon success">
+                <CheckCircle size={16} />
+              </div>
+              <div className="activity-content">
+                <div className="activity-text">New user registration: alice@example.com</div>
+                <div className="activity-time">2 minutes ago</div>
+              </div>
+            </DSCard.Body>
+          </DSCard.Root>
+
+          <DSCard.Root variant="outlined" className="activity-item">
+            <DSCard.Body className="flex items-center gap-3">
+              <div className="activity-icon warning">
+                <AlertCircle size={16} />
+              </div>
+              <div className="activity-content">
+                <div className="activity-text">High API usage detected from IP 192.168.1.100</div>
+                <div className="activity-time">15 minutes ago</div>
+              </div>
+            </DSCard.Body>
+          </DSCard.Root>
+
+          <DSCard.Root variant="outlined" className="activity-item">
+            <DSCard.Body className="flex items-center gap-3">
+              <div className="activity-icon info">
+                <Server size={16} />
+              </div>
+              <div className="activity-content">
+                <div className="activity-text">Blockchain sync completed at block #12345</div>
+                <div className="activity-time">1 hour ago</div>
+              </div>
+            </DSCard.Body>
+          </DSCard.Root>
         </div>
       </div>
     </div>

@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lightdom.dev/schemas/deepseek-chat-console.schema.json",
+  "title": "DeepSeekChatConsoleConfig",
+  "description": "Configuration contract for the streaming DeepSeek console, admin controls, and tool palette binding.",
+  "type": "object",
+  "properties": {
+    "templates": {
+      "type": "array",
+      "description": "List of assistant response templates available to the console UI.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "description": "Unique identifier referenced by conversation entries and stories."
+          },
+          "label": {
+            "type": "string"
+          },
+          "badge": {
+            "type": "string",
+            "description": "Short tag rendered beside assistant messages."
+          },
+          "description": {
+            "type": "string"
+          },
+          "default": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": ["id", "label"],
+        "additionalProperties": false
+      }
+    },
+    "admin": {
+      "type": "object",
+      "description": "Admin panel defaults controlling accent tone, highlight behaviour, and UI toggles.",
+      "properties": {
+        "accentTone": {
+          "type": "string",
+          "enum": ["primary", "secondary", "tertiary"],
+          "default": "primary"
+        },
+        "highlightMode": {
+          "type": "string",
+          "enum": ["balanced", "vivid", "subtle"],
+          "default": "balanced"
+        },
+        "showActionButtons": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "required": ["accentTone", "highlightMode", "showActionButtons"],
+      "additionalProperties": false
+    },
+    "tools": {
+      "type": "array",
+      "description": "Tool definitions exposed to DeepSeek / Ollama when streaming.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "modelIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Models that support this tool (e.g., llama3.1, qwen3)."
+          },
+          "function": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "parameters": {
+                "$ref": "https://json-schema.org/draft/2020-12/schema"
+              }
+            },
+            "required": ["name", "description", "parameters"],
+            "additionalProperties": false
+          },
+          "autoExecute": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the console should run this tool automatically when requested."
+          }
+        },
+        "required": ["id", "function"],
+        "additionalProperties": false
+      }
+    },
+    "stories": {
+      "type": "object",
+      "description": "Storybook generation metadata keyed by story id.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "styleGuide": {
+            "type": "string",
+            "description": "Path to the style guide JSON consumed by the story."
+          },
+          "prompt": {
+            "type": "string",
+            "description": "LLM prompt instructing DeepSeek on how to regenerate the story."
+          },
+          "fixture": {
+            "type": "string",
+            "description": "Path to optional data fixture consumed by the story."
+          }
+        },
+        "required": ["styleGuide", "prompt"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["templates", "admin", "tools"],
+  "additionalProperties": false
+}

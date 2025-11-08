@@ -13,6 +13,7 @@
  */
 
 import axios from 'axios';
+import { Readable } from 'stream';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -66,6 +67,85 @@ class DeepSeekAPIService {
     // Request cache to reduce API calls
     this.cache = new Map();
     this.cacheTTL = 300000; // 5 minutes
+  }
+
+  createChatStream(messages, options = {}) {
+    if (this.mockMode && !this.isOllama) {
+      return Readable.from([
+        JSON.stringify({ type: 'message', content: 'Mock response: DeepSeek offline.' }),
+        '\n',
+      ]);
+    }
+
+    if (this.isOllama) {
+      const controller = new Readable({
+        read() {},
+      });
+
+      (async () => {
+        try {
+          const payload = {
+            model: this.model,
+            messages,
+            stream: true,
+            options,
+          };
+          const response = await this.client.post('/api/chat', payload, { responseType: 'stream' });
+
+          response.data.on('data', (chunk) => {
+            controller.push(chunk);
+          });
+
+          response.data.on('end', () => {
+            controller.push(null);
+          });
+
+          response.data.on('error', (err) => {
+            controller.destroy(err);
+          });
+        } catch (error) {
+          controller.destroy(error);
+        }
+      })();
+
+      return controller;
+    }
+
+    const controller = new Readable({
+      read() {},
+    });
+
+    (async () => {
+      try {
+        const response = await this.client.post(
+          '/chat/completions',
+          {
+            model: this.model,
+            messages,
+            temperature: options.temperature ?? 0.7,
+            max_tokens: options.maxTokens ?? 2000,
+            stream: true,
+          },
+          { responseType: 'stream' },
+        );
+
+        response.data.on('data', (chunk) => {
+          controller.push(chunk);
+        });
+
+        response.data.on('end', () => {
+          controller.push(null);
+        });
+
+        response.data.on('error', (err) => {
+          controller.destroy(err);
+        });
+      } catch (error) {
+        controller.destroy(error);
+      }
+    })();
+
+    return controller;
   }
 
   /**

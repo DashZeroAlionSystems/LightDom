@@ -6,16 +6,9 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-  Button,
-  Input,
-  Badge
-} from '@/components/ui';
+import { Button, Input, Badge } from '@/components/ui';
+import { Card as DSCard } from '../../../utils/AdvancedReusableComponents';
+import { TextArea, SeedItem, TagInput, ConfigPanel, ToggleSwitch } from '@/components/ui/atoms';
 import {
   LiveStatusIndicator,
   LiveMetricCard
@@ -57,6 +50,9 @@ export const URLSeedingService: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
   const [generatedConfig, setGeneratedConfig] = useState<GeneratedConfig | null>(null);
+  const [editedConfig, setEditedConfig] = useState<GeneratedConfig | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [autoStart, setAutoStart] = useState(false);
   const [manualSeeds, setManualSeeds] = useState<string[]>([]);
   const [newSeedUrl, setNewSeedUrl] = useState('');
 
@@ -99,6 +95,20 @@ export const URLSeedingService: React.FC = () => {
     }
   }, [prompt]);
 
+  // Keep an editable copy when a generated config is present
+  React.useEffect(() => {
+    if (generatedConfig) {
+      try {
+        setEditedConfig(JSON.parse(JSON.stringify(generatedConfig)));
+      } catch (e) {
+        setEditedConfig(generatedConfig);
+      }
+    } else {
+      setEditedConfig(null);
+    }
+    setIsEditing(false);
+  }, [generatedConfig]);
+
   const addManualSeed = useCallback(() => {
     if (!newSeedUrl.trim()) return;
     
@@ -115,33 +125,39 @@ export const URLSeedingService: React.FC = () => {
     setManualSeeds(prev => prev.filter((_, i) => i !== index));
   }, []);
 
-  const startCrawling = useCallback(async () => {
-    if (!generatedConfig && manualSeeds.length === 0) return;
+  const startCrawling = useCallback(async (overrideConfig?: GeneratedConfig | null) => {
+    const hasSeeds = (overrideConfig && overrideConfig.seeds && overrideConfig.seeds.length > 0)
+      || (generatedConfig && generatedConfig.seeds && generatedConfig.seeds.length > 0)
+      || (manualSeeds && manualSeeds.length > 0);
+    if (!hasSeeds) return;
 
     try {
-      // Submit crawl job to backend
-      const seeds = generatedConfig 
-        ? generatedConfig.seeds.map(s => s.url)
-        : manualSeeds;
+      // Submit crawl job to backend; allow passing an override config (edited but not saved)
+      const seeds = overrideConfig
+        ? overrideConfig.seeds.map(s => s.url)
+        : generatedConfig
+          ? generatedConfig.seeds.map(s => s.url)
+          : manualSeeds;
 
       const response = await fetch('/api/crawler/start-job', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           seeds,
-          config: generatedConfig?.crawlerConfig || {},
-          schemaKey: generatedConfig?.schemaKey || 'general',
-          attributes: generatedConfig?.attributes || [],
+          config: overrideConfig?.crawlerConfig || generatedConfig?.crawlerConfig || {},
+          schemaKey: overrideConfig?.schemaKey || generatedConfig?.schemaKey || 'general',
+          attributes: overrideConfig?.attributes || generatedConfig?.attributes || [],
         }),
       });
 
       const result = await response.json();
       console.log('Crawl job started:', result);
-      
+
       // Reset state
       setPrompt('');
       setGeneratedConfig(null);
       setManualSeeds([]);
+      setEditedConfig(null);
     } catch (error) {
       console.error('Failed to start crawl job:', error);
     }
@@ -150,23 +166,16 @@ export const URLSeedingService: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* AI Prompt Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-500" />
-            AI-Powered URL Seeding
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <DSCard.Root>
+        <DSCard.Header title="AI-Powered URL Seeding" />
+        <DSCard.Body className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Describe what you want to crawl
-            </label>
-            <textarea
+            <TextArea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Example: Crawl top 10 SaaS landing pages and extract their pricing tables, feature lists, and testimonials for competitive analysis"
-              className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              rows={6}
+              label="Describe what you want to crawl"
               disabled={generating}
             />
           </div>
@@ -188,21 +197,29 @@ export const URLSeedingService: React.FC = () => {
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
+      </DSCard.Body>
+      </DSCard.Root>
 
       {/* Generated Configuration Display */}
       {generatedConfig && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Generated Configuration</span>
-              <LiveBadge variant="success" icon={<CheckCircle className="w-3 h-3" />}>
-                Ready
-              </LiveBadge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <DSCard.Root>
+          <DSCard.Header
+            title="Generated Configuration"
+            action={(
+              <div className="flex items-center gap-3">
+                <LiveBadge variant="success" icon={<CheckCircle className="w-3 h-3" />}>Ready</LiveBadge>
+                <ToggleSwitch checked={autoStart} onChange={(v) => setAutoStart(v)} />
+                <Button
+                  variant="outlined"
+                  className="px-3 py-1 text-sm"
+                  onClick={() => setIsEditing((s) => !s)}
+                >
+                  {isEditing ? 'Preview' : 'Edit'}
+                </Button>
+              </div>
+            )}
+          />
+          <DSCard.Body className="space-y-4">
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <LiveMetricCard
@@ -217,7 +234,8 @@ export const URLSeedingService: React.FC = () => {
               />
               <LiveMetricCard
                 label="Est. Pages"
-                value={<LiveCounter value={generatedConfig.estimatedPages} format="compact" />}
+                // LiveCounter is a React element - cast to any so we can render animated counter inside the metric card
+                value={(<LiveCounter value={generatedConfig.estimatedPages} format="compact" />) as any}
                 icon={<CheckCircle className="w-4 h-4" />}
               />
               <LiveMetricCard
@@ -251,11 +269,17 @@ export const URLSeedingService: React.FC = () => {
             <div>
               <h4 className="text-sm font-semibold text-gray-700 mb-2">Attributes to Extract</h4>
               <div className="flex flex-wrap gap-2">
-                {generatedConfig.attributes.map((attr, i) => (
-                  <Badge key={i} variant="outlined">
-                    {attr}
-                  </Badge>
-                ))}
+                {isEditing ? (
+                  <TagInput
+                    value={editedConfig?.attributes || []}
+                    onChange={(tags) => setEditedConfig((s) => s ? { ...s, attributes: tags } : s)}
+                    placeholder="Add attributes and press Enter"
+                  />
+                ) : (
+                  (generatedConfig.attributes || []).map((attr, i) => (
+                    <Badge key={i} variant="outlined">{attr}</Badge>
+                  ))
+                )}
               </div>
             </div>
 
@@ -264,30 +288,13 @@ export const URLSeedingService: React.FC = () => {
               <h4 className="text-sm font-semibold text-gray-700 mb-2">URL Seeds</h4>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {generatedConfig.seeds.map((seed, i) => (
-                  <div
+                  <SeedItem
                     key={i}
-                    className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {seed.url}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <LiveBadge variant="default" size="sm">
-                          {seed.domain}
-                        </LiveBadge>
-                        <LiveBadge 
-                          variant={seed.priority > 7 ? 'error' : seed.priority > 4 ? 'warning' : 'success'} 
-                          size="sm"
-                        >
-                          P{seed.priority}
-                        </LiveBadge>
-                        <LiveBadge variant="info" size="sm">
-                          {seed.cadence}
-                        </LiveBadge>
-                      </div>
-                    </div>
-                  </div>
+                    url={seed.url}
+                    domain={seed.domain}
+                    priority={seed.priority}
+                    cadence={seed.cadence}
+                  />
                 ))}
               </div>
             </div>
@@ -295,43 +302,74 @@ export const URLSeedingService: React.FC = () => {
             {/* Crawler Config */}
             <div>
               <h4 className="text-sm font-semibold text-gray-700 mb-2">Crawler Settings</h4>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Max Depth:</span>
-                  <span className="font-medium">{generatedConfig.crawlerConfig.maxDepth}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Rate Limit:</span>
-                  <span className="font-medium">{generatedConfig.crawlerConfig.rateLimit}/s</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Timeout:</span>
-                  <span className="font-medium">{generatedConfig.crawlerConfig.timeout}ms</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Robots.txt:</span>
-                  <span className="font-medium">
-                    {generatedConfig.crawlerConfig.respectRobotsTxt ? 'Respect' : 'Ignore'}
-                  </span>
-                </div>
+              <div className="grid grid-cols-1 gap-3 text-sm">
+                {isEditing ? (
+                  <div>
+                    <ConfigPanel
+                      value={editedConfig?.crawlerConfig}
+                      onChange={(cfg) => setEditedConfig((s) => s ? { ...s, crawlerConfig: cfg } : s)}
+                      title="Crawler Settings"
+                    />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Max Depth:</span>
+                      <span className="font-medium">{generatedConfig.crawlerConfig.maxDepth}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Rate Limit:</span>
+                      <span className="font-medium">{generatedConfig.crawlerConfig.rateLimit}/s</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Timeout:</span>
+                      <span className="font-medium">{generatedConfig.crawlerConfig.timeout}ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Robots.txt:</span>
+                      <span className="font-medium">
+                        {generatedConfig.crawlerConfig.respectRobotsTxt ? 'Respect' : 'Ignore'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="filled" onClick={startCrawling} fullWidth>
-              <Send className="w-4 h-4 mr-2" />
-              Start Crawling with Configuration
-            </Button>
-          </CardFooter>
-        </Card>
+          </DSCard.Body>
+          <DSCard.Footer>
+            {isEditing ? (
+              <div className="flex gap-2 w-full">
+                <Button variant="outlined" className="flex-1" onClick={() => {
+                  // cancel edits
+                  setEditedConfig(generatedConfig ? JSON.parse(JSON.stringify(generatedConfig)) : null);
+                  setIsEditing(false);
+                }}>
+                  Cancel
+                </Button>
+                <Button variant="filled" className="flex-1" onClick={() => {
+                  if (editedConfig) {
+                    setGeneratedConfig(editedConfig);
+                    setIsEditing(false);
+                    if (autoStart) startCrawling(editedConfig);
+                  }
+                }}>
+                  Save Changes
+                </Button>
+              </div>
+            ) : (
+              <Button variant="filled" onClick={() => startCrawling(editedConfig || generatedConfig)} fullWidth>
+                <Send className="w-4 h-4 mr-2" />
+                Start Crawling with Configuration
+              </Button>
+            )}
+          </DSCard.Footer>
+        </DSCard.Root>
       )}
 
       {/* Manual Seed Entry */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Manual URL Seeds</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <DSCard.Root>
+        <DSCard.Header title="Manual URL Seeds" />
+        <DSCard.Body className="space-y-4">
           <div className="flex gap-2">
             <Input
               value={newSeedUrl}
@@ -346,31 +384,26 @@ export const URLSeedingService: React.FC = () => {
           {manualSeeds.length > 0 && (
             <div className="space-y-2">
               {manualSeeds.map((url, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200"
-                >
-                  <span className="text-sm truncate flex-1">{url}</span>
-                  <Button
-                    variant="text"
-                    size="sm"
-                    onClick={() => removeManualSeed(i)}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
+                <div key={i} className="flex items-center justify-between">
+                  <SeedItem url={url} domain={new URL(url).hostname} />
+                  <div className="ml-3">
+                    <Button variant="text" size="sm" onClick={() => removeManualSeed(i)}>
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
-        </CardContent>
+        </DSCard.Body>
         {manualSeeds.length > 0 && !generatedConfig && (
-          <CardFooter>
+          <DSCard.Footer>
             <Button variant="filled" onClick={startCrawling} fullWidth>
               Start Crawling Manual Seeds
             </Button>
-          </CardFooter>
+          </DSCard.Footer>
         )}
-      </Card>
+      </DSCard.Root>
     </div>
   );
 };

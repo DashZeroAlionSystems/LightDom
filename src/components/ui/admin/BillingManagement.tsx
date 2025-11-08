@@ -3,36 +3,34 @@
  * Admin interface for managing billing and subscriptions
  */
 
-import React, { useState } from 'react';
 import {
-  Card,
-  Table,
-  Button,
-  Space,
-  Typography,
-  Tag,
-  Statistic,
-  Row,
-  Col,
-  Select,
-  DatePicker,
-  Modal,
-  Descriptions,
-  Badge
-} from 'antd';
-import {
-  WalletOutlined,
-  DollarOutlined,
-  CreditCardOutlined,
-  FileTextOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined,
   ClockCircleOutlined,
+  CloseCircleOutlined,
+  CreditCardOutlined,
+  DollarOutlined,
   DownloadOutlined,
   EyeOutlined,
   RiseOutlined,
-  FallOutlined
+  WalletOutlined,
 } from '@ant-design/icons';
+import {
+  Badge,
+  Button,
+  Col,
+  DatePicker,
+  Descriptions,
+  Modal,
+  Row,
+  Select,
+  Space,
+  Statistic,
+  Table,
+  Tag,
+  Typography,
+} from 'antd';
+import React, { useState } from 'react';
+import { Card as DSCard } from '../../../utils/AdvancedReusableComponents';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -66,7 +64,7 @@ const BillingManagement: React.FC = () => {
       plan: 'Professional',
       amount: 49.99,
       status: 'completed',
-      method: 'Credit Card'
+      method: 'Credit Card',
     },
     {
       id: 'TXN002',
@@ -75,7 +73,7 @@ const BillingManagement: React.FC = () => {
       plan: 'Enterprise',
       amount: 199.99,
       status: 'completed',
-      method: 'PayPal'
+      method: 'PayPal',
     },
     {
       id: 'TXN003',
@@ -84,7 +82,7 @@ const BillingManagement: React.FC = () => {
       plan: 'Starter',
       amount: 9.99,
       status: 'pending',
-      method: 'Credit Card'
+      method: 'Credit Card',
     },
     {
       id: 'TXN004',
@@ -93,8 +91,8 @@ const BillingManagement: React.FC = () => {
       plan: 'Professional',
       amount: 49.99,
       status: 'failed',
-      method: 'Credit Card'
-    }
+      method: 'Credit Card',
+    },
   ]);
 
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([
@@ -105,7 +103,7 @@ const BillingManagement: React.FC = () => {
       status: 'active',
       startDate: new Date('2024-01-01'),
       nextBilling: new Date('2024-11-01'),
-      amount: 49.99
+      amount: 49.99,
     },
     {
       id: 'SUB002',
@@ -114,7 +112,7 @@ const BillingManagement: React.FC = () => {
       status: 'active',
       startDate: new Date('2024-02-15'),
       nextBilling: new Date('2024-11-15'),
-      amount: 199.99
+      amount: 199.99,
     },
     {
       id: 'SUB003',
@@ -123,8 +121,8 @@ const BillingManagement: React.FC = () => {
       status: 'active',
       startDate: new Date('2024-03-20'),
       nextBilling: new Date('2024-11-20'),
-      amount: 9.99
-    }
+      amount: 9.99,
+    },
   ]);
 
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -172,45 +170,42 @@ const BillingManagement: React.FC = () => {
       title: 'Transaction ID',
       dataIndex: 'id',
       key: 'id',
-      render: (id: string) => <Text code>{id}</Text>
+      render: (id: string) => <Text code>{id}</Text>,
     },
     {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
-      render: (date: Date) => date.toLocaleDateString()
+      render: (date: Date) => date.toLocaleDateString(),
     },
     {
       title: 'User',
       dataIndex: 'user',
-      key: 'user'
+      key: 'user',
     },
     {
       title: 'Plan',
       dataIndex: 'plan',
-      key: 'plan'
+      key: 'plan',
     },
     {
       title: 'Amount',
       dataIndex: 'amount',
       key: 'amount',
-      render: (amount: number) => <Text strong>${amount.toFixed(2)}</Text>
+      render: (amount: number) => <Text strong>${amount.toFixed(2)}</Text>,
     },
     {
       title: 'Method',
       dataIndex: 'method',
-      key: 'method'
+      key: 'method',
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
-        <Badge
-          status={getStatusColor(status) as any}
-          text={status.toUpperCase()}
-        />
-      )
+        <Badge status={getStatusColor(status) as any} text={status.toUpperCase()} />
+      ),
     },
     {
       title: 'Actions',
@@ -218,19 +213,15 @@ const BillingManagement: React.FC = () => {
       render: (record: Transaction) => (
         <Space>
           <Button
-            type="text"
+            type='text'
             icon={<EyeOutlined />}
-            size="small"
+            size='small'
             onClick={() => handleViewTransaction(record)}
           />
-          <Button
-            type="text"
-            icon={<DownloadOutlined />}
-            size="small"
-          />
+          <Button type='text' icon={<DownloadOutlined />} size='small' />
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   const subscriptionColumns = [
@@ -238,48 +229,45 @@ const BillingManagement: React.FC = () => {
       title: 'Subscription ID',
       dataIndex: 'id',
       key: 'id',
-      render: (id: string) => <Text code>{id}</Text>
+      render: (id: string) => <Text code>{id}</Text>,
     },
     {
       title: 'User',
       dataIndex: 'user',
-      key: 'user'
+      key: 'user',
     },
     {
       title: 'Plan',
       dataIndex: 'plan',
       key: 'plan',
-      render: (plan: string) => <Tag color="blue">{plan}</Tag>
+      render: (plan: string) => <Tag color='blue'>{plan}</Tag>,
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
-        <Badge
-          status={getStatusColor(status) as any}
-          text={status.toUpperCase()}
-        />
-      )
+        <Badge status={getStatusColor(status) as any} text={status.toUpperCase()} />
+      ),
     },
     {
       title: 'Start Date',
       dataIndex: 'startDate',
       key: 'startDate',
-      render: (date: Date) => date.toLocaleDateString()
+      render: (date: Date) => date.toLocaleDateString(),
     },
     {
       title: 'Next Billing',
       dataIndex: 'nextBilling',
       key: 'nextBilling',
-      render: (date: Date) => date.toLocaleDateString()
+      render: (date: Date) => date.toLocaleDateString(),
     },
     {
       title: 'Amount',
       dataIndex: 'amount',
       key: 'amount',
-      render: (amount: number) => <Text strong>${amount.toFixed(2)}/mo</Text>
-    }
+      render: (amount: number) => <Text strong>${amount.toFixed(2)}/mo</Text>,
+    },
   ];
 
   const totalRevenue = transactions
@@ -294,145 +282,149 @@ const BillingManagement: React.FC = () => {
 
   return (
     <div>
-      <Card style={{ marginBottom: '24px' }}>
-        <Title level={3} style={{ marginBottom: '24px' }}>
-          <WalletOutlined /> Billing Management
-        </Title>
+      <DSCard.Root className='mb-6'>
+        <DSCard.Header title='Billing Management' action={<WalletOutlined />} divider={false} />
+        <DSCard.Body>
+          <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+            <Col xs={24} sm={12} md={6}>
+              <DSCard.Root variant='outlined'>
+                <DSCard.Body>
+                  <Statistic
+                    title='Total Revenue'
+                    value={totalRevenue}
+                    precision={2}
+                    prefix={<DollarOutlined />}
+                    valueStyle={{ color: '#3f8600' }}
+                    suffix={
+                      <span style={{ fontSize: '14px' }}>
+                        <RiseOutlined style={{ color: '#52c41a' }} /> 15%
+                      </span>
+                    }
+                  />
+                </DSCard.Body>
+              </DSCard.Root>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <DSCard.Root variant='outlined'>
+                <DSCard.Body>
+                  <Statistic
+                    title='Monthly Revenue'
+                    value={monthlyRevenue}
+                    precision={2}
+                    prefix={<DollarOutlined />}
+                    valueStyle={{ color: '#1890ff' }}
+                  />
+                </DSCard.Body>
+              </DSCard.Root>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <DSCard.Root variant='outlined'>
+                <DSCard.Body>
+                  <Statistic
+                    title='Active Subscriptions'
+                    value={activeSubscriptions}
+                    prefix={<CreditCardOutlined />}
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                </DSCard.Body>
+              </DSCard.Root>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <DSCard.Root variant='outlined'>
+                <DSCard.Body>
+                  <Statistic
+                    title='Pending Transactions'
+                    value={transactions.filter(t => t.status === 'pending').length}
+                    prefix={<ClockCircleOutlined />}
+                    valueStyle={{ color: '#faad14' }}
+                  />
+                </DSCard.Body>
+              </DSCard.Root>
+            </Col>
+          </Row>
+        </DSCard.Body>
+      </DSCard.Root>
 
-        <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic
-                title="Total Revenue"
-                value={totalRevenue}
-                precision={2}
-                prefix={<DollarOutlined />}
-                valueStyle={{ color: '#3f8600' }}
-                suffix={
-                  <span style={{ fontSize: '14px' }}>
-                    <RiseOutlined style={{ color: '#52c41a' }} /> 15%
-                  </span>
-                }
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic
-                title="Monthly Revenue"
-                value={monthlyRevenue}
-                precision={2}
-                prefix={<DollarOutlined />}
-                valueStyle={{ color: '#1890ff' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic
-                title="Active Subscriptions"
-                value={activeSubscriptions}
-                prefix={<CreditCardOutlined />}
-                valueStyle={{ color: '#52c41a' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic
-                title="Pending Transactions"
-                value={transactions.filter(t => t.status === 'pending').length}
-                prefix={<ClockCircleOutlined />}
-                valueStyle={{ color: '#faad14' }}
-              />
-            </Card>
-          </Col>
-        </Row>
-      </Card>
-
-      <Card style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <Title level={4} style={{ margin: 0 }}>
-            Recent Transactions
-          </Title>
-          <Space>
-            <Select
-              defaultValue="all"
-              style={{ width: 150 }}
-            >
-              <Select.Option value="all">All Status</Select.Option>
-              <Select.Option value="completed">Completed</Select.Option>
-              <Select.Option value="pending">Pending</Select.Option>
-              <Select.Option value="failed">Failed</Select.Option>
-            </Select>
-            <RangePicker />
-            <Button icon={<DownloadOutlined />}>Export</Button>
-          </Space>
-        </div>
-
-        <Table
-          columns={transactionColumns}
-          dataSource={transactions}
-          rowKey="id"
-          pagination={{
-            pageSize: 10,
-            showTotal: (total) => `Total ${total} transactions`
-          }}
+      <DSCard.Root className='mb-6'>
+        <DSCard.Header
+          title='Recent Transactions'
+          action={
+            <Space>
+              <Select defaultValue='all' style={{ width: 150 }}>
+                <Select.Option value='all'>All Status</Select.Option>
+                <Select.Option value='completed'>Completed</Select.Option>
+                <Select.Option value='pending'>Pending</Select.Option>
+                <Select.Option value='failed'>Failed</Select.Option>
+              </Select>
+              <RangePicker />
+              <Button icon={<DownloadOutlined />}>Export</Button>
+            </Space>
+          }
+          divider={false}
         />
-      </Card>
+        <DSCard.Body>
+          <Table
+            columns={transactionColumns}
+            dataSource={transactions}
+            rowKey='id'
+            pagination={{
+              pageSize: 10,
+              showTotal: total => `Total ${total} transactions`,
+            }}
+          />
+        </DSCard.Body>
+      </DSCard.Root>
 
-      <Card>
-        <Title level={4} style={{ marginBottom: '16px' }}>
-          Active Subscriptions
-        </Title>
-        <Table
-          columns={subscriptionColumns}
-          dataSource={subscriptions}
-          rowKey="id"
-          pagination={{
-            pageSize: 10,
-            showTotal: (total) => `Total ${total} subscriptions`
-          }}
-        />
-      </Card>
+      <DSCard.Root>
+        <DSCard.Header title='Active Subscriptions' />
+        <DSCard.Body>
+          <Table
+            columns={subscriptionColumns}
+            dataSource={subscriptions}
+            rowKey='id'
+            pagination={{
+              pageSize: 10,
+              showTotal: total => `Total ${total} subscriptions`,
+            }}
+          />
+        </DSCard.Body>
+      </DSCard.Root>
 
       <Modal
-        title="Transaction Details"
+        title='Transaction Details'
         open={detailsModalVisible}
         onCancel={() => setDetailsModalVisible(false)}
         footer={[
-          <Button key="close" onClick={() => setDetailsModalVisible(false)}>
+          <Button key='close' onClick={() => setDetailsModalVisible(false)}>
             Close
           </Button>,
-          <Button key="download" type="primary" icon={<DownloadOutlined />}>
+          <Button key='download' type='primary' icon={<DownloadOutlined />}>
             Download Receipt
-          </Button>
+          </Button>,
         ]}
         width={600}
       >
         {selectedTransaction && (
           <Descriptions bordered column={1}>
-            <Descriptions.Item label="Transaction ID">
+            <Descriptions.Item label='Transaction ID'>
               <Text code>{selectedTransaction.id}</Text>
             </Descriptions.Item>
-            <Descriptions.Item label="Date">
+            <Descriptions.Item label='Date'>
               {selectedTransaction.date.toLocaleString()}
             </Descriptions.Item>
-            <Descriptions.Item label="User">
-              {selectedTransaction.user}
+            <Descriptions.Item label='User'>{selectedTransaction.user}</Descriptions.Item>
+            <Descriptions.Item label='Plan'>
+              <Tag color='blue'>{selectedTransaction.plan}</Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="Plan">
-              <Tag color="blue">{selectedTransaction.plan}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Amount">
+            <Descriptions.Item label='Amount'>
               <Text strong style={{ fontSize: '16px' }}>
                 ${selectedTransaction.amount.toFixed(2)}
               </Text>
             </Descriptions.Item>
-            <Descriptions.Item label="Payment Method">
+            <Descriptions.Item label='Payment Method'>
               {selectedTransaction.method}
             </Descriptions.Item>
-            <Descriptions.Item label="Status">
+            <Descriptions.Item label='Status'>
               <Badge
                 status={getStatusColor(selectedTransaction.status) as any}
                 text={selectedTransaction.status.toUpperCase()}

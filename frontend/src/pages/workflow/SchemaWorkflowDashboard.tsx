@@ -1,3 +1,4 @@
+
 /**
  * Schema-Driven Workflow Dashboard
  * 
@@ -12,44 +13,43 @@
  * - Template marketplace
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus,
   Search,
-  Filter,
   RefreshCw,
   Play,
-  Pause,
-  Square,
   Edit3,
   Trash2,
-  Copy,
-  Download,
-  Upload,
-  Settings,
   BarChart3,
   Clock,
   CheckCircle,
   XCircle,
   AlertCircle,
   Zap,
-  GitBranch,
   Layout,
-  Save,
-  Eye,
-  Code,
   Database,
   Globe,
   Brain,
   Workflow as WorkflowIcon,
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { cn } from '@/lib/utils';
 import DataMiningWorkflowCreator from '@/components/workflow/DataMiningWorkflowCreator';
-import { DataMiningWorkflow } from '@/services/DataMiningWorkflowService';
+
+// Small helpers
+function formatDuration(ms?: number | null): string {
+  if (ms === undefined || ms === null || Number.isNaN(ms)) return 'N/A';
+  const totalSec = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSec / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
 
 // Types from our research
 interface WorkflowSchema {
@@ -170,6 +170,8 @@ export const SchemaWorkflowDashboard: React.FC = () => {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowDefinition | null>(null);
+  // mark as used to avoid unused-local diagnostics until edit modal is implemented
+  void selectedWorkflow;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDataMiningModal, setShowDataMiningModal] = useState(false);
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -550,6 +552,19 @@ export const SchemaWorkflowDashboard: React.FC = () => {
           }}
         />
       )}
+
+      {/* DataMining Workflow Creator Modal */}
+      {showDataMiningModal && (
+        <DataMiningWorkflowCreator
+          visible={showDataMiningModal}
+          onClose={() => setShowDataMiningModal(false)}
+          onWorkflowCreated={() => {
+              setShowDataMiningModal(false);
+              loadWorkflows(); // Reload workflows to show the new one
+            }}
+        />
+      )}
+
     </div>
   );
 };
@@ -581,6 +596,8 @@ const WorkflowCard: React.FC<{
   onToggleActive: () => void;
   onEdit: () => void;
 }> = ({ workflow, view, onExecute, onDelete, onToggleActive, onEdit }) => {
+  // avoid unused-var diagnostics for onToggleActive when not used in this view
+  void onToggleActive;
   const processType = PROCESS_TYPES.find(t => t.value === workflow.process_type);
   const TypeIcon = processType?.icon || WorkflowIcon;
 
@@ -622,7 +639,7 @@ const WorkflowCard: React.FC<{
 
           <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
+              variant="text"
               size="sm"
               onClick={onExecute}
               disabled={!workflow.is_active}
@@ -630,14 +647,14 @@ const WorkflowCard: React.FC<{
               <Play className="h-4 w-4" />
             </Button>
             <Button
-              variant="ghost"
+              variant="text"
               size="sm"
               onClick={onEdit}
             >
               <Edit3 className="h-4 w-4" />
             </Button>
             <Button
-              variant="ghost"
+              variant="text"
               size="sm"
               onClick={onDelete}
               className="text-red-400 hover:text-red-300"
@@ -848,29 +865,5 @@ const CreateWorkflowModal: React.FC<{
     </div>
   );
 };
-
-      {/* DataMining Workflow Creator Modal */}
-      <DataMiningWorkflowCreator
-        visible={showDataMiningModal}
-        onClose={() => setShowDataMiningModal(false)}
-        onWorkflowCreated={(workflow: DataMiningWorkflow) => {
-          setShowDataMiningModal(false);
-          loadWorkflows(); // Reload workflows to show the new one
-        }}
-      />
-    </div>
-  );
-};
-
-// Utility function
-function formatDuration(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-
-  if (hours > 0) return `${hours}h ${minutes % 60}m`;
-  if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
-  return `${seconds}s`;
-}
 
 export default SchemaWorkflowDashboard;

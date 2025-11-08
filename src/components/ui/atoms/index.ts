@@ -48,3 +48,20 @@ export type {
   LiveMetricCardProps,
   ActivityPulseProps,
 } from './LiveStatusIndicator';
+
+// Additional atoms created for admin components
+export { TextArea } from './TextArea';
+export type { TextAreaProps } from './TextArea';
+
+export { SeedItem } from './SeedItem';
+export type { SeedItemProps } from './SeedItem';
+
+// New atoms
+export { TagInput } from './TagInput';
+export type { TagInputProps } from './TagInput';
+
+export { ToggleSwitch } from './ToggleSwitch';
+export type { ToggleSwitchProps } from './ToggleSwitch';
+
+export { ConfigPanel } from './ConfigPanel';
+export type { ConfigPanelProps, CrawlerConfig } from './ConfigPanel';

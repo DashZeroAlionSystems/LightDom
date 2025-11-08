@@ -11,6 +11,7 @@ export { default as EnhancedWorkflowWizard } from './EnhancedWorkflowWizard';
 
 // Dashboard prompt stack
 export { default as PromptConversationPanel } from './dashboard/PromptConversationPanel';
+export { ServiceBundleList } from './dashboard/ServiceBundleList';
 
 // UI Components
 export * from './ui';

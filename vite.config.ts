@@ -18,29 +18,29 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:3002',
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
             console.log('\n[Vite Proxy Error] Failed to proxy API request to backend server');
-            console.log('→ Make sure the API server is running on port 3001');
+            console.log('→ Make sure the API server is running on port 3002');
             console.log('→ Start it with: npm run start:dev (or make dev-full)');
             console.log('→ Error:', (err as any).code || err.message);
           });
           proxy.on('proxyReq', (_proxyReq, req, _res) => {
-            console.log(`[Vite Proxy] ${req.method} ${req.url} → http://localhost:3001${req.url}`);
+            console.log(`[Vite Proxy] ${req.method} ${req.url} → http://localhost:3002${req.url}`);
           });
         },
       },
       '/ws': {
-        target: 'ws://localhost:3001',
+        target: 'ws://localhost:3002',
         ws: true,
         changeOrigin: true,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
             console.log('\n[Vite WebSocket Proxy Error] Failed to proxy WebSocket to backend server');
-            console.log('→ Make sure the API server is running on port 3001');
+            console.log('→ Make sure the API server is running on port 3002');
             console.log('→ Error:', (err as any).code || err.message);
           });
         },

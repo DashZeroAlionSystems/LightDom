@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
 import {
   PromptCompose,
   PromptComposeAction,
@@ -11,6 +10,9 @@ import {
   PromptInput,
 } from '@/components/ui';
 import { Sparkles, Zap, Database, RefreshCw, Settings2 } from 'lucide-react';
+import deepseekChatGuide from '@/config/style-guides/deepseek-chat.json';
+
+const promptTextColor = deepseekChatGuide.properties?.prompt?.default?.textColor ?? '#000000';
 
 const meta: Meta<typeof PromptInput> = {
   title: 'AI/PromptCompose',
@@ -42,6 +44,13 @@ const meta: Meta<typeof PromptInput> = {
           </div>
         </div>
       ),
+    },
+    textColor: promptTextColor,
+  },
+  argTypes: {
+    textColor: {
+      control: 'color',
+      description: 'Overrides the prompt input text color, defaults to DeepSeek style guide token.',
     },
   },
 };

@@ -4,6 +4,7 @@ export { Badge } from './Badge';
 export { Button } from './Button';
 export { ServiceActionButton } from './ServiceActionButton';
 export { ServiceActionBar } from './ServiceActionBar';
+export { DeepSeekCategoryCrud } from './admin/DeepSeekCategoryCrud';
 export {
   Card,
   CardHeader,

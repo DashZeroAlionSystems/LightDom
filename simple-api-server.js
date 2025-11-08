@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import axios from 'axios';
 // import crawler from './enhanced-web-crawler-service.js'; // COMMENTED OUT FOR TESTING
 import dotenv from 'dotenv';
 dotenv.config();
@@ -130,6 +131,7 @@ let walletService = null;
 
 const app = express();
 const PORT = process.env.PORT || 3002;
+const DEEPSEEK_SERVICE_URL = process.env.DEEPSEEK_SERVICE_URL || 'http://127.0.0.1:4100';
 
 // Middleware
 app.use(cors());
@@ -147,7 +149,9 @@ const USE_CRAWLER_STUB = process.env.DEV_CRAWLER_STUB !== 'false';
 let crawler = null;
 
 if (USE_CRAWLER_STUB) {
-  console.log('⚠️  Using in-memory crawler stub (DEV_CRAWLER_STUB != false). Set DEV_CRAWLER_STUB=false to disable.');
+  console.log(
+    '⚠️  Using in-memory crawler stub (DEV_CRAWLER_STUB != false). Set DEV_CRAWLER_STUB=false to disable.'
+  );
   crawler = (function () {
     let isRunning = false;
     let crawledCount = 0;
@@ -159,7 +163,7 @@ if (USE_CRAWLER_STUB) {
         isRunning,
         crawledCount,
         discoveredCount,
-        lastUpdate: new Date().toISOString()
+        lastUpdate: new Date().toISOString(),
       };
     }
 
@@ -169,7 +173,7 @@ if (USE_CRAWLER_STUB) {
         crawledCount,
         discoveredCount,
         crawledToday: Math.min(crawledCount, Math.floor(Math.random() * 50)),
-        avgSeoScore: Math.floor(Math.random() * 100)
+        avgSeoScore: Math.floor(Math.random() * 100),
       };
     }
 
@@ -191,7 +195,7 @@ if (USE_CRAWLER_STUB) {
           seoScore: Math.floor(Math.random() * 100),
           current_size: Math.floor(Math.random() * 15000),
           space_reclaimed: Math.floor(Math.random() * 5000),
-          metadata: {}
+          metadata: {},
         });
       }
       if (recentCrawls.length > 100) recentCrawls.length = 100;
@@ -293,14 +297,14 @@ if (USE_CRAWLER_STUB) {
         isRunning: false,
         crawledCount: 0,
         discoveredCount: 0,
-        lastUpdate: new Date().toISOString()
+        lastUpdate: new Date().toISOString(),
       }),
       getStats: () => ({
         isRunning: false,
         crawledCount: 0,
         discoveredCount: 0,
         crawledToday: 0,
-        avgSeoScore: 0
+        avgSeoScore: 0,
       }),
       getRecentCrawls: (limit = 10) => [],
       startCrawling: async () => ({ success: false, error: 'Crawler not available' }),
@@ -310,7 +314,13 @@ if (USE_CRAWLER_STUB) {
 
     miningService = (function fallbackMiningStub() {
       return {
-        getStats: async () => ({ isMining: false, minedBlocks: 0, totalRewards: 0, activeWorkers: 0, hashRate: 0 }),
+        getStats: async () => ({
+          isMining: false,
+          minedBlocks: 0,
+          totalRewards: 0,
+          activeWorkers: 0,
+          hashRate: 0,
+        }),
         startMining: async () => ({ sessionId: null, stats: { isMining: true } }),
         stopMining: async () => ({ sessionId: null, stats: { isMining: false } }),
         shutdown: async () => ({ success: true }),
@@ -318,7 +328,6 @@ if (USE_CRAWLER_STUB) {
     })();
   }
 }
-
 
 // Attempt to load and register Admin API routes (optional)
 // This lets the lightweight simple server expose admin endpoints when available
@@ -336,10 +345,10 @@ try {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
-    service: 'LightDom API Server'
+    service: 'LightDom API Server',
   });
 });
 
@@ -350,17 +359,78 @@ app.get('/api/db/health', async (req, res) => {
     const pool = new Pool({
       host: process.env.DB_HOST || 'localhost',
       port: Number(process.env.DB_PORT || 5432),
-      database: process.env.DB_NAME || 'lightdom',
+      database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
       ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
-      idleTimeoutMillis: 5000
+      idleTimeoutMillis: 5000,
     });
     const { rows } = await pool.query('SELECT 1 as ok');
     await pool.end();
     res.json({ success: true, ok: rows[0].ok === 1 });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DeepSeek streaming chat proxy
+app.post('/api/deepseek/chat', async (req, res) => {
+  try {
+    const upstream = await axios.post(`${DEEPSEEK_SERVICE_URL}/chat`, req.body, {
+      headers: { 'Content-Type': 'application/json' },
+      responseType: 'stream',
+      timeout: 0,
+    });
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    if (typeof res.flushHeaders === 'function') {
+      res.flushHeaders();
+    }
+    res.write(': connected\n\n');
+
+    upstream.data.on('data', (chunk) => {
+      res.write(chunk);
+    });
+
+    upstream.data.on('end', () => {
+      if (!res.writableEnded) {
+        res.write('data: [DONE]\n\n');
+        res.end();
+      }
+    });
+
+    upstream.data.on('error', (streamError) => {
+      console.error('DeepSeek chat proxy stream error:', streamError.message);
+      if (!res.writableEnded) {
+        res.write(
+          `data: ${JSON.stringify({ type: 'error', message: 'DeepSeek stream error occurred.' })}\n\n`,
+        );
+        res.end();
+      }
+    });
+
+    req.on('close', () => {
+      if (typeof upstream.data.destroy === 'function') {
+        upstream.data.destroy();
+      }
+    });
+  } catch (error) {
+    console.error('DeepSeek chat proxy failed:', error.message);
+    const status = error.response?.status ?? 500;
+    const message =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message ||
+      'Failed to reach DeepSeek chat service.';
+
+    if (!res.headersSent) {
+      res.status(status).json({ success: false, error: message });
+    } else if (!res.writableEnded) {
+      res.write(`data: ${JSON.stringify({ type: 'error', message })}\n\n`);
+      res.end();
+    }
   }
 });
 
@@ -372,10 +442,10 @@ app.post('/api/db/apply-schemas', async (req, res) => {
     const pool = new Pool({
       host: process.env.DB_HOST || 'localhost',
       port: Number(process.env.DB_PORT || 5432),
-      database: process.env.DB_NAME || 'lightdom',
+      database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
     });
 
     const schemaFiles = [
@@ -389,7 +459,7 @@ app.post('/api/db/apply-schemas', async (req, res) => {
       'database/02-optimization.sql',
       'database/03-bridge.sql',
       'database/seo_service_schema.sql',
-      'src/seo/database/training-data-migrations.sql'
+      'src/seo/database/training-data-migrations.sql',
     ];
 
     for (const relPath of schemaFiles) {
@@ -437,7 +507,7 @@ app.get('/api/metaverse/mining-data', async (req, res) => {
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
       ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
-      idleTimeoutMillis: 5000
+      idleTimeoutMillis: 5000,
     });
 
     // Get crawler stats - COMMENTED OUT FOR TESTING
@@ -470,7 +540,7 @@ app.get('/api/metaverse/mining-data', async (req, res) => {
       spaceReclaimedBytes: parseInt(stats.total_space_reclaimed) || 0,
       minedToday: parseInt(stats.mined_today) || 0,
       minedThisWeek: parseInt(stats.mined_this_week) || 0,
-      crawlerStatus: crawlerStats.isRunning ? 'running' : 'stopped'
+      crawlerStatus: crawlerStats.isRunning ? 'running' : 'stopped',
     };
 
     res.json(miningData);
@@ -486,7 +556,7 @@ app.get('/api/metaverse/mining-data', async (req, res) => {
       miningRate: 0,
       efficiency: 0,
       crawlerStatus: crawlerStats.isRunning ? 'running' : 'stopped',
-      error: 'Using fallback data - database not available'
+      error: 'Using fallback data - database not available',
     });
   }
 });
@@ -498,9 +568,9 @@ app.get('/api/blockchain/stats', (req, res) => {
     activeContracts: Math.floor(Math.random() * 50),
     gasPrice: Math.floor(Math.random() * 100),
     blockHeight: Math.floor(Math.random() * 1000000),
-    networkHash: Math.floor(Math.random() * 1000000000)
+    networkHash: Math.floor(Math.random() * 1000000000),
   };
-  
+
   res.json(mockData);
 });
 
@@ -510,9 +580,9 @@ app.get('/api/optimization/stats', (req, res) => {
     totalOptimizations: Math.floor(Math.random() * 1000),
     spaceSaved: Math.floor(Math.random() * 10000),
     performanceGain: Math.floor(Math.random() * 100),
-    lastOptimization: new Date().toISOString()
+    lastOptimization: new Date().toISOString(),
   };
-  
+
   res.json(mockData);
 });
 
@@ -528,7 +598,7 @@ app.get('/api/metaverse/stats', async (req, res) => {
       database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
     });
 
     // Get bridge stats
@@ -568,7 +638,7 @@ app.get('/api/metaverse/stats', async (req, res) => {
       totalMessages: parseInt(messageStats.rows[0].total_messages) || 0,
       totalRevenue: parseFloat(roomStats.rows[0].total_revenue) || 0,
       averageEfficiency: parseFloat(bridgeStats.rows[0].avg_efficiency) || 0,
-      lastUpdate: new Date().toISOString()
+      lastUpdate: new Date().toISOString(),
     };
 
     await pool.end();
@@ -589,7 +659,7 @@ app.get('/api/metaverse/bridges', async (req, res) => {
       database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
     });
 
     const result = await pool.query(`
@@ -615,10 +685,11 @@ app.post('/api/metaverse/bridges', async (req, res) => {
       database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
     });
     const b = req.body || {};
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       INSERT INTO metaverse.space_bridges (
         id, bridge_id, source_url, source_site_id, source_chain, target_chain,
         space_available, space_used, efficiency, is_operational, status,
@@ -626,7 +697,24 @@ app.post('/api/metaverse/bridges', async (req, res) => {
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,COALESCE($10,true),COALESCE($11,'active'),$12,$13,COALESCE($14,'{}'::jsonb)
       ) RETURNING *
-    `, [b.id, b.bridge_id, b.source_url, b.source_site_id, b.source_chain, b.target_chain, b.space_available, b.space_used || 0, b.efficiency || 0, b.is_operational, b.status, b.current_volume || 0, b.bridge_capacity || b.space_available, b.metadata]);
+    `,
+      [
+        b.id,
+        b.bridge_id,
+        b.source_url,
+        b.source_site_id,
+        b.source_chain,
+        b.target_chain,
+        b.space_available,
+        b.space_used || 0,
+        b.efficiency || 0,
+        b.is_operational,
+        b.status,
+        b.current_volume || 0,
+        b.bridge_capacity || b.space_available,
+        b.metadata,
+      ]
+    );
     await pool.end();
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -645,11 +733,12 @@ app.put('/api/metaverse/bridges/:id', async (req, res) => {
       database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
     });
     const b = req.body || {};
     const id = req.params.id;
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       UPDATE metaverse.space_bridges SET 
         source_url = COALESCE($2, source_url),
         source_site_id = COALESCE($3, source_site_id),
@@ -665,7 +754,23 @@ app.put('/api/metaverse/bridges/:id', async (req, res) => {
         metadata = COALESCE($13, metadata),
         updated_at = CURRENT_TIMESTAMP
       WHERE id = $1 RETURNING *
-    `, [id, b.source_url, b.source_site_id, b.source_chain, b.target_chain, b.space_available, b.space_used, b.efficiency, b.is_operational, b.status, b.current_volume, b.bridge_capacity, b.metadata]);
+    `,
+      [
+        id,
+        b.source_url,
+        b.source_site_id,
+        b.source_chain,
+        b.target_chain,
+        b.space_available,
+        b.space_used,
+        b.efficiency,
+        b.is_operational,
+        b.status,
+        b.current_volume,
+        b.bridge_capacity,
+        b.metadata,
+      ]
+    );
     await pool.end();
     if (!result.rows[0]) return res.status(404).json({ error: 'Not found' });
     res.json(result.rows[0]);
@@ -685,10 +790,13 @@ app.delete('/api/metaverse/bridges/:id', async (req, res) => {
       database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
     });
     const id = req.params.id;
-    const result = await pool.query(`DELETE FROM metaverse.space_bridges WHERE id = $1 RETURNING id`, [id]);
+    const result = await pool.query(
+      `DELETE FROM metaverse.space_bridges WHERE id = $1 RETURNING id`,
+      [id]
+    );
     await pool.end();
     if (!result.rows[0]) return res.status(404).json({ error: 'Not found' });
     res.json({ success: true });
@@ -708,7 +816,7 @@ app.get('/api/metaverse/chatrooms', async (req, res) => {
       database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
     });
 
     const result = await pool.query(`
@@ -734,7 +842,7 @@ app.get('/api/metaverse/messages', async (req, res) => {
       database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
     });
 
     const result = await pool.query(`
@@ -761,7 +869,7 @@ app.get('/api/metaverse/economy', async (req, res) => {
       database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
     });
 
     // Get economy overview from the view
@@ -770,15 +878,17 @@ app.get('/api/metaverse/economy', async (req, res) => {
     `);
 
     await pool.end();
-    res.json(result.rows[0] || {
-      total_users: 0,
-      total_balance: 0,
-      total_staked: 0,
-      total_transactions: 0,
-      total_rewards: 0,
-      marketplace_listings: 0,
-      items_sold: 0
-    });
+    res.json(
+      result.rows[0] || {
+        total_users: 0,
+        total_balance: 0,
+        total_staked: 0,
+        total_transactions: 0,
+        total_rewards: 0,
+        marketplace_listings: 0,
+        items_sold: 0,
+      }
+    );
   } catch (err) {
     console.error('Error fetching economy data:', err);
     res.status(500).json({ error: err.message });
@@ -796,7 +906,7 @@ app.get('/api/space-mining/spatial-structures', (req, res) => {
         coordinates: { x: 100, y: 200, z: 50 },
         energy: Math.floor(Math.random() * 1000),
         status: 'active',
-        lastMined: new Date().toISOString()
+        lastMined: new Date().toISOString(),
       },
       {
         id: 'struct-2',
@@ -805,13 +915,13 @@ app.get('/api/space-mining/spatial-structures', (req, res) => {
         coordinates: { x: 150, y: 300, z: 75 },
         energy: Math.floor(Math.random() * 800),
         status: 'mining',
-        lastMined: new Date().toISOString()
-      }
+        lastMined: new Date().toISOString(),
+      },
     ],
     totalStructures: 2,
-    activeMining: 1
+    activeMining: 1,
   };
-  
+
   res.json(mockData);
 });
 
@@ -824,7 +934,7 @@ app.get('/api/space-mining/isolated-doms', (req, res) => {
         size: Math.floor(Math.random() * 10000),
         complexity: Math.floor(Math.random() * 100),
         lastCrawled: new Date().toISOString(),
-        status: 'isolated'
+        status: 'isolated',
       },
       {
         id: 'dom-2',
@@ -832,13 +942,13 @@ app.get('/api/space-mining/isolated-doms', (req, res) => {
         size: Math.floor(Math.random() * 8000),
         complexity: Math.floor(Math.random() * 80),
         lastCrawled: new Date().toISOString(),
-        status: 'processing'
-      }
+        status: 'processing',
+      },
     ],
     totalDOMs: 2,
-    processing: 1
+    processing: 1,
   };
-  
+
   res.json(mockData);
 });
 
@@ -851,7 +961,7 @@ app.get('/api/space-mining/bridges', (req, res) => {
         status: 'connected',
         throughput: Math.floor(Math.random() * 1000),
         latency: Math.floor(Math.random() * 100),
-        lastActivity: new Date().toISOString()
+        lastActivity: new Date().toISOString(),
       },
       {
         id: 'bridge-2',
@@ -859,13 +969,13 @@ app.get('/api/space-mining/bridges', (req, res) => {
         status: 'connecting',
         throughput: Math.floor(Math.random() * 800),
         latency: Math.floor(Math.random() * 150),
-        lastActivity: new Date().toISOString()
-      }
+        lastActivity: new Date().toISOString(),
+      },
     ],
     totalBridges: 2,
-    active: 1
+    active: 1,
   };
-  
+
   res.json(mockData);
 });
 
@@ -876,9 +986,9 @@ app.get('/api/space-mining/stats', (req, res) => {
     tokensEarned: Math.floor(Math.random() * 5000),
     miningRate: Math.floor(Math.random() * 100),
     efficiency: Math.floor(Math.random() * 100),
-    lastUpdate: new Date().toISOString()
+    lastUpdate: new Date().toISOString(),
   };
-  
+
   res.json(mockData);
 });
 
@@ -898,7 +1008,7 @@ app.get('/api/crawler/stats', async (req, res) => {
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
       ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
-      idleTimeoutMillis: 5000
+      idleTimeoutMillis: 5000,
     });
 
     // Get crawler runtime stats
@@ -934,7 +1044,7 @@ app.get('/api/crawler/stats', async (req, res) => {
       avgSeoScore: Math.round(parseFloat(stats.avg_seo_score) || 0),
       totalSpaceSaved: parseInt(stats.total_space_saved) || 0,
       seoTrainingRecords: parseInt(trainingStats.training_records) || 0,
-      lastUpdate: new Date().toISOString()
+      lastUpdate: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Error fetching crawler stats:', error);
@@ -942,7 +1052,7 @@ app.get('/api/crawler/stats', async (req, res) => {
     const stats = crawler.getStats();
     res.json({
       ...stats,
-      error: 'Using fallback data - database not available'
+      error: 'Using fallback data - database not available',
     });
   }
 });
@@ -959,16 +1069,19 @@ app.get('/api/crawler/recent', async (req, res) => {
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
       ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
-      idleTimeoutMillis: 5000
+      idleTimeoutMillis: 5000,
     });
 
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       SELECT url, domain, last_crawled as crawled_at, seo_score,
              current_size, space_reclaimed, metadata
       FROM crawled_sites
       ORDER BY last_crawled DESC
       LIMIT $1
-    `, [limit]);
+    `,
+      [limit]
+    );
 
     await pool.end();
 
@@ -980,8 +1093,8 @@ app.get('/api/crawler/recent', async (req, res) => {
         seoScore: row.seo_score,
         sizeBytes: row.current_size,
         spaceSaved: row.space_reclaimed,
-        metadata: row.metadata
-      }))
+        metadata: row.metadata,
+      })),
     });
   } catch (error) {
     console.error('Error fetching recent crawls:', error);
@@ -989,7 +1102,7 @@ app.get('/api/crawler/recent', async (req, res) => {
     const recent = crawler.getRecentCrawls(limit);
     res.json({
       crawls: recent,
-      error: 'Using fallback data - database not available'
+      error: 'Using fallback data - database not available',
     });
   }
 });
@@ -1048,7 +1161,7 @@ app.get('/api/dashboard/complete', async (req, res) => {
   try {
     const data = {
       timestamp: new Date().toISOString(),
-      services: {}
+      services: {},
     };
 
     // Get crawler stats
@@ -1057,7 +1170,7 @@ app.get('/api/dashboard/complete', async (req, res) => {
       data.services.crawler = {
         isRunning: crawlerStats.isRunning,
         crawledCount: crawlerStats.crawledCount || 0,
-        discoveredCount: crawlerStats.discoveredCount || 0
+        discoveredCount: crawlerStats.discoveredCount || 0,
       };
     } catch (err) {
       data.services.crawler = { error: err.message };
@@ -1167,7 +1280,7 @@ app.get('/api/blockchain/status', async (req, res) => {
     const status = {
       connected: true,
       network: process.env.BLOCKCHAIN_NETWORK || 'localhost',
-      rpcUrl: process.env.BLOCKCHAIN_RPC_URL || 'http://localhost:8545'
+      rpcUrl: process.env.BLOCKCHAIN_RPC_URL || 'http://localhost:8545',
     };
     res.json(status);
   } catch (error) {
@@ -1318,14 +1431,17 @@ app.post('/api/optimization/submit', async (req, res) => {
       port: Number(process.env.DB_PORT || 5432),
       database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres'
+      password: process.env.DB_PASSWORD || 'postgres',
     });
 
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       INSERT INTO optimizations (url, space_saved, biome_type, proof_hash, created_at)
       VALUES ($1, $2, $3, $4, NOW())
       RETURNING *
-    `, [url, spaceSaved, biomeType, proofHash || `proof_${Date.now()}`]);
+    `,
+      [url, spaceSaved, biomeType, proofHash || `proof_${Date.now()}`]
+    );
 
     await pool.end();
 
@@ -1348,14 +1464,17 @@ app.get('/api/optimization/list', async (req, res) => {
       port: Number(process.env.DB_PORT || 5432),
       database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres'
+      password: process.env.DB_PASSWORD || 'postgres',
     });
 
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       SELECT * FROM optimizations
       ORDER BY created_at DESC
       LIMIT $1 OFFSET $2
-    `, [limit, offset]);
+    `,
+      [limit, offset]
+    );
 
     await pool.end();
 
@@ -1377,12 +1496,15 @@ app.get('/api/optimization/:proofHash', async (req, res) => {
       port: Number(process.env.DB_PORT || 5432),
       database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres'
+      password: process.env.DB_PASSWORD || 'postgres',
     });
 
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       SELECT * FROM optimizations WHERE proof_hash = $1
-    `, [proofHash]);
+    `,
+      [proofHash]
+    );
 
     await pool.end();
 
@@ -1409,8 +1531,8 @@ app.get('/api/harvester/:address', async (req, res) => {
         reputation: Math.floor(Math.random() * 1000),
         tokensEarned: Math.floor(Math.random() * 10000),
         optimizationsSubmitted: Math.floor(Math.random() * 100),
-        totalSpaceSaved: Math.floor(Math.random() * 1000000)
-      }
+        totalSpaceSaved: Math.floor(Math.random() * 1000000),
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1427,9 +1549,9 @@ app.get('/api/harvester/list', async (req, res) => {
           address: '0x1234567890abcdef',
           reputation: 850,
           tokensEarned: 5000,
-          optimizationsSubmitted: 45
-        }
-      ]
+          optimizationsSubmitted: 45,
+        },
+      ],
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1445,8 +1567,8 @@ app.get('/api/metaverse/assets', async (req, res) => {
         totalLand: Math.floor(Math.random() * 1000),
         totalNodes: Math.floor(Math.random() * 500),
         totalShards: Math.floor(Math.random() * 2000),
-        totalBridges: Math.floor(Math.random() * 100)
-      }
+        totalBridges: Math.floor(Math.random() * 100),
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1462,8 +1584,8 @@ app.get('/api/analytics/optimization', async (req, res) => {
         totalOptimizations: Math.floor(Math.random() * 10000),
         totalSpaceSaved: Math.floor(Math.random() * 10000000),
         averageSpaceSaved: Math.floor(Math.random() * 1000),
-        topOptimizers: []
-      }
+        topOptimizers: [],
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1481,8 +1603,8 @@ app.get('/api/feed/optimizations', async (req, res) => {
         id: `opt_${i}`,
         url: `https://example${i}.com`,
         spaceSaved: Math.floor(Math.random() * 10000),
-        timestamp: new Date(Date.now() - i * 3600000).toISOString()
-      }))
+        timestamp: new Date(Date.now() - i * 3600000).toISOString(),
+      })),
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1549,8 +1671,8 @@ app.get('/api/blockchain-models/statistics', async (req, res) => {
       data: {
         totalModels: 0,
         totalSize: 0,
-        averageSize: 0
-      }
+        averageSize: 0,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1575,8 +1697,8 @@ app.get('/api/storage/settings', (req, res) => {
     data: {
       maxFileSize: 10485760, // 10MB
       allowedTypes: ['image/jpeg', 'image/png', 'application/pdf'],
-      storageQuota: 1073741824 // 1GB
-    }
+      storageQuota: 1073741824, // 1GB
+    },
   });
 });
 
@@ -1588,7 +1710,7 @@ app.post('/api/storage/upload', (req, res) => {
   res.json({
     success: true,
     fileId: `file_${Date.now()}`,
-    message: 'File uploaded successfully'
+    message: 'File uploaded successfully',
   });
 });
 
@@ -1606,8 +1728,8 @@ app.get('/api/storage/limits', (req, res) => {
     data: {
       maxFileSize: 10485760,
       remainingQuota: 1073741824,
-      usedSpace: 0
-    }
+      usedSpace: 0,
+    },
   });
 });
 
@@ -1624,8 +1746,8 @@ app.post('/api/space-mining/mine', async (req, res) => {
         url,
         spatialStructures: [],
         isolatedDOMs: [],
-        bridges: []
-      }
+        bridges: [],
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1647,8 +1769,8 @@ app.get('/api/space-mining/bridge/:bridgeId', async (req, res) => {
       data: {
         bridgeId: req.params.bridgeId,
         status: 'active',
-        connections: 0
-      }
+        connections: 0,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1659,7 +1781,7 @@ app.get('/api/space-mining/bridge/:bridgeId/url', async (req, res) => {
   try {
     res.json({
       success: true,
-      url: `https://bridge.lightdom.io/${req.params.bridgeId}`
+      url: `https://bridge.lightdom.io/${req.params.bridgeId}`,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1673,8 +1795,8 @@ app.get('/api/space-mining/isolated-dom/:domId', async (req, res) => {
       data: {
         domId: req.params.domId,
         structure: {},
-        metadata: {}
-      }
+        metadata: {},
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1696,8 +1818,8 @@ app.post('/api/space-mining/generate-routes', async (req, res) => {
       routes: {
         bridge: `/bridge/${Date.now()}`,
         chat: `/chat/${Date.now()}`,
-        api: `/api/bridge/${Date.now()}`
-      }
+        api: `/api/bridge/${Date.now()}`,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1710,7 +1832,7 @@ app.post('/api/space-mining/test-bridge/:bridgeId', async (req, res) => {
       success: true,
       bridgeId: req.params.bridgeId,
       connectivity: 'good',
-      latency: Math.floor(Math.random() * 100)
+      latency: Math.floor(Math.random() * 100),
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1726,7 +1848,7 @@ app.get('/api/metaverse/bridge/:bridgeId/chat', async (req, res) => {
     res.json({
       success: true,
       messages: [],
-      participants: []
+      participants: [],
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1745,8 +1867,8 @@ app.get('/api/admin/analytics/overview', async (req, res) => {
         totalUsers: 0,
         totalOptimizations: 0,
         totalSpaceSaved: 0,
-        systemHealth: 'good'
-      }
+        systemHealth: 'good',
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1767,8 +1889,8 @@ app.get('/api/admin/analytics/client/:clientId/activity', async (req, res) => {
       success: true,
       data: {
         clientId: req.params.clientId,
-        activity: []
-      }
+        activity: [],
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1782,8 +1904,8 @@ app.get('/api/admin/analytics/mining', async (req, res) => {
       data: {
         totalMined: 0,
         activeMinersy: 0,
-        efficiency: 0
-      }
+        efficiency: 0,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1796,8 +1918,8 @@ app.get('/api/admin/analytics/billing', async (req, res) => {
       success: true,
       data: {
         totalRevenue: 0,
-        activeSubscriptions: 0
-      }
+        activeSubscriptions: 0,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1822,8 +1944,8 @@ app.get('/api/startup/status', (req, res) => {
     data: {
       isStarted: true,
       uptime: process.uptime(),
-      timestamp: Date.now()
-    }
+      timestamp: Date.now(),
+    },
   });
 });
 
@@ -1840,8 +1962,8 @@ app.get('/api/refresh/status', (req, res) => {
     success: true,
     data: {
       lastSave: new Date().toISOString(),
-      autoSave: true
-    }
+      autoSave: true,
+    },
   });
 });
 
@@ -1860,8 +1982,8 @@ app.get('/api/persistent/data', async (req, res) => {
       data: {
         optimizations: [],
         nodes: [],
-        algorithms: []
-      }
+        algorithms: [],
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1875,8 +1997,8 @@ app.get('/api/persistent/stats', async (req, res) => {
       data: {
         totalRecords: 0,
         storageUsed: 0,
-        lastSync: new Date().toISOString()
-      }
+        lastSync: new Date().toISOString(),
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1925,8 +2047,8 @@ app.get('/api/settings', (req, res) => {
     data: {
       theme: 'dark',
       notifications: true,
-      autoSave: true
-    }
+      autoSave: true,
+    },
   });
 });
 
@@ -1943,7 +2065,7 @@ app.post('/api/automation/workflow/start', async (req, res) => {
     res.json({
       success: true,
       jobId: `job_${Date.now()}`,
-      message: 'Workflow started'
+      message: 'Workflow started',
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1965,8 +2087,8 @@ app.get('/api/automation/workflow/:jobId', async (req, res) => {
       data: {
         jobId: req.params.jobId,
         status: 'running',
-        progress: Math.floor(Math.random() * 100)
-      }
+        progress: Math.floor(Math.random() * 100),
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -2020,8 +2142,8 @@ app.get('/api/automation/metrics', async (req, res) => {
       data: {
         totalWorkflows: 0,
         activeWorkflows: 0,
-        completedWorkflows: 0
-      }
+        completedWorkflows: 0,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -2050,8 +2172,8 @@ app.get('/api/automation/health', async (req, res) => {
       success: true,
       data: {
         status: 'healthy',
-        activeWorkers: 0
-      }
+        activeWorkers: 0,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -2074,7 +2196,7 @@ app.get('/downloads/app/latest', async (req, res) => {
     } catch {
       return res.status(404).json({
         error: 'No builds available. Please run: npm run electron:build',
-        message: 'The Electron app has not been built yet. Run the build command first.'
+        message: 'The Electron app has not been built yet. Run the build command first.',
       });
     }
 
@@ -2094,7 +2216,7 @@ app.get('/downloads/app/latest', async (req, res) => {
     if (!fileName) {
       return res.status(404).json({
         error: 'No build found for your platform',
-        availableBuilds: files
+        availableBuilds: files,
       });
     }
 
@@ -2140,11 +2262,11 @@ app.get('/downloads/extension', async (req, res) => {
         '3. Enable "Developer mode" in the top right',
         '4. Click "Load unpacked"',
         '5. Select the extension folder',
-        '6. The LightDom DOM Space Miner extension will be installed'
+        '6. The LightDom DOM Space Miner extension will be installed',
       ],
       extensionPath: '/extension',
       manifestVersion: 3,
-      version: '2.0.0'
+      version: '2.0.0',
     });
   } catch (err) {
     console.error('Extension info error:', err);
@@ -2158,23 +2280,23 @@ app.listen(PORT, async () => {
   console.log(`🚀 LightDom API Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
   console.log(`⛏️  Mining data: http://localhost:${PORT}/api/metaverse/mining-data`);
-  
+
   try {
     console.log('🗄️ Checking database connection...');
-    
+
     // Test basic database connection first
     const { Pool } = await import('pg');
     const testPool = new Pool({
       host: process.env.DB_HOST || 'localhost',
       port: Number(process.env.DB_PORT || 5432),
-      database: process.env.DB_NAME || 'lightdom',
+      database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
       ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
       connectionTimeoutMillis: 5000, // 5 second timeout
-      idleTimeoutMillis: 5000
+      idleTimeoutMillis: 5000,
     });
-    
+
     try {
       const { rows } = await testPool.query('SELECT 1 as test');
       console.log('✅ Database connection successful');
@@ -2185,7 +2307,7 @@ app.listen(PORT, async () => {
       await testPool.end();
       return; // Exit early if DB connection fails
     }
-    
+
     // Only proceed with schema initialization if database is available
     if (process.env.APPLY_SCHEMAS === 'true' && databaseIntegration) {
       console.log('🗄️ Initializing DatabaseIntegration with all schemas...');
@@ -2209,7 +2331,7 @@ app.listen(PORT, async () => {
 });
 
 // Handle uncaught exceptions and unhandled rejections
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', error => {
   console.error('❌ Uncaught Exception:', error);
   console.error('❌ Stack trace:', error.stack);
   // Don't exit the process, just log the error

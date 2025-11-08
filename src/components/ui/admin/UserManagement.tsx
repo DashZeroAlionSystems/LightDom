@@ -3,36 +3,33 @@
  * Admin interface for managing users
  */
 
-import React, { useState } from 'react';
 import {
-  Card,
-  Table,
-  Button,
-  Space,
-  Typography,
-  Tag,
-  Input,
-  Select,
-  Modal,
-  Form,
-  message,
-  Badge,
-  Avatar,
-  Tooltip
-} from 'antd';
-import {
-  UserOutlined,
-  SearchOutlined,
-  PlusOutlined,
-  EditOutlined,
   DeleteOutlined,
+  EditOutlined,
   LockOutlined,
-  UnlockOutlined,
   MailOutlined,
-  PhoneOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined
+  PlusOutlined,
+  SearchOutlined,
+  UnlockOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
+import {
+  Avatar,
+  Badge,
+  Button,
+  Form,
+  Input,
+  message,
+  Modal,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
+import React, { useState } from 'react';
+import { Card as DSCard } from '../../../utils/AdvancedReusableComponents';
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -56,7 +53,7 @@ const UserManagement: React.FC = () => {
       role: 'admin',
       status: 'active',
       createdAt: new Date('2024-01-01'),
-      lastLogin: new Date()
+      lastLogin: new Date(),
     },
     {
       id: '2',
@@ -65,7 +62,7 @@ const UserManagement: React.FC = () => {
       role: 'user',
       status: 'active',
       createdAt: new Date('2024-02-15'),
-      lastLogin: new Date()
+      lastLogin: new Date(),
     },
     {
       id: '3',
@@ -73,8 +70,8 @@ const UserManagement: React.FC = () => {
       email: 'bob@example.com',
       role: 'moderator',
       status: 'inactive',
-      createdAt: new Date('2024-03-20')
-    }
+      createdAt: new Date('2024-03-20'),
+    },
   ]);
 
   const [searchText, setSearchText] = useState('');
@@ -85,19 +82,27 @@ const UserManagement: React.FC = () => {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'red';
-      case 'moderator': return 'orange';
-      case 'user': return 'blue';
-      default: return 'default';
+      case 'admin':
+        return 'red';
+      case 'moderator':
+        return 'orange';
+      case 'user':
+        return 'blue';
+      default:
+        return 'default';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'success';
-      case 'inactive': return 'default';
-      case 'suspended': return 'error';
-      default: return 'default';
+      case 'active':
+        return 'success';
+      case 'inactive':
+        return 'default';
+      case 'suspended':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
@@ -109,7 +114,7 @@ const UserManagement: React.FC = () => {
         email: values.email,
         role: values.role,
         status: 'active',
-        createdAt: new Date()
+        createdAt: new Date(),
       };
       setUsers([...users, newUser]);
       setIsModalVisible(false);
@@ -125,7 +130,7 @@ const UserManagement: React.FC = () => {
       onOk: () => {
         setUsers(users.filter(u => u.id !== userId));
         message.success('User deleted successfully');
-      }
+      },
     });
   };
 
@@ -139,20 +144,18 @@ const UserManagement: React.FC = () => {
           <div>
             <Text strong>{record.name}</Text>
             <br />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type='secondary' style={{ fontSize: '12px' }}>
               <MailOutlined /> {record.email}
             </Text>
           </div>
         </Space>
-      )
+      ),
     },
     {
       title: 'Role',
       dataIndex: 'role',
       key: 'role',
-      render: (role: string) => (
-        <Tag color={getRoleColor(role)}>{role.toUpperCase()}</Tag>
-      )
+      render: (role: string) => <Tag color={getRoleColor(role)}>{role.toUpperCase()}</Tag>,
     },
     {
       title: 'Status',
@@ -160,66 +163,55 @@ const UserManagement: React.FC = () => {
       key: 'status',
       render: (status: string) => (
         <Badge status={getStatusColor(status) as any} text={status.toUpperCase()} />
-      )
+      ),
     },
     {
       title: 'Created',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (date: Date) => date.toLocaleDateString()
+      render: (date: Date) => date.toLocaleDateString(),
     },
     {
       title: 'Last Login',
       dataIndex: 'lastLogin',
       key: 'lastLogin',
-      render: (date?: Date) => date ? date.toLocaleDateString() : 'Never'
+      render: (date?: Date) => (date ? date.toLocaleDateString() : 'Never'),
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (record: User) => (
         <Space>
-          <Tooltip title="Edit User">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              size="small"
-            />
+          <Tooltip title='Edit User'>
+            <Button type='text' icon={<EditOutlined />} size='small' />
           </Tooltip>
-          <Tooltip title="Delete User">
+          <Tooltip title='Delete User'>
             <Button
-              type="text"
+              type='text'
               danger
               icon={<DeleteOutlined />}
-              size="small"
+              size='small'
               onClick={() => handleDeleteUser(record.id)}
             />
           </Tooltip>
           {record.status === 'active' ? (
-            <Tooltip title="Suspend User">
-              <Button
-                type="text"
-                icon={<LockOutlined />}
-                size="small"
-              />
+            <Tooltip title='Suspend User'>
+              <Button type='text' icon={<LockOutlined />} size='small' />
             </Tooltip>
           ) : (
-            <Tooltip title="Activate User">
-              <Button
-                type="text"
-                icon={<UnlockOutlined />}
-                size="small"
-              />
+            <Tooltip title='Activate User'>
+              <Button type='text' icon={<UnlockOutlined />} size='small' />
             </Tooltip>
           )}
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchText.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchText.toLowerCase());
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchText.toLowerCase());
     const matchesRole = selectedRole === 'all' || user.role === selectedRole;
     const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
     return matchesSearch && matchesRole && matchesStatus;
@@ -227,68 +219,73 @@ const UserManagement: React.FC = () => {
 
   return (
     <div>
-      <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <Title level={3} style={{ margin: 0 }}>
-            <UserOutlined /> User Management
-          </Title>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setIsModalVisible(true)}
+      <DSCard.Root>
+        <DSCard.Body>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '24px',
+            }}
           >
-            Add User
-          </Button>
-        </div>
+            <Title level={3} style={{ margin: 0 }}>
+              <UserOutlined /> User Management
+            </Title>
+            <Button type='primary' icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
+              Add User
+            </Button>
+          </div>
 
-        <Space style={{ marginBottom: '16px', width: '100%' }} direction="vertical">
-          <Space wrap>
-            <Search
-              placeholder="Search users..."
-              allowClear
-              style={{ width: 300 }}
-              onChange={(e) => setSearchText(e.target.value)}
-              prefix={<SearchOutlined />}
-            />
-            <Select
-              style={{ width: 150 }}
-              placeholder="Filter by role"
-              value={selectedRole}
-              onChange={setSelectedRole}
-            >
-              <Select.Option value="all">All Roles</Select.Option>
-              <Select.Option value="admin">Admin</Select.Option>
-              <Select.Option value="moderator">Moderator</Select.Option>
-              <Select.Option value="user">User</Select.Option>
-            </Select>
-            <Select
-              style={{ width: 150 }}
-              placeholder="Filter by status"
-              value={selectedStatus}
-              onChange={setSelectedStatus}
-            >
-              <Select.Option value="all">All Statuses</Select.Option>
-              <Select.Option value="active">Active</Select.Option>
-              <Select.Option value="inactive">Inactive</Select.Option>
-              <Select.Option value="suspended">Suspended</Select.Option>
-            </Select>
+          <Space style={{ marginBottom: '16px', width: '100%' }} direction='vertical'>
+            <Space wrap>
+              <Search
+                placeholder='Search users...'
+                allowClear
+                style={{ width: 300 }}
+                onChange={e => setSearchText(e.target.value)}
+                prefix={<SearchOutlined />}
+              />
+              <Select
+                style={{ width: 150 }}
+                placeholder='Filter by role'
+                value={selectedRole}
+                onChange={setSelectedRole}
+              >
+                <Select.Option value='all'>All Roles</Select.Option>
+                <Select.Option value='admin'>Admin</Select.Option>
+                <Select.Option value='moderator'>Moderator</Select.Option>
+                <Select.Option value='user'>User</Select.Option>
+              </Select>
+              <Select
+                style={{ width: 150 }}
+                placeholder='Filter by status'
+                value={selectedStatus}
+                onChange={setSelectedStatus}
+              >
+                <Select.Option value='all'>All Statuses</Select.Option>
+                <Select.Option value='active'>Active</Select.Option>
+                <Select.Option value='inactive'>Inactive</Select.Option>
+                <Select.Option value='suspended'>Suspended</Select.Option>
+              </Select>
+            </Space>
           </Space>
-        </Space>
 
-        <Table
-          columns={columns}
-          dataSource={filteredUsers}
-          rowKey="id"
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Total ${total} users`
-          }}
-        />
-      </Card>
+          <Table
+            columns={columns}
+            dataSource={filteredUsers}
+            rowKey='id'
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: total => `Total ${total} users`,
+            }}
+          />
+        </DSCard.Body>
+      </DSCard.Root>
 
       <Modal
-        title="Add New User"
+        title='Add New User'
         open={isModalVisible}
         onOk={handleAddUser}
         onCancel={() => {
@@ -297,33 +294,33 @@ const UserManagement: React.FC = () => {
         }}
         width={600}
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout='vertical'>
           <Form.Item
-            name="name"
-            label="Full Name"
+            name='name'
+            label='Full Name'
             rules={[{ required: true, message: 'Please enter user name' }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="John Doe" />
+            <Input prefix={<UserOutlined />} placeholder='John Doe' />
           </Form.Item>
           <Form.Item
-            name="email"
-            label="Email"
+            name='email'
+            label='Email'
             rules={[
               { required: true, message: 'Please enter email' },
-              { type: 'email', message: 'Please enter valid email' }
+              { type: 'email', message: 'Please enter valid email' },
             ]}
           >
-            <Input prefix={<MailOutlined />} placeholder="john@example.com" />
+            <Input prefix={<MailOutlined />} placeholder='john@example.com' />
           </Form.Item>
           <Form.Item
-            name="role"
-            label="Role"
+            name='role'
+            label='Role'
             rules={[{ required: true, message: 'Please select role' }]}
           >
-            <Select placeholder="Select role">
-              <Select.Option value="user">User</Select.Option>
-              <Select.Option value="moderator">Moderator</Select.Option>
-              <Select.Option value="admin">Admin</Select.Option>
+            <Select placeholder='Select role'>
+              <Select.Option value='user'>User</Select.Option>
+              <Select.Option value='moderator'>Moderator</Select.Option>
+              <Select.Option value='admin'>Admin</Select.Option>
             </Select>
           </Form.Item>
         </Form>

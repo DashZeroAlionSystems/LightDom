@@ -140,3 +140,20 @@ export type {
   LiveBadgeProps,
   LiveTimestampProps
 } from './atoms/LiveDataDisplay';
+
+// Re-export newly created atoms for convenience
+export { TextArea } from './atoms/TextArea';
+export type { TextAreaProps } from './atoms/TextArea';
+
+export { SeedItem } from './atoms/SeedItem';
+export type { SeedItemProps } from './atoms/SeedItem';
+
+// New atoms
+export { TagInput } from './atoms/TagInput';
+export type { TagInputProps } from './atoms/TagInput';
+
+export { ToggleSwitch } from './atoms/ToggleSwitch';
+export type { ToggleSwitchProps } from './atoms/ToggleSwitch';
+
+export { ConfigPanel } from './atoms/ConfigPanel';
+export type { ConfigPanelProps, CrawlerConfig } from './atoms/ConfigPanel';

@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Card,
   Row,
   Col,
   Typography,
@@ -19,6 +18,7 @@ import {
   Tag,
   message
 } from 'antd';
+import { Card as DSCard } from '../../../utils/AdvancedReusableComponents';
 import {
   TeamOutlined,
   UserOutlined,
@@ -236,91 +236,98 @@ export const UserManagementTab: React.FC = () => {
   ];
 
   return (
-    <Card title="User Management">
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={6}>
-            <StatCard
-              title="Total Users"
-              value={users.length}
-              icon={<TeamOutlined />}
-              color="#1890ff"
-              loading={loadingUsers}
-            />
-          </Col>
-          <Col xs={24} md={6}>
-            <StatCard
-              title="Active Users"
-              value={users.filter(u => u.status === 'active').length}
-              icon={<UserOutlined />}
-              color="#52c41a"
-              loading={loadingUsers}
-            />
-          </Col>
-          <Col xs={24} md={6}>
-            <StatCard
-              title="Admins"
-              value={users.filter(u => u.role === 'admin').length}
-              icon={<UserOutlined />}
-              color="#722ed1"
-              loading={loadingUsers}
-            />
-          </Col>
-          <Col xs={24} md={6}>
-            <StatCard
-              title="Suspended"
-              value={users.filter(u => u.status === 'suspended').length}
-              icon={<WarningOutlined />}
-              color="#faad14"
-              loading={loadingUsers}
-            />
-          </Col>
-        </Row>
+    <DSCard.Root>
+      <DSCard.Header title="User Management" />
+      <DSCard.Body>
+        <Space direction="vertical" style={{ width: '100%' }} size="large">
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={6}>
+              <StatCard
+                title="Total Users"
+                value={users.length}
+                icon={<TeamOutlined />}
+                color="#1890ff"
+                loading={loadingUsers}
+              />
+            </Col>
+            <Col xs={24} md={6}>
+              <StatCard
+                title="Active Users"
+                value={users.filter(u => u.status === 'active').length}
+                icon={<UserOutlined />}
+                color="#52c41a"
+                loading={loadingUsers}
+              />
+            </Col>
+            <Col xs={24} md={6}>
+              <StatCard
+                title="Admins"
+                value={users.filter(u => u.role === 'admin').length}
+                icon={<UserOutlined />}
+                color="#722ed1"
+                loading={loadingUsers}
+              />
+            </Col>
+            <Col xs={24} md={6}>
+              <StatCard
+                title="Suspended"
+                value={users.filter(u => u.status === 'suspended').length}
+                icon={<WarningOutlined />}
+                color="#faad14"
+                loading={loadingUsers}
+              />
+            </Col>
+          </Row>
 
-        <Card size="small" title="User Management Tools">
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text strong>Quick Actions</Text>
-              <Space>
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={() => {
-                    setEditingUser(null);
-                    userForm.resetFields();
-                    setUserModalVisible(true);
-                  }}
-                >
-                  Add User
-                </Button>
-                {selectedUsers.length > 0 && (
+          <DSCard.Root>
+            <DSCard.Header title="User Management Tools" />
+            <DSCard.Body>
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text strong>Quick Actions</Text>
                   <Space>
-                    <Button onClick={() => handleBulkAction('activate')}>
-                      Bulk Activate
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={() => {
+                        setEditingUser(null);
+                        userForm.resetFields();
+                        setUserModalVisible(true);
+                      }}
+                    >
+                      Add User
                     </Button>
-                    <Button onClick={() => handleBulkAction('suspend')}>
-                      Bulk Suspend
-                    </Button>
+                    {selectedUsers.length > 0 && (
+                      <Space>
+                        <Button onClick={() => handleBulkAction('activate')}>
+                          Bulk Activate
+                        </Button>
+                        <Button onClick={() => handleBulkAction('suspend')}>
+                          Bulk Suspend
+                        </Button>
+                      </Space>
+                    )}
                   </Space>
-                )}
+                </div>
+                <Table
+                  rowSelection={{
+                    selectedRowKeys: selectedUsers,
+                    onChange: setSelectedUsers
+                  }}
+                  columns={userColumns}
+                  dataSource={users}
+                  loading={loadingUsers}
+                  rowKey="id"
+                  pagination={{ pageSize: 10 }}
+                />
               </Space>
-            </div>
-            <Table
-              rowSelection={{
-                selectedRowKeys: selectedUsers,
-                onChange: setSelectedUsers
-              }}
-              columns={userColumns}
-              dataSource={users}
-              loading={loadingUsers}
-              rowKey="id"
-              pagination={{ pageSize: 10 }}
-            />
-          </Space>
-        </Card>
-      </Space>
+            </DSCard.Body>
+          </DSCard.Root>
+        </Space>
+      </DSCard.Body>
+    </DSCard.Root>
 
-      {/* User Modal */}
+    {/* User Modal */}
       <Modal
         title={editingUser ? 'Edit User' : 'Create User'}
         open={userModalVisible}

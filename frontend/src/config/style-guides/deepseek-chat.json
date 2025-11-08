@@ -49,7 +49,8 @@
         "temperature": { "type": "number", "default": 0.3 },
         "maxTokens": { "type": "integer", "default": 1400 },
         "minHeight": { "type": "integer", "default": 132 },
-        "maxHeight": { "type": "integer", "default": 420 }
+        "maxHeight": { "type": "integer", "default": 420 },
+        "textColor": { "type": "string", "default": "#000000" }
       },
       "required": ["placeholder", "defaultTalent"],
       "default": {
@@ -58,7 +59,8 @@
         "temperature": 0.3,
         "maxTokens": 1400,
         "minHeight": 132,
-        "maxHeight": 420
+        "maxHeight": 420,
+        "textColor": "#000000"
       }
     },
     "workflowCard": {

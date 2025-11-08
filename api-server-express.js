@@ -236,6 +236,32 @@ class DOMSpaceHarvesterAPI {
     this.setupWebSocket();
     this.startRealtimeUpdates();
 
+    // Optional: watch templates directory on startup (polling fallback)
+    if (process.env.TEMPLATES_WATCH === 'true' || process.env.WATCH_TEMPLATES === 'true') {
+      import('./src/api/routes/templates.routes.js').then(async (templatesModule) => {
+        try {
+          const baseDir = path.join(process.cwd(), 'n8n/templates');
+          // initial scan
+          const scanned = await templatesModule.scanDirForTemplates(baseDir).catch(() => []);
+          console.log(`✓ Initial templates scan completed. Found ${scanned.length} templates.`);
+
+          // periodic rescan every 15s as a lightweight watcher for dev
+          setInterval(async () => {
+            try {
+              const s = await templatesModule.scanDirForTemplates(baseDir).catch(() => []);
+              if (s.length !== scanned.length) {
+                console.log(`Templates re-scan: ${s.length} files (previous ${scanned.length})`);
+              }
+            } catch (e) {}
+          }, 15000);
+        } catch (e) {
+          console.warn('Failed to start templates watcher:', e.message || e);
+        }
+      }).catch(err => {
+        console.warn('Failed to import templates scanner for watcher:', err);
+      });
+    }
+
     // Optional blockchain provider
     this.eth = null;
     if (process.env.RPC_URL && process.env.PRIVATE_KEY && process.env.DSH_CONTRACT) {
@@ -426,6 +452,27 @@ class DOMSpaceHarvesterAPI {
       console.log('✅ DeepSeek chat routes registered');
     }).catch(err => {
       console.error('Failed to load DeepSeek chat routes:', err);
+    });
+
+    // Import and register Template discovery & N8N template routes
+    import('./src/api/routes/templates.routes.js').then((templatesModule) => {
+      const createRoutes = templatesModule.createTemplatesRoutes || templatesModule.default;
+      if (typeof createRoutes === 'function') {
+        this.app.use('/api/templates', createRoutes(this.db));
+      } else {
+        this.app.use('/api/templates', createRoutes);
+      }
+      console.log('✅ Templates routes registered (filesystem & manifest scanning)');
+    }).catch(err => {
+      console.error('Failed to load templates routes:', err);
+    });
+    
+    // Import and register Embeddings routes (pgvector)
+    import('./src/api/routes/embeddings.routes.js').then((embModule) => {
+      this.app.use('/api/embeddings', embModule.default);
+      console.log('✅ Embeddings routes registered (pgvector)');
+    }).catch(err => {
+      console.error('Failed to load embeddings routes:', err);
     });
     
     // Import and register Workflow Wizard routes

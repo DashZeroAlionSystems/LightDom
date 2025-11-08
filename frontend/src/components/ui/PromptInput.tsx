@@ -61,6 +61,7 @@ export interface PromptInputProps {
   minRows?: number;
   maxRows?: number;
   allowSendWhileLoading?: boolean;
+  textColor?: string;
 }
 
 const defaultTokens: PromptToken[] = [
@@ -86,7 +87,8 @@ export const PromptInput: React.FC<PromptInputProps> = ({
   className,
   minRows = 4,
   maxRows = 10,
-  allowSendWhileLoading = false
+  allowSendWhileLoading = false,
+  textColor
 }) => {
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [isFocused, setIsFocused] = useState(false);
@@ -237,6 +239,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         disabled={disabled}
         minRows={minRows}
         maxRows={maxRows}
+        textColor={textColor}
         aria-label={placeholder}
       />
     </PromptComposeShell>

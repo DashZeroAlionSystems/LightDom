@@ -123,10 +123,11 @@ export interface PromptComposeInputProps extends React.TextareaHTMLAttributes<HT
   maxRows?: number;
   leadingAddon?: React.ReactNode;
   trailingAddon?: React.ReactNode;
+  textColor?: string;
 }
 
 export const PromptComposeInput = React.forwardRef<HTMLTextAreaElement, PromptComposeInputProps>(
-  ({ className, minRows = 3, maxRows = 8, leadingAddon, trailingAddon, ...props }, ref) => {
+  ({ className, minRows = 3, maxRows = 8, leadingAddon, trailingAddon, textColor, style, ...props }, ref) => {
     return (
       <div className="relative flex items-start gap-3">
         {leadingAddon && <div className="pt-2 text-on-surface-variant">{leadingAddon}</div>}
@@ -139,7 +140,11 @@ export const PromptComposeInput = React.forwardRef<HTMLTextAreaElement, PromptCo
             'selection:bg-primary/20 selection:text-on-primary',
             className
           )}
-          style={{ maxHeight: `${maxRows * 1.5}rem` }}
+          style={{
+            color: textColor ?? '#000000',
+            maxHeight: `${maxRows * 1.5}rem`,
+            ...style
+          }}
           {...props}
         />
         {trailingAddon && <div className="pt-2 text-on-surface-variant">{trailingAddon}</div>}

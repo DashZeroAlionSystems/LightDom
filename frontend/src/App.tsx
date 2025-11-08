@@ -1,44 +1,30 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import React from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Toaster } from 'react-hot-toast';
 import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from 'react-hot-toast';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 // Components
-import { Layout } from '@/components/Layout';
 import { ErrorFallback } from '@/components/ErrorFallback';
+import { Layout } from '@/components/Layout';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 // Pages
-import { HomePage } from '@/pages/HomePage';
-import { LoginPage } from '@/pages/LoginPage';
-import { RegisterPage } from '@/pages/RegisterPage';
-import { DashboardPage } from '@/pages/DashboardPage';
-import { CompleteDashboardPage } from '@/pages/CompleteDashboardPage';
-import { AdminDashboardPage } from '@/pages/AdminDashboardPage';
-import { ClientDashboardPage } from '@/pages/ClientDashboardPage';
-import { FilesPage } from '@/pages/FilesPage';
-import { UploadPage } from '@/pages/UploadPage';
-import { HostsPage } from '@/pages/HostsPage';
-import { ContractsPage } from '@/pages/ContractsPage';
-import { GovernancePage } from '@/pages/GovernancePage';
-import { SettingsPage } from '@/pages/SettingsPage';
-import { ProfilePage } from '@/pages/ProfilePage';
-import { AIContentPage } from '@/pages/AIContentPage';
-import { SEOModelTrainingPage } from '@/pages/SEOModelTrainingPage';
-import { WorkflowsPage } from '@/pages/WorkflowsPage';
-import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
+import { PromptConsolePage } from '@/pages/PromptConsolePage';
 import { ComponentSchemaToolPage } from '@/pages/ComponentSchemaToolPage';
+import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
-import { ComprehensiveWorkflowsPage } from '@/pages/ComprehensiveWorkflowsPage';
+import { RegisterPage } from '@/pages/RegisterPage';
+import { SettingsPage } from '@/pages/SettingsPage';
+import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
+import { WorkflowsPage } from '@/pages/WorkflowsPage';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
 
 // Services
-import { AuthService } from '@/services/auth';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -60,7 +46,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to='/login' replace />;
   }
 
   return <>{children}</>;
@@ -75,8 +61,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   if (user) {
-    const target = (user as any)?.role === 'admin' ? '/admin-dashboard' : '/dashboard';
-    return <Navigate to={target} replace />;
+    return <Navigate to='/admin-dashboard' replace />;
   }
 
   return <>{children}</>;
@@ -94,19 +79,12 @@ const App: React.FC = () => {
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
           <Router>
-            <div className="min-h-screen bg-background text-foreground">
+            <div className='min-h-screen bg-background text-foreground'>
               <Routes>
                 {/* Public Routes */}
+                <Route path='/' element={<Navigate to='/admin-dashboard' replace />} />
                 <Route
-                  path="/"
-                  element={
-                    <PublicRoute>
-                      <HomePage />
-                    </PublicRoute>
-                  }
-                />
-                <Route
-                  path="/login"
+                  path='/login'
                   element={
                     <PublicRoute>
                       <LoginPage />
@@ -114,7 +92,7 @@ const App: React.FC = () => {
                   }
                 />
                 <Route
-                  path="/register"
+                  path='/register'
                   element={
                     <PublicRoute>
                       <RegisterPage />
@@ -124,137 +102,17 @@ const App: React.FC = () => {
 
                 {/* Protected Routes */}
                 <Route
-                  path="/dashboard"
+                  path='/admin-dashboard'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <DashboardPage />
+                        <PromptConsolePage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/complete-dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <CompleteDashboardPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin-dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <AdminDashboardPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/client-dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <ClientDashboardPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/files"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <FilesPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/upload"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <UploadPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/hosts"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <HostsPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/contracts"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <ContractsPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/governance"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <GovernancePage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <SettingsPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <ProfilePage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/ai-content"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <AIContentPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/seo-training"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <SEOModelTrainingPage />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/workflows"
+                  path='/workflows'
                   element={
                     <ProtectedRoute>
                       <Layout>
@@ -264,7 +122,7 @@ const App: React.FC = () => {
                   }
                 />
                 <Route
-                  path="/workflow-builder"
+                  path='/workflow-builder'
                   element={
                     <ProtectedRoute>
                       <Layout>
@@ -274,7 +132,7 @@ const App: React.FC = () => {
                   }
                 />
                 <Route
-                  path="/component-schema"
+                  path='/component-schema'
                   element={
                     <ProtectedRoute>
                       <Layout>
@@ -283,14 +141,24 @@ const App: React.FC = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path='/settings'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SettingsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* 404 Route */}
-                <Route path="*" element={<NotFoundPage />} />
+                <Route path='*' element={<NotFoundPage />} />
               </Routes>
 
               {/* Toast Notifications */}
               <Toaster
-                position="top-right"
+                position='top-right'
                 toastOptions={{
                   duration: 4000,
                   style: {

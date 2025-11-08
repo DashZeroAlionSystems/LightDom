@@ -68,6 +68,13 @@ import {
   FireOutlined,
 } from '@ant-design/icons';
 import MD3DesignSystem, { MD3Spacing } from '../styles/NewDesignSystem';
+import {
+  Card as UiCard,
+  CardHeader as UiCardHeader,
+  CardContent as UiCardContent,
+  CardFooter as UiCardFooter,
+  CardTitle as UiCardTitle
+} from '@/components/ui';
 
 const { Title, Text } = Typography;
 
@@ -117,6 +124,7 @@ interface CardCompositionProps extends BaseComponentProps {
   shadow?: boolean;
 }
 
+// Wrap the canonical design-system Card so DSCard aliases render with the same tokens
 const CardRoot: React.FC<CardCompositionProps> = ({
   variant = 'elevated',
   padding = 24,
@@ -125,32 +133,11 @@ const CardRoot: React.FC<CardCompositionProps> = ({
   children,
   ...props
 }) => {
-  const getCardClasses = () => {
-    let baseClasses = 'rounded-xl overflow-hidden transition-all duration-300';
-
-    switch (variant) {
-      case 'elevated':
-        baseClasses += ' bg-white shadow-lg hover:shadow-xl';
-        break;
-      case 'outlined':
-        baseClasses += ' bg-white border-2 border-gray-200';
-        break;
-      case 'filled':
-        baseClasses += ' bg-gray-50';
-        break;
-    }
-
-    if (!shadow && variant === 'elevated') {
-      baseClasses = baseClasses.replace(' shadow-lg hover:shadow-xl', '');
-    }
-
-    return `${baseClasses} ${className}`;
-  };
-
+  // Map AdvancedReusable props to the design-system Card props
   return (
-    <div className={getCardClasses()} {...props}>
+    <UiCard variant={variant as any} className={className} {...(props as any)}>
       {children}
-    </div>
+    </UiCard>
   );
 };
 
@@ -170,27 +157,21 @@ const CardHeader: React.FC<CardHeaderProps> = ({
   children,
   ...props
 }) => (
-  <div className={`p-6 pb-0 ${className}`} {...props}>
+  <UiCardHeader className={className} {...(props as any)}>
     {(title || subtitle || action) && (
       <div className="flex items-center justify-between mb-4">
         <div className="flex-1">
           {title && (
-            <Title level={5} className="text-gray-900 font-semibold mb-1">
-              {title}
-            </Title>
+            <UiCardTitle className="text-gray-900 font-semibold mb-1">{title}</UiCardTitle>
           )}
-          {subtitle && (
-            <Text className="text-gray-600 text-sm">
-              {subtitle}
-            </Text>
-          )}
+          {subtitle && <Text className="text-gray-600 text-sm">{subtitle}</Text>}
         </div>
         {action && <div className="ml-4">{action}</div>}
       </div>
     )}
     {children}
     {divider && <Divider className="my-4" />}
-  </div>
+  </UiCardHeader>
 );
 
 interface CardBodyProps extends BaseComponentProps {
@@ -203,11 +184,10 @@ const CardBody: React.FC<CardBodyProps> = ({
   children,
   ...props
 }) => {
-  const paddingClass = padding === 24 ? 'p-6' : `p-${padding}`;
   return (
-    <div className={`${paddingClass} ${className}`} {...props}>
+    <UiCardContent className={className} {...(props as any)}>
       {children}
-    </div>
+    </UiCardContent>
   );
 };
 
@@ -223,6 +203,7 @@ const CardFooter: React.FC<CardFooterProps> = ({
   children,
   ...props
 }) => {
+  // UiCardFooter expects children; we keep a small layout wrapper for justify
   const justifyClass = {
     start: 'justify-start',
     center: 'justify-center',
@@ -233,9 +214,9 @@ const CardFooter: React.FC<CardFooterProps> = ({
   return (
     <>
       {divider && <Divider className="my-0" />}
-      <div className={`p-6 pt-0 flex items-center ${justifyClass} ${className}`} {...props}>
+      <UiCardFooter className={`${justifyClass} ${className}`} {...(props as any)}>
         {children}
-      </div>
+      </UiCardFooter>
     </>
   );
 };

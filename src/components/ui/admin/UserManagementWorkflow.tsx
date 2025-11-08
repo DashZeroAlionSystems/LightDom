@@ -6,7 +6,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Card,
   Steps,
   Button,
   Form,
@@ -38,6 +37,7 @@ import {
   Divider,
   Spin
 } from 'antd';
+import { Card as DSCard } from '../../../utils/AdvancedReusableComponents';
 import {
   UserOutlined,
   MailOutlined,
@@ -662,209 +662,225 @@ const UserManagementWorkflow: React.FC = () => {
       {/* Stats Overview */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Total Users"
-              value={users.length}
-              prefix={<TeamOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
+          <DSCard.Root variant="elevated">
+            <DSCard.Body>
+              <Statistic
+                title="Total Users"
+                value={users.length}
+                prefix={<TeamOutlined />}
+                valueStyle={{ color: '#1890ff' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Active Workflows"
-              value={workflowMemories.filter(m => m.status === 'pending').length}
-              prefix={<ThunderboltOutlined />}
-              valueStyle={{ color: '#faad14' }}
-            />
-          </Card>
+          <DSCard.Root variant="elevated">
+            <DSCard.Body>
+              <Statistic
+                title="Active Workflows"
+                value={workflowMemories.filter(m => m.status === 'pending').length}
+                prefix={<ThunderboltOutlined />}
+                valueStyle={{ color: '#faad14' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Completed Actions"
-              value={workflowMemories.filter(m => m.status === 'success').length}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
+          <DSCard.Root variant="elevated">
+            <DSCard.Body>
+              <Statistic
+                title="Completed Actions"
+                value={workflowMemories.filter(m => m.status === 'success').length}
+                prefix={<CheckCircleOutlined />}
+                valueStyle={{ color: '#52c41a' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Memory Entries"
-              value={workflowMemories.length}
-              prefix={<DatabaseOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
+          <DSCard.Root variant="elevated">
+            <DSCard.Body>
+              <Statistic
+                title="Memory Entries"
+                value={workflowMemories.length}
+                prefix={<DatabaseOutlined />}
+                valueStyle={{ color: '#722ed1' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
       </Row>
 
       <Tabs defaultActiveKey="1">
         <TabPane tab="User Management" key="1">
-          <Card>
-            {/* Action Bar */}
-            <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-              <Space wrap>
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleStartCreateUserWorkflow}
-                  size="large"
-                >
-                  Create User (Workflow)
-                </Button>
-              </Space>
-              <Space wrap>
-                <Search
-                  placeholder="Search users..."
-                  allowClear
-                  style={{ width: 300 }}
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  prefix={<UserOutlined />}
-                />
-                <Select
-                  style={{ width: 150 }}
-                  placeholder="Filter by role"
-                  value={selectedRole}
-                  onChange={setSelectedRole}
-                >
-                  <Select.Option value="all">All Roles</Select.Option>
-                  <Select.Option value="admin">Admin</Select.Option>
-                  <Select.Option value="moderator">Moderator</Select.Option>
-                  <Select.Option value="user">User</Select.Option>
-                </Select>
-                <Select
-                  style={{ width: 150 }}
-                  placeholder="Filter by status"
-                  value={selectedStatus}
-                  onChange={setSelectedStatus}
-                >
-                  <Select.Option value="all">All Statuses</Select.Option>
-                  <Select.Option value="active">Active</Select.Option>
-                  <Select.Option value="inactive">Inactive</Select.Option>
-                  <Select.Option value="suspended">Suspended</Select.Option>
-                </Select>
-              </Space>
-            </div>
+          <DSCard.Root>
+            <DSCard.Body>
+              {/* Action Bar */}
+              <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+                <Space wrap>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleStartCreateUserWorkflow}
+                    size="large"
+                  >
+                    Create User (Workflow)
+                  </Button>
+                </Space>
+                <Space wrap>
+                  <Search
+                    placeholder="Search users..."
+                    allowClear
+                    style={{ width: 300 }}
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    prefix={<UserOutlined />}
+                  />
+                  <Select
+                    style={{ width: 150 }}
+                    placeholder="Filter by role"
+                    value={selectedRole}
+                    onChange={setSelectedRole}
+                  >
+                    <Select.Option value="all">All Roles</Select.Option>
+                    <Select.Option value="admin">Admin</Select.Option>
+                    <Select.Option value="moderator">Moderator</Select.Option>
+                    <Select.Option value="user">User</Select.Option>
+                  </Select>
+                  <Select
+                    style={{ width: 150 }}
+                    placeholder="Filter by status"
+                    value={selectedStatus}
+                    onChange={setSelectedStatus}
+                  >
+                    <Select.Option value="all">All Statuses</Select.Option>
+                    <Select.Option value="active">Active</Select.Option>
+                    <Select.Option value="inactive">Inactive</Select.Option>
+                    <Select.Option value="suspended">Suspended</Select.Option>
+                  </Select>
+                </Space>
+              </div>
 
-            {/* Users Table */}
-            <Table
-              columns={columns}
-              dataSource={filteredUsers}
-              rowKey="id"
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`
-              }}
-            />
-          </Card>
+              {/* Users Table */}
+              <Table
+                columns={columns}
+                dataSource={filteredUsers}
+                rowKey="id"
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: true,
+                  showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`
+                }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </TabPane>
 
         <TabPane tab="Workflow Memories" key="2">
-          <Card>
-            <Title level={4}>Workflow Memory Log</Title>
-            <Text type="secondary">
-              AI-generated memories of all user management operations and workflows
-            </Text>
+          <DSCard.Root>
+            <DSCard.Body>
+              <Title level={4}>Workflow Memory Log</Title>
+              <Text type="secondary">
+                AI-generated memories of all user management operations and workflows
+              </Text>
 
-            <div style={{ marginTop: '16px', maxHeight: '600px', overflow: 'auto' }}>
-              <Timeline>
-                {workflowMemories.map((memory) => (
-                  <Timeline.Item
-                    key={memory.id}
-                    color={
-                      memory.status === 'success' ? 'green' :
-                      memory.status === 'error' ? 'red' : 'blue'
-                    }
-                  >
-                    <Card size="small">
-                      <Space direction="vertical" style={{ width: '100%' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Text strong>{memory.action}</Text>
-                          <Tag color={
-                            memory.status === 'success' ? 'success' :
-                            memory.status === 'error' ? 'error' : 'processing'
-                          }>
-                            {memory.status.toUpperCase()}
-                          </Tag>
-                        </div>
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
-                          {memory.timestamp.toLocaleString()}
-                        </Text>
-                        {memory.userId && (
-                          <Text style={{ fontSize: '12px' }}>
-                            User ID: {memory.userId}
-                          </Text>
-                        )}
-                        <Text code style={{ fontSize: '11px' }}>
-                          {JSON.stringify(memory.details, null, 2)}
-                        </Text>
-                      </Space>
-                    </Card>
-                  </Timeline.Item>
-                ))}
-              </Timeline>
-            </div>
-          </Card>
+              <div style={{ marginTop: '16px', maxHeight: '600px', overflow: 'auto' }}>
+                <Timeline>
+                  {workflowMemories.map((memory) => (
+                    <Timeline.Item
+                      key={memory.id}
+                      color={
+                        memory.status === 'success' ? 'green' :
+                        memory.status === 'error' ? 'red' : 'blue'
+                      }
+                    >
+                      <DSCard.Root variant="outlined" className="mb-2">
+                        <DSCard.Body className="p-3">
+                          <Space direction="vertical" style={{ width: '100%' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Text strong>{memory.action}</Text>
+                              <Tag color={
+                                memory.status === 'success' ? 'success' :
+                                memory.status === 'error' ? 'error' : 'processing'
+                              }>
+                                {memory.status.toUpperCase()}
+                              </Tag>
+                            </div>
+                            <Text type="secondary" style={{ fontSize: '12px' }}>
+                              {memory.timestamp.toLocaleString()}
+                            </Text>
+                            {memory.userId && (
+                              <Text style={{ fontSize: '12px' }}>
+                                User ID: {memory.userId}
+                              </Text>
+                            )}
+                            <Text code style={{ fontSize: '11px' }}>
+                              {JSON.stringify(memory.details, null, 2)}
+                            </Text>
+                          </Space>
+                        </DSCard.Body>
+                      </DSCard.Root>
+                    </Timeline.Item>
+                  ))}
+                </Timeline>
+              </div>
+            </DSCard.Body>
+          </DSCard.Root>
         </TabPane>
 
         <TabPane tab="Active Workflows" key="3">
-          <Card>
-            <Title level={4}>Active Workflow Sessions</Title>
-            {activeWorkflow ? (
-              <div>
+          <DSCard.Root>
+            <DSCard.Body>
+              <Title level={4}>Active Workflow Sessions</Title>
+              {activeWorkflow ? (
+                <div>
+                  <Alert
+                    message={`Active: ${activeWorkflow.type.replace('_', ' ').toUpperCase()}`}
+                    description={`Workflow ID: ${activeWorkflow.id}`}
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: '16px' }}
+                  />
+
+                  <Steps current={activeWorkflow.currentStep} direction="vertical">
+                    {activeWorkflow.steps.map((step, index) => (
+                      <Step
+                        key={step.id}
+                        title={step.title}
+                        description={step.description}
+                        status={step.status}
+                        icon={step.status === 'process' ? <LoadingOutlined /> : undefined}
+                      />
+                    ))}
+                  </Steps>
+
+                  <div style={{ marginTop: '24px', textAlign: 'center' }}>
+                    <Space>
+                      <Button
+                        type="primary"
+                        onClick={handleWorkflowStepComplete}
+                        loading={loading}
+                        disabled={activeWorkflow.status !== 'active'}
+                      >
+                        {activeWorkflow.currentStep < activeWorkflow.steps.length - 1 ?
+                          'Execute Next Step' : 'Complete Workflow'}
+                      </Button>
+                      <Button onClick={handleCancelWorkflow}>
+                        Cancel Workflow
+                      </Button>
+                    </Space>
+                  </div>
+                </div>
+              ) : (
                 <Alert
-                  message={`Active: ${activeWorkflow.type.replace('_', ' ').toUpperCase()}`}
-                  description={`Workflow ID: ${activeWorkflow.id}`}
+                  message="No Active Workflow"
+                  description="Start a user management workflow to see it here"
                   type="info"
                   showIcon
-                  style={{ marginBottom: '16px' }}
                 />
-
-                <Steps current={activeWorkflow.currentStep} direction="vertical">
-                  {activeWorkflow.steps.map((step, index) => (
-                    <Step
-                      key={step.id}
-                      title={step.title}
-                      description={step.description}
-                      status={step.status}
-                      icon={step.status === 'process' ? <LoadingOutlined /> : undefined}
-                    />
-                  ))}
-                </Steps>
-
-                <div style={{ marginTop: '24px', textAlign: 'center' }}>
-                  <Space>
-                    <Button
-                      type="primary"
-                      onClick={handleWorkflowStepComplete}
-                      loading={loading}
-                      disabled={activeWorkflow.status !== 'active'}
-                    >
-                      {activeWorkflow.currentStep < activeWorkflow.steps.length - 1 ?
-                        'Execute Next Step' : 'Complete Workflow'}
-                    </Button>
-                    <Button onClick={handleCancelWorkflow}>
-                      Cancel Workflow
-                    </Button>
-                  </Space>
-                </div>
-              </div>
-            ) : (
-              <Alert
-                message="No Active Workflow"
-                description="Start a user management workflow to see it here"
-                type="info"
-                showIcon
-              />
-            )}
-          </Card>
+              )}
+            </DSCard.Body>
+          </DSCard.Root>
         </TabPane>
       </Tabs>
 
@@ -1052,27 +1068,29 @@ const UserManagementWorkflow: React.FC = () => {
             <TabPane tab="Workflow History" key="2">
               <Timeline>
                 {selectedUser.workflowHistory?.map((workflow) => (
-                  <Timeline.Item
-                    key={workflow.id}
-                    color={workflow.status === 'completed' ? 'green' : workflow.status === 'failed' ? 'red' : 'blue'}
-                  >
-                    <Card size="small">
-                      <Text strong>{workflow.type.replace('_', ' ').toUpperCase()}</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        Started: {workflow.createdAt.toLocaleString()}
-                      </Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        Status: <Tag color={
-                          workflow.status === 'completed' ? 'success' :
-                          workflow.status === 'failed' ? 'error' : 'processing'
-                        }>
-                          {workflow.status.toUpperCase()}
-                        </Tag>
-                      </Text>
-                    </Card>
-                  </Timeline.Item>
+                    <Timeline.Item
+                      key={workflow.id}
+                      color={workflow.status === 'completed' ? 'green' : workflow.status === 'failed' ? 'red' : 'blue'}
+                    >
+                      <DSCard.Root variant="outlined" className="mb-2">
+                        <DSCard.Body className="p-3">
+                          <Text strong>{workflow.type.replace('_', ' ').toUpperCase()}</Text>
+                          <br />
+                          <Text type="secondary" style={{ fontSize: '12px' }}>
+                            Started: {workflow.createdAt.toLocaleString()}
+                          </Text>
+                          <br />
+                          <Text type="secondary" style={{ fontSize: '12px' }}>
+                            Status: <Tag color={
+                              workflow.status === 'completed' ? 'success' :
+                              workflow.status === 'failed' ? 'error' : 'processing'
+                            }>
+                              {workflow.status.toUpperCase()}
+                            </Tag>
+                          </Text>
+                        </DSCard.Body>
+                      </DSCard.Root>
+                    </Timeline.Item>
                 )) || (
                   <Text type="secondary">No workflow history available</Text>
                 )}

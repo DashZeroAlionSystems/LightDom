@@ -7,14 +7,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  Button,
-  Badge
-} from '@/components/ui';
+import { Button, Badge } from '@/components/ui';
+import { Card as DSCard } from '../../../utils/AdvancedReusableComponents';
 import {
   LiveStatusIndicator,
   LiveMetricCard,
@@ -214,17 +208,17 @@ export const EnhancedCrawlerMonitoringDashboard: React.FC = () => {
       </div>
 
       {/* Parallel Crawlers Grid */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Parallel Crawlers ({crawlers.length})</span>
+      <DSCard.Root>
+        <DSCard.Header
+          title={`Parallel Crawlers (${crawlers.length})`}
+          action={(
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Live View</span>
               <ActivityPulse active={stats.activeCrawlers > 0} color="green" />
             </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+          )}
+        />
+        <DSCard.Body>
           {crawlers.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <Globe className="w-12 h-12 mx-auto mb-3 opacity-30" />
@@ -237,8 +231,8 @@ export const EnhancedCrawlerMonitoringDashboard: React.FC = () => {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </DSCard.Body>
+      </DSCard.Root>
     </div>
   );
 };
@@ -246,7 +240,7 @@ export const EnhancedCrawlerMonitoringDashboard: React.FC = () => {
 // Individual Crawler Card Component
 const CrawlerCard: React.FC<{ crawler: CrawlerInstance }> = ({ crawler }) => {
   return (
-    <div className={`
+    <DSCard.Root className={`
       p-4 rounded-lg border-2 transition-all duration-200
       ${crawler.status === 'active' 
         ? 'border-green-300 bg-green-50/50 shadow-sm' 
@@ -334,14 +328,14 @@ const CrawlerCard: React.FC<{ crawler: CrawlerInstance }> = ({ crawler }) => {
 
       {/* Current URL */}
       {crawler.currentUrl && (
-        <div className="mt-3 pt-3 border-t border-gray-200">
-          <div className="text-xs text-gray-600 mb-1">Current Page:</div>
-          <div className="text-xs font-mono bg-white p-2 rounded border border-gray-200 truncate">
-            {crawler.currentUrl}
-          </div>
+      <div className="mt-3 pt-3 border-t border-gray-200">
+        <div className="text-xs text-gray-600 mb-1">Current Page:</div>
+        <div className="text-xs font-mono bg-gray-50 p-2 rounded border border-gray-200 truncate">
+          {crawler.currentUrl}
         </div>
+      </div>
       )}
-    </div>
+    </DSCard.Root>
   );
 };
 

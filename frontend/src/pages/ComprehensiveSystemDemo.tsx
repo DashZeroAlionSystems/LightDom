@@ -294,7 +294,7 @@ export const ComprehensiveSystemDemo: React.FC = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="md3-body-medium text-on-surface-variant">Response Time</span>
-                      <span className="md3-body-medium text-success font-medium"><50ms</span>
+                      <span className="md3-body-medium text-success font-medium">{'<50ms'}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="md3-body-medium text-on-surface-variant">Bundle Size</span>

@@ -89,6 +89,81 @@ app.get('/health', async (_req, res) => {
   }
 });
 
+app.post('/chat', async (req, res) => {
+  const { prompt, conversation = [], systemPrompt, options } = req.body || {};
+
+  const history = Array.isArray(conversation) ? conversation : [];
+  const messages = [];
+
+  if (systemPrompt && typeof systemPrompt === 'string') {
+    messages.push({ role: 'system', content: systemPrompt });
+  }
+
+  for (const entry of history) {
+    if (!entry || typeof entry !== 'object') {
+      continue;
+    }
+
+    const role = entry.role === 'assistant' || entry.role === 'user' ? entry.role : 'system';
+    const content = typeof entry.content === 'string' ? entry.content : '';
+
+    if (!content) {
+      continue;
+    }
+
+    messages.push({ role, content });
+  }
+
+  if (prompt && typeof prompt === 'string') {
+    messages.push({ role: 'user', content: prompt });
+  }
+
+  if (messages.length === 0) {
+    return res.status(400).json({
+      success: false,
+      error: 'At least one message or prompt is required',
+    });
+  }
+
+  try {
+    const stream = deepSeekService.createChatStream(messages, options || {});
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
+    res.write(': connected\n\n');
+
+    stream.on('data', (chunk) => {
+      res.write(chunk);
+    });
+
+    stream.on('end', () => {
+      if (!res.writableEnded) {
+        res.write('data: [DONE]\n\n');
+        res.end();
+      }
+    });
+
+    stream.on('error', (error) => {
+      console.error('DeepSeek chat stream error:', error);
+      if (!res.writableEnded) {
+        res.write(
+          `data: ${JSON.stringify({ type: 'error', message: 'DeepSeek streaming error occurred.' })}\n\n`,
+        );
+        res.end();
+      }
+    });
+
+    req.on('close', () => {
+      stream.destroy?.();
+    });
+  } catch (error) {
+    console.error('Failed to initiate DeepSeek chat:', error);
+    res.status(500).json({ success: false, error: error?.message || 'Unknown error' });
+  }
+});
+
 app.post('/workflow/generate', async (req, res) => {
   const { prompt, options } = req.body || {};
 
