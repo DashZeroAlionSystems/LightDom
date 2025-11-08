@@ -1,7 +1,8 @@
-import React from 'react';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
-export interface ToggleSwitchProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'onChange'> {
+export interface ToggleSwitchProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'onChange'> {
   checked: boolean;
   onChange: (checked: boolean) => void;
   size?: 'sm' | 'md' | 'lg';
@@ -25,22 +26,22 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   const sizes = sizeMap[size] || sizeMap.md;
 
   return (
-    <label className={cn('inline-flex items-center gap-3', disabled && 'opacity-60') }>
-      {label && <span className="text-sm text-gray-700">{label}</span>}
+    <label className={cn('inline-flex items-center gap-3', disabled && 'opacity-60')}>
+      {label && <span className='text-sm text-gray-700'>{label}</span>}
 
-      <span className="relative inline-flex items-center">
+      <span className='relative inline-flex items-center'>
         <input
-          type="checkbox"
+          type='checkbox'
           checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
+          onChange={e => onChange(e.target.checked)}
           disabled={disabled}
-          className="sr-only peer"
+          className='sr-only peer'
           {...props}
         />
 
         <span
           className={cn(
-            `${sizes.track} rounded-full transition-colors duration-200 bg-gray-300 peer-checked:bg-blue-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-400`,
+            `${sizes.track} rounded-full transition-colors duration-200 bg-gray-300 peer-checked:bg-blue-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-400`
           )}
         />
 

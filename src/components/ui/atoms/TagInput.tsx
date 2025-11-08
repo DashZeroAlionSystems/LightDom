@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export interface TagInputProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'> {
   value?: string[];
@@ -70,22 +70,25 @@ export const TagInput: React.FC<TagInputProps> = ({
 
   return (
     <div
-      className={cn('min-h-[40px] flex items-center flex-wrap gap-2 rounded-md border border-gray-200 p-2', className)}
+      className={cn(
+        'min-h-[40px] flex items-center flex-wrap gap-2 rounded-md border border-gray-200 p-2',
+        className
+      )}
       {...props}
     >
       {tags.map((t, i) => (
         <span
           key={t + i}
-          className="inline-flex items-center gap-2 bg-gray-100 text-gray-800 text-sm rounded px-2 py-1"
+          className='inline-flex items-center gap-2 bg-gray-100 text-gray-800 text-sm rounded px-2 py-1'
         >
-          <span className="truncate max-w-[220px]">{t}</span>
+          <span className='truncate max-w-[220px]'>{t}</span>
           <button
-            type="button"
+            type='button'
             aria-label={`Remove ${t}`}
             onClick={() => removeTag(i)}
-            className="p-1 rounded hover:bg-gray-200"
+            className='p-1 rounded hover:bg-gray-200'
           >
-            <X className="w-3 h-3" />
+            <X className='w-3 h-3' />
           </button>
         </span>
       ))}
@@ -95,11 +98,11 @@ export const TagInput: React.FC<TagInputProps> = ({
           ref={inputRef}
           value={input}
           disabled={disabled}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={e => setInput(e.target.value)}
           onKeyDown={onKeyDown}
           onBlur={onBlur}
           placeholder={placeholder}
-          className="flex-1 min-w-[140px] bg-transparent outline-none text-sm p-1"
+          className='flex-1 min-w-[140px] bg-transparent outline-none text-sm p-1'
         />
       )}
     </div>

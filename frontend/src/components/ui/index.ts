@@ -1,40 +1,33 @@
 // Atomic Design System Components (local)
+export { DeepSeekCategoryCrud } from './admin/DeepSeekCategoryCrud';
 export { Avatar } from './Avatar';
 export { Badge } from './Badge';
 export { Button } from './Button';
-export { ServiceActionButton } from './ServiceActionButton';
-export { ServiceActionBar } from './ServiceActionBar';
-export { DeepSeekCategoryCrud } from './admin/DeepSeekCategoryCrud';
-export {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from './Card';
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './Card';
 export { Checkbox } from './Checkbox';
 export { Divider } from './Divider';
 export { Input } from './Input';
 export { Modal } from './Modal';
 export { Progress } from './Progress';
+export { ServiceActionBar } from './ServiceActionBar';
+export { ServiceActionButton } from './ServiceActionButton';
 export { Tooltip } from './Tooltip';
 export {
   WorkspaceLayout,
   WorkspaceRailSection,
+  WorkspaceSection,
   WorkspaceTabs,
   WorkspaceToggleGroup,
-  WorkspaceSection,
 } from './WorkspaceLayout';
 
 // Re-exports from main src (for backward compatibility)
 export {
   WorkflowPanel,
-  WorkflowPanelSection,
   WorkflowPanelFooter,
+  WorkflowPanelSection,
 } from '../../../../src/components/ui/WorkflowPanel';
 
-export { KpiGrid, KpiCard } from '../../../../src/components/ui/DashboardKpi';
+export { KpiCard, KpiGrid } from '../../../../src/components/ui/DashboardKpi';
 
 export {
   AsyncStateEmpty,
@@ -42,12 +35,7 @@ export {
   AsyncStateLoading,
 } from '../../../../src/components/ui/DashboardAsyncState';
 
-export {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from '../../../../src/components/ui/tabs';
+export { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../src/components/ui/tabs';
 
 export { LoadingBar } from './LoadingBar';
 
@@ -58,18 +46,18 @@ export {
   PromptComposeHeader,
   PromptComposeInput,
   PromptComposeShell,
-  PromptComposeToolbar,
   PromptComposeToken,
+  PromptComposeToolbar,
 } from './PromptCompose';
 
 export { PromptInput } from './PromptInput';
 
 export {
   PromptSidebar,
-  PromptSidebarShell,
-  PromptSidebarSection,
+  PromptSidebarDivider,
   PromptSidebarItem,
-  PromptSidebarDivider
+  PromptSidebarSection,
+  PromptSidebarShell,
 } from './PromptSidebar';
 
 export {
@@ -83,13 +71,13 @@ export { default as Fab } from '../../../../src/components/ui/design-system/Fab'
 
 export {
   Accordion,
+  AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  AccordionContent,
 } from '../../../../src/components/ui/Accordion';
 
 export {
-  ModelCard,
   MetricsChart,
+  ModelCard,
   NeuralNetworkVisualizer,
 } from '../../../../src/components/ui/NeuralNetwork';

@@ -3,9 +3,9 @@
  * Matches the Input.tsx styling and exposes a small, consistent API.
  */
 
-import React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
+import { cva, type VariantProps } from 'class-variance-authority';
+import React from 'react';
 
 const textareaVariants = cva(
   [
@@ -46,19 +46,17 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
     const hasLabel = Boolean(label);
 
     return (
-      <div className={cn('space-y-1 w-full')}> 
-        {hasLabel && (
-          <label className="block text-sm font-medium text-gray-700">{label}</label>
-        )}
+      <div className={cn('space-y-1 w-full')}>
+        {hasLabel && <label className='block text-sm font-medium text-gray-700'>{label}</label>}
         <textarea
           ref={ref}
           className={cn(textareaVariants({ variant, size }), className)}
           {...props}
         />
         {error ? (
-          <p className="text-xs text-red-600">{error}</p>
+          <p className='text-xs text-red-600'>{error}</p>
         ) : (
-          helper && <p className="text-xs text-gray-500">{helper}</p>
+          helper && <p className='text-xs text-gray-500'>{helper}</p>
         )}
       </div>
     );

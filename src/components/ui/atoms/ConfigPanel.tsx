@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardHeader, CardSection } from './Card';
-import { Button } from './Button';
-import ToggleSwitch from './ToggleSwitch';
 import { cn } from '@/lib/utils';
+import React, { useEffect, useState } from 'react';
+import { Button } from './Button';
+import { Card, CardHeader } from './Card';
+import ToggleSwitch from './ToggleSwitch';
 
 export interface CrawlerConfig {
   parallelCrawlers: number;
@@ -46,7 +46,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
   }, [cfg, autoApply]);
 
   const update = (k: keyof CrawlerConfig, v: any) => {
-    setCfg((s) => {
+    setCfg(s => {
       const next = { ...s, [k]: v } as CrawlerConfig;
       return next;
     });
@@ -58,66 +58,74 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
   return (
     <div className={cn('w-full', className)} {...props}>
       <Card header={<CardHeader title={title} />}>
-        <div className="space-y-4 p-3">
-          <div className="grid grid-cols-2 gap-3">
+        <div className='space-y-4 p-3'>
+          <div className='grid grid-cols-2 gap-3'>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Parallel Crawlers</label>
+              <label className='block text-sm text-gray-600 mb-1'>Parallel Crawlers</label>
               <input
-                type="number"
+                type='number'
                 min={1}
                 max={100}
                 value={cfg.parallelCrawlers}
-                onChange={(e) => update('parallelCrawlers', Math.max(1, Number(e.target.value) || 1))}
-                className="w-full px-3 py-2 border rounded-md"
+                onChange={e => update('parallelCrawlers', Math.max(1, Number(e.target.value) || 1))}
+                className='w-full px-3 py-2 border rounded-md'
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Max Depth</label>
+              <label className='block text-sm text-gray-600 mb-1'>Max Depth</label>
               <input
-                type="number"
+                type='number'
                 min={1}
                 max={20}
                 value={cfg.maxDepth}
-                onChange={(e) => update('maxDepth', Math.max(1, Number(e.target.value) || 1))}
-                className="w-full px-3 py-2 border rounded-md"
+                onChange={e => update('maxDepth', Math.max(1, Number(e.target.value) || 1))}
+                className='w-full px-3 py-2 border rounded-md'
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className='grid grid-cols-2 gap-3'>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Rate Limit (req/s)</label>
+              <label className='block text-sm text-gray-600 mb-1'>Rate Limit (req/s)</label>
               <input
-                type="number"
+                type='number'
                 min={0}
                 max={1000}
                 value={cfg.rateLimit}
-                onChange={(e) => update('rateLimit', Math.max(0, Number(e.target.value) || 0))}
-                className="w-full px-3 py-2 border rounded-md"
+                onChange={e => update('rateLimit', Math.max(0, Number(e.target.value) || 0))}
+                className='w-full px-3 py-2 border rounded-md'
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Timeout (ms)</label>
+              <label className='block text-sm text-gray-600 mb-1'>Timeout (ms)</label>
               <input
-                type="number"
+                type='number'
                 min={1000}
                 max={600000}
                 value={cfg.timeout}
-                onChange={(e) => update('timeout', Math.max(1000, Number(e.target.value) || 1000))}
-                className="w-full px-3 py-2 border rounded-md"
+                onChange={e => update('timeout', Math.max(1000, Number(e.target.value) || 1000))}
+                className='w-full px-3 py-2 border rounded-md'
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <ToggleSwitch checked={cfg.respectRobotsTxt} onChange={(v) => update('respectRobotsTxt', v)} label="Respect robots.txt" />
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <ToggleSwitch
+                checked={cfg.respectRobotsTxt}
+                onChange={v => update('respectRobotsTxt', v)}
+                label='Respect robots.txt'
+              />
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={reset} size="sm">Reset</Button>
-              <Button variant="primary" onClick={apply} size="sm">Apply</Button>
+            <div className='flex items-center gap-2'>
+              <Button variant='outline' onClick={reset} size='sm'>
+                Reset
+              </Button>
+              <Button variant='primary' onClick={apply} size='sm'>
+                Apply
+              </Button>
             </div>
           </div>
         </div>

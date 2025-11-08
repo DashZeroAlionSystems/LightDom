@@ -1,17 +1,17 @@
 /**
  * Workflow Template Service
- * 
+ *
  * Loads and instantiates workflow templates
  * Provides template management and customization
  */
 
-import { readFile, readdir, stat } from 'fs/promises';
-import { join, relative, dirname } from 'path';
-import yaml from 'js-yaml';
 import chokidar from 'chokidar';
+import { readFile, readdir, stat } from 'fs/promises';
+import yaml from 'js-yaml';
+import { join, relative } from 'path';
+import { Pool } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
 import { DeepSeekWorkflowCRUDService } from './deepseek-workflow-crud-service.js';
-import { Pool } from 'pg';
 
 export interface WorkflowTemplate {
   id: string;
@@ -144,7 +144,8 @@ export class WorkflowTemplateService {
           const rel = relative(baseDir, filePath);
           const parts = rel.split(/[\\/]/).filter(Boolean);
           // category = first segment or parent directory name
-          t.category = parts.length > 1 ? parts[parts.length - 2] || parts[0] : parts[0] || 'default';
+          t.category =
+            parts.length > 1 ? parts[parts.length - 2] || parts[0] : parts[0] || 'default';
         }
 
         // Attach origin path for traceability
@@ -222,7 +223,13 @@ export class WorkflowTemplateService {
           `INSERT INTO workflow_templates (id, name, category, path, content, updated_at)
            VALUES ($1,$2,$3,$4,$5,NOW())
            ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, category=EXCLUDED.category, path=EXCLUDED.path, content=EXCLUDED.content, updated_at=NOW()`,
-          [id, t.name || null, t.category || null, (t as any)._sourcePath || null, JSON.stringify(t)]
+          [
+            id,
+            t.name || null,
+            t.category || null,
+            (t as any)._sourcePath || null,
+            JSON.stringify(t),
+          ]
         );
       }
 
@@ -237,7 +244,7 @@ export class WorkflowTemplateService {
    */
   listTemplates(category?: string): WorkflowTemplate[] {
     const templates = Array.from(this.templates.values());
-    
+
     if (category) {
       return templates.filter(t => t.category === category);
     }
@@ -260,7 +267,7 @@ export class WorkflowTemplateService {
     options: TemplateInstantiationOptions = {}
   ): Promise<string> {
     const template = this.templates.get(templateId);
-    
+
     if (!template) {
       throw new Error(`Template not found: ${templateId}`);
     }
@@ -272,7 +279,7 @@ export class WorkflowTemplateService {
       workflow_type: template.workflow.workflow_type,
       configuration: {
         ...template.workflow.configuration,
-        ...options.customConfig
+        ...options.customConfig,
       },
       schedule: options.schedule || template.workflow.schedule,
       retry_policy: template.workflow.retry_policy,
@@ -281,7 +288,7 @@ export class WorkflowTemplateService {
       tags: options.tags || template.workflow.tags,
       is_template: false,
       parent_template_id: template.workflow.workflow_id,
-      status: 'draft'
+      status: 'draft',
     });
 
     // Create tasks from template
@@ -297,7 +304,7 @@ export class WorkflowTemplateService {
         timeout_seconds: taskTemplate.timeout_seconds,
         ordering: taskTemplate.ordering,
         is_optional: taskTemplate.is_optional || false,
-        conditional_logic: taskTemplate.conditional_logic
+        conditional_logic: taskTemplate.conditional_logic,
       });
     }
 
@@ -336,13 +343,13 @@ export class WorkflowTemplateService {
       category: templateMetadata.category,
       workflow: {
         ...workflow,
-        workflow_id: `template_${templateMetadata.id}`
+        workflow_id: `template_${templateMetadata.id}`,
       },
       tasks: tasks,
       inputSchema: templateMetadata.inputSchema || {
         type: 'object',
-        properties: {}
-      }
+        properties: {},
+      },
     };
 
     this.templates.set(template.id, template);
@@ -353,12 +360,15 @@ export class WorkflowTemplateService {
   /**
    * Validate template input against schema
    */
-  validateTemplateInput(templateId: string, input: Record<string, any>): {
+  validateTemplateInput(
+    templateId: string,
+    input: Record<string, any>
+  ): {
     valid: boolean;
     errors: string[];
   } {
     const template = this.templates.get(templateId);
-    
+
     if (!template) {
       return { valid: false, errors: ['Template not found'] };
     }
@@ -379,7 +389,7 @@ export class WorkflowTemplateService {
     if (schema.properties) {
       for (const [field, value] of Object.entries(input)) {
         const fieldSchema = schema.properties[field];
-        
+
         if (!fieldSchema) {
           continue; // Allow extra fields
         }
@@ -415,7 +425,7 @@ export class WorkflowTemplateService {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -424,7 +434,7 @@ export class WorkflowTemplateService {
    */
   getCategories(): string[] {
     const categories = new Set<string>();
-    
+
     for (const template of this.templates.values()) {
       categories.add(template.category);
     }
@@ -437,15 +447,14 @@ export class WorkflowTemplateService {
    */
   searchTemplates(query: string): WorkflowTemplate[] {
     const lowerQuery = query.toLowerCase();
-    
+
     return Array.from(this.templates.values()).filter(template => {
       return (
         template.name.toLowerCase().includes(lowerQuery) ||
         template.description.toLowerCase().includes(lowerQuery) ||
         template.category.toLowerCase().includes(lowerQuery) ||
-        (template.workflow.tags && template.workflow.tags.some((tag: string) => 
-          tag.toLowerCase().includes(lowerQuery)
-        ))
+        (template.workflow.tags &&
+          template.workflow.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery)))
       );
     });
   }
@@ -460,7 +469,7 @@ export class WorkflowTemplateService {
     avgExecutionTime: number;
   }> {
     const template = this.templates.get(templateId);
-    
+
     if (!template) {
       throw new Error('Template not found');
     }
@@ -494,7 +503,7 @@ export class WorkflowTemplateService {
       instantiationCount: parseInt(workflowStats.instantiation_count) || 0,
       activeWorkflows: parseInt(workflowStats.active_count) || 0,
       successRate: parseFloat(execStats.success_rate) || 0,
-      avgExecutionTime: parseFloat(execStats.avg_execution_time) || 0
+      avgExecutionTime: parseFloat(execStats.avg_execution_time) || 0,
     };
   }
 }

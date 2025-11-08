@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 import {
+  Button,
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
   Input,
-  Button,
   ServiceActionBar,
   ServiceActionButton,
 } from '..';
@@ -77,7 +77,6 @@ export const DeepSeekCategoryCrud: React.FC = () => {
   const [editingId, setEditingId] = useState<ID | null>(null);
   const [newName, setNewName] = useState('');
   const [newDescription, setNewDescription] = useState('');
-  
 
   // Try to fetch categories from API, otherwise load seed
   useEffect(() => {
@@ -166,7 +165,9 @@ export const DeepSeekCategoryCrud: React.FC = () => {
   };
 
   const saveEdit = async (id: ID) => {
-    setCategories(prev => prev.map(c => (c.id === id ? { ...c, name: newName, description: newDescription } : c)));
+    setCategories(prev =>
+      prev.map(c => (c.id === id ? { ...c, name: newName, description: newDescription } : c))
+    );
     // Try persist
     try {
       await fetch(`/api/templates/${id}`, {
@@ -191,13 +192,18 @@ export const DeepSeekCategoryCrud: React.FC = () => {
 
   const attachService = (categoryId: ID) => {
     const svc: ServiceItem = { id: uid('svc'), name: 'New service', baseEndpoint: '/api/new' };
-    setCategories(prev => prev.map(c => (c.id === categoryId ? { ...c, services: [...c.services, svc] } : c)));
+    setCategories(prev =>
+      prev.map(c => (c.id === categoryId ? { ...c, services: [...c.services, svc] } : c))
+    );
   };
 
   const runWorkflow = async (workflowId?: ID) => {
     if (!workflowId) return;
     try {
-      const res = await fetch(`/api/workflows/${workflowId}/execute`, { method: 'POST', body: JSON.stringify({}) });
+      const res = await fetch(`/api/workflows/${workflowId}/execute`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
       if (!res.ok) {
         // Throw so the calling ServiceActionButton receives a rejection and shows error
         throw new Error('Execution failed');
@@ -209,63 +215,96 @@ export const DeepSeekCategoryCrud: React.FC = () => {
   };
 
   const rendered = useMemo(() => {
-    if (loading) return <div className="text-sm text-muted-foreground">Loading categories…</div>;
-    if (categories.length === 0) return <div className="text-sm text-muted-foreground">No categories yet — create one to get started.</div>;
+    if (loading) return <div className='text-sm text-muted-foreground'>Loading categories…</div>;
+    if (categories.length === 0)
+      return (
+        <div className='text-sm text-muted-foreground'>
+          No categories yet — create one to get started.
+        </div>
+      );
 
     return (
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3'>
         {categories.map(cat => (
-          <div key={cat.id} className="rounded-xl border border-border p-4 bg-surface-container-low">
+          <div
+            key={cat.id}
+            className='rounded-xl border border-border p-4 bg-surface-container-low'
+          >
             {editingId === cat.id ? (
-              <div className="space-y-2">
-                <Input value={newName} onChange={e => setNewName(e.target.value)} label="Name" />
-                <Input value={newDescription} onChange={e => setNewDescription(e.target.value)} label="Description" />
-                <div className="flex gap-2">
-                  <Button variant="outlined" onClick={() => saveEdit(cat.id)}>Save</Button>
-                  <Button variant="text" onClick={cancelEdit}>Cancel</Button>
+              <div className='space-y-2'>
+                <Input value={newName} onChange={e => setNewName(e.target.value)} label='Name' />
+                <Input
+                  value={newDescription}
+                  onChange={e => setNewDescription(e.target.value)}
+                  label='Description'
+                />
+                <div className='flex gap-2'>
+                  <Button variant='outlined' onClick={() => saveEdit(cat.id)}>
+                    Save
+                  </Button>
+                  <Button variant='text' onClick={cancelEdit}>
+                    Cancel
+                  </Button>
                 </div>
               </div>
             ) : (
               <>
-                <div className="flex items-start justify-between gap-3">
+                <div className='flex items-start justify-between gap-3'>
                   <div>
-                    <h4 className="text-sm font-semibold">{cat.name}</h4>
-                    {cat.description && <p className="mt-1 text-xs text-muted-foreground">{cat.description}</p>}
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="text-xs text-muted-foreground">{cat.services.length} services</span>
-                      <span className="text-xs text-muted-foreground">{cat.workflows.length} workflows</span>
+                    <h4 className='text-sm font-semibold'>{cat.name}</h4>
+                    {cat.description && (
+                      <p className='mt-1 text-xs text-muted-foreground'>{cat.description}</p>
+                    )}
+                    <div className='mt-3 flex flex-wrap gap-2'>
+                      <span className='text-xs text-muted-foreground'>
+                        {cat.services.length} services
+                      </span>
+                      <span className='text-xs text-muted-foreground'>
+                        {cat.workflows.length} workflows
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 flex-col items-end gap-2">
-                    <div className="flex gap-2">
-                      <Button variant="outlined" onClick={() => startEdit(cat.id)}>Edit</Button>
-                      <Button variant="text" onClick={() => deleteCategory(cat.id)}>Delete</Button>
+                  <div className='flex shrink-0 flex-col items-end gap-2'>
+                    <div className='flex gap-2'>
+                      <Button variant='outlined' onClick={() => startEdit(cat.id)}>
+                        Edit
+                      </Button>
+                      <Button variant='text' onClick={() => deleteCategory(cat.id)}>
+                        Delete
+                      </Button>
                     </div>
                     <div>
-                      <Button size="sm" variant="elevated" onClick={() => attachService(cat.id)}>Attach Service</Button>
+                      <Button size='sm' variant='elevated' onClick={() => attachService(cat.id)}>
+                        Attach Service
+                      </Button>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className='mt-3 flex flex-wrap gap-2'>
                   {cat.tags?.map(t => (
-                    <span key={t} className="rounded-full bg-primary/8 px-2 py-1 text-xs">{t}</span>
+                    <span key={t} className='rounded-full bg-primary/8 px-2 py-1 text-xs'>
+                      {t}
+                    </span>
                   ))}
                 </div>
 
                 {cat.workflows.length > 0 && (
-                  <div className="mt-3 grid gap-2">
+                  <div className='mt-3 grid gap-2'>
                     {cat.workflows.map(w => (
-                      <div key={w.id} className="flex items-center justify-between gap-3 rounded-md border border-border p-2">
-                        <div className="text-sm">{w.name}</div>
-                        <div className="flex items-center gap-2">
+                      <div
+                        key={w.id}
+                        className='flex items-center justify-between gap-3 rounded-md border border-border p-2'
+                      >
+                        <div className='text-sm'>{w.name}</div>
+                        <div className='flex items-center gap-2'>
                           <ServiceActionButton
-                            label="Run"
+                            label='Run'
                             description={undefined}
                             onAction={() => runWorkflow(w.id)}
-                            icon={<span className="text-xs">▶</span>}
-                            variant="primary"
+                            icon={<span className='text-xs'>▶</span>}
+                            variant='primary'
                           />
                         </div>
                       </div>
@@ -281,22 +320,30 @@ export const DeepSeekCategoryCrud: React.FC = () => {
   }, [categories, editingId, loading, newDescription, newName]);
 
   return (
-    <Card variant="elevated" padding="md">
+    <Card variant='elevated' padding='md'>
       <CardHeader>
-        <div className="flex items-center justify-between gap-4">
+        <div className='flex items-center justify-between gap-4'>
           <div>
             <CardTitle>Categories</CardTitle>
-            <CardDescription className="mt-1 text-sm text-muted-foreground">Manage DeepSeek categories, attach services, and run workflows.</CardDescription>
+            <CardDescription className='mt-1 text-sm text-muted-foreground'>
+              Manage DeepSeek categories, attach services, and run workflows.
+            </CardDescription>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className='flex items-center gap-2'>
             {!createMode ? (
-              <Button onClick={startCreate} variant="filled">Create category</Button>
+              <Button onClick={startCreate} variant='filled'>
+                Create category
+              </Button>
             ) : (
-              <div className="flex items-center gap-2">
-                <Input value={newName} onChange={e => setNewName(e.target.value)} label="Name" />
-                <Button onClick={saveNew} variant="filled">Save</Button>
-                <Button onClick={cancelCreate} variant="text">Cancel</Button>
+              <div className='flex items-center gap-2'>
+                <Input value={newName} onChange={e => setNewName(e.target.value)} label='Name' />
+                <Button onClick={saveNew} variant='filled'>
+                  Save
+                </Button>
+                <Button onClick={cancelCreate} variant='text'>
+                  Cancel
+                </Button>
               </div>
             )}
           </div>
@@ -304,16 +351,20 @@ export const DeepSeekCategoryCrud: React.FC = () => {
       </CardHeader>
 
       <CardContent>
-        <ServiceActionBar title="Category Actions" description="Quick actions for selected category" trailing={undefined}>
+        <ServiceActionBar
+          title='Category Actions'
+          description='Quick actions for selected category'
+          trailing={undefined}
+        >
           {/* render the grid */}
           {rendered}
         </ServiceActionBar>
       </CardContent>
 
       <CardFooter>
-        <div className="flex w-full items-center justify-end gap-2">
-          <Button variant="text">Import</Button>
-          <Button variant="outlined">Export</Button>
+        <div className='flex w-full items-center justify-end gap-2'>
+          <Button variant='text'>Import</Button>
+          <Button variant='outlined'>Export</Button>
         </div>
       </CardFooter>
     </Card>

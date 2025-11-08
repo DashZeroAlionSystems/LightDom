@@ -4,9 +4,9 @@
  * Following Material Design 3 principles and IDE-styled UX patterns
  */
 
-import React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
+import { cva, type VariantProps } from 'class-variance-authority';
+import React from 'react';
 
 const liveStatusVariants = cva(
   'inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200',
@@ -37,34 +37,31 @@ const liveStatusVariants = cva(
   }
 );
 
-const dotVariants = cva(
-  'inline-block rounded-full',
-  {
-    variants: {
-      status: {
-        active: 'bg-green-500',
-        idle: 'bg-gray-400',
-        warning: 'bg-yellow-500',
-        error: 'bg-red-500',
-        processing: 'bg-blue-500',
-      },
-      size: {
-        sm: 'w-1.5 h-1.5',
-        md: 'w-2 h-2',
-        lg: 'w-2.5 h-2.5',
-      },
-      pulse: {
-        true: 'animate-pulse',
-        false: '',
-      },
+const dotVariants = cva('inline-block rounded-full', {
+  variants: {
+    status: {
+      active: 'bg-green-500',
+      idle: 'bg-gray-400',
+      warning: 'bg-yellow-500',
+      error: 'bg-red-500',
+      processing: 'bg-blue-500',
     },
-    defaultVariants: {
-      status: 'idle',
-      size: 'md',
-      pulse: false,
+    size: {
+      sm: 'w-1.5 h-1.5',
+      md: 'w-2 h-2',
+      lg: 'w-2.5 h-2.5',
     },
-  }
-);
+    pulse: {
+      true: 'animate-pulse',
+      false: '',
+    },
+  },
+  defaultVariants: {
+    status: 'idle',
+    size: 'md',
+    pulse: false,
+  },
+});
 
 export interface LiveStatusIndicatorProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -75,22 +72,9 @@ export interface LiveStatusIndicatorProps
   pulse?: boolean;
 }
 
-export const LiveStatusIndicator = React.forwardRef<
-  HTMLDivElement,
-  LiveStatusIndicatorProps
->(
+export const LiveStatusIndicator = React.forwardRef<HTMLDivElement, LiveStatusIndicatorProps>(
   (
-    {
-      className,
-      status,
-      size,
-      animate,
-      label,
-      count,
-      showDot = true,
-      pulse = false,
-      ...props
-    },
+    { className, status, size, animate, label, count, showDot = true, pulse = false, ...props },
     ref
   ) => {
     return (
@@ -99,13 +83,9 @@ export const LiveStatusIndicator = React.forwardRef<
         className={cn(liveStatusVariants({ status, size, animate, className }))}
         {...props}
       >
-        {showDot && (
-          <span className={cn(dotVariants({ status, size, pulse }))} />
-        )}
+        {showDot && <span className={cn(dotVariants({ status, size, pulse }))} />}
         <span>{label}</span>
-        {count !== undefined && (
-          <span className="ml-1 font-bold">{count}</span>
-        )}
+        {count !== undefined && <span className='ml-1 font-bold'>{count}</span>}
       </div>
     );
   }
@@ -144,20 +124,7 @@ const metricCardVariants = cva(
 );
 
 export const LiveMetricCard = React.forwardRef<HTMLDivElement, LiveMetricCardProps>(
-  (
-    {
-      className,
-      label,
-      value,
-      unit,
-      trend,
-      trendValue,
-      status = 'idle',
-      icon,
-      ...props
-    },
-    ref
-  ) => {
+  ({ className, label, value, unit, trend, trendValue, status = 'idle', icon, ...props }, ref) => {
     const getTrendColor = () => {
       switch (trend) {
         case 'up':
@@ -181,19 +148,13 @@ export const LiveMetricCard = React.forwardRef<HTMLDivElement, LiveMetricCardPro
     };
 
     return (
-      <div
-        ref={ref}
-        className={cn(metricCardVariants({ status }), className)}
-        {...props}
-      >
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-sm text-gray-600 mb-1">{label}</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-gray-900">
-                {value}
-              </span>
-              {unit && <span className="text-sm text-gray-600">{unit}</span>}
+      <div ref={ref} className={cn(metricCardVariants({ status }), className)} {...props}>
+        <div className='flex items-start justify-between'>
+          <div className='flex-1'>
+            <p className='text-sm text-gray-600 mb-1'>{label}</p>
+            <div className='flex items-baseline gap-2'>
+              <span className='text-2xl font-bold text-gray-900'>{value}</span>
+              {unit && <span className='text-sm text-gray-600'>{unit}</span>}
             </div>
             {trendValue && (
               <div className={cn('text-sm mt-1 flex items-center gap-1', getTrendColor())}>
@@ -202,11 +163,7 @@ export const LiveMetricCard = React.forwardRef<HTMLDivElement, LiveMetricCardPro
               </div>
             )}
           </div>
-          {icon && (
-            <div className="ml-2 text-gray-400">
-              {icon}
-            </div>
-          )}
+          {icon && <div className='ml-2 text-gray-400'>{icon}</div>}
         </div>
       </div>
     );
@@ -224,33 +181,30 @@ export interface ActivityPulseProps extends React.HTMLAttributes<HTMLDivElement>
   color?: 'blue' | 'green' | 'yellow' | 'red';
 }
 
-const activityPulseVariants = cva(
-  'rounded-full',
-  {
-    variants: {
-      size: {
-        sm: 'w-2 h-2',
-        md: 'w-3 h-3',
-        lg: 'w-4 h-4',
-      },
-      color: {
-        blue: 'bg-blue-500',
-        green: 'bg-green-500',
-        yellow: 'bg-yellow-500',
-        red: 'bg-red-500',
-      },
-      active: {
-        true: 'animate-pulse',
-        false: 'opacity-40',
-      },
+const activityPulseVariants = cva('rounded-full', {
+  variants: {
+    size: {
+      sm: 'w-2 h-2',
+      md: 'w-3 h-3',
+      lg: 'w-4 h-4',
     },
-    defaultVariants: {
-      size: 'md',
-      color: 'blue',
-      active: false,
+    color: {
+      blue: 'bg-blue-500',
+      green: 'bg-green-500',
+      yellow: 'bg-yellow-500',
+      red: 'bg-red-500',
     },
-  }
-);
+    active: {
+      true: 'animate-pulse',
+      false: 'opacity-40',
+    },
+  },
+  defaultVariants: {
+    size: 'md',
+    color: 'blue',
+    active: false,
+  },
+});
 
 export const ActivityPulse = React.forwardRef<HTMLDivElement, ActivityPulseProps>(
   ({ className, active = false, size, color, ...props }, ref) => {
