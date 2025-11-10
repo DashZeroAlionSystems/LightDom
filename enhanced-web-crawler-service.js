@@ -1,11 +1,11 @@
 // Enhanced Web Crawler Service for LightDom
 // Automatically crawls websites and saves SEO data to database
 
-import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { Pool } from 'pg';
+import puppeteer from 'puppeteer';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

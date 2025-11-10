@@ -127,7 +127,7 @@ export const LoginPage: React.FC = () => {
                   <Mail className="w-5 h-5" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   id="email"
                   name="email"
                   value={formData.email}
@@ -137,6 +137,7 @@ export const LoginPage: React.FC = () => {
                   } rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition-all`}
                   placeholder="you@example.com"
                   autoComplete="email"
+                  inputMode="email"
                 />
               </div>
               {errors.email && (

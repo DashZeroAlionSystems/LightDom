@@ -6,10 +6,10 @@
  */
 
 import { spawn } from 'child_process';
+import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
 
 // Handle ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -188,7 +188,7 @@ class LightDomBlockchainApp {
       const pool = new Pool({
         host: process.env.DB_HOST || 'localhost',
         port: parseInt(process.env.DB_PORT || '5432'),
-        database: process.env.DB_NAME || 'lightdom_blockchain',
+        database: process.env.DB_NAME || 'dom_space_harvester', || 'lightdom_blockchain',
         user: process.env.DB_USER || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
         max: 20,

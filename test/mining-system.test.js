@@ -2,10 +2,10 @@
  * Integration tests for Background Data Mining System
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import BackgroundDataMiningService from '../services/background-mining-service.js';
-import AIConfigGenerator from '../services/ai-config-generator.js';
 import { Pool } from 'pg';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import AIConfigGenerator from '../services/ai-config-generator.js';
+import BackgroundDataMiningService from '../services/background-mining-service.js';
 
 describe('Background Data Mining System', () => {
   let service;

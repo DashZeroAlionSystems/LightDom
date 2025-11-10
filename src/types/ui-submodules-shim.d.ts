@@ -36,19 +36,6 @@ declare module '../components/ui/badge' {
   export * from '@/components/ui/badge';
 }
 
-declare module '@/components/ui/tabs' {
-  export const Tabs: any;
-  export const TabsList: any;
-  export const TabsTrigger: any;
-  export const TabsContent: any;
-  const _default: any;
-  export default _default;
-}
-
-declare module '../components/ui/tabs' {
-  export * from '@/components/ui/tabs';
-}
-
 declare module '@/components/ui/select' {
   export const Select: any;
   export const SelectOption: any;

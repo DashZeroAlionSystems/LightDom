@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Sparkles, Loader2, StopCircle, Undo2, User, Info } from 'lucide-react';
+import { Sparkles, Loader2, StopCircle, Undo2, User, Info, FileText, Link2, Command } from 'lucide-react';
 
 import { PromptInput, type PromptAction, type PromptToken } from '@/components/ui/PromptInput';
 
@@ -11,6 +11,30 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   streaming?: boolean;
+}
+
+interface SchemaSuggestion {
+  id?: string;
+  name?: string;
+  description?: string;
+  tasks?: Array<{ name?: string; description?: string; type?: string }>;
+  schemas?: Array<{ name?: string; description?: string }>;
+}
+
+interface ComponentSuggestion {
+  name?: string;
+  type?: string;
+  description?: string;
+  schema?: unknown;
+}
+
+interface RetrievedDocument {
+  id: string;
+  documentId: string;
+  chunkIndex: number;
+  content: string;
+  score: number;
+  metadata?: Record<string, unknown> | null;
 }
 
 const API_BASE = (
@@ -33,10 +57,17 @@ const PromptConsolePage: React.FC = () => {
   const [conversation, setConversation] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState('Ready');
+  const [thinkingContent, setThinkingContent] = useState<string | null>(null);
+  const [schemaSuggestion, setSchemaSuggestion] = useState<SchemaSuggestion | null>(null);
+  const [componentSuggestion, setComponentSuggestion] = useState<ComponentSuggestion | null>(null);
+  const [retrievedDocuments, setRetrievedDocuments] = useState<RetrievedDocument[]>([]);
+  const [ingesting, setIngesting] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const streamingMessageIdRef = useRef<string | null>(null);
   const conversationRef = useRef<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     conversationRef.current = conversation;
@@ -50,17 +81,21 @@ const PromptConsolePage: React.FC = () => {
     () => [
       {
         id: 'status',
-        label: loading ? 'Streaming…' : 'Ready',
-        tone: loading ? 'accent' : 'default',
+        label: loading ? statusMessage || 'Streaming…' : statusMessage,
+        tone: loading
+          ? 'accent'
+          : statusMessage.toLowerCase().includes('error')
+            ? 'destructive'
+            : 'default',
         icon: <Sparkles className='h-4 w-4' />,
       },
     ],
-    [loading],
+    [loading, statusMessage],
   );
 
   const updateMessageContent = useCallback((messageId: string, updater: (content: string) => string) => {
-    setConversation((prev) =>
-      prev.map((msg) =>
+    setConversation((prev: ChatMessage[]) =>
+      prev.map((msg: ChatMessage) =>
         msg.id === messageId
           ? {
               ...msg,
@@ -72,8 +107,8 @@ const PromptConsolePage: React.FC = () => {
   }, []);
 
   const markMessageComplete = useCallback((messageId: string) => {
-    setConversation((prev) =>
-      prev.map((msg) =>
+    setConversation((prev: ChatMessage[]) =>
+      prev.map((msg: ChatMessage) =>
         msg.id === messageId
           ? {
               ...msg,
@@ -83,6 +118,76 @@ const PromptConsolePage: React.FC = () => {
       ),
     );
   }, []);
+
+  const appendSystemMessage = useCallback((content: string) => {
+    setConversation((prev: ChatMessage[]) => [...prev, createMessage('system', content)]);
+  }, []);
+
+  const slashCommandList = useMemo(
+    (): Array<{ command: string; description: string }> => [
+      { command: '/help', description: 'Show all available slash commands.' },
+      { command: '/git status', description: 'Show working tree status for the current repository.' },
+      { command: '/git branches', description: 'List local and remote branches.' },
+      { command: '/git checkout <branch>', description: 'Switch to an existing branch.' },
+      { command: '/git create <branch> [--no-checkout]', description: 'Create (and optionally checkout) a branch.' },
+      { command: '/git pull [remote] [branch]', description: 'Pull latest changes from a remote.' },
+      { command: '/git diff <compare> [base]', description: 'Show diff against base (default HEAD).' },
+      { command: '/ingest url <address>', description: 'Fetch a remote document or YouTube link into RAG.' },
+      { command: '/ingest upload', description: 'Open the file picker to upload content into RAG.' },
+    ],
+    [],
+  );
+
+  const slashCommandHelpMessage = useMemo(
+    () =>
+      [
+        'Slash commands:',
+        ...slashCommandList.map((entry: { command: string; description: string }) => `${entry.command} — ${entry.description}`),
+      ].join('\n'),
+    [slashCommandList],
+  );
+
+  const gitRequest = useCallback(
+    async <T = unknown>(path: string, options: RequestInit = {}) => {
+      const requestInit: RequestInit = {
+        method: options.method ?? 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers ?? {}),
+        },
+      };
+
+      if (options.body !== undefined) {
+        requestInit.body = typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
+      }
+
+      if (requestInit.method === 'GET') {
+        delete requestInit.body;
+      }
+
+      const response = await fetch(`${API_BASE}/git/${path}`, requestInit);
+      const text = await response.text();
+      const payload = text
+        ? (() => {
+            try {
+              return JSON.parse(text);
+            } catch (error) {
+              throw new Error(`Git endpoint returned invalid JSON: ${text}`);
+            }
+          })()
+        : {};
+
+      if (!response.ok || (payload as { status?: string }).status !== 'ok') {
+        const message = (payload as { message?: string; error?: string }).message
+          || (payload as { message?: string; error?: string }).error
+          || `Git command failed (${response.status})`;
+        throw new Error(message);
+      }
+
+      return payload as T;
+    },
+    [],
+  );
 
   const handleStreamResponse = useCallback(
     async (response: Response, assistantMessageId: string) => {
@@ -122,31 +227,69 @@ const PromptConsolePage: React.FC = () => {
               return;
             }
 
-            let contentChunk: string | null = null;
+            let parsedPayload: unknown = null;
 
             try {
-              const parsed = JSON.parse(payload);
-              if (typeof parsed === 'string') {
-                contentChunk = parsed;
-              } else if (parsed?.choices?.[0]?.delta?.content) {
-                contentChunk = parsed.choices[0].delta.content as string;
-              } else if (parsed?.message || parsed?.content) {
-                contentChunk = parsed.message?.content ?? parsed.content ?? null;
-              }
+              parsedPayload = JSON.parse(payload);
             } catch (jsonError) {
-              contentChunk = payload;
+              parsedPayload = payload;
             }
 
-            if (!contentChunk) {
-              continue;
+            if (parsedPayload && typeof parsedPayload === 'object' && !Array.isArray(parsedPayload)) {
+              const typedPayload = parsedPayload as {
+                type?: string;
+                content?: string;
+                message?: string;
+                schema?: SchemaSuggestion;
+                component?: ComponentSuggestion;
+                documents?: RetrievedDocument[];
+              };
+
+              switch (typedPayload.type) {
+                case 'context':
+                  setRetrievedDocuments(typedPayload.documents ?? []);
+                  continue;
+                case 'status':
+                  setStatusMessage(typedPayload.message ?? typedPayload.content ?? 'Working…');
+                  continue;
+                case 'thinking':
+                  setThinkingContent(typedPayload.content ?? null);
+                  continue;
+                case 'schema':
+                  setSchemaSuggestion(typedPayload.schema ?? null);
+                  continue;
+                case 'component':
+                  setComponentSuggestion(typedPayload.component ?? null);
+                  continue;
+                case 'warning':
+                  setError(typedPayload.message ?? typedPayload.content ?? 'DeepSeek returned a warning');
+                  setStatusMessage('Warning received');
+                  continue;
+                case 'complete':
+                  setStatusMessage(typedPayload.message ?? 'Complete');
+                  continue;
+                case 'content':
+                  updateMessageContent(assistantMessageId, (current: string) => `${current}${typedPayload.content ?? ''}`);
+                  continue;
+                default:
+                  if (typedPayload.content) {
+                    updateMessageContent(assistantMessageId, (current: string) => `${current}${typedPayload.content ?? ''}`);
+                    continue;
+                  }
+              }
             }
 
-            updateMessageContent(assistantMessageId, (current) => `${current}${contentChunk}`);
+            const contentChunk = typeof parsedPayload === 'string' ? parsedPayload : null;
+
+            if (contentChunk) {
+              updateMessageContent(assistantMessageId, (current: string) => `${current}${contentChunk}`);
+            }
           }
         }
       } finally {
         markMessageComplete(assistantMessageId);
         streamingMessageIdRef.current = null;
+        setStatusMessage('Ready');
       }
     },
     [markMessageComplete, updateMessageContent],
@@ -158,10 +301,138 @@ const PromptConsolePage: React.FC = () => {
     setConversation([]);
     setError(null);
     setLoading(false);
+    setStatusMessage('Ready');
+    setThinkingContent(null);
+    setSchemaSuggestion(null);
+    setComponentSuggestion(null);
+    setRetrievedDocuments([]);
   }, []);
+
+  const ingestUpload = useCallback(
+    async (file: File) => {
+      setIngesting(true);
+      setStatusMessage(`Uploading ${file.name}…`);
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('title', file.name);
+
+        const response = await fetch(`${API_BASE}/rag/ingest/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || `Upload failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        setConversation((prev: ChatMessage[]) => [
+          ...prev,
+          createMessage(
+            'system',
+            `Document "${file.name}" ingested. Document ID: ${result?.documentId ?? 'unknown'} (chunks: ${
+              result?.upsert?.chunks ?? 'n/a'
+            }).`,
+          ),
+        ]);
+        setStatusMessage('Document ingested');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown upload error';
+        setStatusMessage('Ingestion failed');
+        setConversation((prev: ChatMessage[]) => [...prev, createMessage('system', `⚠️ Upload failed: ${message}`)]);
+      } finally {
+        setIngesting(false);
+      }
+    },
+    [],
+  );
+
+  const ingestRemoteSource = useCallback(
+    async (input: string) => {
+      if (!input) return;
+      setIngesting(true);
+      setStatusMessage('Fetching remote source…');
+
+      try {
+        const body: Record<string, unknown> = {};
+        if (/^https?:\/\//i.test(input)) {
+          body.url = input;
+        }
+
+        if (/(youtube\.com|youtu\.be)/i.test(input)) {
+          body.youtubeUrl = input;
+        }
+
+        if (!body.url && !body.youtubeUrl) {
+          body.url = input;
+        }
+
+        const response = await fetch(`${API_BASE}/rag/ingest/url`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || `Remote ingestion failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        setConversation((prev: ChatMessage[]) => [
+          ...prev,
+          createMessage(
+            'system',
+            `Remote source ingested from ${input}. Document ID: ${result?.documentId ?? 'unknown'} (chunks: ${
+              result?.upsert?.chunks ?? 'n/a'
+            }).`,
+          ),
+        ]);
+        setStatusMessage('Remote document ingested');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown remote ingestion error';
+        setStatusMessage('Ingestion failed');
+        setConversation((prev: ChatMessage[]) => [...prev, createMessage('system', `⚠️ Remote ingestion failed: ${message}`)]);
+      } finally {
+        setIngesting(false);
+      }
+    },
+    [],
+  );
 
   const promptActions = useMemo<PromptAction[]>(
     () => [
+      {
+        id: 'commands',
+        icon: <Command className='h-4 w-4' />,
+        label: 'Commands',
+        onClick: () => appendSystemMessage(slashCommandHelpMessage),
+      },
+      {
+        id: 'upload',
+        icon: <FileText className='h-4 w-4' />,
+        label: 'Upload',
+        onClick: () => fileInputRef.current?.click(),
+        disabled: ingesting,
+      },
+      {
+        id: 'ingest-url',
+        icon: <Link2 className='h-4 w-4' />,
+        label: 'Add URL',
+        onClick: () => {
+          const value = window.prompt('Enter document URL or YouTube link to ingest into RAG');
+          if (!value) return;
+          void ingestRemoteSource(value.trim());
+        },
+        disabled: ingesting,
+      },
       {
         id: 'stop',
         icon: <StopCircle className='h-4 w-4' />,
@@ -179,7 +450,200 @@ const PromptConsolePage: React.FC = () => {
         onClick: handleReset,
       },
     ],
-    [handleReset, loading],
+    [appendSystemMessage, handleReset, ingestRemoteSource, ingesting, loading, slashCommandHelpMessage],
+  );
+
+  const handleSlashCommand = useCallback(
+    async (input: string): Promise<boolean> => {
+      if (!input.startsWith('/')) {
+        return false;
+      }
+
+      const raw = input.slice(1).trim();
+      if (!raw) {
+        appendSystemMessage('⚠️ Slash command missing content. Type /help for options.');
+        setStatusMessage('Command error');
+        return true;
+      }
+
+      const [root, ...rest] = raw.split(/\s+/);
+      const normalizedRoot = root.toLowerCase();
+
+      const formatError = (message: string) => {
+        appendSystemMessage(`⚠️ ${message}`);
+        setStatusMessage('Command error');
+      };
+
+      switch (normalizedRoot) {
+        case 'help':
+        case '?':
+          appendSystemMessage(slashCommandHelpMessage);
+          setStatusMessage('Slash commands ready');
+          return true;
+        case 'git': {
+          if (rest.length === 0) {
+            formatError('Usage: /git <status|branches|checkout|create|pull|diff> …');
+            return true;
+          }
+
+          const subcommand = rest[0].toLowerCase();
+          const args = rest.slice(1);
+
+          setLoading(true);
+          setStatusMessage('Executing git command…');
+
+          try {
+            switch (subcommand) {
+              case 'status': {
+                const result = await gitRequest<{ result?: { stdout?: string; stderr?: string } }>('status');
+                const output = result?.result?.stdout?.trim() || 'Working tree clean.';
+                const stderr = result?.result?.stderr?.trim();
+                appendSystemMessage(
+                  ['Git status:', `\n\u0060\u0060\u0060\n${output}\n\u0060\u0060\u0060`, stderr ? `\nWarnings:\n${stderr}` : '']
+                    .filter(Boolean)
+                    .join('\n') || 'Git status complete.',
+                );
+                setStatusMessage('Git status retrieved');
+                break;
+              }
+              case 'branches': {
+                const result = await gitRequest<{ branches?: string[] }>('list-branches');
+                const branches = result?.branches ?? [];
+                appendSystemMessage(
+                  branches.length
+                    ? `Branches:\n${branches.map((branch: string) => `• ${branch}`).join('\n')}`
+                    : 'No branches returned.',
+                );
+                setStatusMessage('Branch list ready');
+                break;
+              }
+              case 'checkout': {
+                if (args.length < 1) {
+                  formatError('Usage: /git checkout <branch>');
+                  break;
+                }
+                const branchName = args[0];
+                await gitRequest('checkout-branch', {
+                  method: 'POST',
+                  body: { branchName },
+                });
+                appendSystemMessage(`✅ Checked out branch "${branchName}".`);
+                setStatusMessage('Branch checked out');
+                break;
+              }
+              case 'create': {
+                if (args.length < 1) {
+                  formatError('Usage: /git create <branch> [--no-checkout]');
+                  break;
+                }
+                const checkoutFlagIndex = args.findIndex((arg) => arg === '--no-checkout');
+                const checkout = checkoutFlagIndex === -1;
+                const branchName = checkout
+                  ? args[0]
+                  : args.filter((_, index) => index !== checkoutFlagIndex)[0];
+                await gitRequest('create-branch', {
+                  method: 'POST',
+                  body: { branchName, checkout },
+                });
+                appendSystemMessage(
+                  checkout
+                    ? `✅ Created and switched to branch "${branchName}".`
+                    : `✅ Created branch "${branchName}" (not checked out).`,
+                );
+                setStatusMessage('Branch created');
+                break;
+              }
+              case 'pull': {
+                const [remote = 'origin', branch] = args;
+                await gitRequest('pull', {
+                  method: 'POST',
+                  body: branch ? { remote, branch } : { remote },
+                });
+                appendSystemMessage(`✅ Pulled latest changes from ${remote}${branch ? `/${branch}` : ''}.`);
+                setStatusMessage('Git pull complete');
+                break;
+              }
+              case 'diff': {
+                if (args.length < 1) {
+                  formatError('Usage: /git diff <compare> [base]');
+                  break;
+                }
+                const [compare, base] = args;
+                const result = await gitRequest<{ result?: { stdout?: string; stderr?: string } }>('diff', {
+                  method: 'POST',
+                  body: base ? { compare, base } : { compare },
+                });
+                const output = result?.result?.stdout?.trim() || 'No differences found.';
+                const stderr = result?.result?.stderr?.trim();
+                appendSystemMessage(
+                  ['Git diff:', `\n\u0060\u0060\u0060\n${output}\n\u0060\u0060\u0060`, stderr ? `\nWarnings:\n${stderr}` : '']
+                    .filter(Boolean)
+                    .join('\n') || 'Git diff complete.',
+                );
+                setStatusMessage('Git diff ready');
+                break;
+              }
+              default:
+                formatError(`Unknown git command: ${subcommand}`);
+                break;
+            }
+          } catch (commandError) {
+            const message = commandError instanceof Error ? commandError.message : 'Unknown git error';
+            appendSystemMessage(`⚠️ Git command failed: ${message}`);
+            setStatusMessage('Git command failed');
+          } finally {
+            setLoading(false);
+          }
+
+          return true;
+        }
+        case 'ingest': {
+          if (rest.length === 0) {
+            formatError('Usage: /ingest <url|upload> …');
+            return true;
+          }
+
+          const subcommand = rest[0].toLowerCase();
+          const args = rest.slice(1);
+
+          switch (subcommand) {
+            case 'url': {
+              if (args.length === 0) {
+                formatError('Usage: /ingest url <address>');
+                return true;
+              }
+              const target = args.join(' ');
+              setStatusMessage('Starting remote ingestion…');
+              await ingestRemoteSource(target);
+              return true;
+            }
+            case 'upload': {
+              fileInputRef.current?.click();
+              setStatusMessage('Select a file to ingest.');
+              return true;
+            }
+            default:
+              formatError(`Unknown ingest command: ${subcommand}`);
+              return true;
+          }
+        }
+        default:
+          return false;
+      }
+    },
+    [appendSystemMessage, gitRequest, ingestRemoteSource, slashCommandHelpMessage],
+  );
+
+  const handleFileInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        return;
+      }
+      event.target.value = '';
+      void ingestUpload(file);
+    },
+    [ingestUpload],
   );
 
   const handleSend = useCallback(
@@ -187,6 +651,13 @@ const PromptConsolePage: React.FC = () => {
       const trimmed = prompt.trim();
       if (!trimmed) {
         return;
+      }
+
+      if (trimmed.startsWith('/')) {
+        const handled = await handleSlashCommand(trimmed);
+        if (handled) {
+          return;
+        }
       }
 
       abortControllerRef.current?.abort();
@@ -203,24 +674,27 @@ const PromptConsolePage: React.FC = () => {
       const history = conversationRef.current;
 
       streamingMessageIdRef.current = assistantMessage.id;
-      setConversation((prev) => [...prev, userMessage, assistantMessage]);
+      setConversation((prev: ChatMessage[]) => [...prev, userMessage, assistantMessage]);
       setLoading(true);
       setError(null);
+      setStatusMessage('Connecting…');
+      setThinkingContent(null);
+      setSchemaSuggestion(null);
+      setComponentSuggestion(null);
+      setRetrievedDocuments([]);
 
-      const payload = {
-        prompt: trimmed,
-        conversation: history
-          .concat(userMessage)
-          .map(({ role, content }) => ({ role, content })),
-      };
+      const messages = history
+        .concat(userMessage)
+        .map((msg: ChatMessage) => ({ role: msg.role, content: msg.content }));
 
       try {
-        const response = await fetch(`${API_BASE}/deepseek/chat`, {
+        const response = await fetch(`${API_BASE}/rag/chat/stream`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            Accept: 'text/event-stream',
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ messages }),
           signal: controller.signal,
         });
 
@@ -234,14 +708,15 @@ const PromptConsolePage: React.FC = () => {
         if ((streamError as Error).name === 'AbortError') {
           return;
         }
-        console.error('DeepSeek chat request failed', streamError);
-        setError('Unable to reach the DeepSeek service. Check the orchestrator on port 4100.');
+        console.error('RAG chat request failed', streamError);
+        setError('Unable to reach the RAG chat service. Ensure the backend is running.');
+        setStatusMessage('RAG connection failed');
         markMessageComplete(assistantMessage.id);
       } finally {
         setLoading(false);
       }
     },
-    [handleStreamResponse, markMessageComplete],
+    [conversationRef, handleSlashCommand, handleStreamResponse, markMessageComplete],
   );
 
   return (
@@ -266,6 +741,13 @@ const PromptConsolePage: React.FC = () => {
 
       <main className='flex-1 overflow-y-auto px-6 py-8'>
         <div className='mx-auto flex w-full max-w-4xl flex-col gap-6'>
+          <input
+            ref={fileInputRef}
+            type='file'
+            className='hidden'
+            onChange={handleFileInputChange}
+            accept='.pdf,.txt,.md,.markdown,.json,.csv,image/*,video/*'
+          />
           {conversation.length === 0 && (
             <div className='rounded-3xl border border-dashed border-border/60 bg-surface-container-low p-6 text-sm text-on-surface-variant'>
               Start a conversation to receive live DeepSeek responses. The prompt input stays anchored so you can review
@@ -273,7 +755,7 @@ const PromptConsolePage: React.FC = () => {
             </div>
           )}
 
-          {conversation.map((message) => {
+          {conversation.map((message: ChatMessage) => {
             const isAssistant = message.role === 'assistant';
             const isUser = message.role === 'user';
 
@@ -303,7 +785,7 @@ const PromptConsolePage: React.FC = () => {
                     {message.streaming && <Loader2 className='h-3.5 w-3.5 animate-spin text-primary' />}
                   </div>
                   <div className='space-y-3 text-sm leading-relaxed'>
-                    {message.content.split('\n\n').map((paragraph, index) => (
+                    {message.content.split('\n\n').map((paragraph: string, index: number) => (
                       <p key={index} className='whitespace-pre-wrap text-on-surface'>
                         {paragraph}
                       </p>
@@ -315,6 +797,108 @@ const PromptConsolePage: React.FC = () => {
           })}
 
           <div ref={messagesEndRef} />
+
+          {(retrievedDocuments.length > 0 || thinkingContent || schemaSuggestion || componentSuggestion) && (
+            <section className='space-y-4 rounded-3xl border border-border/60 bg-surface-container-low/80 p-6 shadow-sm shadow-primary/5'>
+              <header className='flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary/70'>
+                <Sparkles className='h-4 w-4' />
+                DeepSeek Insights
+              </header>
+
+              {retrievedDocuments.length > 0 && (
+                <article className='rounded-2xl border border-outline/30 bg-surface p-4'>
+                  <div className='mb-3 flex items-center justify-between gap-3'>
+                    <h3 className='text-sm font-semibold text-on-surface-variant/90'>Retrieved context</h3>
+                    <span className='text-xs text-on-surface-variant/70'>Top {retrievedDocuments.length} matches</span>
+                  </div>
+                  <div className='space-y-3 text-sm text-on-surface-variant'>
+                    {retrievedDocuments.map((doc: RetrievedDocument) => (
+                      <div key={doc.id} className='rounded-xl border border-outline/20 bg-surface-container-low px-4 py-3'>
+                        <div className='mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary/70'>
+                          <FileText className='h-3.5 w-3.5' />
+                          <span>{doc.documentId}</span>
+                          <span className='text-on-surface-variant/60'>Score {(doc.score ?? 0).toFixed(3)}</span>
+                        </div>
+                        <p className='text-sm text-on-surface line-clamp-3'>{doc.content}</p>
+                        {doc.metadata && doc.metadata.url && typeof doc.metadata.url === 'string' && (
+                          <a
+                            href={doc.metadata.url}
+                            target='_blank'
+                            rel='noreferrer'
+                            className='mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline'
+                          >
+                            <Link2 className='h-3 w-3' />
+                            Open source
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              )}
+
+              {thinkingContent && (
+                <article className='rounded-2xl border border-outline/30 bg-surface p-4'>
+                  <h3 className='mb-2 text-sm font-medium text-on-surface-variant/80'>Reasoning trace</h3>
+                  <p className='whitespace-pre-wrap text-sm leading-relaxed text-on-surface'>{thinkingContent}</p>
+                </article>
+              )}
+
+              {schemaSuggestion && (
+                <article className='rounded-2xl border border-outline/20 bg-surface p-4'>
+                  <div className='mb-3 flex items-center justify-between gap-3'>
+                    <div>
+                      <h3 className='text-base font-semibold text-on-surface'>{
+                        schemaSuggestion.name ?? 'Generated workflow schema'
+                      }</h3>
+                      {schemaSuggestion.description && (
+                        <p className='text-sm text-on-surface-variant'>{schemaSuggestion.description}</p>
+                      )}
+                    </div>
+                    {schemaSuggestion.id && (
+                      <span className='rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'>
+                        #{schemaSuggestion.id}
+                      </span>
+                    )}
+                  </div>
+                  {schemaSuggestion.tasks && schemaSuggestion.tasks.length > 0 && (
+                    <div className='space-y-2'>
+                      <p className='text-xs font-semibold uppercase tracking-wide text-on-surface-variant/70'>Tasks</p>
+                      <ul className='space-y-1 text-sm text-on-surface-variant'>
+                        {schemaSuggestion.tasks.map((task: NonNullable<SchemaSuggestion['tasks']>[number], index: number) => (
+                          <li
+                            key={`${task.name ?? 'task'}-${index}`}
+                            className='rounded-xl border border-outline/10 bg-surface-container-low px-3 py-2'
+                          >
+                            <span className='font-medium text-on-surface'>{task.name ?? `Step ${index + 1}`}</span>
+                            {task.description && (
+                              <p className='text-xs text-on-surface-variant/80'>{task.description}</p>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </article>
+              )}
+
+              {componentSuggestion && (
+                <article className='rounded-2xl border border-outline/20 bg-surface p-4'>
+                  <h3 className='text-base font-semibold text-on-surface'>{
+                    componentSuggestion.name ?? 'Suggested component'
+                  }</h3>
+                  {componentSuggestion.description && (
+                    <p className='mt-1 text-sm text-on-surface-variant'>{componentSuggestion.description}</p>
+                  )}
+                  {componentSuggestion.type && (
+                    <p className='mt-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'>
+                      {componentSuggestion.type}
+                    </p>
+                  )}
+                </article>
+              )}
+            </section>
+          )}
         </div>
       </main>
 

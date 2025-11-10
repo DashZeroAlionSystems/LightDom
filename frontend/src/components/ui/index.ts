@@ -7,11 +7,11 @@ export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 export { Checkbox } from './Checkbox';
 export { Divider } from './Divider';
 export { Input } from './Input';
+export { TextArea } from './TextArea';
 export { Modal } from './Modal';
 export { Progress } from './Progress';
-export { ServiceActionBar } from './ServiceActionBar';
 export { ServiceActionButton } from './ServiceActionButton';
-export { Tooltip } from './Tooltip';
+export { ServiceActionBar } from './ServiceActionBar';
 export {
   WorkspaceLayout,
   WorkspaceRailSection,
@@ -27,7 +27,9 @@ export {
   WorkflowPanelSection,
 } from '../../../../src/components/ui/WorkflowPanel';
 
-export { KpiCard, KpiGrid } from '../../../../src/components/ui/DashboardKpi';
+export {
+  KpiCard, KpiGrid
+} from './DashboardKpi';
 
 export {
   AsyncStateEmpty,
@@ -74,7 +76,7 @@ export {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '../../../../src/components/ui/Accordion';
+} from './Accordion';
 
 export {
   MetricsChart,

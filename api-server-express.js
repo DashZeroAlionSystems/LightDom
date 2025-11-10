@@ -12,10 +12,14 @@ import http from 'http';
 import path from 'path';
 import { Pool } from 'pg';
 import { Server as socketIo } from 'socket.io';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { addMiningRoutes } from './api-mining-routes.js';
 import createUserRoutes from './api/routes/user-management.js';
 import { RealWebCrawlerSystem } from './crawler/RealWebCrawlerSystem.js';
+import TemplateWatcherService from './services/template-watcher-service.js';
+import { createRagRouter } from './services/rag/rag-router.js';
+import createAdminNavigationRoutes from './services/admin-navigation-routes.js';
+import createGitRoutes from './api/git-routes.js';
 import BlockchainMetricsCollector from './utils/BlockchainMetricsCollector.js';
 import CrawlerSupervisor from './utils/CrawlerSupervisor.js';
 import HeadlessBlockchainRunner from './utils/HeadlessBlockchainRunner.js';
@@ -47,6 +51,8 @@ class DOMSpaceHarvesterAPI {
       },
     });
 
+    this.serverInitialized = false;
+
     this.dbDisabled = process.env.DB_DISABLED === 'true';
 
     // Setup bridge socket handlers
@@ -68,6 +74,20 @@ class DOMSpaceHarvesterAPI {
           idleTimeoutMillis: 30000,
           connectionTimeoutMillis: 2000,
         });
+
+    if (this.dbDisabled) {
+      console.warn('⚠️  Database disabled; RAG endpoints are unavailable.');
+    } else {
+      try {
+        const ragRouter = createRagRouter({ db: this.db, logger: console });
+        this.app.use('/api/rag', ragRouter);
+        console.log('✅ RAG routes registered at /api/rag');
+      } catch (error) {
+        console.error('Failed to initialize RAG routes:', error.message);
+      }
+    }
+
+    this.app.use('/api/git', createGitRoutes());
 
     // Real-time crawler system
     this.crawlerSystem = null;
@@ -109,6 +129,9 @@ class DOMSpaceHarvesterAPI {
     // AI Content Generation Service
     this.aiContentGenerationService = null;
     this.aiContentModelTrainer = null;
+
+    // Template watcher
+    this.templateWatcher = null;
 
     // Setup blockchain runner event handlers
     this.setupBlockchainEventHandlers();
@@ -232,14 +255,22 @@ class DOMSpaceHarvesterAPI {
       data: {},
     };
 
-    this.setupMiddleware();
-    this.setupWebSocket();
-    this.startRealtimeUpdates();
+    if (!this.serverInitialized) {
+      this.setupMiddleware();
+      this.setupWebSocket();
+      this.startRealtimeUpdates();
+
+      // Initialize template watcher after core services
+      this.initializeTemplateWatcher();
+
+      this.serverInitialized = true;
+    }
 
     // Optional: watch templates directory on startup (polling fallback)
     if (process.env.TEMPLATES_WATCH === 'true' || process.env.WATCH_TEMPLATES === 'true') {
       import('./src/api/routes/templates.routes.js')
         .then(async templatesModule => {
+// ... (rest of the code remains the same)
           try {
             const baseDir = path.join(process.cwd(), 'n8n/templates');
             // initial scan
@@ -292,6 +323,28 @@ class DOMSpaceHarvesterAPI {
       } catch (e) {
         console.log('⚠️ Blockchain config failed:', e.message);
       }
+    }
+  }
+
+  async initializeTemplateWatcher() {
+    if (this.dbDisabled) {
+      console.log('Template watcher skipped (database disabled)');
+      return;
+    }
+
+    try {
+      if (!this.templateWatcher) {
+        this.templateWatcher = new TemplateWatcherService({
+          db: this.db,
+          io: this.io,
+          logger: console,
+        });
+      }
+
+      await this.templateWatcher.start();
+      console.log('✅ Template watcher started');
+    } catch (error) {
+      console.error('⚠️  Failed to start template watcher:', error.message || error);
     }
   }
 
@@ -388,15 +441,20 @@ class DOMSpaceHarvesterAPI {
   }
 
   setupRoutes() {
+    const safeImport = async (label, importer, onSuccess) => {
+      try {
+        const mod = await importer();
+        await onSuccess(mod);
+      } catch (error) {
+        console.warn(`⚠️  Skipped ${label}:`, error?.message || error);
+      }
+    };
+
     // Import and register SEO routes
-    import('./src/api/seo-analysis.js')
-      .then(seoModule => {
-        this.app.use('/api/seo', seoModule.default);
-        console.log('SEO analysis routes registered');
-      })
-      .catch(err => {
-        console.error('Failed to load SEO routes:', err);
-      });
+    void safeImport('SEO analysis routes', () => import('./src/api/seo-analysis.js'), seoModule => {
+      this.app.use('/api/seo', seoModule.default ?? seoModule);
+      console.log('SEO analysis routes registered');
+    });
 
     // Import and register SEO Training routes
     import('./src/api/seo-training.js')
@@ -481,43 +539,6 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load DeepSeek chat routes:', err);
       });
 
-    // Import and register Template discovery & N8N template routes
-    import('./src/api/routes/templates.routes.js')
-      .then(templatesModule => {
-        const createRoutes = templatesModule.createTemplatesRoutes || templatesModule.default;
-        if (typeof createRoutes === 'function') {
-          this.app.use('/api/templates', createRoutes(this.db));
-        } else {
-          this.app.use('/api/templates', createRoutes);
-        }
-        console.log('✅ Templates routes registered (filesystem & manifest scanning)');
-      })
-      .catch(err => {
-        console.error('Failed to load templates routes:', err);
-      });
-
-    // Import and register Embeddings routes (pgvector)
-    import('./src/api/routes/embeddings.routes.js')
-      .then(embModule => {
-        this.app.use('/api/embeddings', embModule.default);
-        console.log('✅ Embeddings routes registered (pgvector)');
-      })
-      .catch(err => {
-        console.error('Failed to load embeddings routes:', err);
-      });
-
-    import('./src/api/routes/deepseek-chat.routes.js')
-      .then(chatModule => {
-        const chatRouter = chatModule.createDeepSeekChatRoutes;
-        if (typeof chatRouter === 'function') {
-          this.app.use('/api/deepseek', chatRouter(this.db, {}));
-        }
-        console.log('✅ DeepSeek chat routes registered');
-      })
-      .catch(err => {
-        console.error('Failed to load DeepSeek chat routes:', err);
-      });
-
     // Import and register Ollama DeepSeek routes
     import('./api/ollama-deepseek-routes.js')
       .then(async ollamaModule => {
@@ -559,6 +580,46 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.error('Failed to load conversation history routes:', err);
+      });
+
+    import('./src/api/routes/deepseek-chat.routes.js')
+      .then(chatModule => {
+        const chatRouter = chatModule.createDeepSeekChatRoutes;
+        if (typeof chatRouter === 'function') {
+          this.app.use('/api/deepseek', chatRouter(this.db, {}));
+        }
+        console.log('✅ DeepSeek chat routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load DeepSeek chat routes:', err);
+      });
+
+    // Import and register Template discovery & N8N template routes
+    import('./src/api/routes/templates.routes.js')
+      .then(templatesModule => {
+        const createRoutes = templatesModule.createTemplatesRoutes || templatesModule.default;
+        if (typeof createRoutes === 'function') {
+          this.app.use('/api/templates', createRoutes(this.db));
+        } else {
+          this.app.use('/api/templates', createRoutes);
+        }
+        console.log('✅ Templates routes registered (filesystem & manifest scanning)');
+      })
+      .catch(err => {
+        console.error('Failed to load templates routes:', err);
+      });
+
+    // Admin navigation routes (DB-driven sidebar metadata)
+    this.app.use('/api/admin', createAdminNavigationRoutes(this.db));
+
+    // Import and register Embeddings routes (pgvector)
+    import('./src/api/routes/embeddings.routes.js')
+      .then(embModule => {
+        this.app.use('/api/embeddings', embModule.default);
+        console.log('✅ Embeddings routes registered (pgvector)');
+      })
+      .catch(err => {
+        console.error('Failed to load embeddings routes:', err);
       });
 
     // Import and register Workflow Wizard routes
@@ -10129,6 +10190,11 @@ class DOMSpaceHarvesterAPI {
   }
 
   async initializeServer() {
+    if (this.serverInitialized) {
+      console.log('ℹ️ Server already initialized – skipping duplicate setup');
+      return;
+    }
+
     console.log('🔧 Initializing server components...');
 
     // Initialize middleware and routes
@@ -10146,16 +10212,20 @@ class DOMSpaceHarvesterAPI {
     }
 
     console.log('✅ Server initialization complete');
+    this.serverInitialized = true;
   }
 
   async start(port = 3001) {
     try {
       console.log('🚀 Starting DOM Space Harvester API Server...');
 
-      // Initialize all components
-      console.log('🔧 Initializing server components...');
-      await this.initializeServer();
-      console.log('✅ Server initialization complete');
+      if (!this.serverInitialized) {
+        console.log('🔧 Initializing server components...');
+        await this.initializeServer();
+        console.log('✅ Server initialization complete');
+      } else {
+        console.log('ℹ️ Server already initialized – skipping component re-initialization');
+      }
 
       console.log(`🔄 Starting server on port ${port}...`);
       return new Promise((resolve, reject) => {
@@ -10209,7 +10279,17 @@ process.on('SIGINT', async () => {
 });
 
 // Start server if run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isDirectExecution = (() => {
+  if (!process.argv[1]) return false;
+  try {
+    return import.meta.url === pathToFileURL(process.argv[1]).href;
+  } catch (error) {
+    console.warn('Warning determining direct execution:', error);
+    return false;
+  }
+})();
+
+if (isDirectExecution) {
   const apiServer = new DOMSpaceHarvesterAPI();
   global.apiServer = apiServer;
 

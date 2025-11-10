@@ -48,6 +48,81 @@ export const Navigation: React.FC = () => {
       icon: <LucideIcons.Layout className='w-5 h-5' />,
       label: 'Complete Dashboard',
     },
+    {
+      to: '/admin-dashboard',
+      icon: <LucideIcons.PanelRight className='w-5 h-5' />,
+      label: 'Admin Console',
+    },
+    {
+      to: '/admin-navigation',
+      icon: <LucideIcons.Map className='w-5 h-5' />,
+      label: 'Admin Navigation Demo',
+    },
+    {
+      to: '/unified-dashboard',
+      icon: <LucideIcons.Layers className='w-5 h-5' />,
+      label: 'Unified Dashboard Demo',
+    },
+    {
+      to: '/workflow-wizard',
+      icon: <LucideIcons.Wand2 className='w-5 h-5' />,
+      label: 'Workflow Wizard Demo',
+    },
+    {
+      to: '/security-audit-report',
+      icon: <LucideIcons.ShieldCheck className='w-5 h-5' />,
+      label: 'Security Audit Demo',
+    },
+    {
+      to: '/self-organizing-dashboard',
+      icon: <LucideIcons.Cpu className='w-5 h-5' />,
+      label: 'Self-Organizing Demo',
+    },
+    {
+      to: '/devcontainer-admin-dashboard',
+      icon: <LucideIcons.MonitorSmartphone className='w-5 h-5' />,
+      label: 'DevContainer Admin Demo',
+    },
+    {
+      to: '/lightdom-slot-demo',
+      icon: <LucideIcons.Layers className='w-5 h-5' />,
+      label: 'LightDom Slot Demo',
+    },
+    {
+      to: '/component-bundles',
+      icon: <LucideIcons.PackagePlus className='w-5 h-5' />,
+      label: 'Component Bundles Demo',
+    },
+    {
+      to: '/space-mining',
+      icon: <LucideIcons.Rocket className='w-5 h-5' />,
+      label: 'Space Mining Demo',
+    },
+    {
+      to: '/service-graph',
+      icon: <LucideIcons.Activity className='w-5 h-5' />,
+      label: 'Service Graph Demo',
+    },
+    {
+      to: '/metaverse-nft',
+      icon: <LucideIcons.Wand2 className='w-5 h-5' />,
+      label: 'Metaverse NFT Demo',
+    },
+    {
+      to: '/client-integration',
+      icon: <LucideIcons.PlugZap className='w-5 h-5' />,
+      label: 'Client Integration Demo',
+    },
+    {
+      to: '/enterprise-container',
+      icon: <LucideIcons.ServerCog className='w-5 h-5' />,
+      label: 'Enterprise Container Demo',
+    },
+    {
+      to: '/data-mining',
+      icon: <LucideIcons.Database className='w-5 h-5' />,
+      label: 'Data Mining Demo',
+    },
   ];
 
   return (

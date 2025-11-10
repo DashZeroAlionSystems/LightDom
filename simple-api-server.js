@@ -1,9 +1,9 @@
 // Simple API Server for LightDom
-import express from 'express';
-import cors from 'cors';
-import { fileURLToPath } from 'url';
-import path from 'path';
 import axios from 'axios';
+import cors from 'cors';
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 // import crawler from './enhanced-web-crawler-service.js'; // COMMENTED OUT FOR TESTING
 import dotenv from 'dotenv';
 dotenv.config();

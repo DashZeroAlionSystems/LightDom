@@ -9,13 +9,12 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  Tool,
+    CallToolRequestSchema,
+    ListToolsRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
 import { Pool } from 'pg';
-import { DeepSeekToolsRegistry, ToolContext } from './deepseek-tools-registry.js';
 import { DeepSeekConfigLoader } from '../config/deepseek-config.js';
+import { DeepSeekToolsRegistry, ToolContext } from './deepseek-tools-registry.js';
 
 /**
  * DeepSeek MCP Server Class
@@ -44,7 +43,7 @@ class DeepSeekMCPServer {
     this.db = new Pool({
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '5432'),
-      database: process.env.DB_NAME || 'lightdom',
+      database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
     });

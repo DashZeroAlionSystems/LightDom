@@ -5,9 +5,8 @@
  * Demonstrates the component analyzer and schema visualization tools
  */
 
-import ComponentAnalyzerService from './services/component-analyzer-service.js';
 import pg from 'pg';
-import fs from 'fs/promises';
+import ComponentAnalyzerService from './services/component-analyzer-service.js';
 
 const { Pool } = pg;
 
@@ -129,7 +128,7 @@ async function runDemo() {
     const pool = new Pool({
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 5434,
-      database: process.env.DB_NAME || 'lightdom',
+      database: process.env.DB_NAME || 'dom_space_harvester', || 'lightdom',
       user: process.env.DB_USER || 'lightdom_user',
       password: process.env.DB_PASSWORD || 'lightdom_password',
     });

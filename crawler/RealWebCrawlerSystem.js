@@ -34,6 +34,17 @@ class RealWebCrawlerSystem {
     this.backlinkNetwork = [];
     this.domainAuthority = new Map(); // Cache for domain authority scores
 
+    this.ocrConfig = {
+      enabled: config.enableOCR ?? true,
+      endpoint: config.ocrEndpoint || process.env.OCR_WORKER_URL || 'http://localhost:4205/ocr',
+      ragEndpoint: config.ragEndpoint || process.env.RAG_UPSERT_URL || 'http://localhost:3001/rag/upsert',
+      maxImages: config.ocrMaxImages ?? Number.parseInt(process.env.OCR_MAX_IMAGES || '4', 10),
+      timeoutMs: config.ocrTimeoutMs ?? Number.parseInt(process.env.OCR_TIMEOUT_MS || '30000', 10),
+      minTextLength: config.ocrMinTextLength ?? Number.parseInt(process.env.OCR_MIN_TEXT_LENGTH || '24', 10),
+      metadata: config.ocrMetadata || {},
+      languageHint: config.ocrLanguageHint || process.env.OCR_LANGUAGE_HINT || null,
+    };
+
     // Enhanced monitoring and statistics
     this.crawlerStats = {
       totalSitesCrawled: 0,
@@ -216,20 +227,27 @@ class RealWebCrawlerSystem {
 
         // Process the URL
         const result = await this.processUrl(page, crawlTarget);
-        
+
         if (result) {
-          worker.pagesProcessed++;
+          worker.pagesProcessed += 1;
           worker.spaceHarvested += result.spaceSaved || 0;
-          
+
           // Store results
           this.optimizationResults.push(result);
           this.schemaData.push(...(result.schemas || []));
           this.backlinkNetwork.push(...(result.backlinks || []));
+
+          if (result.ocr?.text) {
+            try {
+              await this.upsertOcrToRag(result);
+            } catch (error) {
+              console.error('Failed to upsert OCR to RAG:', error.message);
+            }
+          }
         }
 
         // Respect robots.txt and rate limiting
         await this.delay(this.config.requestDelay);
-        
       } catch (error) {
         console.error(`❌ Worker ${workerId} error:`, error.message);
         await this.delay(5000); // Wait before retrying
@@ -287,7 +305,7 @@ class RealWebCrawlerSystem {
 
       // Generate Merkle proof for PoO
       const merkleProof = this.generateMerkleProof(analysis, url);
-      
+
       const result = {
         url,
         timestamp: new Date(),
@@ -301,6 +319,17 @@ class RealWebCrawlerSystem {
         merkleProof: merkleProof.proof,
         crawlId: this.generateCrawlId(url, analysis)
       };
+
+      if (this.ocrConfig.enabled) {
+        try {
+          const ocr = await this.extractOcrFromPage(page, url);
+          if (ocr) {
+            result.ocr = ocr;
+          }
+        } catch (error) {
+          console.error('OCR extraction failed:', error.message);
+        }
+      }
 
       // Store artifact and submit PoO to blockchain if enabled
       if (this.config.submitPoO && this.config.apiUrl) {
@@ -342,6 +371,261 @@ class RealWebCrawlerSystem {
     } catch (error) {
       console.error(`❌ Error processing ${crawlTarget.url}:`, error.message);
       return null;
+    }
+  }
+
+  async extractOcrFromPage(page, pageUrl) {
+    const artifacts = await this.collectOcrArtifacts(page, pageUrl);
+    if (!artifacts.length) {
+      return null;
+    }
+
+    const limit = typeof this.ocrConfig.maxImages === 'number' && this.ocrConfig.maxImages > 0
+      ? this.ocrConfig.maxImages
+      : artifacts.length;
+
+    const selectedArtifacts = artifacts.slice(0, limit);
+    const pieces = [];
+
+    for (const artifact of selectedArtifacts) {
+      try {
+        const response = await this.runOcrOnBuffer(artifact.buffer, {
+          mimeType: artifact.mimeType,
+          languageHint: this.ocrConfig.languageHint,
+        });
+
+        if (response?.text?.trim()) {
+          pieces.push({
+            text: response.text.trim(),
+            confidence: response.confidence ?? null,
+            language: response.language ?? null,
+            model: response.model ?? null,
+            latencyMs: response.latencyMs ?? null,
+            requestId: response.requestId ?? null,
+            blocks: response.blocks ?? [],
+            artifact: {
+              type: artifact.type,
+              source: artifact.source,
+            },
+          });
+        }
+      } catch (error) {
+        console.error(`OCR request failed for ${artifact.source}:`, error.message);
+      }
+    }
+
+    if (!pieces.length) {
+      return null;
+    }
+
+    const aggregatedText = pieces
+      .map((piece) => piece.text)
+      .filter(Boolean)
+      .join('\n\n');
+
+    if (!aggregatedText || aggregatedText.length < this.ocrConfig.minTextLength) {
+      return null;
+    }
+
+    return {
+      text: aggregatedText,
+      pieces,
+    };
+  }
+
+  async collectOcrArtifacts(page, pageUrl) {
+    const artifacts = [];
+
+    if (!this.ocrConfig.enabled) {
+      return artifacts;
+    }
+
+    try {
+      const screenshot = await page.screenshot({ fullPage: true, type: 'png' });
+      if (screenshot?.length) {
+        artifacts.push({
+          type: 'screenshot',
+          source: `${pageUrl}#screenshot`,
+          buffer: screenshot,
+          mimeType: 'image/png',
+        });
+      }
+    } catch (error) {
+      console.error(`Failed to capture screenshot for OCR (${pageUrl}):`, error.message);
+    }
+
+    try {
+      const imageSources = await page.$$eval(
+        'img',
+        (imgs) => imgs
+          .map((img) => img.currentSrc || img.src || '')
+          .filter((src) => typeof src === 'string' && src.trim().length > 0)
+      );
+
+      const uniqueSources = Array.from(new Set(imageSources));
+
+      for (const rawSrc of uniqueSources) {
+        if (artifacts.length >= (this.ocrConfig.maxImages ?? Number.MAX_SAFE_INTEGER)) {
+          break;
+        }
+
+        const resolvedSrc = this.resolveImageUrl(rawSrc, pageUrl);
+        if (!resolvedSrc) {
+          continue;
+        }
+
+        const imageArtifact = await this.fetchImageArtifact(resolvedSrc);
+        if (imageArtifact) {
+          artifacts.push({
+            type: 'image',
+            source: resolvedSrc,
+            buffer: imageArtifact.buffer,
+            mimeType: imageArtifact.mimeType,
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to collect image sources for OCR (${pageUrl}):`, error.message);
+    }
+
+    return artifacts;
+  }
+
+  resolveImageUrl(src, pageUrl) {
+    try {
+      if (src.startsWith('data:')) {
+        return src;
+      }
+
+      const absolute = new URL(src, pageUrl);
+      return absolute.href;
+    } catch (error) {
+      console.error('Failed to resolve image URL for OCR:', error.message);
+      return null;
+    }
+  }
+
+  async fetchImageArtifact(imageUrl) {
+    try {
+      if (imageUrl.startsWith('data:')) {
+        const [, base64] = imageUrl.split(',', 2);
+        if (!base64) {
+          return null;
+        }
+        const mimeMatch = imageUrl.match(/^data:([^;]+);/i);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+        return {
+          buffer: Buffer.from(base64, 'base64'),
+          mimeType,
+        };
+      }
+
+      const response = await axios.get(imageUrl, {
+        responseType: 'arraybuffer',
+        timeout: this.ocrConfig.timeoutMs,
+      });
+
+      return {
+        buffer: Buffer.from(response.data),
+        mimeType: response.headers['content-type'] || 'application/octet-stream',
+      };
+    } catch (error) {
+      console.error(`Failed to fetch image for OCR (${imageUrl}):`, error.message);
+      return null;
+    }
+  }
+
+  async runOcrOnBuffer(buffer, { mimeType, languageHint } = {}) {
+    if (!buffer || buffer.length === 0) {
+      throw new Error('Empty buffer provided for OCR');
+    }
+
+    const base64 = buffer.toString('base64');
+    const payload = {
+      base64Data: `data:${mimeType || 'image/png'};base64,${base64}`,
+    };
+
+    if (languageHint) {
+      payload.languageHint = languageHint;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.ocrConfig.timeoutMs);
+
+    try {
+      const response = await fetch(this.ocrConfig.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`OCR worker responded with ${response.status}: ${text}`);
+      }
+
+      return await response.json();
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async upsertOcrToRag(result) {
+    const { ocr } = result;
+    if (!ocr?.text || ocr.text.length < this.ocrConfig.minTextLength) {
+      return;
+    }
+
+    const documentId = `${result.crawlId || crypto.createHash('sha1').update(result.url).digest('hex')}::ocr`;
+    const metadata = {
+      sourceUrl: result.url,
+      crawlId: result.crawlId,
+      artifactCID: result.artifactCID,
+      capturedAt:
+        result.timestamp instanceof Date
+          ? result.timestamp.toISOString()
+          : result.timestamp || new Date().toISOString(),
+      ...this.ocrConfig.metadata,
+    };
+
+    if (ocr.pieces) {
+      metadata.ocrPieces = ocr.pieces.map((piece) => ({
+        artifact: piece.artifact,
+        confidence: piece.confidence,
+        latencyMs: piece.latencyMs,
+        language: piece.language,
+      }));
+    }
+
+    const payload = {
+      documents: [
+        {
+          id: documentId,
+          title: result.url,
+          content: ocr.text,
+          metadata,
+        },
+      ],
+    };
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.ocrConfig.timeoutMs);
+
+    try {
+      const response = await fetch(this.ocrConfig.ragEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`RAG upsert failed (${response.status}): ${text}`);
+      }
+    } finally {
+      clearTimeout(timeout);
     }
   }
 

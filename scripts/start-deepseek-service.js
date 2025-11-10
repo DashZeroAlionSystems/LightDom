@@ -8,10 +8,9 @@
  * Now includes MCP Tools integration for enhanced capabilities
  */
 
-import express from 'express';
 import cors from 'cors';
+import express from 'express';
 import morgan from 'morgan';
-import { spawn } from 'child_process';
 import { Pool } from 'pg';
 import deepSeekService from '../services/deepseek-api-service.js';
 
@@ -27,7 +26,7 @@ let toolsRegistry = null;
 const db = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'lightdom',
+  database: process.env.DB_NAME || 'dom_space_harvester',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
 });

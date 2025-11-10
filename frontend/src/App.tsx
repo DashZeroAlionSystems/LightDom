@@ -14,6 +14,20 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 // Pages
 import { PromptConsolePage } from '@/pages/PromptConsolePage';
 import { ComponentSchemaToolPage } from '@/pages/ComponentSchemaToolPage';
+import AdminNavDemoPage from '@/pages/AdminNavDemoPage';
+import UnifiedDashboardDemoPage from '@/pages/UnifiedDashboardDemoPage';
+import WorkflowWizardDemoPage from '@/pages/WorkflowWizardDemoPage';
+import SecurityAuditReportDemoPage from '@/pages/SecurityAuditReportDemoPage';
+import SelfOrganizingDashboardDemoPage from '@/pages/SelfOrganizingDashboardDemoPage';
+import DevContainerAdminDashboardDemoPage from '@/pages/DevContainerAdminDashboardDemoPage';
+import LightDomSlotsDemoPage from '@/pages/LightDomSlotsDemoPage';
+import ComponentBundlesDemoPage from '@/pages/ComponentBundlesDemoPage';
+import ClientIntegrationDemoPage from '@/pages/ClientIntegrationDemoPage';
+import EnterpriseContainerDemoPage from '@/pages/EnterpriseContainerDemoPage';
+import SpaceMiningDemoPage from '@/pages/SpaceMiningDemoPage';
+import ServiceGraphVisualizerDemoPage from '@/pages/ServiceGraphVisualizerDemoPage';
+import MetaverseNftDemoPage from '@/pages/MetaverseNftDemoPage';
+import DataMiningOperationsDemoPage from '@/pages/DataMiningOperationsDemoPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { RegisterPage } from '@/pages/RegisterPage';
@@ -107,6 +121,146 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <PromptConsolePage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/admin-navigation'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AdminNavDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/unified-dashboard'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <UnifiedDashboardDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/workflow-wizard'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <WorkflowWizardDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/security-audit-report'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SecurityAuditReportDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/self-organizing-dashboard'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SelfOrganizingDashboardDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/devcontainer-admin-dashboard'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DevContainerAdminDashboardDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/lightdom-slot-demo'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <LightDomSlotsDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/component-bundles'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ComponentBundlesDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/space-mining'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SpaceMiningDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/service-graph'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ServiceGraphVisualizerDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/metaverse-nft'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <MetaverseNftDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/client-integration'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ClientIntegrationDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/enterprise-container'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <EnterpriseContainerDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/data-mining'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DataMiningOperationsDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }

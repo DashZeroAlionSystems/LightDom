@@ -5,11 +5,10 @@
  * Quick setup for DeepSeek MCP tools integration
  */
 
-import { promises as fs } from 'fs';
 import { exec } from 'child_process';
-import { promisify } from 'util';
-import path from 'path';
+import { promises as fs } from 'fs';
 import { Pool } from 'pg';
+import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
@@ -53,7 +52,7 @@ async function setupDatabase() {
   const db = new Pool({
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432'),
-    database: process.env.DB_NAME || 'lightdom',
+    database: process.env.DB_NAME || 'dom_space_harvester',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
   });
@@ -245,7 +244,7 @@ async function testInstallation() {
     const db = new Pool({
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '5432'),
-      database: process.env.DB_NAME || 'lightdom',
+      database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
     });

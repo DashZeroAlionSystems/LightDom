@@ -25,7 +25,10 @@ import {
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { Activity, AlertCircle, Brain, Cog, ShieldCheck, Sparkles, Zap } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useAdminNavigation } from '@/hooks/useAdminNavigation';
+import AdminNavigationPanel from './AdminNavigationPanel';
+import type { AdminNavigationTemplate } from '@/services/adminNavigation';
 
 const ADMIN_MODULES = [
   {
@@ -122,28 +125,28 @@ const KPI_METRICS = [
     sublabel: 'Last 24 hours',
     value: '286',
     delta: '+14%',
-    tone: 'primary',
+    tone: 'primary' as const,
   },
   {
     label: 'Space reclaimed',
     sublabel: 'Storage reclaimed',
     value: '640 MB',
     delta: '+32%',
-    tone: 'success',
+    tone: 'success' as const,
   },
   {
     label: 'Tokens earned',
     sublabel: 'Operational throughput',
     value: '4.8 LDOM',
     delta: '+21%',
-    tone: 'primary',
+    tone: 'primary' as const,
   },
   {
     label: 'Crawler uptime',
     sublabel: 'SLA tracking',
     value: '99.4%',
     delta: '-0.3%',
-    tone: 'warning',
+    tone: 'warning' as const,
   },
 ];
 
@@ -166,7 +169,13 @@ const InspectorBadge: React.FC<{ tone?: 'primary' | 'warning' | 'error'; label: 
   </Badge>
 );
 
-const AdminConsoleWorkspace: React.FC = () => {
+export interface AdminConsoleWorkspaceProps {
+  navigationHook?: typeof useAdminNavigation;
+}
+
+const AdminConsoleWorkspace: React.FC<AdminConsoleWorkspaceProps> = ({
+  navigationHook = useAdminNavigation,
+}) => {
   const [selectedModule, setSelectedModule] = useState('crawler');
   const [viewMode, setViewMode] = useState<'overview' | 'details'>('overview');
   const [workflowPrompt, setWorkflowPrompt] = useState(
@@ -182,6 +191,9 @@ const AdminConsoleWorkspace: React.FC = () => {
     'Metadata',
     'Content intelligence',
   ]);
+  const { categories, status: navStatus, templateCount, refresh: refreshNav } = navigationHook();
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   const openTabs = useMemo(
     () =>
@@ -207,10 +219,58 @@ const AdminConsoleWorkspace: React.FC = () => {
     );
   };
 
+  const flatTemplates = useMemo(() => {
+    return categories.flatMap(category =>
+      category.templates.map(template => ({
+        template,
+        categoryId: category.category_id,
+      }))
+    );
+  }, [categories]);
+
+  useEffect(() => {
+    if (!selectedTemplateId && flatTemplates.length > 0) {
+      setSelectedCategoryId(flatTemplates[0].categoryId);
+      setSelectedTemplateId(flatTemplates[0].template.template_id);
+    }
+  }, [flatTemplates, selectedTemplateId]);
+
+  const selectedTemplateEntry = useMemo(() => {
+    if (!selectedTemplateId) {
+      return null;
+    }
+    return (
+      flatTemplates.find(entry => entry.template.template_id === selectedTemplateId) || null
+    );
+  }, [flatTemplates, selectedTemplateId]);
+
+  const handleSelectTemplate = (categoryId: string, templateId: string) => {
+    setSelectedCategoryId(categoryId);
+    setSelectedTemplateId(templateId);
+  };
+
+  const selectedTemplate: AdminNavigationTemplate | null = selectedTemplateEntry?.template || null;
+  const selectedTemplateCategory = selectedTemplateEntry?.categoryId || null;
+
   return (
     <WorkspaceLayout
       sidebar={
         <>
+          <WorkspaceRailSection
+            title='Workflow templates'
+            description='Auto-synced from n8n + schema directories'
+          >
+            <AdminNavigationPanel
+              categories={categories}
+              status={navStatus}
+              templateCount={templateCount}
+              selectedCategoryId={selectedCategoryId}
+              selectedTemplateId={selectedTemplateId}
+              onSelectTemplate={handleSelectTemplate}
+              onRefresh={refreshNav}
+            />
+          </WorkspaceRailSection>
+
           <WorkspaceRailSection
             title='Admin modules'
             description='Switch between operational surfaces'
@@ -422,11 +482,12 @@ const AdminConsoleWorkspace: React.FC = () => {
             <KpiCard
               key={metric.label}
               label={metric.label}
-              description={metric.sublabel}
               value={metric.value}
               tone={metric.tone as any}
               delta={metric.delta}
-            />
+            >
+              {metric.sublabel}
+            </KpiCard>
           ))}
         </KpiGrid>
       </WorkspaceSection>
@@ -607,6 +668,97 @@ const AdminConsoleWorkspace: React.FC = () => {
             </Card>
           ))}
         </div>
+      </WorkspaceSection>
+
+      <WorkspaceSection
+        title='Template knowledge graph'
+        meta={
+          selectedTemplate
+            ? `Category ${selectedTemplateCategory || ''} · Last updated ${new Date(
+                selectedTemplate.updated_at
+              ).toLocaleString()}`
+            : 'Select a template to view details'
+        }
+        actions={
+          selectedTemplate ? (
+            <Button variant='outlined' size='sm' onClick={refreshNav}>
+              Refresh metadata
+            </Button>
+          ) : undefined
+        }
+      >
+        {selectedTemplate ? (
+          <div className='grid gap-4 lg:grid-cols-[minmax(0,1.4fr),minmax(0,1fr)]'>
+            <Card variant='filled' padding='lg' className='space-y-4 border border-outline/15'>
+              <div>
+                <p className='md3-title-medium text-on-surface'>{selectedTemplate.name}</p>
+                {selectedTemplate.description && (
+                  <p className='md3-body-small text-on-surface-variant mt-1'>
+                    {selectedTemplate.description}
+                  </p>
+                )}
+              </div>
+
+              <div className='flex flex-wrap gap-2'>
+                <Badge variant='primary'>Category: {selectedTemplate.category}</Badge>
+                {selectedTemplate.subcategory ? (
+                  <Badge variant='secondary'>Subcategory: {selectedTemplate.subcategory}</Badge>
+                ) : null}
+                {selectedTemplate.icon ? (
+                  <Badge variant='tertiary'>{selectedTemplate.icon}</Badge>
+                ) : null}
+                <Badge variant='outline'>Schema v{selectedTemplate.schema_version || '1.0.0'}</Badge>
+              </div>
+
+              {selectedTemplate.status_steps?.length ? (
+                <div className='space-y-2'>
+                  <p className='md3-label-medium text-on-surface'>Workflow steps</p>
+                  <div className='grid gap-2 sm:grid-cols-2'>
+                    {selectedTemplate.status_steps.map(step => (
+                      <Card
+                        key={step.id}
+                        variant='filled'
+                        padding='md'
+                        className='border border-outline/15 bg-surface-container-low'
+                      >
+                        <p className='md3-body-medium text-on-surface'>
+                          {step.index + 1}. {step.title}
+                        </p>
+                        {step.description && (
+                          <p className='md3-body-small text-on-surface-variant'>{step.description}</p>
+                        )}
+                        {step.status && (
+                          <Badge variant='secondary' className='mt-2 w-fit'>
+                            {step.status}
+                          </Badge>
+                        )}
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </Card>
+
+            <Card variant='filled' padding='lg' className='space-y-3 border border-outline/15'>
+              <p className='md3-label-medium text-on-surface'>Knowledge attributes</p>
+              <pre className='max-h-[260px] overflow-auto rounded-2xl bg-surface-container-low p-3 text-xs text-on-surface'>
+                {JSON.stringify(selectedTemplate.knowledge_graph_attributes ?? {}, null, 2)}
+              </pre>
+              {selectedTemplate.workflow_summary ? (
+                <div className='space-y-1 text-sm'>
+                  <p className='font-medium text-on-surface'>Workflow summary</p>
+                  <pre className='max-h-[160px] overflow-auto rounded-2xl bg-surface-container-low p-3 text-xs text-on-surface'>
+                    {JSON.stringify(selectedTemplate.workflow_summary, null, 2)}
+                  </pre>
+                </div>
+              ) : null}
+            </Card>
+          </div>
+        ) : (
+          <Card variant='filled' padding='lg' className='border border-outline/15'>
+            <p className='md3-body-medium text-on-surface'>Select a template to inspect its configuration and workflow steps.</p>
+          </Card>
+        )}
       </WorkspaceSection>
 
       <WorkspaceSection

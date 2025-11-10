@@ -8,7 +8,6 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { spawn } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1725,7 +1724,7 @@ export const connectDatabase = async (): Promise<void> => {
       port: parseInt(process.env.DB_PORT || '5432'),
       username: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'password',
-      database: process.env.DB_NAME || 'enterprise_db',
+      database: process.env.DB_NAME || 'dom_space_harvester', || 'enterprise_db',
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV === 'development',
       entities: [User, DataItem, AuditLog],

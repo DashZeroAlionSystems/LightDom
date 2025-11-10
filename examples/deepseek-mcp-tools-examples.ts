@@ -5,16 +5,16 @@
  * Demonstrates how to use the DeepSeek MCP tools system
  */
 
+import { promises as fs } from 'fs';
 import { Pool } from 'pg';
 import { DeepSeekToolsRegistry, ToolContext } from '../src/mcp/deepseek-tools-registry.js';
 import { SchemaRelationshipMapper } from '../src/services/schema-relationship-mapper.js';
-import { promises as fs } from 'fs';
 
 // Initialize database connection
 const db = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'lightdom',
+  database: process.env.DB_NAME || 'dom_space_harvester',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
 });
@@ -454,13 +454,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export {
-  executeTool,
-  example1_createSchemas,
-  example2_querySchema,
-  example3_findRelationships,
-  example4_generateSchemaMap,
-  example5_workflowAutomation,
-  example6_codeAnalysis,
-  example7_listTools,
-  example8_configuration
+    example1_createSchemas,
+    example2_querySchema,
+    example3_findRelationships,
+    example4_generateSchemaMap,
+    example5_workflowAutomation,
+    example6_codeAnalysis,
+    example7_listTools,
+    example8_configuration, executeTool
 };
+

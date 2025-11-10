@@ -5,10 +5,10 @@
  * Complete PostgreSQL setup, multi-model crawler, and workflow generation
  */
 
-import { AdvancedDataMiningSystem } from './advanced-postgres-data-mining.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { AdvancedDataMiningSystem } from './advanced-postgres-data-mining.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,7 +18,7 @@ const DEMO_CONFIG = {
   database: {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME || 'datamining_demo',
+    database: process.env.DB_NAME || 'dom_space_harvester', || 'datamining_demo',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'password'
   },

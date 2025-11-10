@@ -14,7 +14,7 @@ export class SEOCrawlerIntegration {
     this.pool = new Pool({
       host: process.env.DB_HOST || config.dbHost || 'localhost',
       port: Number(process.env.DB_PORT || config.dbPort || 5432),
-      database: process.env.DB_NAME || config.dbName || 'lightdom',
+      database: process.env.DB_NAME || config.dbName || 'dom_space_harvester',
       user: process.env.DB_USER || config.dbUser || 'postgres',
       password: process.env.DB_PASSWORD || config.dbPassword || 'postgres',
       ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,

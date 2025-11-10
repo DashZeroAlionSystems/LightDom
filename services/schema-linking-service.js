@@ -6,9 +6,9 @@
  * Enables automated workflow generation and component dashboards
  */
 
-import pg from 'pg';
 import fs from 'fs';
 import path from 'path';
+import pg from 'pg';
 import { fileURLToPath } from 'url';
 
 const { Pool } = pg;
@@ -20,7 +20,7 @@ export class SchemaLinkingService {
     this.pool = new Pool(dbConfig || {
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 5434,
-      database: process.env.DB_NAME || 'lightdom',
+      database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'lightdom_user',
       password: process.env.DB_PASSWORD || 'lightdom_password',
     });

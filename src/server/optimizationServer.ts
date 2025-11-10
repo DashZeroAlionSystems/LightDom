@@ -3,15 +3,15 @@
  * Integrates with PostgreSQL database and provides real-time WebSocket updates
  */
 
+import cors from 'cors';
 import express from 'express';
 import { createServer } from 'http';
-import { Server as SocketIOServer } from 'socket.io';
-import cors from 'cors';
 import { Pool } from 'pg';
-import { optimizationAPI } from '../api/optimizationApi';
+import { Server as SocketIOServer } from 'socket.io';
 import { advancedNodeAPI } from '../api/advancedNodeApi';
-import { metaverseMiningAPI } from '../api/metaverseMiningApi';
 import { blockchainModelStorageAPI } from '../api/blockchainModelStorageApi';
+import { metaverseMiningAPI } from '../api/metaverseMiningApi';
+import { optimizationAPI } from '../api/optimizationApi';
 import { spaceOptimizationEngine } from '../core/SpaceOptimizationEngine';
 import { userWorkflowSimulator } from '../core/UserWorkflowSimulator';
 import { integrationTests } from '../tests/IntegrationTests';
@@ -38,7 +38,7 @@ export class OptimizationServer {
     this.db = new Pool({
       user: process.env.DB_USER || 'postgres',
       host: process.env.DB_HOST || 'localhost',
-      database: process.env.DB_NAME || 'lightdom_optimization',
+      database: process.env.DB_NAME || 'dom_space_harvester', || 'lightdom_optimization',
       password: process.env.DB_PASSWORD || 'password',
       port: parseInt(process.env.DB_PORT || '5432'),
       max: 20,

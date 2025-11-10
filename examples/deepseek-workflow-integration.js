@@ -6,8 +6,8 @@
  * Demonstrates how to use the complete DeepSeek n8n workflow system
  */
 
-import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import { Pool } from 'pg';
 import { DeepSeekWorkflowCRUDService } from './src/services/deepseek-workflow-crud-service.js';
 import { DeepSeekWorkflowOrchestrator } from './src/services/deepseek-workflow-orchestrator.js';
 import { WorkflowTemplateService } from './src/services/workflow-template-service.js';
@@ -18,7 +18,7 @@ dotenv.config();
 const db = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'lightdom',
+  database: process.env.DB_NAME || 'dom_space_harvester',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
 });
@@ -302,14 +302,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 
-export { 
-  crudService, 
-  orchestrator, 
-  templateService,
-  createPromptTemplate,
-  generateSchema,
-  createSimpleWorkflow,
-  useTemplate,
-  executeWorkflow,
-  monitorHealth
+export {
+    createPromptTemplate, createSimpleWorkflow, crudService, executeWorkflow, generateSchema, monitorHealth, orchestrator,
+    templateService, useTemplate
 };
+

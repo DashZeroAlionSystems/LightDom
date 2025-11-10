@@ -4,9 +4,9 @@
  * Integrates data mining, schema linking, and component generation
  */
 
+import pg from 'pg';
 import ConfigurationManager from './configuration-manager.js';
 import SchemaLinkingService from './schema-linking-service.js';
-import pg from 'pg';
 
 const { Pool } = pg;
 
@@ -17,7 +17,7 @@ export class WorkflowGenerator {
     this.pool = new Pool(dbConfig || {
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 5434,
-      database: process.env.DB_NAME || 'lightdom',
+      database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'lightdom_user',
       password: process.env.DB_PASSWORD || 'lightdom_password',
     });
