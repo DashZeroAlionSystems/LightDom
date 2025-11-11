@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { spawn } from 'child_process';
-import { fileURLToPath } from 'url';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -125,7 +125,7 @@ function logError(id, message) {
 }
 
 function runChild(command, args, options = {}) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     try {
       const child = spawn(command, args, {
         cwd: ROOT_DIR,
@@ -138,19 +138,19 @@ function runChild(command, args, options = {}) {
       let stdout = '';
       let stderr = '';
 
-      child.stdout.on('data', (data) => {
+      child.stdout.on('data', data => {
         stdout += data.toString();
       });
 
-      child.stderr.on('data', (data) => {
+      child.stderr.on('data', data => {
         stderr += data.toString();
       });
 
-      child.on('error', (error) => {
+      child.on('error', error => {
         resolve({ code: 1, stdout, stderr: `${stderr}${error.message}` });
       });
 
-      child.on('exit', (code) => {
+      child.on('exit', code => {
         resolve({ code, stdout, stderr });
       });
     } catch (error) {
@@ -175,7 +175,10 @@ async function ensureOllamaModel(model) {
   log('starter', `Ensuring Ollama model "${model}" is available…`);
   const result = await runChild(ollamaCmd, ['pull', model]);
   if (result.code !== 0) {
-    logError('starter', `Failed to pull model ${model}: ${result.stderr.trim() || 'unknown error'}`);
+    logError(
+      'starter',
+      `Failed to pull model ${model}: ${result.stderr.trim() || 'unknown error'}`
+    );
     return false;
   }
 
@@ -197,7 +200,7 @@ async function waitForHttp({ id, url, retries = 20, interval = 1500, optional = 
       logError(id, `Health check attempt ${attempt} failed: ${error.message}`);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, interval));
+    await new Promise(resolve => setTimeout(resolve, interval));
   }
 
   if (!optional) {
@@ -240,11 +243,11 @@ function startService(service) {
 
     processes.set(service.id, child);
 
-    child.stdout.on('data', (data) => {
+    child.stdout.on('data', data => {
       log(service.id, data.toString().trim());
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr.on('data', data => {
       logError(service.id, data.toString().trim());
     });
 
@@ -278,7 +281,7 @@ async function startAll() {
   log('starter', 'Launching LightDom services...');
 
   // Helper map for quick access
-  const serviceById = new Map(services.map((s) => [s.id, s]));
+  const serviceById = new Map(services.map(s => [s.id, s]));
 
   // Start critical services first (Ollama + DeepSeek orchestration) so models and dependencies are available
   if (serviceById.has('ollama')) startService(serviceById.get('ollama'));
@@ -291,9 +294,19 @@ async function startAll() {
     startService(apiService);
 
     // Wait for API health; if it doesn't come up, attempt fallback proxy
-    const apiHealthy = await waitForHttp({ id: 'api', url: `${apiBaseUrl}/api/health`, retries: 20, interval: 1500, optional: false });
+    const apiHealthy = await waitForHttp({
+      id: 'api',
+      url: `${apiBaseUrl}/api/health`,
+      retries: 20,
+      interval: 1500,
+      optional: false,
+    });
     if (!apiHealthy) {
-      logError('starter', 'API server failed health checks; launching fallback minimal API proxy on port ' + baseEnv.PORT);
+      logError(
+        'starter',
+        'API server failed health checks; launching fallback minimal API proxy on port ' +
+          baseEnv.PORT
+      );
 
       // Attempt to terminate the failing API process if it's still running
       const apiChild = processes.get('api');
@@ -302,7 +315,7 @@ async function startAll() {
           apiChild.kill('SIGTERM');
         } catch (e) {}
         // give it a moment
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         if (apiChild.exitCode === null) {
           try {
             apiChild.kill('SIGKILL');
@@ -322,7 +335,13 @@ async function startAll() {
       };
       startService(fallbackService);
       // Wait briefly for proxy to be available
-      await waitForHttp({ id: 'api-proxy', url: `${apiBaseUrl}/api/health`, retries: 10, interval: 1000, optional: true });
+      await waitForHttp({
+        id: 'api-proxy',
+        url: `${apiBaseUrl}/api/health`,
+        retries: 10,
+        interval: 1000,
+        optional: true,
+      });
     }
   }
 
@@ -341,13 +360,14 @@ async function startAll() {
   log(
     'starter',
     'All launch commands issued. Press Ctrl+C to terminate all services.\n' +
-      'Services launched: ' + services.map((svc) => svc.label).join(', '),
+      'Services launched: ' +
+      services.map(svc => svc.label).join(', ')
   );
 
   const deepseekBaseUrl = `http://${baseEnv.DEEPSEEK_HOST}:${baseEnv.DEEPSEEK_PORT}`;
 
   // Allow services a moment to boot before health polling
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await new Promise(resolve => setTimeout(resolve, 2000));
 
   await Promise.all([
     waitForHttp({ id: 'ollama', url: `${baseEnv.OLLAMA_BASE_URL}/api/tags`, optional: true }),
@@ -366,7 +386,7 @@ async function shutdown() {
   for (const [id, child] of processes.entries()) {
     if (!child || child.exitCode !== null) continue;
     stopPromises.push(
-      new Promise((resolve) => {
+      new Promise(resolve => {
         child.once('exit', () => resolve());
         child.kill('SIGTERM');
         setTimeout(() => {
@@ -374,7 +394,7 @@ async function shutdown() {
             child.kill('SIGKILL');
           }
         }, 5000);
-      }),
+      })
     );
   }
 
@@ -392,7 +412,7 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-startAll().catch(async (error) => {
+startAll().catch(async error => {
   logError('starter', error.message);
   await shutdown();
   process.exit(1);

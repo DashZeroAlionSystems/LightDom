@@ -3,6 +3,7 @@
 
 import compression from 'compression';
 import cors from 'cors';
+import { createHash, randomBytes } from 'crypto';
 import { ethers } from 'ethers';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
@@ -13,14 +14,13 @@ import path from 'path';
 import { Pool } from 'pg';
 import { Server as socketIo } from 'socket.io';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { createHash, randomBytes } from 'crypto';
 import { addMiningRoutes } from './api-mining-routes.js';
+import createGitRoutes from './api/git-routes.js';
 import createUserRoutes from './api/routes/user-management.js';
 import { RealWebCrawlerSystem } from './crawler/RealWebCrawlerSystem.js';
-import TemplateWatcherService from './services/template-watcher-service.js';
-import { createRagRouter } from './services/rag/rag-router.js';
 import createAdminNavigationRoutes from './services/admin-navigation-routes.js';
-import createGitRoutes from './api/git-routes.js';
+import { createRagRouter } from './services/rag/rag-router.js';
+import TemplateWatcherService from './services/template-watcher-service.js';
 import BlockchainMetricsCollector from './utils/BlockchainMetricsCollector.js';
 import CrawlerSupervisor from './utils/CrawlerSupervisor.js';
 import HeadlessBlockchainRunner from './utils/HeadlessBlockchainRunner.js';
@@ -10336,3 +10336,4 @@ if (isDirectExecution) {
 }
 
 export { DOMSpaceHarvesterAPI };
+
