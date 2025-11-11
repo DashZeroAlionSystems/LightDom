@@ -1,14 +1,5 @@
+import { Loader2, MessageCircle, Send, Sparkles, User } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Sparkles,
-  Paperclip,
-  Mic,
-  Command,
-  MessageCircle,
-  Send,
-  Loader2,
-  User
-} from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import {
@@ -16,8 +7,8 @@ import {
   PromptComposeHeader,
   PromptComposeInput,
   PromptComposeShell,
+  PromptComposeToken,
   PromptComposeToolbar,
-  PromptComposeToken
 } from './PromptCompose';
 
 export interface PromptAction {
@@ -62,12 +53,18 @@ export interface PromptInputProps {
   maxRows?: number;
   allowSendWhileLoading?: boolean;
   textColor?: string;
+  slashCommands?: Array<{ command: string; description: string }>;
 }
 
 const defaultTokens: PromptToken[] = [
-  { id: 'workspace', label: 'AI Workspace', icon: <Sparkles className="w-3.5 h-3.5" />, tone: 'accent' },
+  {
+    id: 'workspace',
+    label: 'AI Workspace',
+    icon: <Sparkles className='w-3.5 h-3.5' />,
+    tone: 'accent',
+  },
   { id: 'docs', label: 'Documents' },
-  { id: 'sheets', label: 'Sheets' }
+  { id: 'sheets', label: 'Sheets' },
 ];
 
 export const PromptInput: React.FC<PromptInputProps> = ({
@@ -88,10 +85,13 @@ export const PromptInput: React.FC<PromptInputProps> = ({
   minRows = 4,
   maxRows = 10,
   allowSendWhileLoading = false,
-  textColor
+  textColor,
+  slashCommands = [],
 }) => {
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [isFocused, setIsFocused] = useState(false);
+  const [showSlashDropdown, setShowSlashDropdown] = useState(false);
+  const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
 
   useEffect(() => {
     setInternalValue(defaultValue);
@@ -102,6 +102,24 @@ export const PromptInput: React.FC<PromptInputProps> = ({
   const resolvedTokens = useMemo(() => tokens ?? defaultTokens, [tokens]);
   const resolvedActions = useMemo(() => actions ?? [], [actions]);
 
+  // Filter slash commands based on current input
+  const filteredSlashCommands = useMemo(() => {
+    if (!currentValue.startsWith('/')) return [];
+    const query = currentValue.slice(1).toLowerCase();
+    if (!query) return slashCommands;
+    return slashCommands.filter(
+      cmd =>
+        cmd.command.toLowerCase().includes(query) || cmd.description.toLowerCase().includes(query)
+    );
+  }, [currentValue, slashCommands]);
+
+  // Reset selected index when filtered commands change
+  useEffect(() => {
+    if (filteredSlashCommands.length > 0) {
+      setSelectedCommandIndex(0);
+    }
+  }, [filteredSlashCommands.length]);
+
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
       const nextValue = event.target.value;
@@ -110,8 +128,16 @@ export const PromptInput: React.FC<PromptInputProps> = ({
       }
       setInternalValue(nextValue);
       onChange?.(nextValue);
+
+      // Show and filter slash command dropdown when typing "/"
+      if (nextValue.startsWith('/') && slashCommands.length > 0) {
+        setShowSlashDropdown(true);
+        setSelectedCommandIndex(0);
+      } else {
+        setShowSlashDropdown(false);
+      }
     },
-    [maxLength, onChange]
+    [maxLength, onChange, slashCommands.length]
   );
 
   const triggerSend = useCallback(async () => {
@@ -124,37 +150,66 @@ export const PromptInput: React.FC<PromptInputProps> = ({
 
   const handleKeyDown = useCallback(
     async (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if ((event.key === 'Enter' && (event.metaKey || event.ctrlKey)) || (event.key === 'Enter' && event.shiftKey === false)) {
+      if (showSlashDropdown && filteredSlashCommands.length > 0) {
+        switch (event.key) {
+          case 'ArrowDown':
+            event.preventDefault();
+            setSelectedCommandIndex(prev =>
+              prev < filteredSlashCommands.length - 1 ? prev + 1 : prev
+            );
+            return;
+          case 'ArrowUp':
+            event.preventDefault();
+            setSelectedCommandIndex(prev => (prev > 0 ? prev - 1 : prev));
+            return;
+          case 'Enter':
+            event.preventDefault();
+            if (filteredSlashCommands[selectedCommandIndex]) {
+              const command = filteredSlashCommands[selectedCommandIndex].command;
+              setInternalValue(command);
+              onChange?.(command);
+              setShowSlashDropdown(false);
+            }
+            return;
+          case 'Escape':
+            event.preventDefault();
+            setShowSlashDropdown(false);
+            return;
+        }
+      }
+
+      if (
+        (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) ||
+        (event.key === 'Enter' && event.shiftKey === false)
+      ) {
         event.preventDefault();
         await triggerSend();
       }
     },
-    [triggerSend]
+    [showSlashDropdown, filteredSlashCommands, selectedCommandIndex, triggerSend, onChange]
   );
 
   const headerConfig: PromptInputHeaderConfig = useMemo(
     () => ({
       title: header?.title ?? 'Agent',
       subtitle: header?.subtitle ?? 'AI Developer',
-      leading:
-        header?.leading ?? (
-          <div className="flex items-center gap-2 text-on-surface">
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold">Agent</span>
-              <span className="text-xs text-on-surface-variant">AI Developer</span>
-            </div>
+      leading: header?.leading ?? (
+        <div className='flex items-center gap-2 text-on-surface'>
+          <div className='flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary'>
+            <Sparkles className='h-4 w-4' />
           </div>
-        ),
-      trailing:
-        header?.trailing ?? (
-          <div className="flex items-center gap-2 text-xs text-on-surface-variant/80">
-            <MessageCircle className="h-3.5 w-3.5" />
-            Live Collaboration
+          <div className='flex flex-col'>
+            <span className='text-sm font-semibold'>Agent</span>
+            <span className='text-xs text-on-surface-variant'>AI Developer</span>
           </div>
-        )
+        </div>
+      ),
+      trailing: header?.trailing ?? (
+        <div className='flex items-center gap-2 text-xs text-on-surface-variant/80'>
+          <MessageCircle className='h-3.5 w-3.5' />
+          Live Collaboration
+        </div>
+      ),
     }),
     [header]
   );
@@ -170,13 +225,13 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         <PromptComposeHeader
           leading={headerConfig.leading}
           trailing={headerConfig.trailing}
-          density="relaxed"
+          density='relaxed'
         />
       }
       toolbar={
-        <PromptComposeToolbar className="justify-between pt-2">
-          <div className="flex flex-wrap items-center gap-2">
-            {resolvedTokens.map((token) => (
+        <PromptComposeToolbar className='justify-between pt-2'>
+          <div className='flex flex-wrap items-center gap-2'>
+            {resolvedTokens.map(token => (
               <PromptComposeToken
                 key={token.id}
                 tone={token.tone}
@@ -187,8 +242,8 @@ export const PromptInput: React.FC<PromptInputProps> = ({
               </PromptComposeToken>
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            {resolvedActions.map((action) => (
+          <div className='flex items-center gap-2'>
+            {resolvedActions.map(action => (
               <PromptComposeAction
                 key={action.id}
                 icon={action.icon}
@@ -199,32 +254,34 @@ export const PromptInput: React.FC<PromptInputProps> = ({
               />
             ))}
             <button
-              type="button"
+              type='button'
               onClick={triggerSend}
-              disabled={
-                disabled ||
-                !currentValue.trim() ||
-                (loading && !allowSendWhileLoading)
-              }
+              disabled={disabled || !currentValue.trim() || (loading && !allowSendWhileLoading)}
               className={cn(
                 'flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/50 bg-primary text-on-primary transition-all duration-150',
                 'disabled:cursor-not-allowed disabled:border-outline/40 disabled:bg-surface-container-high disabled:text-on-surface-variant'
               )}
             >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {loading ? (
+                <Loader2 className='h-4 w-4 animate-spin' />
+              ) : (
+                <Send className='h-4 w-4' />
+              )}
             </button>
           </div>
         </PromptComposeToolbar>
       }
       footer={
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-on-surface-variant/70">
-          <div className="flex items-center gap-2">
-            <User className="h-3.5 w-3.5" />
+        <div className='flex flex-wrap items-center justify-between gap-2 text-xs text-on-surface-variant/70'>
+          <div className='flex items-center gap-2'>
+            <User className='h-3.5 w-3.5' />
             {helperText ?? 'Tip: Use @, #, and / to reference data, commands, or workflows.'}
           </div>
-          <div className="flex items-center gap-4">
+          <div className='flex items-center gap-4'>
             {usage}
-            {characterCount && <span className="font-medium text-on-surface">{characterCount}</span>}
+            {characterCount && (
+              <span className='font-medium text-on-surface'>{characterCount}</span>
+            )}
           </div>
         </div>
       }
@@ -235,13 +292,50 @@ export const PromptInput: React.FC<PromptInputProps> = ({
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        onBlur={() => {
+          // Delay hiding dropdown to allow clicks
+          setTimeout(() => setShowSlashDropdown(false), 150);
+          setIsFocused(false);
+        }}
         disabled={disabled}
         minRows={minRows}
         maxRows={maxRows}
         textColor={textColor}
         aria-label={placeholder}
       />
+
+      {/* Slash command dropdown */}
+      {showSlashDropdown && filteredSlashCommands.length > 0 && (
+        <div className='absolute bottom-full left-0 right-0 mb-2 bg-surface-container-high border border-outline/40 rounded-2xl shadow-lg shadow-primary/10 max-h-64 overflow-y-auto z-50'>
+          <div className='p-2'>
+            <div className='text-xs font-semibold text-on-surface-variant/70 uppercase tracking-wide mb-2 px-2'>
+              Available Commands{' '}
+              {filteredSlashCommands.length < slashCommands.length &&
+                `(${filteredSlashCommands.length} of ${slashCommands.length})`}
+            </div>
+            {filteredSlashCommands.map((cmd, index) => (
+              <button
+                key={cmd.command}
+                type='button'
+                onClick={() => {
+                  setInternalValue(cmd.command);
+                  onChange?.(cmd.command);
+                  setShowSlashDropdown(false);
+                }}
+                className={cn(
+                  'w-full text-left px-3 py-2 rounded-xl text-sm transition-colors duration-150',
+                  index === selectedCommandIndex
+                    ? 'bg-primary/10 text-primary'
+                    : 'hover:bg-surface-container-low text-on-surface-variant'
+                )}
+              >
+                <div className='font-medium'>{cmd.command}</div>
+                <div className='text-xs text-on-surface-variant/70 mt-1'>{cmd.description}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </PromptComposeShell>
   );
 };

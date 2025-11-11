@@ -1,13 +1,20 @@
 /**
- * Simplified Ollama DeepSeek API Endpoints
- * Direct communication with Ollama API
+ * Minimal Ollama API Server
+ * Only includes working Ollama endpoints to avoid broken dependencies
  */
 
+import cors from 'cors';
 import express from 'express';
+import { createServer } from 'http';
 
-const router = express.Router();
+const app = express();
+const server = createServer(app);
 
-// Simple Ollama client for basic functionality
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Simple Ollama client
 class SimpleOllamaClient {
   constructor(options = {}) {
     this.endpoint = options.endpoint || 'http://localhost:11500';
@@ -85,16 +92,15 @@ class SimpleOllamaClient {
   }
 }
 
-// Module-level variable for Ollama integration instance
+// Global Ollama client
 let ollamaClient = null;
 
-/**
- * Initialize Ollama services
- */
-export async function initializeOllamaServices() {
+// Initialize Ollama
+async function initializeOllama() {
   try {
+    const endpoint = process.env.OLLAMA_ENDPOINT || 'http://localhost:11500';
     ollamaClient = new SimpleOllamaClient({
-      endpoint: process.env.OLLAMA_ENDPOINT || 'http://localhost:11500',
+      endpoint,
       model: process.env.OLLAMA_MODEL || 'deepseek-coder',
       temperature: 0.7,
     });
@@ -109,9 +115,7 @@ export async function initializeOllamaServices() {
   }
 }
 
-/**
- * Middleware to check if Ollama is initialized
- */
+// Middleware to check if Ollama is initialized
 function requireOllama(req, res, next) {
   if (!ollamaClient) {
     return res.status(503).json({
@@ -123,10 +127,19 @@ function requireOllama(req, res, next) {
   next();
 }
 
-/**
- * GET /api/ollama/health
- */
-router.get('/health', async (req, res) => {
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    status: 'ok',
+    service: 'Minimal Ollama API Server',
+    timestamp: new Date().toISOString(),
+    ollama: ollamaClient ? 'initialized' : 'not_initialized',
+  });
+});
+
+// Ollama health check
+app.get('/api/ollama/health', async (req, res) => {
   try {
     if (!ollamaClient) {
       return res.status(503).json({
@@ -153,10 +166,8 @@ router.get('/health', async (req, res) => {
   }
 });
 
-/**
- * POST /api/ollama/chat
- */
-router.post('/chat', requireOllama, async (req, res) => {
+// Ollama chat endpoint
+app.post('/api/ollama/chat', requireOllama, async (req, res) => {
   const { message } = req.body;
 
   if (!message) {
@@ -181,10 +192,8 @@ router.post('/chat', requireOllama, async (req, res) => {
   }
 });
 
-/**
- * POST /api/ollama/generate
- */
-router.post('/generate', requireOllama, async (req, res) => {
+// Ollama generate endpoint
+app.post('/api/ollama/generate', requireOllama, async (req, res) => {
   const { prompt, options = {} } = req.body;
 
   if (!prompt) {
@@ -208,4 +217,22 @@ router.post('/generate', requireOllama, async (req, res) => {
   }
 });
 
-export default router;
+// Start server
+const PORT = process.env.PORT || 3001;
+
+async function startServer() {
+  try {
+    await initializeOllama();
+
+    server.listen(PORT, () => {
+      console.log(`🚀 Minimal Ollama API Server running on port ${PORT}`);
+      console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`🤖 Ollama health: http://localhost:${PORT}/api/ollama/health`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();

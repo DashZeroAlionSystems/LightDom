@@ -1,5 +1,15 @@
+import {
+  Command,
+  FileText,
+  Info,
+  Link2,
+  Loader2,
+  Sparkles,
+  StopCircle,
+  Undo2,
+  User,
+} from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Sparkles, Loader2, StopCircle, Undo2, User, Info, FileText, Link2, Command } from 'lucide-react';
 
 import { PromptInput, type PromptAction, type PromptToken } from '@/components/ui/PromptInput';
 
@@ -37,9 +47,10 @@ interface RetrievedDocument {
   metadata?: Record<string, unknown> | null;
 }
 
-const API_BASE = (
-  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_BASE_URL as string | undefined
-) ?? '/api';
+const API_BASE =
+  ((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_BASE_URL as
+    | string
+    | undefined) ?? '/api';
 
 const createMessage = (role: ChatRole, content: string): ChatMessage => ({
   id: crypto.randomUUID(),
@@ -90,21 +101,24 @@ const PromptConsolePage: React.FC = () => {
         icon: <Sparkles className='h-4 w-4' />,
       },
     ],
-    [loading, statusMessage],
+    [loading, statusMessage]
   );
 
-  const updateMessageContent = useCallback((messageId: string, updater: (content: string) => string) => {
-    setConversation((prev: ChatMessage[]) =>
-      prev.map((msg: ChatMessage) =>
-        msg.id === messageId
-          ? {
-              ...msg,
-              content: updater(msg.content),
-            }
-          : msg,
-      ),
-    );
-  }, []);
+  const updateMessageContent = useCallback(
+    (messageId: string, updater: (content: string) => string) => {
+      setConversation((prev: ChatMessage[]) =>
+        prev.map((msg: ChatMessage) =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                content: updater(msg.content),
+              }
+            : msg
+        )
+      );
+    },
+    []
+  );
 
   const markMessageComplete = useCallback((messageId: string) => {
     setConversation((prev: ChatMessage[]) =>
@@ -114,8 +128,8 @@ const PromptConsolePage: React.FC = () => {
               ...msg,
               streaming: false,
             }
-          : msg,
-      ),
+          : msg
+      )
     );
   }, []);
 
@@ -126,68 +140,85 @@ const PromptConsolePage: React.FC = () => {
   const slashCommandList = useMemo(
     (): Array<{ command: string; description: string }> => [
       { command: '/help', description: 'Show all available slash commands.' },
-      { command: '/git status', description: 'Show working tree status for the current repository.' },
+      {
+        command: '/git status',
+        description: 'Show working tree status for the current repository.',
+      },
       { command: '/git branches', description: 'List local and remote branches.' },
       { command: '/git checkout <branch>', description: 'Switch to an existing branch.' },
-      { command: '/git create <branch> [--no-checkout]', description: 'Create (and optionally checkout) a branch.' },
+      {
+        command: '/git create <branch> [--no-checkout]',
+        description: 'Create (and optionally checkout) a branch.',
+      },
       { command: '/git pull [remote] [branch]', description: 'Pull latest changes from a remote.' },
-      { command: '/git diff <compare> [base]', description: 'Show diff against base (default HEAD).' },
-      { command: '/ingest url <address>', description: 'Fetch a remote document or YouTube link into RAG.' },
-      { command: '/ingest upload', description: 'Open the file picker to upload content into RAG.' },
+      {
+        command: '/git diff <compare> [base]',
+        description: 'Show diff against base (default HEAD).',
+      },
+      {
+        command: '/ingest url <address>',
+        description: 'Fetch a remote document or YouTube link into RAG.',
+      },
+      {
+        command: '/ingest upload',
+        description: 'Open the file picker to upload content into RAG.',
+      },
     ],
-    [],
+    []
   );
 
   const slashCommandHelpMessage = useMemo(
     () =>
       [
         'Slash commands:',
-        ...slashCommandList.map((entry: { command: string; description: string }) => `${entry.command} — ${entry.description}`),
+        ...slashCommandList.map(
+          (entry: { command: string; description: string }) =>
+            `${entry.command} — ${entry.description}`
+        ),
       ].join('\n'),
-    [slashCommandList],
+    [slashCommandList]
   );
 
-  const gitRequest = useCallback(
-    async <T = unknown>(path: string, options: RequestInit = {}) => {
-      const requestInit: RequestInit = {
-        method: options.method ?? 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options.headers ?? {}),
-        },
-      };
+  const gitRequest = useCallback(async <T = unknown,>(path: string, options: RequestInit = {}) => {
+    const requestInit: RequestInit = {
+      method: options.method ?? 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers ?? {}),
+      },
+    };
 
-      if (options.body !== undefined) {
-        requestInit.body = typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
-      }
+    if (options.body !== undefined) {
+      requestInit.body =
+        typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
+    }
 
-      if (requestInit.method === 'GET') {
-        delete requestInit.body;
-      }
+    if (requestInit.method === 'GET') {
+      delete requestInit.body;
+    }
 
-      const response = await fetch(`${API_BASE}/git/${path}`, requestInit);
-      const text = await response.text();
-      const payload = text
-        ? (() => {
-            try {
-              return JSON.parse(text);
-            } catch (error) {
-              throw new Error(`Git endpoint returned invalid JSON: ${text}`);
-            }
-          })()
-        : {};
+    const response = await fetch(`${API_BASE}/git/${path}`, requestInit);
+    const text = await response.text();
+    const payload = text
+      ? (() => {
+          try {
+            return JSON.parse(text);
+          } catch (error) {
+            throw new Error(`Git endpoint returned invalid JSON: ${text}`);
+          }
+        })()
+      : {};
 
-      if (!response.ok || (payload as { status?: string }).status !== 'ok') {
-        const message = (payload as { message?: string; error?: string }).message
-          || (payload as { message?: string; error?: string }).error
-          || `Git command failed (${response.status})`;
-        throw new Error(message);
-      }
+    if (!response.ok || (payload as { status?: string }).status !== 'ok') {
+      const message =
+        (payload as { message?: string; error?: string }).message ||
+        (payload as { message?: string; error?: string }).error ||
+        `Git command failed (${response.status})`;
+      throw new Error(message);
+    }
 
-      return payload as T;
-    },
-    [],
-  );
+    return payload as T;
+  }, []);
 
   const handleStreamResponse = useCallback(
     async (response: Response, assistantMessageId: string) => {
@@ -235,7 +266,11 @@ const PromptConsolePage: React.FC = () => {
               parsedPayload = payload;
             }
 
-            if (parsedPayload && typeof parsedPayload === 'object' && !Array.isArray(parsedPayload)) {
+            if (
+              parsedPayload &&
+              typeof parsedPayload === 'object' &&
+              !Array.isArray(parsedPayload)
+            ) {
               const typedPayload = parsedPayload as {
                 type?: string;
                 content?: string;
@@ -262,18 +297,26 @@ const PromptConsolePage: React.FC = () => {
                   setComponentSuggestion(typedPayload.component ?? null);
                   continue;
                 case 'warning':
-                  setError(typedPayload.message ?? typedPayload.content ?? 'DeepSeek returned a warning');
+                  setError(
+                    typedPayload.message ?? typedPayload.content ?? 'DeepSeek returned a warning'
+                  );
                   setStatusMessage('Warning received');
                   continue;
                 case 'complete':
                   setStatusMessage(typedPayload.message ?? 'Complete');
                   continue;
                 case 'content':
-                  updateMessageContent(assistantMessageId, (current: string) => `${current}${typedPayload.content ?? ''}`);
+                  updateMessageContent(
+                    assistantMessageId,
+                    (current: string) => `${current}${typedPayload.content ?? ''}`
+                  );
                   continue;
                 default:
                   if (typedPayload.content) {
-                    updateMessageContent(assistantMessageId, (current: string) => `${current}${typedPayload.content ?? ''}`);
+                    updateMessageContent(
+                      assistantMessageId,
+                      (current: string) => `${current}${typedPayload.content ?? ''}`
+                    );
                     continue;
                   }
               }
@@ -282,7 +325,10 @@ const PromptConsolePage: React.FC = () => {
             const contentChunk = typeof parsedPayload === 'string' ? parsedPayload : null;
 
             if (contentChunk) {
-              updateMessageContent(assistantMessageId, (current: string) => `${current}${contentChunk}`);
+              updateMessageContent(
+                assistantMessageId,
+                (current: string) => `${current}${contentChunk}`
+              );
             }
           }
         }
@@ -292,7 +338,7 @@ const PromptConsolePage: React.FC = () => {
         setStatusMessage('Ready');
       }
     },
-    [markMessageComplete, updateMessageContent],
+    [markMessageComplete, updateMessageContent]
   );
 
   const handleReset = useCallback(() => {
@@ -308,104 +354,104 @@ const PromptConsolePage: React.FC = () => {
     setRetrievedDocuments([]);
   }, []);
 
-  const ingestUpload = useCallback(
-    async (file: File) => {
-      setIngesting(true);
-      setStatusMessage(`Uploading ${file.name}…`);
+  const ingestUpload = useCallback(async (file: File) => {
+    setIngesting(true);
+    setStatusMessage(`Uploading ${file.name}…`);
 
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('title', file.name);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', file.name);
 
-        const response = await fetch(`${API_BASE}/rag/ingest/upload`, {
-          method: 'POST',
-          body: formData,
-        });
+      const response = await fetch(`${API_BASE}/rag/ingest/upload`, {
+        method: 'POST',
+        body: formData,
+      });
 
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(text || `Upload failed with status ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        setConversation((prev: ChatMessage[]) => [
-          ...prev,
-          createMessage(
-            'system',
-            `Document "${file.name}" ingested. Document ID: ${result?.documentId ?? 'unknown'} (chunks: ${
-              result?.upsert?.chunks ?? 'n/a'
-            }).`,
-          ),
-        ]);
-        setStatusMessage('Document ingested');
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown upload error';
-        setStatusMessage('Ingestion failed');
-        setConversation((prev: ChatMessage[]) => [...prev, createMessage('system', `⚠️ Upload failed: ${message}`)]);
-      } finally {
-        setIngesting(false);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `Upload failed with status ${response.status}`);
       }
-    },
-    [],
-  );
 
-  const ingestRemoteSource = useCallback(
-    async (input: string) => {
-      if (!input) return;
-      setIngesting(true);
-      setStatusMessage('Fetching remote source…');
+      const result = await response.json();
 
-      try {
-        const body: Record<string, unknown> = {};
-        if (/^https?:\/\//i.test(input)) {
-          body.url = input;
-        }
+      setConversation((prev: ChatMessage[]) => [
+        ...prev,
+        createMessage(
+          'system',
+          `Document "${file.name}" ingested. Document ID: ${result?.documentId ?? 'unknown'} (chunks: ${
+            result?.upsert?.chunks ?? 'n/a'
+          }).`
+        ),
+      ]);
+      setStatusMessage('Document ingested');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown upload error';
+      setStatusMessage('Ingestion failed');
+      setConversation((prev: ChatMessage[]) => [
+        ...prev,
+        createMessage('system', `⚠️ Upload failed: ${message}`),
+      ]);
+    } finally {
+      setIngesting(false);
+    }
+  }, []);
 
-        if (/(youtube\.com|youtu\.be)/i.test(input)) {
-          body.youtubeUrl = input;
-        }
+  const ingestRemoteSource = useCallback(async (input: string) => {
+    if (!input) return;
+    setIngesting(true);
+    setStatusMessage('Fetching remote source…');
 
-        if (!body.url && !body.youtubeUrl) {
-          body.url = input;
-        }
-
-        const response = await fetch(`${API_BASE}/rag/ingest/url`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body),
-        });
-
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(text || `Remote ingestion failed with status ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        setConversation((prev: ChatMessage[]) => [
-          ...prev,
-          createMessage(
-            'system',
-            `Remote source ingested from ${input}. Document ID: ${result?.documentId ?? 'unknown'} (chunks: ${
-              result?.upsert?.chunks ?? 'n/a'
-            }).`,
-          ),
-        ]);
-        setStatusMessage('Remote document ingested');
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown remote ingestion error';
-        setStatusMessage('Ingestion failed');
-        setConversation((prev: ChatMessage[]) => [...prev, createMessage('system', `⚠️ Remote ingestion failed: ${message}`)]);
-      } finally {
-        setIngesting(false);
+    try {
+      const body: Record<string, unknown> = {};
+      if (/^https?:\/\//i.test(input)) {
+        body.url = input;
       }
-    },
-    [],
-  );
+
+      if (/(youtube\.com|youtu\.be)/i.test(input)) {
+        body.youtubeUrl = input;
+      }
+
+      if (!body.url && !body.youtubeUrl) {
+        body.url = input;
+      }
+
+      const response = await fetch(`${API_BASE}/rag/ingest/url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `Remote ingestion failed with status ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      setConversation((prev: ChatMessage[]) => [
+        ...prev,
+        createMessage(
+          'system',
+          `Remote source ingested from ${input}. Document ID: ${result?.documentId ?? 'unknown'} (chunks: ${
+            result?.upsert?.chunks ?? 'n/a'
+          }).`
+        ),
+      ]);
+      setStatusMessage('Remote document ingested');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown remote ingestion error';
+      setStatusMessage('Ingestion failed');
+      setConversation((prev: ChatMessage[]) => [
+        ...prev,
+        createMessage('system', `⚠️ Remote ingestion failed: ${message}`),
+      ]);
+    } finally {
+      setIngesting(false);
+    }
+  }, []);
 
   const promptActions = useMemo<PromptAction[]>(
     () => [
@@ -450,7 +496,14 @@ const PromptConsolePage: React.FC = () => {
         onClick: handleReset,
       },
     ],
-    [appendSystemMessage, handleReset, ingestRemoteSource, ingesting, loading, slashCommandHelpMessage],
+    [
+      appendSystemMessage,
+      handleReset,
+      ingestRemoteSource,
+      ingesting,
+      loading,
+      slashCommandHelpMessage,
+    ]
   );
 
   const handleSlashCommand = useCallback(
@@ -495,13 +548,19 @@ const PromptConsolePage: React.FC = () => {
           try {
             switch (subcommand) {
               case 'status': {
-                const result = await gitRequest<{ result?: { stdout?: string; stderr?: string } }>('status');
+                const result = await gitRequest<{ result?: { stdout?: string; stderr?: string } }>(
+                  'status'
+                );
                 const output = result?.result?.stdout?.trim() || 'Working tree clean.';
                 const stderr = result?.result?.stderr?.trim();
                 appendSystemMessage(
-                  ['Git status:', `\n\u0060\u0060\u0060\n${output}\n\u0060\u0060\u0060`, stderr ? `\nWarnings:\n${stderr}` : '']
+                  [
+                    'Git status:',
+                    `\n\u0060\u0060\u0060\n${output}\n\u0060\u0060\u0060`,
+                    stderr ? `\nWarnings:\n${stderr}` : '',
+                  ]
                     .filter(Boolean)
-                    .join('\n') || 'Git status complete.',
+                    .join('\n') || 'Git status complete.'
                 );
                 setStatusMessage('Git status retrieved');
                 break;
@@ -512,7 +571,7 @@ const PromptConsolePage: React.FC = () => {
                 appendSystemMessage(
                   branches.length
                     ? `Branches:\n${branches.map((branch: string) => `• ${branch}`).join('\n')}`
-                    : 'No branches returned.',
+                    : 'No branches returned.'
                 );
                 setStatusMessage('Branch list ready');
                 break;
@@ -536,7 +595,7 @@ const PromptConsolePage: React.FC = () => {
                   formatError('Usage: /git create <branch> [--no-checkout]');
                   break;
                 }
-                const checkoutFlagIndex = args.findIndex((arg) => arg === '--no-checkout');
+                const checkoutFlagIndex = args.findIndex(arg => arg === '--no-checkout');
                 const checkout = checkoutFlagIndex === -1;
                 const branchName = checkout
                   ? args[0]
@@ -548,7 +607,7 @@ const PromptConsolePage: React.FC = () => {
                 appendSystemMessage(
                   checkout
                     ? `✅ Created and switched to branch "${branchName}".`
-                    : `✅ Created branch "${branchName}" (not checked out).`,
+                    : `✅ Created branch "${branchName}" (not checked out).`
                 );
                 setStatusMessage('Branch created');
                 break;
@@ -559,7 +618,9 @@ const PromptConsolePage: React.FC = () => {
                   method: 'POST',
                   body: branch ? { remote, branch } : { remote },
                 });
-                appendSystemMessage(`✅ Pulled latest changes from ${remote}${branch ? `/${branch}` : ''}.`);
+                appendSystemMessage(
+                  `✅ Pulled latest changes from ${remote}${branch ? `/${branch}` : ''}.`
+                );
                 setStatusMessage('Git pull complete');
                 break;
               }
@@ -569,16 +630,23 @@ const PromptConsolePage: React.FC = () => {
                   break;
                 }
                 const [compare, base] = args;
-                const result = await gitRequest<{ result?: { stdout?: string; stderr?: string } }>('diff', {
-                  method: 'POST',
-                  body: base ? { compare, base } : { compare },
-                });
+                const result = await gitRequest<{ result?: { stdout?: string; stderr?: string } }>(
+                  'diff',
+                  {
+                    method: 'POST',
+                    body: base ? { compare, base } : { compare },
+                  }
+                );
                 const output = result?.result?.stdout?.trim() || 'No differences found.';
                 const stderr = result?.result?.stderr?.trim();
                 appendSystemMessage(
-                  ['Git diff:', `\n\u0060\u0060\u0060\n${output}\n\u0060\u0060\u0060`, stderr ? `\nWarnings:\n${stderr}` : '']
+                  [
+                    'Git diff:',
+                    `\n\u0060\u0060\u0060\n${output}\n\u0060\u0060\u0060`,
+                    stderr ? `\nWarnings:\n${stderr}` : '',
+                  ]
                     .filter(Boolean)
-                    .join('\n') || 'Git diff complete.',
+                    .join('\n') || 'Git diff complete.'
                 );
                 setStatusMessage('Git diff ready');
                 break;
@@ -588,7 +656,8 @@ const PromptConsolePage: React.FC = () => {
                 break;
             }
           } catch (commandError) {
-            const message = commandError instanceof Error ? commandError.message : 'Unknown git error';
+            const message =
+              commandError instanceof Error ? commandError.message : 'Unknown git error';
             appendSystemMessage(`⚠️ Git command failed: ${message}`);
             setStatusMessage('Git command failed');
           } finally {
@@ -631,7 +700,7 @@ const PromptConsolePage: React.FC = () => {
           return false;
       }
     },
-    [appendSystemMessage, gitRequest, ingestRemoteSource, slashCommandHelpMessage],
+    [appendSystemMessage, gitRequest, ingestRemoteSource, slashCommandHelpMessage]
   );
 
   const handleFileInputChange = useCallback(
@@ -643,7 +712,7 @@ const PromptConsolePage: React.FC = () => {
       event.target.value = '';
       void ingestUpload(file);
     },
-    [ingestUpload],
+    [ingestUpload]
   );
 
   const handleSend = useCallback(
@@ -716,7 +785,7 @@ const PromptConsolePage: React.FC = () => {
         setLoading(false);
       }
     },
-    [conversationRef, handleSlashCommand, handleStreamResponse, markMessageComplete],
+    [conversationRef, handleSlashCommand, handleStreamResponse, markMessageComplete]
   );
 
   return (
@@ -727,7 +796,9 @@ const PromptConsolePage: React.FC = () => {
             <Sparkles className='h-5 w-5' />
           </div>
           <div className='flex flex-col'>
-            <span className='text-xs font-semibold uppercase tracking-[0.2em] text-primary/80'>DeepSeek Studio</span>
+            <span className='text-xs font-semibold uppercase tracking-[0.2em] text-primary/80'>
+              DeepSeek Studio
+            </span>
             <h1 className='text-lg font-semibold leading-tight'>Streaming conversation console</h1>
           </div>
         </div>
@@ -750,8 +821,8 @@ const PromptConsolePage: React.FC = () => {
           />
           {conversation.length === 0 && (
             <div className='rounded-3xl border border-dashed border-border/60 bg-surface-container-low p-6 text-sm text-on-surface-variant'>
-              Start a conversation to receive live DeepSeek responses. The prompt input stays anchored so you can review
-              the full transcript as messages arrive.
+              Start a conversation to receive live DeepSeek responses. The prompt input stays
+              anchored so you can review the full transcript as messages arrive.
             </div>
           )}
 
@@ -762,8 +833,8 @@ const PromptConsolePage: React.FC = () => {
             const bubbleClasses = isAssistant
               ? 'bg-surface-container-low/80 border border-border shadow-sm'
               : isUser
-              ? 'bg-primary text-primary-foreground border border-primary/70 shadow-lg shadow-primary/20'
-              : 'bg-surface-container-low border border-dashed border-outline/60';
+                ? 'bg-primary text-primary-foreground border border-primary/70 shadow-lg shadow-primary/20'
+                : 'bg-surface-container-low border border-dashed border-outline/60';
 
             const roleIcon = isAssistant ? (
               <Sparkles className='h-3.5 w-3.5' />
@@ -776,13 +847,20 @@ const PromptConsolePage: React.FC = () => {
             const roleLabel = isAssistant ? 'DeepSeek' : isUser ? 'You' : 'System';
 
             return (
-              <article key={message.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+              <article
+                key={message.id}
+                className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
+              >
                 <div className={`max-w-3xl rounded-3xl px-5 py-4 transition-all ${bubbleClasses}`}>
                   <div className='mb-2 flex items-center gap-2 text-xs uppercase tracking-wide text-on-surface-variant/70'>
                     {roleIcon}
                     <span>{roleLabel}</span>
-                    <span className='text-on-surface-variant/50'>• {formatTimestamp(message.timestamp)}</span>
-                    {message.streaming && <Loader2 className='h-3.5 w-3.5 animate-spin text-primary' />}
+                    <span className='text-on-surface-variant/50'>
+                      • {formatTimestamp(message.timestamp)}
+                    </span>
+                    {message.streaming && (
+                      <Loader2 className='h-3.5 w-3.5 animate-spin text-primary' />
+                    )}
                   </div>
                   <div className='space-y-3 text-sm leading-relaxed'>
                     {message.content.split('\n\n').map((paragraph: string, index: number) => (
@@ -798,7 +876,10 @@ const PromptConsolePage: React.FC = () => {
 
           <div ref={messagesEndRef} />
 
-          {(retrievedDocuments.length > 0 || thinkingContent || schemaSuggestion || componentSuggestion) && (
+          {(retrievedDocuments.length > 0 ||
+            thinkingContent ||
+            schemaSuggestion ||
+            componentSuggestion) && (
             <section className='space-y-4 rounded-3xl border border-border/60 bg-surface-container-low/80 p-6 shadow-sm shadow-primary/5'>
               <header className='flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary/70'>
                 <Sparkles className='h-4 w-4' />
@@ -808,29 +889,40 @@ const PromptConsolePage: React.FC = () => {
               {retrievedDocuments.length > 0 && (
                 <article className='rounded-2xl border border-outline/30 bg-surface p-4'>
                   <div className='mb-3 flex items-center justify-between gap-3'>
-                    <h3 className='text-sm font-semibold text-on-surface-variant/90'>Retrieved context</h3>
-                    <span className='text-xs text-on-surface-variant/70'>Top {retrievedDocuments.length} matches</span>
+                    <h3 className='text-sm font-semibold text-on-surface-variant/90'>
+                      Retrieved context
+                    </h3>
+                    <span className='text-xs text-on-surface-variant/70'>
+                      Top {retrievedDocuments.length} matches
+                    </span>
                   </div>
                   <div className='space-y-3 text-sm text-on-surface-variant'>
                     {retrievedDocuments.map((doc: RetrievedDocument) => (
-                      <div key={doc.id} className='rounded-xl border border-outline/20 bg-surface-container-low px-4 py-3'>
+                      <div
+                        key={doc.id}
+                        className='rounded-xl border border-outline/20 bg-surface-container-low px-4 py-3'
+                      >
                         <div className='mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary/70'>
                           <FileText className='h-3.5 w-3.5' />
                           <span>{doc.documentId}</span>
-                          <span className='text-on-surface-variant/60'>Score {(doc.score ?? 0).toFixed(3)}</span>
+                          <span className='text-on-surface-variant/60'>
+                            Score {(doc.score ?? 0).toFixed(3)}
+                          </span>
                         </div>
                         <p className='text-sm text-on-surface line-clamp-3'>{doc.content}</p>
-                        {doc.metadata && doc.metadata.url && typeof doc.metadata.url === 'string' && (
-                          <a
-                            href={doc.metadata.url}
-                            target='_blank'
-                            rel='noreferrer'
-                            className='mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline'
-                          >
-                            <Link2 className='h-3 w-3' />
-                            Open source
-                          </a>
-                        )}
+                        {doc.metadata &&
+                          doc.metadata.url &&
+                          typeof doc.metadata.url === 'string' && (
+                            <a
+                              href={doc.metadata.url}
+                              target='_blank'
+                              rel='noreferrer'
+                              className='mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline'
+                            >
+                              <Link2 className='h-3 w-3' />
+                              Open source
+                            </a>
+                          )}
                       </div>
                     ))}
                   </div>
@@ -839,8 +931,12 @@ const PromptConsolePage: React.FC = () => {
 
               {thinkingContent && (
                 <article className='rounded-2xl border border-outline/30 bg-surface p-4'>
-                  <h3 className='mb-2 text-sm font-medium text-on-surface-variant/80'>Reasoning trace</h3>
-                  <p className='whitespace-pre-wrap text-sm leading-relaxed text-on-surface'>{thinkingContent}</p>
+                  <h3 className='mb-2 text-sm font-medium text-on-surface-variant/80'>
+                    Reasoning trace
+                  </h3>
+                  <p className='whitespace-pre-wrap text-sm leading-relaxed text-on-surface'>
+                    {thinkingContent}
+                  </p>
                 </article>
               )}
 
@@ -848,11 +944,13 @@ const PromptConsolePage: React.FC = () => {
                 <article className='rounded-2xl border border-outline/20 bg-surface p-4'>
                   <div className='mb-3 flex items-center justify-between gap-3'>
                     <div>
-                      <h3 className='text-base font-semibold text-on-surface'>{
-                        schemaSuggestion.name ?? 'Generated workflow schema'
-                      }</h3>
+                      <h3 className='text-base font-semibold text-on-surface'>
+                        {schemaSuggestion.name ?? 'Generated workflow schema'}
+                      </h3>
                       {schemaSuggestion.description && (
-                        <p className='text-sm text-on-surface-variant'>{schemaSuggestion.description}</p>
+                        <p className='text-sm text-on-surface-variant'>
+                          {schemaSuggestion.description}
+                        </p>
                       )}
                     </div>
                     {schemaSuggestion.id && (
@@ -863,19 +961,27 @@ const PromptConsolePage: React.FC = () => {
                   </div>
                   {schemaSuggestion.tasks && schemaSuggestion.tasks.length > 0 && (
                     <div className='space-y-2'>
-                      <p className='text-xs font-semibold uppercase tracking-wide text-on-surface-variant/70'>Tasks</p>
+                      <p className='text-xs font-semibold uppercase tracking-wide text-on-surface-variant/70'>
+                        Tasks
+                      </p>
                       <ul className='space-y-1 text-sm text-on-surface-variant'>
-                        {schemaSuggestion.tasks.map((task: NonNullable<SchemaSuggestion['tasks']>[number], index: number) => (
-                          <li
-                            key={`${task.name ?? 'task'}-${index}`}
-                            className='rounded-xl border border-outline/10 bg-surface-container-low px-3 py-2'
-                          >
-                            <span className='font-medium text-on-surface'>{task.name ?? `Step ${index + 1}`}</span>
-                            {task.description && (
-                              <p className='text-xs text-on-surface-variant/80'>{task.description}</p>
-                            )}
-                          </li>
-                        ))}
+                        {schemaSuggestion.tasks.map(
+                          (task: NonNullable<SchemaSuggestion['tasks']>[number], index: number) => (
+                            <li
+                              key={`${task.name ?? 'task'}-${index}`}
+                              className='rounded-xl border border-outline/10 bg-surface-container-low px-3 py-2'
+                            >
+                              <span className='font-medium text-on-surface'>
+                                {task.name ?? `Step ${index + 1}`}
+                              </span>
+                              {task.description && (
+                                <p className='text-xs text-on-surface-variant/80'>
+                                  {task.description}
+                                </p>
+                              )}
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                   )}
@@ -884,11 +990,13 @@ const PromptConsolePage: React.FC = () => {
 
               {componentSuggestion && (
                 <article className='rounded-2xl border border-outline/20 bg-surface p-4'>
-                  <h3 className='text-base font-semibold text-on-surface'>{
-                    componentSuggestion.name ?? 'Suggested component'
-                  }</h3>
+                  <h3 className='text-base font-semibold text-on-surface'>
+                    {componentSuggestion.name ?? 'Suggested component'}
+                  </h3>
                   {componentSuggestion.description && (
-                    <p className='mt-1 text-sm text-on-surface-variant'>{componentSuggestion.description}</p>
+                    <p className='mt-1 text-sm text-on-surface-variant'>
+                      {componentSuggestion.description}
+                    </p>
                   )}
                   {componentSuggestion.type && (
                     <p className='mt-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'>
@@ -913,12 +1021,9 @@ const PromptConsolePage: React.FC = () => {
             usage='Enter to send'
             allowSendWhileLoading={false}
             className='shadow-lg shadow-primary/10'
+            slashCommands={slashCommandList}
           />
-          {error && (
-            <p className='text-xs text-destructive'>
-              {error}
-            </p>
-          )}
+          {error && <p className='text-xs text-destructive'>{error}</p>}
         </div>
       </footer>
     </div>

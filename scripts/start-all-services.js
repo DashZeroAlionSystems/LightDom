@@ -20,6 +20,11 @@ if (!baseEnv.OLLAMA_BASE_URL) {
   baseEnv.OLLAMA_BASE_URL = 'http://127.0.0.1:11434';
 }
 
+// Provide backwards-compatible alias used by some scripts
+if (!baseEnv.OLLAMA_ENDPOINT) {
+  baseEnv.OLLAMA_ENDPOINT = baseEnv.OLLAMA_BASE_URL;
+}
+
 if (!baseEnv.DEEPSEEK_API_URL) {
   baseEnv.DEEPSEEK_API_URL = baseEnv.OLLAMA_BASE_URL;
 }
@@ -270,9 +275,60 @@ function startService(service) {
 async function startAll() {
   log('starter', 'Running preflight checks…');
   await runPreflight();
-
   log('starter', 'Launching LightDom services...');
+
+  // Helper map for quick access
+  const serviceById = new Map(services.map((s) => [s.id, s]));
+
+  // Start critical services first (Ollama + DeepSeek orchestration) so models and dependencies are available
+  if (serviceById.has('ollama')) startService(serviceById.get('ollama'));
+  if (serviceById.has('deepseek')) startService(serviceById.get('deepseek'));
+
+  // Start API server and wait for it to be healthy. If it fails to become healthy, start a minimal API proxy as a fallback.
+  const apiService = serviceById.get('api');
+  const apiBaseUrl = baseEnv.API_BASE_URL || `http://${baseEnv.API_HOST}:${baseEnv.PORT}`;
+  if (apiService) {
+    startService(apiService);
+
+    // Wait for API health; if it doesn't come up, attempt fallback proxy
+    const apiHealthy = await waitForHttp({ id: 'api', url: `${apiBaseUrl}/api/health`, retries: 20, interval: 1500, optional: false });
+    if (!apiHealthy) {
+      logError('starter', 'API server failed health checks; launching fallback minimal API proxy on port ' + baseEnv.PORT);
+
+      // Attempt to terminate the failing API process if it's still running
+      const apiChild = processes.get('api');
+      if (apiChild && apiChild.kill) {
+        try {
+          apiChild.kill('SIGTERM');
+        } catch (e) {}
+        // give it a moment
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        if (apiChild.exitCode === null) {
+          try {
+            apiChild.kill('SIGKILL');
+          } catch (e) {}
+        }
+        processes.delete('api');
+      }
+
+      // Start minimal proxy that forwards requests to Ollama (fallback)
+      const fallbackService = {
+        id: 'api-proxy',
+        label: 'API Fallback Proxy',
+        command: 'node',
+        args: ['minimal-api-server-proxy.js'],
+        cwd: ROOT_DIR,
+        optional: true,
+      };
+      startService(fallbackService);
+      // Wait briefly for proxy to be available
+      await waitForHttp({ id: 'api-proxy', url: `${apiBaseUrl}/api/health`, retries: 10, interval: 1000, optional: true });
+    }
+  }
+
+  // Start remaining services (skip ones already started)
   for (const service of services) {
+    if (['ollama', 'deepseek', 'api'].includes(service.id)) continue;
     try {
       startService(service);
     } catch (error) {
@@ -288,7 +344,6 @@ async function startAll() {
       'Services launched: ' + services.map((svc) => svc.label).join(', '),
   );
 
-  const apiBaseUrl = baseEnv.API_BASE_URL || `http://${baseEnv.API_HOST}:${baseEnv.PORT}`;
   const deepseekBaseUrl = `http://${baseEnv.DEEPSEEK_HOST}:${baseEnv.DEEPSEEK_PORT}`;
 
   // Allow services a moment to boot before health polling
@@ -297,7 +352,7 @@ async function startAll() {
   await Promise.all([
     waitForHttp({ id: 'ollama', url: `${baseEnv.OLLAMA_BASE_URL}/api/tags`, optional: true }),
     waitForHttp({ id: 'deepseek', url: `${deepseekBaseUrl}/health`, optional: true }),
-    waitForHttp({ id: 'api', url: `${apiBaseUrl}/api/health` }),
+    // api health already attempted above
     waitForHttp({ id: 'rag', url: `${apiBaseUrl}/api/rag/health`, optional: true }),
   ]);
 }

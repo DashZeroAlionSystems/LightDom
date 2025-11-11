@@ -10,7 +10,7 @@ const router = express.Router();
 // Simple Ollama client for basic functionality
 class SimpleOllamaClient {
   constructor(options = {}) {
-    this.endpoint = options.endpoint || 'http://localhost:11500';
+    this.endpoint = options.endpoint || 'http://localhost:11434';
     this.model = options.model || 'deepseek-coder';
     this.temperature = options.temperature || 0.7;
   }
@@ -94,7 +94,7 @@ let ollamaClient = null;
 export async function initializeOllamaServices() {
   try {
     ollamaClient = new SimpleOllamaClient({
-      endpoint: process.env.OLLAMA_ENDPOINT || 'http://localhost:11500',
+      endpoint: process.env.OLLAMA_ENDPOINT || 'http://localhost:11434',
       model: process.env.OLLAMA_MODEL || 'deepseek-coder',
       temperature: 0.7,
     });

@@ -13,6 +13,7 @@ import path from 'path';
 import { Pool } from 'pg';
 import { Server as socketIo } from 'socket.io';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { createHash, randomBytes } from 'crypto';
 import { addMiningRoutes } from './api-mining-routes.js';
 import createUserRoutes from './api/routes/user-management.js';
 import { RealWebCrawlerSystem } from './crawler/RealWebCrawlerSystem.js';
@@ -76,7 +77,17 @@ class DOMSpaceHarvesterAPI {
         });
 
     if (this.dbDisabled) {
-      console.warn('⚠️  Database disabled; RAG endpoints are unavailable.');
+      console.warn('⚠️  Database disabled; mounting minimal RAG fallback at /api/rag.');
+      // Mount a minimal RAG fallback router that proxies to Ollama so frontend remains functional in dev
+      import('./api/rag-fallback.js')
+        .then(mod => {
+          const fallback = mod.default || mod;
+          this.app.use('/api/rag', fallback);
+          console.log('✅ RAG fallback mounted at /api/rag');
+        })
+        .catch(err => {
+          console.warn('⚠️ Failed to mount RAG fallback:', err?.message || err);
+        });
     } else {
       try {
         const ragRouter = createRagRouter({ db: this.db, logger: console });
@@ -1095,7 +1106,7 @@ class DOMSpaceHarvesterAPI {
         if (!apiKey) return res.status(401).json({ error: 'API key required' });
 
         // Hash at caller side ideally; for PoC we store full keys hashed at creation
-        const keyHash = require('crypto').createHash('sha256').update(apiKey).digest('hex');
+        const keyHash = createHash('sha256').update(apiKey).digest('hex');
         const result = await this.db.query(
           'SELECT id, owner_email, is_active, requests_used, plan_id FROM api_keys WHERE key_hash = $1',
           [keyHash]
@@ -1167,8 +1178,8 @@ class DOMSpaceHarvesterAPI {
         ]);
         if (plan.rowCount === 0) return res.status(400).json({ error: 'Invalid plan' });
 
-        const rawKey = require('crypto').randomBytes(24).toString('hex');
-        const keyHash = require('crypto').createHash('sha256').update(rawKey).digest('hex');
+        const rawKey = randomBytes(24).toString('hex');
+        const keyHash = createHash('sha256').update(rawKey).digest('hex');
         await this.db.query(
           'INSERT INTO api_keys (key_hash, owner_email, plan_id) VALUES ($1, $2, $3)',
           [keyHash, ownerEmail, plan.rows[0].id]
@@ -1420,92 +1431,98 @@ class DOMSpaceHarvesterAPI {
       }
     });
 
-    // Optional Stripe billing endpoints (disabled if no STRIPE_KEY)
+    // Optional Stripe billing endpoints (dynamically loaded if STRIPE_KEY is set)
     if (process.env.STRIPE_KEY) {
-      const Stripe = require('stripe');
-      const stripe = new Stripe(process.env.STRIPE_KEY);
+      import('stripe')
+        .then(StripeModule => {
+          const Stripe = StripeModule.default || StripeModule;
+          const stripe = new Stripe(process.env.STRIPE_KEY);
 
-      this.app.post('/api/billing/create-checkout', async (req, res) => {
-        try {
-          const { priceId, customerEmail } = req.body || {};
-          if (!priceId || !customerEmail)
-            return res.status(400).json({ error: 'priceId and customerEmail required' });
-          const session = await stripe.checkout.sessions.create({
-            mode: 'subscription',
-            line_items: [{ price: priceId, quantity: 1 }],
-            customer_email: customerEmail,
-            success_url: (process.env.FRONTEND_URL || 'http://localhost:3000') + '/billing/success',
-            cancel_url: (process.env.FRONTEND_URL || 'http://localhost:3000') + '/billing/cancel',
-          });
-          res.json({ url: session.url });
-        } catch (e) {
-          res.status(500).json({ error: 'Failed to create checkout' });
-        }
-      });
-
-      // Stripe webhook (raw body parsing for signature verification)
-      this.app.post(
-        '/api/billing/webhook',
-        express.raw({ type: 'application/json' }),
-        async (req, res) => {
-          try {
-            const sig = req.headers['stripe-signature'];
-            const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-            let event;
+          this.app.post('/api/billing/create-checkout', async (req, res) => {
             try {
-              event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-            } catch (err) {
-              return res.status(400).send(`Webhook Error: ${err.message}`);
+              const { priceId, customerEmail } = req.body || {};
+              if (!priceId || !customerEmail)
+                return res.status(400).json({ error: 'priceId and customerEmail required' });
+              const session = await stripe.checkout.sessions.create({
+                mode: 'subscription',
+                line_items: [{ price: priceId, quantity: 1 }],
+                customer_email: customerEmail,
+                success_url: (process.env.FRONTEND_URL || 'http://localhost:3000') + '/billing/success',
+                cancel_url: (process.env.FRONTEND_URL || 'http://localhost:3000') + '/billing/cancel',
+              });
+              res.json({ url: session.url });
+            } catch (e) {
+              res.status(500).json({ error: 'Failed to create checkout' });
             }
+          });
 
-            switch (event.type) {
-              case 'checkout.session.completed': {
-                const session = event.data.object;
-                const email = session.customer_details?.email;
-                if (email) {
-                  // Activate base subscription if exists
-                  const planCode = 'starter';
-                  const plan = await this.db.query(
-                    'SELECT id FROM pricing_plans WHERE plan_code=$1',
-                    [planCode]
-                  );
-                  if (plan.rowCount > 0) {
-                    await this.db.query(
-                      `INSERT INTO subscriptions (owner_email, plan_id) VALUES ($1,$2)
+          // Stripe webhook (raw body parsing for signature verification)
+          this.app.post(
+            '/api/billing/webhook',
+            express.raw({ type: 'application/json' }),
+            async (req, res) => {
+              try {
+                const sig = req.headers['stripe-signature'];
+                const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+                let event;
+                try {
+                  event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+                } catch (err) {
+                  return res.status(400).send(`Webhook Error: ${err.message}`);
+                }
+
+                switch (event.type) {
+                  case 'checkout.session.completed': {
+                    const session = event.data.object;
+                    const email = session.customer_details?.email;
+                    if (email) {
+                      // Activate base subscription if exists
+                      const planCode = 'starter';
+                      const plan = await this.db.query(
+                        'SELECT id FROM pricing_plans WHERE plan_code=$1',
+                        [planCode]
+                      );
+                      if (plan.rowCount > 0) {
+                        await this.db.query(
+                          `INSERT INTO subscriptions (owner_email, plan_id) VALUES ($1,$2)
                      ON CONFLICT (owner_email, plan_id) DO NOTHING`,
-                      [email, plan.rows[0].id]
-                    );
+                          [email, plan.rows[0].id]
+                        );
+                      }
+                    }
+                    break;
                   }
-                }
-                break;
-              }
-              case 'invoice.paid': {
-                const inv = event.data.object;
-                const email = inv.customer_email || inv.customer?.email || null;
-                if (email) {
-                  await this.db.query(
-                    `INSERT INTO payments (owner_email, amount_cents, currency, provider, provider_payment_id, status)
+                  case 'invoice.paid': {
+                    const inv = event.data.object;
+                    const email = inv.customer_email || inv.customer?.email || null;
+                    if (email) {
+                      await this.db.query(
+                        `INSERT INTO payments (owner_email, amount_cents, currency, provider, provider_payment_id, status)
                    VALUES ($1,$2,$3,'stripe',$4,'succeeded')`,
-                    [
-                      email,
-                      Math.round(inv.amount_paid),
-                      inv.currency?.toUpperCase() || 'USD',
-                      inv.id,
-                    ]
-                  );
+                        [
+                          email,
+                          Math.round(inv.amount_paid),
+                          inv.currency?.toUpperCase() || 'USD',
+                          inv.id,
+                        ]
+                      );
+                    }
+                    break;
+                  }
+                  default:
+                    break;
                 }
-                break;
-              }
-              default:
-                break;
-            }
 
-            res.json({ received: true });
-          } catch (e) {
-            res.status(500).json({ error: 'Webhook handling failed' });
-          }
-        }
-      );
+                res.json({ received: true });
+              } catch (e) {
+                res.status(500).json({ error: 'Webhook handling failed' });
+              }
+            }
+          );
+        })
+        .catch(err => {
+          console.warn('⚠️ Stripe module failed to load:', err?.message || err);
+        });
     }
 
     // Invoice generation (manual, aggregates current month usage/overage)
@@ -4987,13 +5004,19 @@ class DOMSpaceHarvesterAPI {
     console.log('   - GET /api/advanced-nodes/list');
     console.log('   - GET /api/browserbase/status');
 
-    // Add extension bridge API
+    // Add extension bridge API (dynamic import to keep ESM compatibility)
     try {
-      const extensionBridge = require('./src/api/extensionBridge.js');
-      this.app.use('/api/extension', extensionBridge);
-      console.log('   - Extension Bridge API connected at /api/extension');
+      import('./src/api/extensionBridge.js')
+        .then(mod => {
+          const extensionBridge = mod.default || mod;
+          this.app.use('/api/extension', extensionBridge);
+          console.log('   - Extension Bridge API connected at /api/extension');
+        })
+        .catch(err => {
+          console.warn('   ⚠️ Extension Bridge not loaded:', err?.message || err);
+        });
     } catch (error) {
-      console.warn('   ⚠️ Extension Bridge not loaded:', error.message);
+      console.warn('   ⚠️ Extension Bridge import error:', error?.message || error);
     }
 
     // Add utility integration endpoints
@@ -5704,6 +5727,8 @@ class DOMSpaceHarvesterAPI {
 
     console.log('✅ Server shutdown complete');
   }
+
+  
 
   setupBlockchainRoutes() {
     // =====================================================
@@ -10265,6 +10290,16 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 process.on('uncaughtException', error => {
+  try {
+    const msg = (error && error.message) || String(error);
+    if (msg.includes('server.handleUpgrade() was called more than once')) {
+      console.warn('⚠️ Duplicate WebSocket upgrade detected (non-fatal in dev):', msg);
+      // Do not exit in dev for this known race condition; allow server to continue
+      return;
+    }
+  } catch (e) {
+    // ignore
+  }
   console.error('Uncaught Exception:', error);
   process.exit(1);
 });

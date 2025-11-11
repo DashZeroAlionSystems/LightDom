@@ -4,9 +4,10 @@
  * Supports tool calling, workflow creation, and real-time data mining
  */
 
-import { EventEmitter } from 'events';
 import axios, { AxiosInstance } from 'axios';
-import { Stream } from 'stream';
+import { spawn } from 'child_process';
+import { EventEmitter } from 'events';
+import SchemaServiceFactory, { ServiceSchema } from '../services/SchemaServiceFactory';
 
 export interface OllamaConfig {
   endpoint: string;
@@ -73,6 +74,7 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
   private bidiStreams: Map<string, BidiStream> = new Map();
   private conversationHistory: Map<string, Message[]> = new Map();
   private isInitialized: boolean = false;
+  private schemaService: SchemaServiceFactory;
 
   constructor(config?: Partial<OllamaConfig>) {
     super();
@@ -81,16 +83,18 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
       model: config?.model || process.env.OLLAMA_MODEL || 'deepseek-r1:latest',
       temperature: config?.temperature ?? 0.7,
       streamingEnabled: config?.streamingEnabled !== false,
-      toolsEnabled: config?.toolsEnabled !== false
+      toolsEnabled: config?.toolsEnabled !== false,
     };
 
     this.client = axios.create({
       baseURL: this.config.endpoint,
       timeout: 300000, // 5 minutes for long responses
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
+
+    this.schemaService = new SchemaServiceFactory();
   }
 
   /**
@@ -100,14 +104,17 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
     console.log('🤖 Initializing Ollama DeepSeek Integration...');
     console.log(`📍 Endpoint: ${this.config.endpoint}`);
     console.log(`🧠 Model: ${this.config.model}`);
-    
+
     try {
       // Test connection
       await this.testConnection();
-      
+
+      // Initialize schema service
+      await this.schemaService.initialize();
+
       // Register default tools
       await this.registerDefaultTools();
-      
+
       this.isInitialized = true;
       this.emit('initialized');
       console.log('✅ Ollama DeepSeek Integration initialized successfully');
@@ -119,7 +126,7 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
   }
 
   /**
-   * Test Ollama connection
+   * Test Ollama connection and start services if needed
    */
   private async testConnection(): Promise<void> {
     try {
@@ -127,14 +134,114 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
       if (response.status === 200) {
         console.log('✅ Ollama API connection successful');
         const models = response.data.models || [];
-        const hasDeepSeek = models.some((m: any) => m.name.includes('deepseek'));
+        const hasDeepSeek = models.some((m: any) => m.name.includes('deepseek-r1'));
         if (!hasDeepSeek) {
-          console.warn('⚠️ DeepSeek model not found. Pull it with: ollama pull deepseek-r1');
+          console.log('📥 DeepSeek-R1 model not found. Pulling...');
+          await this.pullModel('deepseek-r1:latest');
+        } else {
+          console.log('✅ DeepSeek-R1 model available');
         }
       }
     } catch (error: any) {
-      throw new Error(`Ollama connection failed: ${error.message}`);
+      console.log('⚠️ Ollama not running. Attempting to start...');
+      await this.startOllama();
+      // Retry connection after starting
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      await this.testConnection();
     }
+  }
+
+  /**
+   * Start Ollama server
+   */
+  private async startOllama(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      console.log('🚀 Starting Ollama server...');
+
+      const ollamaProcess = spawn('ollama', ['serve'], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        detached: false,
+      });
+
+      let started = false;
+      let timeout = setTimeout(() => {
+        if (!started) {
+          started = true;
+          ollamaProcess.kill();
+          reject(new Error('Ollama failed to start within timeout'));
+        }
+      }, 10000);
+
+      ollamaProcess.on('error', error => {
+        if (!started) {
+          started = true;
+          clearTimeout(timeout);
+          reject(error);
+        }
+      });
+
+      // Listen for output to confirm server is running
+      ollamaProcess.stdout.on('data', data => {
+        const output = data.toString();
+        if (
+          output.includes('listening') ||
+          output.includes('ready') ||
+          output.includes('server started')
+        ) {
+          if (!started) {
+            started = true;
+            clearTimeout(timeout);
+            console.log('✅ Ollama server started successfully');
+            // Don't kill the process, let it run in background
+            ollamaProcess.unref();
+            resolve();
+          }
+        }
+      });
+
+      ollamaProcess.stderr.on('data', data => {
+        const output = data.toString();
+        if (
+          output.includes('listening') ||
+          output.includes('ready') ||
+          output.includes('server started')
+        ) {
+          if (!started) {
+            started = true;
+            clearTimeout(timeout);
+            console.log('✅ Ollama server started successfully');
+            ollamaProcess.unref();
+            resolve();
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * Pull a model from Ollama
+   */
+  private async pullModel(modelName: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      console.log(`📥 Pulling model: ${modelName}`);
+
+      const pullProcess = spawn('ollama', ['pull', modelName], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+
+      pullProcess.on('close', code => {
+        if (code === 0) {
+          console.log(`✅ Successfully pulled model: ${modelName}`);
+          resolve();
+        } else {
+          reject(new Error(`Failed to pull model ${modelName} (exit code: ${code})`));
+        }
+      });
+
+      pullProcess.on('error', error => {
+        reject(new Error(`Failed to pull model ${modelName}: ${error.message}`));
+      });
+    });
   }
 
   /**
@@ -151,98 +258,110 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
    */
   private async registerDefaultTools(): Promise<void> {
     // Workflow creation tool
-    this.registerTool({
-      type: 'function',
-      function: {
-        name: 'create_workflow',
-        description: 'Create a new workflow with steps, rules, and triggers',
-        parameters: {
-          type: 'object',
-          properties: {
-            name: { type: 'string', description: 'Workflow name' },
-            description: { type: 'string', description: 'Workflow description' },
-            steps: { 
-              type: 'array', 
-              description: 'Array of workflow steps',
-              items: { type: 'object' }
+    this.registerTool(
+      {
+        type: 'function',
+        function: {
+          name: 'create_workflow',
+          description: 'Create a new workflow with steps, rules, and triggers',
+          parameters: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: 'Workflow name' },
+              description: { type: 'string', description: 'Workflow description' },
+              steps: {
+                type: 'array',
+                description: 'Array of workflow steps',
+                items: { type: 'object' },
+              },
+              rules: {
+                type: 'array',
+                description: 'Array of workflow rules',
+                items: { type: 'object' },
+              },
             },
-            rules: {
-              type: 'array',
-              description: 'Array of workflow rules',
-              items: { type: 'object' }
-            }
+            required: ['name', 'steps'],
           },
-          required: ['name', 'steps']
-        }
-      }
-    }, this.handleCreateWorkflow.bind(this));
+        },
+      },
+      this.handleCreateWorkflow.bind(this)
+    );
 
     // Data query tool
-    this.registerTool({
-      type: 'function',
-      function: {
-        name: 'query_database',
-        description: 'Query the database for workflow data, configurations, or analytics',
-        parameters: {
-          type: 'object',
-          properties: {
-            query: { type: 'string', description: 'SQL query or data request' },
-            table: { type: 'string', description: 'Table name to query' },
-            filters: { type: 'object', description: 'Filter conditions' }
+    this.registerTool(
+      {
+        type: 'function',
+        function: {
+          name: 'query_database',
+          description: 'Query the database for workflow data, configurations, or analytics',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: { type: 'string', description: 'SQL query or data request' },
+              table: { type: 'string', description: 'Table name to query' },
+              filters: { type: 'object', description: 'Filter conditions' },
+            },
+            required: ['table'],
           },
-          required: ['table']
-        }
-      }
-    }, this.handleDatabaseQuery.bind(this));
+        },
+      },
+      this.handleDatabaseQuery.bind(this)
+    );
 
     // Data mining campaign tool
-    this.registerTool({
-      type: 'function',
-      function: {
-        name: 'create_data_mining_campaign',
-        description: 'Create a data mining campaign attached to a workflow',
-        parameters: {
-          type: 'object',
-          properties: {
-            workflowId: { type: 'string', description: 'Associated workflow ID' },
-            name: { type: 'string', description: 'Campaign name' },
-            attributes: { 
-              type: 'array', 
-              description: 'Attributes to mine',
-              items: { type: 'string' }
+    this.registerTool(
+      {
+        type: 'function',
+        function: {
+          name: 'create_data_mining_campaign',
+          description: 'Create a data mining campaign attached to a workflow',
+          parameters: {
+            type: 'object',
+            properties: {
+              workflowId: { type: 'string', description: 'Associated workflow ID' },
+              name: { type: 'string', description: 'Campaign name' },
+              attributes: {
+                type: 'array',
+                description: 'Attributes to mine',
+                items: { type: 'string' },
+              },
+              dataStreams: {
+                type: 'array',
+                description: 'Real-time data stream IDs',
+                items: { type: 'string' },
+              },
             },
-            dataStreams: {
-              type: 'array',
-              description: 'Real-time data stream IDs',
-              items: { type: 'string' }
-            }
+            required: ['workflowId', 'name', 'attributes'],
           },
-          required: ['workflowId', 'name', 'attributes']
-        }
-      }
-    }, this.handleCreateDataMiningCampaign.bind(this));
+        },
+      },
+      this.handleCreateDataMiningCampaign.bind(this)
+    );
 
     // Visual component tool
-    this.registerTool({
-      type: 'function',
-      function: {
-        name: 'add_workflow_component',
-        description: 'Add a visual component to a workflow for data display or editing',
-        parameters: {
-          type: 'object',
-          properties: {
-            workflowId: { type: 'string', description: 'Workflow ID' },
-            componentType: { 
-              type: 'string', 
-              description: 'Component type (chart, form, table, editor)',
-              enum: ['chart', 'form', 'table', 'editor', 'dashboard']
+    this.registerTool(
+      {
+        type: 'function',
+        function: {
+          name: 'add_workflow_component',
+          description: 'Add a visual component to a workflow for data display or editing',
+          parameters: {
+            type: 'object',
+            properties: {
+              workflowId: { type: 'string', description: 'Workflow ID' },
+              componentType: {
+                type: 'string',
+                description: 'Component type (chart, form, table, editor)',
+                enum: ['chart', 'form', 'table', 'editor', 'dashboard'],
+              },
+              config: { type: 'object', description: 'Component configuration' },
             },
-            config: { type: 'object', description: 'Component configuration' }
+            required: ['workflowId', 'componentType'],
           },
-          required: ['workflowId', 'componentType']
-        }
-      }
-    }, this.handleAddWorkflowComponent.bind(this));
+        },
+      },
+      this.handleAddWorkflowComponent.bind(this)
+    );
   }
 
   /**
@@ -254,26 +373,26 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
     systemPrompt?: string
   ): Promise<void> {
     const messages: Message[] = [];
-    
+
     if (systemPrompt) {
       messages.push({
         role: 'system',
-        content: systemPrompt
+        content: systemPrompt,
       });
     }
-    
+
     messages.push({
       role: 'user',
-      content: initialMessage
+      content: initialMessage,
     });
 
     const stream: BidiStream = {
       id: streamId,
       messages,
-      onChunk: (chunk) => this.emit('chunk', { streamId, chunk }),
-      onComplete: (response) => this.emit('complete', { streamId, response }),
-      onError: (error) => this.emit('error', { streamId, error }),
-      active: true
+      onChunk: chunk => this.emit('chunk', { streamId, chunk }),
+      onComplete: response => this.emit('complete', { streamId, response }),
+      onError: error => this.emit('error', { streamId, error }),
+      active: true,
     };
 
     this.bidiStreams.set(streamId, stream);
@@ -293,7 +412,7 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
 
     const userMessage: Message = {
       role: 'user',
-      content: message
+      content: message,
     };
 
     stream.messages.push(userMessage);
@@ -317,8 +436,8 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
         messages: stream.messages,
         stream: this.config.streamingEnabled,
         options: {
-          temperature: this.config.temperature
-        }
+          temperature: this.config.temperature,
+        },
       };
 
       // Add tools if enabled
@@ -345,19 +464,22 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
     if (!stream) return;
 
     const response = await this.client.post('/api/chat', requestData, {
-      responseType: 'stream'
+      responseType: 'stream',
     });
 
     let fullContent = '';
     let toolCalls: ToolCall[] = [];
 
     response.data.on('data', (chunk: Buffer) => {
-      const lines = chunk.toString().split('\n').filter(line => line.trim());
-      
+      const lines = chunk
+        .toString()
+        .split('\n')
+        .filter(line => line.trim());
+
       for (const line of lines) {
         try {
           const data: StreamChunk = JSON.parse(line);
-          
+
           if (data.message.content) {
             fullContent += data.message.content;
             stream.onChunk(data.message.content);
@@ -413,7 +535,7 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
     const assistantMessage: Message = {
       role: 'assistant',
       content,
-      tool_calls: toolCalls.length > 0 ? toolCalls : undefined
+      tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
     };
 
     stream.messages.push(assistantMessage);
@@ -423,21 +545,21 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
     // Process tool calls if any
     if (toolCalls.length > 0) {
       console.log(`🔧 Processing ${toolCalls.length} tool call(s)...`);
-      
+
       for (const toolCall of toolCalls) {
         const handler = this.toolHandlers.get(toolCall.function.name);
         if (handler) {
           try {
             const args = JSON.parse(toolCall.function.arguments);
             const result = await handler(args);
-            
+
             // Add tool result to messages
             const toolMessage: Message = {
               role: 'tool',
               content: JSON.stringify(result),
-              tool_call_id: toolCall.id
+              tool_call_id: toolCall.id,
             };
-            
+
             stream.messages.push(toolMessage);
             history.push(toolMessage);
           } catch (error: any) {
@@ -445,7 +567,7 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
             const errorMessage: Message = {
               role: 'tool',
               content: JSON.stringify({ error: error.message }),
-              tool_call_id: toolCall.id
+              tool_call_id: toolCall.id,
             };
             stream.messages.push(errorMessage);
             history.push(errorMessage);
@@ -454,7 +576,7 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
       }
 
       this.conversationHistory.set(streamId, history);
-      
+
       // Continue conversation after tool execution
       await this.processStream(streamId);
     } else {
@@ -469,7 +591,7 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
    */
   private async handleCreateWorkflow(args: any): Promise<any> {
     console.log('📝 Creating workflow:', args.name);
-    
+
     // This would integrate with your workflow management system
     const workflow = {
       id: `workflow-${Date.now()}`,
@@ -477,8 +599,41 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
       description: args.description,
       steps: args.steps,
       rules: args.rules || [],
-      created: new Date().toISOString()
+      created: new Date().toISOString(),
     };
+
+    // Create schema for the workflow action
+    const workflowSchema: ServiceSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Action',
+      '@id': `lightdom:action-workflow-${workflow.id}`,
+      name: `Workflow Creation: ${args.name}`,
+      description: `Created workflow "${args.name}" with ${args.steps?.length || 0} steps`,
+      'lightdom:serviceType': 'background',
+      'lightdom:config': {
+        queue: {
+          type: 'memory',
+          concurrency: 1,
+          retries: 0,
+          timeout: 30000,
+        },
+      },
+      'lightdom:linkedServices': [],
+      'lightdom:tasks': [
+        {
+          id: 'create-workflow',
+          type: 'workflow-creation',
+          description: `Create workflow with name: ${args.name}`,
+          enabled: true,
+        },
+      ],
+      'lightdom:enabled': true,
+      'lightdom:autoStart': false,
+      'lightdom:priority': 5,
+    };
+
+    // Save the schema
+    await this.schemaService.saveSchema(workflowSchema);
 
     // Emit event for workflow creation
     this.emit('workflowCreated', workflow);
@@ -486,7 +641,8 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
     return {
       success: true,
       workflowId: workflow.id,
-      message: `Workflow "${args.name}" created successfully`
+      schemaId: workflowSchema['@id'],
+      message: `Workflow "${args.name}" created successfully`,
     };
   }
 
@@ -495,7 +651,7 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
    */
   private async handleDatabaseQuery(args: any): Promise<any> {
     console.log('🔍 Querying database:', args.table);
-    
+
     // This would integrate with your database
     // For now, return mock data
     const mockData = {
@@ -503,13 +659,51 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
       filters: args.filters,
       results: [
         { id: 1, data: 'Sample data 1' },
-        { id: 2, data: 'Sample data 2' }
-      ]
+        { id: 2, data: 'Sample data 2' },
+      ],
     };
+
+    // Create schema for the database query action
+    const querySchema: ServiceSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Action',
+      '@id': `lightdom:action-query-${Date.now()}`,
+      name: `Database Query: ${args.table}`,
+      description: `Queried table "${args.table}" with filters: ${JSON.stringify(args.filters || {})}`,
+      'lightdom:serviceType': 'api',
+      'lightdom:config': {
+        api: {
+          port: 3001,
+          cors: true,
+          rateLimit: {
+            windowMs: 60000,
+            max: 10,
+          },
+        },
+      },
+      'lightdom:linkedServices': [],
+      'lightdom:tasks': [
+        {
+          id: 'database-query',
+          type: 'data-query',
+          description: `Query database table: ${args.table}`,
+          enabled: true,
+        },
+      ],
+      'lightdom:enabled': true,
+      'lightdom:autoStart': false,
+      'lightdom:priority': 4,
+    };
+
+    // Save the schema
+    await this.schemaService.saveSchema(querySchema);
 
     this.emit('databaseQueried', { table: args.table, results: mockData.results });
 
-    return mockData;
+    return {
+      ...mockData,
+      schemaId: querySchema['@id'],
+    };
   }
 
   /**
@@ -517,7 +711,7 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
    */
   private async handleCreateDataMiningCampaign(args: any): Promise<any> {
     console.log('⛏️ Creating data mining campaign:', args.name);
-    
+
     const campaign = {
       id: `campaign-${Date.now()}`,
       workflowId: args.workflowId,
@@ -525,15 +719,55 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
       attributes: args.attributes,
       dataStreams: args.dataStreams || [],
       status: 'active',
-      created: new Date().toISOString()
+      created: new Date().toISOString(),
     };
+
+    // Create schema for the data mining campaign action
+    const campaignSchema: ServiceSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Action',
+      '@id': `lightdom:action-campaign-${campaign.id}`,
+      name: `Data Mining Campaign: ${args.name}`,
+      description: `Created data mining campaign "${args.name}" for workflow ${args.workflowId} with ${args.attributes?.length || 0} attributes`,
+      'lightdom:serviceType': 'worker',
+      'lightdom:config': {
+        workers: {
+          type: 'node',
+          count: 2,
+          pooling: true,
+          strategy: 'least-busy',
+        },
+        queue: {
+          type: 'redis',
+          concurrency: 5,
+          retries: 2,
+          timeout: 120000,
+        },
+      },
+      'lightdom:linkedServices': [args.workflowId],
+      'lightdom:tasks': [
+        {
+          id: 'data-mining-campaign',
+          type: 'data-mining',
+          description: `Mine data for attributes: ${args.attributes?.join(', ') || 'none'}`,
+          enabled: true,
+        },
+      ],
+      'lightdom:enabled': true,
+      'lightdom:autoStart': false,
+      'lightdom:priority': 6,
+    };
+
+    // Save the schema
+    await this.schemaService.saveSchema(campaignSchema);
 
     this.emit('dataMiningCampaignCreated', campaign);
 
     return {
       success: true,
       campaignId: campaign.id,
-      message: `Data mining campaign "${args.name}" created for workflow ${args.workflowId}`
+      schemaId: campaignSchema['@id'],
+      message: `Data mining campaign "${args.name}" created for workflow ${args.workflowId}`,
     };
   }
 
@@ -542,21 +776,57 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
    */
   private async handleAddWorkflowComponent(args: any): Promise<any> {
     console.log('🎨 Adding component to workflow:', args.workflowId);
-    
+
     const component = {
       id: `component-${Date.now()}`,
       workflowId: args.workflowId,
       type: args.componentType,
       config: args.config || {},
-      created: new Date().toISOString()
+      created: new Date().toISOString(),
     };
+
+    // Create schema for the component addition action
+    const componentSchema: ServiceSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Action',
+      '@id': `lightdom:action-component-${component.id}`,
+      name: `Component Addition: ${args.componentType}`,
+      description: `Added ${args.componentType} component to workflow ${args.workflowId}`,
+      'lightdom:serviceType': 'api',
+      'lightdom:config': {
+        api: {
+          port: 3001,
+          cors: true,
+          rateLimit: {
+            windowMs: 60000,
+            max: 20,
+          },
+        },
+      },
+      'lightdom:linkedServices': [args.workflowId],
+      'lightdom:tasks': [
+        {
+          id: 'add-component',
+          type: 'component-addition',
+          description: `Add ${args.componentType} component to workflow`,
+          enabled: true,
+        },
+      ],
+      'lightdom:enabled': true,
+      'lightdom:autoStart': false,
+      'lightdom:priority': 3,
+    };
+
+    // Save the schema
+    await this.schemaService.saveSchema(componentSchema);
 
     this.emit('workflowComponentAdded', component);
 
     return {
       success: true,
       componentId: component.id,
-      message: `${args.componentType} component added to workflow ${args.workflowId}`
+      schemaId: componentSchema['@id'],
+      message: `${args.componentType} component added to workflow ${args.workflowId}`,
     };
   }
 
@@ -565,29 +835,29 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
    */
   async chat(message: string, conversationId?: string): Promise<string> {
     const convId = conversationId || `conv-${Date.now()}`;
-    
+
     return new Promise((resolve, reject) => {
       let fullResponse = '';
-      
+
       const existingHistory = this.conversationHistory.get(convId) || [];
       existingHistory.push({
         role: 'user',
-        content: message
+        content: message,
       });
 
       const stream: BidiStream = {
         id: convId,
         messages: existingHistory,
-        onChunk: (chunk) => {
+        onChunk: chunk => {
           fullResponse += chunk;
         },
-        onComplete: (response) => {
+        onComplete: response => {
           resolve(response);
         },
-        onError: (error) => {
+        onError: error => {
           reject(error);
         },
-        active: true
+        active: true,
       };
 
       this.bidiStreams.set(convId, stream);
@@ -636,8 +906,8 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
         options: {
           temperature: options.temperature ?? this.config.temperature,
           top_p: options.top_p ?? 0.9,
-          num_predict: options.max_tokens
-        }
+          num_predict: options.max_tokens,
+        },
       });
 
       return response.data.response || '';
@@ -659,7 +929,7 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
       activeStreams: this.bidiStreams.size,
       conversations: this.conversationHistory.size,
       streamingEnabled: this.config.streamingEnabled,
-      toolsEnabled: this.config.toolsEnabled
+      toolsEnabled: this.config.toolsEnabled,
     };
   }
 }
