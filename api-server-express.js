@@ -962,6 +962,54 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load agent management routes:', err);
       });
 
+    // Import and register Scraper Manager routes
+    import('./api/scraper-manager-routes.js')
+      .then(scraperModule => {
+        const createRoutes = scraperModule.default || scraperModule.createScraperManagerRoutes;
+        if (typeof createRoutes === 'function') {
+          this.app.use('/api/scraper-manager', createRoutes({ db: this.db }));
+        } else {
+          this.app.use('/api/scraper-manager', scraperModule.default);
+        }
+        console.log('✅ Scraper Manager routes registered (Mining instances, URL seeding enabled)');
+      })
+      .catch(err => {
+        console.error('Failed to load scraper manager routes:', err);
+      });
+
+    // Import and register DeepSeek Chat routes
+    import('./api/deepseek-chat-routes.js')
+      .then(chatModule => {
+        const createRoutes = chatModule.default || chatModule.createDeepSeekChatRoutes;
+        if (typeof createRoutes === 'function') {
+          this.app.use('/api/chat', createRoutes({ db: this.db }));
+        } else {
+          this.app.use('/api/chat', chatModule.default);
+        }
+        console.log('✅ DeepSeek Chat routes registered (Ollama integration, conversation history enabled)');
+      })
+      .catch(err => {
+        console.error('Failed to load DeepSeek chat routes:', err);
+      });
+
+    // Import and register Storybook Mining routes
+    import('./api/storybook-mining-routes.js')
+      .then(storybookModule => {
+        const createRoutes = storybookModule.default || storybookModule.createStorybookMiningRoutes;
+        if (typeof createRoutes === 'function') {
+          this.app.use('/api/storybook-mining', createRoutes({ db: this.db }));
+        } else {
+          this.app.use('/api/storybook-mining', storybookModule.default);
+        }
+        console.log('✅ Storybook Mining routes registered (Component extraction, story generation enabled)');
+      })
+      .catch(err => {
+        console.error('Failed to load Storybook mining routes:', err);
+      })
+      .catch(err => {
+        console.error('Failed to load agent management routes:', err);
+      });
+
     // Import and register MCP Server Management routes (Agent instances with schema linking)
     import('./api/mcp-server-routes.js')
       .then(mcpModule => {

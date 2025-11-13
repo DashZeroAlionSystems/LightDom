@@ -524,3 +524,4 @@ workflows/n8n/credentials/*.json
 # END OF .gitignore
 # =============================================================================
 *storybook.log
+.npm-cache/
