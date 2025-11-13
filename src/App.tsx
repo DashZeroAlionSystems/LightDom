@@ -75,6 +75,8 @@ import UserManagementPage from './pages/admin/UserManagementPage';
 import DeepSeekWorkflowDashboard from './pages/admin/DeepSeekWorkflowDashboard';
 import ClientReportDashboard from './pages/admin/ClientReportDashboard';
 import DeepSeekSkillsDashboard from './pages/admin/DeepSeekSkillsDashboard';
+import ScraperManagerDashboard from './components/ScraperManagerDashboard';
+import DeepSeekChatPanel from './components/DeepSeekChatPanel';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -225,6 +227,9 @@ const AppContent: React.FC = () => {
           <Route path="admin/styleguide-config" element={<StyleguideConfigManager />} />
           <Route path="admin/menu-builder" element={<AdminMenuBuilder />} />
           <Route path="admin/component-builder" element={<VisualComponentBuilder />} />
+          <Route path="admin/scraper-manager" element={<ScraperManagerDashboard />} />
+          <Route path="chat" element={<DeepSeekChatPanel />} />
+          <Route path="scraper-manager" element={<ScraperManagerDashboard />} />
         </Route>
         
         {/* Public Landing Page */}
