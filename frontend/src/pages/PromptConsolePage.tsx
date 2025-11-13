@@ -139,6 +139,15 @@ const PromptConsolePage: React.FC = () => {
 
   const slashCommandList = useMemo(
     (): Array<{ command: string; description: string }> => [
+      {
+        command: '/services',
+        description: 'List running services managed by the dev service manager.',
+      },
+      {
+        command: '/start <serviceId>',
+        description: 'Start a registered service (e.g. /start api).',
+      },
+      { command: '/stop <serviceId>', description: 'Stop a running service (e.g. /stop api).' },
       { command: '/help', description: 'Show all available slash commands.' },
       {
         command: '/git status',
@@ -162,6 +171,26 @@ const PromptConsolePage: React.FC = () => {
       {
         command: '/ingest upload',
         description: 'Open the file picker to upload content into RAG.',
+      },
+      {
+        command: '/crawl <url> [--depth <n>] [--instances <n>]',
+        description: 'Start web crawler with optional depth and instance count.',
+      },
+      {
+        command: '/crawl stop',
+        description: 'Stop all active crawler instances.',
+      },
+      {
+        command: '/crawl status',
+        description: 'Get status of running crawler instances.',
+      },
+      {
+        command: '/search <query>',
+        description: 'Search ingested documents in RAG vector store.',
+      },
+      {
+        command: '/train <dataset>',
+        description: 'Enqueue training job for TensorFlow singleton.',
       },
     ],
     []
@@ -312,13 +341,24 @@ const PromptConsolePage: React.FC = () => {
                   );
                   continue;
                 default:
-                  if (typedPayload.content) {
+                  // Handle both 'content' and 'token' fields for streaming
+                  const text = typedPayload.content || typedPayload.token;
+                  if (text) {
                     updateMessageContent(
                       assistantMessageId,
-                      (current: string) => `${current}${typedPayload.content ?? ''}`
+                      (current: string) => `${current}${text}`
                     );
                     continue;
                   }
+              }
+            }
+
+            // Handle token field (streaming format)
+            if (parsedPayload && typeof parsedPayload === 'object' && 'token' in parsedPayload) {
+              const token = (parsedPayload as { token?: string }).token;
+              if (token) {
+                updateMessageContent(assistantMessageId, (current: string) => `${current}${token}`);
+                continue;
               }
             }
 
@@ -528,6 +568,70 @@ const PromptConsolePage: React.FC = () => {
       };
 
       switch (normalizedRoot) {
+        case 'services': {
+          setStatusMessage('Fetching services…');
+          try {
+            const resp = await fetch(`${API_BASE}/services`);
+            if (!resp.ok) throw new Error(`Service API returned ${resp.status}`);
+            const payload = await resp.json();
+            const list =
+              (payload.services ?? [])
+                .map((s: any) => `• ${s.id} (${s.label}) — ${s.running ? 'running' : 'stopped'}`)
+                .join('\n') || 'No services defined';
+            appendSystemMessage(`Services:\n${list}`);
+            setStatusMessage('Services listed');
+          } catch (err) {
+            appendSystemMessage(`⚠️ Failed to list services: ${(err as Error).message}`);
+            setStatusMessage('Service list failed');
+          }
+          return true;
+        }
+        case 'start': {
+          if (rest.length === 0) {
+            formatError('Usage: /start <serviceId>');
+            return true;
+          }
+          const svc = rest[0];
+          setStatusMessage(`Starting ${svc}…`);
+          try {
+            const resp = await fetch(`${API_BASE}/services/${encodeURIComponent(svc)}/start`, {
+              method: 'POST',
+            });
+            const payload = await resp.json();
+            if (!resp.ok || !payload.success) {
+              throw new Error(payload?.error || `Start failed (${resp.status})`);
+            }
+            appendSystemMessage(`✅ Service ${svc} started (pid: ${payload.pid ?? 'unknown'}).`);
+            setStatusMessage(`Service ${svc} started`);
+          } catch (err) {
+            appendSystemMessage(`⚠️ Failed to start ${svc}: ${(err as Error).message}`);
+            setStatusMessage('Service start failed');
+          }
+          return true;
+        }
+        case 'stop': {
+          if (rest.length === 0) {
+            formatError('Usage: /stop <serviceId>');
+            return true;
+          }
+          const svc = rest[0];
+          setStatusMessage(`Stopping ${svc}…`);
+          try {
+            const resp = await fetch(`${API_BASE}/services/${encodeURIComponent(svc)}/stop`, {
+              method: 'POST',
+            });
+            const payload = await resp.json();
+            if (!resp.ok || !payload.success) {
+              throw new Error(payload?.error || `Stop failed (${resp.status})`);
+            }
+            appendSystemMessage(`✅ Service ${svc} stopped.`);
+            setStatusMessage(`Service ${svc} stopped`);
+          } catch (err) {
+            appendSystemMessage(`⚠️ Failed to stop ${svc}: ${(err as Error).message}`);
+            setStatusMessage('Service stop failed');
+          }
+          return true;
+        }
         case 'help':
         case '?':
           appendSystemMessage(slashCommandHelpMessage);
@@ -696,7 +800,175 @@ const PromptConsolePage: React.FC = () => {
               return true;
           }
         }
+        case 'crawl': {
+          if (rest.length === 0) {
+            formatError('Usage: /crawl <url|stop|status> …');
+            return true;
+          }
+
+          const subcommand = rest[0].toLowerCase();
+          const args = rest.slice(1);
+
+          switch (subcommand) {
+            case 'stop': {
+              setStatusMessage('Stopping crawler…');
+              try {
+                const resp = await fetch(`${API_BASE}/crawler/stop`, {
+                  method: 'POST',
+                });
+                const payload = await resp.json();
+                if (!resp.ok || !payload.success) {
+                  throw new Error(payload?.error || `Stop failed (${resp.status})`);
+                }
+                appendSystemMessage('✅ Crawler stopped successfully.');
+                setStatusMessage('Crawler stopped');
+              } catch (err) {
+                appendSystemMessage(`⚠️ Failed to stop crawler: ${(err as Error).message}`);
+                setStatusMessage('Crawler stop failed');
+              }
+              return true;
+            }
+            case 'status': {
+              setStatusMessage('Fetching crawler status…');
+              try {
+                const resp = await fetch(`${API_BASE}/crawler/status`);
+                const payload = await resp.json();
+                if (!resp.ok) {
+                  throw new Error(`Status failed (${resp.status})`);
+                }
+                const statusText = [
+                  `Running: ${payload.isRunning ? 'Yes' : 'No'}`,
+                  payload.currentSession
+                    ? `Session: ${payload.currentSession.sessionId} (${payload.currentSession.status})`
+                    : 'No active session',
+                  payload.activeCrawlers?.length
+                    ? `Active crawlers: ${payload.activeCrawlers.length}`
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join('\n');
+                appendSystemMessage(`Crawler status:\n${statusText}`);
+                setStatusMessage('Crawler status retrieved');
+              } catch (err) {
+                appendSystemMessage(`⚠️ Failed to get crawler status: ${(err as Error).message}`);
+                setStatusMessage('Status check failed');
+              }
+              return true;
+            }
+            default: {
+              // Treat as URL to crawl
+              const url = rest[0];
+              if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                formatError('Crawler URL must start with http:// or https://');
+                return true;
+              }
+
+              // Parse optional flags
+              let depth = 2;
+              let instances = 1;
+              for (let i = 1; i < rest.length; i++) {
+                if (rest[i] === '--depth' && rest[i + 1]) {
+                  depth = parseInt(rest[i + 1], 10);
+                  i++;
+                } else if (rest[i] === '--instances' && rest[i + 1]) {
+                  instances = parseInt(rest[i + 1], 10);
+                  i++;
+                }
+              }
+
+              setStatusMessage(`Starting crawler for ${url}…`);
+              try {
+                const resp = await fetch(`${API_BASE}/crawler/start`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    url,
+                    maxDepth: depth,
+                    instanceCount: instances,
+                    maxConcurrency: 5,
+                    requestDelay: 2000,
+                  }),
+                });
+                const payload = await resp.json();
+                if (!resp.ok || !payload.success) {
+                  throw new Error(payload?.error || `Crawler start failed (${resp.status})`);
+                }
+                appendSystemMessage(
+                  `✅ Crawler started for ${url} (depth: ${depth}, instances: ${instances}).`
+                );
+                setStatusMessage('Crawler started');
+              } catch (err) {
+                appendSystemMessage(`⚠️ Failed to start crawler: ${(err as Error).message}`);
+                setStatusMessage('Crawler start failed');
+              }
+              return true;
+            }
+          }
+        }
+        case 'search': {
+          if (rest.length === 0) {
+            formatError('Usage: /search <query>');
+            return true;
+          }
+          const query = rest.join(' ');
+          setStatusMessage('Searching RAG…');
+          try {
+            const resp = await fetch(`${API_BASE}/rag/search`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query, topK: 5 }),
+            });
+            if (!resp.ok) {
+              throw new Error(`Search failed (${resp.status})`);
+            }
+            const payload = await resp.json();
+            const results = payload.results ?? [];
+            const resultText =
+              results.length > 0
+                ? results
+                    .map(
+                      (r: any, i: number) =>
+                        `${i + 1}. [Score: ${r.score?.toFixed(3) ?? 'N/A'}] ${r.content?.slice(0, 150) ?? 'No content'}…`
+                    )
+                    .join('\n')
+                : 'No results found.';
+            appendSystemMessage(`Search results for "${query}":\n${resultText}`);
+            setStatusMessage('Search complete');
+          } catch (err) {
+            appendSystemMessage(`⚠️ Search failed: ${(err as Error).message}`);
+            setStatusMessage('Search failed');
+          }
+          return true;
+        }
+        case 'train': {
+          if (rest.length === 0) {
+            formatError('Usage: /train <dataset>');
+            return true;
+          }
+          const dataset = rest.join(' ');
+          setStatusMessage('Enqueuing training job…');
+          try {
+            const resp = await fetch(`${API_BASE}/learning/train`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ dataset }),
+            });
+            if (!resp.ok) {
+              throw new Error(`Training enqueue failed (${resp.status})`);
+            }
+            const payload = await resp.json();
+            appendSystemMessage(
+              `✅ Training job enqueued for dataset "${dataset}" (Job ID: ${payload.jobId ?? 'unknown'}).`
+            );
+            setStatusMessage('Training job enqueued');
+          } catch (err) {
+            appendSystemMessage(`⚠️ Training enqueue failed: ${(err as Error).message}`);
+            setStatusMessage('Training failed');
+          }
+          return true;
+        }
         default:
+          // try service manager commands: start/stop/services
           return false;
       }
     },

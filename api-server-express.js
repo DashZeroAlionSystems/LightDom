@@ -41,6 +41,18 @@ try {
   __dirname = path.dirname(__filename);
 }
 
+// Provide a global `require` fallback for legacy CommonJS modules that still call
+// `require()` while the project is running as ESM (package.json "type": "module").
+// This helps reduce "require is not defined in ES module scope" errors during dev.
+try {
+  const _createRequire = (await import('module')).createRequire;
+  if (typeof globalThis.require === 'undefined') {
+    globalThis.require = _createRequire(import.meta.url);
+  }
+} catch (e) {
+  // ignore if createRequire isn't available for some reason
+}
+
 class DOMSpaceHarvesterAPI {
   constructor(config = {}) {
     this.app = express();
@@ -88,6 +100,19 @@ class DOMSpaceHarvesterAPI {
         .catch(err => {
           console.warn('⚠️ Failed to mount RAG fallback:', err?.message || err);
         });
+
+      // Mount DeepSeek database integration with safety controls
+      import('./api/deepseek-db-routes.js')
+        .then(mod => {
+          const dbRoutes = mod.default || mod;
+          this.app.use('/api/deepseek-db', dbRoutes);
+          console.log(
+            '✅ DeepSeek database API mounted at /api/deepseek-db (read-only, rate-limited)'
+          );
+        })
+        .catch(err => {
+          console.warn('⚠️ Failed to mount DeepSeek database routes:', err?.message || err);
+        });
     } else {
       try {
         const ragRouter = createRagRouter({ db: this.db, logger: console });
@@ -95,6 +120,16 @@ class DOMSpaceHarvesterAPI {
         console.log('✅ RAG routes registered at /api/rag');
       } catch (error) {
         console.error('Failed to initialize RAG routes:', error.message);
+        // Attempt to mount the minimal fallback proxy so the frontend remains functional
+        import('./api/rag-fallback.js')
+          .then(fallbackMod => {
+            const fallback = fallbackMod.default || fallbackMod;
+            this.app.use('/api/rag', fallback);
+            console.log('⚠️ RAG fallback proxy mounted at /api/rag due to initialization error');
+          })
+          .catch(fbErr => {
+            console.warn('⚠️ Failed to mount RAG fallback proxy:', fbErr?.message || fbErr);
+          });
       }
     }
 
@@ -102,6 +137,8 @@ class DOMSpaceHarvesterAPI {
 
     // Real-time crawler system
     this.crawlerSystem = null;
+    // Support multiple crawler instances for horizontal scalability
+    this.activeCrawlerInstances = new Map();
     this.crawlingSessions = new Map();
     this.connectedClients = new Set();
 
@@ -281,7 +318,7 @@ class DOMSpaceHarvesterAPI {
     if (process.env.TEMPLATES_WATCH === 'true' || process.env.WATCH_TEMPLATES === 'true') {
       import('./src/api/routes/templates.routes.js')
         .then(async templatesModule => {
-// ... (rest of the code remains the same)
+          // ... (rest of the code remains the same)
           try {
             const baseDir = path.join(process.cwd(), 'n8n/templates');
             // initial scan
@@ -456,16 +493,42 @@ class DOMSpaceHarvesterAPI {
       try {
         const mod = await importer();
         await onSuccess(mod);
+        return;
       } catch (error) {
+        // Attempt a CommonJS require fallback when ESM import fails (helpful for mixed CJS/ESM files)
+        try {
+          // Try to heuristically extract the module path from the importer function source
+          const fnSrc = importer?.toString() || '';
+          const m = fnSrc.match(/import\((?:'|"|`)(.*?)(?:'|"|`)\)/);
+          if (m && m[1]) {
+            const modulePath = m[1];
+            try {
+              const { createRequire } = await import('module');
+              const require = createRequire(import.meta.url);
+              const modCjs = require(modulePath);
+              await onSuccess(modCjs);
+              return;
+            } catch (reqErr) {
+              // require fallback failed; fall through to logging below
+            }
+          }
+        } catch (parseErr) {
+          // ignore parse errors and continue to normal warning
+        }
+
         console.warn(`⚠️  Skipped ${label}:`, error?.message || error);
       }
     };
 
     // Import and register SEO routes
-    void safeImport('SEO analysis routes', () => import('./src/api/seo-analysis.js'), seoModule => {
-      this.app.use('/api/seo', seoModule.default ?? seoModule);
-      console.log('SEO analysis routes registered');
-    });
+    void safeImport(
+      'SEO analysis routes',
+      () => import('./src/api/seo-analysis.js'),
+      seoModule => {
+        this.app.use('/api/seo', seoModule.default ?? seoModule);
+        console.log('SEO analysis routes registered');
+      }
+    );
 
     // Import and register SEO Training routes
     import('./src/api/seo-training.js')
@@ -527,15 +590,15 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load training data routes:', err);
       });
 
-    // Import and register AI Layout routes
-    import('./api/ai-layout-routes.js')
-      .then(aiModule => {
+    // Import and register AI Layout routes (with CommonJS fallback)
+    void safeImport(
+      'AI layout routes',
+      () => import('./api/ai-layout-routes.js'),
+      aiModule => {
         this.app.use('/api/ai', aiModule.default);
         console.log('AI layout generation routes registered');
-      })
-      .catch(err => {
-        console.error('Failed to load AI layout routes:', err);
-      });
+      }
+    );
 
     // Import and register DeepSeek Chat routes
     import('./src/api/routes/deepseek-chat.routes.js')
@@ -550,16 +613,15 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load DeepSeek chat routes:', err);
       });
 
-    // Import and register Ollama DeepSeek routes
-    import('./api/ollama-deepseek-routes.js')
-      .then(async ollamaModule => {
+    // Import and register Ollama DeepSeek routes (with CommonJS fallback)
+    void safeImport(
+      'Ollama DeepSeek routes',
+      () => import('./api/ollama-deepseek-routes.js'),
+      async ollamaModule => {
         try {
-          // Initialize Ollama services
           if (typeof ollamaModule.initializeOllamaServices === 'function') {
             await ollamaModule.initializeOllamaServices();
           }
-
-          // Mount the routes
           this.app.use('/api/ollama', ollamaModule.default);
           console.log('✅ Ollama DeepSeek routes registered (Bidirectional streaming enabled)');
         } catch (error) {
@@ -567,17 +629,16 @@ class DOMSpaceHarvesterAPI {
           console.warn(
             '   Ollama routes will be available but may not function without Ollama service'
           );
-          // Still mount routes so health checks work
           this.app.use('/api/ollama', ollamaModule.default);
         }
-      })
-      .catch(err => {
-        console.error('Failed to load Ollama routes:', err);
-      });
+      }
+    );
 
-    // Import and register Conversation History routes
-    import('./api/conversation-history-routes.js')
-      .then(historyModule => {
+    // Import and register Conversation History routes (with CommonJS fallback)
+    void safeImport(
+      'Conversation History routes',
+      () => import('./api/conversation-history-routes.js'),
+      historyModule => {
         const historyRouter =
           historyModule.default || historyModule.createConversationHistoryRoutes;
         if (typeof historyRouter === 'function') {
@@ -588,10 +649,8 @@ class DOMSpaceHarvesterAPI {
         console.log(
           '✅ Conversation History routes registered (Knowledge graph & learning enabled)'
         );
-      })
-      .catch(err => {
-        console.error('Failed to load conversation history routes:', err);
-      });
+      }
+    );
 
     import('./src/api/routes/deepseek-chat.routes.js')
       .then(chatModule => {
@@ -994,97 +1053,71 @@ class DOMSpaceHarvesterAPI {
           },
         };
 
-        if (this.crawlerSystem && this.crawlerSystem.isRunning) {
-          return res.status(400).json({
-            error: 'Crawler is already running',
-            sessionId: this.crawlerSystem.sessionId,
+        // support spinning up multiple instances if requested
+        const instanceCount = Math.max(1, parseInt(req.body.instanceCount || '1', 10));
+        const instances = [];
+
+        // simple distribution of concurrency across instances
+        const perInstanceConcurrency = Math.max(
+          1,
+          Math.ceil(config.maxConcurrency / instanceCount)
+        );
+
+        for (let i = 0; i < instanceCount; i++) {
+          const instanceConfig = { ...config, maxConcurrency: perInstanceConcurrency };
+          const crawler = new RealWebCrawlerSystem({
+            ...instanceConfig,
+            onOptimization: async ({ url, analysis, result }) => {
+              try {
+                if (!this.eth) return;
+                const kb = Math.floor((result.spaceSaved || 0) / 1024);
+                if (kb <= 0) return;
+                const mintUnits = Math.min(kb, 10);
+                const to = process.env.REWARD_ADDRESS || this.eth.wallet.address;
+                const amount = ethers.parseUnits(String(mintUnits), 18);
+                const tx = await this.eth.token.mint(to, amount);
+                console.log('⛓️ Minted on optimization:', mintUnits, 'DSH tx', tx.hash);
+              } catch (e) {
+                console.log('⚠️ onOptimization mint failed:', e.message);
+              }
+            },
           });
+
+          try {
+            await crawler.initialize();
+            const sessionId = `session_${Date.now()}_${i}`;
+            this.activeCrawlerInstances.set(sessionId, crawler);
+            this.crawlingSessions.set(sessionId, {
+              startTime: new Date(),
+              config: instanceConfig,
+              status: 'running',
+            });
+
+            // start crawling asynchronously
+            crawler.startCrawling().catch(error => {
+              console.error('Crawling error (instance):', error);
+              this.io.emit('crawler_error', { error: error.message, sessionId });
+              const s = this.crawlingSessions.get(sessionId);
+              if (s) s.status = 'error';
+            });
+
+            instances.push(sessionId);
+          } catch (initErr) {
+            console.error('Failed to initialize crawler instance:', initErr.message || initErr);
+          }
         }
 
-        this.crawlerSystem = new RealWebCrawlerSystem({
-          ...config,
-          onOptimization: async ({ url, analysis, result }) => {
-            try {
-              if (!this.eth) return;
-              const kb = Math.floor((result.spaceSaved || 0) / 1024);
-              if (kb <= 0) return;
-              // simple throttle: only mint up to 10 DSH per single optimization
-              const mintUnits = Math.min(kb, 10);
-              const to = process.env.REWARD_ADDRESS || this.eth.wallet.address;
-              const amount = ethers.parseUnits(String(mintUnits), 18);
-              const tx = await this.eth.token.mint(to, amount);
-              console.log('⛓️ Minted on optimization:', mintUnits, 'DSH tx', tx.hash);
-
-              // Save optimization proof to registry if available
-              if (this.eth.registry) {
-                try {
-                  const beforeHash =
-                    '0x' + (result.optimizations?.beforeHash || '').replace(/^0x/, '');
-                  const afterHash =
-                    '0x' + (result.optimizations?.afterHash || '').replace(/^0x/, '');
-                  const urlHash = ethers.keccak256(ethers.toUtf8Bytes(url));
-                  const saveTx = await this.eth.registry.recordOptimization(
-                    urlHash,
-                    beforeHash || ethers.ZeroHash,
-                    afterHash || ethers.ZeroHash,
-                    BigInt(result.spaceSaved || 0),
-                    url
-                  );
-                  console.log('📝 Registry tx:', saveTx.hash);
-                  // Persist locally
-                  try {
-                    await this.db.query(
-                      `INSERT INTO optimization_proofs (url, domain, before_hash, after_hash, space_saved_bytes, tx_hash, on_chain)
-                       VALUES ($1,$2,$3,$4,$5,$6,true)`,
-                      [
-                        url,
-                        new URL(url).hostname,
-                        beforeHash,
-                        afterHash,
-                        result.spaceSaved || 0,
-                        saveTx.hash,
-                      ]
-                    );
-                  } catch (e) {}
-                } catch (e) {
-                  console.log('⚠️ Registry save failed:', e.message);
-                  // Persist locally even if chain save failed
-                  try {
-                    await this.db.query(
-                      `INSERT INTO optimization_proofs (url, domain, before_hash, after_hash, space_saved_bytes, on_chain)
-                       VALUES ($1,$2,$3,$4,$5,false)`,
-                      [url, new URL(url).hostname, null, null, result.spaceSaved || 0]
-                    );
-                  } catch (_) {}
-                }
-              }
-            } catch (e) {
-              console.log('⚠️ onOptimization mint failed:', e.message);
-            }
-          },
-        });
-        await this.crawlerSystem.initialize();
-
-        // Start crawling in background
-        const sessionId = `session_${Date.now()}`;
-        this.crawlingSessions.set(sessionId, {
-          startTime: new Date(),
-          config,
-          status: 'running',
-        });
-
-        this.crawlerSystem.startCrawling().catch(error => {
-          console.error('Crawling error:', error);
-          this.io.emit('crawler_error', { error: error.message });
-        });
+        if (instances.length === 0) {
+          return res.status(500).json({ error: 'Failed to start any crawler instances' });
+        }
 
         // Emit start event to all connected clients
-        this.io.emit('crawler_started', { sessionId, config });
+        this.io.emit('crawler_started', { sessionIds: instances, config });
 
         res.json({
           success: true,
-          sessionId,
-          message: 'Crawler started successfully',
+          sessionIds: instances,
+          message: 'Crawler instances started successfully',
         });
       } catch (error) {
         console.error('Failed to start crawler:', error);
@@ -1447,8 +1480,10 @@ class DOMSpaceHarvesterAPI {
                 mode: 'subscription',
                 line_items: [{ price: priceId, quantity: 1 }],
                 customer_email: customerEmail,
-                success_url: (process.env.FRONTEND_URL || 'http://localhost:3000') + '/billing/success',
-                cancel_url: (process.env.FRONTEND_URL || 'http://localhost:3000') + '/billing/cancel',
+                success_url:
+                  (process.env.FRONTEND_URL || 'http://localhost:3000') + '/billing/success',
+                cancel_url:
+                  (process.env.FRONTEND_URL || 'http://localhost:3000') + '/billing/cancel',
               });
               res.json({ url: session.url });
             } catch (e) {
@@ -5637,6 +5672,110 @@ class DOMSpaceHarvesterAPI {
         if (this.blockchainEnabled) {
           console.log(`⛓️  Blockchain: ${this.provider ? 'Connected' : 'Disabled'}`);
         }
+
+        // Auto-start default seeding and mining instances if configured
+        (async () => {
+          try {
+            const fs = await import('fs/promises');
+            const url = `${process.env.API_BASE || `http://localhost:${chosenPort}`}`;
+            const axiosModule = await import('axios');
+            const axios = axiosModule.default || axiosModule;
+            const cfgPath =
+              process.env.DATA_MINING_CONFIG || `${process.cwd()}/config/data-mining-config.json`;
+
+            // Small helper to retry HTTP calls
+            const wait = ms => new Promise(r => setTimeout(r, ms));
+            let raw = null;
+            try {
+              raw = await fs.readFile(cfgPath, 'utf-8');
+            } catch (err) {
+              // No config -> nothing to auto-start
+              return;
+            }
+
+            const cfg = JSON.parse(raw || '{}');
+            const mining = cfg.miningInstances || {};
+            const entries = Object.entries(mining || {});
+
+            for (const [instanceKey, inst] of entries) {
+              try {
+                if (!inst || !inst.enableAutoSeeding) continue;
+
+                const instanceId = inst.instanceId || instanceKey;
+                const configPayload = {
+                  instanceId,
+                  name: inst.name || `auto_${instanceId}`,
+                  description:
+                    inst.description || `Auto-started seeding instance from config: ${instanceId}`,
+                  clientId: inst.clientId || null,
+                  campaignId: inst.campaignId || null,
+                  seeds: inst.seedUrls || inst.seeds || [],
+                  maxSeedsPerInstance:
+                    inst.maxSeedsPerInstance ||
+                    (cfg.urlSeeding && cfg.urlSeeding.maxSeedsPerInstance) ||
+                    10000,
+                  seedRefreshInterval:
+                    inst.seedRefreshInterval ||
+                    (cfg.urlSeeding && cfg.urlSeeding.seedRefreshInterval) ||
+                    3600000,
+                  searchDepth:
+                    inst.searchDepth || (cfg.urlSeeding && cfg.urlSeeding.searchDepth) || 3,
+                  minBacklinkQuality:
+                    inst.minBacklinkQuality ||
+                    (cfg.urlSeeding && cfg.urlSeeding.minBacklinkQuality) ||
+                    0.5,
+                  enableSearchAlgorithms:
+                    inst.enableSearchAlgorithms !== undefined
+                      ? inst.enableSearchAlgorithms
+                      : cfg.urlSeeding && cfg.urlSeeding.enableSearchAlgorithms,
+                  enableRelatedURLDiscovery:
+                    inst.enableRelatedURLDiscovery !== undefined
+                      ? inst.enableRelatedURLDiscovery
+                      : cfg.urlSeeding && cfg.urlSeeding.enableRelatedURLDiscovery,
+                  enableBacklinkGeneration:
+                    inst.enableBacklinkGeneration !== undefined
+                      ? inst.enableBacklinkGeneration
+                      : cfg.urlSeeding && cfg.urlSeeding.enableBacklinkGeneration,
+                };
+
+                // Create configuration (retry a few times since routes may be initializing)
+                let created = false;
+                for (let attempt = 0; attempt < 4 && !created; attempt++) {
+                  try {
+                    await axios.post(`${url}/api/seeding/config`, configPayload, {
+                      timeout: 10000,
+                    });
+                    created = true;
+                  } catch (err) {
+                    // If route not ready, wait and retry
+                    await wait(800 * (attempt + 1));
+                  }
+                }
+
+                // Start instance (best-effort)
+                for (let attempt = 0; attempt < 3; attempt++) {
+                  try {
+                    await axios.post(
+                      `${url}/api/seeding/start/${instanceId}`,
+                      {},
+                      { timeout: 10000 }
+                    );
+                    console.log(`🌱 Auto-started seeding instance: ${instanceId}`);
+                    break;
+                  } catch (err) {
+                    await wait(500 * (attempt + 1));
+                  }
+                }
+              } catch (err) {
+                console.warn('Auto-start instance failed for', instanceKey, err?.message || err);
+                continue;
+              }
+            }
+          } catch (err) {
+            // Non-fatal
+            console.warn('Auto-start seeding integration skipped:', err?.message || err);
+          }
+        })();
       });
     } catch (error) {
       console.error('❌ Failed to start server:', error);
@@ -5727,8 +5866,6 @@ class DOMSpaceHarvesterAPI {
 
     console.log('✅ Server shutdown complete');
   }
-
-  
 
   setupBlockchainRoutes() {
     // =====================================================
@@ -7276,6 +7413,21 @@ class DOMSpaceHarvesterAPI {
 
     // Add the blockchain mining routes from api-mining-routes.js
     addMiningRoutes(this.app, { miningSystem: this.miningSystem });
+
+    // Mount mining job submission & management routes (commerce bridge jobs)
+    void import('./api/routes/mining-jobs.routes.js')
+      .then(module => {
+        const createRoutes = module.default || module;
+        try {
+          this.app.use('/api/mining-jobs', createRoutes(this.db));
+          console.log('✅ Mining jobs routes registered at /api/mining-jobs');
+        } catch (e) {
+          console.warn('Failed to mount mining-jobs routes:', e?.message || e);
+        }
+      })
+      .catch(err => {
+        console.warn('Mining jobs routes not available:', err?.message || err);
+      });
 
     // Start mining session
     this.app.post('/api/mining/start', this.authenticateToken.bind(this), async (req, res) => {
@@ -10336,4 +10488,3 @@ if (isDirectExecution) {
 }
 
 export { DOMSpaceHarvesterAPI };
-

@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1762877825526,
+    "model": "deepseek-r1",
+    "prompt": "Summarize X",
+    "response": "ok",
+    "tokens": 42,
+    "metadata": null,
+    "createdAt": "2025-11-11T16:17:05.526Z"
+  }
+]

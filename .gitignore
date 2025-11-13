@@ -475,11 +475,13 @@ ehthumbs.db
 # Editor directories and files
 .vscode/
 .idea/
+.venv
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
 
 # =============================================================================
 # LIGHTDOM PROJECT CLEANUP (2025-10-22)

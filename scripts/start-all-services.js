@@ -57,59 +57,7 @@ if (!baseEnv.PORT) {
   baseEnv.PORT = '3001';
 }
 
-const services = [
-  {
-    id: 'ollama',
-    label: 'Ollama Serve',
-    command: ollamaCmd,
-    args: ['serve'],
-    cwd: ROOT_DIR,
-    optional: true,
-  },
-  {
-    id: 'deepseek',
-    label: 'DeepSeek Orchestration',
-    command: 'node',
-    args: ['scripts/start-deepseek-service.js'],
-    cwd: ROOT_DIR,
-  },
-  {
-    id: 'ocr',
-    label: 'OCR Worker',
-    command: 'node',
-    args: ['scripts/run-ocr-worker.js'],
-    cwd: ROOT_DIR,
-    optional: true,
-  },
-  {
-    id: 'api',
-    label: 'API Server',
-    command: npmCmd,
-    args: ['run', 'api'],
-    cwd: ROOT_DIR,
-  },
-  {
-    id: 'crawler',
-    label: 'Crawler Service',
-    command: 'node',
-    args: ['scripts/start-crawler-service.js'],
-    cwd: ROOT_DIR,
-  },
-  {
-    id: 'frontend',
-    label: 'Frontend (Vite)',
-    command: npmCmd,
-    args: ['run', 'dev'],
-    cwd: FRONTEND_DIR,
-  },
-  {
-    id: 'seeder',
-    label: 'Seeder Demo',
-    command: npmCmd,
-    args: ['run', 'seeding:demo'],
-    cwd: ROOT_DIR,
-  },
-];
+import services from './services-config.js';
 
 const processes = new Map();
 let shuttingDown = false;
