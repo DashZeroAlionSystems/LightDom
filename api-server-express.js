@@ -931,6 +931,21 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.error('Failed to load DeepSeek chat routes:', err);
+      });
+
+    // Import and register Storybook Mining routes
+    import('./api/storybook-mining-routes.js')
+      .then(storybookModule => {
+        const createRoutes = storybookModule.default || storybookModule.createStorybookMiningRoutes;
+        if (typeof createRoutes === 'function') {
+          this.app.use('/api/storybook-mining', createRoutes({ db: this.db }));
+        } else {
+          this.app.use('/api/storybook-mining', storybookModule.default);
+        }
+        console.log('✅ Storybook Mining routes registered (Component extraction, story generation enabled)');
+      })
+      .catch(err => {
+        console.error('Failed to load Storybook mining routes:', err);
       })
       .catch(err => {
         console.error('Failed to load agent management routes:', err);

@@ -45,6 +45,9 @@ class CompleteSystemStarter {
       await this.sleep(2000);
       
       await this.startBlockchainRunner();
+      await this.sleep(2000);
+      
+      await this.startStorybook();
       
       console.log('\n✅ All services started successfully!');
       console.log('🌐 Frontend: http://localhost:3000');
@@ -53,6 +56,7 @@ class CompleteSystemStarter {
       console.log('⛓️  Blockchain: Running in background');
       console.log('🧠 Ollama DeepSeek: http://localhost:11434');
       console.log('🔧 MCP Server: http://localhost:3100');
+      console.log('📖 Storybook: http://localhost:6006');
       console.log('\nPress Ctrl+C to stop all services');
       
       // Keep the process alive
@@ -330,6 +334,59 @@ class CompleteSystemStarter {
     // Blockchain is optional and can be started separately
     // This allows the complete system to run without requiring blockchain services
     return Promise.resolve();
+  }
+
+  async startStorybook() {
+    console.log('📖 Starting Storybook...');
+    
+    const storybookProcess = spawn('npm', ['run', 'storybook'], {
+      cwd: __dirname,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { 
+        ...process.env,
+        BROWSER: 'none' // Don't auto-open browser
+      }
+    });
+
+    this.processes.set('storybook', storybookProcess);
+
+    return new Promise((resolve) => {
+      let resolved = false;
+      
+      storybookProcess.stdout.on('data', (data) => {
+        const output = data.toString();
+        console.log(`[Storybook] ${output.trim()}`);
+        
+        if (!resolved && (output.includes('Storybook') && output.includes('started'))) {
+          resolved = true;
+          resolve();
+        }
+      });
+
+      storybookProcess.stderr.on('data', (data) => {
+        const error = data.toString().trim();
+        // Storybook outputs a lot to stderr, only log errors
+        if (!error.includes('info') && !error.includes('WARN')) {
+          console.error(`[Storybook Error] ${error}`);
+        }
+      });
+
+      storybookProcess.on('error', (error) => {
+        if (!resolved) {
+          resolved = true;
+          console.log('⚠️ Storybook failed to start:', error.message);
+          resolve(); // Don't fail the whole startup
+        }
+      });
+
+      // Timeout after 60 seconds (Storybook can take a while to build)
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          resolve(); // Continue even if Storybook doesn't start
+        }
+      }, 60000);
+    });
   }
 
   async keepAlive() {
