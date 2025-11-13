@@ -8,6 +8,42 @@ This is a blockchain-based DOM optimization platform that includes:
 - Web crawler and optimization engine
 - PostgreSQL database integration
 
+## 🚨 CRITICAL RULE: ALWAYS REVIEW EXISTING CODE FIRST
+
+**BEFORE writing any new code, you MUST:**
+
+1. **Search the codebase** for similar functionality:
+   ```bash
+   grep -r "relevant.*keyword" services/
+   find . -name "*relevant*" -type f
+   ```
+
+2. **Review existing services** in these directories:
+   - `services/` - 100+ service files
+   - `api/` - API route handlers
+   - `src/services/` - TypeScript services
+   - `scripts/` - Automation scripts
+
+3. **Check for disconnected code** that might already solve the problem
+
+4. **Look at related documentation** in:
+   - `docs/` - Comprehensive documentation
+   - `*.md` files - Feature-specific docs
+   - Code comments and JSDoc
+
+5. **Only write new code if:**
+   - No existing solution found after thorough search
+   - Existing code is too different to adapt
+   - Creating a truly new feature
+
+**Rationale**: We have substantial existing code (~100+ services, 200+ files) that may not be fully connected. Reusing and connecting existing code is faster, more maintainable, and prevents duplication.
+
+**Examples of what to search for:**
+- Creating SEO extractor? → Search for "seo", "attribute", "extract"
+- Adding animation mining? → Search for "animation", "styleguide", "mine"
+- New TensorFlow model? → Search for "tensorflow", "model", "train"
+- Database operations? → Search for "db", "query", "pool"
+
 ## Code Quality Standards
 
 ### TypeScript/JavaScript
