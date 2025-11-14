@@ -798,6 +798,21 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load data mining orchestration routes:', err);
       });
 
+    // Import and register Category Instance routes
+    import('./services/category-instance-routes.js')
+      .then(categoryModule => {
+        const createCategoryInstanceRoutes = categoryModule.default || categoryModule.createCategoryInstanceRoutes;
+        if (typeof createCategoryInstanceRoutes === 'function') {
+          this.app.use('/api/categories', createCategoryInstanceRoutes(this.db));
+        } else {
+          this.app.use('/api/categories', createCategoryInstanceRoutes);
+        }
+        console.log('✅ Category Instance routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load category instance routes:', err);
+      });
+
     // Import and register Onboarding routes
     import('./api/onboarding-routes.js')
       .then(onboardingModule => {
