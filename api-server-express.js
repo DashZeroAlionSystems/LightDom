@@ -798,20 +798,44 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load data mining orchestration routes:', err);
       });
 
-    // Import and register Category Instance routes
-    import('./services/category-instance-routes.js')
-      .then(categoryModule => {
-        const createCategoryInstanceRoutes = categoryModule.default || categoryModule.createCategoryInstanceRoutes;
-        if (typeof createCategoryInstanceRoutes === 'function') {
-          this.app.use('/api/categories', createCategoryInstanceRoutes(this.db));
-        } else {
-          this.app.use('/api/categories', createCategoryInstanceRoutes);
-        }
-        console.log('✅ Category Instance routes registered');
-      })
-      .catch(err => {
-        console.error('Failed to load category instance routes:', err);
-      });
+    // Import and register Category CRUD Auto-Generator (Dynamic API generation)
+    if (!this.dbDisabled) {
+      import('./services/category-crud-auto-generator.js')
+        .then(async crudModule => {
+          try {
+            const CategoryCrudAutoGenerator = crudModule.default || crudModule.CategoryCrudAutoGenerator;
+            const crudGenerator = new CategoryCrudAutoGenerator(this.db);
+            
+            // Store reference for later use
+            this.categoryCrudGenerator = crudGenerator;
+            
+            // Scan and generate APIs for all categories
+            await crudGenerator.scanAndGenerateAPIs();
+            
+            // Mount generated routes
+            crudGenerator.mountRoutes(this.app);
+            
+            // Import and register Category Management routes
+            return import('./api/category-management-routes.js');
+          } catch (error) {
+            console.error('Error initializing Category CRUD Auto-Generator:', error);
+            throw error;
+          }
+        })
+        .then(mgmtModule => {
+          const createCategoryManagementRoutes = mgmtModule.default || mgmtModule.createCategoryManagementRoutes;
+          if (typeof createCategoryManagementRoutes === 'function') {
+            this.app.use('/api/category-management', createCategoryManagementRoutes(this.db, this.categoryCrudGenerator));
+            console.log('✅ Category Management & Auto-CRUD Generator registered');
+            console.log('   📊 Auto-generated CRUD APIs available for all categories');
+            console.log('   📍 Category management: /api/category-management');
+            console.log('   📄 Category API docs: /api-docs/categories.json');
+          }
+        })
+        .catch(err => {
+          console.error('Failed to load Category CRUD Auto-Generator:', err);
+        });
+    }
 
     // Import and register Onboarding routes
     import('./api/onboarding-routes.js')
@@ -10449,6 +10473,15 @@ class DOMSpaceHarvesterAPI {
     // Initialize blockchain if enabled
     if (this.blockchainEnabled) {
       await this.initializeBlockchain();
+    }
+
+    // Setup Swagger documentation with category API integration
+    try {
+      const setupSwagger = (await import('./src/config/swagger.js')).default;
+      setupSwagger(this.app, this.categoryCrudGenerator);
+      console.log('✅ Swagger documentation initialized with auto-generated category APIs');
+    } catch (error) {
+      console.error('⚠️  Failed to setup Swagger documentation:', error.message);
     }
 
     console.log('✅ Server initialization complete');
