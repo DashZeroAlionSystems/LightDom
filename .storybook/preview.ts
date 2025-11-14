@@ -22,13 +22,6 @@ const preview: Preview = {
         },
       ],
     },
-    docs: {
-      theme: {
-        base: 'dark',
-        brandTitle: 'LightDom Design System',
-        brandUrl: 'https://lightdom.app',
-      },
-    },
     layout: 'centered',
     actions: { argTypesRegex: '^on[A-Z].*' },
   },
