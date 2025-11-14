@@ -45,6 +45,8 @@ import {
   EditOutlined,
   DollarOutlined,
   RobotOutlined,
+  DeploymentUnitOutlined,
+  FolderOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../../hooks/state/useAuth';
 import './AdminLayout.css';
@@ -120,6 +122,11 @@ const AdminLayout: React.FC = () => {
       key: '/admin/settings',
       icon: <SettingOutlined />,
       label: 'Settings',
+    },
+    {
+      key: '/admin/category-management',
+      icon: <FolderOutlined />,
+      label: 'Category Management',
     },
   ], []);
 
