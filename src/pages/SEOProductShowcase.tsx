@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import anime from 'animejs';
 import { 
   RocketOutlined, 
@@ -9,12 +9,10 @@ import {
   StarOutlined,
   TrophyOutlined,
   LinkOutlined,
-  CodeOutlined,
-  DashboardOutlined,
   BulbOutlined,
   LineChartOutlined
 } from '@ant-design/icons';
-import { Button, Card, Row, Col, Statistic, Badge, Tabs } from 'antd';
+import { Button, Card, Row, Col, Statistic, Badge } from 'antd';
 
 /**
  * SEO Product Showcase Page
@@ -30,7 +28,6 @@ import { Button, Card, Row, Col, Statistic, Badge, Tabs } from 'antd';
 export const SEOProductShowcase: React.FC = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
-  const [activeFeature, setActiveFeature] = useState(0);
 
   useEffect(() => {
     // Hero animation on mount
