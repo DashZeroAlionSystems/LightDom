@@ -9,8 +9,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      devOptions: {
+        enabled: false, // Disable service worker in development
+      },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        navigateFallback: null, // Disable navigation fallback to prevent fetch errors
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\./,
@@ -27,11 +31,11 @@ export default defineConfig({
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Decentralized Storage Platform',
-        short_name: 'Storage Platform',
-        description: 'A decentralized storage platform similar to Sia.tech',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        name: 'LightDom - DOM Space Harvester',
+        short_name: 'LightDom',
+        description: 'Blockchain-based DOM optimization platform with AI data mining',
+        theme_color: '#5865f2',
+        background_color: '#1c1c23',
         display: 'standalone',
         icons: [
           {

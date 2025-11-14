@@ -78,7 +78,7 @@ router.get('/workflows', async (req, res) => {
   try {
     const { limit = 50, status } = req.query;
     
-    let workflows = orchestrator.getWorkflowHistory(parseInt(limit as string));
+    let workflows = orchestrator.getWorkflowHistory(parseInt(limit));
     
     if (status) {
       workflows = workflows.filter(w => w.status === status);

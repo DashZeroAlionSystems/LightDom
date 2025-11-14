@@ -306,9 +306,20 @@ export const PromptInput: React.FC<PromptInputProps> = ({
 
       {/* Slash command dropdown */}
       {showSlashDropdown && filteredSlashCommands.length > 0 && (
-        <div className='absolute bottom-full left-0 right-0 mb-2 bg-surface-container-high border border-outline/40 rounded-2xl shadow-lg shadow-primary/10 max-h-64 overflow-y-auto z-50'>
+        <div 
+          className='absolute bottom-full left-0 right-0 mb-2 rounded-2xl shadow-lg max-h-64 overflow-y-auto z-50'
+          style={{
+            backgroundColor: 'var(--command-palette-bg, rgba(28, 28, 35, 0.98))',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid var(--command-palette-border, rgba(255, 255, 255, 0.1))',
+            boxShadow: '0 8px 32px var(--command-palette-shadow, rgba(0, 0, 0, 0.5))',
+          }}
+        >
           <div className='p-2'>
-            <div className='text-xs font-semibold text-on-surface-variant/70 uppercase tracking-wide mb-2 px-2'>
+            <div 
+              className='text-xs font-semibold uppercase tracking-wide mb-2 px-2'
+              style={{ color: 'var(--command-palette-header, rgba(255, 255, 255, 0.5))' }}
+            >
               Available Commands{' '}
               {filteredSlashCommands.length < slashCommands.length &&
                 `(${filteredSlashCommands.length} of ${slashCommands.length})`}
@@ -325,12 +336,21 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                 className={cn(
                   'w-full text-left px-3 py-2 rounded-xl text-sm transition-colors duration-150',
                   index === selectedCommandIndex
-                    ? 'bg-primary/10 text-primary'
-                    : 'hover:bg-surface-container-low text-on-surface-variant'
+                    ? 'bg-primary/20 text-primary font-medium'
+                    : 'hover:bg-white/5 text-on-surface'
                 )}
+                style={
+                  index === selectedCommandIndex
+                    ? { backgroundColor: 'var(--command-palette-selected, rgba(88, 101, 242, 0.2))' }
+                    : undefined
+                }
               >
                 <div className='font-medium'>{cmd.command}</div>
-                <div className='text-xs text-on-surface-variant/70 mt-1'>{cmd.description}</div>
+                <div 
+                  className='text-xs mt-1'
+                  style={{ color: 'var(--command-palette-description, rgba(255, 255, 255, 0.6))' }}
+                >
+                  {cmd.description}</div>
               </button>
             ))}
           </div>

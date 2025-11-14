@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'react-hot-toast';
@@ -10,6 +10,9 @@ import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-d
 import { ErrorFallback } from '@/components/ErrorFallback';
 import { Layout } from '@/components/Layout';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+
+// Theme configuration
+import { applyCommandPaletteTheme, loadCommandPaletteTheme } from '@/config/command-palette-theme';
 
 // Pages
 import { PromptConsolePage } from '@/pages/PromptConsolePage';
@@ -88,6 +91,12 @@ const ErrorFallbackComponent: React.FC<{ error: Error; resetErrorBoundary: () =>
 }) => <ErrorFallback error={error} resetErrorBoundary={resetErrorBoundary} />;
 
 const App: React.FC = () => {
+  // Initialize command palette theme on app load
+  useEffect(() => {
+    const savedTheme = loadCommandPaletteTheme();
+    applyCommandPaletteTheme(savedTheme);
+  }, []);
+
   return (
     <ErrorBoundary FallbackComponent={ErrorFallbackComponent}>
       <HelmetProvider>

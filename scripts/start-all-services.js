@@ -30,7 +30,7 @@ if (!baseEnv.DEEPSEEK_API_URL) {
 }
 
 if (!baseEnv.DEEPSEEK_MODEL) {
-  baseEnv.DEEPSEEK_MODEL = 'deepseek-r1:latest';
+  baseEnv.DEEPSEEK_MODEL = 'deepseek-coder';
 }
 
 if (!baseEnv.RAG_EMBED_PROVIDER) {
