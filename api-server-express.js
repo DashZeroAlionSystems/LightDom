@@ -834,6 +834,22 @@ class DOMSpaceHarvesterAPI {
         })
         .catch(err => {
           console.error('Failed to load Category CRUD Auto-Generator:', err);
+          console.log('⚠️  Loading mock category management routes for demo purposes...');
+          
+          // Fallback to mock routes when DB is not available
+          import('./api/category-management-mock-routes.js')
+            .then(mockModule => {
+              const createMockRoutes = mockModule.default || mockModule.createCategoryManagementRoutesMock;
+              if (typeof createMockRoutes === 'function') {
+                this.app.use('/api/category-management', createMockRoutes());
+                console.log('✅ Category Management routes registered (MOCK MODE - no database required)');
+                console.log('   📍 Category management: /api/category-management');
+                console.log('   ⚠️  Using in-memory mock data for demonstration');
+              }
+            })
+            .catch(mockErr => {
+              console.error('Failed to load mock routes:', mockErr);
+            });
         });
     }
 
