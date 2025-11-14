@@ -682,6 +682,16 @@ class DOMSpaceHarvesterAPI {
     // Admin navigation routes (DB-driven sidebar metadata)
     this.app.use('/api/admin', createAdminNavigationRoutes(this.db));
 
+    // N8N Workflow Management Routes
+    import('./api/n8n-workflow-routes.js')
+      .then(n8nModule => {
+        this.app.use('/api/n8n', n8nModule.default);
+        console.log('✅ N8N workflow routes registered at /api/n8n');
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to load N8N workflow routes:', err.message);
+      });
+
     // Import and register Embeddings routes (pgvector)
     import('./src/api/routes/embeddings.routes.js')
       .then(embModule => {

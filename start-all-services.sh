@@ -54,6 +54,8 @@ echo "🧹 Cleaning up existing processes..."
 kill_port 3001 # API Server
 kill_port 3000 # Frontend
 kill_port 11434 # Ollama
+kill_port 5678 # n8n
+kill_port 8090 # MCP Server
 pkill -f "node.*simple-api-server" || true
 pkill -f "electron" || true
 pkill -f "ollama serve" || true
@@ -112,6 +114,28 @@ if command -v ollama &> /dev/null; then
   fi
 fi
 
+# Start n8n (via docker-compose)
+echo "🔄 Starting n8n Workflow Engine..."
+if command -v docker-compose &> /dev/null || command -v docker &> /dev/null; then
+  docker-compose up -d n8n > /tmp/n8n.log 2>&1 || docker compose up -d n8n > /tmp/n8n.log 2>&1
+  echo "✅ n8n starting (Docker)..."
+  
+  # Wait for n8n to be ready
+  if wait_for_http "n8n" "http://localhost:5678/healthz" 30; then
+    echo "✅ n8n is ready"
+  else
+    echo "⚠️  n8n may not be fully ready yet"
+  fi
+else
+  echo "⚠️  Docker not found. Skipping n8n startup."
+fi
+
+# Start MCP Server for n8n
+echo "🔗 Starting MCP Server..."
+nohup node services/n8n-mcp-server-start.js > /tmp/mcp-server.log 2>&1 &
+MCP_PID=$!
+echo "✅ MCP Server starting (PID: $MCP_PID)..."
+
 # Start Frontend
 echo "🌐 Starting Frontend..."
 nohup npm run dev > /tmp/frontend.log 2>&1 &
@@ -145,12 +169,15 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "🌐 Frontend: http://localhost:3000"
 echo "🔌 API: http://localhost:3001"
 echo "🦾 Ollama: http://localhost:11434 (if installed)"
+echo "🔄 n8n: http://localhost:5678 (admin/lightdom_n8n_password)"
+echo "🔗 MCP Server: http://localhost:8090/mcp"
 echo "🖥️  Electron: Desktop app should open"
 echo ""
 echo "📋 Process IDs:"
 echo "   API Server: $API_PID"
 echo "   Frontend: $FRONTEND_PID"
 echo "   Electron: $ELECTRON_PID"
+echo "   MCP Server: $MCP_PID"
 if [ ! -z "$OLLAMA_PID" ]; then
   echo "   Ollama: $OLLAMA_PID"
 fi
@@ -159,6 +186,8 @@ echo "📝 Logs:"
 echo "   API: /tmp/api-server.log"
 echo "   Frontend: /tmp/frontend.log"
 echo "   Electron: /tmp/electron.log"
+echo "   n8n: /tmp/n8n.log"
+echo "   MCP: /tmp/mcp-server.log"
 if command -v ollama &> /dev/null; then
   echo "   Ollama: /tmp/ollama.log"
 fi
@@ -189,6 +218,17 @@ cleanup() {
   if [ ! -z "$OLLAMA_PID" ]; then
     kill $OLLAMA_PID 2>/dev/null || true
     echo "✅ Ollama stopped"
+  fi
+  
+  if [ ! -z "$MCP_PID" ]; then
+    kill $MCP_PID 2>/dev/null || true
+    echo "✅ MCP Server stopped"
+  fi
+  
+  # Stop n8n docker container
+  if command -v docker-compose &> /dev/null || command -v docker &> /dev/null; then
+    docker-compose stop n8n 2>/dev/null || docker compose stop n8n 2>/dev/null
+    echo "✅ n8n stopped"
   fi
   
   echo "✅ All services stopped"
