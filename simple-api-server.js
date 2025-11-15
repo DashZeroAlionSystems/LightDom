@@ -373,6 +373,66 @@ app.get('/api/db/health', async (req, res) => {
   }
 });
 
+// RAG chat streaming endpoint
+app.post('/api/rag/chat/stream', async (req, res) => {
+  try {
+    const { messages } = req.body || {};
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ success: false, error: 'messages array is required' });
+    }
+
+    const endpoint =
+      process.env.OLLAMA_BASE_URL || process.env.OLLAMA_ENDPOINT || 'http://127.0.0.1:11500';
+    const prompt = messages.map(m => `${m.role || 'user'}: ${m.content || ''}`).join('\n');
+
+    const r = await fetch(`${endpoint}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: process.env.OLLAMA_MODEL || process.env.DEEPSEEK_MODEL || 'deepseek-coder',
+        prompt,
+        stream: false,
+        options: { temperature: 0.2 },
+      }),
+    });
+
+    if (!r.ok) {
+      const text = await r.text();
+      return res
+        .status(502)
+        .json({
+          success: false,
+          error: 'Ollama generate returned non-OK',
+          status: r.status,
+          details: text,
+        });
+    }
+
+    const json = await r.json();
+    const responseText = json.response || (typeof json === 'string' ? json : JSON.stringify(json));
+
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    if (typeof res.flushHeaders === 'function') res.flushHeaders();
+
+    res.write(`data: ${JSON.stringify({ type: 'status', message: 'processing' })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'content', content: responseText })}\n\n`);
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (err) {
+    console.error('[simple-api-server] RAG chat stream failed:', err.message);
+    return res
+      .status(503)
+      .json({
+        success: false,
+        error: 'Unable to reach the RAG chat service. Ensure Ollama and the backend are running.',
+        hint: 'Start Ollama with `ollama serve` and/or ensure OLLAMA_BASE_URL is correct',
+        details: err.message,
+      });
+  }
+});
+
 // DeepSeek streaming chat proxy
 app.post('/api/deepseek/chat', async (req, res) => {
   try {
