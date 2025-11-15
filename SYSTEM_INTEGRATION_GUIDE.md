@@ -43,12 +43,13 @@ This guide explains how all LightDom components work together and provides clear
 
 ## 🚀 Quick Start Options
 
-### Option 1: Minimal Development Mode (Recommended for Quick Start)
+### Option 1: Development Without Database
 
-**Best for**: Quick testing, frontend development, API testing without database
+**Best for**: Quick testing, frontend development, API testing without PostgreSQL
 
 ```bash
-# Start with database disabled (uses mock data)
+# Set DB_DISABLED=true in .env to use mock data
+# Then start the system
 npm run start:integrated
 
 # This starts:
@@ -91,11 +92,10 @@ npm run db:migrate
 
 **Start the system**:
 ```bash
-# 1. Enable database in .env
-# Change: DB_DISABLED=true
-# To: DB_DISABLED=false
+# Note: Database is enabled by default in .env
+# If you don't have PostgreSQL, set DB_DISABLED=true in .env
 
-# 2. Start the integrated system
+# Start the integrated system
 npm run start:integrated
 ```
 
@@ -295,7 +295,7 @@ ollama serve
 ```bash
 # Database
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/dom_space_harvester
-DB_DISABLED=true              # Set to false for full database features
+DB_DISABLED=false             # Set to true to disable database (use mock data)
 
 # API Server
 PORT=3001
@@ -435,10 +435,10 @@ test -f .env || cp .env.example .env
 
 **Solution**:
 ```bash
-# For development, disable database
+# Option 1: For development without PostgreSQL, disable database
 # In .env: DB_DISABLED=true
 
-# Or start PostgreSQL
+# Option 2: Or start PostgreSQL
 docker-compose up -d postgres
 
 # Or use local PostgreSQL

@@ -35,7 +35,7 @@ open http://localhost:3000
 
 ## 🔧 Development Mode Features
 
-With `DB_DISABLED=true` (default in .env):
+For development without database, set `DB_DISABLED=true` in .env:
 - Category management with in-memory data
 - Workflow system
 - Template management
@@ -45,21 +45,17 @@ With `DB_DISABLED=true` (default in .env):
 
 ## 🚀 Enable Full Features (Optional)
 
-### 1. Enable Database
+### 1. Disable Database (for development without PostgreSQL)
 
 ```bash
-# Start PostgreSQL with Docker
-docker run -d --name lightdom-postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=dom_space_harvester \
-  -p 5432:5432 postgres:13
-
-# Update .env
-sed -i 's/DB_DISABLED=true/DB_DISABLED=false/' .env
+# Update .env to disable database
+sed -i 's/DB_DISABLED=false/DB_DISABLED=true/' .env
 
 # Restart
 npm run start:integrated
 ```
+
+Note: Database is enabled by default. Set `DB_DISABLED=true` only if you want to develop without PostgreSQL.
 
 ### 2. Enable AI/RAG
 

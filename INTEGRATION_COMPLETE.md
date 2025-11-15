@@ -59,7 +59,7 @@ Automated validation that checks:
 ### 4. Configuration Updates
 
 #### .env
-- Set `DB_DISABLED=true` for development mode
+- Database enabled by default (`DB_DISABLED=false`)
 - Configured API port 3001
 - Development environment ready
 
@@ -103,9 +103,9 @@ All checks passing:
 ## 🎯 Key Features
 
 ### 1. Graceful Degradation
-- System works without database (`DB_DISABLED=true`)
-- Falls back to mock/in-memory data
-- Perfect for frontend development
+- System works with or without database
+- Set `DB_DISABLED=true` to use mock/in-memory data
+- Database enabled by default for full features
 
 ### 2. Simple Commands
 - Single command starts everything
@@ -156,26 +156,25 @@ All checks passing:
 | Frontend | ✅ Ready | 3000 | No |
 | API Server | ✅ Ready | 3001 | No |
 | WebSocket | ✅ Ready | 3001 | No |
-| Database | ⚠️ Disabled | 5432 | Yes |
-| Blockchain | ⚠️ Disabled | 8545 | Yes |
+| Database | ✅ Enabled | 5432 | Yes* |
+| Blockchain | ⚠️ Optional | 8545 | Yes |
 | RAG/AI | ⚠️ Disabled | 11434 | Yes |
 | Crawler | ✅ Ready | - | Yes |
 
 ## 🔧 Development Modes
 
-### Current Mode: Development (DB Disabled)
+### Default Mode: Database Enabled
+- ✅ All features available
+- ✅ Persistent storage
+- ✅ Full database features
+- ⚠️ Requires PostgreSQL running
+
+### Alternative: Development Without Database (DB_DISABLED=true)
 - ✅ Frontend development
 - ✅ API testing
 - ✅ Mock data
 - ✅ No database required
 - ✅ Fast startup
-
-### Full Mode: Production (DB Enabled)
-- ✅ All features
-- ✅ Persistent storage
-- ✅ Blockchain mining
-- ✅ AI capabilities
-- ⚠️ Requires PostgreSQL
 
 ## 📖 Documentation Files
 
