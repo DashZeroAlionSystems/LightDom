@@ -1,11 +1,40 @@
 # API Endpoint Registry Quick Start Guide
 
-## 🚀 Quick Start
+## 🚀 Easiest Way to Get Started
+
+### One-Command Setup (with Demo Data!)
+
+**Linux/Mac:**
+```bash
+./setup-endpoint-registry.sh
+```
+
+**Windows:**
+```cmd
+setup-endpoint-registry.bat
+```
+
+This will:
+- ✅ Create all database tables
+- ✅ Seed realistic demo data (4 endpoints, 1 service, 2 chains, execution logs)
+- ✅ Show you the database structure with real examples
+- ✅ Verify everything is working
+
+**See:** `SETUP_ENDPOINT_REGISTRY_README.md` for details on the demo data.
+
+---
+
+## 🛠️ Manual Setup
+
+If you prefer step-by-step:
 
 ### 1. Run Database Migration
 
 ```bash
 psql -d dom_space_harvester -f migrations/20251115_api_endpoint_registry.sql
+
+# Optional: Add demo data to explore the structure
+psql -d dom_space_harvester -f migrations/20251115_api_endpoint_registry_demo_data.sql
 ```
 
 ### 2. Start API Server
