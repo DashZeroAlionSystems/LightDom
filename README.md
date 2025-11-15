@@ -176,18 +176,27 @@ curl -X POST http://localhost:3001/api/workflows/{id}/execute
 
 ## 🚀 Quick Start
 
-### Prerequisites
-npm run start:enhanced
+### ⚡ Fastest Start (3 Commands)
 
-# Production deployment
-npm run start:enhanced:production
+```bash
+# 1. Install dependencies
+PUPPETEER_SKIP_DOWNLOAD=true npm install --legacy-peer-deps
 
-# Start with all workloads
-npm run start:enhanced:demo
+# 2. Ensure .env exists
+cp -n .env.example .env
 
-# Docker Compose (scalable workers)
-docker-compose -f docker-compose.seo-datamining.yml up -d
+# 3. Start integrated system (API + Frontend)
+npm run start:integrated
 ```
+
+**Access Points:**
+- 🌐 Frontend: http://localhost:3000
+- 🔌 API Server: http://localhost:3001
+- ❤️ Health Check: http://localhost:3001/api/health
+
+📖 **See [START_GUIDE.md](START_GUIDE.md) for detailed quick start instructions**
+
+### Prerequisites
 
 ### 🎨 **Component Dashboard Generator** ⭐ NEW
 - **Auto-Generated React Components** - Full CRUD dashboard components from Storybook/styleguide
