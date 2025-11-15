@@ -522,3 +522,28 @@ Successfully delivered a production-ready command palette system with:
 - **Material Design 3 aligned**
 
 The system is ready for integration into PromptConsolePage and other parts of the LightDom platform.
+
+## New Capabilities (November 2025)
+
+### Repository scanning tool
+- **Command:** `/scan [path]` → `scan_codebase` agent tool.
+- **What it does:** walks the repo (default `.`), ignores heavy folders (`node_modules`, `dist`, `.git`, etc.), captures previews for up to 2 000 files, and writes `data/codebase-index.json`.
+- **Why:** gives DeepSeek/RAG an up-to-date snapshot of the codebase so it can answer architecture questions or propose patches without manually reading every file.
+- **Parameters:** `root`, `includeExtensions`, `excludePaths`, `maxFiles`, `maxBytesPerFile`, `previewLength`.
+
+### RAG health endpoint
+- `GET /api/rag/health` now proxies `ragService.healthCheck()` (vector store, embeddings, DeepSeek/Ollama).
+- HTTP status: `200` (ok), `206` (warn), `503` (error). Use this in monitors instead of burning tokens on `/chat`.
+- Pair with `scripts/test-rag-connectivity.js` to alert on outages.
+
+### Automation blueprint
+1. **rag-health.yml** – scheduled GitHub Action that runs `node scripts/test-rag-connectivity.js` + pings Slack if `status != ok`.
+2. **deepseek-agent.yml** – cron workflow that:
+   - triggers `/api/crawler/service` `start`,
+   - runs `pnpm agent:ops --workflow seo-campaign`,
+   - invokes `scan_codebase` + document ingestion commands,
+   - opens a PR with generated SEO features.
+3. **crawler-uptime.yml** – ensures the crawler daemon stays alive via the `/api/crawler/service` endpoint (start/stop/status).
+4. **artifact-persist.yml** – after merges, uploads `data/codebase-index.json` and recent RAG documents to artifact storage so new runners bootstrap quickly.
+
+Wire these workflows with the same env vars used locally (`OLLAMA_API_URL`, `DEEPSEEK_API_URL`, `RAG_*`, DB creds). With the scan tool, health route, and workflows in place, DeepSeek can manage crawling, RAG ingestion, and SEO feature delivery 24/7.

@@ -18,6 +18,11 @@ class EnhancedWebCrawlerService {
     this.isRunning = false;
     this.crawlInterval = null;
     this.dataFile = path.join(__dirname, '.data', 'crawler-data.json');
+    this.seedCrawlDelayMs = Number(process.env.CRAWLER_SEED_DELAY_MS || 1500);
+    this.continuousCrawlIntervalMs = Number(process.env.CRAWLER_INTERVAL_MS || 10000);
+    this.continuousCrawlDelayMs = Number(process.env.CRAWLER_CONTINUOUS_DELAY_MS || 1000);
+    this.maxConcurrentPages = Math.max(1, Number(process.env.CRAWLER_MAX_CONCURRENCY || 1));
+    this.activePages = 0;
     
     // Database connection
     this.dbPool = new Pool({
@@ -122,6 +127,9 @@ class EnhancedWebCrawlerService {
       console.log('⚠️  Browser not initialized, initializing now...');
       await this.initialize();
     }
+
+    await this.waitForSlot();
+    this.activePages += 1;
 
     try {
       console.log(`🕷️  Crawling: ${url}`);
@@ -476,6 +484,9 @@ class EnhancedWebCrawlerService {
       console.error('❌ Database save error:', error.message);
       // Don't throw error to prevent crawler from stopping
     }
+    finally {
+      this.activePages = Math.max(0, this.activePages - 1);
+    }
   }
 
   isValidUrl(url) {
@@ -511,7 +522,7 @@ class EnhancedWebCrawlerService {
         if (!this.crawledUrls.has(url)) {
           await this.crawlUrl(url);
           // Small delay between crawls
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await this.sleep(this.seedCrawlDelayMs);
         }
       } catch (error) {
         console.error(`❌ Error crawling seed URL ${url}:`, error.message);
@@ -527,12 +538,13 @@ class EnhancedWebCrawlerService {
           this.discoveredUrls.delete(url);
           await this.crawlUrl(url);
           this.saveData();
+          await this.sleep(this.continuousCrawlDelayMs);
         }
       } catch (error) {
         console.error('❌ Error in continuous crawling loop:', error.message);
         // Continue running despite errors
       }
-    }, 5000); // Crawl every 5 seconds
+    }, this.continuousCrawlIntervalMs); // Crawl interval is configurable
 
     console.log('✅ Enhanced crawler started');
   }
@@ -585,6 +597,16 @@ class EnhancedWebCrawlerService {
     if (this.dbPool) {
       await this.dbPool.end();
     }
+  }
+
+  async waitForSlot() {
+    while (this.activePages >= this.maxConcurrentPages) {
+      await this.sleep(100);
+    }
+  }
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 

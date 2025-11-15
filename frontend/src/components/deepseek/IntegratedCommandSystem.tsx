@@ -17,6 +17,43 @@ export const IntegratedCommandSystemDemo: React.FC = () => {
   // Command palette hook
   const { open, openPalette, closePalette, recentCommands, saveRecentCommand } = useCommandPalette();
 
+  // Add log entry helper
+  const addLog = useCallback((message: string) => {
+    setExecutionLog(prev => [`[${new Date().toLocaleTimeString()}] ${message}`, ...prev].slice(0, 20));
+  }, []);
+
+  const handleCrawlerServiceCommand = useCallback(
+    async (action: 'start' | 'stop' | 'status') => {
+      try {
+        const response = await fetch('/api/crawler/service', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ action }),
+        });
+
+        const payload = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          throw new Error(
+            payload?.message || payload?.error || response.statusText || 'Unknown crawler service error'
+          );
+        }
+
+        addLog(
+          `Crawler service ${action} => ${
+            payload?.message || payload?.data?.status || payload?.response?.status || 'OK'
+          }`
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        addLog(`Crawler service ${action} failed: ${message}`);
+      }
+    },
+    [addLog]
+  );
+
   // Create command handlers
   const commands = createDefaultCommands({
     onDatabaseQuery: (query) => addLog(`Executing SQL: ${query}`),
@@ -25,6 +62,9 @@ export const IntegratedCommandSystemDemo: React.FC = () => {
     onCrawlStart: (url, depth) => addLog(`Starting crawler: ${url} (depth: ${depth || 1})`),
     onCrawlStop: () => addLog('Stopping crawler'),
     onCrawlStatus: () => addLog('Fetching crawler status'),
+    onCrawlerServiceCommand: (action) => {
+      void handleCrawlerServiceCommand(action);
+    },
     onStyleguideMine: (url) => addLog(`Mining styleguide from: ${url}`),
     onAnalyzeData: (type) => addLog(`Analyzing ${type} data`),
     onAnalyzePatterns: () => addLog('Discovering patterns'),
@@ -51,11 +91,6 @@ export const IntegratedCommandSystemDemo: React.FC = () => {
     recordExecution,
     clearStats,
   } = useSuggestionEngine(commands);
-
-  // Add log entry
-  const addLog = useCallback((message: string) => {
-    setExecutionLog(prev => [`[${new Date().toLocaleTimeString()}] ${message}`, ...prev].slice(0, 20));
-  }, []);
 
   // Handle command execution
   const handleCommandExecute = useCallback(

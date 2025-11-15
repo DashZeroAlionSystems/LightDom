@@ -32,6 +32,13 @@ router.post('/stop', apiKeyAuth, catchAsync(crawlerController.stopCrawler));
 router.get('/status', catchAsync(crawlerController.getCrawlerStatus));
 
 /**
+ * @route   POST /api/crawler/service
+ * @desc    Control the long-running crawler service (start/stop/status)
+ * @access  Authenticated users
+ */
+router.post('/service', auth, catchAsync(crawlerController.controlCrawlerService));
+
+/**
  * @route   POST /api/crawler/crawl-once
  * @desc    Perform a single page crawl
  * @access  Protected (API Key)

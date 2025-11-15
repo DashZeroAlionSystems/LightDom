@@ -175,10 +175,10 @@ app.post('/api/rag/chat/stream', async (req, res) => {
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('[minimal-api-local] chat stream failed:', err.message);
+    console.error('[minimal-api-local] chat stream failed:', err && (err.stack || err.message || err));
     return res
       .status(503)
-      .json({ success: false, error: 'Failed to process chat stream', details: err.message });
+      .json({ success: false, error: 'Failed to process chat stream', details: err.message || String(err) });
   }
 });
 
