@@ -81,6 +81,7 @@ import CategoryManagement from './components/ui/admin/CategoryManagement';
 import DemoShowcase from './pages/DemoShowcase';
 import OnboardingVisualization from './pages/OnboardingVisualization';
 import LightDOMSlotsDemo from './pages/LightDOMSlotsDemo';
+import BlockchainBenchmarkDemo from './pages/BlockchainBenchmarkDemo';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -217,6 +218,7 @@ const AppContent: React.FC = () => {
           <Route path="demos" element={<DemoShowcase />} />
           <Route path="demos/onboarding" element={<OnboardingVisualization />} />
           <Route path="demos/lightdom-slots" element={<LightDOMSlotsDemo />} />
+          <Route path="demos/blockchain-benchmark" element={<BlockchainBenchmarkDemo />} />
           
           {/* Admin Routes within Dashboard */}
           <Route path="admin" element={<AdminDashboard />} />

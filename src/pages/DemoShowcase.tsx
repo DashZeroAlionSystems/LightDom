@@ -128,8 +128,20 @@ const demos: Demo[] = [
   // Blockchain & Mining
   {
     id: 'blockchain-optimization',
-    name: 'Blockchain Algorithm Optimization',
-    description: 'Benchmark PoW, PoS, PoO, DPoS algorithms for SEO data mining performance.',
+    name: 'Blockchain Algorithm Benchmark',
+    description: 'Visual comparison of PoW, PoS, PoO, and DPoS algorithms with real-time performance metrics and recommendations.',
+    category: 'Blockchain & Mining',
+    route: '/demos/blockchain-benchmark',
+    status: 'ready',
+    enhanced: true,
+    type: 'react',
+    features: ['Algorithm Comparison', 'Real-time Metrics', 'Performance Analysis', 'Recommendations'],
+    icon: <BlockOutlined />
+  },
+  {
+    id: 'blockchain-optimization-node',
+    name: 'Blockchain Algorithm Optimization (Node)',
+    description: 'Command-line benchmark of blockchain algorithms for SEO data mining.',
     category: 'Blockchain & Mining',
     file: 'demo-blockchain-algorithm-optimization.js',
     status: 'ready',
