@@ -80,6 +80,7 @@ import DeepSeekChatPanel from './components/DeepSeekChatPanel';
 import CategoryManagement from './components/ui/admin/CategoryManagement';
 import DemoShowcase from './pages/DemoShowcase';
 import OnboardingVisualization from './pages/OnboardingVisualization';
+import LightDOMSlotsDemo from './pages/LightDOMSlotsDemo';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -215,6 +216,7 @@ const AppContent: React.FC = () => {
           <Route path="component-schema" element={<ComponentSchemaToolDashboard />} />
           <Route path="demos" element={<DemoShowcase />} />
           <Route path="demos/onboarding" element={<OnboardingVisualization />} />
+          <Route path="demos/lightdom-slots" element={<LightDOMSlotsDemo />} />
           
           {/* Admin Routes within Dashboard */}
           <Route path="admin" element={<AdminDashboard />} />

@@ -88,6 +88,18 @@ const demos: Demo[] = [
     features: ['Terminal UI', 'ANSI Colors', 'JSON Export', 'Statistics'],
     icon: <ExperimentOutlined />
   },
+  {
+    id: 'lightdom-slots',
+    name: 'Light DOM Slots System',
+    description: 'Interactive demonstration of Light DOM slot system with dynamic content projection, lazy loading, and real-time composition.',
+    category: 'Interactive Demos',
+    route: '/demos/lightdom-slots',
+    status: 'ready',
+    enhanced: true,
+    type: 'react',
+    features: ['Slot Management', 'Lazy Loading', 'Virtual DOM', 'Optimization'],
+    icon: <LayoutOutlined />
+  },
 
   // Data Mining & SEO
   {
