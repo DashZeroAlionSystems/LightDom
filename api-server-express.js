@@ -777,6 +777,47 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load client SEO routes:', err);
       });
 
+    // Import and register Neural SEO Campaign routes
+    import('./api/neural-seo-campaign-routes.js')
+      .then(neuralModule => {
+        const neuralRouter = neuralModule.default || neuralModule.createNeuralSEOCampaignRoutes;
+        if (typeof neuralRouter === 'function') {
+          this.app.use('/api/neural-seo', neuralRouter(this.db));
+        } else {
+          this.app.use('/api/neural-seo', neuralRouter);
+        }
+        console.log('✅ Neural SEO Campaign routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load neural SEO campaign routes:', err);
+      });
+
+    // Import and register DeepSeek Automation routes
+    import('./api/deepseek-automation-routes.js')
+      .then(deepseekModule => {
+        const deepseekRouter = deepseekModule.default;
+        this.app.use('/api/deepseek-automation', deepseekRouter);
+        console.log('✅ DeepSeek Automation routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load DeepSeek automation routes:', err);
+      });
+
+    // Import and register Neural Schema Admin routes
+    import('./api/neural-schema-admin-routes.js')
+      .then(adminModule => {
+        const adminRouter = adminModule.default || adminModule.createNeuralSchemaAdminRoutes;
+        if (typeof adminRouter === 'function') {
+          this.app.use('/api/neural-admin', adminRouter(this.db));
+        } else {
+          this.app.use('/api/neural-admin', adminRouter);
+        }
+        console.log('✅ Neural Schema Admin routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load neural schema admin routes:', err);
+      });
+
     // Import and register Extended Workflow Monitoring routes
     import('./api/extended-workflow-routes.js')
       .then(extendedModule => {
