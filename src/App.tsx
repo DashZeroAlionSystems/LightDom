@@ -87,6 +87,7 @@ import WorkflowBuilderDemo from './pages/WorkflowBuilderDemo';
 import MetaverseNFTMarketplace from './pages/MetaverseNFTMarketplace';
 import BridgeUseCasesShowcase from './pages/BridgeUseCasesShowcase';
 import DOM3DMiningVisualization from './pages/DOM3DMiningVisualization';
+import Advanced3DLayerMiner from './pages/Advanced3DLayerMiner';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
