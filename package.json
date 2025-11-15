@@ -90,6 +90,8 @@
     "rules:validate": "node scripts/rule-validation-windows.js",
     "rules:check": "npm run rules:validate",
     "rules:monitor": "node scripts/rule-validation-windows.js --watch",
+    "rules:search-first": "node scripts/validate-search-first-rule.js",
+    "rules:search-first:interactive": "node scripts/validate-search-first-rule.js --interactive",
     "deploy:staging": "echo 'Staging deployment would run here'",
     "deploy:production": "echo 'Production deployment would run here'",
     "monitor:start": "docker-compose -f monitoring/docker-compose.yml up -d",
