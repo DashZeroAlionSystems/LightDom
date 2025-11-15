@@ -5,16 +5,150 @@
  * Advanced administrative interface with comprehensive system management
  */
 
-import express from 'express';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import fs from 'fs/promises';
 import { spawn } from 'child_process';
 import crypto from 'crypto';
+import express from 'express';
+import fs from 'fs/promises';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, '..');
+
+const AUTOMATION_SCRIPT_METADATA = {
+  'automation:round': {
+    displayName: 'Automation Round',
+    description: 'Run a single automation round to execute targeted tasks.',
+    tags: ['round', 'automation'],
+    category: 'orchestration',
+  },
+  'automation:master': {
+    displayName: 'Master Automation',
+    description: 'Execute the master automation orchestrator for multi-round automation.',
+    tags: ['master', 'automation'],
+    category: 'orchestration',
+  },
+  'automation:master-full': {
+    displayName: 'Master Automation (Full)',
+    description: 'Run the full master automation workflow including compliance checks.',
+    tags: ['master', 'full'],
+    category: 'orchestration',
+  },
+  'automation:enhanced': {
+    displayName: 'Enhanced Automation System',
+    description: 'Run the enhanced automation system covering compliance and startup checks.',
+    tags: ['enhanced', 'compliance'],
+    category: 'quality',
+  },
+  'automation:app-test': {
+    displayName: 'App Startup Tester',
+    description: 'Test application startup flows including API, frontend, and services.',
+    tags: ['testing', 'startup'],
+    category: 'quality',
+  },
+  'automation:organize': {
+    displayName: 'Enterprise Organizer',
+    description: 'Organize project structure using the enterprise organizer workflow.',
+    tags: ['structure', 'organize'],
+    category: 'maintenance',
+  },
+  'automation:git-safe': {
+    displayName: 'Git Safe Automation',
+    description: 'Run git-safe automation to create backup branches and manage changes.',
+    tags: ['git', 'safety'],
+    category: 'maintenance',
+  },
+  'automation:mermaid': {
+    displayName: 'Automation Mermaid Generator',
+    description: 'Generate Mermaid diagrams for automation workflows.',
+    tags: ['documentation', 'mermaid'],
+    category: 'reporting',
+  },
+  'automation:autopilot': {
+    displayName: 'Autopilot Automation',
+    description: 'Run automation autopilot to coordinate fix rounds with agents.',
+    tags: ['autopilot', 'agents'],
+    category: 'orchestration',
+  },
+  'automation:workflow': {
+    displayName: 'Workflow Runner',
+    description: 'Run automation workflow runner for YAML-defined workflows.',
+    tags: ['workflow'],
+    category: 'orchestration',
+  },
+  'automation:workflow:complete': {
+    displayName: 'Workflow Runner (Complete)',
+    description: 'Execute the complete automation workflow definition.',
+    tags: ['workflow', 'complete'],
+    category: 'orchestration',
+  },
+  'automation:complete': {
+    displayName: 'Complete Automation System',
+    description: 'Run the complete automation system demo.',
+    tags: ['demo', 'complete'],
+    category: 'demo',
+  },
+  'automation:monitor': {
+    displayName: 'Automation Monitor',
+    description: 'Start the automation monitoring system.',
+    tags: ['monitoring'],
+    category: 'monitoring',
+  },
+  autopilot: {
+    displayName: 'Autopilot Entry',
+    description: 'Launch the autopilot entry script.',
+    tags: ['autopilot'],
+    category: 'orchestration',
+  },
+};
+
+const DEFAULT_AUTOMATION_TIMEOUT_MS = Number(process.env.ADMIN_AUTOMATION_TIMEOUT ?? 10 * 60 * 1000);
+const MAX_AUTOMATION_TIMEOUT_MS = 30 * 60 * 1000;
+const MAX_AUTOMATION_OUTPUT_CHARS = Number(process.env.ADMIN_AUTOMATION_MAX_OUTPUT ?? 20000);
+
+function truncateOutput(text, limit) {
+  if (!text || text.length <= limit) {
+    return text || '';
+  }
+  return `${text.slice(0, limit)}\n...output truncated (${text.length - limit} additional characters)`;
+}
+
+function prettifyAutomationName(raw) {
+  const prefix = 'automation:';
+  const withoutPrefix = raw.startsWith(prefix) ? raw.slice(prefix.length) : raw;
+  const parts = withoutPrefix.split(/[:\-_]/).filter(Boolean);
+  if (!parts.length) {
+    return raw;
+  }
+  return parts.map(segment => segment.charAt(0).toUpperCase() + segment.slice(1)).join(' ');
+}
+
+function deriveAutomationCategory(name) {
+  if (AUTOMATION_SCRIPT_METADATA[name]?.category) {
+    return AUTOMATION_SCRIPT_METADATA[name].category;
+  }
+  if (name.includes('monitor')) return 'monitoring';
+  if (name.includes('test')) return 'quality';
+  if (name.includes('workflow')) return 'orchestration';
+  return 'automation';
+}
+
+function deriveAutomationTags(name) {
+  if (AUTOMATION_SCRIPT_METADATA[name]?.tags) {
+    return AUTOMATION_SCRIPT_METADATA[name].tags;
+  }
+  const prefix = 'automation:';
+  const withoutPrefix = name.startsWith(prefix) ? name.slice(prefix.length) : name;
+  return withoutPrefix.split(/[:\-_]/).filter(Boolean);
+}
+
+function coerceAutomationArgs(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => String(item));
+  }
+  return undefined;
+}
 
 class LightDomAdminDashboard {
   constructor() {
@@ -24,6 +158,8 @@ class LightDomAdminDashboard {
     this.adminUsers = new Map();
     this.sessions = new Map();
     this.auditLog = [];
+    this.automationScriptCache = null;
+    this.automationScriptCacheTimestamp = 0;
     
     this.setupMiddleware();
     this.setupAuth();
@@ -395,6 +531,214 @@ class LightDomAdminDashboard {
       } catch (error) {
         res.status(500).json({ success: false, error: error.message });
       }
+    });
+
+    // Automation orchestration
+    this.app.get('/api/admin/automation/scripts', async (req, res) => {
+      try {
+        const filter = typeof req.query.filter === 'string' ? req.query.filter : undefined;
+        const tag = typeof req.query.tag === 'string' ? req.query.tag : undefined;
+        const inventory = await this.getAutomationScripts(filter, tag);
+        res.json({ success: true, data: inventory });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    this.app.post('/api/admin/automation/scripts/:name/run', async (req, res) => {
+      try {
+        const { name } = req.params;
+        const payload = req.body || {};
+        const args = coerceAutomationArgs(payload.args) || [];
+        const dryRun = Boolean(payload.dryRun);
+        const timeoutMs = typeof payload.timeoutMs === 'number' ? payload.timeoutMs : undefined;
+
+        const result = await this.runAutomationScript(name, { args, dryRun, timeoutMs });
+        this.logAuditEvent('automation_script_run', {
+          script: name,
+          dryRun,
+          admin: req.user?.username,
+        });
+
+        res.json({ success: true, data: result });
+      } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+  }
+
+  async loadAutomationScripts() {
+    const now = Date.now();
+    if (this.automationScriptCache && now - this.automationScriptCacheTimestamp < 15000) {
+      return this.automationScriptCache;
+    }
+
+    const packagePath = join(projectRoot, 'package.json');
+    const packageJson = JSON.parse(await fs.readFile(packagePath, 'utf8'));
+    const scripts = packageJson?.scripts || {};
+
+    const entries = Object.entries(scripts).filter(([name]) =>
+      name.startsWith('automation:') || name === 'autopilot'
+    );
+
+    const normalized = entries.map(([name, command]) => ({
+      name,
+      command,
+      displayName:
+        AUTOMATION_SCRIPT_METADATA[name]?.displayName ?? prettifyAutomationName(name),
+      description:
+        AUTOMATION_SCRIPT_METADATA[name]?.description ??
+        `Execute npm script "${name}" using the configured automation tooling.`,
+      tags: AUTOMATION_SCRIPT_METADATA[name]?.tags ?? deriveAutomationTags(name),
+      category:
+        AUTOMATION_SCRIPT_METADATA[name]?.category ?? deriveAutomationCategory(name),
+    }));
+
+    this.automationScriptCache = normalized;
+    this.automationScriptCacheTimestamp = now;
+    return normalized;
+  }
+
+  async getAutomationScripts(filter, tag) {
+    const scripts = await this.loadAutomationScripts();
+    const normalizedFilter = filter ? filter.toLowerCase().trim() : undefined;
+    const normalizedTag = tag ? tag.toLowerCase().trim() : undefined;
+
+    const filtered = scripts.filter(script => {
+      const matchesFilter = normalizedFilter
+        ? script.name.toLowerCase().includes(normalizedFilter) ||
+          script.displayName.toLowerCase().includes(normalizedFilter) ||
+          script.description.toLowerCase().includes(normalizedFilter) ||
+          script.tags.some(t => t.toLowerCase().includes(normalizedFilter))
+        : true;
+      const matchesTag = normalizedTag
+        ? script.tags.some(t => t.toLowerCase() === normalizedTag)
+        : true;
+      return matchesFilter && matchesTag;
+    });
+
+    return {
+      scripts: filtered,
+      total: filtered.length,
+      available: scripts.length,
+    };
+  }
+
+  resolveAutomationTimeout(timeoutMs) {
+    if (timeoutMs === undefined || timeoutMs === null) {
+      return DEFAULT_AUTOMATION_TIMEOUT_MS;
+    }
+
+    if (Number.isNaN(Number(timeoutMs)) || Number(timeoutMs) <= 0) {
+      throw new Error('timeoutMs must be greater than zero.');
+    }
+
+    if (Number(timeoutMs) > MAX_AUTOMATION_TIMEOUT_MS) {
+      throw new Error(`timeoutMs cannot exceed ${MAX_AUTOMATION_TIMEOUT_MS} milliseconds.`);
+    }
+
+    return Number(timeoutMs);
+  }
+
+  buildAutomationCommand(scriptName, args) {
+    const suffix = args && args.length ? ` -- ${args.join(' ')}` : '';
+    return `npm run ${scriptName}${suffix}`;
+  }
+
+  async runAutomationScript(scriptName, options = {}) {
+    const scripts = await this.loadAutomationScripts();
+    const script = scripts.find(entry => entry.name === scriptName);
+
+    if (!script) {
+      throw new Error(`Automation script not found: ${scriptName}`);
+    }
+
+    const args = Array.isArray(options.args) ? options.args.map(item => String(item)) : [];
+    const timeoutMs = this.resolveAutomationTimeout(options.timeoutMs);
+    const command = this.buildAutomationCommand(scriptName, args);
+
+    if (options.dryRun) {
+      return {
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
+        durationMs: 0,
+        command,
+        note: 'Dry run: command not executed.',
+      };
+    }
+
+    return new Promise((resolve, reject) => {
+      const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+      const spawnArgs = ['run', scriptName];
+      if (args.length) {
+        spawnArgs.push('--', ...args);
+      }
+
+      const child = spawn(npmCommand, spawnArgs, {
+        cwd: projectRoot,
+        env: { ...process.env },
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+
+      let stdout = '';
+      let stderr = '';
+      let finished = false;
+      const start = Date.now();
+
+      const timer = setTimeout(() => {
+        if (finished) {
+          return;
+        }
+        finished = true;
+        try {
+          child.kill();
+        } catch (error) {
+          // ignore
+        }
+        resolve({
+          exitCode: null,
+          stdout: truncateOutput(stdout, MAX_AUTOMATION_OUTPUT_CHARS),
+          stderr: truncateOutput(
+            `${stderr}\nProcess terminated after timeout (${timeoutMs} ms).`,
+            MAX_AUTOMATION_OUTPUT_CHARS
+          ),
+          durationMs: Date.now() - start,
+          command,
+        });
+      }, timeoutMs);
+
+      child.stdout?.on('data', data => {
+        stdout += data.toString();
+      });
+
+      child.stderr?.on('data', data => {
+        stderr += data.toString();
+      });
+
+      child.once('error', error => {
+        if (finished) {
+          return;
+        }
+        finished = true;
+        clearTimeout(timer);
+        reject(error);
+      });
+
+      child.once('exit', code => {
+        if (finished) {
+          return;
+        }
+        finished = true;
+        clearTimeout(timer);
+        resolve({
+          exitCode: code,
+          stdout: truncateOutput(stdout, MAX_AUTOMATION_OUTPUT_CHARS),
+          stderr: truncateOutput(stderr, MAX_AUTOMATION_OUTPUT_CHARS),
+          durationMs: Date.now() - start,
+          command,
+        });
+      });
     });
   }
 

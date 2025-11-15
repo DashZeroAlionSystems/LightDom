@@ -35,6 +35,14 @@ The config also defines reusable bundles:
 }
 ```
 
+The automation server reads the `automation:*` npm scripts from `package.json` and exposes three tools:
+
+- `list_automation_scripts` – enumerate the curated automation flows (supports optional `filter`/`tag`).
+- `describe_automation_script` – view the command and metadata for a single script.
+- `run_automation_script` – launch the selected npm script (with optional additional arguments or a dry-run preview).
+
+These tools let DeepSeek trigger the same enterprise automations that developers use locally without leaving the MCP workflow.
+
 You can extend this list manually or through the session launcher when you save a custom selection.
 
 Update the `env` blocks with your database credentials or n8n API key as needed. You can add additional MCP servers following the same structure.
