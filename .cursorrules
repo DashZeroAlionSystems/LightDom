@@ -829,4 +829,362 @@ We have **substantial existing code** (~100+ services, 200+ files, 50+ component
 - Implement rule training and education programs
 - Use rule evolution and adaptation processes
 
+## DeepSeek-OCR & Optical Compression Best Practices
+
+### Overview
+DeepSeek-OCR implements "Contexts Optical Compression" - converting text to 2D visual representations for 10-20× compression while maintaining 97%+ accuracy. This section provides rules for optimal usage in LightDom.
+
+**Reference Documentation**: See `DEEPSEEK_OCR_INTEGRATION.md` and `DEEPSEEK_OCR_BEST_PRACTICES.md` for complete details.
+
+### Rule 1: Compression Ratio Selection
+**ALWAYS choose compression ratio based on use case:**
+
+```javascript
+// ✅ GOOD: Use case-specific compression
+const legalDoc = await ocrService.processDocument(input, {
+  compressionRatio: 0.15, // 6-7× for legal docs (99% precision)
+});
+
+const trainingData = await ocrService.processDocument(input, {
+  compressionRatio: 0.05, // 20× for training data (60-90% precision)
+});
+
+// ❌ BAD: Generic compression for all cases
+const result = await ocrService.processDocument(input, {
+  compressionRatio: 0.1 // Not optimized for use case
+});
+```
+
+**Compression Guidelines:**
+- Legal/Medical: 0.15-0.20 (5-7×, 99%+ precision)
+- Business Docs: 0.10-0.15 (7-10×, 95%+ precision)
+- Archives: 0.08-0.12 (8-13×, 90%+ precision)
+- Training Data: 0.05-0.08 (13-20×, 60-90% precision)
+
+### Rule 2: Vision Token Optimization
+**ALWAYS calculate target vision tokens based on LLM context window:**
+
+```javascript
+// ✅ GOOD: Calculate compression for context window
+function calculateOptimalCompression(documentSize, contextWindow) {
+  const estimatedTokens = Math.ceil(documentSize / 4);
+  const targetTokens = Math.floor(contextWindow * 0.8); // Use 80% of context
+  return Math.max(0.05, Math.min(0.2, targetTokens / estimatedTokens));
+}
+
+// ❌ BAD: Hardcoded compression without context consideration
+const compression = 0.1; // May exceed context window
+```
+
+### Rule 3: Batch Processing
+**ALWAYS use batch processing for multiple documents:**
+
+```javascript
+// ✅ GOOD: Batch processing with proper sizing
+const results = await ocrService.processBatch(documents, {
+  batchSize: 20, // Optimal for GPU (15-25)
+  outputFormat: 'json'
+});
+
+ocrService.on('batch-completed', ({ batchNumber, documentsProcessed }) => {
+  console.log(`Batch ${batchNumber}: ${documentsProcessed} docs processed`);
+});
+
+// ❌ BAD: Processing one by one
+for (const doc of documents) {
+  await ocrService.processDocument(doc); // Inefficient
+}
+```
+
+**Batch Size Guidelines:**
+- GPU (A100): 15-25 documents
+- GPU (other): 10-15 documents
+- CPU: 5-10 documents
+
+### Rule 4: Output Format Selection
+**ALWAYS choose format based on downstream processing:**
+
+```javascript
+// ✅ GOOD: JSON for programmatic processing
+const structured = await ocrService.extractStructuredData(input, {
+  outputFormat: 'json',
+  extractTables: true,
+  extractFigures: true
+});
+
+// ✅ GOOD: Markdown for CMS
+const markdown = await ocrService.processDocument(input, {
+  outputFormat: 'markdown',
+  preserveLayout: true
+});
+
+// ❌ BAD: Using text and losing structure
+const result = await ocrService.processDocument(input, {
+  outputFormat: 'text' // Loses tables, layout, figures
+});
+```
+
+### Rule 5: Error Handling & Retries
+**ALWAYS implement retry logic with exponential backoff:**
+
+```javascript
+// ✅ GOOD: Robust retry with backoff
+async function processWithRetry(input, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await ocrService.processDocument(input);
+    } catch (error) {
+      if (attempt < maxRetries) {
+        const delay = Math.pow(2, attempt - 1) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
+// ❌ BAD: No retry logic
+const result = await ocrService.processDocument(input); // May fail
+```
+
+### Rule 6: Performance Monitoring
+**ALWAYS track and analyze performance metrics:**
+
+```javascript
+// ✅ GOOD: Comprehensive monitoring
+ocrService.on('document-processed', (event) => {
+  metrics.record('ocr.compression_ratio', event.compressionRatio);
+  metrics.record('ocr.confidence', event.confidence);
+  metrics.record('ocr.processing_time_ms', event.processingTimeMs);
+  
+  if (event.confidence < 0.9) {
+    alerts.warn(`Low OCR confidence: ${event.confidence}`);
+  }
+});
+
+// Periodic stats review
+setInterval(() => {
+  const stats = ocrService.getStats();
+  console.log('OCR Stats:', {
+    avgCompression: stats.averageCompressionRatio.toFixed(2),
+    avgConfidence: stats.averageConfidence.toFixed(3)
+  });
+}, 60000);
+
+// ❌ BAD: No monitoring
+const result = await ocrService.processDocument(input); // No visibility
+```
+
+### Rule 7: Language Hints
+**ALWAYS provide language hints when known:**
+
+```javascript
+// ✅ GOOD: Providing language hints
+const result = await ocrService.processDocument(input, {
+  language: documentMetadata.language || 'en',
+  outputFormat: 'markdown'
+});
+
+// ✅ GOOD: Auto-detect for unknown
+const result = await ocrService.processDocument(input, {
+  language: undefined // Auto-detect
+});
+console.log('Detected:', result.metadata.language);
+
+// ❌ BAD: Never providing hints
+const result = await ocrService.processDocument(input); // Less accurate
+```
+
+### Rule 8: Large Document Handling
+**ALWAYS chunk large documents to avoid timeouts:**
+
+```javascript
+// ✅ GOOD: Chunking large documents
+async function processLargeDocument(url, chunkSizeMB = 10) {
+  const chunks = await splitDocumentIntoChunks(url, chunkSizeMB);
+  const results = await ocrService.processBatch(chunks, {
+    batchSize: 10,
+    compressionRatio: 0.1
+  });
+  return combineChunkedResults(results);
+}
+
+// ❌ BAD: Processing huge document at once
+const result = await ocrService.processDocument({
+  url: 'huge-100mb-document.pdf' // May timeout
+});
+```
+
+### Rule 9: Result Caching
+**ALWAYS cache OCR results to avoid reprocessing:**
+
+```javascript
+// ✅ GOOD: Caching results
+async function processWithCache(input, options = {}) {
+  const cacheKey = generateCacheKey(input, options);
+  const cached = await cache.get(cacheKey);
+  if (cached) return cached;
+  
+  const result = await ocrService.processDocument(input, options);
+  await cache.set(cacheKey, result, { ttl: 86400 }); // 24 hours
+  return result;
+}
+
+// ❌ BAD: Always reprocessing
+const result = await ocrService.processDocument(input); // Wastes resources
+```
+
+### Rule 10: Confidence Validation
+**ALWAYS validate confidence and handle low results:**
+
+```javascript
+// ✅ GOOD: Validating confidence
+async function processReliably(input, options = {}) {
+  const result = await ocrService.processDocument(input, options);
+  
+  if (result.metadata.confidence < 0.9) {
+    console.warn('Low confidence:', result.metadata.confidence);
+    
+    // Retry with lower compression
+    if (options.compressionRatio > 0.1) {
+      return processReliably(input, {
+        ...options,
+        compressionRatio: Math.min(options.compressionRatio * 1.5, 0.2)
+      });
+    }
+    
+    // Flag for manual review
+    await flagForManualReview(result);
+  }
+  
+  return result;
+}
+
+// ❌ BAD: Ignoring confidence
+const result = await ocrService.processDocument(input);
+processText(result.text); // May be inaccurate
+```
+
+### Integration Patterns
+
+#### DOM Content Compression
+```javascript
+// ✅ Use optical compression for large DOM structures
+async function optimizeLargeDOM(domContent) {
+  const sizeKB = Buffer.from(domContent.html).length / 1024;
+  if (sizeKB > 100) {
+    return await ocrService.compressDOMOptically(domContent, {
+      targetTokens: 200,
+      preserveLayout: true
+    });
+  }
+  return domContent.html;
+}
+```
+
+#### Training Data Generation
+```javascript
+// ✅ Generate compressed training data
+async function generateTrainingData(urls) {
+  const trainingData = [];
+  for (const url of urls) {
+    const compressed = await ocrService.processDocument(
+      { url: await crawler.screenshot(url) },
+      {
+        compressionRatio: 0.05, // High compression
+        outputFormat: 'json',
+        extractTables: true
+      }
+    );
+    trainingData.push(compressed);
+  }
+  return trainingData;
+}
+```
+
+#### Document Archive
+```javascript
+// ✅ Archive with searchable content
+async function archiveDocument(document) {
+  const ocr = await ocrService.processDocument(
+    { url: document.url },
+    {
+      compressionRatio: 0.1,
+      outputFormat: 'markdown',
+      preserveLayout: true
+    }
+  );
+  
+  await db.documents.create({
+    id: document.id,
+    content: ocr.text,
+    metadata: ocr.metadata,
+    searchVector: createSearchVector(ocr.text)
+  });
+}
+```
+
+### Configuration Best Practices
+
+**Environment Variables:**
+```bash
+OCR_WORKER_ENDPOINT=http://localhost:8000
+DEEPSEEK_OCR_ENDPOINT=https://api.deepseek.com/ocr
+DEEPSEEK_API_KEY=your_api_key_here
+OCR_DEFAULT_COMPRESSION_RATIO=0.1
+OCR_MAX_IMAGE_SIZE_MB=25
+OCR_TIMEOUT_MS=30000
+```
+
+**Service Configuration:**
+```javascript
+const ocrService = new DeepSeekOCRService({
+  defaultCompressionRatio: 0.1,
+  maxCompressionRatio: 0.05,
+  targetVisionTokens: 100,
+  minOcrPrecision: 0.97,
+  preserveLayout: true,
+  extractTables: true,
+  extractFigures: true
+});
+```
+
+### Testing Best Practices
+
+```javascript
+describe('DeepSeek-OCR', () => {
+  it('should maintain 97%+ precision at 10× compression', async () => {
+    const result = await ocrService.processDocument(testDoc, {
+      compressionRatio: 0.1
+    });
+    expect(result.metadata.confidence).toBeGreaterThan(0.97);
+    expect(result.metadata.compressionRatio).toBeGreaterThan(9);
+  });
+  
+  it('should achieve 20× compression for training', async () => {
+    const result = await ocrService.processDocument(testDoc, {
+      compressionRatio: 0.05
+    });
+    expect(result.metadata.compressionRatio).toBeGreaterThan(15);
+  });
+});
+```
+
+### Performance Targets
+
+Based on DeepSeek-OCR paper benchmarks:
+- A100 GPU: 200K+ pages/day at 10× compression (97% precision)
+- A100 GPU: 150K+ pages/day at 15× compression (85% precision)
+- A100 GPU: 100K+ pages/day at 20× compression (60% precision)
+- CPU: 10-20K pages/day at 10× compression (97% precision)
+
+### Key Resources
+- Integration Guide: `DEEPSEEK_OCR_INTEGRATION.md`
+- Best Practices: `DEEPSEEK_OCR_BEST_PRACTICES.md`
+- Service Implementation: `services/deepseek-ocr-service.js`
+- OCR Worker: `services/ocr-worker/app/main.py`
+- ArXiv Paper: https://arxiv.org/abs/2510.18234v1
+- GitHub: https://github.com/deepseek-ai/DeepSeek-OCR
+
 Remember: These rules are living documents that should be updated as the project evolves and new best practices emerge. All team members should be familiar with these rules and follow them consistently. Regular review and updates of these workflows ensure they remain relevant and effective for enterprise-level development.

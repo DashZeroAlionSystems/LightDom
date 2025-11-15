@@ -1,0 +1,219 @@
+{
+  "research_pipeline": {
+    "description": "AI Research Pipeline Configuration",
+    "version": "1.0.0",
+    
+    "scraping": {
+      "rate_limit_per_hour": 50,
+      "max_concurrent_requests": 5,
+      "request_timeout_ms": 30000,
+      "retry_attempts": 3,
+      "retry_delay_ms": 2000,
+      "headless": true,
+      "user_agent": "Mozilla/5.0 (compatible; LightDom Research Bot/1.0)",
+      
+      "sources": [
+        {
+          "name": "dev.to",
+          "base_url": "https://dev.to",
+          "enabled": true,
+          "rate_limit": 50,
+          "priority": 1
+        },
+        {
+          "name": "Medium",
+          "base_url": "https://medium.com",
+          "enabled": false,
+          "rate_limit": 30,
+          "priority": 2,
+          "note": "Enable when ready to add Medium scraping"
+        },
+        {
+          "name": "Towards Data Science",
+          "base_url": "https://towardsdatascience.com",
+          "enabled": false,
+          "rate_limit": 30,
+          "priority": 3,
+          "note": "Enable when ready to add TDS scraping"
+        }
+      ],
+      
+      "default_topics": [
+        "ai",
+        "ml",
+        "llm",
+        "nlp",
+        "agents",
+        "seo",
+        "automation",
+        "deep-learning",
+        "transformers",
+        "rag"
+      ]
+    },
+    
+    "campaigns": {
+      "default_interval_minutes": 360,
+      "default_articles_per_run": 100,
+      "min_relevance_score": 0.6,
+      "enable_full_scrape": true,
+      "enable_feature_extraction": true,
+      "enable_seo_analysis": true,
+      "enable_code_extraction": true,
+      
+      "schedules": {
+        "hourly": "0 * * * *",
+        "every_3_hours": "0 */3 * * *",
+        "every_6_hours": "0 */6 * * *",
+        "every_12_hours": "0 */12 * * *",
+        "daily": "0 0 * * *",
+        "weekly": "0 0 * * 0"
+      }
+    },
+    
+    "analysis": {
+      "feature_extraction": {
+        "enabled": true,
+        "keywords": {
+          "enhancement": ["optimize", "improve", "enhance", "better", "faster", "efficient"],
+          "new_feature": ["implement", "build", "create", "develop", "introduce", "add"],
+          "integration": ["integrate", "connect", "combine", "api", "webhook", "plugin"],
+          "optimization": ["performance", "speed", "reduce", "minimize", "cache", "compress"]
+        },
+        "revenue_indicators": ["monetize", "revenue", "business", "sell", "pricing", "saas", "enterprise"]
+      },
+      
+      "seo_analysis": {
+        "enabled": true,
+        "min_word_count": 500,
+        "optimal_word_count_min": 1000,
+        "optimal_word_count_max": 3000,
+        "code_examples_weight": 0.15,
+        "keyword_density_target": 0.02
+      },
+      
+      "code_extraction": {
+        "enabled": true,
+        "min_lines": 3,
+        "max_lines": 500,
+        "quality_threshold": 0.5,
+        "supported_languages": [
+          "javascript",
+          "typescript",
+          "python",
+          "java",
+          "go",
+          "rust",
+          "c",
+          "cpp",
+          "csharp",
+          "ruby",
+          "php"
+        ]
+      }
+    },
+    
+    "papers": {
+      "default_focus_area": "ai-ml-integration",
+      "default_article_limit": 50,
+      "min_confidence_score": 0.7,
+      "sections": [
+        "executive_summary",
+        "key_findings",
+        "feature_analysis",
+        "code_examples",
+        "seo_insights",
+        "recommendations",
+        "implementation_roadmap"
+      ]
+    },
+    
+    "database": {
+      "connection_pool_size": 20,
+      "idle_timeout_ms": 30000,
+      "connection_timeout_ms": 2000,
+      "enable_ssl": false,
+      
+      "retention": {
+        "articles_days": 180,
+        "features_days": 365,
+        "papers_days": 730,
+        "code_examples_days": 365,
+        "seo_insights_days": 180
+      }
+    },
+    
+    "api": {
+      "default_page_size": 50,
+      "max_page_size": 100,
+      "enable_pagination": true,
+      "enable_filtering": true,
+      "enable_sorting": true,
+      
+      "endpoints": {
+        "status": "/api/research/status",
+        "dashboard": "/api/research/dashboard",
+        "scrape": "/api/research/scrape",
+        "articles": "/api/research/articles",
+        "features": "/api/research/features",
+        "campaigns": "/api/research/campaigns",
+        "papers": "/api/research/papers",
+        "topics": "/api/research/topics",
+        "seo_insights": "/api/research/seo-insights",
+        "code_examples": "/api/research/code-examples",
+        "service_packages": "/api/research/service-packages"
+      }
+    },
+    
+    "notifications": {
+      "enabled": false,
+      "channels": {
+        "email": {
+          "enabled": false,
+          "recipients": []
+        },
+        "slack": {
+          "enabled": false,
+          "webhook_url": ""
+        },
+        "discord": {
+          "enabled": false,
+          "webhook_url": ""
+        }
+      },
+      
+      "triggers": {
+        "high_value_feature_found": true,
+        "campaign_completed": true,
+        "paper_generated": true,
+        "error_occurred": true
+      }
+    },
+    
+    "logging": {
+      "level": "info",
+      "console": true,
+      "file": false,
+      "file_path": "./logs/research-pipeline.log",
+      "max_file_size_mb": 10,
+      "max_files": 5
+    },
+    
+    "performance": {
+      "enable_caching": true,
+      "cache_ttl_seconds": 3600,
+      "enable_compression": true,
+      "max_memory_mb": 512,
+      "gc_interval_minutes": 30
+    },
+    
+    "features": {
+      "experimental": {
+        "ml_relevance_scoring": false,
+        "auto_categorization": false,
+        "sentiment_analysis": false,
+        "topic_modeling": false
+      }
+    }
+  }
+}
