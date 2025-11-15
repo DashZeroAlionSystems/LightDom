@@ -1146,9 +1146,17 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.error('Failed to load Storybook mining routes:', err);
+      });
+
+    // Import and register Storybook Discovery routes
+    import('./api/storybook-discovery-routes.js')
+      .then(discoveryModule => {
+        const router = discoveryModule.default;
+        this.app.use('/api/storybook-discovery', router);
+        console.log('✅ Storybook Discovery routes registered (URL discovery, seeding, crawling enabled)');
       })
       .catch(err => {
-        console.error('Failed to load agent management routes:', err);
+        console.error('Failed to load Storybook discovery routes:', err);
       });
 
     // Import and register MCP Server Management routes (Agent instances with schema linking)
