@@ -772,6 +772,21 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load neural SEO campaign routes:', err);
       });
 
+    // Import and register Neural Schema Admin routes
+    import('./api/neural-schema-admin-routes.js')
+      .then(adminModule => {
+        const adminRouter = adminModule.default || adminModule.createNeuralSchemaAdminRoutes;
+        if (typeof adminRouter === 'function') {
+          this.app.use('/api/neural-admin', adminRouter(this.db));
+        } else {
+          this.app.use('/api/neural-admin', adminRouter);
+        }
+        console.log('✅ Neural Schema Admin routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load neural schema admin routes:', err);
+      });
+
     // Import and register Extended Workflow Monitoring routes
     import('./api/extended-workflow-routes.js')
       .then(extendedModule => {
