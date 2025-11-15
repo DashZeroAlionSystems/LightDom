@@ -504,6 +504,150 @@ export function createNeuralSEOCampaignRoutes(dbPool) {
     });
   });
 
+  // ===========================================
+  // Background Mining & Advanced Features
+  // ===========================================
+
+  /**
+   * POST /api/neural-seo/background-mining/start
+   * Start background attribute mining
+   */
+  router.post('/background-mining/start', async (req, res) => {
+    try {
+      await initPromise;
+      
+      const { urls } = req.body;
+      
+      if (urls && Array.isArray(urls)) {
+        seoCampaignService.config.backgroundMiningUrls = urls;
+      }
+      
+      await seoCampaignService.startBackgroundMining();
+      
+      res.json({
+        message: 'Background mining started',
+        status: 'active',
+        interval: seoCampaignService.config.backgroundMiningInterval
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * POST /api/neural-seo/background-mining/stop
+   * Stop background attribute mining
+   */
+  router.post('/background-mining/stop', async (req, res) => {
+    try {
+      await initPromise;
+      
+      seoCampaignService.stopBackgroundMining();
+      
+      res.json({
+        message: 'Background mining stopped',
+        status: 'inactive'
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/neural-seo/backlink/recommendations/:url
+   * Get backlink recommendations for a URL
+   */
+  router.get('/backlink/recommendations/:url', async (req, res) => {
+    try {
+      await initPromise;
+      
+      const url = decodeURIComponent(req.params.url);
+      
+      // Get recent crawl data for URL
+      const result = await dbPool.query(
+        'SELECT attributes FROM seo_campaign_crawl_results WHERE url = $1 ORDER BY crawled_at DESC LIMIT 1',
+        [url]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'URL not found in crawl results' });
+      }
+      
+      const attributes = result.rows[0].attributes;
+      const recommendations = await seoCampaignService.getBacklinkRecommendations(url, attributes);
+      
+      res.json({
+        url,
+        recommendations: recommendations || { message: 'Backlink neural network not available' }
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===========================================
+  // List Creation Service (for DeepSeek)
+  // ===========================================
+
+  /**
+   * POST /api/neural-seo/list/create
+   * Create a list view with configurable templates
+   */
+  router.post('/list/create', async (req, res) => {
+    try {
+      await initPromise;
+      
+      const listView = seoCampaignService.createListView(req.body);
+      
+      res.json({
+        message: 'List view created',
+        listView
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * POST /api/neural-seo/list/panel/create
+   * Create a multi-list panel
+   */
+  router.post('/list/panel/create', async (req, res) => {
+    try {
+      await initPromise;
+      
+      const panel = seoCampaignService.createListPanel(req.body);
+      
+      res.json({
+        message: 'List panel created',
+        panel
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===========================================
+  // DeepSeek Query Interface
+  // ===========================================
+
+  /**
+   * GET /api/neural-seo/deepseek/query
+   * Query service status for DeepSeek AI
+   * Provides comprehensive system state for AI decision making
+   */
+  router.get('/deepseek/query', async (req, res) => {
+    try {
+      await initPromise;
+      
+      const queryResult = await seoCampaignService.queryForDeepSeek();
+      
+      res.json(queryResult);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   return router;
 }
 

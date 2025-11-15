@@ -261,6 +261,124 @@ async function main() {
     console.log('Attributes:');
     console.log('   GET    /api/neural-seo/attributes         - List attributes');
     console.log('   GET    /api/neural-seo/attributes/:name   - Get attribute\n');
+    
+    console.log('Background Mining & Advanced:');
+    console.log('   POST   /api/neural-seo/background-mining/start    - Start background mining');
+    console.log('   POST   /api/neural-seo/background-mining/stop     - Stop background mining');
+    console.log('   GET    /api/neural-seo/backlink/recommendations/:url  - Get backlink tips\n');
+    
+    console.log('List Creation (for DeepSeek):');
+    console.log('   POST   /api/neural-seo/list/create        - Create list view');
+    console.log('   POST   /api/neural-seo/list/panel/create  - Create list panel\n');
+    
+    console.log('DeepSeek Query Interface:');
+    console.log('   GET    /api/neural-seo/deepseek/query     - Query for AI decisions\n');
+
+    // ==========================================
+    // Step 9: Background Mining Demo
+    // ==========================================
+    console.log('📚 Step 9: Starting Background Mining...\n');
+    
+    console.log('🔄 Background mining will continuously:');
+    console.log('   - Crawl and mine all 192 attributes');
+    console.log('   - Train neural network on collected data');
+    console.log('   - Train backlink optimization network');
+    console.log('   - Update models every 5 minutes\n');
+    
+    // Don't actually start it in the example (to avoid long-running process)
+    console.log('💡 To start background mining in production:');
+    console.log('   await seoCampaignService.startBackgroundMining();\n');
+    
+    // ==========================================
+    // Step 10: List Creation Demo
+    // ==========================================
+    console.log('📚 Step 10: Creating List Views...\n');
+    
+    // Create a simple list view
+    const campaignList = seoCampaignService.createListView({
+      name: 'SEO Campaigns',
+      title: 'Active SEO Campaigns',
+      description: 'Monitor all active campaigns',
+      itemFields: [
+        { name: 'name', label: 'Campaign Name', type: 'text', primary: true },
+        { name: 'status', label: 'Status', type: 'badge' },
+        { name: 'urlsCrawled', label: 'URLs Crawled', type: 'number' },
+        { name: 'seoScore', label: 'Avg SEO Score', type: 'progress' }
+      ],
+      dataSourceEndpoint: '/api/neural-seo/campaigns',
+      sortBy: 'created_at',
+      sortOrder: 'desc'
+    });
+    
+    console.log('✅ Created campaign list view');
+    console.log(`   ID: ${campaignList.id}`);
+    console.log(`   Type: ${campaignList.type}`);
+    console.log(`   Fields: ${campaignList.itemTemplate.fields.length}\n`);
+    
+    // Create a multi-list panel
+    const dashboardPanel = seoCampaignService.createListPanel({
+      name: 'SEO Dashboard',
+      layout: 'grid',
+      columns: 2,
+      lists: [
+        {
+          name: 'Recent Crawls',
+          title: 'Recently Crawled URLs',
+          itemFields: [
+            { name: 'url', label: 'URL', type: 'link' },
+            { name: 'seoScore', label: 'Score', type: 'badge' },
+            { name: 'crawledAt', label: 'When', type: 'date' }
+          ],
+          pageSize: 10
+        },
+        {
+          name: 'Top Performers',
+          title: 'Highest SEO Scores',
+          itemFields: [
+            { name: 'url', label: 'URL', type: 'link' },
+            { name: 'seoScore', label: 'Score', type: 'progress' },
+            { name: 'attributes', label: 'Attributes', type: 'number' }
+          ],
+          sortBy: 'seoScore',
+          sortOrder: 'desc',
+          pageSize: 10
+        }
+      ]
+    });
+    
+    console.log('✅ Created multi-list panel');
+    console.log(`   ID: ${dashboardPanel.id}`);
+    console.log(`   Lists: ${dashboardPanel.lists.length}`);
+    console.log(`   Layout: ${dashboardPanel.layout}\n`);
+    
+    // ==========================================
+    // Step 11: DeepSeek Query Demo
+    // ==========================================
+    console.log('📚 Step 11: Querying for DeepSeek...\n');
+    
+    const deepseekQuery = await seoCampaignService.queryForDeepSeek();
+    
+    console.log('🤖 DeepSeek Query Results:');
+    console.log(`   Service Status: ${deepseekQuery.status}`);
+    console.log(`   Background Mining: ${deepseekQuery.backgroundMining ? 'Active' : 'Inactive'}`);
+    console.log(`   Total Campaigns: ${deepseekQuery.campaigns.total}`);
+    console.log(`   Active Campaigns: ${deepseekQuery.campaigns.active}`);
+    console.log(`   Neural Networks: ${deepseekQuery.neuralNetworks.total}`);
+    console.log(`   Total Crawled: ${deepseekQuery.crawling.totalCrawled}`);
+    console.log(`   Total Attributes Mined: ${deepseekQuery.crawling.totalAttributesMined}`);
+    
+    if (deepseekQuery.neuralNetworks.backlinkOptimizer) {
+      console.log('\n   Backlink Neural Network:');
+      console.log(`      Instance: ${deepseekQuery.neuralNetworks.backlinkOptimizer.instanceId}`);
+      console.log(`      Accuracy: ${(deepseekQuery.neuralNetworks.backlinkOptimizer.accuracy * 100).toFixed(1)}%`);
+    }
+    
+    console.log('\n   Recommendations for DeepSeek:');
+    deepseekQuery.recommendations.forEach(rec => {
+      console.log(`      [${rec.priority.toUpperCase()}] ${rec.message}`);
+    });
+    
+    console.log('');
 
     // ==========================================
     // Cleanup
@@ -271,7 +389,8 @@ async function main() {
     await db.end();
 
     console.log('✅ Example completed successfully!\n');
-    console.log('📖 See NEURAL_CRAWLER_INTEGRATION_GUIDE.md for more information\n');
+    console.log('📖 See NEURAL_CRAWLER_INTEGRATION_GUIDE.md for more information');
+    console.log('🚀 To run in production: npm run start:neural-crawler\n');
 
   } catch (error) {
     console.error('\n❌ Error:', error);

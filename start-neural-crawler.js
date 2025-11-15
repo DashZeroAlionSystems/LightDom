@@ -31,8 +31,10 @@ const config = {
     enableDataStreams: process.env.ENABLE_STREAMS !== 'false',
     enableMonitoring: process.env.ENABLE_MONITORING !== 'false',
     continuousCrawling: process.env.CONTINUOUS_CRAWLING !== 'false',
+    enableBackgroundMining: process.env.ENABLE_BACKGROUND_MINING !== 'false',
     maxConcurrentCrawls: parseInt(process.env.MAX_CONCURRENT_CRAWLS || '10'),
     crawlInterval: parseInt(process.env.CRAWL_INTERVAL || '3600000'), // 1 hour
+    backgroundMiningInterval: parseInt(process.env.BACKGROUND_MINING_INTERVAL || '300000'), // 5 min
   },
   
   // Monitoring
