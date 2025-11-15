@@ -27,6 +27,16 @@ const services = [
     cwd: process.cwd(),
   },
   {
+    id: 'deepseek-mcp',
+    label: 'DeepSeek MCP Client',
+    command: process.platform === 'win32' ? 'npx.cmd' : 'npx',
+    args: ['--yes', 'tsx', 'scripts/start-ollama-mcp-client.ts'],
+    cwd: process.cwd(),
+    optional: true,
+    dependsOn: ['ollama', 'deepseek'],
+    stdio: 'inherit',
+  },
+  {
     id: 'ocr',
     label: 'OCR Worker',
     command: 'node',

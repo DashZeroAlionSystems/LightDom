@@ -78,8 +78,16 @@ import DeepSeekSkillsDashboard from './pages/admin/DeepSeekSkillsDashboard';
 import ScraperManagerDashboard from './components/ScraperManagerDashboard';
 import DeepSeekChatPanel from './components/DeepSeekChatPanel';
 import CategoryManagement from './components/ui/admin/CategoryManagement';
-import OnboardingFlow from './components/onboarding/OnboardingFlow';
-import ComprehensiveSEODashboard from './components/dashboard/ComprehensiveSEODashboard';
+import DemoShowcase from './pages/DemoShowcase';
+import OnboardingVisualization from './pages/OnboardingVisualization';
+import LightDOMSlotsDemo from './pages/LightDOMSlotsDemo';
+import BlockchainBenchmarkDemo from './pages/BlockchainBenchmarkDemo';
+import WorkflowExecutionDemo from './pages/WorkflowExecutionDemo';
+import WorkflowBuilderDemo from './pages/WorkflowBuilderDemo';
+import MetaverseNFTMarketplace from './pages/MetaverseNFTMarketplace';
+import BridgeUseCasesShowcase from './pages/BridgeUseCasesShowcase';
+import DOM3DMiningVisualization from './pages/DOM3DMiningVisualization';
+import Advanced3DLayerMiner from './pages/Advanced3DLayerMiner';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -215,6 +223,15 @@ const AppContent: React.FC = () => {
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
           <Route path="component-schema" element={<ComponentSchemaToolDashboard />} />
+          <Route path="demos" element={<DemoShowcase />} />
+          <Route path="demos/onboarding" element={<OnboardingVisualization />} />
+          <Route path="demos/lightdom-slots" element={<LightDOMSlotsDemo />} />
+          <Route path="demos/blockchain-benchmark" element={<BlockchainBenchmarkDemo />} />
+          <Route path="demos/workflow-execution" element={<WorkflowExecutionDemo />} />
+          <Route path="demos/workflow-builder" element={<WorkflowBuilderDemo />} />
+          <Route path="demos/nft-marketplace" element={<MetaverseNFTMarketplace />} />
+          <Route path="demos/bridge-usecases" element={<BridgeUseCasesShowcase />} />
+          <Route path="demos/3d-mining" element={<DOM3DMiningVisualization />} />
           
           {/* Admin Routes within Dashboard */}
           <Route path="admin" element={<AdminDashboard />} />
