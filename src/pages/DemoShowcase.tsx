@@ -65,15 +65,27 @@ const demos: Demo[] = [
     icon: <AppstoreOutlined />
   },
   {
+    id: 'onboarding-viz',
+    name: 'Onboarding Visualization',
+    description: 'Interactive visualization of automated user onboarding flow with real-time progress tracking, SEO analysis, and statistics dashboard.',
+    category: 'Interactive Demos',
+    route: '/demos/onboarding',
+    status: 'ready',
+    enhanced: true,
+    type: 'react',
+    features: ['Progress Tracking', 'SEO Analysis', 'Statistics', 'Step Visualization'],
+    icon: <ExperimentOutlined />
+  },
+  {
     id: 'onboarding',
-    name: 'User Onboarding Flow',
-    description: 'Automated user onboarding with SEO analysis and dashboard generation. Enhanced with interactive visualizations and progress tracking.',
+    name: 'User Onboarding Flow (Node)',
+    description: 'Command-line version with enhanced terminal output, color-coded steps, and JSON export.',
     category: 'Interactive Demos',
     file: 'demo-onboarding.js',
     status: 'ready',
     enhanced: true,
     type: 'node',
-    features: ['Progress Bars', 'SEO Analysis', 'Auto Dashboard', 'Statistics'],
+    features: ['Terminal UI', 'ANSI Colors', 'JSON Export', 'Statistics'],
     icon: <ExperimentOutlined />
   },
 
