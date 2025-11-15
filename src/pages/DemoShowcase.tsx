@@ -176,6 +176,18 @@ const demos: Demo[] = [
 
   // Agent & Workflow Systems
   {
+    id: 'workflow-execution',
+    name: 'Workflow Execution Visualization',
+    description: 'Interactive visualization of memory-driven workflow automation with real-time execution tracking and step-by-step progress monitoring.',
+    category: 'Agent & Workflow',
+    route: '/demos/workflow-execution',
+    status: 'ready',
+    enhanced: true,
+    type: 'react',
+    features: ['Real-time Execution', 'Memory Optimization', 'Step Tracking', 'Multiple Workflows'],
+    icon: <ApiOutlined />
+  },
+  {
     id: 'agent-orchestration',
     name: 'Agent Orchestration',
     description: 'Natural language to component generation workflow with AI agents.',
@@ -188,8 +200,8 @@ const demos: Demo[] = [
   },
   {
     id: 'workflow',
-    name: 'Memory Workflow',
-    description: 'Workflow execution with memory-driven optimizations.',
+    name: 'Memory Workflow (Node)',
+    description: 'Command-line workflow execution with memory-driven optimizations.',
     category: 'Agent & Workflow',
     file: 'demo-workflow.js',
     status: 'ready',
