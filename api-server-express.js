@@ -634,6 +634,26 @@ class DOMSpaceHarvesterAPI {
       }
     );
 
+    // Mount LangChain + Ollama integration routes
+    void safeImport(
+      'LangChain Ollama routes',
+      () => import('./api/langchain-ollama-routes.js'),
+      async langchainModule => {
+        try {
+          // Initialize the service
+          const { initializeLangChainOllamaService } = await import('./services/langchain-ollama-service.js');
+          await initializeLangChainOllamaService();
+          
+          this.app.use('/api/langchain', langchainModule.default);
+          console.log('✅ LangChain Ollama routes registered at /api/langchain');
+        } catch (error) {
+          console.warn('⚠️ LangChain initialization failed:', error.message);
+          console.warn('   LangChain routes will be available but may not function without Ollama service');
+          this.app.use('/api/langchain', langchainModule.default);
+        }
+      }
+    );
+
     // Import and register Conversation History routes (with CommonJS fallback)
     void safeImport(
       'Conversation History routes',
