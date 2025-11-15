@@ -5,10 +5,28 @@
  * Supports prompt-based training configuration and model lifecycle management
  */
 
-import * as tf from '@tensorflow/tfjs-node';
-import { v4 as uuidv4 } from 'uuid';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import * as tf from '@tensorflow/tfjs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { createRequire } from 'module';
 import { join } from 'path';
+
+const requireTF = createRequire(import.meta.url);
+
+const TENSORFLOW_BACKEND = (() => {
+  try {
+    requireTF('@tensorflow/tfjs-node');
+    if (typeof tf.setBackend === 'function' && typeof tf.findBackend === 'function' && tf.findBackend('tensorflow')) {
+      tf.setBackend('tensorflow').catch(() => {});
+    }
+    console.log('TensorFlowModelManager: native TensorFlow backend enabled');
+    return 'tensorflow';
+  } catch (err) {
+    console.warn('TensorFlowModelManager: native TensorFlow bindings unavailable, using @tensorflow/tfjs fallback');
+    return 'tfjs';
+  }
+})();
+
+const TF_NODE_AVAILABLE = TENSORFLOW_BACKEND === 'tensorflow';
 
 export interface ModelConfig {
   inputDimensions?: number;
@@ -298,6 +316,9 @@ export class TensorFlowModelManager {
     }
 
     const savePath = `file://${modelPath}`;
+    if (!TF_NODE_AVAILABLE) {
+      throw new Error('TensorFlow native bindings are required to save models to disk. Install optional dependency @tensorflow/tfjs-node to enable persistence.');
+    }
     await model.save(savePath);
 
     // Save config and metrics
@@ -319,6 +340,10 @@ export class TensorFlowModelManager {
     const modelPath = join(this.modelsDir, clientId);
     if (!existsSync(modelPath)) {
       throw new Error(`Model not found at ${modelPath}`);
+    }
+
+    if (!TF_NODE_AVAILABLE) {
+      throw new Error('TensorFlow native bindings are required to load models from disk. Install optional dependency @tensorflow/tfjs-node to enable model loading.');
     }
 
     const loadPath = `file://${modelPath}/model.json`;

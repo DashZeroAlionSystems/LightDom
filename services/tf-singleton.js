@@ -36,15 +36,27 @@ class TensorFlowSingletonManager {
     this.instances = new Map();
     this.tf = null;
     this.nodeMode = false;
+    this.backend = 'none';
 
-    // Try to load tfjs-node synchronously
+    // Try to load native bindings first, fall back to pure JS implementation
     try {
-      this.tf = require('@tensorflow/tfjs-node');
+      require('@tensorflow/tfjs-node');
+      this.tf = require('@tensorflow/tfjs');
       this.nodeMode = true;
+      this.backend = 'tensorflow';
       console.log('TF Manager: running in tfjs-node mode');
-    } catch (e) {
-      console.log('TF Manager: tfjs-node not found; python fallback will be used');
-      this.tf = null;
+    } catch (nodeErr) {
+      try {
+        this.tf = require('@tensorflow/tfjs');
+        this.nodeMode = true;
+        this.backend = 'tfjs';
+        console.log('TF Manager: running in @tensorflow/tfjs fallback mode (no native bindings)');
+      } catch (fallbackErr) {
+        console.log('TF Manager: TensorFlow packages not available; python fallback will be used');
+        this.tf = null;
+        this.nodeMode = false;
+        this.backend = 'none';
+      }
     }
   }
 
