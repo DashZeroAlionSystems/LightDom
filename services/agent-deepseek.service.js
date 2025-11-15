@@ -1,17 +1,20 @@
 /**
  * Agent DeepSeek Service
- * Complete CRUD service for managing AI agents with DeepSeek integration
+ * Complete CRUD service for managing AI agents with DeepSeek integration.
  */
 
-import { Pool } from 'pg';
-import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 
-// ============================================================================
-// SERVICE CLASS
-// ============================================================================
+const DEFAULT_MODEL = 'deepseek-chat';
+
+const jsonOrNull = value => (value === undefined ? null : value);
 
 export class AgentDeepSeekService {
   constructor(db) {
+    if (!db) {
+      throw new Error('Database pool instance is required');
+    }
+
     this.db = db;
   }
 
@@ -21,107 +24,96 @@ export class AgentDeepSeekService {
 
   async createAgentMode(data) {
     const query = `
-      INSERT INTO agent_modes 
+      INSERT INTO agent_modes
         (name, description, mode_type, function_definition, capabilities, knowledge_graph,
          configuration_schema, default_config, deepseek_prompt_template, rules, constraints)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
     `;
+
     const values = [
       data.name,
-      data.description || null,
+      jsonOrNull(data.description),
       data.mode_type,
       data.function_definition,
-      JSON.stringify(data.capabilities || []),
-      JSON.stringify(data.knowledge_graph || {}),
-      JSON.stringify(data.configuration_schema || {}),
-      JSON.stringify(data.default_config || {}),
-      data.deepseek_prompt_template || null,
-      JSON.stringify(data.rules || []),
-      JSON.stringify(data.constraints || {})
+      data.capabilities || [],
+      data.knowledge_graph || {},
+      data.configuration_schema || {},
+      data.default_config || {},
+      jsonOrNull(data.deepseek_prompt_template),
+      data.rules || [],
+      data.constraints || {},
     ];
-    
-    ];
+
     const result = await this.db.query(query, values);
     return result.rows[0];
   }
 
-  async getAgentMode(mode_id) {
-    const query = 'SELECT * FROM agent_modes WHERE mode_id = $1';
-    const result = await this.db.query(query, [mode_id]);
+  async getAgentMode(modeId) {
+    const result = await this.db.query('SELECT * FROM agent_modes WHERE mode_id = $1', [modeId]);
     return result.rows[0] || null;
   }
 
-  async listAgentModes(filters) {
-    let query = 'SELECT * FROM agent_modes WHERE 1=1';
+  async listAgentModes(filters = {}) {
+    const conditions = [];
     const values = [];
-    let paramCount = 1;
 
-    if (mode_type) {
-      query += ` AND mode_type = $${paramCount++}`;
+    if (filters.mode_type) {
+      conditions.push(`mode_type = $${values.length + 1}`);
       values.push(filters.mode_type);
     }
-    if (is_active !== undefined) {
-      query += ` AND is_active = $${paramCount++}`;
+    if (filters.is_active !== undefined) {
+      conditions.push(`is_active = $${values.length + 1}`);
       values.push(filters.is_active);
     }
 
-    query += ' ORDER BY created_at DESC';
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const query = `SELECT * FROM agent_modes ${whereClause} ORDER BY created_at DESC`;
     const result = await this.db.query(query, values);
     return result.rows;
   }
 
-  async updateAgentMode(mode_id, updates) {
+  async updateAgentMode(modeId, updates = {}) {
     const fields = [];
     const values = [];
-    let paramCount = 1;
 
-    if (updates.name !== undefined) {
-      fields.push(`name = $${paramCount++}`);
-      values.push(updates.name);
-    }
-    if (updates.description !== undefined) {
-      fields.push(`description = $${paramCount++}`);
-      values.push(updates.description);
-    }
-    if (updates.function_definition !== undefined) {
-      fields.push(`function_definition = $${paramCount++}`);
-      values.push(updates.function_definition);
-    }
-    if (updates.capabilities !== undefined) {
-      fields.push(`capabilities = $${paramCount++}`);
-      values.push(JSON.stringify(updates.capabilities));
-    }
-    if (updates.knowledge_graph !== undefined) {
-      fields.push(`knowledge_graph = $${paramCount++}`);
-      values.push(JSON.stringify(updates.knowledge_graph));
-    }
-    if (updates.rules !== undefined) {
-      fields.push(`rules = $${paramCount++}`);
-      values.push(JSON.stringify(updates.rules));
-    }
-    if (updates.is_active !== undefined) {
-      fields.push(`is_active = $${paramCount++}`);
-      values.push(updates.is_active);
+    const setField = (column, value) => {
+      fields.push(`${column} = $${values.length + 1}`);
+      values.push(value);
+    };
+
+    if (updates.name !== undefined) setField('name', updates.name);
+    if (updates.description !== undefined) setField('description', updates.description);
+    if (updates.mode_type !== undefined) setField('mode_type', updates.mode_type);
+    if (updates.function_definition !== undefined) setField('function_definition', updates.function_definition);
+    if (updates.capabilities !== undefined) setField('capabilities', updates.capabilities);
+    if (updates.knowledge_graph !== undefined) setField('knowledge_graph', updates.knowledge_graph);
+    if (updates.configuration_schema !== undefined) setField('configuration_schema', updates.configuration_schema);
+    if (updates.default_config !== undefined) setField('default_config', updates.default_config);
+    if (updates.deepseek_prompt_template !== undefined)
+      setField('deepseek_prompt_template', updates.deepseek_prompt_template);
+    if (updates.rules !== undefined) setField('rules', updates.rules);
+    if (updates.constraints !== undefined) setField('constraints', updates.constraints);
+    if (updates.is_active !== undefined) setField('is_active', updates.is_active);
+
+    if (fields.length === 0) {
+      return this.getAgentMode(modeId);
     }
 
-    if (fields.length === 0) return this.getAgentMode(mode_id);
-
+    values.push(modeId);
     const query = `
       UPDATE agent_modes
       SET ${fields.join(', ')}
-      WHERE mode_id = $${paramCount}
+      WHERE mode_id = $${values.length}
       RETURNING *
-    values.push(mode_id);
     `;
 
     const result = await this.db.query(query, values);
     return result.rows[0] || null;
   }
 
-  async deleteAgentMode(mode_id) {
-    const query = 'DELETE FROM agent_modes WHERE mode_id = $1';
-    const result = await this.db.query(query, [mode_id]);
+  async deleteAgentMode(modeId) {
+    const result = await this.db.query('DELETE FROM agent_modes WHERE mode_id = $1', [modeId]);
     return result.rowCount > 0;
   }
 
@@ -137,94 +129,90 @@ export class AgentDeepSeekService {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `;
+
     const values = [
       data.name,
-      data.description || null,
+      jsonOrNull(data.description),
       data.mode_id,
-      JSON.stringify(data.configuration || {}),
-      JSON.stringify(data.deepseek_config || {}),
+      data.configuration || {},
+      data.deepseek_config || {},
       data.tools_enabled || [],
       data.services_enabled || [],
-      data.model_name || 'deepseek-chat',
-      data.temperature || 0.7,
-      data.max_tokens || 4000
+      data.model_name || DEFAULT_MODEL,
+      data.temperature ?? 0.7,
+      data.max_tokens ?? 4000,
     ];
 
     const result = await this.db.query(query, values);
     return result.rows[0];
   }
 
-  async getAgentInstance(agent_id) {
-    const query = 'SELECT * FROM agent_instances WHERE agent_id = $1';
-    const result = await this.db.query(query, [agent_id]);
+  async getAgentInstance(agentId) {
+    const result = await this.db.query('SELECT * FROM agent_instances WHERE agent_id = $1', [agentId]);
     return result.rows[0] || null;
   }
 
-  async listAgentInstances(filters) {
-    let query = 'SELECT * FROM agent_instances WHERE 1=1';
+  async listAgentInstances(filters = {}) {
+    const conditions = [];
     const values = [];
-    let paramCount = 1;
 
-    if (mode_id) {
-      query += ` AND mode_id = $${paramCount++}`;
+    if (filters.mode_id) {
+      conditions.push(`mode_id = $${values.length + 1}`);
       values.push(filters.mode_id);
     }
-    if (status) {
-      query += ` AND status = $${paramCount++}`;
+    if (filters.status) {
+      conditions.push(`status = $${values.length + 1}`);
       values.push(filters.status);
     }
 
-    query += ' ORDER BY created_at DESC';
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const query = `SELECT * FROM agent_instances ${whereClause} ORDER BY created_at DESC`;
     const result = await this.db.query(query, values);
     return result.rows;
   }
 
-  async updateAgentInstance(agent_id) {
+  async updateAgentInstance(agentId, updates = {}) {
     const fields = [];
     const values = [];
-    let paramCount = 1;
 
-    if (updates.name !== undefined) {
-      fields.push(`name = $${paramCount++}`);
-      values.push(updates.name);
-    }
-    if (updates.status !== undefined) {
-      fields.push(`status = $${paramCount++}`);
-      values.push(updates.status);
-    }
-    if (updates.configuration !== undefined) {
-      fields.push(`configuration = $${paramCount++}`);
-      values.push(JSON.stringify(updates.configuration));
-    }
-    if (updates.knowledge_graph !== undefined) {
-      fields.push(`knowledge_graph = $${paramCount++}`);
-      values.push(JSON.stringify(updates.knowledge_graph));
-    }
-    if (updates.learning_data !== undefined) {
-      fields.push(`learning_data = $${paramCount++}`);
-      values.push(JSON.stringify(updates.learning_data));
+    const setField = (column, value) => {
+      fields.push(`${column} = $${values.length + 1}`);
+      values.push(value);
+    };
+
+    if (updates.name !== undefined) setField('name', updates.name);
+    if (updates.description !== undefined) setField('description', updates.description);
+    if (updates.status !== undefined) setField('status', updates.status);
+    if (updates.configuration !== undefined) setField('configuration', updates.configuration);
+    if (updates.deepseek_config !== undefined) setField('deepseek_config', updates.deepseek_config);
+    if (updates.tools_enabled !== undefined) setField('tools_enabled', updates.tools_enabled);
+    if (updates.services_enabled !== undefined) setField('services_enabled', updates.services_enabled);
+    if (updates.model_name !== undefined) setField('model_name', updates.model_name);
+    if (updates.temperature !== undefined) setField('temperature', updates.temperature);
+    if (updates.max_tokens !== undefined) setField('max_tokens', updates.max_tokens);
+    if (updates.knowledge_graph !== undefined) setField('knowledge_graph', updates.knowledge_graph);
+    if (updates.learning_data !== undefined) setField('learning_data', updates.learning_data);
+
+    if (fields.length === 0) {
+      return this.getAgentInstance(agentId);
     }
 
-    if (fields.length === 0) return this.getAgentInstance(agent_id);
+    setField('last_active_at', new Date());
 
-    fields.push(`last_active_at = $${paramCount++}`);
-    values.push(new Date());
-
+    values.push(agentId);
     const query = `
       UPDATE agent_instances
       SET ${fields.join(', ')}
-      WHERE agent_id = $${paramCount}
+      WHERE agent_id = $${values.length}
       RETURNING *
-    values.push(agent_id);
     `;
 
     const result = await this.db.query(query, values);
     return result.rows[0] || null;
   }
 
-  async deleteAgentInstance(agent_id) {
-    const query = 'DELETE FROM agent_instances WHERE agent_id = $1';
-    const result = await this.db.query(query, [agent_id]);
+  async deleteAgentInstance(agentId) {
+    const result = await this.db.query('DELETE FROM agent_instances WHERE agent_id = $1', [agentId]);
     return result.rowCount > 0;
   }
 
@@ -238,30 +226,30 @@ export class AgentDeepSeekService {
       VALUES ($1, $2, $3, $4)
       RETURNING *
     `;
+
     const values = [
       data.agent_id,
-      data.name || null,
-      data.description || null,
-      JSON.stringify(data.session_context || {})
+      jsonOrNull(data.name),
+      jsonOrNull(data.description),
+      data.session_context || {},
     ];
 
     const result = await this.db.query(query, values);
     return result.rows[0];
   }
 
-  async getSession(session_id) {
-    const query = 'SELECT * FROM agent_sessions WHERE session_id = $1';
-    const result = await this.db.query(query, [session_id]);
+  async getSession(sessionId) {
+    const result = await this.db.query('SELECT * FROM agent_sessions WHERE session_id = $1', [sessionId]);
     return result.rows[0] || null;
   }
 
-  async listSessions(agent_id) {
-    let query = 'SELECT * FROM agent_sessions WHERE 1=1';
+  async listSessions(agentId) {
     const values = [];
+    let query = 'SELECT * FROM agent_sessions';
 
-    if (agent_id) {
-      query += ' AND agent_id = $1';
-      values.push(agent_id);
+    if (agentId) {
+      query += ' WHERE agent_id = $1';
+      values.push(agentId);
     }
 
     query += ' ORDER BY created_at DESC';
@@ -269,32 +257,30 @@ export class AgentDeepSeekService {
     return result.rows;
   }
 
-  async updateSession(session_id) {
+  async updateSession(sessionId, updates = {}) {
     const fields = [];
     const values = [];
-    let paramCount = 1;
 
-    if (updates.status !== undefined) {
-      fields.push(`status = $${paramCount++}`);
-      values.push(updates.status);
-    }
-    if (updates.session_context !== undefined) {
-      fields.push(`session_context = $${paramCount++}`);
-      values.push(JSON.stringify(updates.session_context));
-    }
-    if (updates.knowledge_updates !== undefined) {
-      fields.push(`knowledge_updates = $${paramCount++}`);
-      values.push(JSON.stringify(updates.knowledge_updates));
+    const setField = (column, value) => {
+      fields.push(`${column} = $${values.length + 1}`);
+      values.push(value);
+    };
+
+    if (updates.status !== undefined) setField('status', updates.status);
+    if (updates.session_context !== undefined) setField('session_context', updates.session_context);
+    if (updates.knowledge_updates !== undefined) setField('knowledge_updates', updates.knowledge_updates);
+    if (updates.summary !== undefined) setField('session_summary', updates.summary);
+
+    if (fields.length === 0) {
+      return this.getSession(sessionId);
     }
 
-    if (fields.length === 0) return this.getSession(session_id);
-
+    values.push(sessionId);
     const query = `
       UPDATE agent_sessions
       SET ${fields.join(', ')}
-      WHERE session_id = $${paramCount}
+      WHERE session_id = $${values.length}
       RETURNING *
-    values.push(session_id);
     `;
 
     const result = await this.db.query(query, values);
@@ -312,46 +298,51 @@ export class AgentDeepSeekService {
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
+
     const values = [
-      data.agent_id || null,
-      data.mode_id || null,
+      jsonOrNull(data.agent_id),
+      jsonOrNull(data.mode_id),
       data.node_type,
       data.name,
-      data.description || null,
-      JSON.stringify(data.properties || {})
+      jsonOrNull(data.description),
+      data.properties || {},
     ];
 
     const result = await this.db.query(query, values);
     return result.rows[0];
   }
 
-  async getKnowledgeGraph(agent_id) {
-    let nodesQuery = 'SELECT * FROM knowledge_nodes WHERE 1=1';
-    const values = [];
-    let paramCount = 1;
+  async getKnowledgeGraph(agentId, modeId) {
+    const nodeConditions = [];
+    const nodeValues = [];
 
-    if (agent_id) {
-      nodesQuery += ` AND agent_id = $${paramCount++}`;
-      values.push(agent_id);
+    if (agentId) {
+      nodeConditions.push(`agent_id = $${nodeValues.length + 1}`);
+      nodeValues.push(agentId);
     }
-    if (mode_id) {
-      nodesQuery += ` AND mode_id = $${paramCount++}`;
-      values.push(mode_id);
+    if (modeId) {
+      nodeConditions.push(`mode_id = $${nodeValues.length + 1}`);
+      nodeValues.push(modeId);
     }
 
-    const nodesResult = await this.db.query(nodesQuery, values);
+    const whereClause = nodeConditions.length ? `WHERE ${nodeConditions.join(' AND ')}` : '';
+    const nodesQuery = `SELECT * FROM knowledge_nodes ${whereClause}`;
+    const nodesResult = await this.db.query(nodesQuery, nodeValues);
     const nodes = nodesResult.rows;
 
-    // Get relationships
-    const nodeIds = nodes.map(n => n.node_id);
-    let relsQuery = 'SELECT * FROM knowledge_relationships WHERE 1=1';
-    if (nodeIds.length > 0) {
-      relsQuery += ` AND (from_node_id = ANY($1) OR to_node_id = ANY($1))`;
-      const relsResult = await this.db.query(relsQuery, [nodeIds]);
-      return { nodes, relationships: relsResult.rows };
+    if (nodes.length === 0) {
+      return { nodes: [], relationships: [] };
     }
 
-    return { nodes, relationships: [] };
+    const nodeIds = nodes.map(node => node.node_id);
+    const relsQuery = `
+      SELECT *
+      FROM knowledge_relationships
+      WHERE from_node_id = ANY($1) OR to_node_id = ANY($1)
+    `;
+    const relsResult = await this.db.query(relsQuery, [nodeIds]);
+
+    return { nodes, relationships: relsResult.rows };
   }
 
   // ========================================================================
@@ -365,37 +356,43 @@ export class AgentDeepSeekService {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
+
     const values = [
-      data.mode_id || null,
-      data.agent_id || null,
+      jsonOrNull(data.mode_id),
+      jsonOrNull(data.agent_id),
       data.rule_name,
-      data.description || null,
+      jsonOrNull(data.description),
       data.rule_type,
-      JSON.stringify(data.condition),
-      JSON.stringify(data.action),
-      data.priority || 0,
-      data.is_mandatory || false
+      data.condition || {},
+      data.action || {},
+      data.priority ?? 0,
+      data.is_mandatory ?? false,
     ];
 
     const result = await this.db.query(query, values);
     return result.rows[0];
   }
 
-  async listAgentRules(agent_id) {
-    let query = 'SELECT * FROM agent_rules WHERE is_active = true';
+  async listAgentRules(filters = {}) {
+    const conditions = ['is_active = true'];
     const values = [];
-    let paramCount = 1;
 
-    if (agent_id) {
-      query += ` AND agent_id = $${paramCount++}`;
-      values.push(agent_id);
+    if (filters.agent_id) {
+      conditions.push(`agent_id = $${values.length + 1}`);
+      values.push(filters.agent_id);
     }
-    if (mode_id) {
-      query += ` AND mode_id = $${paramCount++}`;
-      values.push(mode_id);
+    if (filters.mode_id) {
+      conditions.push(`mode_id = $${values.length + 1}`);
+      values.push(filters.mode_id);
     }
 
-    query += ' ORDER BY priority DESC, created_at ASC';
+    const query = `
+      SELECT *
+      FROM agent_rules
+      WHERE ${conditions.join(' AND ')}
+      ORDER BY priority DESC, created_at ASC
+    `;
+
     const result = await this.db.query(query, values);
     return result.rows;
   }
@@ -405,7 +402,6 @@ export class AgentDeepSeekService {
   // ========================================================================
 
   async executeDeepSeekPrompt(data) {
-    // Get agent configuration
     const agent = await this.getAgentInstance(data.agent_id);
     if (!agent) {
       throw new Error('Agent not found');
@@ -413,53 +409,67 @@ export class AgentDeepSeekService {
 
     const deepseekConfig = agent.deepseek_config || {};
     const apiUrl = deepseekConfig.api_url || process.env.DEEPSEEK_API_URL || 'http://localhost:11434';
-    const model = agent.model_name || 'deepseek-chat';
+    const model = data.model || agent.model_name || DEFAULT_MODEL;
 
     try {
-      // Call DeepSeek API
-      const response = await axios.post(`${apiUrl}/api/generate`, {
+      const response = await axios.post(
+        `${apiUrl}/api/generate`,
+        {
+          model,
+          prompt: data.prompt_text,
+          stream: false,
+          options: deepseekConfig.options || {},
+        },
+        { timeout: deepseekConfig.timeout || 60000 }
+      );
 
-      const responseText = response.data.response || '';
-      const tokensUsed = response.data.tokens_used || 0;
+      const responseText = response.data?.response || '';
+      const tokensUsed = response.data?.tokens_used || 0;
+      const processingTime = response.data?.processing_time_ms || 0;
 
-      // Save execution record
       const executionQuery = `
         INSERT INTO prompt_executions
           (template_id, agent_id, session_id, prompt_text, response_text, status, tokens_used, processing_time_ms)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING execution_id
+      `;
+
       const executionValues = [
-        data.template_id || null,
+        jsonOrNull(data.template_id),
         data.agent_id,
-        data.session_id || null,
+        jsonOrNull(data.session_id),
         data.prompt_text,
         responseText,
         'success',
         tokensUsed,
-        response.data.processing_time_ms || 0
+        processingTime,
+      ];
 
       const executionResult = await this.db.query(executionQuery, executionValues);
 
       return {
         execution_id: executionResult.rows[0].execution_id,
         response_text: responseText,
-        tokens_used: tokensUsed
+        tokens_used: tokensUsed,
+      };
     } catch (error) {
-      // Save error execution record
-      const executionQuery = `
+      const errorQuery = `
         INSERT INTO prompt_executions
           (template_id, agent_id, session_id, prompt_text, status, error_message)
         VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING execution_id
-      const executionValues = [
-        data.template_id || null,
+      `;
+
+      const errorValues = [
+        jsonOrNull(data.template_id),
         data.agent_id,
-        data.session_id || null,
+        jsonOrNull(data.session_id),
         data.prompt_text,
         'error',
-        error.message
+        error.message || 'Unknown error',
+      ];
 
-      await this.db.query(executionQuery, executionValues);
+      await this.db.query(errorQuery, errorValues);
+      throw error;
     }
   }
 
@@ -473,12 +483,14 @@ export class AgentDeepSeekService {
         (agent_id, session_id, event_type, event_data, confidence_score)
       VALUES ($1, $2, $3, $4, $5)
     `;
+
     const values = [
       data.agent_id,
-      data.session_id || null,
+      jsonOrNull(data.session_id),
       data.event_type,
-      JSON.stringify(data.event_data),
-      data.confidence_score || null
+      data.event_data || {},
+      jsonOrNull(data.confidence_score),
+    ];
 
     await this.db.query(query, values);
   }
@@ -489,13 +501,15 @@ export class AgentDeepSeekService {
         (agent_id, session_id, metric_type, metric_value, benchmark_value, measurement_context)
       VALUES ($1, $2, $3, $4, $5, $6)
     `;
+
     const values = [
       data.agent_id,
-      data.session_id || null,
+      jsonOrNull(data.session_id),
       data.metric_type,
       data.metric_value,
-      data.benchmark_value || null,
-      JSON.stringify(data.measurement_context || {})
+      jsonOrNull(data.benchmark_value),
+      data.measurement_context || {},
+    ];
 
     await this.db.query(query, values);
   }

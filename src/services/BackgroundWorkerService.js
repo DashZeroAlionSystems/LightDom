@@ -20,31 +20,25 @@ class BackgroundWorkerService {
     // Setup logger
     this.logger = winston.createLogger({
       level: process.env.LOG_LEVEL || 'info',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      ),
+      format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
       transports: [
         new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.simple()
-          )
+          format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
         }),
-        new winston.transports.File({ filename: 'logs/worker.log' })
-      ]
+        new winston.transports.File({ filename: 'logs/worker.log' }),
+      ],
     });
 
     // Database connection pool
     this.db = this.dbDisabled
       ? {
           query: async () => ({ rows: [], rowCount: 0 }),
-          end: async () => {}
+          end: async () => {},
         }
       : new Pool({
           host: process.env.DB_HOST || 'localhost',
           port: process.env.DB_PORT || 5432,
-          database: process.env.DB_NAME || 'dom_space_harvester', || 'lightdom_blockchain',
+          database: process.env.DB_NAME || 'dom_space_harvester',
           user: process.env.DB_USER || 'postgres',
           password: process.env.DB_PASSWORD || 'postgres',
           max: 10,
@@ -65,11 +59,11 @@ class BackgroundWorkerService {
   setupShutdownHandlers() {
     process.on('SIGINT', () => this.shutdown());
     process.on('SIGTERM', () => this.shutdown());
-    process.on('uncaughtException', (error) => {
+    process.on('uncaughtException', error => {
       this.logger.error('Uncaught Exception:', error);
       this.shutdown();
     });
-    process.on('unhandledRejection', (reason) => {
+    process.on('unhandledRejection', reason => {
       this.logger.error('Unhandled Rejection:', reason);
       this.shutdown();
     });
@@ -98,7 +92,6 @@ class BackgroundWorkerService {
 
       // Keep the process alive
       await this.keepAlive();
-
     } catch (error) {
       this.logger.error('Failed to start Background Worker Service:', error);
       await this.shutdown();
@@ -113,10 +106,10 @@ class BackgroundWorkerService {
     try {
       this.redis = createClient({
         url: redisUrl,
-        password: process.env.REDIS_PASSWORD || undefined
+        password: process.env.REDIS_PASSWORD || undefined,
       });
 
-      this.redis.on('error', (err) => {
+      this.redis.on('error', err => {
         this.logger.error('Redis error:', err);
       });
 
@@ -147,34 +140,45 @@ class BackgroundWorkerService {
     this.logger.info('Starting database maintenance tasks');
 
     // Run every hour
-    const interval = setInterval(async () => {
-      try {
-        this.logger.info('Running database maintenance...');
+    const interval = setInterval(
+      async () => {
+        try {
+          this.logger.info('Running database maintenance...');
 
-        // Vacuum analyze to optimize query performance
-        await this.db.query('VACUUM ANALYZE');
+          // Vacuum analyze to optimize query performance
+          await this.db.query('VACUUM ANALYZE');
 
-        // Clean up old session data (older than 30 days)
-        await this.db.query(`
+          // Clean up old session data (older than 30 days)
+          await this.db
+            .query(
+              `
           DELETE FROM sessions
           WHERE created_at < NOW() - INTERVAL '30 days'
-        `).catch(() => {
-          // Table might not exist
-        });
+        `
+            )
+            .catch(() => {
+              // Table might not exist
+            });
 
-        // Clean up expired cache entries
-        await this.db.query(`
+          // Clean up expired cache entries
+          await this.db
+            .query(
+              `
           DELETE FROM cache
           WHERE expires_at < NOW()
-        `).catch(() => {
-          // Table might not exist
-        });
+        `
+            )
+            .catch(() => {
+              // Table might not exist
+            });
 
-        this.logger.info('Database maintenance completed');
-      } catch (error) {
-        this.logger.error('Database maintenance error:', error.message);
-      }
-    }, 60 * 60 * 1000); // Every hour
+          this.logger.info('Database maintenance completed');
+        } catch (error) {
+          this.logger.error('Database maintenance error:', error.message);
+        }
+      },
+      60 * 60 * 1000
+    ); // Every hour
 
     this.intervals.set('database-maintenance', interval);
   }
@@ -185,30 +189,33 @@ class BackgroundWorkerService {
     this.logger.info('Starting cache cleanup tasks');
 
     // Run every 15 minutes
-    const interval = setInterval(async () => {
-      try {
-        this.logger.info('Running cache cleanup...');
+    const interval = setInterval(
+      async () => {
+        try {
+          this.logger.info('Running cache cleanup...');
 
-        // Get all keys
-        const keys = await this.redis.keys('*');
-        let cleaned = 0;
+          // Get all keys
+          const keys = await this.redis.keys('*');
+          let cleaned = 0;
 
-        for (const key of keys) {
-          // Check TTL
-          const ttl = await this.redis.ttl(key);
+          for (const key of keys) {
+            // Check TTL
+            const ttl = await this.redis.ttl(key);
 
-          // If expired or no TTL set and key is old, delete it
-          if (ttl === -2 || (ttl === -1 && key.includes('temp'))) {
-            await this.redis.del(key);
-            cleaned++;
+            // If expired or no TTL set and key is old, delete it
+            if (ttl === -2 || (ttl === -1 && key.includes('temp'))) {
+              await this.redis.del(key);
+              cleaned++;
+            }
           }
-        }
 
-        this.logger.info(`Cache cleanup completed. Removed ${cleaned} keys`);
-      } catch (error) {
-        this.logger.error('Cache cleanup error:', error.message);
-      }
-    }, 15 * 60 * 1000); // Every 15 minutes
+          this.logger.info(`Cache cleanup completed. Removed ${cleaned} keys`);
+        } catch (error) {
+          this.logger.error('Cache cleanup error:', error.message);
+        }
+      },
+      15 * 60 * 1000
+    ); // Every 15 minutes
 
     this.intervals.set('cache-cleanup', interval);
   }
@@ -217,13 +224,16 @@ class BackgroundWorkerService {
     this.logger.info('Starting metrics aggregation tasks');
 
     // Run every 5 minutes
-    const interval = setInterval(async () => {
-      try {
-        this.logger.info('Aggregating metrics...');
+    const interval = setInterval(
+      async () => {
+        try {
+          this.logger.info('Aggregating metrics...');
 
-        if (!this.dbDisabled) {
-          // Aggregate hourly metrics
-          await this.db.query(`
+          if (!this.dbDisabled) {
+            // Aggregate hourly metrics
+            await this.db
+              .query(
+                `
             INSERT INTO metrics_hourly (hour, metric_type, value, aggregated_at)
             SELECT
               date_trunc('hour', created_at) as hour,
@@ -236,31 +246,35 @@ class BackgroundWorkerService {
             GROUP BY date_trunc('hour', created_at), metric_type
             ON CONFLICT (hour, metric_type) DO UPDATE
             SET value = EXCLUDED.value, aggregated_at = EXCLUDED.aggregated_at
-          `).catch(() => {
-            // Tables might not exist
-          });
-        }
+          `
+              )
+              .catch(() => {
+                // Tables might not exist
+              });
+          }
 
-        if (this.redis) {
-          // Store aggregated metrics in Redis for quick access
-          const timestamp = Date.now();
-          await this.redis.set(
-            `metrics:latest:${timestamp}`,
-            JSON.stringify({
-              timestamp,
-              uptime: process.uptime(),
-              memory: process.memoryUsage(),
-              cpu: process.cpuUsage()
-            }),
-            { EX: 3600 } // Expire in 1 hour
-          );
-        }
+          if (this.redis) {
+            // Store aggregated metrics in Redis for quick access
+            const timestamp = Date.now();
+            await this.redis.set(
+              `metrics:latest:${timestamp}`,
+              JSON.stringify({
+                timestamp,
+                uptime: process.uptime(),
+                memory: process.memoryUsage(),
+                cpu: process.cpuUsage(),
+              }),
+              { EX: 3600 } // Expire in 1 hour
+            );
+          }
 
-        this.logger.info('Metrics aggregation completed');
-      } catch (error) {
-        this.logger.error('Metrics aggregation error:', error.message);
-      }
-    }, 5 * 60 * 1000); // Every 5 minutes
+          this.logger.info('Metrics aggregation completed');
+        } catch (error) {
+          this.logger.error('Metrics aggregation error:', error.message);
+        }
+      },
+      5 * 60 * 1000
+    ); // Every 5 minutes
 
     this.intervals.set('metrics-aggregation', interval);
   }
@@ -269,29 +283,36 @@ class BackgroundWorkerService {
     this.logger.info('Starting optimization tasks');
 
     // Run every 30 minutes
-    const interval = setInterval(async () => {
-      try {
-        this.logger.info('Running optimization tasks...');
+    const interval = setInterval(
+      async () => {
+        try {
+          this.logger.info('Running optimization tasks...');
 
-        if (!this.dbDisabled) {
-          // Find and process pending optimization jobs
-          const result = await this.db.query(`
+          if (!this.dbDisabled) {
+            // Find and process pending optimization jobs
+            const result = await this.db
+              .query(
+                `
             SELECT * FROM optimization_queue
             WHERE status = 'pending'
             ORDER BY created_at ASC
             LIMIT 10
-          `).catch(() => ({ rows: [] }));
+          `
+              )
+              .catch(() => ({ rows: [] }));
 
-          for (const job of result.rows) {
-            await this.processOptimizationJob(job);
+            for (const job of result.rows) {
+              await this.processOptimizationJob(job);
+            }
           }
-        }
 
-        this.logger.info('Optimization tasks completed');
-      } catch (error) {
-        this.logger.error('Optimization tasks error:', error.message);
-      }
-    }, 30 * 60 * 1000); // Every 30 minutes
+          this.logger.info('Optimization tasks completed');
+        } catch (error) {
+          this.logger.error('Optimization tasks error:', error.message);
+        }
+      },
+      30 * 60 * 1000
+    ); // Every 30 minutes
 
     this.intervals.set('optimization-tasks', interval);
   }
@@ -323,16 +344,17 @@ class BackgroundWorkerService {
       this.logger.error(`Failed to process optimization job ${job.id}:`, error.message);
 
       if (!this.dbDisabled) {
-        await this.db.query(
-          'UPDATE optimization_queue SET status = $1, error = $2 WHERE id = $3',
-          ['failed', error.message, job.id]
-        );
+        await this.db.query('UPDATE optimization_queue SET status = $1, error = $2 WHERE id = $3', [
+          'failed',
+          error.message,
+          job.id,
+        ]);
       }
     }
   }
 
   async keepAlive() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       // Health check interval
       const healthCheck = setInterval(async () => {
         if (!this.isRunning) {
@@ -345,7 +367,7 @@ class BackgroundWorkerService {
         this.logger.debug('Background worker is running', {
           uptime: process.uptime(),
           memory: process.memoryUsage(),
-          activeIntervals: this.intervals.size
+          activeIntervals: this.intervals.size,
         });
       }, 60000); // Every minute
     });
@@ -385,7 +407,7 @@ class BackgroundWorkerService {
 
 // Start the worker
 const worker = new BackgroundWorkerService();
-worker.start().catch((error) => {
+worker.start().catch(error => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

@@ -4,6 +4,7 @@
 
 const puppeteer = require('puppeteer');
 const { Client } = require('pg');
+const Redis = require('ioredis');
 const { URL } = require('url');
 const robots = require('robots');
 const sitemap = require('sitemap-stream-parser');
@@ -30,6 +31,10 @@ class RealWebCrawlerSystem {
     this.backlinkAnalyzer = new BacklinkNetworkAnalyzer();
     this.lightDOMConverter = new LightDOMConverter();
     this.blockchainIntegrator = new BlockchainMetaverseIntegrator(config.blockchain);
+    this.redisConfig = config.redis || config.redisUrl || process.env.REDIS_URL || null;
+    this.redis = null;
+    this.queueConsumerPromise = null;
+    this.shutdownRequested = false;
   }
 
   async initialize() {
@@ -38,6 +43,28 @@ class RealWebCrawlerSystem {
     // Connect to PostgreSQL
     await this.db.connect();
     await this.initializeDatabase();
+
+    // Connect to Redis (optional)
+    if (this.redisConfig) {
+      try {
+        this.redis = new Redis(this.redisConfig);
+        await this.redis.ping();
+        this.redis.on('error', (error) => {
+          if (this.shutdownRequested) return;
+          console.error('⚠️ Redis connection error:', error.message);
+        });
+        console.log('✅ Connected to Redis for SEO crawl jobs');
+        this.queueConsumerPromise = this.consumeSeoQueue();
+      } catch (error) {
+        console.error('⚠️ Failed to initialize Redis connection:', error.message);
+        if (this.redis) {
+          this.redis.disconnect();
+        }
+        this.redis = null;
+      }
+    } else {
+      console.log('ℹ️ Redis configuration not provided – external SEO crawl jobs disabled');
+    }
     
     // Launch browser pool
     this.browser = await puppeteer.launch({
@@ -56,6 +83,102 @@ class RealWebCrawlerSystem {
     await this.generateInitialCrawlList();
     
     console.log('✅ System initialized! Ready to harvest the web.');
+  }
+
+  async consumeSeoQueue() {
+    if (!this.redis) {
+      return;
+    }
+
+    console.log('📥 Listening for SEO crawl jobs from Redis queue');
+
+    while (!this.shutdownRequested) {
+      try {
+        const result = await this.redis.brpop('seo:crawl:queue', 5);
+        if (!result) {
+          continue;
+        }
+
+        const [, payload] = result;
+        let job;
+        try {
+          job = JSON.parse(payload);
+        } catch (error) {
+          console.error('⚠️ Invalid crawl job payload – unable to parse JSON');
+          continue;
+        }
+
+        const targetUrl = this.normalizeJobUrl(job);
+        if (!targetUrl) {
+          console.log('⚠️ Ignoring crawl job without URL');
+          continue;
+        }
+
+        const domain = this.safeExtractDomain(targetUrl, job.domain || job.clientDomain);
+        if (!domain) {
+          console.log('⚠️ Ignoring crawl job without a resolvable domain');
+          continue;
+        }
+        const metadata = {
+          source: 'seo:crawl:queue',
+          clientId: job.clientId || null,
+          plan: job.plan || null,
+          sessionId: job.sessionId || null,
+          requestedAt: job.requestedAt || Date.now(),
+          subscriptionTier: job.subscriptionTier || null
+        };
+
+        await this.addCrawlTarget(targetUrl, domain, 0, 25, true, false, metadata);
+
+        const alreadyQueued = this.crawlQueue.some(item => item.url === targetUrl);
+        const inFlight = this.activeCrawls.has(targetUrl);
+        if (!alreadyQueued && !inFlight) {
+          this.crawlQueue.unshift({
+            url: targetUrl,
+            domain,
+            depth: 0,
+            priority: 25,
+            metadata
+          });
+          console.log(`🆕 Added SEO crawl job to queue: ${targetUrl}`);
+        }
+      } catch (error) {
+        if (this.shutdownRequested) {
+          break;
+        }
+        console.error('⚠️ Error while consuming SEO crawl job:', error.message);
+        await this.delay(2000);
+      }
+    }
+
+    console.log('📪 SEO crawl job listener stopped');
+  }
+
+  normalizeJobUrl(job) {
+    if (!job) return null;
+    if (job.url) {
+      return job.url;
+    }
+
+    if (job.domain && job.pathname) {
+      const protocol = job.protocol || 'https://';
+      return `${protocol.replace(/:\/\/?$/, '://')}${job.domain.replace(/^https?:\/\//, '')}${job.pathname}`;
+    }
+
+    if (job.clientDomain && job.pathname) {
+      const protocol = job.protocol || 'https://';
+      return `${protocol.replace(/:\/\/?$/, '://')}${job.clientDomain.replace(/^https?:\/\//, '')}${job.pathname}`;
+    }
+
+    return null;
+  }
+
+  safeExtractDomain(url, fallbackDomain) {
+    try {
+      return new URL(url).hostname;
+    } catch (error) {
+      return fallbackDomain || null;
+    }
   }
 
   async initializeDatabase() {
@@ -298,13 +421,33 @@ class RealWebCrawlerSystem {
     }
   }
 
-  async addCrawlTarget(url, domain, depth = 0, priority = 1, robotsAllowed = true, isSitemapEntry = false) {
+  async addCrawlTarget(
+    url,
+    domain,
+    depth = 0,
+    priority = 1,
+    robotsAllowed = true,
+    isSitemapEntry = false,
+    metadata = null
+  ) {
     try {
       await this.db.query(
-        `INSERT INTO crawl_targets (url, domain, crawl_depth, priority, robots_allowed, sitemap_entry) 
-         VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (url) DO NOTHING`,
+        `INSERT INTO crawl_targets (url, domain, crawl_depth, priority, robots_allowed, sitemap_entry, status) 
+         VALUES ($1, $2, $3, $4, $5, $6, 'pending') 
+         ON CONFLICT (url) DO UPDATE SET 
+           priority = GREATEST(crawl_targets.priority, EXCLUDED.priority),
+           status = 'pending'`,
         [url, domain, depth, priority, robotsAllowed, isSitemapEntry]
       );
+
+      if (metadata && Object.keys(metadata).length > 0) {
+        await this.db.query(
+          `UPDATE crawl_targets 
+             SET metadata = COALESCE(metadata, '{}'::jsonb) || $2::jsonb 
+           WHERE url = $1`,
+          [url, metadata]
+        );
+      }
     } catch (error) {
       // Ignore duplicate URL errors
     }
@@ -723,8 +866,23 @@ class RealWebCrawlerSystem {
 
   async shutdown() {
     console.log('🛑 Shutting down crawler system...');
+    this.shutdownRequested = true;
     if (this.browser) {
       await this.browser.close();
+    }
+    if (this.redis) {
+      try {
+        await this.redis.quit();
+      } catch (error) {
+        this.redis.disconnect();
+      }
+    }
+    if (this.queueConsumerPromise) {
+      try {
+        await this.queueConsumerPromise;
+      } catch (error) {
+        // Ignore errors during shutdown
+      }
     }
     await this.db.end();
     console.log('✅ Crawler system shutdown complete');

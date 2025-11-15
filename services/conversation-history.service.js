@@ -11,42 +11,46 @@
 
 import { Pool } from 'pg';
 
-interface ConversationMessage {
-  role: 'user' | 'assistant' | 'system' | 'tool';
-  content: string;
-  tool_calls?: any[];
-  timestamp?: string;
-}
+/**
+ * @typedef {Object} ConversationMessage
+ * @property {'user'|'assistant'|'system'|'tool'} role
+ * @property {string} content
+ * @property {any[]=} tool_calls
+ * @property {string=} timestamp
+ */
 
-interface SessionContext {
-  sessionId: string;
-  agentId?: string;
-  hierarchy?: string;
-  userId?: string;
-  role?: string;
-  activeWorkflows?: string[];
-  activeCampaigns?: string[];
-}
+/**
+ * @typedef {Object} SessionContext
+ * @property {string} sessionId
+ * @property {string=} agentId
+ * @property {string=} hierarchy
+ * @property {string=} userId
+ * @property {string=} role
+ * @property {string[]=} activeWorkflows
+ * @property {string[]=} activeCampaigns
+ */
 
-interface ConversationMetadata {
-  toolsUsed?: string[];
-  workflowsCreated?: string[];
-  campaignsStarted?: string[];
-  apisGenerated?: string[];
-  schemasQueried?: string[];
-}
+/**
+ * @typedef {Object} ConversationMetadata
+ * @property {string[]=} toolsUsed
+ * @property {string[]=} workflowsCreated
+ * @property {string[]=} campaignsStarted
+ * @property {string[]=} apisGenerated
+ * @property {string[]=} schemasQueried
+ */
 
 export class ConversationHistoryService {
-  private db: Pool;
-
-  constructor(db: Pool) {
+  /**
+   * @param {Pool} db
+   */
+  constructor(db) {
     this.db = db;
   }
 
   /**
    * Initialize conversation history tables
    */
-  async initializeSchema(): Promise<void> {
+  async initializeSchema() {
     await this.db.query(`
       CREATE TABLE IF NOT EXISTS deepseek_conversations (
         id SERIAL PRIMARY KEY,
@@ -85,7 +89,8 @@ export class ConversationHistoryService {
         success_count INTEGER DEFAULT 0,
         failure_count INTEGER DEFAULT 0,
         last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(pattern_type, pattern_data)
       );
 
       CREATE INDEX IF NOT EXISTS idx_conversations_session 
@@ -107,11 +112,7 @@ export class ConversationHistoryService {
   /**
    * Create or update conversation
    */
-  async upsertConversation(
-    conversationId: string,
-    sessionContext: SessionContext,
-    metadata?: ConversationMetadata
-  ): Promise<void> {
+  async upsertConversation(conversationId, sessionContext, metadata) {
     await this.db.query(
       `INSERT INTO deepseek_conversations (conversation_id, session_context, metadata, updated_at)
        VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
@@ -127,10 +128,7 @@ export class ConversationHistoryService {
   /**
    * Add message to conversation
    */
-  async addMessage(
-    conversationId: string,
-    message: ConversationMessage
-  ): Promise<void> {
+  async addMessage(conversationId, message) {
     await this.db.query(
       `INSERT INTO deepseek_messages (conversation_id, role, content, tool_calls, timestamp, metadata)
        VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -148,7 +146,7 @@ export class ConversationHistoryService {
   /**
    * Get conversation history
    */
-  async getConversationHistory(conversationId: string): Promise<ConversationMessage[]> {
+  async getConversationHistory(conversationId) {
     const result = await this.db.query(
       `SELECT role, content, tool_calls, timestamp 
        FROM deepseek_messages 
@@ -168,7 +166,7 @@ export class ConversationHistoryService {
   /**
    * Get full conversation with context
    */
-  async getFullConversation(conversationId: string): Promise<any> {
+  async getFullConversation(conversationId) {
     const convResult = await this.db.query(
       `SELECT * FROM deepseek_conversations WHERE conversation_id = $1`,
       [conversationId]
@@ -191,13 +189,7 @@ export class ConversationHistoryService {
   /**
    * Add entity to knowledge graph
    */
-  async addToKnowledgeGraph(
-    conversationId: string,
-    entityType: string,
-    entityId: string,
-    entityData: any,
-    relationships: any[] = []
-  ): Promise<void> {
+  async addToKnowledgeGraph(conversationId, entityType, entityId, entityData, relationships = []) {
     await this.db.query(
       `INSERT INTO deepseek_knowledge_graph 
          (conversation_id, entity_type, entity_id, entity_data, relationships)
@@ -219,7 +211,7 @@ export class ConversationHistoryService {
   /**
    * Get knowledge graph for conversation
    */
-  async getKnowledgeGraphForConversation(conversationId: string): Promise<any[]> {
+  async getKnowledgeGraphForConversation(conversationId) {
     const result = await this.db.query(
       `SELECT * FROM deepseek_knowledge_graph WHERE conversation_id = $1`,
       [conversationId]
@@ -237,11 +229,7 @@ export class ConversationHistoryService {
   /**
    * Record learning pattern
    */
-  async recordLearningPattern(
-    patternType: string,
-    patternData: any,
-    success: boolean
-  ): Promise<void> {
+  async recordLearningPattern(patternType, patternData, success) {
     await this.db.query(
       `INSERT INTO deepseek_learning_patterns (pattern_type, pattern_data, success_count, failure_count)
        VALUES ($1, $2, $3, $4)
@@ -262,11 +250,7 @@ export class ConversationHistoryService {
   /**
    * Get successful learning patterns
    */
-  async getSuccessfulPatterns(
-    patternType?: string,
-    minSuccessRate: number = 0.7,
-    limit: number = 10
-  ): Promise<any[]> {
+  async getSuccessfulPatterns(patternType, minSuccessRate = 0.7, limit = 10) {
     let query = `
       SELECT 
         pattern_type,
@@ -279,7 +263,7 @@ export class ConversationHistoryService {
       WHERE CAST(success_count AS FLOAT) / NULLIF(success_count + failure_count, 0) >= $1
     `;
     
-    const params: any[] = [minSuccessRate];
+    const params = [minSuccessRate];
 
     if (patternType) {
       query += ` AND pattern_type = $2`;
@@ -298,10 +282,7 @@ export class ConversationHistoryService {
   /**
    * Get conversation summaries for a session
    */
-  async getSessionConversations(
-    sessionId: string,
-    limit: number = 10
-  ): Promise<any[]> {
+  async getSessionConversations(sessionId, limit = 10) {
     const result = await this.db.query(
       `SELECT 
          c.conversation_id,
@@ -325,7 +306,7 @@ export class ConversationHistoryService {
   /**
    * Delete conversation
    */
-  async deleteConversation(conversationId: string): Promise<boolean> {
+  async deleteConversation(conversationId) {
     const result = await this.db.query(
       `DELETE FROM deepseek_conversations WHERE conversation_id = $1`,
       [conversationId]
@@ -337,7 +318,7 @@ export class ConversationHistoryService {
   /**
    * Get conversation statistics
    */
-  async getConversationStats(conversationId: string): Promise<any> {
+  async getConversationStats(conversationId) {
     const result = await this.db.query(
       `SELECT 
          COUNT(*) FILTER (WHERE role = 'user') as user_messages,
@@ -356,11 +337,7 @@ export class ConversationHistoryService {
   /**
    * Search conversations by content
    */
-  async searchConversations(
-    searchQuery: string,
-    sessionId?: string,
-    limit: number = 10
-  ): Promise<any[]> {
+  async searchConversations(searchQuery, sessionId, limit = 10) {
     let query = `
       SELECT DISTINCT
         c.conversation_id,
@@ -374,7 +351,7 @@ export class ConversationHistoryService {
       WHERE m.content ILIKE $1
     `;
 
-    const params: any[] = [`%${searchQuery}%`];
+    const params = [`%${searchQuery}%`];
 
     if (sessionId) {
       query += ` AND c.session_context->>'sessionId' = $2`;

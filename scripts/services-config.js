@@ -11,6 +11,15 @@ const services = [
     optional: true,
   },
   {
+    id: 'error-orchestration',
+    label: 'Error Orchestration (DeepSeek)',
+    command: 'node',
+    args: ['scripts/start-error-orchestration.js'],
+    cwd: process.cwd(),
+    optional: true,
+    dependsOn: ['ollama'], // Requires Ollama for DeepSeek analysis
+  },
+  {
     id: 'deepseek',
     label: 'DeepSeek Orchestration',
     command: 'node',

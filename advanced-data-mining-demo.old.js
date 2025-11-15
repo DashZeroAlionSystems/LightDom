@@ -18,7 +18,7 @@ const DEMO_CONFIG = {
   database: {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME || 'dom_space_harvester', || 'datamining_demo',
+    database: process.env.DB_NAME || 'datamining_demo',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'password'
   },

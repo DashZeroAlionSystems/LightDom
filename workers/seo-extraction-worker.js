@@ -43,6 +43,12 @@ const worker = new Worker(
       console.log(`[${job.id}]    Overall Score: ${result.scores.overall}`);
       console.log(`[${job.id}]    Word Count: ${result.attributes.wordCount}`);
 
+      if (Array.isArray(result.missingAttributes) && result.missingAttributes.length > 0) {
+        console.warn(
+          `[${job.id}] ⚠️ Missing ${result.missingAttributes.length} configured attributes (see pipeline logs for details)`
+        );
+      }
+
       return {
         success: true,
         seoAttributesId: result.seoAttributesId,

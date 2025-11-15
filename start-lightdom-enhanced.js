@@ -401,8 +401,7 @@ class LightDomEnhancedStarter {
         console.log(`   ✓ ${feature} component ready`);
       }
     });
-    }
-    
+
     console.log('-'.repeat(60));
     console.log();
   }

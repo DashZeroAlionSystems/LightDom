@@ -4,6 +4,7 @@ import { AGENT_TOOLS, executeTool } from './agent-tools.js';
 const router = express.Router();
 
 const OLLAMA_ENDPOINT = process.env.OLLAMA_ENDPOINT || 'http://localhost:11500';
+const DEFAULT_MODEL = process.env.DEEPSEEK_MODEL || process.env.OLLAMA_MODEL || 'deepseek-coder';
 router.post('/chat/stream', async (req, res) => {
   try {
     const { message, messages, model, enableTools = true } = req.body || {};
@@ -41,7 +42,7 @@ router.post('/chat/stream', async (req, res) => {
         ).join('\n') +
         '\n\nWhen you need to use a tool, respond with JSON in this format:\n' +
         '{\n' +
-        '  "thought": "explanation of what you\\'re doing",\n' +
+        '  "thought": "explanation of what you\'re doing",\n' +
         '  "tool": "tool_name",\n' +
         '  "parameters": { "param1": "value1" }\n' +
         '}\n\n' +
@@ -55,7 +56,8 @@ router.post('/chat/stream', async (req, res) => {
       : conversationHistory;
 
     // Convert to prompt format for Ollama
-    const prompt = fullConversation.map(m => `${m.role}: ${m.content}`).join('\n\n') + '\n\nassistant:';
+    const prompt =
+      fullConversation.map(m => `${m.role}: ${m.content}`).join('\n\n') + '\n\nassistant:';
 
     const response = await fetch(`${OLLAMA_ENDPOINT}/api/generate`, {
       method: 'POST',
@@ -100,7 +102,9 @@ router.post('/chat/stream', async (req, res) => {
               accumulatedResponse.includes('"parameters"')
             ) {
               try {
-                const toolCallMatch = accumulatedResponse.match(/\{[\s\S]*?"tool"[\s\S]*?"parameters"[\s\S]*?\}/);
+                const toolCallMatch = accumulatedResponse.match(
+                  /\{[\s\S]*?"tool"[\s\S]*?"parameters"[\s\S]*?\}/
+                );
                 if (toolCallMatch) {
                   const toolCall = JSON.parse(toolCallMatch[0]);
                   res.write(
@@ -109,7 +113,9 @@ router.post('/chat/stream', async (req, res) => {
 
                   const toolResult = await executeTool(toolCall.tool, toolCall.parameters);
 
-                  res.write(`data: ${JSON.stringify({ toolResult: true, result: toolResult })}\n\n`);
+                  res.write(
+                    `data: ${JSON.stringify({ toolResult: true, result: toolResult })}\n\n`
+                  );
 
                   // Continue conversation with tool result
                   const followUpPrompt =
@@ -119,12 +125,20 @@ router.post('/chat/stream', async (req, res) => {
                   const followUpResponse = await fetch(`${OLLAMA_ENDPOINT}/api/generate`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model: selectedModel, prompt: followUpPrompt, stream: true, options: { temperature: 0.7, num_ctx: 4096 } }),
+                    body: JSON.stringify({
+                      model: selectedModel,
+                      prompt: followUpPrompt,
+                      stream: true,
+                      options: { temperature: 0.7, num_ctx: 4096 },
+                    }),
                   });
 
                   if (followUpResponse.ok) {
                     // consume follow-up stream
-                    if (followUpResponse.body && typeof followUpResponse.body.getReader === 'function') {
+                    if (
+                      followUpResponse.body &&
+                      typeof followUpResponse.body.getReader === 'function'
+                    ) {
                       const fr = followUpResponse.body.getReader();
                       while (true) {
                         const { done, value } = await fr.read();
@@ -134,20 +148,25 @@ router.post('/chat/stream', async (req, res) => {
                         for (const l of followUpLines) {
                           try {
                             const fj = JSON.parse(l);
-                            if (fj.response) res.write(`data: ${JSON.stringify({ token: fj.response })}\n\n`);
+                            if (fj.response)
+                              res.write(`data: ${JSON.stringify({ token: fj.response })}\n\n`);
                           } catch (e) {
                             // ignore non-json
                           }
                         }
                       }
-                    } else if (followUpResponse.body && typeof followUpResponse.body[Symbol.asyncIterator] === 'function') {
+                    } else if (
+                      followUpResponse.body &&
+                      typeof followUpResponse.body[Symbol.asyncIterator] === 'function'
+                    ) {
                       for await (const c of followUpResponse.body) {
                         const chunk = typeof c === 'string' ? c : decoder.decode(c);
                         const followUpLines = chunk.split('\n').filter(Boolean);
                         for (const l of followUpLines) {
                           try {
                             const fj = JSON.parse(l);
-                            if (fj.response) res.write(`data: ${JSON.stringify({ token: fj.response })}\n\n`);
+                            if (fj.response)
+                              res.write(`data: ${JSON.stringify({ token: fj.response })}\n\n`);
                           } catch (e) {}
                         }
                       }
@@ -212,7 +231,9 @@ router.post('/chat/stream', async (req, res) => {
       }
     } catch (streamErr) {
       console.error('[rag-fallback] Error consuming Ollama stream:', streamErr);
-      res.write(`data: ${JSON.stringify({ error: 'Stream consumption failed', details: streamErr.message })}\n\n`);
+      res.write(
+        `data: ${JSON.stringify({ error: 'Stream consumption failed', details: streamErr.message })}\n\n`
+      );
     }
 
     res.end();
@@ -220,7 +241,9 @@ router.post('/chat/stream', async (req, res) => {
     console.error('[rag-fallback] chat/stream failed:', err && (err.stack || err.message || err));
     // Send an SSE error and end
     try {
-      res.write(`data: ${JSON.stringify({ error: 'Unable to reach Ollama', details: err.message })}\n\n`);
+      res.write(
+        `data: ${JSON.stringify({ error: 'Unable to reach Ollama', details: err.message })}\n\n`
+      );
     } catch (e) {
       // ignore write errors
     }
@@ -229,133 +252,36 @@ router.post('/chat/stream', async (req, res) => {
     } catch (e) {}
   }
 });
-      }),
-    });
 
+router.get('/health', async (_req, res) => {
+  const report = {
+    status: 'ok',
+    message: 'RAG fallback proxy is operational',
+    endpoint: OLLAMA_ENDPOINT,
+    model: DEFAULT_MODEL,
+  };
+
+  try {
+    const response = await fetch(`${OLLAMA_ENDPOINT}/api/tags`, { method: 'GET' });
     if (!response.ok) {
-      const text = await response.text();
-      res.write(`data: ${JSON.stringify({ error: 'Ollama generate failed', details: text })}\n\n`);
-      return res.end();
-    }
-
-    // Stream the response chunks and detect tool calls
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let accumulatedResponse = '';
-    let toolCallDetected = false;
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim());
-
-      for (const line of lines) {
-        try {
-          const json = JSON.parse(line);
-          if (json.response) {
-            accumulatedResponse += json.response;
-            res.write(`data: ${JSON.stringify({ token: json.response })}\n\n`);
-          }
-          if (json.done) {
-            // Check if the response contains a tool call
-            if (
-              enableTools &&
-              accumulatedResponse.includes('"tool"') &&
-              accumulatedResponse.includes('"parameters"')
-            ) {
-              try {
-                // Extract JSON tool call from response
-                const toolCallMatch = accumulatedResponse.match(
-                  /\{[\s\S]*?"tool"[\s\S]*?"parameters"[\s\S]*?\}/
-                );
-                if (toolCallMatch) {
-                  const toolCall = JSON.parse(toolCallMatch[0]);
-
-                  // Signal tool execution
-                  res.write(
-                    `data: ${JSON.stringify({
-                      toolCall: true,
-                      tool: toolCall.tool,
-                      thought: toolCall.thought,
-                    })}\n\n`
-                  );
-
-                  // Execute the tool
-                  const toolResult = await executeTool(toolCall.tool, toolCall.parameters);
-
-                  // Send tool result back
-                  res.write(
-                    `data: ${JSON.stringify({
-                      toolResult: true,
-                      result: toolResult,
-                    })}\n\n`
-                  );
-
-                  // Continue conversation with tool result
-                  const followUpPrompt =
-                    fullConversation.map(m => `${m.role}: ${m.content}`).join('\n\n') +
-                    `\n\nassistant: ${accumulatedResponse}\n\ntool_result: ${JSON.stringify(toolResult)}\n\nassistant:`;
-
-                  const followUpResponse = await fetch(`${OLLAMA_ENDPOINT}/api/generate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      model: selectedModel,
-                      prompt: followUpPrompt,
-                      stream: true,
-                      options: { temperature: 0.7, num_ctx: 4096 },
-                    }),
-                  });
-
-                  if (followUpResponse.ok) {
-                    const followUpReader = followUpResponse.body.getReader();
-                    while (true) {
-                      const { done: followUpDone, value: followUpValue } =
-                        await followUpReader.read();
-                      if (followUpDone) break;
-
-                      const followUpChunk = decoder.decode(followUpValue);
-                      const followUpLines = followUpChunk.split('\n').filter(line => line.trim());
-
-                      for (const followUpLine of followUpLines) {
-                        try {
-                          const followUpJson = JSON.parse(followUpLine);
-                          if (followUpJson.response) {
-                            res.write(
-                              `data: ${JSON.stringify({ token: followUpJson.response })}\n\n`
-                            );
-                          }
-                        } catch (e) {
-                          // Skip invalid JSON
-                        }
-                      }
-                    }
-                  }
-
-                  toolCallDetected = true;
-                }
-              } catch (parseError) {
-                console.error('Error parsing tool call:', parseError);
-              }
-            }
-
-            res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-          }
-        } catch (e) {
-          // Skip invalid JSON lines
-        }
+      report.status = 'warn';
+      report.message = 'Ollama responded with non-success status';
+      report.details = { status: response.status };
+    } else {
+      const tags = await response.json().catch(() => null);
+      if (tags && Array.isArray(tags.models)) {
+        report.availableModels = tags.models.map(model => model.name).filter(Boolean);
+        report.modelAvailable = report.availableModels.includes(DEFAULT_MODEL);
       }
     }
-
-    res.end();
-  } catch (err) {
-    res.write(
-      `data: ${JSON.stringify({ error: 'Unable to reach Ollama', details: err.message })}\n\n`
-    );
-    res.end();
+  } catch (error) {
+    report.status = 'warn';
+    report.message = 'Failed to reach Ollama endpoint';
+    report.error = error instanceof Error ? error.message : String(error);
   }
+
+  const statusCode = report.status === 'ok' ? 200 : report.status === 'warn' ? 206 : 503;
+  res.status(statusCode).json(report);
 });
 
 // Get available tools
