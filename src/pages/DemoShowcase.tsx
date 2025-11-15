@@ -234,6 +234,18 @@ const demos: Demo[] = [
     features: ['Search Injection', 'Chat Commerce', 'Mining Discovery', 'Site Injection', 'Collaborative Mining', 'Smart Contracts'],
     icon: <ApiOutlined />
   },
+  {
+    id: '3d-mining',
+    name: '3D DOM Mining Visualization',
+    description: 'Interactive 3D visualization of DOM space mining with real-time node discovery, schema detection, and importance scoring. Features multi-layer depth rendering and training data export.',
+    category: 'Data Mining & SEO',
+    route: '/demos/3d-mining',
+    status: 'ready',
+    enhanced: true,
+    type: 'react',
+    features: ['3D Visualization', 'Real-time Mining', 'Schema Detection', 'Layer Analysis', 'Data Export', 'Importance Scoring'],
+    icon: <DatabaseOutlined />
+  },
 ];
 
 const categories = [
