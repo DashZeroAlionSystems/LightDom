@@ -757,6 +757,21 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load client SEO routes:', err);
       });
 
+    // Import and register Neural SEO Campaign routes
+    import('./api/neural-seo-campaign-routes.js')
+      .then(neuralModule => {
+        const neuralRouter = neuralModule.default || neuralModule.createNeuralSEOCampaignRoutes;
+        if (typeof neuralRouter === 'function') {
+          this.app.use('/api/neural-seo', neuralRouter(this.db));
+        } else {
+          this.app.use('/api/neural-seo', neuralRouter);
+        }
+        console.log('✅ Neural SEO Campaign routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load neural SEO campaign routes:', err);
+      });
+
     // Import and register Extended Workflow Monitoring routes
     import('./api/extended-workflow-routes.js')
       .then(extendedModule => {
