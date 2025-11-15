@@ -1,0 +1,600 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SEO Attributes Configuration",
+  "description": "Modular configuration for all 192 SEO attributes with scraping, validation, and ML training rules",
+  "version": "1.0.0",
+  "attributes": {
+    "title": {
+      "id": 1,
+      "category": "meta",
+      "selector": "title",
+      "type": "string",
+      "mlWeight": 0.15,
+      "validation": {
+        "required": true,
+        "minLength": 30,
+        "maxLength": 60,
+        "pattern": null,
+        "errorMessage": "Title should be between 30-60 characters"
+      },
+      "scraping": {
+        "method": "text",
+        "fallback": "",
+        "transform": "trim"
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "critical",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "titleLength": {
+      "id": 2,
+      "category": "meta",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.10,
+      "validation": {
+        "required": false,
+        "min": 0,
+        "max": 150
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "title.length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.90
+      }
+    },
+    "metaDescription": {
+      "id": 3,
+      "category": "meta",
+      "selector": "meta[name=\"description\"]",
+      "type": "string",
+      "mlWeight": 0.15,
+      "validation": {
+        "required": true,
+        "minLength": 120,
+        "maxLength": 160,
+        "errorMessage": "Meta description should be between 120-160 characters"
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "critical",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "metaDescriptionLength": {
+      "id": 4,
+      "category": "meta",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.10,
+      "validation": {
+        "min": 0,
+        "max": 300
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "metaDescription.length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.90
+      }
+    },
+    "canonical": {
+      "id": 9,
+      "category": "meta",
+      "selector": "link[rel=\"canonical\"]",
+      "type": "url",
+      "mlWeight": 0.12,
+      "validation": {
+        "required": false,
+        "pattern": "^https?://.*"
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "href",
+        "fallback": null
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.90
+      }
+    },
+    "ogTitle": {
+      "id": 13,
+      "category": "open-graph",
+      "selector": "meta[property=\"og:title\"]",
+      "type": "string",
+      "mlWeight": 0.10,
+      "validation": {
+        "minLength": 30,
+        "maxLength": 90
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "high"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "ogImage": {
+      "id": 15,
+      "category": "open-graph",
+      "selector": "meta[property=\"og:image\"]",
+      "type": "url",
+      "mlWeight": 0.12,
+      "validation": {
+        "pattern": "^https?://.*\\.(jpg|jpeg|png|webp|gif)$",
+        "minDimensions": { "width": 1200, "height": 630 }
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": null
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.90
+      }
+    },
+    "h1Count": {
+      "id": 30,
+      "category": "headings",
+      "selector": "h1",
+      "type": "integer",
+      "mlWeight": 0.10,
+      "validation": {
+        "min": 0,
+        "max": 3,
+        "optimal": 1,
+        "errorMessage": "Page should have exactly 1 H1 tag"
+      },
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "h1Text": {
+      "id": 36,
+      "category": "headings",
+      "selector": "h1",
+      "type": "string",
+      "mlWeight": 0.12,
+      "validation": {
+        "minLength": 20,
+        "maxLength": 70
+      },
+      "scraping": {
+        "method": "text",
+        "transform": "trim",
+        "multiple": true,
+        "joinWith": " | "
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "critical"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "wordCount": {
+      "id": 42,
+      "category": "content",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.12,
+      "validation": {
+        "min": 300,
+        "optimal": 1000,
+        "errorMessage": "Content should have at least 300 words"
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "bodyText.split(/\\s+/).length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "zscore"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.90
+      }
+    },
+    "internalLinksCount": {
+      "id": 55,
+      "category": "links",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.12,
+      "validation": {
+        "min": 5,
+        "optimal": 10
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "countInternalLinks()"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.90
+      }
+    },
+    "altTextCoverage": {
+      "id": 67,
+      "category": "images",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.12,
+      "validation": {
+        "min": 0,
+        "max": 100,
+        "optimal": 100,
+        "errorMessage": "All images should have alt text"
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "(imagesWithAlt / totalImages) * 100"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "structuredDataCount": {
+      "id": 68,
+      "category": "structured-data",
+      "selector": "script[type=\"application/ld+json\"]",
+      "type": "integer",
+      "mlWeight": 0.15,
+      "validation": {
+        "min": 1,
+        "errorMessage": "Page should have at least one structured data schema"
+      },
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "isSecure": {
+      "id": 100,
+      "category": "url",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.15,
+      "validation": {
+        "required": true,
+        "value": true,
+        "errorMessage": "Site must use HTTPS"
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "url.protocol === 'https:'"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "critical"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 1.0
+      }
+    },
+    "seoScore": {
+      "id": 114,
+      "category": "computed-scores",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.20,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "computeSEOScore(attributes)"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "realtime",
+        "qualityThreshold": 0.95
+      }
+    }
+  },
+  "optimizationRecommendations": {
+    "optimizeTitle": {
+      "id": 1,
+      "name": "Optimize Page Title",
+      "description": "Improve title length and keyword placement",
+      "priority": "high",
+      "confidence": 0.92,
+      "requiredAttributes": ["title", "titleLength", "h1Text"],
+      "conditions": [
+        { "attribute": "titleLength", "operator": "<", "value": 30 },
+        { "attribute": "titleLength", "operator": ">", "value": 60 }
+      ],
+      "actions": [
+        {
+          "type": "update",
+          "target": "title",
+          "method": "optimizeLength",
+          "params": { "minLength": 30, "maxLength": 60 }
+        }
+      ]
+    },
+    "addMetaDescription": {
+      "id": 2,
+      "name": "Add Meta Description",
+      "description": "Create or optimize meta description",
+      "priority": "critical",
+      "confidence": 0.95,
+      "requiredAttributes": ["metaDescription", "metaDescriptionLength"],
+      "conditions": [
+        { "attribute": "metaDescription", "operator": "==", "value": "" },
+        { "attribute": "metaDescriptionLength", "operator": "<", "value": 120 }
+      ],
+      "actions": [
+        {
+          "type": "create",
+          "target": "metaDescription",
+          "method": "generateFromContent",
+          "params": { "length": 155, "includeKeyword": true }
+        }
+      ]
+    },
+    "fixH1Hierarchy": {
+      "id": 3,
+      "name": "Fix H1 Hierarchy",
+      "description": "Ensure proper heading structure",
+      "priority": "high",
+      "confidence": 0.88,
+      "requiredAttributes": ["h1Count", "h2Count", "headingHierarchyValid"],
+      "conditions": [
+        { "attribute": "h1Count", "operator": "!=", "value": 1 },
+        { "attribute": "headingHierarchyValid", "operator": "==", "value": false }
+      ],
+      "actions": [
+        {
+          "type": "restructure",
+          "target": "headings",
+          "method": "fixHierarchy",
+          "params": { "enforceH1": true }
+        }
+      ]
+    },
+    "addStructuredData": {
+      "id": 4,
+      "name": "Add Structured Data",
+      "description": "Implement JSON-LD schema markup",
+      "priority": "critical",
+      "confidence": 0.90,
+      "requiredAttributes": ["structuredDataCount", "schemaTypes"],
+      "conditions": [
+        { "attribute": "structuredDataCount", "operator": "==", "value": 0 }
+      ],
+      "actions": [
+        {
+          "type": "create",
+          "target": "structuredData",
+          "method": "generateSchema",
+          "params": { "types": ["Organization", "WebPage", "BreadcrumbList"] }
+        }
+      ]
+    },
+    "improveImageAlt": {
+      "id": 5,
+      "name": "Improve Image Alt Text",
+      "description": "Add descriptive alt text to images",
+      "priority": "high",
+      "confidence": 0.85,
+      "requiredAttributes": ["altTextCoverage", "imagesWithoutAlt"],
+      "conditions": [
+        { "attribute": "altTextCoverage", "operator": "<", "value": 80 }
+      ],
+      "actions": [
+        {
+          "type": "update",
+          "target": "images",
+          "method": "generateAltText",
+          "params": { "useAI": true, "contextAware": true }
+        }
+      ]
+    },
+    "enableHTTPS": {
+      "id": 6,
+      "name": "Enable HTTPS",
+      "description": "Secure site with SSL/TLS certificate",
+      "priority": "critical",
+      "confidence": 1.0,
+      "requiredAttributes": ["isSecure", "hasInsecureContent"],
+      "conditions": [
+        { "attribute": "isSecure", "operator": "==", "value": false }
+      ],
+      "actions": [
+        {
+          "type": "configure",
+          "target": "server",
+          "method": "enableHTTPS",
+          "params": { "redirectHTTP": true }
+        }
+      ]
+    },
+    "increaseContentLength": {
+      "id": 7,
+      "name": "Increase Content Length",
+      "description": "Expand content to recommended word count",
+      "priority": "medium",
+      "confidence": 0.75,
+      "requiredAttributes": ["wordCount", "contentQualityScore"],
+      "conditions": [
+        { "attribute": "wordCount", "operator": "<", "value": 300 }
+      ],
+      "actions": [
+        {
+          "type": "expand",
+          "target": "content",
+          "method": "generateAdditionalContent",
+          "params": { "targetWords": 1000, "maintainStyle": true }
+        }
+      ]
+    },
+    "addInternalLinks": {
+      "id": 8,
+      "name": "Add Internal Links",
+      "description": "Improve internal linking structure",
+      "priority": "medium",
+      "confidence": 0.80,
+      "requiredAttributes": ["internalLinksCount", "totalLinks"],
+      "conditions": [
+        { "attribute": "internalLinksCount", "operator": "<", "value": 5 }
+      ],
+      "actions": [
+        {
+          "type": "create",
+          "target": "links",
+          "method": "suggestInternalLinks",
+          "params": { "minLinks": 5, "contextualRelevance": true }
+        }
+      ]
+    }
+  },
+  "trainingConfiguration": {
+    "modelArchitecture": "transformer",
+    "inputDimensions": 192,
+    "hiddenLayers": [256, 128, 64],
+    "outputDimensions": 50,
+    "learningRate": 0.001,
+    "batchSize": 32,
+    "epochs": 100,
+    "validationSplit": 0.2,
+    "callbacks": [
+      {
+        "type": "early_stopping",
+        "monitor": "val_loss",
+        "patience": 10
+      },
+      {
+        "type": "reduce_lr",
+        "monitor": "val_loss",
+        "factor": 0.5,
+        "patience": 5
+      }
+    ],
+    "dataAugmentation": {
+      "enabled": true,
+      "methods": ["synonym_replacement", "back_translation", "random_insertion"]
+    },
+    "featureEngineering": {
+      "textEmbeddings": "bert-base-uncased",
+      "categoricalEncoding": "one-hot",
+      "numericalNormalization": "zscore",
+      "interactionFeatures": true
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2025-01-13",
+    "totalAttributes": 192,
+    "totalOptimizations": 50,
+    "author": "LightDom AI Team",
+    "license": "MIT"
+  }
+}

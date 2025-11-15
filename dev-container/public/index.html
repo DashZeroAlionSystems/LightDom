@@ -363,49 +363,120 @@ export default MyComponent;</textarea>
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
+        const DEV_CONTAINER_HOST = (() => {
+            const params = new URLSearchParams(window.location.search);
+            const urlParam = params.get('devContainerHost');
+            if (urlParam) {
+                try {
+                    const normalized = new URL(urlParam).origin;
+                    window.localStorage?.setItem('devContainerHost', normalized);
+                    return normalized;
+                } catch (error) {
+                    console.warn('Invalid devContainerHost param, falling back to defaults', error);
+                }
+            }
+
+            const stored = window.localStorage?.getItem('devContainerHost');
+            if (stored) return stored;
+
+            const origin = window.location.origin;
+            const defaultHost = 'http://localhost:3100';
+
+            if (!origin || origin === 'null' || origin.startsWith('file:')) {
+                return defaultHost;
+            }
+
+            const port = window.location.port;
+            if (port === '3100' || port === '3101') {
+                return origin;
+            }
+
+            if (!port || ['5500', '4173'].includes(port)) {
+                return defaultHost;
+            }
+
+            return origin;
+        })();
+
+        window.__DEV_CONTAINER_HOST__ = DEV_CONTAINER_HOST;
+
+        function loadSocketIo() {
+            return new Promise((resolve, reject) => {
+                if (window.io) {
+                    resolve(window.io);
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = `${DEV_CONTAINER_HOST}/socket.io/socket.io.js`;
+                script.async = true;
+                script.onload = () => resolve(window.io);
+                script.onerror = (error) => reject(error);
+                document.head.appendChild(script);
+            });
+        }
+
+        function apiFetch(path, options) {
+            return fetch(`${DEV_CONTAINER_HOST}${path}`, options);
+        }
+
+        let socket;
         let viewState = { left: 'code', right: 'preview', layout: 'horizontal', syncScroll: false };
         let schemas = [];
 
-        // Socket.IO Event Handlers
-        socket.on('connect', () => {
-            updateStatus('Connected', true);
-            loadSchemas();
-        });
+        loadSocketIo()
+            .then(() => {
+                socket = io(DEV_CONTAINER_HOST, { path: '/socket.io' });
+                registerSocketHandlers();
+            })
+            .catch((error) => {
+                console.error('Failed to load Socket.IO client', error);
+                updateStatus('Socket client unavailable', false);
+                addLog('Socket.IO client failed to load. Ensure the Dev Container server is running (default http://localhost:3100).', 'error');
+            });
 
-        socket.on('disconnect', () => {
-            updateStatus('Disconnected', false);
-        });
+        function registerSocketHandlers() {
+            if (!socket) return;
 
-        socket.on('fileChanged', (data) => {
-            addLog(`File changed: ${data.filepath}`, 'info');
-        });
+            socket.on('connect', () => {
+                updateStatus('Connected', true);
+                loadSchemas();
+            });
 
-        socket.on('viewStateChanged', (state) => {
-            viewState = state;
-            renderViews();
-        });
+            socket.on('disconnect', () => {
+                updateStatus('Disconnected', false);
+            });
 
-        socket.on('executionResult', (result) => {
-            if (result.success) {
-                addLog('Code executed successfully', 'success');
-            } else {
-                addLog(`Execution error: ${result.error}`, 'error');
-            }
-        });
+            socket.on('fileChanged', (data) => {
+                addLog(`File changed: ${data.filepath}`, 'info');
+            });
 
-        // Initialize
+            socket.on('viewStateChanged', (state) => {
+                viewState = state;
+                renderViews();
+            });
+
+            socket.on('executionResult', (result) => {
+                if (result.success) {
+                    addLog('Code executed successfully', 'success');
+                } else {
+                    addLog(`Execution error: ${result.error}`, 'error');
+                }
+            });
+        }
+
         async function init() {
             await loadSchemas();
             renderViews();
         }
 
-        // Load available schemas
         async function loadSchemas() {
             try {
-                const response = await fetch('/api/schemas');
+                const response = await apiFetch('/api/schemas');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
                 const data = await response.json();
                 if (data.success) {
                     schemas = data.schemas;
@@ -416,21 +487,23 @@ export default MyComponent;</textarea>
             }
         }
 
-        // Switch view
         function switchView(pane, view) {
             viewState[pane] = view;
-            fetch('/api/view-state', {
+            apiFetch('/api/view-state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(viewState)
+                body: JSON.stringify(viewState),
+            }).catch((error) => {
+                addLog(`Failed to update view state: ${error.message}`, 'error');
             });
             renderViews();
         }
 
-        // Render views based on state
         function renderViews() {
             const leftPane = document.getElementById('left-pane');
             const rightPane = document.getElementById('right-pane');
+
+            if (!leftPane || !rightPane) return;
 
             leftPane.innerHTML = renderPaneContent(viewState.left);
             rightPane.innerHTML = renderPaneContent(viewState.right);
@@ -439,9 +512,9 @@ export default MyComponent;</textarea>
         function renderPaneContent(view) {
             switch (view) {
                 case 'code':
-                    return `<textarea id="editor" placeholder="Write your React component here..."></textarea>`;
+                    return '<textarea id="editor" placeholder="Write your React component here..."></textarea>';
                 case 'preview':
-                    return `<iframe id="preview-frame" src="about:blank"></iframe>`;
+                    return '<iframe id="preview-frame" src="about:blank"></iframe>';
                 case 'schema':
                     return renderSchemaList();
                 default:
@@ -450,101 +523,117 @@ export default MyComponent;</textarea>
         }
 
         function renderSchemaList() {
-            if (schemas.length === 0) {
+            if (!Array.isArray(schemas) || schemas.length === 0) {
                 return '<div class="schema-panel"><p>No schemas loaded</p></div>';
             }
 
-            const items = schemas.map(schema => `
-                <div class="schema-item" onclick="useSchema('${schema['@id']}')">
-                    <h3>${schema.name}</h3>
-                    <p>${schema.description}</p>
-                    <p style="color: #808080; font-size: 11px;">Type: ${schema['@type']} | Component: ${schema['lightdom:reactComponent']}</p>
-                    <div class="tags">
-                        ${schema['lightdom:useCase'].map(tag => `<span class="tag">${tag}</span>`).join('')}
+            const items = schemas.map((schema) => {
+                const tags = Array.isArray(schema['lightdom:useCase'])
+                    ? schema['lightdom:useCase'].map((tag) => `<span class="tag">${tag}</span>`).join('')
+                    : '';
+
+                return `
+                    <div class="schema-item" onclick="useSchema('${schema['@id']}')">
+                        <h3>${schema.name}</h3>
+                        <p>${schema.description || ''}</p>
+                        <p style="color: #808080; font-size: 11px;">Type: ${schema['@type']} | Component: ${schema['lightdom:reactComponent']}</p>
+                        <div class="tags">${tags}</div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             return `<div class="schema-panel">${items}</div>`;
         }
 
-        // Toggle layout
         function toggleLayout() {
             viewState.layout = viewState.layout === 'horizontal' ? 'vertical' : 'horizontal';
             const splitView = document.getElementById('split-view');
-            splitView.className = `split-view ${viewState.layout}`;
-            
-            fetch('/api/view-state', {
+            if (splitView) {
+                splitView.className = `split-view ${viewState.layout}`;
+            }
+
+            apiFetch('/api/view-state', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(viewState)
+                body: JSON.stringify(viewState),
+            }).catch((error) => {
+                addLog(`Failed to update layout: ${error.message}`, 'error');
             });
         }
 
-        // Run code
         async function runCode() {
             const editor = document.getElementById('editor');
             if (!editor) return;
 
             const code = editor.value;
-            
+
             try {
-                const response = await fetch('/api/execute', {
+                const response = await apiFetch('/api/execute', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
+                    body: JSON.stringify({ code }),
                 });
 
                 const result = await response.json();
-                
+
                 if (result.success) {
                     addLog('Code executed successfully', 'success');
                 } else {
                     addLog(`Execution failed: ${result.error}`, 'error');
                 }
             } catch (error) {
-                addLog(`Error: ${error.message}`, 'error');
+                addLog(`Error executing code: ${error.message}`, 'error');
             }
         }
 
-        // Select component
         function selectComponent() {
-            document.getElementById('component-modal').style.display = 'block';
+            const modal = document.getElementById('component-modal');
+            if (modal) {
+                modal.style.display = 'block';
+            }
         }
 
         function closeModal() {
-            document.getElementById('component-modal').style.display = 'none';
+            const modal = document.getElementById('component-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
 
         async function findComponent() {
-            const useCase = document.getElementById('use-case-input').value;
-            
+            const useCaseInput = document.getElementById('use-case-input');
+            if (!useCaseInput) return;
+
+            const useCase = useCaseInput.value.trim();
+
             if (!useCase) {
                 alert('Please describe your use case');
                 return;
             }
 
             try {
-                const response = await fetch('/api/select-component', {
+                const response = await apiFetch('/api/select-component', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ useCase })
+                    body: JSON.stringify({ useCase }),
                 });
 
                 const result = await response.json();
-                
+
                 if (result.success && result.match) {
                     const match = result.match;
                     const resultsDiv = document.getElementById('component-results');
-                    resultsDiv.innerHTML = `
-                        <div class="schema-item">
-                            <h3>✓ ${match.schema.name}</h3>
-                            <p>${match.schema.description}</p>
-                            <p style="color: #4ec9b0;">Match Score: ${match.score}</p>
-                            <p style="color: #808080; font-size: 11px;">${match.reasons.join(', ')}</p>
-                            <button class="btn" onclick="useSchema('${match.schema['@id']}'); closeModal();">Use This Component</button>
-                        </div>
-                    `;
+                    if (resultsDiv) {
+                        resultsDiv.innerHTML = `
+                            <div class="schema-item">
+                                <h3>✓ ${match.schema.name}</h3>
+                                <p>${match.schema.description}</p>
+                                <p style="color: #4ec9b0;">Match Score: ${match.score}</p>
+                                <p style="color: #808080; font-size: 11px;">${match.reasons.join(', ')}</p>
+                                <button class="btn" onclick="useSchema('${match.schema['@id']}'); closeModal();">Use This Component</button>
+                            </div>
+                        `;
+                    }
                     addLog(`Found component: ${match.schema.name} (score: ${match.score})`, 'success');
                 } else {
                     addLog('No matching component found', 'error');
@@ -555,12 +644,14 @@ export default MyComponent;</textarea>
         }
 
         function useSchema(schemaId) {
-            const schema = schemas.find(s => s['@id'] === schemaId);
-            if (!schema) return;
+            const schema = Array.isArray(schemas) ? schemas.find((s) => s['@id'] === schemaId) : null;
+            if (!schema) {
+                addLog(`Schema not found for id ${schemaId}`, 'error');
+                return;
+            }
 
-            // Generate component code from schema
             const componentCode = generateComponentCode(schema);
-            
+
             const editor = document.getElementById('editor');
             if (editor) {
                 editor.value = componentCode;
@@ -569,14 +660,16 @@ export default MyComponent;</textarea>
         }
 
         function generateComponentCode(schema) {
-            const props = schema['lightdom:props'].map(p => 
-                `${p.name}${p.required ? '' : '?'}: ${p.type}`
-            ).join(', ');
+            const props = Array.isArray(schema['lightdom:props'])
+                ? schema['lightdom:props'].map((p) => `${p.name}${p.required ? '' : '?'}: ${p.type}`).join(', ')
+                : '';
 
-            const propDefaults = schema['lightdom:props']
-                .filter(p => p.default !== undefined)
-                .map(p => `const ${p.name} = props.${p.name} ?? ${JSON.stringify(p.default)};`)
-                .join('\n  ');
+            const propDefaults = Array.isArray(schema['lightdom:props'])
+                ? schema['lightdom:props']
+                    .filter((p) => p.default !== undefined)
+                    .map((p) => `const ${p.name} = props.${p.name} ?? ${JSON.stringify(p.default)};`)
+                    .join('\n  ')
+                : '';
 
             return `import React from 'react';
 
@@ -587,15 +680,15 @@ interface ${schema['lightdom:reactComponent']}Props {
 /**
  * ${schema.name}
  * ${schema.description}
- * 
+ *
  * Schema: ${schema['@type']}
- * Use Cases: ${schema['lightdom:useCase'].join(', ')}
+ * Use Cases: ${(Array.isArray(schema['lightdom:useCase']) ? schema['lightdom:useCase'].join(', ') : '')}
  */
 const ${schema['lightdom:reactComponent']}: React.FC<${schema['lightdom:reactComponent']}Props> = (props) => {
   ${propDefaults}
 
   return (
-    <div className="${schema['lightdom:reactComponent'].toLowerCase()}">
+    <div class="${schema['lightdom:reactComponent'].toLowerCase()}">
       <h2>{props.title || '${schema.name}'}</h2>
       {/* Add your component logic here */}
     </div>
@@ -605,15 +698,17 @@ const ${schema['lightdom:reactComponent']}: React.FC<${schema['lightdom:reactCom
 export default ${schema['lightdom:reactComponent']};`;
         }
 
-        // Toggle logs
         function toggleLogs() {
             const logs = document.getElementById('logs');
-            logs.classList.toggle('show');
+            if (logs) {
+                logs.classList.toggle('show');
+            }
         }
 
-        // Add log entry
         function addLog(message, type = 'info') {
             const logs = document.getElementById('logs');
+            if (!logs) return;
+
             const entry = document.createElement('div');
             entry.className = `log-entry ${type}`;
             entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
@@ -621,13 +716,17 @@ export default ${schema['lightdom:reactComponent']};`;
             logs.scrollTop = logs.scrollHeight;
         }
 
-        // Update status
         function updateStatus(text, connected) {
-            document.getElementById('status-text').textContent = text;
-            document.getElementById('connection-status').textContent = connected ? '🟢 Connected' : '🔴 Disconnected';
+            const statusText = document.getElementById('status-text');
+            const connectionStatus = document.getElementById('connection-status');
+            if (statusText) {
+                statusText.textContent = text;
+            }
+            if (connectionStatus) {
+                connectionStatus.textContent = connected ? '🟢 Connected' : '🔴 Disconnected';
+            }
         }
 
-        // Initialize on load
         window.addEventListener('load', init);
     </script>
 </body>

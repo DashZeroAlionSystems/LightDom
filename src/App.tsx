@@ -66,6 +66,28 @@ import CampaignTrainingAdminDashboard from './components/dashboards/CampaignTrai
 import PaintTimelineViewer from './components/visualizations/PaintTimelineViewer';
 import InteractiveSEOWorkflowDashboard from './components/InteractiveSEOWorkflowDashboard';
 import SEOCampaignManagementDashboard from './components/SEOCampaignManagementDashboard';
+import MCPServerDashboard from './components/MCPServerDashboard';
+import { AgentSessionsPanel } from './components/agent/AgentSessionsPanel';
+import StyleguideConfigManager from './components/admin/StyleguideConfigManager';
+import AdminMenuBuilder from './components/admin/AdminMenuBuilder';
+import VisualComponentBuilder from './components/admin/VisualComponentBuilder';
+import UserManagementPage from './pages/admin/UserManagementPage';
+import DeepSeekWorkflowDashboard from './pages/admin/DeepSeekWorkflowDashboard';
+import ClientReportDashboard from './pages/admin/ClientReportDashboard';
+import DeepSeekSkillsDashboard from './pages/admin/DeepSeekSkillsDashboard';
+import ScraperManagerDashboard from './components/ScraperManagerDashboard';
+import DeepSeekChatPanel from './components/DeepSeekChatPanel';
+import CategoryManagement from './components/ui/admin/CategoryManagement';
+import DemoShowcase from './pages/DemoShowcase';
+import OnboardingVisualization from './pages/OnboardingVisualization';
+import LightDOMSlotsDemo from './pages/LightDOMSlotsDemo';
+import BlockchainBenchmarkDemo from './pages/BlockchainBenchmarkDemo';
+import WorkflowExecutionDemo from './pages/WorkflowExecutionDemo';
+import WorkflowBuilderDemo from './pages/WorkflowBuilderDemo';
+import MetaverseNFTMarketplace from './pages/MetaverseNFTMarketplace';
+import BridgeUseCasesShowcase from './pages/BridgeUseCasesShowcase';
+import DOM3DMiningVisualization from './pages/DOM3DMiningVisualization';
+import Advanced3DLayerMiner from './pages/Advanced3DLayerMiner';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -111,6 +133,7 @@ const AppContent: React.FC = () => {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/onboarding" element={<OnboardingFlow />} />
         
         {/* Admin Routes - Separate Admin Layout */}
         <Route
@@ -124,7 +147,8 @@ const AppContent: React.FC = () => {
           <Route index element={<EnhancedAdminOverview />} />
           <Route path="overview" element={<EnhancedAdminOverview />} />
           <Route path="copilot-ui" element={<CopilotUIDemo />} />
-          <Route path="users" element={<EnhancedUserManagement />} />
+          <Route path="users" element={<UserManagementPage />} />
+          <Route path="users-legacy" element={<EnhancedUserManagement />} />
           <Route path="billing" element={<BillingManagement />} />
           <Route path="crawler" element={<CrawlerDashboard />} />
           <Route path="crawler-workload" element={<CrawlerWorkloadDashboard />} />
@@ -143,6 +167,13 @@ const AppContent: React.FC = () => {
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
           <Route path="chrome-layers" element={<ChromeLayers3DDashboard />} />
+          <Route path="styleguide-config" element={<StyleguideConfigManager />} />
+          <Route path="menu-builder" element={<AdminMenuBuilder />} />
+          <Route path="component-builder" element={<VisualComponentBuilder />} />
+          <Route path="deepseek-workflows" element={<DeepSeekWorkflowDashboard />} />
+          <Route path="client-reports" element={<ClientReportDashboard />} />
+          <Route path="deepseek-skills" element={<DeepSeekSkillsDashboard />} />
+          <Route path="category-management" element={<CategoryManagement />} />
         </Route>
         
         {/* Protected Routes */}
@@ -155,6 +186,7 @@ const AppContent: React.FC = () => {
           }
         >
           <Route index element={<DashboardOverview />} />
+          <Route path="seo" element={<ComprehensiveSEODashboard />} />
           <Route path="optimization" element={<OptimizationDashboard />} />
           <Route path="wallet" element={<WalletDashboard />} />
           <Route path="blockchain" element={<BlockchainDashboard />} />
@@ -176,6 +208,8 @@ const AppContent: React.FC = () => {
           <Route path="seo-marketplace" element={<SEOModelMarketplace />} />
           <Route path="seo-workflow" element={<InteractiveSEOWorkflowDashboard />} />
           <Route path="seo-campaigns" element={<SEOCampaignManagementDashboard />} />
+          <Route path="mcp-servers" element={<MCPServerDashboard />} />
+          <Route path="agent-sessions" element={<div style={{ padding: '24px' }}><AgentSessionsPanel adminMode={false} /></div>} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="websites" element={<WebsitesManagementPage />} />
           <Route path="history" element={<HistoryPage />} />
@@ -189,6 +223,15 @@ const AppContent: React.FC = () => {
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
           <Route path="component-schema" element={<ComponentSchemaToolDashboard />} />
+          <Route path="demos" element={<DemoShowcase />} />
+          <Route path="demos/onboarding" element={<OnboardingVisualization />} />
+          <Route path="demos/lightdom-slots" element={<LightDOMSlotsDemo />} />
+          <Route path="demos/blockchain-benchmark" element={<BlockchainBenchmarkDemo />} />
+          <Route path="demos/workflow-execution" element={<WorkflowExecutionDemo />} />
+          <Route path="demos/workflow-builder" element={<WorkflowBuilderDemo />} />
+          <Route path="demos/nft-marketplace" element={<MetaverseNFTMarketplace />} />
+          <Route path="demos/bridge-usecases" element={<BridgeUseCasesShowcase />} />
+          <Route path="demos/3d-mining" element={<DOM3DMiningVisualization />} />
           
           {/* Admin Routes within Dashboard */}
           <Route path="admin" element={<AdminDashboard />} />
@@ -204,6 +247,13 @@ const AppContent: React.FC = () => {
           <Route path="admin/user-workflows" element={<UserManagementWorkflow />} />
           <Route path="admin/seo-workflows" element={<SEOCrawlerWorkflow />} />
           <Route path="admin/ai-automation" element={<AIAutomationPage />} />
+          <Route path="admin/styleguide-config" element={<StyleguideConfigManager />} />
+          <Route path="admin/menu-builder" element={<AdminMenuBuilder />} />
+          <Route path="admin/component-builder" element={<VisualComponentBuilder />} />
+          <Route path="admin/scraper-manager" element={<ScraperManagerDashboard />} />
+          <Route path="admin/category-management" element={<CategoryManagement />} />
+          <Route path="chat" element={<DeepSeekChatPanel />} />
+          <Route path="scraper-manager" element={<ScraperManagerDashboard />} />
         </Route>
         
         {/* Public Landing Page */}

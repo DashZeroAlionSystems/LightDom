@@ -1,0 +1,55 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "outDir": "dist",
+    "rootDir": ".",
+    "allowJs": true,
+    "checkJs": false,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmitOnError": false,
+    "declaration": false,
+    "sourceMap": false,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/types/*": ["src/types/*"],
+      "@/server/*": ["src/server/*"],
+      "@/lib/*": ["src/lib/*"]
+    }
+  },
+  "include": [
+    "api-server-express.js",
+    "api/**/*.js",
+    "api/**/*.ts",
+    "services/**/*.js",
+    "services/**/*.ts",
+    "cli/**/*.js",
+    "cli/**/*.ts",
+    "crawler/**/*.js",
+    "crawler/**/*.ts",
+    "dom-harvesting-engine.js",
+    "start-lightdom-enhanced.js",
+    "server/**/*.ts",
+    "src/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "frontend",
+    "contracts",
+    "scripts/tests",
+    "build",
+    "src",
+    "tests",
+    "test",
+    "enterprise-output",
+    "examples",
+    "docs",
+    "stories",
+    "backend"
+  ]
+}

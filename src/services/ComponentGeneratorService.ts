@@ -1,17 +1,17 @@
 /**
  * ComponentGeneratorService
- * 
+ *
  * Generates React components from atomic schemas
  * Uses AI to create complete, production-ready components
- * 
+ *
  * @module ComponentGeneratorService
  */
 
-import { OllamaService } from './ai/OllamaService.js';
-import { componentLibraryService, ComponentSchema } from './ComponentLibraryService.js';
-import { validationService, LdSchema } from './ValidationService.js';
 import fs from 'fs/promises';
 import path from 'path';
+import { OllamaService } from './ai/OllamaService.js';
+import { componentLibraryService, ComponentSchema } from './ComponentLibraryService.js';
+import { LdSchema } from './ValidationService.js';
 
 export interface ComponentGenerationRequest {
   componentName: string;
@@ -42,6 +42,7 @@ export interface GeneratedComponent {
   styles?: string;
   tests?: string;
   stories?: string;
+  documentation?: string;
   schema: ComponentSchema;
 }
 
@@ -114,6 +115,7 @@ export class ComponentGeneratorService {
       styles,
       tests,
       stories,
+      documentation: stories || '',
       schema: componentSchema,
     };
   }
@@ -197,12 +199,7 @@ export class ComponentGeneratorService {
       return this.generateTemplateCode(componentName, schema);
     }
 
-    const prompt = this.buildCodeGenerationPrompt(
-      componentName,
-      schema,
-      baseSchemas,
-      requirements
-    );
+    const prompt = this.buildCodeGenerationPrompt(componentName, schema, baseSchemas, requirements);
 
     const startTime = Date.now();
     const response = await this.ollamaService.chat(
@@ -293,10 +290,7 @@ export default ${componentName};
   /**
    * Generate styles for the component
    */
-  private async generateStyles(
-    componentName: string,
-    stylingApproach: string
-  ): Promise<string> {
+  private async generateStyles(componentName: string, stylingApproach: string): Promise<string> {
     if (stylingApproach === 'CSS Modules') {
       return `.${componentName.toLowerCase()} {
   /* Component styles */
@@ -346,10 +340,7 @@ Return only the test code in a typescript code block.`;
   /**
    * Generate Storybook stories
    */
-  private async generateStories(
-    componentName: string,
-    schema: ComponentSchema
-  ): Promise<string> {
+  private async generateStories(componentName: string, schema: ComponentSchema): Promise<string> {
     return `import type { Meta, StoryObj } from '@storybook/react';
 import { ${componentName} } from './${componentName}';
 
@@ -382,11 +373,7 @@ export const Default: Story = {
     await fs.mkdir(directory, { recursive: true });
 
     // Save component file
-    await fs.writeFile(
-      path.join(directory, `${componentName}.tsx`),
-      files.code,
-      'utf-8'
-    );
+    await fs.writeFile(path.join(directory, `${componentName}.tsx`), files.code, 'utf-8');
 
     // Save styles if provided
     if (files.styles) {
@@ -399,11 +386,7 @@ export const Default: Story = {
 
     // Save tests if provided
     if (files.tests) {
-      await fs.writeFile(
-        path.join(directory, `${componentName}.test.tsx`),
-        files.tests,
-        'utf-8'
-      );
+      await fs.writeFile(path.join(directory, `${componentName}.test.tsx`), files.tests, 'utf-8');
     }
 
     // Save stories if provided

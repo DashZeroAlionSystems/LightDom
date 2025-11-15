@@ -1,20 +1,20 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
-    }
+      '@': path.resolve(__dirname, './src'),
+    },
   },
   server: {
     port: 3000,
     host: true,
     hmr: {
-      overlay: false
+      overlay: false,
     },
     proxy: {
       '/api': {
@@ -39,13 +39,15 @@ export default defineConfig({
         changeOrigin: true,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
-            console.log('\n[Vite WebSocket Proxy Error] Failed to proxy WebSocket to backend server');
+            console.log(
+              '\n[Vite WebSocket Proxy Error] Failed to proxy WebSocket to backend server'
+            );
             console.log('→ Make sure the API server is running on port 3001');
             console.log('→ Error:', (err as any).code || err.message);
           });
         },
-      }
-    }
+      },
+    },
   },
   build: {
     outDir: 'dist',
@@ -55,12 +57,12 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           ui: ['lucide-react'],
-          utils: ['axios', 'uuid']
-        }
-      }
-    }
+          utils: ['axios', 'uuid'],
+        },
+      },
+    },
   },
   define: {
     global: 'globalThis',
-  }
+  },
 });

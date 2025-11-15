@@ -9,8 +9,22 @@
  * - Provide real-time optimization decisions
  */
 
+import * as tf from '@tensorflow/tfjs';
 import { EventEmitter } from 'events';
-import * as tf from '@tensorflow/tfjs-node';
+import { createRequire } from 'module';
+
+const requireTF = createRequire(import.meta.url);
+
+try {
+  requireTF('@tensorflow/tfjs-node');
+  // Attempt to switch to native backend when available for performance
+  if (typeof tf.setBackend === 'function' && typeof tf.findBackend === 'function' && tf.findBackend('tensorflow')) {
+    tf.setBackend('tensorflow').catch(() => {});
+  }
+  console.log('NeuralNetworkSEOTrainer: native TensorFlow backend enabled');
+} catch (err) {
+  console.warn('NeuralNetworkSEOTrainer: using @tensorflow/tfjs fallback (native bindings unavailable)');
+}
 
 class NeuralNetworkSEOTrainer extends EventEmitter {
   constructor(config = {}) {

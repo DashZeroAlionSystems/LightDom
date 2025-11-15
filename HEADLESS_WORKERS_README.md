@@ -4,6 +4,148 @@
 
 This package provides advanced headless browser automation, worker management, and schema-driven component development for the LightDom platform.
 
+**Latest Update (November 2025)**: Enhanced with WebDriver BiDi support and attribute-based data mining capabilities.
+
+## What's New
+
+### WebDriver BiDi Integration
+
+LightDom now supports the **WebDriver BiDi** protocol, a modern W3C standard for bidirectional browser automation:
+
+- ✅ **Cross-browser compatibility** - Works with Chrome, Firefox, Edge, and Safari
+- ✅ **Real-time event streaming** - Bidirectional communication for instant feedback
+- ✅ **Better performance** - Reduced latency and more efficient resource monitoring
+- ✅ **Future-proof** - Industry standard backed by all major browsers
+
+### Attribute-Based Data Mining
+
+New intelligent data mining system that allows targeting specific attributes across multiple instances:
+
+- 🎯 **Attribute-specific workers** - Dedicated browser instances for each data type
+- 🔄 **Selector fallback chains** - Multiple extraction strategies with automatic fallback
+- ✅ **Pattern matching** - Regex-based extraction when selectors fail
+- 📊 **Validation** - Built-in data validation for quality assurance
+- 🚀 **Parallel extraction** - Mine multiple attributes simultaneously
+
+### Social Media Image Generation
+
+Generate dynamic Open Graph images for social media previews:
+
+- 🖼️ **Custom templates** - HTML/CSS based image generation
+- 📐 **Standard dimensions** - Pre-configured for Facebook, Twitter, LinkedIn
+- ⚡ **High performance** - Caching and batch generation support
+- 🎨 **Custom fonts** - Load custom web fonts for branding
+
+## Quick Start
+
+### Using WebDriver BiDi in Electron
+
+```javascript
+// In your Electron renderer process
+const { worker } = window.electronAPI;
+
+// Create an attribute-specific worker with BiDi support
+const result = await worker.createAttributeWorker('productPrice', {
+  useBiDi: true
+});
+
+console.log('Worker created:', result.workerId);
+```
+
+### Mining Attributes
+
+```javascript
+// Mine a specific attribute from a webpage
+const result = await window.electronAPI.puppeteer.mineAttribute({
+  url: 'https://example.com/product',
+  attribute: {
+    name: 'price',
+    selectors: [
+      '.price-main',
+      '[data-testid="price"]',
+      '.product-price span',
+      'span.price'
+    ],
+    type: 'text',
+    waitFor: '.price-container',
+    pattern: '\\$([0-9,.]+)',
+    validator: {
+      type: 'string',
+      pattern: '^\\$[0-9,.]+$'
+    }
+  }
+});
+
+if (result.success) {
+  console.log('Extracted price:', result.data);
+} else {
+  console.error('Extraction failed:', result.error);
+}
+```
+
+### Generating OG Images
+
+```javascript
+// Generate a social media preview image
+const ogImage = await window.electronAPI.puppeteer.generateOGImage({
+  template: `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body {
+            margin: 0;
+            padding: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            color: white;
+          }
+          h1 {
+            font-size: 64px;
+            margin: 0 0 20px 0;
+          }
+          p {
+            font-size: 32px;
+            opacity: 0.9;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>{{title}}</h1>
+        <p>{{description}}</p>
+      </body>
+    </html>
+  `,
+  data: {
+    title: 'LightDom Platform',
+    description: 'Next-generation web automation'
+  },
+  width: 1200,
+  height: 630
+});
+
+// ogImage.image is base64 encoded PNG
+```
+
+### Monitoring Worker Status
+
+```javascript
+// Get current worker pool status
+const status = await window.electronAPI.worker.getStatus();
+
+console.log('Total workers:', status.total);
+console.log('Available:', status.available);
+console.log('Busy:', status.busy);
+
+// List all workers
+status.workers.forEach(worker => {
+  console.log(`Worker ${worker.id}: ${worker.busy ? 'busy' : 'available'}`);
+  if (worker.attribute) {
+    console.log(`  Dedicated to: ${worker.attribute}`);
+  }
+});
+```
+
 ## Features
 
 ### 1. Worker Pool Manager
@@ -446,8 +588,339 @@ npm run test:integration
 - Check schema JSON format
 - Review validation errors in logs
 
+**WebDriver BiDi not working:**
+- Ensure Puppeteer version is 21.0.0 or higher
+- Check browser version supports BiDi (Chrome 117+, Firefox 119+)
+- Verify `useBiDi: true` is set in worker options
+- Check logs for protocol initialization errors
+
+**Attribute mining returning null:**
+- Verify selectors are correct for target website
+- Check if waitFor selector exists on page
+- Review fallback selector chain
+- Test pattern regex separately
+- Check if site requires authentication or has anti-bot protection
+
+## Architecture
+
+### Worker Process Model
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  Electron Main Process                   │
+│  ┌────────────────────────────────────────────────────┐ │
+│  │          Worker Pool Manager                       │ │
+│  │  ┌──────────────┐  ┌──────────────┐               │ │
+│  │  │  Worker 0    │  │  Worker 1    │  General      │ │
+│  │  │  (General)   │  │  (General)   │  Workers      │ │
+│  │  └──────────────┘  └──────────────┘               │ │
+│  │                                                    │ │
+│  │  ┌──────────────┐  ┌──────────────┐               │ │
+│  │  │  Worker 2    │  │  Worker 3    │  Attribute   │ │
+│  │  │ (Price)      │  │ (Title)      │  Workers     │ │
+│  │  └──────────────┘  └──────────────┘               │ │
+│  └────────────────────────────────────────────────────┘ │
+│                           │                              │
+│                           ▼                              │
+│  ┌────────────────────────────────────────────────────┐ │
+│  │            IPC Communication Layer                 │ │
+│  └────────────────────────────────────────────────────┘ │
+└──────────────────────┬──────────────────────────────────┘
+                       │
+                       ▼
+         ┌─────────────────────────┐
+         │   Renderer Process      │
+         │   (React Application)   │
+         └─────────────────────────┘
+```
+
+### WebDriver BiDi Protocol Flow
+
+```
+1. Worker Initialization
+   ├─ Launch browser with protocol: 'webDriverBiDi'
+   ├─ Setup event handlers for real-time monitoring
+   └─ Register BiDi event listeners
+
+2. Task Execution
+   ├─ Receive task from main process
+   ├─ Navigate to target URL
+   ├─ BiDi events stream in real-time:
+   │  ├─ network.responseReceived
+   │  ├─ log.entryAdded
+   │  └─ performance.metricUpdated
+   └─ Return results to main process
+
+3. Data Extraction
+   ├─ Try primary selector
+   ├─ Fallback to secondary selectors
+   ├─ Pattern matching if selectors fail
+   ├─ Validate extracted data
+   └─ Return with success/error status
+```
+
+### Attribute Mining Strategy
+
+The attribute mining system uses a **resilient multi-strategy approach**:
+
+1. **Selector Chain** - Try multiple CSS selectors in order
+2. **Type-based Extraction** - Extract as text, HTML, attribute, or JSON
+3. **Pattern Matching** - Regex fallback for dynamic content
+4. **Validation** - Type and format validation
+5. **Error Recovery** - Graceful degradation on failure
+
+Example extraction flow:
+```javascript
+// Priority: Most specific → Most generic
+selectors: [
+  '[data-testid="product-price"]',  // 1. Test ID (most reliable)
+  '.price-box .final-price',        // 2. Class chain
+  'span[itemprop="price"]',         // 3. Schema.org microdata
+  '.price',                         // 4. Generic class
+  /\$\d+\.\d{2}/                    // 5. Regex pattern (fallback)
+]
+```
+
+## API Reference
+
+### Electron IPC APIs
+
+#### Worker Management
+
+```typescript
+// Create attribute-specific worker
+window.electronAPI.worker.createAttributeWorker(
+  attributeName: string,
+  options?: {
+    useBiDi?: boolean;
+  }
+): Promise<{ success: boolean; workerId?: string; error?: string }>
+
+// Get worker pool status
+window.electronAPI.worker.getStatus(): Promise<{
+  total: number;
+  available: number;
+  busy: number;
+  workers: Array<{
+    id: string;
+    busy: boolean;
+    attribute: string | null;
+  }>;
+}>
+
+// Execute generic task
+window.electronAPI.worker.execute(
+  task: {
+    type: string;
+    options: any;
+  }
+): Promise<{ success: boolean; result?: any; error?: string }>
+```
+
+#### Puppeteer Operations
+
+```typescript
+// Mine attribute from webpage
+window.electronAPI.puppeteer.mineAttribute(
+  options: {
+    url: string;
+    attribute: {
+      name: string;
+      selectors: string[];
+      type?: 'text' | 'html' | 'attribute' | 'json';
+      waitFor?: string;
+      pattern?: string;
+      validator?: {
+        type?: string;
+        pattern?: string;
+        min?: number;
+        max?: number;
+        minLength?: number;
+        maxLength?: number;
+      };
+    };
+  }
+): Promise<{
+  success: boolean;
+  attribute: string;
+  data?: any;
+  error?: string;
+  url: string;
+  timestamp: string;
+}>
+
+// Generate Open Graph image
+window.electronAPI.puppeteer.generateOGImage(
+  options: {
+    template: string;
+    data: Record<string, any>;
+    width?: number;
+    height?: number;
+  }
+): Promise<{
+  success: boolean;
+  image?: string; // base64 encoded PNG
+  dimensions?: { width: number; height: number };
+  error?: string;
+}>
+
+// Take screenshot
+window.electronAPI.puppeteer.screenshot(
+  options: {
+    url: string;
+    fullPage?: boolean;
+    timeout?: number;
+  }
+): Promise<{
+  success: boolean;
+  screenshot?: string; // base64 encoded
+  error?: string;
+}>
+
+// Crawl website
+window.electronAPI.puppeteer.crawl(
+  options: {
+    url: string;
+    selectors?: Record<string, string>;
+    waitFor?: string;
+    timeout?: number;
+  }
+): Promise<{
+  success: boolean;
+  data?: any;
+  metrics?: any;
+  error?: string;
+}>
+```
+
+### Event Listeners
+
+```typescript
+// Listen for worker messages
+const unsubscribe = window.electronAPI.on.workerMessage((data) => {
+  console.log('Worker message:', data);
+});
+
+// Listen for attribute worker updates
+const unsubscribe = window.electronAPI.on.attributeWorkerMessage((data) => {
+  console.log('Attribute worker:', data.attribute, data);
+});
+
+// Clean up when component unmounts
+unsubscribe();
+```
+
+## Best Practices
+
+### 1. Attribute Mining
+
+**Use specific selectors first:**
+```javascript
+selectors: [
+  '[data-testid="price"]',        // Best: Test IDs
+  '[itemprop="price"]',           // Good: Microdata
+  '.product-price',               // OK: Class names
+  'span.price'                    // Last resort: Generic
+]
+```
+
+**Always provide validation:**
+```javascript
+validator: {
+  type: 'string',
+  pattern: '^\\$[0-9,.]+$',  // Must match price format
+  minLength: 2,              // At least $X
+  maxLength: 20              // Reasonable price length
+}
+```
+
+**Use waitFor for dynamic content:**
+```javascript
+attribute: {
+  name: 'price',
+  waitFor: '.price-container',  // Wait for container first
+  selectors: ['.price-main']
+}
+```
+
+### 2. Worker Management
+
+**Create dedicated workers for high-frequency tasks:**
+```javascript
+// Create dedicated worker for price monitoring
+await worker.createAttributeWorker('price', { useBiDi: true });
+
+// Now all price mining will use this dedicated worker
+await puppeteer.mineAttribute({
+  url: 'https://example.com',
+  attribute: { name: 'price', ... }
+});
+```
+
+**Monitor worker health:**
+```javascript
+setInterval(async () => {
+  const status = await worker.getStatus();
+  if (status.available === 0) {
+    console.warn('All workers busy!');
+  }
+}, 5000);
+```
+
+### 3. OG Image Generation
+
+**Cache generated images:**
+```javascript
+const imageCache = new Map();
+
+async function getOGImage(template, data) {
+  const key = JSON.stringify({ template, data });
+  
+  if (imageCache.has(key)) {
+    return imageCache.get(key);
+  }
+  
+  const result = await puppeteer.generateOGImage({ template, data });
+  imageCache.set(key, result.image);
+  
+  return result.image;
+}
+```
+
+**Use standard dimensions:**
+```javascript
+// Facebook/LinkedIn
+{ width: 1200, height: 630 }
+
+// Twitter
+{ width: 1200, height: 675 }
+
+// Instagram
+{ width: 1080, height: 1080 }
+```
+
+## Performance Tips
+
+1. **Reuse browser instances** - Workers stay alive between tasks
+2. **Batch operations** - Group multiple attributes per page load
+3. **Use BiDi for real-time monitoring** - Reduces polling overhead
+4. **Block unnecessary resources** - Images, fonts, ads are blocked by default
+5. **Cache extracted data** - Avoid re-mining unchanged pages
+6. **Use dedicated workers** - Better resource allocation for specific tasks
+
+## Research & Documentation
+
+For comprehensive research on WebDriver BiDi and modern web scraping techniques, see:
+
+- [WebDriver BiDi and Puppeteer Research](./docs/research/WEBDRIVER_BIDI_PUPPETEER_RESEARCH.md)
+- [Crawler Research & Best Practices](./CRAWLER_RESEARCH.md)
+- [Headless API Research](./HEADLESS_API_RESEARCH.md)
+
 ## Future Enhancements
 
+- [x] WebDriver BiDi protocol support
+- [x] Attribute-based data mining
+- [x] Social media image generation
 - [ ] Add support for Playwright workers
 - [ ] Implement neural network component builder
 - [ ] Add code generation from schemas
@@ -456,6 +929,9 @@ npm run test:integration
 - [ ] Implement schema versioning
 - [ ] Add collaborative editing
 - [ ] Create component marketplace
+- [ ] AI-powered selector generation
+- [ ] Self-healing selector chains
+- [ ] Multi-browser testing support
 
 ## Contributing
 

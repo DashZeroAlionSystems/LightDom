@@ -5,9 +5,12 @@
 
 import { Router } from 'express';
 import { NeuralNetworkInstanceManager } from '../services/NeuralNetworkInstanceManager';
-import { Pool } from 'pg';
 
-export function createNeuralNetworkRoutes(dbPool: Pool): Router {
+/**
+ * @param {Pool} dbPool
+ * @returns {import('express').Router}
+ */
+export function createNeuralNetworkRoutes(dbPool) {
   const router = Router();
   const manager = new NeuralNetworkInstanceManager(dbPool);
 
@@ -21,24 +24,24 @@ export function createNeuralNetworkRoutes(dbPool: Pool): Router {
   router.get('/instances', async (req, res) => {
     try {
       const { clientId, modelType, status } = req.query;
-      
+
       let instances = manager.getAllInstances();
-      
+
       // Filter by clientId
       if (clientId) {
         instances = instances.filter(i => i.clientId === clientId);
       }
-      
+
       // Filter by modelType
       if (modelType) {
         instances = instances.filter(i => i.modelType === modelType);
       }
-      
+
       // Filter by status
       if (status) {
         instances = instances.filter(i => i.status === status);
       }
-      
+
       res.json(instances);
     } catch (error) {
       console.error('Error listing instances:', error);
@@ -53,11 +56,11 @@ export function createNeuralNetworkRoutes(dbPool: Pool): Router {
   router.get('/instances/:id', async (req, res) => {
     try {
       const instance = manager.getInstance(req.params.id);
-      
+
       if (!instance) {
         return res.status(404).json({ error: 'Instance not found' });
       }
-      
+
       res.json(instance);
     } catch (error) {
       console.error('Error getting instance:', error);
@@ -145,55 +148,55 @@ export function createNeuralNetworkRoutes(dbPool: Pool): Router {
         {
           value: 'seo_optimization',
           label: 'SEO Optimization',
-          description: 'Optimize website SEO based on best practices and data'
+          description: 'Optimize website SEO based on best practices and data',
         },
         {
           value: 'component_generation',
           label: 'Component Generation',
-          description: 'Generate React components from specifications'
+          description: 'Generate React components from specifications',
         },
         {
           value: 'workflow_prediction',
           label: 'Workflow Prediction',
-          description: 'Predict optimal workflows based on patterns'
+          description: 'Predict optimal workflows based on patterns',
         },
         {
           value: 'accessibility_improvement',
           label: 'Accessibility Improvement',
-          description: 'Enhance website accessibility compliance'
+          description: 'Enhance website accessibility compliance',
         },
         {
           value: 'ux_pattern_recognition',
           label: 'UX Pattern Recognition',
-          description: 'Recognize and classify UX patterns'
+          description: 'Recognize and classify UX patterns',
         },
         {
           value: 'schema_relationship_learning',
           label: 'Schema Relationship Learning',
-          description: 'Learn relationships between schemas'
+          description: 'Learn relationships between schemas',
         },
         {
           value: 'performance_optimization',
           label: 'Performance Optimization',
-          description: 'Optimize website performance metrics'
+          description: 'Optimize website performance metrics',
         },
         {
           value: 'design_system_extraction',
           label: 'Design System Extraction',
-          description: 'Extract design systems from websites'
+          description: 'Extract design systems from websites',
         },
         {
           value: 'content_generation',
           label: 'Content Generation',
-          description: 'Generate optimized content'
+          description: 'Generate optimized content',
         },
         {
           value: 'sentiment_analysis',
           label: 'Sentiment Analysis',
-          description: 'Analyze sentiment in content'
-        }
+          description: 'Analyze sentiment in content',
+        },
       ];
-      
+
       res.json(modelTypes);
     } catch (error) {
       console.error('Error getting model types:', error);
@@ -208,7 +211,7 @@ export function createNeuralNetworkRoutes(dbPool: Pool): Router {
   router.get('/stats', async (req, res) => {
     try {
       const instances = manager.getAllInstances();
-      
+
       const stats = {
         total: instances.length,
         byStatus: {
@@ -216,20 +219,23 @@ export function createNeuralNetworkRoutes(dbPool: Pool): Router {
           training: instances.filter(i => i.status === 'training').length,
           error: instances.filter(i => i.status === 'error').length,
           initializing: instances.filter(i => i.status === 'initializing').length,
-          paused: instances.filter(i => i.status === 'paused').length
+          paused: instances.filter(i => i.status === 'paused').length,
         },
         byModelType: instances.reduce((acc, i) => {
           acc[i.modelType] = (acc[i.modelType] || 0) + 1;
           return acc;
-        }, {} as Record<string, number>),
-        avgAccuracy: instances
-          .filter(i => i.performance?.accuracy)
-          .reduce((sum, i) => sum + (i.performance?.accuracy || 0), 0) / 
+        }, {}),
+        avgAccuracy:
+          instances
+            .filter(i => i.performance?.accuracy)
+            .reduce((sum, i) => sum + (i.performance?.accuracy || 0), 0) /
           (instances.filter(i => i.performance?.accuracy).length || 1),
-        totalPredictions: instances
-          .reduce((sum, i) => sum + (i.performance?.predictionCount || 0), 0)
+        totalPredictions: instances.reduce(
+          (sum, i) => sum + (i.performance?.predictionCount || 0),
+          0
+        ),
       };
-      
+
       res.json(stats);
     } catch (error) {
       console.error('Error getting stats:', error);

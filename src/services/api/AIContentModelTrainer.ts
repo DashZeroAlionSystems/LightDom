@@ -5,10 +5,29 @@
  * and performance metrics. Implements continuous learning from feedback.
  */
 
-import * as tf from '@tensorflow/tfjs-node';
-import { Pool } from 'pg';
+import * as tf from '@tensorflow/tfjs';
 import * as fs from 'fs/promises';
+import { createRequire } from 'module';
 import * as path from 'path';
+import { Pool } from 'pg';
+
+const requireTF = createRequire(import.meta.url);
+
+const TENSORFLOW_BACKEND = (() => {
+    try {
+        requireTF('@tensorflow/tfjs-node');
+        if (typeof tf.setBackend === 'function' && typeof tf.findBackend === 'function' && tf.findBackend('tensorflow')) {
+            tf.setBackend('tensorflow').catch(() => {});
+        }
+        console.log('AIContentModelTrainer: native TensorFlow backend enabled');
+        return 'tensorflow';
+    } catch (err) {
+        console.warn('AIContentModelTrainer: native TensorFlow bindings unavailable, using @tensorflow/tfjs fallback');
+        return 'tfjs';
+    }
+})();
+
+const TF_NODE_AVAILABLE = TENSORFLOW_BACKEND === 'tensorflow';
 
 interface TrainingConfig {
     modelType: 'title' | 'meta_description' | 'content' | 'combined';
@@ -485,6 +504,10 @@ export class AIContentModelTrainer {
         await fs.mkdir(modelPath, { recursive: true });
 
         // Save TensorFlow model
+        if (!TF_NODE_AVAILABLE) {
+            throw new Error('TensorFlow native bindings are required to save models to disk. Install optional dependency @tensorflow/tfjs-node to enable model persistence.');
+        }
+
         await model.save(`file://${modelPath}`);
 
         // Save vocabulary

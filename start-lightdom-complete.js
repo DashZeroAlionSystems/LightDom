@@ -73,6 +73,7 @@ class LightDomCompleteStarter {
       await this.startDatabaseServices();
       await this.startAPIServer();
       await this.startWebCrawler();
+      await this.startStorybook();
       await this.startFrontend();
       await this.startElectronApp();
       await this.startMonitoring();
@@ -206,6 +207,50 @@ class LightDomCompleteStarter {
     } catch (error) {
       console.log('⚠️  Web Crawler Service not responding');
     }
+    console.log();
+  }
+
+  async startStorybook() {
+    console.log('📚 Starting Storybook...');
+    
+    const storybookProcess = spawn('npm', ['run', 'storybook'], {
+      cwd: __dirname,
+      stdio: 'pipe',
+      shell: true,
+      env: {
+        ...process.env,
+        NODE_ENV: 'development'
+      }
+    });
+
+    this.processes.set('storybook', storybookProcess);
+    this.ports.storybook = 6006;
+
+    storybookProcess.stdout.on('data', (data) => {
+      const output = data.toString();
+      if (output.includes('Storybook') && output.includes('started')) {
+        console.log('✅ Storybook started on port 6006');
+      }
+    });
+
+    storybookProcess.stderr.on('data', (data) => {
+      const output = data.toString();
+      // Filter out common warnings
+      if (!output.includes('ExperimentalWarning') && 
+          !output.includes('punycode') &&
+          !output.includes('DEP0040')) {
+        console.error('Storybook Warning:', output);
+      }
+    });
+
+    storybookProcess.on('exit', (code) => {
+      if (code !== 0 && !this.isShuttingDown) {
+        console.error('❌ Storybook exited with code', code);
+      }
+    });
+
+    // Wait for Storybook to be ready
+    await this.waitForService('storybook', 6006, 'Storybook');
     console.log();
   }
 
@@ -366,12 +411,14 @@ class LightDomCompleteStarter {
     console.log(`   🚀 Cache: Redis (port ${this.ports.redis})`);
     console.log(`   🔌 API Server: http://localhost:${this.ports.api}`);
     console.log(`   🌐 Frontend: http://localhost:${this.ports.frontend}`);
+    console.log(`   📚 Storybook: http://localhost:${this.ports.storybook || 6006}`);
     console.log(`   🖥️  Desktop App: Electron (launched)`);
     console.log(`   🕷️  Web Crawler: Active`);
     console.log(`   📊 Monitoring: Active`);
     console.log('='.repeat(80));
     console.log('🎯 Available Services:');
     console.log(`   • Main Dashboard: http://localhost:${this.ports.frontend}`);
+    console.log(`   • Design System: http://localhost:${this.ports.storybook || 6006}`);
     console.log(`   • API Health: http://localhost:${this.ports.api}/api/health`);
     console.log(`   • Crawler Stats: http://localhost:${this.ports.api}/api/crawler/stats`);
     console.log(`   • Mining Data: http://localhost:${this.ports.api}/api/metaverse/mining-data`);
