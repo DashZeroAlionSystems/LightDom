@@ -26,6 +26,26 @@ LightDom is a revolutionary blockchain-based DOM optimization platform that comb
 - **Continuous Styleguide Mining** - Automatic design token and pattern discovery
 - **Context-Aware Navigation** - Role-based menus and quick access to recent items
 
+### 🧠 **LangChain + Ollama DeepSeek Integration** ⭐ NEW
+- **AI Chat Assistant** - Context-aware conversations with session management
+- **Code Generation** - Generate code in 7+ languages with AI assistance
+- **Workflow Automation** - Convert natural language to structured workflows
+- **DOM Optimization** - AI-powered performance analysis and recommendations
+- **Multi-Agent Systems** - Coordinate multiple AI agents for complex tasks
+- **Custom Chains** - Flexible prompt engineering with LangChain
+- **REST API** - 15+ endpoints for all AI operations
+- **React Dashboard** - Full-featured UI for AI interactions
+- **Streaming Support** - Real-time token streaming via Server-Sent Events
+
+📖 **[Quick Start Guide](LANGCHAIN_QUICKSTART.md)** | **[Full Documentation](LANGCHAIN_OLLAMA_INTEGRATION_GUIDE.md)** | **[Implementation Summary](LANGCHAIN_INTEGRATION_SUMMARY.md)** | **[Examples](examples/langchain-ollama-examples.js)**
+
+```bash
+# Get started in 3 commands
+ollama pull deepseek-r1:latest        # 1. Install DeepSeek model
+npm run api                            # 2. Start API server
+npm run langchain:test                 # 3. Test integration
+```
+
 ### Testing & Quality Assurance
 - **Integration Testing**: Comprehensive test suite for all platform components
 - **Workflow Simulation**: End-to-end user workflow testing
