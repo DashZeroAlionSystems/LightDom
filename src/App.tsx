@@ -78,6 +78,8 @@ import DeepSeekSkillsDashboard from './pages/admin/DeepSeekSkillsDashboard';
 import ScraperManagerDashboard from './components/ScraperManagerDashboard';
 import DeepSeekChatPanel from './components/DeepSeekChatPanel';
 import CategoryManagement from './components/ui/admin/CategoryManagement';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
+import ComprehensiveSEODashboard from './components/dashboard/ComprehensiveSEODashboard';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -123,6 +125,7 @@ const AppContent: React.FC = () => {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/onboarding" element={<OnboardingFlow />} />
         
         {/* Admin Routes - Separate Admin Layout */}
         <Route
@@ -175,6 +178,7 @@ const AppContent: React.FC = () => {
           }
         >
           <Route index element={<DashboardOverview />} />
+          <Route path="seo" element={<ComprehensiveSEODashboard />} />
           <Route path="optimization" element={<OptimizationDashboard />} />
           <Route path="wallet" element={<WalletDashboard />} />
           <Route path="blockchain" element={<BlockchainDashboard />} />
