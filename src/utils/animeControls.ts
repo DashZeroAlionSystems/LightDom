@@ -5,7 +5,7 @@
  * Features: Timelines, stagger effects, SVG animations, interactive controls
  */
 
-import anime from 'animejs/lib/anime.es.js';
+import anime from 'animejs';
 
 // ============================================================================
 // Types & Interfaces

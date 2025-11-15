@@ -14,7 +14,7 @@ import {
   SwapOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
-import anime from 'animejs/lib/anime.es.js';
+import anime from 'animejs';
 import {
   createControlledAnimation,
   createTimeline,
