@@ -33,6 +33,7 @@
     "services": "node cli/service-cli.js",
     "orchestrator": "node scripts/startup-orchestrator.js",
     "orchestrator:demo": "node examples/full-stack-integration.js",
+    "demo:launcher": "node demo-launcher.js",
     "demo:complete": "node examples/complete-system-demo.js",
     "demo:style-guide": "node examples/style-guide-usage.js",
     "build": "tsc && vite build",

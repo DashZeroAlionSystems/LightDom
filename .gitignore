@@ -525,3 +525,4 @@ workflows/n8n/credentials/*.json
 # =============================================================================
 *storybook.log
 .npm-cache/
+demo-*-results.json
