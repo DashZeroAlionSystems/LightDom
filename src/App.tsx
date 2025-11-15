@@ -78,6 +78,7 @@ import DeepSeekSkillsDashboard from './pages/admin/DeepSeekSkillsDashboard';
 import ScraperManagerDashboard from './components/ScraperManagerDashboard';
 import DeepSeekChatPanel from './components/DeepSeekChatPanel';
 import CategoryManagement from './components/ui/admin/CategoryManagement';
+import DemoShowcase from './pages/DemoShowcase';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -211,6 +212,7 @@ const AppContent: React.FC = () => {
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
           <Route path="component-schema" element={<ComponentSchemaToolDashboard />} />
+          <Route path="demos" element={<DemoShowcase />} />
           
           {/* Admin Routes within Dashboard */}
           <Route path="admin" element={<AdminDashboard />} />
