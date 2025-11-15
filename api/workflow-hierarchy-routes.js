@@ -1,6 +1,6 @@
 /**
  * Workflow Hierarchy API Routes
- * 
+ *
  * Complete CRUD endpoints for:
  * - Workflows with hierarchy
  * - Services bundled in workflows
@@ -12,6 +12,14 @@
 const express = require('express');
 const router = express.Router();
 const { Pool } = require('pg');
+
+const parseOptionalInt = (value, fallback) => {
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+  }
+  return fallback;
+};
 
 // Database connection
 const pool = new Pool({
@@ -27,12 +35,16 @@ let crudService;
 async function initServices() {
   if (!crudService) {
     try {
-      const { default: CRUDService } = await import('../src/services/workflow-hierarchy-crud.service');
-      const { DeepSeekIntegrationService: DSService } = await import('../src/services/deepseek-integration.service');
-      
+      const { default: CRUDService } = await import(
+        '../src/services/workflow-hierarchy-crud.service'
+      );
+      const { DeepSeekIntegrationService: DSService } = await import(
+        '../src/services/deepseek-integration.service'
+      );
+
       WorkflowHierarchyCRUDService = CRUDService;
       DeepSeekIntegrationService = DSService;
-      
+
       const deepseek = new DSService(pool);
       crudService = new WorkflowHierarchyCRUDService(pool, deepseek);
     } catch (error) {
@@ -57,25 +69,25 @@ router.get('/workflows', async (req, res) => {
     const { parent_id, category, status, hierarchy_level, limit, offset } = req.query;
 
     const workflows = await service.listWorkflows({
-      parent_id: parent_id as string,
-      category: category as string,
-      status: status as string,
-      hierarchy_level: hierarchy_level ? parseInt(hierarchy_level as string) : undefined,
-      limit: limit ? parseInt(limit as string) : 50,
-      offset: offset ? parseInt(offset as string) : 0,
+      parent_id: typeof parent_id === 'string' ? parent_id : undefined,
+      category: typeof category === 'string' ? category : undefined,
+      status: typeof status === 'string' ? status : undefined,
+      hierarchy_level: parseOptionalInt(hierarchy_level, undefined),
+      limit: parseOptionalInt(limit, 50),
+      offset: parseOptionalInt(offset, 0),
     });
 
     res.json({
       success: true,
       count: workflows.length,
-      workflows
+      workflows,
     });
   } catch (error) {
     console.error('Error listing workflows:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to list workflows',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -92,20 +104,20 @@ router.get('/workflows/:id', async (req, res) => {
     if (!workflow) {
       return res.status(404).json({
         success: false,
-        error: 'Workflow not found'
+        error: 'Workflow not found',
       });
     }
 
     res.json({
       success: true,
-      workflow
+      workflow,
     });
   } catch (error) {
     console.error('Error getting workflow:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get workflow',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -122,20 +134,20 @@ router.get('/workflows/:id/complete', async (req, res) => {
     if (!complete) {
       return res.status(404).json({
         success: false,
-        error: 'Workflow not found'
+        error: 'Workflow not found',
       });
     }
 
     res.json({
       success: true,
-      workflow: complete
+      workflow: complete,
     });
   } catch (error) {
     console.error('Error getting complete workflow:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get complete workflow',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -151,14 +163,14 @@ router.post('/workflows', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      workflow
+      workflow,
     });
   } catch (error) {
     console.error('Error creating workflow:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to create workflow',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -174,14 +186,14 @@ router.put('/workflows/:id', async (req, res) => {
 
     res.json({
       success: true,
-      workflow
+      workflow,
     });
   } catch (error) {
     console.error('Error updating workflow:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to update workflow',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -198,20 +210,20 @@ router.delete('/workflows/:id', async (req, res) => {
     if (!deleted) {
       return res.status(404).json({
         success: false,
-        error: 'Workflow not found'
+        error: 'Workflow not found',
       });
     }
 
     res.json({
       success: true,
-      message: 'Workflow deleted successfully'
+      message: 'Workflow deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting workflow:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to delete workflow',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -232,14 +244,14 @@ router.get('/roots', async (req, res) => {
     res.json({
       success: true,
       count: roots.length,
-      workflows: roots
+      workflows: roots,
     });
   } catch (error) {
     console.error('Error getting root workflows:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get root workflows',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -256,14 +268,14 @@ router.get('/workflows/:id/children', async (req, res) => {
     res.json({
       success: true,
       count: children.length,
-      workflows: children
+      workflows: children,
     });
   } catch (error) {
     console.error('Error getting child workflows:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get child workflows',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -280,14 +292,14 @@ router.get('/workflows/:id/ancestors', async (req, res) => {
     res.json({
       success: true,
       count: ancestors.length,
-      workflows: ancestors
+      workflows: ancestors,
     });
   } catch (error) {
     console.error('Error getting ancestor workflows:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get ancestor workflows',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -308,14 +320,14 @@ router.get('/workflows/:id/services', async (req, res) => {
     res.json({
       success: true,
       count: services.length,
-      services
+      services,
     });
   } catch (error) {
     console.error('Error listing services:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to list services',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -331,14 +343,14 @@ router.post('/services', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      service: newService
+      service: newService,
     });
   } catch (error) {
     console.error('Error creating service:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to create service',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -354,14 +366,14 @@ router.put('/services/:id', async (req, res) => {
 
     res.json({
       success: true,
-      service: updatedService
+      service: updatedService,
     });
   } catch (error) {
     console.error('Error updating service:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to update service',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -378,20 +390,20 @@ router.delete('/services/:id', async (req, res) => {
     if (!deleted) {
       return res.status(404).json({
         success: false,
-        error: 'Service not found'
+        error: 'Service not found',
       });
     }
 
     res.json({
       success: true,
-      message: 'Service deleted successfully'
+      message: 'Service deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting service:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to delete service',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -412,14 +424,14 @@ router.get('/workflows/:id/streams', async (req, res) => {
     res.json({
       success: true,
       count: streams.length,
-      streams
+      streams,
     });
   } catch (error) {
     console.error('Error listing data streams:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to list data streams',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -435,14 +447,14 @@ router.post('/streams', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      stream
+      stream,
     });
   } catch (error) {
     console.error('Error creating data stream:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to create data stream',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -463,14 +475,14 @@ router.get('/workflows/:id/dashboards', async (req, res) => {
     res.json({
       success: true,
       count: dashboards.length,
-      dashboards
+      dashboards,
     });
   } catch (error) {
     console.error('Error listing dashboards:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to list dashboards',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -486,14 +498,14 @@ router.post('/dashboards', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      dashboard
+      dashboard,
     });
   } catch (error) {
     console.error('Error creating dashboard:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to create dashboard',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -514,7 +526,7 @@ router.post('/generate-from-prompt', async (req, res) => {
     if (!prompt) {
       return res.status(400).json({
         success: false,
-        error: 'Prompt is required'
+        error: 'Prompt is required',
       });
     }
 
@@ -527,14 +539,14 @@ router.post('/generate-from-prompt', async (req, res) => {
       services: result.services,
       streams: result.streams,
       dashboard: result.dashboard,
-      generated_by: 'deepseek'
+      generated_by: 'deepseek',
     });
   } catch (error) {
     console.error('Error generating workflow from prompt:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to generate workflow',
-      details: error.message
+      details: error.message,
     });
   }
 });
@@ -555,7 +567,7 @@ router.get('/workflows/:id/schema', async (req, res) => {
     if (!workflow) {
       return res.status(404).json({
         success: false,
-        error: 'Workflow not found'
+        error: 'Workflow not found',
       });
     }
 
@@ -563,14 +575,14 @@ router.get('/workflows/:id/schema', async (req, res) => {
       success: true,
       schema: workflow.auto_schema,
       schema_version: workflow.schema_version,
-      last_generated: workflow.schema_last_generated_at
+      last_generated: workflow.schema_last_generated_at,
     });
   } catch (error) {
     console.error('Error getting workflow schema:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get workflow schema',
-      details: error.message
+      details: error.message,
     });
   }
 });

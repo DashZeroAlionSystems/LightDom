@@ -213,8 +213,8 @@ export function createAgentManagementRoutes(db: Pool): Router {
 
       res.json(mockResponse);
     } catch (error) {
-      console.error('Error in chat endpoint:', error);
-      res.status(500).json({ error: 'Failed to process chat request' });
+      console.error('Error in chat endpoint:', error && (error.stack || error.message || error));
+      res.status(500).json({ error: 'Failed to process chat request', details: error && (error.message || String(error)) });
     }
   });
 

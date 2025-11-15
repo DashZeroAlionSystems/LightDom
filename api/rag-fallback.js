@@ -4,134 +4,7 @@ import { AGENT_TOOLS, executeTool } from './agent-tools.js';
 const router = express.Router();
 
 const OLLAMA_ENDPOINT = process.env.OLLAMA_ENDPOINT || 'http://localhost:11500';
-const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'deepseek-coder';
-
-router.get('/health', async (req, res) => {
-  try {
-    // Check Ollama tags endpoint as a lightweight health check
-    const r = await fetch(`${OLLAMA_ENDPOINT}/api/tags`);
-    if (!r.ok)
-      return res.status(502).json({ ok: false, message: 'Ollama unreachable', status: r.status });
-    const json = await r.json().catch(() => ({}));
-    return res.json({ ok: true, service: 'rag-fallback', models: json.models || [] });
-  } catch (err) {
-    return res.status(503).json({ ok: false, error: err.message });
-  }
-});
-
-// Ingest a URL: minimal fallback that asks Ollama to summarize the page.
-router.post('/ingest/url', async (req, res) => {
-  try {
-    const { url } = req.body || {};
-    if (!url) return res.status(400).json({ success: false, error: 'url required' });
-
-    const prompt = `Summarize the content at this URL in three concise sentences: ${url}`;
-
-    const r = await fetch(`${OLLAMA_ENDPOINT}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: DEFAULT_MODEL,
-        prompt,
-        stream: false,
-        options: { temperature: 0.0 },
-      }),
-    });
-
-    if (!r.ok) {
-      const text = await r.text();
-      return res
-        .status(502)
-        .json({ success: false, error: 'Ollama generate failed', status: r.status, details: text });
-    }
-
-    const json = await r.json();
-    return res.json({ success: true, url, summary: json.response });
-  } catch (err) {
-    return res
-      .status(503)
-      .json({ success: false, error: 'Unable to reach Ollama', details: err.message });
-  }
-});
-
-// Simple query proxy to Ollama chat/generate
-router.post('/query', async (req, res) => {
-  try {
-    const { prompt } = req.body || {};
-    if (!prompt) return res.status(400).json({ success: false, error: 'prompt required' });
-
-    const r = await fetch(`${OLLAMA_ENDPOINT}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: DEFAULT_MODEL,
-        prompt,
-        stream: false,
-        options: { temperature: 0.7 },
-      }),
-    });
-
-    if (!r.ok) {
-      const text = await r.text();
-      return res
-        .status(502)
-        .json({ success: false, error: 'Ollama generate failed', status: r.status, details: text });
-    }
-
-    const json = await r.json();
-    return res.json({ success: true, response: json.response });
-  } catch (err) {
-    return res
-      .status(503)
-      .json({ success: false, error: 'Unable to reach Ollama', details: err.message });
-  }
-});
-
-// Chat endpoint for compatibility with frontend
-router.post('/chat', async (req, res) => {
-  try {
-    const { message, messages, model } = req.body || {};
-
-    // Support both 'message' (single string) and 'messages' (array) formats
-    let prompt;
-    if (messages && Array.isArray(messages)) {
-      // Convert messages array to a single prompt
-      prompt = messages.map(m => `${m.role}: ${m.content}`).join('\n');
-    } else if (message) {
-      prompt = message;
-    } else {
-      return res.status(400).json({ success: false, error: 'message or messages required' });
-    }
-
-    const selectedModel = model || DEFAULT_MODEL;
-    const r = await fetch(`${OLLAMA_ENDPOINT}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: selectedModel,
-        prompt,
-        stream: false,
-        options: { temperature: 0.7 },
-      }),
-    });
-
-    if (!r.ok) {
-      const text = await r.text();
-      return res
-        .status(502)
-        .json({ success: false, error: 'Ollama generate failed', status: r.status, details: text });
-    }
-
-    const json = await r.json();
-    return res.json({ success: true, response: json.response });
-  } catch (err) {
-    return res
-      .status(503)
-      .json({ success: false, error: 'Unable to reach Ollama', details: err.message });
-  }
-});
-
-// Streaming chat endpoint for real-time responses with tool support
+const DEFAULT_MODEL = process.env.DEEPSEEK_MODEL || process.env.OLLAMA_MODEL || 'deepseek-coder';
 router.post('/chat/stream', async (req, res) => {
   try {
     const { message, messages, model, enableTools = true } = req.body || {};
@@ -148,10 +21,11 @@ router.post('/chat/stream', async (req, res) => {
 
     const selectedModel = model || DEFAULT_MODEL;
 
-    // Set headers for streaming
-    res.setHeader('Content-Type', 'text/event-stream');
+    // Set headers for streaming (SSE)
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+    if (typeof res.flushHeaders === 'function') res.flushHeaders();
 
     // Enhanced system prompt with tool awareness
     const systemPrompt = enableTools
@@ -200,25 +74,20 @@ router.post('/chat/stream', async (req, res) => {
     });
 
     if (!response.ok) {
-      const text = await response.text();
+      const text = await response.text().catch(() => '<non-text response>');
+      console.error('[rag-fallback] Ollama responded with non-OK:', response.status, text);
       res.write(`data: ${JSON.stringify({ error: 'Ollama generate failed', details: text })}\n\n`);
       return res.end();
     }
 
-    // Stream the response chunks and detect tool calls
-    const reader = response.body.getReader();
+    // Robust streaming consumption that works across Node/Undici web streams and Node readable streams
     const decoder = new TextDecoder();
     let accumulatedResponse = '';
-    let toolCallDetected = false;
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim());
-
+    const processChunkText = async text => {
+      const lines = text.split('\n').filter(line => line.trim());
       for (const line of lines) {
+        // Try parse JSON token-style lines, otherwise send raw token
         try {
           const json = JSON.parse(line);
           if (json.response) {
@@ -226,38 +95,26 @@ router.post('/chat/stream', async (req, res) => {
             res.write(`data: ${JSON.stringify({ token: json.response })}\n\n`);
           }
           if (json.done) {
-            // Check if the response contains a tool call
+            // detect and handle tool calls
             if (
               enableTools &&
               accumulatedResponse.includes('"tool"') &&
               accumulatedResponse.includes('"parameters"')
             ) {
               try {
-                // Extract JSON tool call from response
                 const toolCallMatch = accumulatedResponse.match(
                   /\{[\s\S]*?"tool"[\s\S]*?"parameters"[\s\S]*?\}/
                 );
                 if (toolCallMatch) {
                   const toolCall = JSON.parse(toolCallMatch[0]);
-
-                  // Signal tool execution
                   res.write(
-                    `data: ${JSON.stringify({
-                      toolCall: true,
-                      tool: toolCall.tool,
-                      thought: toolCall.thought,
-                    })}\n\n`
+                    `data: ${JSON.stringify({ toolCall: true, tool: toolCall.tool, thought: toolCall.thought })}\n\n`
                   );
 
-                  // Execute the tool
                   const toolResult = await executeTool(toolCall.tool, toolCall.parameters);
 
-                  // Send tool result back
                   res.write(
-                    `data: ${JSON.stringify({
-                      toolResult: true,
-                      result: toolResult,
-                    })}\n\n`
+                    `data: ${JSON.stringify({ toolResult: true, result: toolResult })}\n\n`
                   );
 
                   // Continue conversation with tool result
@@ -277,52 +134,154 @@ router.post('/chat/stream', async (req, res) => {
                   });
 
                   if (followUpResponse.ok) {
-                    const followUpReader = followUpResponse.body.getReader();
-                    while (true) {
-                      const { done: followUpDone, value: followUpValue } =
-                        await followUpReader.read();
-                      if (followUpDone) break;
-
-                      const followUpChunk = decoder.decode(followUpValue);
-                      const followUpLines = followUpChunk.split('\n').filter(line => line.trim());
-
-                      for (const followUpLine of followUpLines) {
-                        try {
-                          const followUpJson = JSON.parse(followUpLine);
-                          if (followUpJson.response) {
-                            res.write(
-                              `data: ${JSON.stringify({ token: followUpJson.response })}\n\n`
-                            );
+                    // consume follow-up stream
+                    if (
+                      followUpResponse.body &&
+                      typeof followUpResponse.body.getReader === 'function'
+                    ) {
+                      const fr = followUpResponse.body.getReader();
+                      while (true) {
+                        const { done, value } = await fr.read();
+                        if (done) break;
+                        const chunk = decoder.decode(value);
+                        const followUpLines = chunk.split('\n').filter(Boolean);
+                        for (const l of followUpLines) {
+                          try {
+                            const fj = JSON.parse(l);
+                            if (fj.response)
+                              res.write(`data: ${JSON.stringify({ token: fj.response })}\n\n`);
+                          } catch (e) {
+                            // ignore non-json
                           }
-                        } catch (e) {
-                          // Skip invalid JSON
                         }
                       }
+                    } else if (
+                      followUpResponse.body &&
+                      typeof followUpResponse.body[Symbol.asyncIterator] === 'function'
+                    ) {
+                      for await (const c of followUpResponse.body) {
+                        const chunk = typeof c === 'string' ? c : decoder.decode(c);
+                        const followUpLines = chunk.split('\n').filter(Boolean);
+                        for (const l of followUpLines) {
+                          try {
+                            const fj = JSON.parse(l);
+                            if (fj.response)
+                              res.write(`data: ${JSON.stringify({ token: fj.response })}\n\n`);
+                          } catch (e) {}
+                        }
+                      }
+                    } else {
+                      const txt = await followUpResponse.text().catch(() => '');
+                      if (txt) res.write(`data: ${JSON.stringify({ token: txt })}\n\n`);
                     }
                   }
-
-                  toolCallDetected = true;
                 }
               } catch (parseError) {
-                console.error('Error parsing tool call:', parseError);
+                console.error('[rag-fallback] Error parsing tool call:', parseError);
               }
             }
 
             res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
           }
         } catch (e) {
-          // Skip invalid JSON lines
+          // not JSON — treat as raw token
+          try {
+            accumulatedResponse += line;
+            res.write(`data: ${JSON.stringify({ token: line })}\n\n`);
+          } catch (inner) {
+            // last resort: log and continue
+            console.error('[rag-fallback] Failed to write token chunk', inner);
+          }
         }
       }
+    };
+
+    try {
+      if (response.body && typeof response.body.getReader === 'function') {
+        const reader = response.body.getReader();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value);
+          await processChunkText(chunk);
+        }
+      } else if (response.body && typeof response.body[Symbol.asyncIterator] === 'function') {
+        for await (const chunk of response.body) {
+          const text = typeof chunk === 'string' ? chunk : decoder.decode(chunk);
+          await processChunkText(text);
+        }
+      } else if (response.body && typeof response.body.on === 'function') {
+        // Node.js readable stream
+        await new Promise((resolve, reject) => {
+          response.body.on('data', async c => {
+            try {
+              const text = typeof c === 'string' ? c : decoder.decode(c);
+              await processChunkText(text);
+            } catch (e) {
+              console.error('[rag-fallback] stream data handler error', e);
+            }
+          });
+          response.body.on('end', resolve);
+          response.body.on('error', reject);
+        });
+      } else {
+        // Fallback: read whole text
+        const txt = await response.text().catch(() => '');
+        if (txt) await processChunkText(txt);
+      }
+    } catch (streamErr) {
+      console.error('[rag-fallback] Error consuming Ollama stream:', streamErr);
+      res.write(
+        `data: ${JSON.stringify({ error: 'Stream consumption failed', details: streamErr.message })}\n\n`
+      );
     }
 
     res.end();
   } catch (err) {
-    res.write(
-      `data: ${JSON.stringify({ error: 'Unable to reach Ollama', details: err.message })}\n\n`
-    );
-    res.end();
+    console.error('[rag-fallback] chat/stream failed:', err && (err.stack || err.message || err));
+    // Send an SSE error and end
+    try {
+      res.write(
+        `data: ${JSON.stringify({ error: 'Unable to reach Ollama', details: err.message })}\n\n`
+      );
+    } catch (e) {
+      // ignore write errors
+    }
+    try {
+      res.end();
+    } catch (e) {}
   }
+});
+
+router.get('/health', async (_req, res) => {
+  const report = {
+    status: 'ok',
+    message: 'RAG fallback proxy is operational',
+    endpoint: OLLAMA_ENDPOINT,
+    model: DEFAULT_MODEL,
+  };
+
+  try {
+    const response = await fetch(`${OLLAMA_ENDPOINT}/api/tags`, { method: 'GET' });
+    if (!response.ok) {
+      report.status = 'warn';
+      report.message = 'Ollama responded with non-success status';
+      report.details = { status: response.status };
+    } else {
+      const tags = await response.json().catch(() => null);
+      if (tags && Array.isArray(tags.models)) {
+        report.availableModels = tags.models.map(model => model.name).filter(Boolean);
+        report.modelAvailable = report.availableModels.includes(DEFAULT_MODEL);
+      }
+    }
+  } catch (error) {
+    report.status = 'warn';
+    report.message = 'Failed to reach Ollama endpoint';
+    report.error = error instanceof Error ? error.message : String(error);
+  }
+
+  const statusCode = report.status === 'ok' ? 200 : report.status === 'warn' ? 206 : 503;
+  res.status(statusCode).json(report);
 });
 
 // Get available tools

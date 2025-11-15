@@ -80,6 +80,7 @@ export function createDefaultCommands(handlers: {
   onCrawlStart?: (url: string, depth?: number) => void;
   onCrawlStop?: () => void;
   onCrawlStatus?: () => void;
+  onCrawlerServiceCommand?: (action: 'start' | 'stop' | 'status') => void;
   onStyleguideMine?: (url: string) => void;
   onAnalyzeData?: (type: string) => void;
   onAnalyzePatterns?: () => void;
@@ -121,6 +122,20 @@ export function createDefaultCommands(handlers: {
             if (args && args.length > 0) {
               handlers.onDatabaseQuery?.(args.join(' '));
             }
+          },
+        },
+        {
+          id: 'scraping.crawl.autopilot',
+          label: 'Crawler Autopilot',
+          description: 'Start/stop the always-on crawler service',
+          category: 'scraping',
+          keywords: ['service', 'daemon', '24/7', 'autopilot'],
+          icon: <RefreshCw className="w-4 h-4" />,
+          requiresArgs: true,
+          argPlaceholder: 'start | stop | status',
+          handler: (args) => {
+            const action = (args?.[0]?.toLowerCase() as 'start' | 'stop' | 'status') || 'status';
+            handlers.onCrawlerServiceCommand?.(action);
           },
         },
         {

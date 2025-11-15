@@ -5,14 +5,14 @@
  * Rich, interactive CLI for managing service bundles
  */
 
-import { Command } from 'commander';
 import chalk from 'chalk';
 import Table from 'cli-table3';
-import { serviceOrchestrator } from '../src/services/service-orchestrator.js';
-import { deepseekInstanceManager } from '../src/services/deepseek-instance-manager.js';
-import { richSnippetEngine } from '../src/services/rich-snippet-engine.js';
-import { headlessAPIManager } from '../src/services/headless-api-manager.js';
+import { Command } from 'commander';
 import { ConsoleFormatter } from '../src/config/console-config.js';
+import { deepseekInstanceManager } from '../src/services/deepseek-instance-manager.js';
+import { headlessAPIManager } from '../src/services/headless-api-manager.js';
+import { richSnippetEngine } from '../src/services/rich-snippet-engine.js';
+import { serviceOrchestrator } from '../src/services/service-orchestrator.js';
 
 const program = new Command();
 const console = new ConsoleFormatter();
@@ -28,7 +28,7 @@ program
   .description('List all service bundles')
   .action(() => {
     const bundles = serviceOrchestrator.getAllBundles();
-    
+
     const table = new Table({
       head: ['Bundle Name', 'Status', 'Services', 'Auto-Start', 'Health Check'],
       style: { head: ['cyan'] },
@@ -40,7 +40,7 @@ program
         bundle.status === 'running' ? chalk.green(bundle.status) : chalk.yellow(bundle.status),
         bundle.services.length,
         bundle.config.autoStart ? chalk.green('Yes') : chalk.gray('No'),
-        bundle.config.healthCheckInterval 
+        bundle.config.healthCheckInterval
           ? chalk.green(`${bundle.config.healthCheckInterval}ms`)
           : chalk.gray('Disabled'),
       ]);
@@ -52,19 +52,13 @@ program
 program
   .command('bundle:start <name>')
   .description('Start a service bundle')
-  .action(async (name) => {
+  .action(async name => {
     try {
-      console.log(
-        console.formatServiceMessage('CLI', `Starting bundle: ${name}`, 'info')
-      );
+      console.log(console.formatServiceMessage('CLI', `Starting bundle: ${name}`, 'info'));
       await serviceOrchestrator.startBundle(name);
-      console.log(
-        console.formatServiceMessage('CLI', `Bundle ${name} started`, 'success')
-      );
+      console.log(console.formatServiceMessage('CLI', `Bundle ${name} started`, 'success'));
     } catch (error) {
-      console.error(
-        console.formatError('CLI', error as Error)
-      );
+      console.error(console.formatError('CLI', error));
       process.exit(1);
     }
   });
@@ -72,19 +66,13 @@ program
 program
   .command('bundle:stop <name>')
   .description('Stop a service bundle')
-  .action(async (name) => {
+  .action(async name => {
     try {
-      console.log(
-        console.formatServiceMessage('CLI', `Stopping bundle: ${name}`, 'warning')
-      );
+      console.log(console.formatServiceMessage('CLI', `Stopping bundle: ${name}`, 'warning'));
       await serviceOrchestrator.stopBundle(name);
-      console.log(
-        console.formatServiceMessage('CLI', `Bundle ${name} stopped`, 'success')
-      );
+      console.log(console.formatServiceMessage('CLI', `Bundle ${name} stopped`, 'success'));
     } catch (error) {
-      console.error(
-        console.formatError('CLI', error as Error)
-      );
+      console.error(console.formatError('CLI', error));
       process.exit(1);
     }
   });
@@ -92,7 +80,7 @@ program
 program
   .command('bundle:status <name>')
   .description('Get bundle status')
-  .action((name) => {
+  .action(name => {
     const bundle = serviceOrchestrator.getBundleStatus(name);
     if (!bundle) {
       console.error(chalk.red(`Bundle ${name} not found`));
@@ -120,10 +108,8 @@ program
   .option('--height <height>', 'Viewport height', '1080')
   .action(async (id, options) => {
     try {
-      console.log(
-        console.formatServiceMessage('CLI', `Creating DeepSeek instance: ${id}`, 'info')
-      );
-      
+      console.log(console.formatServiceMessage('CLI', `Creating DeepSeek instance: ${id}`, 'info'));
+
       const instance = await deepseekInstanceManager.createInstance(id, {
         headless: options.headless,
         viewport: {
@@ -133,20 +119,13 @@ program
       });
 
       console.log(
-        console.formatInstanceInfo(
-          instance.id,
-          'DeepSeek Chrome',
-          'active',
-          {
-            viewport: `${options.width}x${options.height}`,
-            headless: options.headless,
-          }
-        )
+        console.formatInstanceInfo(instance.id, 'DeepSeek Chrome', 'active', {
+          viewport: `${options.width}x${options.height}`,
+          headless: options.headless,
+        })
       );
     } catch (error) {
-      console.error(
-        console.formatError('CLI', error as Error)
-      );
+      console.error(console.formatError('CLI', error));
       process.exit(1);
     }
   });
@@ -156,7 +135,7 @@ program
   .description('List all DeepSeek instances')
   .action(() => {
     const instances = deepseekInstanceManager.getInstances();
-    
+
     const table = new Table({
       head: ['Instance ID', 'Status', 'Created', 'Last Activity'],
       style: { head: ['cyan'] },
@@ -165,10 +144,13 @@ program
     instances.forEach(instance => {
       table.push([
         instance.id,
-        instance.status === 'ready' ? chalk.green(instance.status) :
-        instance.status === 'busy' ? chalk.yellow(instance.status) :
-        instance.status === 'error' ? chalk.red(instance.status) :
-        chalk.gray(instance.status),
+        instance.status === 'ready'
+          ? chalk.green(instance.status)
+          : instance.status === 'busy'
+            ? chalk.yellow(instance.status)
+            : instance.status === 'error'
+              ? chalk.red(instance.status)
+              : chalk.gray(instance.status),
         instance.createdAt.toLocaleString(),
         instance.lastActivity.toLocaleString(),
       ]);
@@ -184,20 +166,14 @@ program
   .action(async (id, prompt, options) => {
     try {
       const context = JSON.parse(options.context);
-      
-      console.log(
-        console.formatServiceMessage('CLI', `Sending prompt to ${id}`, 'info')
-      );
-      
+
+      console.log(console.formatServiceMessage('CLI', `Sending prompt to ${id}`, 'info'));
+
       const response = await deepseekInstanceManager.sendPrompt(id, prompt, context);
-      
-      console.log(
-        console.formatDataStream('DeepSeek Response', response, 'deepseek')
-      );
+
+      console.log(console.formatDataStream('DeepSeek Response', response, 'deepseek'));
     } catch (error) {
-      console.error(
-        console.formatError('CLI', error as Error)
-      );
+      console.error(console.formatError('CLI', error));
       process.exit(1);
     }
   });
@@ -205,19 +181,13 @@ program
 program
   .command('deepseek:stop <id>')
   .description('Stop a DeepSeek instance')
-  .action(async (id) => {
+  .action(async id => {
     try {
-      console.log(
-        console.formatServiceMessage('CLI', `Stopping instance: ${id}`, 'warning')
-      );
+      console.log(console.formatServiceMessage('CLI', `Stopping instance: ${id}`, 'warning'));
       await deepseekInstanceManager.stopInstance(id);
-      console.log(
-        console.formatServiceMessage('CLI', `Instance ${id} stopped`, 'success')
-      );
+      console.log(console.formatServiceMessage('CLI', `Instance ${id} stopped`, 'success'));
     } catch (error) {
-      console.error(
-        console.formatError('CLI', error as Error)
-      );
+      console.error(console.formatError('CLI', error));
       process.exit(1);
     }
   });
@@ -230,25 +200,19 @@ program
   .action((type, options) => {
     try {
       const data = JSON.parse(options.data);
-      
-      console.log(
-        console.formatServiceMessage('CLI', `Generating ${type} snippet`, 'info')
-      );
-      
+
+      console.log(console.formatServiceMessage('CLI', `Generating ${type} snippet`, 'info'));
+
       const snippet = richSnippetEngine.generateSnippet(`cli-${Date.now()}`, {
-        type: type as any,
+        type,
         data,
         seoOptimized: true,
         enableStructuredData: true,
       });
 
-      console.log(
-        console.formatDataStream('Rich Snippet', snippet, 'snippet')
-      );
+      console.log(console.formatDataStream('Rich Snippet', snippet, 'snippet'));
     } catch (error) {
-      console.error(
-        console.formatError('CLI', error as Error)
-      );
+      console.error(console.formatError('CLI', error));
       process.exit(1);
     }
   });
@@ -260,12 +224,10 @@ program
   .option('--price <price>', 'Product price')
   .option('--description <description>', 'Product description')
   .option('--image <image>', 'Product image URL')
-  .action((options) => {
+  .action(options => {
     try {
-      console.log(
-        console.formatServiceMessage('CLI', 'Generating product snippet', 'info')
-      );
-      
+      console.log(console.formatServiceMessage('CLI', 'Generating product snippet', 'info'));
+
       const snippet = richSnippetEngine.generateProductSnippet({
         name: options.name,
         price: options.price,
@@ -280,9 +242,7 @@ program
       console.log(chalk.cyan('Structured Data:'));
       console.log(JSON.stringify(snippet.structuredData, null, 2));
     } catch (error) {
-      console.error(
-        console.formatError('CLI', error as Error)
-      );
+      console.error(console.formatError('CLI', error));
       process.exit(1);
     }
   });
@@ -294,30 +254,37 @@ program
   .action(() => {
     const bundles = serviceOrchestrator.getAllBundles();
     const instances = deepseekInstanceManager.getInstances();
-    
+
     console.log(chalk.cyan.bold('\n=== System Health Status ===\n'));
-    
+
     console.log(chalk.white('Service Bundles:'));
     bundles.forEach(bundle => {
       const runningServices = bundle.services.filter(s => s.status === 'running').length;
       const totalServices = bundle.services.length;
-      const status = runningServices === totalServices ? chalk.green('✓ Healthy') :
-                     runningServices > 0 ? chalk.yellow('⚠ Degraded') :
-                     chalk.red('✗ Down');
-      
+      const status =
+        runningServices === totalServices
+          ? chalk.green('✓ Healthy')
+          : runningServices > 0
+            ? chalk.yellow('⚠ Degraded')
+            : chalk.red('✗ Down');
+
       console.log(`  ${bundle.name}: ${status} (${runningServices}/${totalServices} running)`);
     });
-    
+
     console.log(chalk.white('\nDeepSeek Instances:'));
     instances.forEach(instance => {
-      const status = instance.status === 'ready' ? chalk.green('✓ Ready') :
-                     instance.status === 'busy' ? chalk.yellow('⚙ Busy') :
-                     instance.status === 'error' ? chalk.red('✗ Error') :
-                     chalk.gray('◯ ' + instance.status);
-      
+      const status =
+        instance.status === 'ready'
+          ? chalk.green('✓ Ready')
+          : instance.status === 'busy'
+            ? chalk.yellow('⚙ Busy')
+            : instance.status === 'error'
+              ? chalk.red('✗ Error')
+              : chalk.gray('◯ ' + instance.status);
+
       console.log(`  ${instance.id}: ${status}`);
     });
-    
+
     console.log('');
   });
 
@@ -327,26 +294,16 @@ program
   .action(() => {
     console.log(chalk.cyan.bold('\n=== Real-time Service Monitor ===\n'));
     console.log(chalk.gray('Press Ctrl+C to exit\n'));
-    
+
     setInterval(() => {
       const bundles = serviceOrchestrator.getAllBundles();
       const runningServices = bundles.reduce(
         (acc, bundle) => acc + bundle.services.filter(s => s.status === 'running').length,
         0
       );
-      const totalServices = bundles.reduce(
-        (acc, bundle) => acc + bundle.services.length,
-        0
-      );
-      
-      console.log(
-        console.formatProgress(
-          'Monitor',
-          'Services',
-          runningServices,
-          totalServices
-        )
-      );
+      const totalServices = bundles.reduce((acc, bundle) => acc + bundle.services.length, 0);
+
+      console.log(console.formatProgress('Monitor', 'Services', runningServices, totalServices));
     }, 5000);
   });
 
@@ -360,10 +317,10 @@ program
     console.log(chalk.white('Node:'), process.version);
     console.log(chalk.white('Platform:'), process.platform);
     console.log(chalk.white('Arch:'), process.arch);
-    
+
     const bundles = serviceOrchestrator.getAllBundles();
     const instances = deepseekInstanceManager.getInstances();
-    
+
     console.log(chalk.white('\nRegistered Bundles:'), bundles.length);
     console.log(chalk.white('Active Instances:'), instances.length);
     console.log('');
@@ -375,13 +332,13 @@ program
   .description('Initialize headless API manager')
   .option('--workers <count>', 'Number of workers', '3')
   .option('--cache <strategy>', 'Cache strategy', 'network-first')
-  .action(async (options) => {
+  .action(async options => {
     try {
-      console.log(
-        console.formatServiceMessage('CLI', 'Initializing headless API', 'info')
-      );
+      console.log(console.formatServiceMessage('CLI', 'Initializing headless API', 'info'));
 
-      const manager = new (await import('../src/services/headless-api-manager.js')).HeadlessAPIManager({
+      const manager = new (
+        await import('../src/services/headless-api-manager.js')
+      ).HeadlessAPIManager({
         workers: parseInt(options.workers),
         enableServiceWorkers: true,
         enableAnalytics: true,
@@ -390,13 +347,9 @@ program
 
       await manager.initialize();
 
-      console.log(
-        console.formatServiceMessage('CLI', 'Headless API initialized', 'success')
-      );
+      console.log(console.formatServiceMessage('CLI', 'Headless API initialized', 'success'));
     } catch (error) {
-      console.error(
-        console.formatError('CLI', error as Error)
-      );
+      console.error(console.formatError('CLI', error));
       process.exit(1);
     }
   });
@@ -409,9 +362,7 @@ program
   .option('--images', 'Extract images', false)
   .action(async (url, options) => {
     try {
-      console.log(
-        console.formatServiceMessage('CLI', `Processing URL: ${url}`, 'info')
-      );
+      console.log(console.formatServiceMessage('CLI', `Processing URL: ${url}`, 'info'));
 
       const result = await headlessAPIManager.processURL(url, {
         extractText: options.text,
@@ -419,13 +370,9 @@ program
         extractImages: options.images,
       });
 
-      console.log(
-        console.formatDataStream('Result', result, 'api')
-      );
+      console.log(console.formatDataStream('Result', result, 'api'));
     } catch (error) {
-      console.error(
-        console.formatError('CLI', error as Error)
-      );
+      console.error(console.formatError('CLI', error));
       process.exit(1);
     }
   });
@@ -435,7 +382,7 @@ program
   .description('Display worker status')
   .action(() => {
     const workers = headlessAPIManager.getWorkerStatus();
-    
+
     const table = new Table({
       head: ['Worker ID', 'Status', 'Requests Processed'],
       style: { head: ['cyan'] },
@@ -444,9 +391,11 @@ program
     workers.forEach(worker => {
       table.push([
         worker.id,
-        worker.status === 'idle' ? chalk.green(worker.status) :
-        worker.status === 'busy' ? chalk.yellow(worker.status) :
-        chalk.red(worker.status),
+        worker.status === 'idle'
+          ? chalk.green(worker.status)
+          : worker.status === 'busy'
+            ? chalk.yellow(worker.status)
+            : chalk.red(worker.status),
         worker.requestsProcessed,
       ]);
     });
@@ -459,7 +408,7 @@ program
   .description('Display aggregated analytics')
   .action(() => {
     const analytics = headlessAPIManager.getAggregatedAnalytics();
-    
+
     if (!analytics) {
       console.log(chalk.yellow('No analytics data available'));
       return;

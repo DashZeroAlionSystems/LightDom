@@ -634,6 +634,26 @@ class DOMSpaceHarvesterAPI {
       }
     );
 
+    // Mount LangChain + Ollama integration routes
+    void safeImport(
+      'LangChain Ollama routes',
+      () => import('./api/langchain-ollama-routes.js'),
+      async langchainModule => {
+        try {
+          // Initialize the service
+          const { initializeLangChainOllamaService } = await import('./services/langchain-ollama-service.js');
+          await initializeLangChainOllamaService();
+          
+          this.app.use('/api/langchain', langchainModule.default);
+          console.log('✅ LangChain Ollama routes registered at /api/langchain');
+        } catch (error) {
+          console.warn('⚠️ LangChain initialization failed:', error.message);
+          console.warn('   LangChain routes will be available but may not function without Ollama service');
+          this.app.use('/api/langchain', langchainModule.default);
+        }
+      }
+    );
+
     // Import and register Conversation History routes (with CommonJS fallback)
     void safeImport(
       'Conversation History routes',
@@ -1177,6 +1197,38 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.error('Failed to load styleguide config routes:', err);
+      });
+
+    // Import and register API Endpoint Registry routes (Endpoint catalog, service composition)
+    import('./api/endpoint-registry-routes.js')
+      .then(registryModule => {
+        // Pass db instance to routes via app.locals if not already set
+        if (!this.app.locals.db) {
+          this.app.locals.db = this.db;
+        }
+        this.app.use('/api/endpoint-registry', registryModule.default);
+        console.log(
+          '✅ API Endpoint Registry routes registered (Auto-discovery, service composition, endpoint chains enabled)'
+        );
+      })
+      .catch(err => {
+        console.error('Failed to load endpoint registry routes:', err);
+      });
+
+    // Import and register Workflow Wizard Configuration routes (Config-driven workflow builder)
+    import('./api/workflow-wizard-configuration-routes.js')
+      .then(wizardModule => {
+        // Pass db instance to routes via app.locals if not already set
+        if (!this.app.locals.db) {
+          this.app.locals.db = this.db;
+        }
+        this.app.use('/api/workflow-wizard', wizardModule.default);
+        console.log(
+          '✅ Workflow Wizard Configuration routes registered (Auto-generation, validation, templates enabled)'
+        );
+      })
+      .catch(err => {
+        console.error('Failed to load workflow wizard routes:', err);
       });
 
     // Admin middleware (bearer token)

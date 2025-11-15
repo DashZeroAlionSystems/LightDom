@@ -38,6 +38,74 @@ interface ClientInfo {
   config: Record<string, any>;
 }
 
+interface StyleGuideDefaults {
+  palette: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    surface: string;
+    success: string;
+    warning: string;
+    danger: string;
+  };
+  typography: {
+    fontFamily: string;
+    headlineWeight: string;
+    bodyWeight: string;
+    lineHeight: number;
+    scale: Record<string, string>;
+  };
+  layout: {
+    borderRadius: string;
+    spacingUnit: string;
+    containerWidth: string;
+    shadow: string;
+  };
+  components: {
+    card: { padding: string; border: string; backdrop: string };
+    button: { padding: string; radius: string; fontWeight: string };
+    badge: { radius: string; fontSize: string };
+  };
+}
+
+interface BacklinkStorefrontLink {
+  label: string;
+  url: string;
+  payoutUrl: string;
+  anchorText?: string;
+  category?: string;
+}
+
+interface BacklinkCampaignPlan {
+  tier: 'core' | 'growth' | 'elite';
+  focusKeywords: string[];
+  flagshipOffers: string[];
+  storefrontLinks: BacklinkStorefrontLink[];
+  automation: {
+    refreshCadence: string;
+    indexMonitoring: boolean;
+    webhooksEnabled: boolean;
+  };
+  reporting: {
+    frequency: string;
+    lastGenerated?: string;
+    nextGeneration?: string;
+  };
+}
+
+interface RealtimeInsightSnapshot {
+  seoScore: number;
+  seoScoreChange: number;
+  coreWebVitals: Record<string, any>;
+  lastUpdated: number;
+  monthlyOverview?: {
+    improvements: number;
+    regressions: number;
+    highlights: string[];
+  };
+}
+
 export class SEOInjectionService {
   private redisClient: any;
   private pgPool: any;
@@ -95,6 +163,15 @@ export class SEOInjectionService {
       console.error('Error getting optimization config:', error);
       throw error;
     }
+  }
+
+  async requestCrawl(apiKey: string, url: string, pathname: string, plan?: string, sessionId?: string): Promise<void> {
+    const client = await this.getClientByApiKey(apiKey);
+    if (!client) {
+      throw new Error('Invalid API key');
+    }
+
+    await this.queueCrawlJob(client, url, pathname, plan, sessionId);
   }
 
   /**
@@ -175,10 +252,49 @@ export class SEOInjectionService {
       description: metaTags.description
     };
 
+    const clientConfig = client.config || {};
+    const campaignRules = this.buildCampaignRules(client, pageType);
+    const styleGuideDefaults = this.generateStyleGuideDefaults(client);
+    const backlinkCampaign = await this.generateBacklinkCampaign(client);
+    const realtimeInsights = await this.getRealtimeInsights(client);
+
+    await this.queueCrawlJob(client, url, pathname);
+
+    const customizations: Record<string, any> = {
+      ...clientConfig,
+      styleGuideDefaults
+    };
+
+    if (campaignRules.length > 0) {
+      customizations.campaignRules = campaignRules;
+    }
+
+    if (backlinkCampaign) {
+      customizations.backlinkCampaign = backlinkCampaign;
+    }
+
+    if (realtimeInsights) {
+      customizations.realtimeInsights = realtimeInsights;
+    }
+
+    // Enrich meta keywords with campaign insights
+    const keywordSet = new Set<string>();
+    if (metaTags.keywords) {
+      metaTags.keywords.split(',').forEach((kw) => keywordSet.add(kw.trim()));
+    }
+    campaignRules.forEach((rule) => {
+      rule.split(' ').forEach((word) => {
+        if (word.length > 3) {
+          keywordSet.add(word.toLowerCase());
+        }
+      });
+    });
+    metaTags.keywords = Array.from(keywordSet).filter(Boolean).slice(0, 20).join(', ');
+
     return {
       schemas,
       metaTags,
-      customizations: client.config || {}
+      customizations
     };
   }
 
@@ -408,6 +524,271 @@ export class SEOInjectionService {
 
     // In a production system, this would use AI to generate contextual descriptions
     return defaultDescription;
+  }
+
+  private buildCampaignRules(client: ClientInfo, pageType: string): string[] {
+    const rules: string[] = [
+      'Queue automated Core Web Vitals crawl every 24 hours',
+      'Inject JSON-LD schemas aligned with search intent',
+      'Monitor ranking volatility and alert on >3 position shifts',
+      'Track backlink indexation and trust flow across partners'
+    ];
+
+    if (pageType === 'product') {
+      rules.push('Sync product availability with OfferCatalog rich snippets');
+    }
+
+    if (pageType === 'article') {
+      rules.push('Publish Article schema with live reading-time updates');
+    }
+
+    if (client.subscriptionTier === 'enterprise') {
+      rules.push('Combine edge-rendered schema with blockchain notarization');
+    }
+
+    return rules;
+  }
+
+  private generateStyleGuideDefaults(client: ClientInfo): StyleGuideDefaults {
+    const palette = client.config?.styleGuide?.palette || {
+      primary: '#7c3aed',
+      secondary: '#0ea5e9',
+      accent: '#f59e0b',
+      background: '#0f172a',
+      surface: '#1e293b',
+      success: '#22c55e',
+      warning: '#f97316',
+      danger: '#ef4444'
+    };
+
+    return {
+      palette,
+      typography: {
+        fontFamily: client.config?.styleGuide?.fontFamily || '"Inter", "Segoe UI", sans-serif',
+        headlineWeight: client.config?.styleGuide?.headlineWeight || '700',
+        bodyWeight: client.config?.styleGuide?.bodyWeight || '400',
+        lineHeight: client.config?.styleGuide?.lineHeight || 1.6,
+        scale: client.config?.styleGuide?.scale || {
+          h1: '3.5rem',
+          h2: '2.75rem',
+          h3: '2.25rem',
+          h4: '1.75rem',
+          h5: '1.5rem',
+          body: '1rem',
+          small: '0.875rem'
+        }
+      },
+      layout: {
+        borderRadius: client.config?.styleGuide?.borderRadius || '1rem',
+        spacingUnit: client.config?.styleGuide?.spacingUnit || '1rem',
+        containerWidth: client.config?.styleGuide?.containerWidth || '1200px',
+        shadow: client.config?.styleGuide?.shadow || '0 25px 60px -15px rgba(76, 29, 149, 0.35)'
+      },
+      components: client.config?.styleGuide?.components || {
+        card: {
+          padding: '2rem',
+          border: '1px solid rgba(124, 58, 237, 0.2)',
+          backdrop: 'blur(18px)'
+        },
+        button: {
+          padding: '0.875rem 1.75rem',
+          radius: '0.75rem',
+          fontWeight: '600'
+        },
+        badge: {
+          radius: '999px',
+          fontSize: '0.75rem'
+        }
+      }
+    };
+  }
+
+  private async generateBacklinkCampaign(client: ClientInfo): Promise<BacklinkCampaignPlan | undefined> {
+    try {
+      const result = await this.pgPool.query(
+        `SELECT source_domain, anchor_text, link_type, link_strength
+         FROM backlink_network
+         WHERE target_domain = $1 AND is_active = true
+         ORDER BY link_strength DESC
+         LIMIT 12`,
+        [client.domain]
+      );
+
+      const rows = result.rows || [];
+      const storefrontLinks: BacklinkStorefrontLink[] = rows.map((row: any) => ({
+        label: row.anchor_text || `Placement on ${row.source_domain}`,
+        url: `https://${row.source_domain}`,
+        payoutUrl: `https://app.lightdom.io/payout?source=${encodeURIComponent(row.source_domain)}&target=${encodeURIComponent(client.domain)}`,
+        anchorText: row.anchor_text || undefined,
+        category: row.link_type || undefined
+      }));
+
+      const flagshipOffers = storefrontLinks.slice(0, 3).map((item) => item.label);
+
+      return {
+        tier: this.mapBacklinkTier(client.subscriptionTier),
+        focusKeywords: this.deriveFocusKeywords(client),
+        flagshipOffers,
+        storefrontLinks,
+        automation: {
+          refreshCadence: this.mapRefreshCadence(client.subscriptionTier),
+          indexMonitoring: true,
+          webhooksEnabled: client.subscriptionTier !== 'starter'
+        },
+        reporting: {
+          frequency: client.subscriptionTier === 'enterprise' ? 'weekly' : 'monthly',
+          lastGenerated: new Date().toISOString(),
+          nextGeneration: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('Failed to generate backlink campaign plan:', error);
+      return undefined;
+    }
+  }
+
+  private async getRealtimeInsights(client: ClientInfo): Promise<RealtimeInsightSnapshot | undefined> {
+    try {
+      let redisPayload: any = null;
+      if (this.redisClient) {
+        const cached = await this.redisClient.get(`seo:metrics:${client.id}:realtime`);
+        if (cached) {
+          redisPayload = JSON.parse(cached);
+        }
+      }
+
+      const insight: RealtimeInsightSnapshot = {
+        seoScore: redisPayload?.latestScore?.overall || 0,
+        seoScoreChange: 0,
+        coreWebVitals: redisPayload?.latestCoreWebVitals || {},
+        lastUpdated: redisPayload?.lastUpdated || Date.now()
+      };
+
+      const trendResult = await this.pgPool.query(
+        `SELECT
+           AVG(seo_score) FILTER (WHERE timestamp >= NOW() - INTERVAL '30 days') AS avg_30d,
+           AVG(seo_score) FILTER (WHERE timestamp >= NOW() - INTERVAL '60 days' AND timestamp < NOW() - INTERVAL '30 days') AS avg_prev,
+           COUNT(*) FILTER (WHERE seo_score >= 70) AS improvements,
+           COUNT(*) FILTER (WHERE seo_score < 50) AS regressions
+         FROM seo_analytics
+         WHERE client_id = $1`,
+        [client.id]
+      );
+
+      const trendRow = trendResult.rows[0];
+      if (trendRow) {
+        const avg30 = parseFloat(trendRow.avg_30d) || insight.seoScore;
+        const avgPrev = parseFloat(trendRow.avg_prev) || avg30;
+        insight.seoScore = insight.seoScore || Math.round(avg30);
+        insight.seoScoreChange = Math.round(avg30 - avgPrev);
+        insight.monthlyOverview = {
+          improvements: parseInt(trendRow.improvements || '0', 10),
+          regressions: parseInt(trendRow.regressions || '0', 10),
+          highlights: this.buildMonthlyHighlights(insight.seoScoreChange)
+        };
+      }
+
+      return insight;
+    } catch (error) {
+      console.error('Failed to compute realtime insights:', error);
+      return undefined;
+    }
+  }
+
+  private buildMonthlyHighlights(delta: number): string[] {
+    if (delta > 0) {
+      return [
+        `SEO score improved by ${delta} points`,
+        'Rich snippets expanded across priority landing pages',
+        'Backlink trust flow trending upward'
+      ];
+    }
+
+    if (delta < 0) {
+      return [
+        `SEO score decreased by ${Math.abs(delta)} points`,
+        'Investigate recent layout changes impacting CLS',
+        'Review backlink quality for disavow candidates'
+      ];
+    }
+
+    return [
+      'SEO score steady month-over-month',
+      'Maintain current Core Web Vitals budgets',
+      'Continue schema A/B testing for additional wins'
+    ];
+  }
+
+  private deriveFocusKeywords(client: ClientInfo): string[] {
+    if (Array.isArray(client.config?.targetKeywords) && client.config.targetKeywords.length > 0) {
+      return client.config.targetKeywords.slice(0, 6);
+    }
+
+    return [client.domain, 'seo automation', 'core web vitals'];
+  }
+
+  private mapBacklinkTier(subscriptionTier: string): 'core' | 'growth' | 'elite' {
+    switch (subscriptionTier) {
+      case 'enterprise':
+      case 'business':
+        return 'elite';
+      case 'professional':
+        return 'growth';
+      default:
+        return 'core';
+    }
+  }
+
+  private mapRefreshCadence(subscriptionTier: string): string {
+    switch (subscriptionTier) {
+      case 'enterprise':
+        return 'daily';
+      case 'business':
+        return 'every 48h';
+      case 'professional':
+        return 'weekly';
+      default:
+        return 'bi-weekly';
+    }
+  }
+
+  private async queueCrawlJob(
+    client: ClientInfo,
+    url: string,
+    pathname: string,
+    plan?: string,
+    sessionId?: string
+  ): Promise<void> {
+    if (!this.redisClient) {
+      return;
+    }
+
+    try {
+      const dedupeKey = `seo:crawl:dedupe:${client.id}:${pathname}`;
+      const inserted = await this.redisClient.set(dedupeKey, Date.now().toString(), {
+        NX: true,
+        EX: 3600
+      });
+
+      if (inserted !== 'OK') {
+        return;
+      }
+
+      const job = {
+        clientId: client.id,
+        domain: client.domain,
+        subscriptionTier: client.subscriptionTier,
+        plan: plan || client.subscriptionTier,
+        url,
+        pathname,
+        sessionId,
+        requestedAt: Date.now()
+      };
+
+      await this.redisClient.lPush('seo:crawl:queue', JSON.stringify(job));
+    } catch (error) {
+      console.error('Failed to enqueue crawl job:', error);
+    }
   }
 
   /**

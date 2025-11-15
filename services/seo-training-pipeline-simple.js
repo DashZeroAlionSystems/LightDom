@@ -5,6 +5,7 @@
 
 import pg from 'pg';
 import { extractSEOAttributes } from './seo-attribute-extractor.js';
+import { getAttributeNames, getSEOConfig } from './seo-config-reader.js';
 
 const { Pool } = pg;
 
@@ -17,23 +18,56 @@ export class SEOTrainingPipelineSimple {
         max: 10,
       });
     this.logger = config.logger || console;
+    this.attributeNames = getAttributeNames();
+    this.configMetadata = getSEOConfig().metadata || {};
+    this.attributeSyncPromise = null;
   }
 
   /**
    * Process a crawled page and extract SEO attributes (simplified)
    */
   async processPage({ url, html, crawlSessionId }) {
+    const startTime = Date.now();
     try {
+      await this.ensureConfigSynced();
       this.logger.info(`[SEO Pipeline] Processing ${url}`);
 
       const attributes = await extractSEOAttributes(html, url);
 
+      // Guarantee every configured attribute exists in payload
+      this.ensureAllAttributes(attributes);
+
       // Store simplified version
       const storedId = await this.storeAttributesSimple(attributes, crawlSessionId);
 
-      this.logger.info(`[SEO Pipeline] Stored attributes for ${url} (ID: ${storedId})`);
+      const scores = {
+        seo: attributes.seoScore ?? null,
+        content: attributes.contentQualityScore ?? null,
+        technical: attributes.technicalScore ?? null,
+        overall: attributes.overallScore ? parseFloat(attributes.overallScore) : null,
+      };
 
-      return { id: storedId, attributes };
+      const missingAttributes = this.attributeNames.filter(
+        name => attributes[name] === null || attributes[name] === undefined
+      );
+
+      this.logger.info(
+        `[SEO Pipeline] Stored ${this.attributeNames.length - missingAttributes.length}/${this.attributeNames.length} attributes for ${url} (ID: ${storedId})`
+      );
+
+      if (missingAttributes.length > 0) {
+        this.logger.warn(
+          `[SEO Pipeline] Missing ${missingAttributes.length} configured attributes for ${url}`
+        );
+      }
+
+      return {
+        seoAttributesId: storedId,
+        attributes,
+        scores,
+        processingTime: Date.now() - startTime,
+        missingAttributes,
+      };
     } catch (error) {
       this.logger.error(`[SEO Pipeline] Failed to process ${url}:`, error);
       throw error;
@@ -192,6 +226,91 @@ export class SEOTrainingPipelineSimple {
 
   async close() {
     await this.db.end();
+  }
+
+  ensureAllAttributes(attributes) {
+    for (const attributeName of this.attributeNames) {
+      if (!(attributeName in attributes)) {
+        attributes[attributeName] = null;
+      }
+    }
+    return attributes;
+  }
+
+  async ensureConfigSynced() {
+    if (!this.attributeSyncPromise) {
+      this.attributeSyncPromise = this.syncAttributeConfigurations().catch(error => {
+        this.logger.warn('[SEO Pipeline] Attribute configuration sync failed:', error.message);
+        this.attributeSyncPromise = null;
+      });
+    }
+
+    return this.attributeSyncPromise;
+  }
+
+  async syncAttributeConfigurations() {
+    const config = getSEOConfig();
+    const attributes = config.attributes || {};
+
+    if (!attributes || Object.keys(attributes).length === 0) {
+      this.logger.warn('[SEO Pipeline] No attribute configurations found in config file.');
+      return;
+    }
+
+    const configVersion = parseInt((config.metadata?.version || '1').split('.')[0], 10) || 1;
+
+    const client = await this.db.connect();
+    try {
+      const placeholders = [];
+      const values = [];
+      let index = 1;
+
+      for (const [attributeName, attributeConfig] of Object.entries(attributes)) {
+        placeholders.push(`($${index++}, $${index++}, $${index++}, true)`);
+        values.push(attributeName, JSON.stringify(attributeConfig), configVersion);
+      }
+
+      if (placeholders.length === 0) {
+        return;
+      }
+
+      const query = `
+        INSERT INTO attribute_configurations (attribute_name, config, version, active)
+        VALUES ${placeholders.join(', ')}
+        ON CONFLICT (attribute_name)
+        DO UPDATE SET
+          config = EXCLUDED.config,
+          version = EXCLUDED.version,
+          active = true,
+          updated_at = CURRENT_TIMESTAMP;
+      `;
+
+      await client.query(query, values);
+      this.logger.info('[SEO Pipeline] Attribute configuration synced to database.');
+      this.attributeNames = getAttributeNames();
+
+      try {
+        await client.query('SELECT refresh_seo_attribute_category_views();');
+        this.logger.info('[SEO Pipeline] Category configuration views refreshed.');
+      } catch (refreshError) {
+        if (refreshError.code !== '42883') {
+          this.logger.warn(
+            '[SEO Pipeline] Unable to refresh category config views:',
+            refreshError.message
+          );
+        }
+      }
+    } catch (error) {
+      if (error.code === '42P01') {
+        this.logger.warn(
+          '[SEO Pipeline] attribute_configurations table missing; skipping configuration sync.'
+        );
+        return;
+      }
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 }
 

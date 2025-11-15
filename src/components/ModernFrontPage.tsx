@@ -4,29 +4,29 @@
  * Features: SEO optimization, custom SVG graphics, responsive design
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import SEOHead from './SEOHead';
+import React, { useState, useEffect } from 'react';
+import SEOHead, { generateOrganizationSchema, generateFAQSchema, generateBreadcrumbSchema } from './SEOHead';
 import useScrollAnimation from '../hooks/useScrollAnimation';
 import {
   Rocket,
-  Shield,
-  Zap,
-  TrendingUp,
-  Users,
-  Award,
-  ArrowRight,
-  Check,
-  Sparkles,
-  Globe,
-  BarChart3,
-  Database,
-  Lock,
-  Code,
-  Cpu,
-  Cloud,
-  GitBranch,
-  Search,
-  Layers,
+      <SEOHead
+        title="LightDom | Blockchain-Verified DOM Optimization & Core Web Vitals Automation"
+        description="Ship lightning-fast, search-optimized experiences with LightDom. Automate Core Web Vitals, notarize performance gains on-chain, and reward teams for sustained SEO improvements."
+        keywords=[
+          'DOM optimization platform',
+          'Core Web Vitals automation',
+          'blockchain performance monitoring',
+          'SEO workflow automation',
+          'frontend performance optimization',
+          'page speed insights',
+          'performance budgets',
+          'web vitals alerts',
+          'decentralized audit trail'
+        ]
+        type="website"
+        url="https://lightdom.io"
+        schema={seoSchema}
+      />
   Activity,
   Star,
   ChevronRight,
@@ -239,6 +239,44 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const existing = document.querySelector('script[data-lightdom="seo-sdk"]') as HTMLScriptElement | null;
+    if (existing) {
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://cdn.lightdom.io/seo/v1/lightdom-seo.js';
+    script.async = true;
+    script.setAttribute('data-lightdom', 'seo-sdk');
+    script.setAttribute('data-api-key', 'ld_live_demo_frontpage');
+    script.setAttribute('data-api-endpoint', import.meta.env?.VITE_API_BASE_URL || 'https://api.lightdom.io');
+    script.setAttribute('data-enable-crawler', 'true');
+    script.setAttribute('data-apply-style-guide', 'true');
+    script.setAttribute('data-realtime-insights', 'true');
+    script.setAttribute('data-backlink-overlay', 'true');
+    script.setAttribute('data-core-web-vitals', 'true');
+    script.setAttribute('data-analytics', 'true');
+    script.setAttribute('data-plan', 'enterprise');
+    script.crossOrigin = 'anonymous';
+    script.referrerPolicy = 'strict-origin-when-cross-origin';
+    const integrity = import.meta.env?.VITE_LIGHTDOM_SDK_SRI as string | undefined;
+    if (integrity) {
+      script.integrity = integrity;
+    }
+    document.head.appendChild(script);
+
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
+  }, []);
+
   const features = [
     {
       icon: <Zap className="w-6 h-6" />,
@@ -297,6 +335,58 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
     { value: '150+', label: 'Integrations', icon: <GitBranch className="w-5 h-5" />, status: 'beta' }
   ];
 
+  const heroHighlights = [
+    'Blockchain-verified audit trail for every optimization change',
+    'Automated Core Web Vitals monitoring and alerting',
+    'Reward engine that pays out for sustained performance gains'
+  ];
+
+  const headerScriptHighlights = [
+    'One-line installation with rotating API keys and SRI protection',
+    'Automatic schema orchestration mapped to live crawler snapshots',
+    'Granular consent controls with CSP-safe delivery'
+  ];
+
+  const styleGuideTokens = {
+    palette: [
+      { name: 'Primary', value: '#7c3aed' },
+      { name: 'Secondary', value: '#0ea5e9' },
+      { name: 'Accent', value: '#f59e0b' },
+      { name: 'Surface', value: '#1e293b' }
+    ],
+    typography: [
+      { name: 'Heading', value: 'Inter 700 / 3.5rem' },
+      { name: 'Subheading', value: 'Inter 600 / 2.25rem' },
+      { name: 'Body', value: 'Inter 400 / 1rem' }
+    ],
+    automation: [
+      { name: 'Zero-config setup', detail: 'Detects page intent and injects matching schema' },
+      { name: 'Realtime budgets', detail: 'Locks spacing, colors, and typography at runtime' },
+      { name: 'Platform aware', detail: 'Respects existing design tokens and dark mode switches' }
+    ]
+  };
+
+  const telemetryMetrics = [
+    { label: 'Live SEO score', value: '92', change: '+6.3', tone: 'text-green-400' },
+    { label: 'Keywords trending up', value: '34', change: '+12', tone: 'text-purple-400' },
+    { label: 'Alerts resolved', value: '18', change: '-5', tone: 'text-blue-400' }
+  ];
+
+  const backlinkHighlights = [
+    {
+      title: 'Self-generating storefront',
+      detail: 'OfferCatalog schema spins up a live backlink marketplace tied to payout URLs'
+    },
+    {
+      title: 'Authority routing',
+      detail: 'Distributes link equity based on trust flow, topic clusters, and intent parity'
+    },
+    {
+      title: 'Automated audits',
+      detail: 'Edge worker verifies indexation, anchor diversity, and spam tolerances in real time'
+    }
+  ];
+
   const benefits = [
     { text: 'No setup fees', status: 'active' },
     { text: 'Cancel anytime', status: 'active' },
@@ -333,6 +423,82 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
     }
   ];
 
+  const faqItems = [
+    {
+      question: 'How does LightDom improve page speed and SEO rankings?',
+      answer:
+        'LightDom analyzes your DOM tree, compresses render-blocking resources, and automates Core Web Vitals tuning. Search engines reward these improvements with higher rankings and lower bounce rates.'
+    },
+    {
+      question: 'What makes blockchain verification useful for optimization?',
+      answer:
+        'Every optimization is notarized on-chain, giving engineering, marketing, and compliance teams a tamper-proof record that proves when and how performance gains were achieved.'
+    },
+    {
+      question: 'Do I need to replace my current analytics or CDN setup?',
+      answer:
+        'No. LightDom layers on top of your existing stack with SDKs and REST APIs, so you can keep your preferred analytics, CDN, and deployment workflows.'
+    },
+    {
+      question: 'Can enterprise teams integrate LightDom with their pipelines?',
+      answer:
+        'Yes. Integrate via our CLI, GraphQL API, and webhook subscriptions to orchestrate audits, enforce budgets, and trigger alerts directly from your CI/CD pipelines.'
+    }
+  ];
+
+  const activeFeatureNames = features
+    .filter((feature) => feature.status === 'active')
+    .map((feature) => feature.title);
+
+  const activeUseCaseNames = useCases
+    .filter((useCase) => useCase.status === 'active')
+    .map((useCase) => useCase.title);
+
+  const softwareApplicationSchema = {
+    '@type': 'SoftwareApplication',
+    name: 'LightDom Platform',
+    applicationCategory: 'WebPerformanceOptimizationSoftware',
+    description:
+      'LightDom is a blockchain-secured DOM optimization platform that accelerates page speed, boosts SEO, and rewards teams for sustained performance.',
+    url: 'https://lightdom.io',
+    operatingSystem: 'Web, Windows, macOS, Linux',
+    featureList: activeFeatureNames,
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock'
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.9',
+      ratingCount: '10432'
+    },
+    audience: {
+      '@type': 'Audience',
+      audienceType: ['Developers', 'DevOps Teams', 'SEO Specialists', 'Digital Agencies']
+    },
+    keywords: [
+      'DOM optimization platform',
+      'Core Web Vitals automation',
+      'blockchain performance monitoring',
+      'SEO performance tracking'
+    ].join(', '),
+    applicationSubCategory: activeUseCaseNames
+  };
+
+  const { ['@context']: _orgContext, ...organizationSchema } = generateOrganizationSchema();
+  const { ['@context']: _faqContext, ...faqSchema } = generateFAQSchema(faqItems);
+  const { ['@context']: _breadcrumbContext, ...breadcrumbSchema } = generateBreadcrumbSchema([
+    { name: 'Home', url: 'https://lightdom.io/' },
+    { name: 'Platform', url: 'https://lightdom.io/platform' }
+  ]);
+
+  const seoSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [softwareApplicationSchema, organizationSchema, faqSchema, breadcrumbSchema]
+  };
+
   const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const config = {
       active: { icon: <CheckCircle2 className="w-3 h-3" />, text: 'Active', color: 'bg-green-500/10 text-green-500 border-green-500/20' },
@@ -357,7 +523,7 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 text-white">
+    <div className="min-h-screen bg-linear-to-b from-slate-900 via-purple-900 to-slate-900 text-white">
       {/* SEO Metadata */}
       <SEOHead
         title="LightDom - Next-Gen DOM Optimization Platform | Blockchain Verified"
@@ -403,7 +569,7 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
               </button>
               <button
                 onClick={() => handleNavigation('/register')}
-                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                className="px-4 py-2 bg-linear-to-r from-purple-600 to-blue-600 rounded-lg font-semibold hover:opacity-90 transition-opacity"
               >
                 Get Started
               </button>
@@ -428,14 +594,14 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
             </div>
 
             {/* Main headline - SEO optimized */}
-            <h1 
+            <h1
               className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
               itemProp="headline"
             >
-              Optimize Your Web
+              Blockchain-Verified DOM Optimization
               <br />
-              <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                At Lightning Speed
+              <span className="bg-linear-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                Built To Win Core Web Vitals
               </span>
             </h1>
 
@@ -444,15 +610,25 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
               className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto"
               itemProp="description"
             >
-              LightDom is the next-generation DOM optimization platform powered by blockchain technology.
-              Reduce load times, improve SEO rankings, and earn rewards while you optimize.
+              LightDom automates the heavy lifting behind real-world performance. Analyze critical renders,
+              eliminate layout thrash, and notarize every optimization on-chain so marketing, engineering, and
+              compliance teams stay perfectly aligned.
             </p>
+
+            <ul className="grid gap-3 sm:grid-cols-3 text-left text-base text-gray-300 mb-10" itemProp="about">
+              {heroHighlights.map((highlight, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-400 mt-1" />
+                  <span>{highlight}</span>
+                </li>
+              ))}
+            </ul>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <button
                 onClick={() => handleNavigation('/register')}
-                className="group flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-semibold text-lg hover:opacity-90 transition-all hover:scale-105"
+                className="group flex items-center justify-center gap-2 px-8 py-4 bg-linear-to-r from-purple-600 to-blue-600 rounded-xl font-semibold text-lg hover:opacity-90 transition-all hover:scale-105"
               >
                 <Rocket className="w-5 h-5" />
                 <span>Start Optimizing</span>
@@ -499,6 +675,66 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      {/* Header Script Engine */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-[2fr,1fr] gap-12 items-center">
+          <div>
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/40 text-purple-300 text-xs uppercase tracking-wider mb-6">
+              <Sparkles className="w-4 h-4" /> Header Script Automation
+            </span>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+              One Line Of JavaScript. Endless SEO Automation.
+            </h2>
+            <p className="text-lg text-gray-300 mb-8">
+              Our lightdom-seo.js header script crawls, classifies, and deploys structured data in real time. It rotates API keys, respects CSP, and notarizes every change on-chain.
+            </p>
+            <div className="grid sm:grid-cols-3 gap-6 mb-10">
+              {headerScriptHighlights.map((item, index) => (
+                <div key={index} className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-300">
+                      <CheckCircle2 className="w-5 h-5" />
+                    </div>
+                    <StatusBadge status="active" />
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed">{item}</p>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-3 text-sm text-gray-300">
+              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/5 border border-white/10">
+                <Shield className="w-4 h-4 text-purple-300" /> SRI + CSP Safe
+              </span>
+              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/5 border border-white/10">
+                <GitBranch className="w-4 h-4 text-purple-300" /> Versioned via CDN edge
+              </span>
+              <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/5 border border-white/10">
+                <Search className="w-4 h-4 text-purple-300" /> Crawler-aware schema mapping
+              </span>
+            </div>
+          </div>
+          <div className="relative p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur">
+            <pre className="text-xs text-left text-gray-300 overflow-x-auto">
+{`<script
+  data-lightdom="seo-sdk"
+  src="https://cdn.lightdom.io/seo/v1/lightdom-seo.js"
+  data-api-key="ld_live_demo_frontpage"
+  data-enable-crawler="true"
+  data-apply-style-guide="true"
+  data-realtime-insights="true"
+  data-backlink-overlay="true"
+  data-plan="enterprise"
+  async
+  crossorigin="anonymous">
+</script>`}
+            </pre>
+            <p className="mt-4 text-xs text-gray-500">
+              Rotating keys, CSP allowlist helpers, and nonce support ship with every install.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
         <div className="max-w-7xl mx-auto">
@@ -523,7 +759,7 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
                 itemType="https://schema.org/Offer"
               >
                 <div className="flex items-start justify-between mb-6">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 text-white group-hover:scale-110 transition-transform">
+                  <div className="p-3 rounded-xl bg-linear-to-br from-purple-600 to-blue-600 text-white group-hover:scale-110 transition-transform">
                     {feature.icon}
                   </div>
                   <StatusBadge status={feature.status} />
@@ -576,7 +812,7 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
             {useCases.map((useCase, index) => (
               <div
                 key={index}
-                className={`p-8 rounded-2xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 hover:border-purple-500/50 transition-all ${
+                className={`p-8 rounded-2xl bg-linear-to-br from-white/5 to-white/10 border border-white/10 hover:border-purple-500/50 transition-all ${
                   useCase.status !== 'active' ? 'opacity-60' : ''
                 }`}
               >
@@ -590,6 +826,95 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
                 <p className="text-gray-400 leading-relaxed">{useCase.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Real-Time Insights */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-[1.2fr,1fr] gap-12 items-center">
+          <div>
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">Real-Time SEO Command Center</h2>
+            <p className="text-lg text-gray-300 mb-8">
+              Live telemetry streams straight from the header script into your dashboard. Monitor Core Web Vitals, ranking deltas, and campaign rules without refreshing the page.
+            </p>
+            <ul className="space-y-4">
+              {telemetryMetrics.map((metric, index) => (
+                <li key={index} className="flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/10">
+                  <div>
+                    <p className="text-sm text-gray-400 uppercase tracking-[0.3em]">{metric.label}</p>
+                    <p className="text-2xl font-semibold text-white">{metric.value}</p>
+                  </div>
+                  <span className={`${metric.tone} text-sm font-semibold`}>{metric.change}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="p-6 rounded-3xl bg-linear-to-br from-purple-700/40 via-blue-800/40 to-slate-900/60 border border-white/10 shadow-xl">
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-purple-300" /> Monthly Change Log
+            </h3>
+            <p className="text-sm text-gray-300 mb-6">
+              Automatic month-end reports highlight every schema release, backlink approval, and Core Web Vital shift—ready for stakeholders and auditors.
+            </p>
+            <div className="space-y-3 text-sm text-gray-300">
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-green-400" /> Blockchain notarized optimization ledger
+              </div>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-green-400" /> Automated alert routing to Slack, Teams, and email
+              </div>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-green-400" /> Export-ready executive summaries and diffed SERP screenshots
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Style Guide DNA */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900/40">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-[1.2fr,1fr] gap-12 items-center">
+            <div>
+              <h2 className="text-4xl lg:text-5xl font-bold mb-6">Style Guide Defaults Generated From Live Crawls</h2>
+              <p className="text-lg text-gray-300 mb-8">
+                The header script mines your DOM, extracts design tokens, and locks consistent presentation across every landing page—without overwriting your brand.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-6 mb-10">
+                {styleGuideTokens.palette.map((color, index) => (
+                  <div key={index} className="p-5 rounded-2xl border border-white/10 bg-white/5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="w-6 h-6 rounded-full" style={{ backgroundColor: color.value }} />
+                      <span className="text-sm text-gray-300 uppercase tracking-[0.25em]">{color.name}</span>
+                    </div>
+                    <p className="text-gray-400 text-sm">{color.value}</p>
+                  </div>
+                ))}
+              </div>
+              <ul className="space-y-3 text-sm text-gray-300">
+                {styleGuideTokens.automation.map((item, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Zap className="w-4 h-4 text-purple-300 mt-1" />
+                    <span><strong className="text-white">{item.name}:</strong> {item.detail}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="p-6 rounded-3xl bg-linear-to-br from-purple-700/30 via-blue-700/30 to-slate-900/50 border border-white/10">
+              <h3 className="text-xl font-semibold text-white mb-4">Typography Blueprint</h3>
+              <div className="space-y-4">
+                {styleGuideTokens.typography.map((item, index) => (
+                  <div key={index} className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <p className="text-sm text-gray-400 uppercase tracking-[0.2em] mb-1">{item.name}</p>
+                    <p className="text-lg text-white">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 text-xs text-gray-400">
+                Templates sync to Figma, Tailwind, and CSS custom properties for frictionless rollout.
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -612,9 +937,9 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
                     className={`flex items-center gap-3 ${benefit.status !== 'active' ? 'opacity-50' : ''}`}
                   >
                     {benefit.status === 'active' ? (
-                      <Check className="w-6 h-6 text-green-400 flex-shrink-0" />
+                      <Check className="w-6 h-6 text-green-400 shrink-0" />
                     ) : (
-                      <AlertCircle className="w-6 h-6 text-gray-500 flex-shrink-0" />
+                      <AlertCircle className="w-6 h-6 text-gray-500 shrink-0" />
                     )}
                     <span className={benefit.status !== 'active' ? 'text-gray-500' : ''}>
                       {benefit.text}
@@ -625,13 +950,13 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
               </div>
               <button
                 onClick={() => handleNavigation('/register')}
-                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-semibold text-lg hover:opacity-90 transition-opacity"
+                className="px-8 py-4 bg-linear-to-r from-purple-600 to-blue-600 rounded-xl font-semibold text-lg hover:opacity-90 transition-opacity"
               >
                 Get Started Free
               </button>
             </div>
             <div className="relative">
-              <div className="p-8 rounded-3xl bg-gradient-to-br from-purple-600 to-blue-600">
+              <div className="p-8 rounded-3xl bg-linear-to-br from-purple-600 to-blue-600">
                 <div className="text-center space-y-6">
                   <Sparkles className="w-20 h-20 mx-auto text-white animate-pulse" />
                   <h3 className="text-3xl font-bold text-white">Start Optimizing Today</h3>
@@ -659,8 +984,86 @@ const ModernFrontPage: React.FC<ModernFrontPageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section id="faq" className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4">Frequently Asked Questions</h2>
+            <p className="text-xl text-gray-400">
+              Straightforward answers for performance, SEO, and compliance teams evaluating LightDom.
+            </p>
+          </div>
+          <div className="space-y-4">
+            {faqItems.map((item, index) => (
+              <details
+                key={index}
+                className="group rounded-2xl border border-white/10 bg-white/5 p-6 transition-all hover:border-purple-500/40"
+                itemScope
+                itemProp="mainEntity"
+                itemType="https://schema.org/Question"
+              >
+                <summary className="flex cursor-pointer items-center justify-between gap-4 text-lg font-semibold text-white">
+                  <span itemProp="name">{item.question}</span>
+                  <ChevronRight className="h-5 w-5 text-purple-400 transition-transform group-open:rotate-90" />
+                </summary>
+                <div className="pt-4 text-base text-gray-300" itemProp="acceptedAnswer" itemScope itemType="https://schema.org/Answer">
+                  <p itemProp="text">{item.answer}</p>
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Backlink Commerce Network */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-4">Backlink Commerce Included In Elite Plans</h2>
+            <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+              Our backlink marketplace spins up OfferCatalog schemas that showcase pre-approved placements, payout URLs, and anchor text variants—ready for rich snippets and affiliate conversions.
+            </p>
+          </div>
+          <div className="grid lg:grid-cols-3 gap-8 mb-16">
+            {backlinkHighlights.map((item, index) => (
+              <div key={index} className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm hover:border-purple-500/50 transition-all">
+                <h3 className="text-xl font-semibold mb-3 text-white">{item.title}</h3>
+                <p className="text-sm text-gray-300 leading-relaxed">{item.detail}</p>
+              </div>
+            ))}
+          </div>
+          <div className="p-6 rounded-3xl bg-linear-to-br from-purple-700/30 via-blue-700/30 to-slate-900/50 border border-white/10">
+            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <GitBranch className="w-5 h-5" /> OfferCatalog Preview
+            </h3>
+            <pre className="text-xs text-left text-gray-300 overflow-x-auto">
+{`{
+  "@context": "https://schema.org",
+  "@type": "OfferCatalog",
+  "name": "LightDom Backlink Storefront - ELITE Tier",
+  "itemListElement": [
+    {
+      "@type": "Offer",
+      "position": 1,
+      "url": "https://app.lightdom.io/payout?source=partner-site",
+      "itemOffered": {
+        "@type": "Service",
+        "name": "High-authority editorial feature",
+        "potentialAction": { "@type": "BuyAction", "target": "https://app.lightdom.io/payout" }
+      }
+    }
+  ]
+}`}
+            </pre>
+            <p className="mt-4 text-xs text-gray-400">
+              Storefront data powers rich snippets, affiliate tracking, and automated reconciliation.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-purple-900 via-blue-900 to-purple-900">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-linear-to-r from-purple-900 via-blue-900 to-purple-900">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
             Ready to Optimize Your Web?

@@ -107,8 +107,20 @@ async function example2_APIIntegration() {
       body: {
         name: 'Monthly Competitor Analysis',
         workflows: [
-          { name: 'Competitor A', steps: [...] },
-          { name: 'Competitor B', steps: [...] }
+          {
+            name: 'Competitor A',
+            steps: [
+              { name: 'Initial Crawl', tool: 'hybrid-pattern-miner' },
+              { name: 'SERP Analysis', tool: 'seo-competitor-analyzer' }
+            ]
+          },
+          {
+            name: 'Competitor B',
+            steps: [
+              { name: 'Initial Crawl', tool: 'hybrid-pattern-miner' },
+              { name: 'SERP Analysis', tool: 'seo-competitor-analyzer' }
+            ]
+          }
         ]
       }
     },

@@ -4,6 +4,7 @@
  */
 
 import * as cheerio from 'cheerio';
+import { getAttributeConfigs } from './seo-config-reader.js';
 
 /**
  * Extract comprehensive SEO attributes from HTML
@@ -13,6 +14,7 @@ import * as cheerio from 'cheerio';
  */
 export async function extractSEOAttributes(html, url) {
   const $ = cheerio.load(html);
+  const urlObj = new URL(url);
   const attributes = {
     url,
     timestamp: new Date().toISOString(),
@@ -99,17 +101,17 @@ export async function extractSEOAttributes(html, url) {
 
   // === LINK ATTRIBUTES (25+) ===
   const links = $('a[href]');
-  attributes.totalLinks = links.length;
   const internalLinks = [];
   const externalLinks = [];
   const anchorLinks = [];
   const noFollowLinks = [];
   const doFollowLinks = [];
+  attributes.totalLinks = links.length;
 
   links.each((_, el) => {
     const href = $(el).attr('href') || '';
     const rel = $(el).attr('rel') || '';
-    const isExternal = href.startsWith('http') && !href.includes(new URL(url).hostname);
+    const isExternal = href.startsWith('http') && !href.includes(urlObj.hostname);
 
     if (href.startsWith('#')) {
       anchorLinks.push(href);
@@ -218,7 +220,6 @@ export async function extractSEOAttributes(html, url) {
   ).toFixed(2);
 
   // === URL STRUCTURE (10+) ===
-  const urlObj = new URL(url);
   attributes.protocol = urlObj.protocol;
   attributes.hostname = urlObj.hostname;
   attributes.pathname = urlObj.pathname;
@@ -260,6 +261,23 @@ export async function extractSEOAttributes(html, url) {
       attributes.technicalScore * 0.3) /
     100
   ).toFixed(2);
+
+  // Schema-driven attribute enrichment (ensure full 192 coverage)
+  const helperContext = buildHelperContext({
+    $, 
+    html,
+    url,
+    urlObj,
+    bodyText,
+    sentences,
+    internalLinks,
+    externalLinks,
+    anchorLinks,
+    noFollowLinks,
+    doFollowLinks,
+    images,
+  });
+  applyConfigDrivenAttributes({ $, attributes, helperContext, attributeConfigs: getAttributeConfigs() });
 
   return attributes;
 }
@@ -370,6 +388,217 @@ function computeTechnicalScore(attrs) {
   else if (parseFloat(attrs.accessibilityScore) >= 0.4) score += 8;
 
   return score;
+}
+
+function buildHelperContext({
+  $,
+  html,
+  url,
+  urlObj,
+  bodyText,
+  sentences,
+  internalLinks,
+  externalLinks,
+  anchorLinks,
+  noFollowLinks,
+  doFollowLinks,
+  images,
+}) {
+  return {
+    $, // expose cheerio instance for computed selectors
+    rawHtml: html,
+    rawUrl: url,
+    urlObject: urlObj,
+    bodyText,
+    sentences,
+    internalLinks,
+    externalLinks,
+    anchorLinks,
+    noFollowLinks,
+    doFollowLinks,
+    images,
+    countInternalLinks: () => internalLinks.length,
+    countExternalLinks: () => externalLinks.length,
+    computeSEOScore,
+    computeContentQualityScore,
+    computeTechnicalScore,
+  };
+}
+
+function applyConfigDrivenAttributes({ $, attributes, helperContext, attributeConfigs }) {
+  const evaluationContext = {
+    ...helperContext,
+    url: helperContext.urlObject,
+    attributes,
+  };
+
+  for (const [attributeName, config] of Object.entries(attributeConfigs || {})) {
+    const hasExistingValue = attributes[attributeName] !== undefined && attributes[attributeName] !== null;
+    if (hasExistingValue) {
+      evaluationContext[attributeName] = attributes[attributeName];
+      continue;
+    }
+
+    const computedValue = extractAttributeValue({ $, attributeName, config, context: evaluationContext });
+    attributes[attributeName] = computedValue;
+
+    if (attributeName !== 'url') {
+      evaluationContext[attributeName] = computedValue;
+    }
+  }
+
+  return attributes;
+}
+
+function extractAttributeValue({ $, attributeName, config, context }) {
+  if (!config || !config.scraping) {
+    return null;
+  }
+
+  const { scraping, type } = config;
+  let value = null;
+
+  try {
+    switch (scraping.method) {
+      case 'text':
+        value = extractText({ $, selector: config.selector, scraping });
+        break;
+      case 'attr':
+        value = extractAttr({ $, selector: config.selector, scraping });
+        break;
+      case 'count':
+        value = extractCount({ $, selector: config.selector });
+        break;
+      case 'computed':
+        value = evaluateComputation({ expression: scraping.computation, context, attributeName });
+        break;
+      default:
+        value = null;
+    }
+  } catch (error) {
+    console.warn(`[SEO Extractor] Failed to resolve ${attributeName}: ${error.message}`);
+    value = null;
+  }
+
+  if ((value === undefined || value === null || value === '') && scraping.fallback !== undefined) {
+    value = scraping.fallback;
+  }
+
+  return normalizeByType({ value, type });
+}
+
+function extractText({ $, selector, scraping }) {
+  if (!selector) {
+    return null;
+  }
+
+  const nodes = $(selector);
+  if (scraping.multiple) {
+    const values = nodes
+      .map((_, el) => applyTransform($(el).text(), scraping.transform))
+      .get()
+      .filter(Boolean);
+    return scraping.joinWith ? values.join(scraping.joinWith) : values;
+  }
+
+  const value = applyTransform(nodes.first().text(), scraping.transform);
+  return value ?? null;
+}
+
+function extractAttr({ $, selector, scraping }) {
+  if (!selector) {
+    return null;
+  }
+
+  const nodes = $(selector);
+
+  if (scraping.multiple) {
+    const values = nodes
+      .map((_, el) => applyTransform($(el).attr(scraping.attribute || 'content') || '', scraping.transform))
+      .get()
+      .filter(Boolean);
+    return scraping.joinWith ? values.join(scraping.joinWith) : values;
+  }
+
+  const value = nodes.length > 0 ? nodes.first().attr(scraping.attribute || 'content') : null;
+  return applyTransform(value, scraping.transform);
+}
+
+function extractCount({ $, selector }) {
+  if (!selector) {
+    return 0;
+  }
+  return $(selector).length;
+}
+
+function evaluateComputation({ expression, context, attributeName }) {
+  if (!expression) {
+    return null;
+  }
+
+  try {
+    const fn = new Function(
+      'context',
+      `with (context) { return ${expression}; }`
+    );
+    return fn(context);
+  } catch (error) {
+    console.warn(`[SEO Extractor] Computation error for ${attributeName}: ${error.message}`);
+    return null;
+  }
+}
+
+function applyTransform(value, transform) {
+  if (!transform) {
+    return value;
+  }
+
+  switch (transform) {
+    case 'trim':
+      return typeof value === 'string' ? value.trim() : value;
+    case 'lowercase':
+      return typeof value === 'string' ? value.toLowerCase() : value;
+    case 'uppercase':
+      return typeof value === 'string' ? value.toUpperCase() : value;
+    default:
+      return value;
+  }
+}
+
+function normalizeByType({ value, type }) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  switch (type) {
+    case 'integer': {
+      const parsed = parseInt(value, 10);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+    case 'float': {
+      const parsed = parseFloat(value);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+    case 'boolean':
+      if (typeof value === 'boolean') {
+        return value;
+      }
+      if (typeof value === 'string') {
+        const normalized = value.toLowerCase();
+        return ['true', '1', 'yes', 'on'].includes(normalized);
+      }
+      if (typeof value === 'number') {
+        return value !== 0;
+      }
+      return null;
+    case 'array':
+      return Array.isArray(value) ? value : [value].filter(entry => entry !== null && entry !== undefined);
+    case 'url':
+    case 'string':
+      return typeof value === 'string' ? value : value?.toString?.() ?? null;
+    default:
+      return value;
+  }
 }
 
 export default extractSEOAttributes;

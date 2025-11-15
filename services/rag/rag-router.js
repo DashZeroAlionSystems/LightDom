@@ -378,5 +378,21 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
     }
   });
 
+  router.get('/health', async (_req, res) => {
+    try {
+      const ragService = await getRagService();
+      const report = await ragService.healthCheck();
+      const statusCode =
+        report.status === 'ok' ? 200 : report.status === 'warn' ? 206 : 503;
+      res.status(statusCode).json(report);
+    } catch (error) {
+      logger.error('RAG health check failed:', error);
+      res.status(503).json({
+        status: 'error',
+        error: error.message || 'Failed to run RAG health check',
+      });
+    }
+  });
+
   return router;
 }

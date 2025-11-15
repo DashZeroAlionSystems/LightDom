@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
 import chalk from 'chalk';
+import { Command } from 'commander';
+import fs from 'fs/promises';
 import ora from 'ora';
-import { WorkerPoolManager } from '../src/services/WorkerPoolManager';
+import path from 'path';
+import { NeuralComponentBuilder } from '../src/schema/NeuralComponentBuilder';
 import { SchemaComponentMapper } from '../src/schema/SchemaComponentMapper';
 import { SchemaServiceFactory } from '../src/services/SchemaServiceFactory';
-import { ServiceLinker } from '../src/services/ServiceLinker';
-import { NeuralComponentBuilder } from '../src/schema/NeuralComponentBuilder';
-import fs from 'fs/promises';
-import path from 'path';
+import { WorkerPoolManager } from '../src/services/WorkerPoolManager';
 
 const program = new Command();
 
@@ -25,8 +24,12 @@ workerPoolCmd
   .command('start')
   .description('Initialize and start worker pool')
   .option('-w, --workers <number>', 'Number of workers', '4')
-  .option('-s, --strategy <type>', 'Pooling strategy (round-robin, least-busy, random)', 'least-busy')
-  .action(async (options) => {
+  .option(
+    '-s, --strategy <type>',
+    'Pooling strategy (round-robin, least-busy, random)',
+    'least-busy'
+  )
+  .action(async options => {
     const spinner = ora('Starting worker pool...').start();
     try {
       const pool = new WorkerPoolManager({
@@ -34,12 +37,12 @@ workerPoolCmd
         poolingStrategy: options.strategy as any,
       });
       await pool.initialize();
-      spinner.succeed(chalk.green(\`Worker pool started with \${options.workers} workers\`));
+      spinner.succeed(chalk.green(`Worker pool started with ${options.workers} workers`));
       const status = pool.getStatus();
       console.log(chalk.blue('\\nPool Status:'));
-      console.log(\`  Workers: \${status.activeWorkers}/\${status.totalWorkers}\`);
-      console.log(\`  Strategy: \${options.strategy}\`);
-      console.log(\`  Queued tasks: \${status.queuedTasks}\`);
+      console.log(`  Workers: ${status.activeWorkers}/${status.totalWorkers}`);
+      console.log(`  Strategy: ${options.strategy}`);
+      console.log(`  Queued tasks: ${status.queuedTasks}`);
     } catch (error) {
       spinner.fail(chalk.red('Failed to start worker pool'));
       console.error(error);
@@ -47,7 +50,7 @@ workerPoolCmd
     }
   });
 
-// Schema Commands  
+// Schema Commands
 const schemaCmd = program.command('schema').description('Schema management');
 
 schemaCmd
@@ -59,12 +62,12 @@ schemaCmd
       const mapper = new SchemaComponentMapper();
       await mapper.initialize();
       const schemas = mapper.getAllSchemas();
-      spinner.succeed(chalk.green(\`Found \${schemas.length} schemas\`));
-      
+      spinner.succeed(chalk.green(`Found ${schemas.length} schemas`));
+
       schemas.forEach(schema => {
-        console.log(chalk.blue(\`\\n\${schema.name} (\${schema['lightdom:componentType']})\`));
-        console.log(\`  ID: \${schema['@id']}\`);
-        console.log(\`  Use cases: \${schema['lightdom:useCase'].join(', ')}\`);
+        console.log(chalk.blue(`\n${schema.name} (${schema['lightdom:componentType']})`));
+        console.log(`  ID: ${schema['@id']}`);
+        console.log(`  Use cases: ${schema['lightdom:useCase'].join(', ')}`);
       });
     } catch (error) {
       spinner.fail(chalk.red('Failed to load schemas'));
@@ -85,13 +88,13 @@ serviceCmd
       const factory = new SchemaServiceFactory();
       await factory.initialize();
       const services = factory.getAllServices();
-      
-      spinner.succeed(chalk.green(\`Found \${services.length} services\`));
+
+      spinner.succeed(chalk.green(`Found ${services.length} services`));
       services.forEach(service => {
         const statusColor = service.status === 'running' ? chalk.green : chalk.gray;
-        console.log(statusColor(\`\\n\${service.name} [\${service.status}]\`));
-        console.log(\`  ID: \${service.id}\`);
-        console.log(\`  Type: \${service.type}\`);
+        console.log(statusColor(`\n${service.name} [${service.status}]`));
+        console.log(`  ID: ${service.id}`);
+        console.log(`  Type: ${service.type}`);
       });
     } catch (error) {
       spinner.fail(chalk.red('Failed to list services'));
@@ -115,19 +118,19 @@ componentCmd
       const builder = new NeuralComponentBuilder(mapper);
       await mapper.initialize();
       await builder.initialize();
-      
+
       const result = await builder.generateComponent({
         useCase,
         context: { typescript: true },
       });
-      
-      spinner.succeed(chalk.green(\`Component generated: \${result.componentName}\`));
-      
+
+      spinner.succeed(chalk.green(`Component generated: ${result.componentName}`));
+
       if (options.output) {
         const outputDir = path.resolve(options.output);
         await fs.mkdir(outputDir, { recursive: true });
-        await fs.writeFile(path.join(outputDir, \`\${result.componentName}.tsx\`), result.code);
-        console.log(chalk.blue(\`\\nFiles saved to: \${outputDir}\`));
+        await fs.writeFile(path.join(outputDir, `${result.componentName}.tsx`), result.code);
+        console.log(chalk.blue(`\nFiles saved to: ${outputDir}`));
       } else {
         console.log(chalk.blue('\\nGenerated Code:'));
         console.log(result.code);
@@ -146,8 +149,8 @@ devCmd
   .command('container')
   .description('Start dev container with live preview')
   .option('-p, --port <number>', 'Port number', '3100')
-  .action(async (options) => {
-    console.log(chalk.green(\`Dev container would start at http://localhost:\${options.port}\`));
+  .action(async options => {
+    console.log(chalk.green(`Dev container would start at http://localhost:${options.port}`));
     console.log(chalk.blue('Run: node start-dev-container.js'));
   });
 

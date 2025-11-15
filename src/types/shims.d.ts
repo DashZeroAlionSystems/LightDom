@@ -32,6 +32,45 @@ declare module '*HeadlessTypes' {
 declare module 'stripe' {
   const Stripe: any;
   export default Stripe;
+  export type StripeConstructor = any;
+}
+
+declare namespace Stripe {
+  type Customer = any;
+  type PaymentMethod = any;
+  type Subscription = any;
+  type Invoice = any;
+  type PaymentIntent = any;
+  type Event = any;
+}
+
+declare module '@tensorflow/tfjs-node' {
+  const tf: any;
+  export = tf;
+}
+
+declare module 'googleapis' {
+  export const google: any;
+}
+
+declare module 'saml2-js' {
+  const SAML: any;
+  export = SAML;
+}
+
+declare module 'bull' {
+  export class Queue<T = any> {
+    constructor(name: string, opts?: any);
+    add(name: string, data: T, opts?: any): Promise<any>;
+    process(handler: any): void;
+    on(event: string, handler: (...args: any[]) => void): void;
+  }
+  export default Queue;
+}
+
+declare module 'node-cron' {
+  const cron: any;
+  export default cron;
 }
 
 declare module 'redis' {

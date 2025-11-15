@@ -4,11 +4,14 @@
  */
 
 import Database from 'better-sqlite3';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const fsp = fs.promises;
+const DATA_DIR = path.join(path.dirname(__dirname), 'data');
 
 // Initialize database for data mining configs
 let db;
@@ -167,6 +170,42 @@ export const AGENT_TOOLS = [
         },
       },
       required: ['query'],
+    },
+  },
+  {
+    name: 'scan_codebase',
+    description:
+      'Scan the repository to capture file previews so DeepSeek can build RAG knowledge or understand unfamiliar modules.',
+    parameters: {
+      type: 'object',
+      properties: {
+        root: {
+          type: 'string',
+          description: 'Directory to scan (relative to project root, default: ".")',
+        },
+        includeExtensions: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'File extensions to include (default includes common code/text types)',
+        },
+        excludePaths: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Extra paths to skip beyond the default ignore list',
+        },
+        maxFiles: {
+          type: 'number',
+          description: 'Maximum files to index (default 200, max 2000)',
+        },
+        maxBytesPerFile: {
+          type: 'number',
+          description: 'Maximum bytes per file preview (default 120000)',
+        },
+        previewLength: {
+          type: 'number',
+          description: 'Characters to keep per preview (default 1200)',
+        },
+      },
     },
   },
 ];
@@ -418,6 +457,20 @@ export const TOOL_EXECUTORS = {
       return { success: false, error: error.message, rows: [] };
     }
   },
+  async scan_codebase(params = {}) {
+    try {
+      const result = await runCodebaseScan(params);
+      return {
+        success: true,
+        message: result.message,
+        indexFile: result.indexFile,
+        stats: result.stats,
+        sample: result.files.slice(0, 5),
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
 };
 
 /**
@@ -441,3 +494,146 @@ export default {
   TOOL_EXECUTORS,
   executeTool,
 };
+export { runCodebaseScan };
+
+const DEFAULT_EXCLUDED_DIRS = new Set([
+  '.git',
+  '.github',
+  '.next',
+  '.turbo',
+  '.cache',
+  '.idea',
+  '.vscode',
+  'node_modules',
+  'dist',
+  'build',
+  'coverage',
+  'tmp',
+  'logs',
+  'venv',
+]);
+
+const DEFAULT_EXTENSIONS = [
+  '.ts',
+  '.tsx',
+  '.js',
+  '.jsx',
+  '.json',
+  '.md',
+  '.sql',
+  '.yml',
+  '.yaml',
+  '.sh',
+  '.ps1',
+  '.py',
+  '.go',
+  '.java',
+  '.css',
+  '.scss',
+  '.html',
+];
+
+async function runCodebaseScan({
+  root = '.',
+  includeExtensions = DEFAULT_EXTENSIONS,
+  excludePaths = [],
+  maxFiles = 200,
+  maxBytesPerFile = 120000,
+  previewLength = 1200,
+} = {}) {
+  const rootDir = path.resolve(process.cwd(), root);
+  const normalizedExtensions = (includeExtensions || []).map(ext =>
+    ext.startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`
+  );
+  const excludedAbsPaths = new Set((excludePaths || []).map(entry => path.resolve(rootDir, entry)));
+  const stats = {
+    scanned: 0,
+    indexed: 0,
+    skippedByExtension: 0,
+    skippedBySize: 0,
+    skippedByExclude: 0,
+  };
+  const files = [];
+  const limit = Math.max(10, Math.min(maxFiles || 200, 2000));
+
+  async function walk(currentDir) {
+    const entries = await fsp.readdir(currentDir, { withFileTypes: true }).catch(() => []);
+    for (const entry of entries) {
+      const fullPath = path.join(currentDir, entry.name);
+
+      if (entry.isDirectory()) {
+        if (DEFAULT_EXCLUDED_DIRS.has(entry.name) || excludedAbsPaths.has(fullPath)) {
+          continue;
+        }
+        await walk(fullPath);
+        if (files.length >= limit) {
+          return;
+        }
+        continue;
+      }
+
+      stats.scanned += 1;
+      if (files.length >= limit) {
+        return;
+      }
+
+      const ext = path.extname(entry.name).toLowerCase();
+      if (normalizedExtensions.length > 0 && !normalizedExtensions.includes(ext)) {
+        stats.skippedByExtension += 1;
+        continue;
+      }
+
+      if (excludedAbsPaths.has(fullPath)) {
+        stats.skippedByExclude += 1;
+        continue;
+      }
+
+      let fileStat;
+      try {
+        fileStat = await fsp.stat(fullPath);
+      } catch {
+        continue;
+      }
+
+      if (fileStat.size > (maxBytesPerFile || 120000)) {
+        stats.skippedBySize += 1;
+        continue;
+      }
+
+      try {
+        const content = await fsp.readFile(fullPath, 'utf8');
+        files.push({
+          path: path.relative(rootDir, fullPath),
+          size: fileStat.size,
+          preview: content.slice(0, previewLength || 1200),
+        });
+        stats.indexed += 1;
+      } catch {
+        // Non-text/binary file, skip
+      }
+
+      if (files.length >= limit) {
+        return;
+      }
+    }
+  }
+
+  await walk(rootDir);
+
+  await fsp.mkdir(DATA_DIR, { recursive: true });
+  const indexFile = path.join(DATA_DIR, 'codebase-index.json');
+  const payload = {
+    indexedAt: new Date().toISOString(),
+    root: rootDir,
+    stats,
+    files,
+  };
+  await fsp.writeFile(indexFile, JSON.stringify(payload, null, 2), 'utf8');
+
+  return {
+    message: `Indexed ${files.length} files from ${root}`,
+    indexFile,
+    stats,
+    files,
+  };
+}

@@ -140,6 +140,11 @@ class ChatBridge {
           console.log('Unknown message type');
       }
     } catch (error) {
+      console.error('Failed to handle WebSocket message:', error);
+    }
+  }
+
+  /**
    * Handle chat message
    */
   handleChatMessage(message) {
@@ -218,7 +223,8 @@ class ChatBridge {
    */
   async createBridge(sourceDomain, targetDomain, isolatedDomId) {
     const bridgeId = `bridge_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
+    const bridge = {
       id: bridgeId,
       sourceDomain,
       targetDomain,
@@ -226,7 +232,7 @@ class ChatBridge {
       status: 'active',
       createdAt: Date.now(),
       connectedUsers: 0,
-      capabilities: ['chat', 'data_transfer', 'asset_sharing']
+      capabilities: ['chat', 'data_transfer', 'asset_sharing'],
     };
     
     this.bridges.set(bridgeId, bridge);
