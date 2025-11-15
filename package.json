@@ -329,7 +329,15 @@
     "crawler:worker": "node workers/crawler-worker.js",
     "training:worker": "node workers/training-data-worker.js",
     "jobs:test": "node scripts/test-job-queue.js",
-    "start:all": "node scripts/start-all-services.js"
+    "start:all": "node scripts/start-all-services.js",
+    "research:start": "node start-research-pipeline.js",
+    "research:demo": "node demo-ai-research-pipeline.js",
+    "research:status": "curl -s http://localhost:3001/api/research/status | jq .",
+    "research:dashboard": "curl -s http://localhost:3001/api/research/dashboard | jq .",
+    "research:articles": "curl -s http://localhost:3001/api/research/articles | jq .",
+    "research:features": "curl -s http://localhost:3001/api/research/features | jq .",
+    "research:campaigns": "curl -s http://localhost:3001/api/research/campaigns | jq .",
+    "research:papers": "curl -s http://localhost:3001/api/research/papers | jq ."
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.2",
