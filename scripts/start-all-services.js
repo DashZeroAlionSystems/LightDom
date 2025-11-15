@@ -25,6 +25,10 @@ if (!baseEnv.OLLAMA_ENDPOINT) {
   baseEnv.OLLAMA_ENDPOINT = baseEnv.OLLAMA_BASE_URL;
 }
 
+if (!baseEnv.OLLAMA_HOST) {
+  baseEnv.OLLAMA_HOST = baseEnv.OLLAMA_BASE_URL;
+}
+
 if (!baseEnv.DEEPSEEK_API_URL) {
   baseEnv.DEEPSEEK_API_URL = baseEnv.OLLAMA_BASE_URL;
 }
@@ -184,20 +188,24 @@ function startService(service) {
   try {
     const child = spawn(service.command, service.args, {
       cwd: service.cwd,
-      env: { ...baseEnv },
-      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...baseEnv, ...(service.env || {}) },
+      stdio: service.stdio || ['ignore', 'pipe', 'pipe'],
       shell: process.platform === 'win32',
     });
 
     processes.set(service.id, child);
 
-    child.stdout.on('data', data => {
-      log(service.id, data.toString().trim());
-    });
+    if (child.stdout) {
+      child.stdout.on('data', data => {
+        log(service.id, data.toString().trim());
+      });
+    }
 
-    child.stderr.on('data', data => {
-      logError(service.id, data.toString().trim());
-    });
+    if (child.stderr) {
+      child.stderr.on('data', data => {
+        logError(service.id, data.toString().trim());
+      });
+    }
 
     child.on('exit', (code, signal) => {
       if (shuttingDown) return;
