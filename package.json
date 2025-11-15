@@ -9,6 +9,8 @@
   "scripts": {
     "start": "node start-lightdom-complete.js",
     "start:complete": "node start-complete-system.js",
+    "start:integrated": "node start-integrated-system.js",
+    "validate": "node validate-system.js",
     "start:framework": "node dist/framework/start.js",
     "start:blockchain": "node start-blockchain-app.js",
     "start:dev": "node start-dev.js",
