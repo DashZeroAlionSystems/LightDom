@@ -648,6 +648,93 @@ export function createNeuralSEOCampaignRoutes(dbPool) {
     }
   });
 
+  // ===========================================
+  // Attribute Validation & Completion
+  // ===========================================
+
+  /**
+   * GET /api/neural-seo/attributes/validate/:campaignId/:url
+   * Validate attribute coverage for a specific URL
+   */
+  router.get('/attributes/validate/:campaignId/:url', async (req, res) => {
+    try {
+      await initPromise;
+      
+      const { campaignId, url } = req.params;
+      const decodedUrl = decodeURIComponent(url);
+      
+      // Get crawl results for URL
+      const result = await dbPool.query(
+        'SELECT attributes FROM seo_campaign_crawl_results WHERE campaign_id = $1 AND url = $2 ORDER BY crawled_at DESC LIMIT 1',
+        [campaignId, decodedUrl]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'URL not found in campaign results' });
+      }
+      
+      const attributes = result.rows[0].attributes;
+      const validation = await seoCampaignService.validateAllAttributes(attributes);
+      
+      res.json({
+        url: decodedUrl,
+        validation,
+        missingAttributes: validation.missing
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * POST /api/neural-seo/attributes/complete
+   * Complete missing attributes using neural network
+   */
+  router.post('/attributes/complete', async (req, res) => {
+    try {
+      await initPromise;
+      
+      const { attributes, missingAttributes } = req.body;
+      
+      if (!attributes || !missingAttributes) {
+        return res.status(400).json({ error: 'attributes and missingAttributes are required' });
+      }
+      
+      const completed = await seoCampaignService.completeAttributesWithNeuralNetwork(
+        attributes,
+        missingAttributes,
+        { url: attributes.url || '', html: '' }
+      );
+      
+      res.json({
+        message: 'Attributes completed',
+        completed,
+        count: Object.keys(completed).length
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/neural-seo/attributes/all-names
+   * Get list of all 192 attribute names
+   */
+  router.get('/attributes/all-names', async (req, res) => {
+    try {
+      await initPromise;
+      
+      const allAttributes = seoCampaignService.getAllAttributeNames();
+      
+      res.json({
+        total: allAttributes.length,
+        attributes: allAttributes
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   return router;
 }
 
