@@ -77,6 +77,24 @@ npm run langchain:test                 # 3. Test integration
 - **Responsive Design** - Works on all devices
 - **Dark Mode** - Easy on the eyes
 
+### 🔬 **AI Research Pipeline System** ⭐ NEW
+- **Continuous Article Monitoring** - Auto-scrape dev.to, Medium, and other sources for AI/ML/LLM content
+- **Intelligent Feature Extraction** - Analyze articles for actionable product features with impact & revenue scoring
+- **Research Paper Generation** - Automatically generate comprehensive research papers with recommendations
+- **Code Example Library** - Extract and categorize code examples from articles across 7+ languages
+- **SEO Pattern Analysis** - Identify successful content strategies from high-performing articles
+- **Monetization Intelligence** - Generate service package ideas based on market trends
+- **Campaign Automation** - Schedule and execute research campaigns with cron expressions
+
+📖 **[Quick Start](RESEARCH_PIPELINE_QUICKSTART.md)** | **[Full Documentation](AI_RESEARCH_PIPELINE_README.md)** | **[Demo Script](demo-ai-research-pipeline.js)**
+
+```bash
+# Get started in 3 commands
+psql -U postgres -d lightdom -f database/ai-research-pipeline-schema.sql  # 1. Setup database
+npm run research:start                                                      # 2. Start service
+npm run research:demo                                                       # 3. Run demo
+```
+
 ### 🤖 **Background Data Mining System** ⭐ NEW
 - **AI-Powered Configuration** - Generate crawler configs from natural language prompts using Ollama (DeepSeek-R1, Llama3)
 - **Smart URL Deduplication** - Intelligent caching with selective re-mining based on schema versions
