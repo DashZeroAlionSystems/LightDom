@@ -332,6 +332,8 @@
     "start:all": "node scripts/start-all-services.js",
     "research:start": "node start-research-pipeline.js",
     "research:demo": "node demo-ai-research-pipeline.js",
+    "research:analyze": "node analyze-target-articles.js",
+    "research:validate": "node validate-research-pipeline.js",
     "research:status": "curl -s http://localhost:3001/api/research/status | jq .",
     "research:dashboard": "curl -s http://localhost:3001/api/research/dashboard | jq .",
     "research:articles": "curl -s http://localhost:3001/api/research/articles | jq .",
