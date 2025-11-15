@@ -772,6 +772,17 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load neural SEO campaign routes:', err);
       });
 
+    // Import and register DeepSeek Automation routes
+    import('./api/deepseek-automation-routes.js')
+      .then(deepseekModule => {
+        const deepseekRouter = deepseekModule.default;
+        this.app.use('/api/deepseek-automation', deepseekRouter);
+        console.log('✅ DeepSeek Automation routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load DeepSeek automation routes:', err);
+      });
+
     // Import and register Neural Schema Admin routes
     import('./api/neural-schema-admin-routes.js')
       .then(adminModule => {

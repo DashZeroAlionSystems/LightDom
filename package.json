@@ -48,6 +48,8 @@
     "start:deepseek": "node scripts/start-deepseek-service.js",
     "start:crawler": "node scripts/start-crawler-service.js",
     "start:neural-crawler": "node start-neural-crawler.js",
+    "start:with-deepseek": "node start-deepseek-automation.js",
+    "start:deepseek-automation": "node start-deepseek-automation.js",
     "neural:example": "node example-neural-crawler.js",
     "neural:status": "curl -s http://localhost:3001/api/neural-seo/status | jq .",
     "neural:health": "curl -s http://localhost:3001/api/neural-seo/health | jq .",
