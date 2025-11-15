@@ -4,6 +4,24 @@
 
 LightDom is a blockchain-based DOM optimization platform that combines React/TypeScript frontend, Solidity smart contracts, Node.js backend, and Electron desktop capabilities.
 
+## 🚨 CRITICAL: Search Existing Code First
+
+**BEFORE generating ANY code, you MUST search the codebase:**
+
+```bash
+# Required search commands
+grep -r "feature" services/ src/ api/
+find . -name "*feature*" -not -path "*/node_modules/*"
+```
+
+**Only generate new code if:**
+- ✅ Comprehensive search completed
+- ✅ No existing solution found
+- ✅ Existing code cannot be adapted
+- ✅ New code improves modularity
+
+See [Code Review Rules](.github/CODE_REVIEW_RULES.md) for complete guidelines.
+
 ## Quick Context
 
 When assisting with LightDom, consider:

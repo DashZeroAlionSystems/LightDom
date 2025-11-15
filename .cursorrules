@@ -8,41 +8,111 @@ This is a blockchain-based DOM optimization platform that includes:
 - Web crawler and optimization engine
 - PostgreSQL database integration
 
-## 🚨 CRITICAL RULE: ALWAYS REVIEW EXISTING CODE FIRST
+## 🚨 CRITICAL RULE #1: ALWAYS SEARCH EXISTING CODE FIRST
 
-**BEFORE writing any new code, you MUST:**
+> **This is the PRIMARY rule that overrides all others. Never skip this step.**
 
-1. **Search the codebase** for similar functionality:
-   ```bash
-   grep -r "relevant.*keyword" services/
-   find . -name "*relevant*" -type f
-   ```
+**MANDATORY PROCESS - BEFORE writing ANY new code:**
 
-2. **Review existing services** in these directories:
-   - `services/` - 100+ service files
-   - `api/` - API route handlers
-   - `src/services/` - TypeScript services
-   - `scripts/` - Automation scripts
+### Step 1: Comprehensive Code Search (REQUIRED)
 
-3. **Check for disconnected code** that might already solve the problem
+```bash
+# 1. Search by functionality keywords
+grep -r "relevant.*keyword" services/ src/ scripts/ api/
 
-4. **Look at related documentation** in:
-   - `docs/` - Comprehensive documentation
-   - `*.md` files - Feature-specific docs
-   - Code comments and JSDoc
+# 2. Find files by name pattern
+find . -name "*relevant*" -type f -not -path "*/node_modules/*"
 
-5. **Only write new code if:**
-   - No existing solution found after thorough search
-   - Existing code is too different to adapt
-   - Creating a truly new feature
+# 3. Search for class/function definitions
+grep -r "class.*Feature\|function.*feature" . --include="*.ts" --include="*.js"
 
-**Rationale**: We have substantial existing code (~100+ services, 200+ files) that may not be fully connected. Reusing and connecting existing code is faster, more maintainable, and prevents duplication.
+# 4. Check for imports and usage
+grep -r "import.*Feature" . --include="*.ts" --include="*.js"
 
-**Examples of what to search for:**
-- Creating SEO extractor? → Search for "seo", "attribute", "extract"
-- Adding animation mining? → Search for "animation", "styleguide", "mine"
-- New TensorFlow model? → Search for "tensorflow", "model", "train"
-- Database operations? → Search for "db", "query", "pool"
+# 5. Use ripgrep for faster searches (if available)
+rg "search term" --type ts --type js
+```
+
+### Step 2: Review Existing Services (REQUIRED)
+
+Search these directories in order:
+1. `services/` - 100+ service files, many may solve your problem
+2. `api/` - API route handlers and middleware
+3. `src/services/` - TypeScript services and business logic
+4. `src/components/` - React components and UI elements
+5. `scripts/` - Automation scripts and utilities
+6. `utils/` - Utility functions and helpers
+7. `src/core/` - Core business logic
+8. `src/hooks/` - React hooks for state and logic
+
+### Step 3: Check for Disconnected Code (REQUIRED)
+
+Many features exist but aren't fully integrated. Look for:
+- Unused imports
+- Commented-out code that works
+- Services in `services/` not referenced elsewhere
+- Components not imported in any routes
+- Utilities not exported in index files
+
+### Step 4: Search Pattern Examples (REQUIRED)
+
+**ALWAYS use these search patterns before creating new code:**
+
+| Creating... | Must Search For... | Example Commands |
+|-------------|-------------------|------------------|
+| SEO extractor | `seo`, `attribute`, `extract`, `meta`, `og:` | `grep -r "seo" services/ src/` |
+| Animation mining | `animation`, `styleguide`, `mine`, `css` | `find . -name "*animation*"` |
+| TensorFlow model | `tensorflow`, `model`, `train`, `ml`, `ai` | `grep -r "tensorflow" .` |
+| Database ops | `db`, `query`, `pool`, `connection`, `sql` | `grep -r "pool\\.query" .` |
+| API endpoint | `router`, `endpoint`, `api`, `route`, `express` | `grep -r "router\\." api/` |
+| UI component | `component`, `react`, `dashboard`, `ui` | `find src/components/ -name "*Dashboard*"` |
+| Blockchain | `blockchain`, `contract`, `ethereum`, `web3` | `grep -r "ethers" contracts/` |
+| Auth system | `auth`, `login`, `token`, `jwt`, `session` | `grep -r "authenticate" api/` |
+| Crawler | `crawl`, `scrape`, `puppeteer`, `selenium` | `grep -r "puppeteer" services/` |
+| Testing | `test`, `spec`, `mock`, `fixture` | `find test/ -name "*test*"` |
+
+### Step 5: Decision Point (REQUIRED)
+
+**Only proceed to write new code if ALL of these are true:**
+- ✅ Completed comprehensive search (Steps 1-4)
+- ✅ No existing solution found
+- ✅ No existing code can be adapted/extended
+- ✅ Confirmed with team/docs that feature doesn't exist
+- ✅ Creating truly new functionality
+
+**If ANY existing code is found:**
+- ✅ Reuse it directly, or
+- ✅ Extend it with new functionality, or
+- ✅ Refactor it to be more generic, or
+- ✅ Connect it to the rest of the system
+
+### Rationale
+
+We have **substantial existing code** (~100+ services, 200+ files, 50+ components) that may not be fully connected or documented. 
+
+**Benefits of reusing existing code:**
+1. 🚀 **Faster development** - No need to write from scratch
+2. 🛡️ **Battle-tested** - Existing code is proven to work
+3. 🔧 **Maintainable** - Fewer places to update
+4. 📚 **Consistent** - Follows established patterns
+5. 🐛 **Fewer bugs** - Existing code is already debugged
+6. 📊 **Better architecture** - Improves code organization
+
+**Costs of creating new code unnecessarily:**
+1. ❌ **Duplication** - Multiple implementations of same feature
+2. ❌ **Technical debt** - More code to maintain
+3. ❌ **Inconsistency** - Different patterns for same problem
+4. ❌ **Higher bug risk** - New code needs debugging
+5. ❌ **Wasted effort** - Solving already-solved problems
+6. ❌ **Confusion** - Which implementation to use?
+
+### ⚠️ Violation Consequences
+
+**If you create new code without searching first:**
+- PR will be rejected with "search-first-violation" label
+- Must demonstrate comprehensive search was performed
+- Must justify why existing code cannot be used
+- May be asked to refactor to use existing code
 
 ## Code Quality Standards
 
