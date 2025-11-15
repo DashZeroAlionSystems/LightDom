@@ -1138,6 +1138,38 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load styleguide config routes:', err);
       });
 
+    // Import and register API Endpoint Registry routes (Endpoint catalog, service composition)
+    import('./api/endpoint-registry-routes.js')
+      .then(registryModule => {
+        // Pass db instance to routes via app.locals if not already set
+        if (!this.app.locals.db) {
+          this.app.locals.db = this.db;
+        }
+        this.app.use('/api/endpoint-registry', registryModule.default);
+        console.log(
+          '✅ API Endpoint Registry routes registered (Auto-discovery, service composition, endpoint chains enabled)'
+        );
+      })
+      .catch(err => {
+        console.error('Failed to load endpoint registry routes:', err);
+      });
+
+    // Import and register Workflow Wizard Configuration routes (Config-driven workflow builder)
+    import('./api/workflow-wizard-configuration-routes.js')
+      .then(wizardModule => {
+        // Pass db instance to routes via app.locals if not already set
+        if (!this.app.locals.db) {
+          this.app.locals.db = this.db;
+        }
+        this.app.use('/api/workflow-wizard', wizardModule.default);
+        console.log(
+          '✅ Workflow Wizard Configuration routes registered (Auto-generation, validation, templates enabled)'
+        );
+      })
+      .catch(err => {
+        console.error('Failed to load workflow wizard routes:', err);
+      });
+
     // Admin middleware (bearer token)
     const adminAuth = (req, res, next) => {
       const token = (req.headers.authorization || '').replace('Bearer ', '');
