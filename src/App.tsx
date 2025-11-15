@@ -85,6 +85,7 @@ import BlockchainBenchmarkDemo from './pages/BlockchainBenchmarkDemo';
 import WorkflowExecutionDemo from './pages/WorkflowExecutionDemo';
 import WorkflowBuilderDemo from './pages/WorkflowBuilderDemo';
 import MetaverseNFTMarketplace from './pages/MetaverseNFTMarketplace';
+import BridgeUseCasesShowcase from './pages/BridgeUseCasesShowcase';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -225,6 +226,7 @@ const AppContent: React.FC = () => {
           <Route path="demos/workflow-execution" element={<WorkflowExecutionDemo />} />
           <Route path="demos/workflow-builder" element={<WorkflowBuilderDemo />} />
           <Route path="demos/nft-marketplace" element={<MetaverseNFTMarketplace />} />
+          <Route path="demos/bridge-usecases" element={<BridgeUseCasesShowcase />} />
           
           {/* Admin Routes within Dashboard */}
           <Route path="admin" element={<AdminDashboard />} />

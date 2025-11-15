@@ -222,6 +222,18 @@ const demos: Demo[] = [
     features: ['Visual Editor', 'Drag Nodes', 'Connections', 'Validation', 'Execution', 'Save/Load', 'Real-time Logs'],
     icon: <ApiOutlined />
   },
+  {
+    id: 'bridge-usecases',
+    name: 'Bridge Use Cases Showcase',
+    description: 'Interactive demonstrations of 6 innovative bridge use cases including chat commerce, product store injection, mining discovery, collaborative mining, and smart contract marketplace.',
+    category: 'Interactive Demos',
+    route: '/demos/bridge-usecases',
+    status: 'ready',
+    enhanced: true,
+    type: 'react',
+    features: ['Search Injection', 'Chat Commerce', 'Mining Discovery', 'Site Injection', 'Collaborative Mining', 'Smart Contracts'],
+    icon: <ApiOutlined />
+  },
 ];
 
 const categories = [
