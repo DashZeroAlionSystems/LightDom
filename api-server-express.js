@@ -849,6 +849,21 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load advanced workflow routes:', err);
       });
 
+    // Import and register AI Research Pipeline routes
+    import('./api/research-pipeline-routes.js')
+      .then(researchModule => {
+        const createResearchPipelineRoutes = researchModule.default || researchModule.createResearchPipelineRoutes;
+        if (typeof createResearchPipelineRoutes === 'function') {
+          this.app.use('/api/research', createResearchPipelineRoutes(this.db));
+        } else {
+          this.app.use('/api/research', createResearchPipelineRoutes);
+        }
+        console.log('✅ AI Research Pipeline routes registered at /api/research');
+      })
+      .catch(err => {
+        console.error('Failed to load AI research pipeline routes:', err);
+      });
+
     // Import and register Advanced Data Mining Orchestration routes
     import('./api/advanced-datamining-routes.js')
       .then(dataminingModule => {
