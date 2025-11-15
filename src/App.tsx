@@ -83,6 +83,7 @@ import OnboardingVisualization from './pages/OnboardingVisualization';
 import LightDOMSlotsDemo from './pages/LightDOMSlotsDemo';
 import BlockchainBenchmarkDemo from './pages/BlockchainBenchmarkDemo';
 import WorkflowExecutionDemo from './pages/WorkflowExecutionDemo';
+import WorkflowBuilderDemo from './pages/WorkflowBuilderDemo';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -221,6 +222,7 @@ const AppContent: React.FC = () => {
           <Route path="demos/lightdom-slots" element={<LightDOMSlotsDemo />} />
           <Route path="demos/blockchain-benchmark" element={<BlockchainBenchmarkDemo />} />
           <Route path="demos/workflow-execution" element={<WorkflowExecutionDemo />} />
+          <Route path="demos/workflow-builder" element={<WorkflowBuilderDemo />} />
           
           {/* Admin Routes within Dashboard */}
           <Route path="admin" element={<AdminDashboard />} />

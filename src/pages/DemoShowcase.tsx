@@ -208,7 +208,19 @@ const demos: Demo[] = [
     type: 'node',
     features: ['Workflows', 'Memory', 'Optimization'],
     icon: <ApiOutlined />
-  }
+  },
+  {
+    id: 'workflow-builder',
+    name: 'Workflow Builder (Complete)',
+    description: 'Full-featured workflow creation system with visual editor, validation, execution, and save/load. Demonstrates atomic → composite → dashboard architecture with real functionality.',
+    category: 'Agent & Workflow',
+    route: '/demos/workflow-builder',
+    status: 'ready',
+    enhanced: true,
+    type: 'react',
+    features: ['Visual Editor', 'Drag Nodes', 'Connections', 'Validation', 'Execution', 'Save/Load', 'Real-time Logs'],
+    icon: <ApiOutlined />
+  },
 ];
 
 const categories = [
