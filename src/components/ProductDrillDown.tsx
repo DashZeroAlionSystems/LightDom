@@ -17,7 +17,7 @@ import {
   CheckCircleOutlined,
   ArrowRightOutlined,
 } from '@ant-design/icons';
-import anime from 'animejs';
+import anime from 'animejs/lib/anime.es.js';
 import {
   product3DRotation,
   progressBarAnimation,

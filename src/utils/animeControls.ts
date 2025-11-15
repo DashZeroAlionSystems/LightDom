@@ -5,7 +5,7 @@
  * Features: Timelines, stagger effects, SVG animations, interactive controls
  */
 
-import anime, { AnimeInstance, AnimeTimelineInstance } from 'animejs';
+import anime from 'animejs/lib/anime.es.js';
 
 // ============================================================================
 // Types & Interfaces
@@ -22,7 +22,7 @@ export interface AnimationConfig {
 }
 
 export interface ControlledAnimation {
-  instance: AnimeInstance | AnimeTimelineInstance;
+  instance: any; // anime.AnimeInstance or anime.AnimeTimelineInstance
   play: () => void;
   pause: () => void;
   restart: () => void;
@@ -39,7 +39,7 @@ export interface ControlledAnimation {
 /**
  * Create a controlled animation instance with full playback controls
  */
-export function createControlledAnimation(config: anime.AnimeParams): ControlledAnimation {
+export function createControlledAnimation(config: any): ControlledAnimation {
   const instance = anime({
     ...config,
     autoplay: config.autoplay ?? false,
@@ -60,7 +60,7 @@ export function createControlledAnimation(config: anime.AnimeParams): Controlled
 /**
  * Create a timeline with multiple animation steps
  */
-export function createTimeline(config?: anime.AnimeTimelineParams): AnimeTimelineInstance {
+export function createTimeline(config?: any): any {
   return anime.timeline({
     easing: 'easeOutExpo',
     duration: 750,
@@ -429,7 +429,7 @@ export function prefersReducedMotion(): boolean {
 /**
  * Create accessible animation that respects user preferences
  */
-export function createAccessibleAnimation(config: anime.AnimeParams): ControlledAnimation | null {
+export function createAccessibleAnimation(config: any): ControlledAnimation | null {
   if (prefersReducedMotion()) {
     // Apply instant changes without animation
     const targets = config.targets;
