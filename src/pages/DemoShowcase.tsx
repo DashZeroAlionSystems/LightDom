@@ -56,12 +56,13 @@ const demos: Demo[] = [
   {
     id: 'metaverse-marketplace',
     name: 'Metaverse NFT Marketplace',
-    description: 'NFT marketplace and metaverse integration demo with item trading, inventory management, and cross-chain bridges.',
+    description: 'Complete NFT marketplace with minting, trading, wallet management, and real-time price tracking. Create, buy, and sell unique DOM spaces and structures.',
     category: 'Interactive Demos',
-    route: '/metaverse-marketplace',
+    route: '/demos/nft-marketplace',
     status: 'ready',
+    enhanced: true,
     type: 'react',
-    features: ['NFT Trading', 'Inventory', 'Marketplace', 'Bridges'],
+    features: ['NFT Minting', 'Trading', 'Wallet', 'Favorites', 'Search & Filter'],
     icon: <AppstoreOutlined />
   },
   {
