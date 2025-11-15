@@ -1,344 +1,298 @@
 #!/usr/bin/env node
 
 /**
- * Start AI Research Pipeline Service
+ * Start Research Pipeline
  * 
- * This script initializes and starts the AI Research Pipeline with:
- * - Automated campaign execution
- * - Scheduled monitoring
- * - Background job processing
- * - API server integration
+ * Comprehensive research mining and content suggestion system
+ * 
+ * Usage:
+ *   npm run research:start              # Full pipeline
+ *   npm run research:mine               # Mine articles only
+ *   npm run research:deepseek           # Process DeepSeek queue
+ *   npm run research:stats              # Show statistics
  */
 
-import { Pool } from 'pg';
-import { AIResearchPipeline } from './services/ai-research-pipeline.js';
-import chalk from 'chalk';
-import fs from 'fs';
+import ResearchPipelineService from './services/research-pipeline-service.js';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
-const DEFAULT_CONFIG = {
-  // Campaign execution interval (in minutes)
-  executionInterval: 360, // 6 hours
-  
-  // Default topics to monitor
-  topics: ['ai', 'ml', 'llm', 'nlp', 'agents', 'seo', 'automation'],
-  
-  // Articles per campaign run
-  articlesPerRun: 100,
-  
-  // Minimum relevance score
-  minRelevance: 0.6,
-  
-  // Enable features
-  enableFullScrape: true,
-  enableFeatureExtraction: true,
-  enableSEOAnalysis: true,
-  
-  // Rate limiting
-  rateLimit: 50,
-  
-  // Headless mode
-  headless: true
+const execAsync = promisify(exec);
+
+// CLI arguments
+const args = process.argv.slice(2);
+const command = args[0] || 'full';
+
+// Configuration
+const CONFIG = {
+  database: {
+    schemaFile: './database/research-pipeline-schema.sql',
+    checkConnection: true,
+  },
+  mining: {
+    priority: args.includes('--priority') ? args[args.indexOf('--priority') + 1] : 'high',
+    limit: args.includes('--limit') ? parseInt(args[args.indexOf('--limit') + 1]) : 50,
+    skipExtracted: !args.includes('--reprocess'),
+  },
+  deepseek: {
+    enabled: !args.includes('--no-deepseek'),
+  }
 };
 
-class ResearchPipelineService {
-  constructor(config = {}) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
-    this.pipeline = null;
-    this.db = null;
-    this.campaignIntervals = new Map();
-    this.running = false;
+class ResearchPipelineCLI {
+  constructor() {
+    this.pipeline = new ResearchPipelineService();
+    this.startTime = Date.now();
   }
 
-  async initialize() {
-    console.log(chalk.cyan.bold('\n🚀 Starting AI Research Pipeline Service\n'));
-    console.log(chalk.gray('==========================================\n'));
-
-    // Initialize database
-    console.log(chalk.blue('📊 Connecting to database...'));
-    this.db = new Pool({
-      host: process.env.DB_HOST || 'localhost',
-      port: process.env.DB_PORT || 5432,
-      database: process.env.DB_NAME || 'lightdom',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres'
-    });
-
+  /**
+   * Main entry point
+   */
+  async run() {
     try {
-      await this.db.query('SELECT NOW()');
-      console.log(chalk.green('✓ Database connected\n'));
-    } catch (error) {
-      console.error(chalk.red('✗ Database connection failed:'), error.message);
-      throw error;
-    }
+      console.log('╔══════════════════════════════════════════════════════════╗');
+      console.log('║     🔬 LightDom Research Pipeline                       ║');
+      console.log('║     Deep Research Mining & Content Suggestion System    ║');
+      console.log('╚══════════════════════════════════════════════════════════╝');
+      console.log('');
 
-    // Check if schema exists
-    console.log(chalk.blue('🔍 Checking database schema...'));
-    const schemaCheck = await this.db.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_name = 'research_articles'
-      );
-    `);
-
-    if (!schemaCheck.rows[0].exists) {
-      console.log(chalk.yellow('⚠️  Research pipeline schema not found'));
-      console.log(chalk.yellow('   Run: psql -U postgres -d lightdom -f database/ai-research-pipeline-schema.sql\n'));
-      
-      // Try to initialize schema
-      try {
-        const schemaPath = './database/ai-research-pipeline-schema.sql';
-        if (fs.existsSync(schemaPath)) {
-          console.log(chalk.blue('📦 Initializing schema from file...'));
-          const schema = fs.readFileSync(schemaPath, 'utf8');
-          await this.db.query(schema);
-          console.log(chalk.green('✓ Schema initialized\n'));
-        }
-      } catch (error) {
-        console.error(chalk.red('✗ Failed to initialize schema:'), error.message);
-        console.log(chalk.yellow('   Please run the schema file manually\n'));
-      }
-    } else {
-      console.log(chalk.green('✓ Schema exists\n'));
-    }
-
-    // Initialize pipeline
-    console.log(chalk.blue('🔧 Initializing AI Research Pipeline...'));
-    this.pipeline = new AIResearchPipeline({
-      db: this.db,
-      headless: this.config.headless,
-      maxConcurrent: 5,
-      rateLimit: this.config.rateLimit
-    });
-
-    await this.pipeline.initialize();
-    console.log(chalk.green('✓ Pipeline initialized\n'));
-
-    // Set up event listeners
-    this.setupEventListeners();
-
-    this.running = true;
-  }
-
-  setupEventListeners() {
-    this.pipeline.on('articles-scraped', (data) => {
-      console.log(chalk.cyan(`📚 Scraped ${data.count} articles for topics: ${data.topics.join(', ')}`));
-    });
-
-    this.pipeline.on('campaign-executed', (data) => {
-      console.log(chalk.green(`✓ Campaign ${data.campaignId} completed:`));
-      console.log(chalk.gray(`  Articles: ${data.results.articlesFound}`));
-      console.log(chalk.gray(`  Features: ${data.results.featuresIdentified}`));
-      console.log(chalk.gray(`  Code Examples: ${data.results.codeExamplesExtracted}`));
-    });
-
-    this.pipeline.on('paper-generated', (paper) => {
-      console.log(chalk.yellow(`📝 Research paper generated: ${paper.title}`));
-    });
-
-    this.pipeline.on('campaign-created', (campaign) => {
-      console.log(chalk.cyan(`🎯 Campaign created: ${campaign.name}`));
-    });
-  }
-
-  async startDefaultCampaign() {
-    console.log(chalk.cyan.bold('\n🎯 Setting Up Default Campaign\n'));
-
-    // Check if default campaign exists
-    const existing = await this.db.query(`
-      SELECT id FROM research_campaigns 
-      WHERE name = 'Default AI/ML/LLM Monitoring'
-      AND is_active = true
-    `);
-
-    let campaignId;
-
-    if (existing.rows.length > 0) {
-      campaignId = existing.rows[0].id;
-      console.log(chalk.green(`✓ Found existing campaign: ${campaignId}\n`));
-    } else {
-      // Create default campaign
-      const campaign = await this.pipeline.createResearchCampaign({
-        name: 'Default AI/ML/LLM Monitoring',
-        description: 'Continuous monitoring of AI, ML, and LLM developments for product opportunities',
-        type: 'continuous',
-        queries: [
-          'artificial intelligence',
-          'machine learning',
-          'large language models',
-          'nlp',
-          'agentic ai',
-          'seo automation',
-          'ai agents',
-          'prompt engineering',
-          'rag retrieval',
-          'vector databases'
-        ],
-        topics: this.config.topics,
-        schedule: `0 */${Math.floor(this.config.executionInterval / 60)} * * *`,
-        maxArticles: this.config.articlesPerRun,
-        minRelevance: this.config.minRelevance,
-        fullScrape: this.config.enableFullScrape,
-        extractFeatures: this.config.enableFeatureExtraction
-      });
-
-      campaignId = campaign.id;
-      console.log(chalk.green(`✓ Created default campaign: ${campaignId}\n`));
-    }
-
-    // Execute immediately
-    console.log(chalk.blue('▶️  Executing initial campaign run...\n'));
-    await this.executeCampaign(campaignId);
-
-    // Schedule periodic execution
-    this.scheduleCampaign(campaignId, this.config.executionInterval);
-
-    return campaignId;
-  }
-
-  async executeCampaign(campaignId) {
-    try {
-      const results = await this.pipeline.executeCampaign(campaignId);
-      
-      // Generate research paper if enough data collected
-      if (results.featuresIdentified >= 10) {
-        console.log(chalk.blue('\n📝 Generating research paper...\n'));
-        await this.pipeline.generateResearchPaper('ai-ml-integration', 50);
+      // Setup database
+      if (command === 'setup' || command === 'full') {
+        await this.setupDatabase();
       }
 
-      return results;
-    } catch (error) {
-      console.error(chalk.red(`✗ Campaign execution failed:`), error.message);
-    }
-  }
+      // Initialize pipeline
+      await this.pipeline.initialize();
 
-  scheduleCampaign(campaignId, intervalMinutes) {
-    console.log(chalk.cyan(`⏰ Scheduling campaign to run every ${intervalMinutes} minutes\n`));
+      // Execute command
+      switch (command) {
+        case 'full':
+          await this.runFullPipeline();
+          break;
+        case 'mine':
+          await this.runMining();
+          break;
+        case 'deepseek':
+          await this.runDeepSeek();
+          break;
+        case 'stats':
+          await this.showStatistics();
+          break;
+        case 'setup':
+          console.log('✅ Setup completed');
+          break;
+        case 'help':
+          this.showHelp();
+          break;
+        default:
+          console.log(`Unknown command: ${command}`);
+          this.showHelp();
+      }
 
-    const interval = setInterval(async () => {
-      console.log(chalk.blue(`\n⏰ Scheduled campaign execution: ${new Date().toISOString()}\n`));
-      await this.executeCampaign(campaignId);
-    }, intervalMinutes * 60 * 1000);
+      // Show summary
+      await this.showSummary();
 
-    this.campaignIntervals.set(campaignId, interval);
-  }
-
-  async displayStats() {
-    const stats = await this.db.query(`
-      SELECT 
-        (SELECT COUNT(*) FROM research_articles) as total_articles,
-        (SELECT COUNT(*) FROM research_articles WHERE scraped_at > NOW() - INTERVAL '24 hours') as articles_today,
-        (SELECT COUNT(*) FROM feature_recommendations) as total_features,
-        (SELECT COUNT(*) FROM feature_recommendations WHERE revenue_potential = 'high') as high_revenue_features,
-        (SELECT COUNT(*) FROM research_campaigns WHERE is_active = true) as active_campaigns,
-        (SELECT COUNT(*) FROM research_papers) as total_papers,
-        (SELECT COUNT(*) FROM research_code_examples) as total_code_examples
-    `);
-
-    const s = stats.rows[0];
-
-    console.log(chalk.cyan.bold('\n📊 Current Statistics\n'));
-    console.log(chalk.white('Pipeline Status:'));
-    console.log(chalk.gray(`  Total Articles: ${s.total_articles}`));
-    console.log(chalk.yellow(`  Articles Today: ${s.articles_today}`));
-    console.log(chalk.gray(`  Total Features: ${s.total_features}`));
-    console.log(chalk.green(`  High Revenue Features: ${s.high_revenue_features}`));
-    console.log(chalk.gray(`  Active Campaigns: ${s.active_campaigns}`));
-    console.log(chalk.gray(`  Research Papers: ${s.total_papers}`));
-    console.log(chalk.gray(`  Code Examples: ${s.total_code_examples}\n`));
-  }
-
-  async start() {
-    await this.initialize();
-    await this.startDefaultCampaign();
-    await this.displayStats();
-
-    console.log(chalk.green.bold('\n✅ AI Research Pipeline Service Running\n'));
-    console.log(chalk.white('Service Status:'));
-    console.log(chalk.gray('  API Endpoints: http://localhost:3001/api/research/*'));
-    console.log(chalk.gray('  Dashboard: http://localhost:3001/api/research/dashboard'));
-    console.log(chalk.gray('  Monitoring: Continuous'));
-    console.log(chalk.gray('  Schedule: Every ' + this.config.executionInterval + ' minutes\n'));
-    
-    console.log(chalk.yellow('Press Ctrl+C to stop the service\n'));
-
-    // Handle graceful shutdown
-    process.on('SIGINT', async () => {
-      await this.stop();
-    });
-
-    process.on('SIGTERM', async () => {
-      await this.stop();
-    });
-  }
-
-  async stop() {
-    console.log(chalk.yellow('\n\n⏹️  Stopping AI Research Pipeline Service...\n'));
-
-    this.running = false;
-
-    // Clear all intervals
-    for (const interval of this.campaignIntervals.values()) {
-      clearInterval(interval);
-    }
-
-    // Cleanup pipeline
-    if (this.pipeline) {
+      // Cleanup
       await this.pipeline.cleanup();
-    }
 
-    // Close database
-    if (this.db) {
-      await this.db.end();
+      console.log('\n✅ Research Pipeline completed successfully\n');
+      process.exit(0);
+    } catch (error) {
+      console.error('\n❌ Error:', error.message);
+      console.error(error.stack);
+      process.exit(1);
     }
-
-    console.log(chalk.green('✓ Service stopped\n'));
-    process.exit(0);
   }
-}
 
-// Parse command line arguments
-const args = process.argv.slice(2);
-const config = {};
+  /**
+   * Setup database
+   */
+  async setupDatabase() {
+    console.log('📊 Setting up database...\n');
 
-for (let i = 0; i < args.length; i++) {
-  const arg = args[i];
-  
-  if (arg === '--interval' && args[i + 1]) {
-    config.executionInterval = parseInt(args[i + 1]);
-    i++;
-  } else if (arg === '--topics' && args[i + 1]) {
-    config.topics = args[i + 1].split(',');
-    i++;
-  } else if (arg === '--articles' && args[i + 1]) {
-    config.articlesPerRun = parseInt(args[i + 1]);
-    i++;
-  } else if (arg === '--no-headless') {
-    config.headless = false;
-  } else if (arg === '--help') {
+    try {
+      // Check if PostgreSQL is running
+      const { stdout } = await execAsync('pg_isready 2>&1 || echo "not ready"');
+      
+      if (stdout.includes('not ready')) {
+        console.log('⚠️  PostgreSQL not detected. Please ensure it is running.');
+        console.log('   Start with: sudo service postgresql start');
+        console.log('   Or use Docker: docker-compose up -d postgres\n');
+        
+        if (process.env.NODE_ENV === 'production') {
+          throw new Error('PostgreSQL not available');
+        }
+      }
+
+      // Execute schema file
+      const schemaPath = CONFIG.database.schemaFile;
+      const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/dom_space_harvester';
+
+      console.log(`  📁 Loading schema from: ${schemaPath}`);
+      
+      try {
+        await execAsync(`psql "${dbUrl}" -f ${schemaPath} 2>&1`);
+        console.log('  ✅ Database schema loaded\n');
+      } catch (error) {
+        if (error.message.includes('already exists')) {
+          console.log('  ℹ️  Database schema already exists\n');
+        } else {
+          console.log('  ⚠️  Schema load failed (may already exist):', error.message);
+          console.log('  Continuing anyway...\n');
+        }
+      }
+    } catch (error) {
+      console.log('⚠️  Database setup warning:', error.message);
+      console.log('Continuing with existing schema...\n');
+    }
+  }
+
+  /**
+   * Run full pipeline
+   */
+  async runFullPipeline() {
+    console.log('🚀 Running full research pipeline\n');
+    console.log('Steps:');
+    console.log('  1. Mine research articles');
+    console.log('  2. Process DeepSeek queue');
+    console.log('  3. Generate suggestions');
+    console.log('');
+
+    // Step 1: Mining
+    await this.runMining();
+
+    // Step 2: DeepSeek processing
+    if (CONFIG.deepseek.enabled) {
+      await this.runDeepSeek();
+    }
+
+    // Step 3: Show results
+    await this.showStatistics();
+  }
+
+  /**
+   * Run mining only
+   */
+  async runMining() {
+    console.log('\n⛏️  MINING PHASE\n');
+    console.log('Settings:');
+    console.log(`  • Priority: ${CONFIG.mining.priority}`);
+    console.log(`  • Limit: ${CONFIG.mining.limit} articles`);
+    console.log(`  • Skip extracted: ${CONFIG.mining.skipExtracted}`);
+    console.log('');
+
+    const stats = await this.pipeline.startMining(CONFIG.mining);
+
+    console.log('\n📊 Mining Results:');
+    console.log(`  • Processed: ${stats.articlesProcessed}`);
+    console.log(`  • Extracted: ${stats.articlesExtracted}`);
+    console.log(`  • Failed: ${stats.articlesFailed}`);
+    console.log(`  • Topics: ${stats.topicsIdentified}`);
+    console.log(`  • Seeds: ${stats.seedsCrawled}`);
+  }
+
+  /**
+   * Run DeepSeek processing
+   */
+  async runDeepSeek() {
+    console.log('\n🤖 DEEPSEEK PROCESSING PHASE\n');
+
+    if (!process.env.DEEPSEEK_API_KEY) {
+      console.log('⚠️  DEEPSEEK_API_KEY not set. Skipping DeepSeek processing.');
+      console.log('   Set it in .env file to enable AI-powered suggestions.\n');
+      return;
+    }
+
+    await this.pipeline.processDeepSeekQueue();
+
+    console.log('\n✅ DeepSeek processing completed');
+  }
+
+  /**
+   * Show statistics
+   */
+  async showStatistics() {
+    console.log('\n📈 PIPELINE STATISTICS\n');
+
+    const stats = await this.pipeline.getStatistics();
+
+    console.log('Database Status:');
+    console.log(`  • Total Articles: ${stats.totalArticles}`);
+    console.log(`  • Extracted: ${stats.extractedArticles}`);
+    console.log(`  • Pending: ${stats.pendingArticles}`);
+    console.log(`  • Topics: ${stats.totalTopics}`);
+    console.log(`  • Research Seeds: ${stats.totalSeeds}`);
+    console.log(`  • Content Queue: ${stats.pendingQueue}`);
+    console.log(`  • AI Suggestions: ${stats.suggestions}`);
+
+    const extractionRate = stats.totalArticles > 0 
+      ? ((stats.extractedArticles / stats.totalArticles) * 100).toFixed(1)
+      : 0;
+
+    console.log(`\n  Extraction Rate: ${extractionRate}%`);
+  }
+
+  /**
+   * Show summary
+   */
+  async showSummary() {
+    const duration = ((Date.now() - this.startTime) / 1000).toFixed(1);
+    
+    console.log('\n' + '═'.repeat(60));
+    console.log('Summary');
+    console.log('═'.repeat(60));
+    console.log(`Duration: ${duration}s`);
+    
+    const stats = await this.pipeline.getStatistics();
+    console.log(`Total Articles: ${stats.totalArticles}`);
+    console.log(`Extracted: ${stats.extractedArticles}`);
+    console.log(`AI Suggestions: ${stats.suggestions}`);
+    console.log('═'.repeat(60) + '\n');
+  }
+
+  /**
+   * Show help
+   */
+  showHelp() {
     console.log(`
-AI Research Pipeline Service
+Research Pipeline Commands:
 
-Usage: node start-research-pipeline.js [options]
+  npm run research:start              Run full pipeline (setup + mine + deepseek)
+  npm run research:mine               Mine articles only
+  npm run research:deepseek           Process DeepSeek queue only
+  npm run research:stats              Show statistics
+  npm run research:setup              Setup database only
 
 Options:
-  --interval <minutes>   Campaign execution interval (default: 360)
-  --topics <topics>      Comma-separated topics (default: ai,ml,llm,nlp,agents,seo,automation)
-  --articles <number>    Articles per run (default: 100)
-  --no-headless          Run browser in non-headless mode
-  --help                 Show this help message
+
+  --priority <level>                  Set mining priority (high, medium, low)
+  --limit <number>                    Limit number of articles to process
+  --reprocess                         Reprocess already extracted articles
+  --no-deepseek                       Skip DeepSeek processing
 
 Examples:
-  node start-research-pipeline.js
-  node start-research-pipeline.js --interval 180 --topics ai,ml,llm
-  node start-research-pipeline.js --articles 50 --no-headless
-`);
-    process.exit(0);
+
+  npm run research:start              # Full pipeline with defaults
+  npm run research:mine -- --priority high --limit 20
+  npm run research:mine -- --reprocess
+  npm run research:stats
+
+Environment Variables:
+
+  DATABASE_URL                        PostgreSQL connection string
+  DEEPSEEK_API_KEY                    DeepSeek API key for AI suggestions
+
+For more information, see docs/research/ai-series-352/README.md
+    `);
   }
 }
 
-// Start service
-const service = new ResearchPipelineService(config);
-service.start().catch(error => {
-  console.error(chalk.red('Failed to start service:'), error);
-  process.exit(1);
-});
+// Run CLI
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const cli = new ResearchPipelineCLI();
+  cli.run().catch(error => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
+}
+
+export default ResearchPipelineCLI;
