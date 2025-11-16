@@ -1,0 +1,176 @@
+---
+# AI Skill Template Configuration
+# This template defines how to configure AI skills that can be loaded and executed
+
+skillId: template-skill
+name: "Template Skill"
+version: "1.0.0"
+description: "A template for creating AI skills"
+author: "LightDom System"
+category: "design-system" # design-system, automation, revenue, infrastructure, training
+
+# Skill Metadata
+metadata:
+  tags: ["design", "automation", "template"]
+  difficulty: "intermediate" # beginner, intermediate, advanced, expert
+  estimatedTime: "5-10 minutes"
+  requirements:
+    - "Node.js 18+"
+    - "Access to AI model"
+  
+# Model Configuration
+model:
+  provider: "deepseek" # deepseek, ollama, openai, anthropic
+  name: "deepseek-coder" # Model name
+  temperature: 0.7 # 0.0 to 1.0
+  maxTokens: 4096
+  timeout: 120000 # milliseconds
+  
+# Prompt Configuration
+prompt:
+  system: |
+    You are an expert {{role}} with deep knowledge of {{domain}}.
+    Your goal is to {{goal}}.
+    
+    Core Principles:
+    {{#each principles}}
+    - {{this}}
+    {{/each}}
+    
+    Context:
+    {{context}}
+    
+  user: |
+    {{userInput}}
+    
+    {{#if additionalInstructions}}
+    Additional Instructions:
+    {{additionalInstructions}}
+    {{/if}}
+    
+    {{#if examples}}
+    Examples:
+    {{#each examples}}
+    ---
+    Input: {{this.input}}
+    Output: {{this.output}}
+    {{/each}}
+    {{/if}}
+
+# Variable Definitions
+variables:
+  role:
+    type: "string"
+    required: true
+    default: "software engineer"
+    description: "The role the AI should assume"
+    
+  domain:
+    type: "string"
+    required: true
+    description: "The domain of expertise"
+    
+  goal:
+    type: "string"
+    required: true
+    description: "The primary goal of this skill"
+    
+  principles:
+    type: "array"
+    required: false
+    default: []
+    description: "Core principles to follow"
+    
+  context:
+    type: "string"
+    required: false
+    default: ""
+    description: "Additional context"
+    
+  userInput:
+    type: "string"
+    required: true
+    description: "The user's request or input"
+    
+  additionalInstructions:
+    type: "string"
+    required: false
+    description: "Any additional instructions"
+    
+  examples:
+    type: "array"
+    required: false
+    description: "Example inputs and outputs"
+
+# Output Processing
+output:
+  format: "markdown" # markdown, json, yaml, code, html
+  validation:
+    enabled: true
+    schema: null # JSON schema for validation
+  postProcessing:
+    - type: "extractCode"
+      enabled: true
+      languages: ["typescript", "javascript", "tsx", "jsx"]
+    - type: "formatCode"
+      enabled: true
+    - type: "validateSyntax"
+      enabled: true
+
+# Execution Configuration
+execution:
+  retryOnFailure: true
+  maxRetries: 3
+  retryDelay: 5000 # milliseconds
+  timeout: 120000
+  
+  # Feedback loop for iterative improvement
+  feedbackLoop:
+    enabled: false
+    iterations: 3
+    evaluationCriteria:
+      - "correctness"
+      - "completeness"
+      - "quality"
+
+# Integration Points
+integrations:
+  # Store results in database
+  database:
+    enabled: false
+    table: "ai_skill_executions"
+    
+  # Send to message queue
+  queue:
+    enabled: false
+    topic: "ai-skill-results"
+    
+  # Trigger webhooks
+  webhooks:
+    enabled: false
+    urls: []
+    
+  # Save to file system
+  filesystem:
+    enabled: true
+    outputDir: "./output/skills"
+
+# Training Configuration (for self-improvement)
+training:
+  enabled: false
+  collectData: true
+  feedbackRequired: false
+  minimumRating: 3 # 1-5 stars
+  
+# Dependencies (other skills that should run first)
+dependencies: []
+
+# Success Criteria
+successCriteria:
+  - type: "outputLength"
+    min: 100
+    max: 10000
+  - type: "containsKeywords"
+    keywords: []
+  - type: "validFormat"
+    format: "markdown"
