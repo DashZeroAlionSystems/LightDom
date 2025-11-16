@@ -78,6 +78,7 @@ import DeepSeekSkillsDashboard from './pages/admin/DeepSeekSkillsDashboard';
 import ScraperManagerDashboard from './components/ScraperManagerDashboard';
 import DeepSeekChatPanel from './components/DeepSeekChatPanel';
 import CategoryManagement from './components/ui/admin/CategoryManagement';
+import DataStreamsManagement from './components/DataStreamsManagement';
 import DemoShowcase from './pages/DemoShowcase';
 import OnboardingVisualization from './pages/OnboardingVisualization';
 import LightDOMSlotsDemo from './pages/LightDOMSlotsDemo';
@@ -174,6 +175,7 @@ const AppContent: React.FC = () => {
           <Route path="client-reports" element={<ClientReportDashboard />} />
           <Route path="deepseek-skills" element={<DeepSeekSkillsDashboard />} />
           <Route path="category-management" element={<CategoryManagement />} />
+          <Route path="data-streams" element={<DataStreamsManagement />} />
         </Route>
         
         {/* Protected Routes */}
@@ -248,6 +250,8 @@ const AppContent: React.FC = () => {
           <Route path="admin/seo-workflows" element={<SEOCrawlerWorkflow />} />
           <Route path="admin/ai-automation" element={<AIAutomationPage />} />
           <Route path="admin/styleguide-config" element={<StyleguideConfigManager />} />
+          <Route path="admin/data-streams" element={<DataStreamsManagement />} />
+          <Route path="data-streams" element={<DataStreamsManagement />} />
           <Route path="admin/menu-builder" element={<AdminMenuBuilder />} />
           <Route path="admin/component-builder" element={<VisualComponentBuilder />} />
           <Route path="admin/scraper-manager" element={<ScraperManagerDashboard />} />

@@ -1001,6 +1001,19 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load pattern mining routes:', err);
       });
 
+    // Import and register Data Streams routes
+    import('./api/data-streams-routes.js')
+      .then(dataStreamsModule => {
+        const createDataStreamsRouter = dataStreamsModule.default || dataStreamsModule.createDataStreamsRouter;
+        if (typeof createDataStreamsRouter === 'function') {
+          this.app.use('/api/data-streams', createDataStreamsRouter(this.db));
+          console.log('✅ Data Streams routes registered (CRUD with attribute management)');
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load data streams routes:', err);
+      });
+
     // Import and register Automated SEO Campaign routes
     import('./src/api/routes/automated-seo.routes.js')
       .then(seoModule => {
@@ -1146,9 +1159,17 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.error('Failed to load Storybook mining routes:', err);
+      });
+
+    // Import and register Storybook Discovery routes
+    import('./api/storybook-discovery-routes.js')
+      .then(discoveryModule => {
+        const router = discoveryModule.default;
+        this.app.use('/api/storybook-discovery', router);
+        console.log('✅ Storybook Discovery routes registered (URL discovery, seeding, crawling enabled)');
       })
       .catch(err => {
-        console.error('Failed to load agent management routes:', err);
+        console.error('Failed to load Storybook discovery routes:', err);
       });
 
     // Import and register MCP Server Management routes (Agent instances with schema linking)
