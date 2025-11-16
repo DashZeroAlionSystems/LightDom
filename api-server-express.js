@@ -712,6 +712,26 @@ class DOMSpaceHarvesterAPI {
         console.warn('⚠️ Failed to load N8N workflow routes:', err.message);
       });
 
+    // Client Site Script Injection Routes
+    import('./api/client-site-routes.js')
+      .then(clientModule => {
+        this.app.use('/api/client-sites', clientModule.default);
+        console.log('✅ Client site script injection routes registered at /api/client-sites');
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to load client site routes:', err.message);
+      });
+
+    // DeepSeek Workflow Management Routes
+    import('./api/deepseek-workflow-routes.js')
+      .then(deepseekModule => {
+        this.app.use('/api/deepseek-workflows', deepseekModule.default);
+        console.log('✅ DeepSeek workflow management routes registered at /api/deepseek-workflows');
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to load DeepSeek workflow routes:', err.message);
+      });
+
     // Import and register Embeddings routes (pgvector)
     import('./src/api/routes/embeddings.routes.js')
       .then(embModule => {
