@@ -346,6 +346,8 @@
     "seo:test": "node scripts/test-seo-extraction.js",
     "seo:generate-dataset": "node scripts/generate-seo-training-data.js",
     "seo:worker": "node workers/seo-extraction-worker.js",
+    "seo:seed": "node scripts/seed-complete-system.js",
+    "seo:seed-all": "node scripts/seed-complete-system.js",
     "tensorflow:demo": "node demo-tensorflow-seo.js",
     "tensorflow:examples": "node examples/tensorflow-seo-examples.js",
     "tensorflow:models": "node -e \"import('./src/ml/seo-tensorflow-models.js').then(m => console.log(JSON.stringify(m.SEO_MODELS, null, 2)))\"",
