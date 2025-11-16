@@ -5,15 +5,13 @@
  */
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button, Typography, Space } from 'antd';
 import { RocketOutlined, LoginOutlined } from '@ant-design/icons';
 
 const { Title, Paragraph } = Typography;
 
 const ModernFrontPage: React.FC = () => {
-  const navigate = useNavigate();
-
   return (
     <div style={{ 
       display: 'flex', 
@@ -31,21 +29,23 @@ const ModernFrontPage: React.FC = () => {
           Blockchain-Verified DOM Optimization & Core Web Vitals Automation Platform
         </Paragraph>
         <Space size="large">
-          <Button 
-            type="primary" 
-            size="large" 
-            icon={<LoginOutlined />}
-            onClick={() => navigate('/login')}
-          >
-            Login
-          </Button>
-          <Button 
-            size="large"
-            onClick={() => navigate('/register')}
-            style={{ background: 'white' }}
-          >
-            Register
-          </Button>
+          <Link to="/login">
+            <Button 
+              type="primary" 
+              size="large" 
+              icon={<LoginOutlined />}
+            >
+              Login
+            </Button>
+          </Link>
+          <Link to="/register">
+            <Button 
+              size="large"
+              style={{ background: 'white' }}
+            >
+              Register
+            </Button>
+          </Link>
         </Space>
       </Space>
     </div>
