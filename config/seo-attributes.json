@@ -39,7 +39,7 @@
       "category": "meta",
       "selector": "computed",
       "type": "integer",
-      "mlWeight": 0.10,
+      "mlWeight": 0.1,
       "validation": {
         "required": false,
         "min": 0,
@@ -57,7 +57,7 @@
       "seeding": {
         "source": "crawler",
         "refreshFrequency": "daily",
-        "qualityThreshold": 0.90
+        "qualityThreshold": 0.9
       }
     },
     "metaDescription": {
@@ -94,7 +94,7 @@
       "category": "meta",
       "selector": "computed",
       "type": "integer",
-      "mlWeight": 0.10,
+      "mlWeight": 0.1,
       "validation": {
         "min": 0,
         "max": 300
@@ -111,7 +111,112 @@
       "seeding": {
         "source": "crawler",
         "refreshFrequency": "daily",
-        "qualityThreshold": 0.90
+        "qualityThreshold": 0.9
+      }
+    },
+    "metaKeywords": {
+      "id": 5,
+      "category": "meta",
+      "selector": "meta[name=\"keywords\"]",
+      "type": "string",
+      "mlWeight": 0.08,
+      "validation": {
+        "maxLength": 255
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "metaAuthor": {
+      "id": 6,
+      "category": "meta",
+      "selector": "meta[name=\"author\"]",
+      "type": "string",
+      "mlWeight": 0.06,
+      "validation": {
+        "maxLength": 100
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.7
+      }
+    },
+    "metaRobots": {
+      "id": 7,
+      "category": "meta",
+      "selector": "meta[name=\"robots\"]",
+      "type": "string",
+      "mlWeight": 0.1,
+      "validation": {
+        "pattern": "^(index|noindex|follow|nofollow|all|none)(,\\s*(index|noindex|follow|nofollow|all|none))*$"
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": "index, follow"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "metaViewport": {
+      "id": 8,
+      "category": "meta",
+      "selector": "meta[name=\"viewport\"]",
+      "type": "string",
+      "mlWeight": 0.12,
+      "validation": {
+        "required": true,
+        "pattern": ".*width.*"
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "critical",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
       }
     },
     "canonical": {
@@ -137,7 +242,81 @@
       "seeding": {
         "source": "crawler",
         "refreshFrequency": "daily",
-        "qualityThreshold": 0.90
+        "qualityThreshold": 0.9
+      }
+    },
+    "alternate": {
+      "id": 10,
+      "category": "meta",
+      "selector": "link[rel=\"alternate\"]",
+      "type": "url",
+      "mlWeight": 0.08,
+      "validation": {
+        "pattern": "^https?://.*"
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "href",
+        "fallback": null
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "prev": {
+      "id": 11,
+      "category": "meta",
+      "selector": "link[rel=\"prev\"]",
+      "type": "url",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "href",
+        "fallback": null
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.7
+      }
+    },
+    "next": {
+      "id": 12,
+      "category": "meta",
+      "selector": "link[rel=\"next\"]",
+      "type": "url",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "href",
+        "fallback": null
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.7
       }
     },
     "ogTitle": {
@@ -145,7 +324,7 @@
       "category": "open-graph",
       "selector": "meta[property=\"og:title\"]",
       "type": "string",
-      "mlWeight": 0.10,
+      "mlWeight": 0.1,
       "validation": {
         "minLength": 30,
         "maxLength": 90
@@ -166,6 +345,33 @@
         "qualityThreshold": 0.85
       }
     },
+    "ogDescription": {
+      "id": 14,
+      "category": "open-graph",
+      "selector": "meta[property=\"og:description\"]",
+      "type": "string",
+      "mlWeight": 0.1,
+      "validation": {
+        "minLength": 100,
+        "maxLength": 200
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
     "ogImage": {
       "id": 15,
       "category": "open-graph",
@@ -174,7 +380,10 @@
       "mlWeight": 0.12,
       "validation": {
         "pattern": "^https?://.*\\.(jpg|jpeg|png|webp|gif)$",
-        "minDimensions": { "width": 1200, "height": 630 }
+        "minDimensions": {
+          "width": 1200,
+          "height": 630
+        }
       },
       "scraping": {
         "method": "attr",
@@ -189,7 +398,355 @@
       "seeding": {
         "source": "crawler",
         "refreshFrequency": "daily",
-        "qualityThreshold": 0.90
+        "qualityThreshold": 0.9
+      }
+    },
+    "ogUrl": {
+      "id": 16,
+      "category": "open-graph",
+      "selector": "meta[property=\"og:url\"]",
+      "type": "url",
+      "mlWeight": 0.08,
+      "validation": {
+        "pattern": "^https?://.*"
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": null
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "ogType": {
+      "id": 17,
+      "category": "open-graph",
+      "selector": "meta[property=\"og:type\"]",
+      "type": "string",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": "website"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "ogSiteName": {
+      "id": 18,
+      "category": "open-graph",
+      "selector": "meta[property=\"og:site_name\"]",
+      "type": "string",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "ogLocale": {
+      "id": 19,
+      "category": "open-graph",
+      "selector": "meta[property=\"og:locale\"]",
+      "type": "string",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": "en_US"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.7
+      }
+    },
+    "twitterCard": {
+      "id": 20,
+      "category": "twitter-card",
+      "selector": "meta[name=\"twitter:card\"]",
+      "type": "string",
+      "mlWeight": 0.09,
+      "validation": {
+        "pattern": "^(summary|summary_large_image|app|player)$"
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "twitterSite": {
+      "id": 21,
+      "category": "twitter-card",
+      "selector": "meta[name=\"twitter:site\"]",
+      "type": "string",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "twitterCreator": {
+      "id": 22,
+      "category": "twitter-card",
+      "selector": "meta[name=\"twitter:creator\"]",
+      "type": "string",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "twitterTitle": {
+      "id": 23,
+      "category": "twitter-card",
+      "selector": "meta[name=\"twitter:title\"]",
+      "type": "string",
+      "mlWeight": 0.09,
+      "validation": {
+        "minLength": 30,
+        "maxLength": 70
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "twitterDescription": {
+      "id": 24,
+      "category": "twitter-card",
+      "selector": "meta[name=\"twitter:description\"]",
+      "type": "string",
+      "mlWeight": 0.09,
+      "validation": {
+        "minLength": 100,
+        "maxLength": 200
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "twitterImage": {
+      "id": 25,
+      "category": "twitter-card",
+      "selector": "meta[name=\"twitter:image\"]",
+      "type": "url",
+      "mlWeight": 0.1,
+      "validation": {
+        "pattern": "^https?://.*\\.(jpg|jpeg|png|webp|gif)$"
+      },
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": null
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "lang": {
+      "id": 26,
+      "category": "language",
+      "selector": "html",
+      "type": "string",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "lang",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.8
+      }
+    },
+    "charset": {
+      "id": 27,
+      "category": "language",
+      "selector": "meta[charset]",
+      "type": "string",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "charset",
+        "fallback": "UTF-8"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "favicon": {
+      "id": 28,
+      "category": "meta",
+      "selector": "link[rel~=\"icon\"]",
+      "type": "url",
+      "mlWeight": 0.05,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "href",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.7
+      }
+    },
+    "appleTouchIcon": {
+      "id": 29,
+      "category": "meta",
+      "selector": "link[rel=\"apple-touch-icon\"]",
+      "type": "url",
+      "mlWeight": 0.05,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "href",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.7
       }
     },
     "h1Count": {
@@ -197,7 +754,7 @@
       "category": "headings",
       "selector": "h1",
       "type": "integer",
-      "mlWeight": 0.10,
+      "mlWeight": 0.1,
       "validation": {
         "min": 0,
         "max": 3,
@@ -216,6 +773,122 @@
         "source": "crawler",
         "refreshFrequency": "daily",
         "qualityThreshold": 0.95
+      }
+    },
+    "h2Count": {
+      "id": 31,
+      "category": "headings",
+      "selector": "h2",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {
+        "min": 0,
+        "optimal": 3
+      },
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "h3Count": {
+      "id": 32,
+      "category": "headings",
+      "selector": "h3",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {
+        "min": 0
+      },
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "h4Count": {
+      "id": 33,
+      "category": "headings",
+      "selector": "h4",
+      "type": "integer",
+      "mlWeight": 0.05,
+      "validation": {
+        "min": 0
+      },
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.8
+      }
+    },
+    "h5Count": {
+      "id": 34,
+      "category": "headings",
+      "selector": "h5",
+      "type": "integer",
+      "mlWeight": 0.03,
+      "validation": {
+        "min": 0
+      },
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "h6Count": {
+      "id": 35,
+      "category": "headings",
+      "selector": "h6",
+      "type": "integer",
+      "mlWeight": 0.03,
+      "validation": {
+        "min": 0
+      },
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
       }
     },
     "h1Text": {
@@ -245,6 +918,123 @@
         "qualityThreshold": 0.95
       }
     },
+    "h2Text": {
+      "id": 37,
+      "category": "headings",
+      "selector": "h2",
+      "type": "string",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "text",
+        "transform": "trim",
+        "multiple": true,
+        "joinWith": " | "
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "h3Text": {
+      "id": 38,
+      "category": "headings",
+      "selector": "h3",
+      "type": "string",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "text",
+        "transform": "trim",
+        "multiple": true,
+        "joinWith": " | "
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "totalHeadings": {
+      "id": 39,
+      "category": "headings",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "h1Count + h2Count + h3Count + h4Count + h5Count + h6Count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "headingHierarchyValid": {
+      "id": 40,
+      "category": "headings",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "h1Count === 1"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "bodyTextLength": {
+      "id": 41,
+      "category": "content",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "bodyText.length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "zscore"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
     "wordCount": {
       "id": 42,
       "category": "content",
@@ -268,7 +1058,263 @@
       "seeding": {
         "source": "crawler",
         "refreshFrequency": "daily",
-        "qualityThreshold": 0.90
+        "qualityThreshold": 0.9
+      }
+    },
+    "paragraphCount": {
+      "id": 43,
+      "category": "content",
+      "selector": "p",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {
+        "min": 3
+      },
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "listCount": {
+      "id": 44,
+      "category": "content",
+      "selector": "ul, ol",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "listItemCount": {
+      "id": 45,
+      "category": "content",
+      "selector": "li",
+      "type": "integer",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "tableCount": {
+      "id": 46,
+      "category": "content",
+      "selector": "table",
+      "type": "integer",
+      "mlWeight": 0.05,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "formCount": {
+      "id": 47,
+      "category": "content",
+      "selector": "form",
+      "type": "integer",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "inputCount": {
+      "id": 48,
+      "category": "content",
+      "selector": "input",
+      "type": "integer",
+      "mlWeight": 0.05,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "buttonCount": {
+      "id": 49,
+      "category": "content",
+      "selector": "button",
+      "type": "integer",
+      "mlWeight": 0.05,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "textareaCount": {
+      "id": 50,
+      "category": "content",
+      "selector": "textarea",
+      "type": "integer",
+      "mlWeight": 0.04,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.7
+      }
+    },
+    "selectCount": {
+      "id": 51,
+      "category": "content",
+      "selector": "select",
+      "type": "integer",
+      "mlWeight": 0.04,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.7
+      }
+    },
+    "sentenceCount": {
+      "id": 52,
+      "category": "content",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "sentences.length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "zscore"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "avgWordsPerSentence": {
+      "id": 53,
+      "category": "content",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "sentences.length > 0 ? wordCount / sentences.length : 0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "totalLinks": {
+      "id": 54,
+      "category": "links",
+      "selector": "a[href]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
       }
     },
     "internalLinksCount": {
@@ -293,7 +1339,183 @@
       "seeding": {
         "source": "crawler",
         "refreshFrequency": "daily",
-        "qualityThreshold": 0.90
+        "qualityThreshold": 0.9
+      }
+    },
+    "externalLinksCount": {
+      "id": 56,
+      "category": "links",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "countExternalLinks()"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "anchorLinksCount": {
+      "id": 57,
+      "category": "links",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.05,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "anchorLinks.length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "noFollowLinksCount": {
+      "id": 58,
+      "category": "links",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "noFollowLinks.length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "doFollowLinksCount": {
+      "id": 59,
+      "category": "links",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "doFollowLinks.length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "internalToExternalRatio": {
+      "id": 60,
+      "category": "links",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "externalLinks.length > 0 ? internalLinks.length / externalLinks.length : 0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "emptyHrefCount": {
+      "id": 61,
+      "category": "links",
+      "selector": "a[href=\"\"], a[href=\"#\"]",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {
+        "max": 0
+      },
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "totalImages": {
+      "id": 65,
+      "category": "images",
+      "selector": "img",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "imagesWithAlt": {
+      "id": 66,
+      "category": "images",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.11,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "imagesWithAlt"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
       }
     },
     "altTextCoverage": {
@@ -323,6 +1545,74 @@
         "qualityThreshold": 0.95
       }
     },
+    "imagesWithoutAlt": {
+      "id": 68,
+      "category": "images",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.1,
+      "validation": {
+        "max": 0
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "totalImages - imagesWithAlt"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "imagesWithTitle": {
+      "id": 69,
+      "category": "images",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "imagesWithTitle"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "imagesWithLazyLoad": {
+      "id": 70,
+      "category": "images",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "imagesWithLazyLoad"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
     "structuredDataCount": {
       "id": 68,
       "category": "structured-data",
@@ -345,6 +1635,690 @@
         "source": "crawler",
         "refreshFrequency": "daily",
         "qualityThreshold": 0.95
+      }
+    },
+    "schemaTypes": {
+      "id": 76,
+      "category": "structured-data",
+      "selector": "computed",
+      "type": "string",
+      "mlWeight": 0.12,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.join(\", \")"
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "hasArticleSchema": {
+      "id": 77,
+      "category": "structured-data",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"Article\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "hasProductSchema": {
+      "id": 78,
+      "category": "structured-data",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.11,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"Product\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "hasOrganizationSchema": {
+      "id": 79,
+      "category": "structured-data",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"Organization\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "hasBreadcrumbSchema": {
+      "id": 80,
+      "category": "structured-data",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"BreadcrumbList\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "itemScopeCount": {
+      "id": 81,
+      "category": "structured-data",
+      "selector": "[itemscope]",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "itemPropCount": {
+      "id": 82,
+      "category": "structured-data",
+      "selector": "[itemprop]",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "htmlSize": {
+      "id": 85,
+      "category": "performance",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "Buffer.byteLength(html, \"utf8\")"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "zscore"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "cssLinkCount": {
+      "id": 86,
+      "category": "performance",
+      "selector": "link[rel=\"stylesheet\"]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "jsScriptCount": {
+      "id": 87,
+      "category": "performance",
+      "selector": "script[src]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "inlineScriptCount": {
+      "id": 88,
+      "category": "performance",
+      "selector": "script:not([src])",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "inlineStyleCount": {
+      "id": 89,
+      "category": "performance",
+      "selector": "style",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "prefetchCount": {
+      "id": 90,
+      "category": "performance",
+      "selector": "link[rel=\"prefetch\"]",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "preconnectCount": {
+      "id": 91,
+      "category": "performance",
+      "selector": "link[rel=\"preconnect\"]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "preloadCount": {
+      "id": 92,
+      "category": "performance",
+      "selector": "link[rel=\"preload\"]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "dnsPreconnectCount": {
+      "id": 93,
+      "category": "performance",
+      "selector": "link[rel=\"dns-prefetch\"]",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "hasViewportMeta": {
+      "id": 100,
+      "category": "mobile",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.12,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "!!metaViewport"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "critical",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "hasAppleMobileWebAppCapable": {
+      "id": 101,
+      "category": "mobile",
+      "selector": "meta[name=\"apple-mobile-web-app-capable\"]",
+      "type": "boolean",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "hasThemeColor": {
+      "id": 102,
+      "category": "mobile",
+      "selector": "meta[name=\"theme-color\"]",
+      "type": "boolean",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "attr",
+        "attribute": "content",
+        "fallback": ""
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "ariaLabelCount": {
+      "id": 103,
+      "category": "accessibility",
+      "selector": "[aria-label]",
+      "type": "integer",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "ariaDescribedByCount": {
+      "id": 104,
+      "category": "accessibility",
+      "selector": "[aria-describedby]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "roleCount": {
+      "id": 105,
+      "category": "accessibility",
+      "selector": "[role]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "accessibilityScore": {
+      "id": 106,
+      "category": "accessibility",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.15,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "((imagesWithAlt / (totalImages || 1)) * 50 + (roleCount > 0 ? 25 : 0) + (ariaLabelCount > 0 ? 25 : 0)) * 0.01"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "protocol": {
+      "id": 110,
+      "category": "url",
+      "selector": "computed",
+      "type": "string",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "url.protocol"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "hostname": {
+      "id": 111,
+      "category": "url",
+      "selector": "computed",
+      "type": "string",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "url.hostname"
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "pathname": {
+      "id": 112,
+      "category": "url",
+      "selector": "computed",
+      "type": "string",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "url.pathname"
+      },
+      "training": {
+        "featureType": "text",
+        "encoding": "bert",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.75
+      }
+    },
+    "pathnameLength": {
+      "id": 113,
+      "category": "url",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "url.pathname.length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "pathDepth": {
+      "id": 114,
+      "category": "url",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "url.pathname.split(\"/\").filter(Boolean).length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "hasQueryParams": {
+      "id": 115,
+      "category": "url",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "!!url.search"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "queryParamCount": {
+      "id": 116,
+      "category": "url",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "Array.from(url.searchParams.keys()).length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "hasFragment": {
+      "id": 117,
+      "category": "url",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.04,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "!!url.hash"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "low",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.7
       }
     },
     "isSecure": {
@@ -370,7 +2344,1373 @@
       "seeding": {
         "source": "crawler",
         "refreshFrequency": "daily",
-        "qualityThreshold": 1.0
+        "qualityThreshold": 1
+      }
+    },
+    "hasHttpsInLinks": {
+      "id": 120,
+      "category": "security",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "externalLinks.some(link => link.startsWith(\"https://\"))"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "hasInsecureContent": {
+      "id": 121,
+      "category": "security",
+      "selector": "img[src^=\"http:\"], script[src^=\"http:\"]",
+      "type": "boolean",
+      "mlWeight": 0.11,
+      "validation": {
+        "value": false
+      },
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "hasIframe": {
+      "id": 122,
+      "category": "security",
+      "selector": "iframe",
+      "type": "boolean",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "iframeCount": {
+      "id": 123,
+      "category": "security",
+      "selector": "iframe",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "hasExternalScripts": {
+      "id": 124,
+      "category": "security",
+      "selector": "script[src^=\"http\"]",
+      "type": "boolean",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "hasCrossOriginLinks": {
+      "id": 125,
+      "category": "security",
+      "selector": "a[rel*=\"noopener\"], a[rel*=\"noreferrer\"]",
+      "type": "boolean",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "facebookCount": {
+      "id": 130,
+      "category": "social",
+      "selector": "a[href*=\"facebook.com\"]",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "twitterCount": {
+      "id": 131,
+      "category": "social",
+      "selector": "a[href*=\"twitter.com\"], a[href*=\"x.com\"]",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "linkedinCount": {
+      "id": 132,
+      "category": "social",
+      "selector": "a[href*=\"linkedin.com\"]",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.8
+      }
+    },
+    "instagramCount": {
+      "id": 133,
+      "category": "social",
+      "selector": "a[href*=\"instagram.com\"]",
+      "type": "integer",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "youtubeCount": {
+      "id": 134,
+      "category": "social",
+      "selector": "a[href*=\"youtube.com\"]",
+      "type": "integer",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "pinterestCount": {
+      "id": 135,
+      "category": "social",
+      "selector": "a[href*=\"pinterest.com\"]",
+      "type": "integer",
+      "mlWeight": 0.05,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "socialShareCount": {
+      "id": 136,
+      "category": "social",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "facebookCount + twitterCount + linkedinCount + instagramCount"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "largestContentfulPaint": {
+      "id": 137,
+      "category": "core-web-vitals",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.15,
+      "validation": {
+        "max": 2500,
+        "optimal": 2000
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "firstInputDelay": {
+      "id": 138,
+      "category": "core-web-vitals",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.14,
+      "validation": {
+        "max": 100,
+        "optimal": 50
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "cumulativeLayoutShift": {
+      "id": 139,
+      "category": "core-web-vitals",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.14,
+      "validation": {
+        "max": 0.1,
+        "optimal": 0.05
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "timeToFirstByte": {
+      "id": 140,
+      "category": "performance",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.12,
+      "validation": {
+        "max": 600,
+        "optimal": 200
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "firstContentfulPaint": {
+      "id": 141,
+      "category": "performance",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.13,
+      "validation": {
+        "max": 1800,
+        "optimal": 1000
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "speedIndex": {
+      "id": 142,
+      "category": "performance",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.13,
+      "validation": {
+        "max": 3400,
+        "optimal": 2000
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "timeToInteractive": {
+      "id": 143,
+      "category": "performance",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.13,
+      "validation": {
+        "max": 3800,
+        "optimal": 2500
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "totalBlockingTime": {
+      "id": 144,
+      "category": "performance",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.11,
+      "validation": {
+        "max": 300,
+        "optimal": 150
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "hreflangCount": {
+      "id": 145,
+      "category": "i18n",
+      "selector": "link[rel=\"alternate\"][hreflang]",
+      "type": "integer",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "hasHreflangXDefault": {
+      "id": 146,
+      "category": "i18n",
+      "selector": "link[rel=\"alternate\"][hreflang=\"x-default\"]",
+      "type": "boolean",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "languageAlternatesCount": {
+      "id": 147,
+      "category": "i18n",
+      "selector": "link[rel=\"alternate\"][hreflang]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "readabilityScore": {
+      "id": 148,
+      "category": "content-quality",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.12,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "keywordDensity": {
+      "id": 149,
+      "category": "content-quality",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.11,
+      "validation": {
+        "min": 0,
+        "max": 5,
+        "optimal": 2
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "uniqueContentRatio": {
+      "id": 150,
+      "category": "content-quality",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.13,
+      "validation": {
+        "min": 0,
+        "max": 100,
+        "optimal": 80
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "contentFreshnessScore": {
+      "id": 151,
+      "category": "content-quality",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.1,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "multimediaContentRatio": {
+      "id": 152,
+      "category": "content-quality",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.1,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "videoCount": {
+      "id": 153,
+      "category": "content-quality",
+      "selector": "video, iframe[src*=\"youtube\"], iframe[src*=\"vimeo\"]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "audioCount": {
+      "id": 154,
+      "category": "content-quality",
+      "selector": "audio",
+      "type": "integer",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "robotsTxtExists": {
+      "id": 155,
+      "category": "technical-seo",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "false"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.9
+      }
+    },
+    "sitemapXmlExists": {
+      "id": 156,
+      "category": "technical-seo",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.11,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "false"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.9
+      }
+    },
+    "http2Enabled": {
+      "id": 157,
+      "category": "technical-seo",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "false"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.85
+      }
+    },
+    "gzipEnabled": {
+      "id": 158,
+      "category": "technical-seo",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "false"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.9
+      }
+    },
+    "brotliEnabled": {
+      "id": 159,
+      "category": "technical-seo",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "false"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.85
+      }
+    },
+    "imageOptimizationScore": {
+      "id": 160,
+      "category": "technical-seo",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.11,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "webpImageCount": {
+      "id": 161,
+      "category": "technical-seo",
+      "selector": "img[src$=\".webp\"], source[srcset*=\".webp\"]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "responsiveImageCount": {
+      "id": 162,
+      "category": "technical-seo",
+      "selector": "img[srcset], picture",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "cssMinificationScore": {
+      "id": 163,
+      "category": "technical-seo",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.08,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.85
+      }
+    },
+    "jsMinificationScore": {
+      "id": 164,
+      "category": "technical-seo",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.08,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.85
+      }
+    },
+    "callToActionCount": {
+      "id": 165,
+      "category": "user-engagement",
+      "selector": "button[type=\"submit\"], a.cta, .call-to-action",
+      "type": "integer",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "phoneNumberCount": {
+      "id": 166,
+      "category": "user-engagement",
+      "selector": "a[href^=\"tel:\"]",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "emailLinkCount": {
+      "id": 167,
+      "category": "user-engagement",
+      "selector": "a[href^=\"mailto:\"]",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "downloadLinkCount": {
+      "id": 168,
+      "category": "user-engagement",
+      "selector": "a[download], a[href$=\".pdf\"], a[href$=\".doc\"], a[href$=\".zip\"]",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.8
+      }
+    },
+    "testimonialCount": {
+      "id": 169,
+      "category": "user-engagement",
+      "selector": ".testimonial, [itemprop=\"review\"]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "ratingCount": {
+      "id": 170,
+      "category": "user-engagement",
+      "selector": "[itemprop=\"ratingValue\"], .rating, .stars",
+      "type": "integer",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "faqCount": {
+      "id": 171,
+      "category": "user-engagement",
+      "selector": "[itemtype*=\"FAQPage\"], .faq, .faq-item",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "chatWidgetPresent": {
+      "id": 172,
+      "category": "user-engagement",
+      "selector": "[class*=\"chat\"], [id*=\"chat\"], [class*=\"messenger\"]",
+      "type": "boolean",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.8
+      }
+    },
+    "contentQualityScore": {
+      "id": 183,
+      "category": "computed-scores",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.2,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "computeContentQualityScore(attributes)"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "realtime",
+        "qualityThreshold": 0.95
+      }
+    },
+    "technicalScore": {
+      "id": 184,
+      "category": "computed-scores",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.19,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "computeTechnicalScore(attributes)"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "realtime",
+        "qualityThreshold": 0.95
+      }
+    },
+    "overallScore": {
+      "id": 185,
+      "category": "computed-scores",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.25,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "(seoScore * 0.4 + contentQualityScore * 0.3 + technicalScore * 0.3) / 100"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "realtime",
+        "qualityThreshold": 0.95
+      }
+    },
+    "mobileScore": {
+      "id": 186,
+      "category": "computed-scores",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.18,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "performanceScore": {
+      "id": 187,
+      "category": "computed-scores",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.19,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "accessibilityScoreWCAG": {
+      "id": 188,
+      "category": "computed-scores",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.17,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "securityScore": {
+      "id": 189,
+      "category": "computed-scores",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.16,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "security-audit",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.9
+      }
+    },
+    "linkQualityScore": {
+      "id": 190,
+      "category": "computed-scores",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.15,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "socialEngagementScore": {
+      "id": 191,
+      "category": "computed-scores",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.14,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "social-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "userExperienceScore": {
+      "id": 192,
+      "category": "computed-scores",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.2,
+      "validation": {
+        "min": 0,
+        "max": 100
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "critical",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "analytics",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
       }
     },
     "seoScore": {
@@ -378,7 +3718,7 @@
       "category": "computed-scores",
       "selector": "computed",
       "type": "float",
-      "mlWeight": 0.20,
+      "mlWeight": 0.2,
       "validation": {
         "min": 0,
         "max": 100
@@ -397,6 +3737,719 @@
         "refreshFrequency": "realtime",
         "qualityThreshold": 0.95
       }
+    },
+    "svgCount": {
+      "id": 193,
+      "category": "rich-media",
+      "selector": "svg",
+      "type": "integer",
+      "mlWeight": 0.07,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.8
+      }
+    },
+    "canvasCount": {
+      "id": 194,
+      "category": "rich-media",
+      "selector": "canvas",
+      "type": "integer",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "embedCount": {
+      "id": 195,
+      "category": "rich-media",
+      "selector": "embed, object",
+      "type": "integer",
+      "mlWeight": 0.05,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.7
+      }
+    },
+    "codeBlockCount": {
+      "id": 196,
+      "category": "rich-media",
+      "selector": "pre, code",
+      "type": "integer",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "hasLocalBusinessSchema": {
+      "id": 197,
+      "category": "schema-advanced",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"LocalBusiness\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "hasEventSchema": {
+      "id": 198,
+      "category": "schema-advanced",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"Event\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "hasRecipeSchema": {
+      "id": 199,
+      "category": "schema-advanced",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"Recipe\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "hasVideoObjectSchema": {
+      "id": 200,
+      "category": "schema-advanced",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"VideoObject\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "hasReviewSchema": {
+      "id": 201,
+      "category": "schema-advanced",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"Review\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "hasJobPostingSchema": {
+      "id": 202,
+      "category": "schema-advanced",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"JobPosting\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "hasCourseSchema": {
+      "id": 203,
+      "category": "schema-advanced",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"Course\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "hasFAQSchema": {
+      "id": 204,
+      "category": "schema-advanced",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "schemaTypes.includes(\"FAQPage\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "brokenLinkCount": {
+      "id": 205,
+      "category": "links-advanced",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.1,
+      "validation": {
+        "max": 0
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "redirectCount": {
+      "id": 206,
+      "category": "links-advanced",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "deepLinkCount": {
+      "id": 207,
+      "category": "links-advanced",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "internalLinks.filter(l => (l.match(///g) || []).length > 3).length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "anchorTextDiversity": {
+      "id": 208,
+      "category": "links-advanced",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.1,
+      "validation": {
+        "min": 0,
+        "max": 1
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "productCount": {
+      "id": 209,
+      "category": "ecommerce",
+      "selector": "[itemtype*=\"Product\"], .product",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "priceCount": {
+      "id": 210,
+      "category": "ecommerce",
+      "selector": "[itemprop=\"price\"], .price",
+      "type": "integer",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "addToCartCount": {
+      "id": 211,
+      "category": "ecommerce",
+      "selector": "[class*=\"add-to-cart\"], [class*=\"buy-now\"]",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "wishlistCount": {
+      "id": 212,
+      "category": "ecommerce",
+      "selector": "[class*=\"wishlist\"], [class*=\"favorite\"]",
+      "type": "integer",
+      "mlWeight": 0.06,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "low",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.75
+      }
+    },
+    "renderBlockingResources": {
+      "id": 213,
+      "category": "performance-advanced",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "unusedCSSBytes": {
+      "id": 214,
+      "category": "performance-advanced",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "zscore"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "unusedJSBytes": {
+      "id": 215,
+      "category": "performance-advanced",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "zscore"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "mainThreadWorkMs": {
+      "id": 216,
+      "category": "performance-advanced",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.11,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "maxPotentialFID": {
+      "id": 217,
+      "category": "performance-advanced",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "bootupTimeMs": {
+      "id": 218,
+      "category": "performance-advanced",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "serverResponseTime": {
+      "id": 219,
+      "category": "performance-advanced",
+      "selector": "computed",
+      "type": "float",
+      "mlWeight": 0.11,
+      "validation": {
+        "max": 600
+      },
+      "scraping": {
+        "method": "computed",
+        "computation": "0.0"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "high",
+        "normalization": "minmax"
+      },
+      "seeding": {
+        "source": "performance-api",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.9
+      }
+    },
+    "domSize": {
+      "id": 220,
+      "category": "performance-advanced",
+      "selector": "computed",
+      "type": "integer",
+      "mlWeight": 0.09,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "$.root().find(\"*\").length"
+      },
+      "training": {
+        "featureType": "numerical",
+        "importance": "medium",
+        "normalization": "zscore"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.85
+      }
+    },
+    "searchEngineIndexable": {
+      "id": 221,
+      "category": "technical-seo-advanced",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.12,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "!metaRobots.includes(\"noindex\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "critical",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "crawlable": {
+      "id": 222,
+      "category": "technical-seo-advanced",
+      "selector": "computed",
+      "type": "boolean",
+      "mlWeight": 0.12,
+      "validation": {},
+      "scraping": {
+        "method": "computed",
+        "computation": "!metaRobots.includes(\"nofollow\")"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "critical",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "daily",
+        "qualityThreshold": 0.95
+      }
+    },
+    "ampEnabled": {
+      "id": 223,
+      "category": "technical-seo-advanced",
+      "selector": "html[amp], html[⚡]",
+      "type": "boolean",
+      "mlWeight": 0.08,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "medium",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.8
+      }
+    },
+    "pwaCapable": {
+      "id": 224,
+      "category": "technical-seo-advanced",
+      "selector": "link[rel=\"manifest\"]",
+      "type": "boolean",
+      "mlWeight": 0.1,
+      "validation": {},
+      "scraping": {
+        "method": "count"
+      },
+      "training": {
+        "featureType": "categorical",
+        "encoding": "one-hot",
+        "importance": "high",
+        "normalization": "none"
+      },
+      "seeding": {
+        "source": "crawler",
+        "refreshFrequency": "weekly",
+        "qualityThreshold": 0.85
+      }
     }
   },
   "optimizationRecommendations": {
@@ -406,17 +4459,32 @@
       "description": "Improve title length and keyword placement",
       "priority": "high",
       "confidence": 0.92,
-      "requiredAttributes": ["title", "titleLength", "h1Text"],
+      "requiredAttributes": [
+        "title",
+        "titleLength",
+        "h1Text"
+      ],
       "conditions": [
-        { "attribute": "titleLength", "operator": "<", "value": 30 },
-        { "attribute": "titleLength", "operator": ">", "value": 60 }
+        {
+          "attribute": "titleLength",
+          "operator": "<",
+          "value": 30
+        },
+        {
+          "attribute": "titleLength",
+          "operator": ">",
+          "value": 60
+        }
       ],
       "actions": [
         {
           "type": "update",
           "target": "title",
           "method": "optimizeLength",
-          "params": { "minLength": 30, "maxLength": 60 }
+          "params": {
+            "minLength": 30,
+            "maxLength": 60
+          }
         }
       ]
     },
@@ -426,17 +4494,31 @@
       "description": "Create or optimize meta description",
       "priority": "critical",
       "confidence": 0.95,
-      "requiredAttributes": ["metaDescription", "metaDescriptionLength"],
+      "requiredAttributes": [
+        "metaDescription",
+        "metaDescriptionLength"
+      ],
       "conditions": [
-        { "attribute": "metaDescription", "operator": "==", "value": "" },
-        { "attribute": "metaDescriptionLength", "operator": "<", "value": 120 }
+        {
+          "attribute": "metaDescription",
+          "operator": "==",
+          "value": ""
+        },
+        {
+          "attribute": "metaDescriptionLength",
+          "operator": "<",
+          "value": 120
+        }
       ],
       "actions": [
         {
           "type": "create",
           "target": "metaDescription",
           "method": "generateFromContent",
-          "params": { "length": 155, "includeKeyword": true }
+          "params": {
+            "length": 155,
+            "includeKeyword": true
+          }
         }
       ]
     },
@@ -446,17 +4528,31 @@
       "description": "Ensure proper heading structure",
       "priority": "high",
       "confidence": 0.88,
-      "requiredAttributes": ["h1Count", "h2Count", "headingHierarchyValid"],
+      "requiredAttributes": [
+        "h1Count",
+        "h2Count",
+        "headingHierarchyValid"
+      ],
       "conditions": [
-        { "attribute": "h1Count", "operator": "!=", "value": 1 },
-        { "attribute": "headingHierarchyValid", "operator": "==", "value": false }
+        {
+          "attribute": "h1Count",
+          "operator": "!=",
+          "value": 1
+        },
+        {
+          "attribute": "headingHierarchyValid",
+          "operator": "==",
+          "value": false
+        }
       ],
       "actions": [
         {
           "type": "restructure",
           "target": "headings",
           "method": "fixHierarchy",
-          "params": { "enforceH1": true }
+          "params": {
+            "enforceH1": true
+          }
         }
       ]
     },
@@ -465,17 +4561,30 @@
       "name": "Add Structured Data",
       "description": "Implement JSON-LD schema markup",
       "priority": "critical",
-      "confidence": 0.90,
-      "requiredAttributes": ["structuredDataCount", "schemaTypes"],
+      "confidence": 0.9,
+      "requiredAttributes": [
+        "structuredDataCount",
+        "schemaTypes"
+      ],
       "conditions": [
-        { "attribute": "structuredDataCount", "operator": "==", "value": 0 }
+        {
+          "attribute": "structuredDataCount",
+          "operator": "==",
+          "value": 0
+        }
       ],
       "actions": [
         {
           "type": "create",
           "target": "structuredData",
           "method": "generateSchema",
-          "params": { "types": ["Organization", "WebPage", "BreadcrumbList"] }
+          "params": {
+            "types": [
+              "Organization",
+              "WebPage",
+              "BreadcrumbList"
+            ]
+          }
         }
       ]
     },
@@ -485,16 +4594,26 @@
       "description": "Add descriptive alt text to images",
       "priority": "high",
       "confidence": 0.85,
-      "requiredAttributes": ["altTextCoverage", "imagesWithoutAlt"],
+      "requiredAttributes": [
+        "altTextCoverage",
+        "imagesWithoutAlt"
+      ],
       "conditions": [
-        { "attribute": "altTextCoverage", "operator": "<", "value": 80 }
+        {
+          "attribute": "altTextCoverage",
+          "operator": "<",
+          "value": 80
+        }
       ],
       "actions": [
         {
           "type": "update",
           "target": "images",
           "method": "generateAltText",
-          "params": { "useAI": true, "contextAware": true }
+          "params": {
+            "useAI": true,
+            "contextAware": true
+          }
         }
       ]
     },
@@ -503,17 +4622,26 @@
       "name": "Enable HTTPS",
       "description": "Secure site with SSL/TLS certificate",
       "priority": "critical",
-      "confidence": 1.0,
-      "requiredAttributes": ["isSecure", "hasInsecureContent"],
+      "confidence": 1,
+      "requiredAttributes": [
+        "isSecure",
+        "hasInsecureContent"
+      ],
       "conditions": [
-        { "attribute": "isSecure", "operator": "==", "value": false }
+        {
+          "attribute": "isSecure",
+          "operator": "==",
+          "value": false
+        }
       ],
       "actions": [
         {
           "type": "configure",
           "target": "server",
           "method": "enableHTTPS",
-          "params": { "redirectHTTP": true }
+          "params": {
+            "redirectHTTP": true
+          }
         }
       ]
     },
@@ -523,16 +4651,26 @@
       "description": "Expand content to recommended word count",
       "priority": "medium",
       "confidence": 0.75,
-      "requiredAttributes": ["wordCount", "contentQualityScore"],
+      "requiredAttributes": [
+        "wordCount",
+        "contentQualityScore"
+      ],
       "conditions": [
-        { "attribute": "wordCount", "operator": "<", "value": 300 }
+        {
+          "attribute": "wordCount",
+          "operator": "<",
+          "value": 300
+        }
       ],
       "actions": [
         {
           "type": "expand",
           "target": "content",
           "method": "generateAdditionalContent",
-          "params": { "targetWords": 1000, "maintainStyle": true }
+          "params": {
+            "targetWords": 1000,
+            "maintainStyle": true
+          }
         }
       ]
     },
@@ -541,17 +4679,27 @@
       "name": "Add Internal Links",
       "description": "Improve internal linking structure",
       "priority": "medium",
-      "confidence": 0.80,
-      "requiredAttributes": ["internalLinksCount", "totalLinks"],
+      "confidence": 0.8,
+      "requiredAttributes": [
+        "internalLinksCount",
+        "totalLinks"
+      ],
       "conditions": [
-        { "attribute": "internalLinksCount", "operator": "<", "value": 5 }
+        {
+          "attribute": "internalLinksCount",
+          "operator": "<",
+          "value": 5
+        }
       ],
       "actions": [
         {
           "type": "create",
           "target": "links",
           "method": "suggestInternalLinks",
-          "params": { "minLinks": 5, "contextualRelevance": true }
+          "params": {
+            "minLinks": 5,
+            "contextualRelevance": true
+          }
         }
       ]
     }
@@ -559,7 +4707,11 @@
   "trainingConfiguration": {
     "modelArchitecture": "transformer",
     "inputDimensions": 192,
-    "hiddenLayers": [256, 128, 64],
+    "hiddenLayers": [
+      256,
+      128,
+      64
+    ],
     "outputDimensions": 50,
     "learningRate": 0.001,
     "batchSize": 32,
@@ -580,7 +4732,11 @@
     ],
     "dataAugmentation": {
       "enabled": true,
-      "methods": ["synonym_replacement", "back_translation", "random_insertion"]
+      "methods": [
+        "synonym_replacement",
+        "back_translation",
+        "random_insertion"
+      ]
     },
     "featureEngineering": {
       "textEmbeddings": "bert-base-uncased",
@@ -591,7 +4747,7 @@
   },
   "metadata": {
     "version": "1.0.0",
-    "lastUpdated": "2025-01-13",
+    "lastUpdated": "2025-11-16",
     "totalAttributes": 192,
     "totalOptimizations": 50,
     "author": "LightDom AI Team",
