@@ -17,7 +17,8 @@ import {
   ToolOutlined,
   StarFilled,
   CheckCircleOutlined,
-  WarningOutlined
+  WarningOutlined,
+  LayoutOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 

@@ -24,6 +24,7 @@ import AdvancedNodeDashboard from './components/ui/AdvancedNodeDashboard';
 import BlockchainModelStorageDashboard from './components/ui/BlockchainModelStorageDashboard';
 import SpaceOptimizationDashboard from './components/ui/SpaceOptimizationDashboard';
 import { SEOOptimizationDashboard } from './components/SEOOptimizationDashboard';
+import ComprehensiveSEODashboard from './components/dashboard/ComprehensiveSEODashboard';
 import { SEOModelMarketplace } from './components/SEOModelMarketplace';
 import { SEODataMiningDashboard } from './components/SEODataMiningDashboard';
 import ClientZone from './components/ui/ClientZone';
@@ -71,6 +72,8 @@ import { AgentSessionsPanel } from './components/agent/AgentSessionsPanel';
 import StyleguideConfigManager from './components/admin/StyleguideConfigManager';
 import AdminMenuBuilder from './components/admin/AdminMenuBuilder';
 import VisualComponentBuilder from './components/admin/VisualComponentBuilder';
+import MD3DashboardDemo from './components/admin/MD3DashboardDemo';
+import MaterialTailwindDemo from './components/admin/MaterialTailwindDemo';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import DeepSeekWorkflowDashboard from './pages/admin/DeepSeekWorkflowDashboard';
 import ClientReportDashboard from './pages/admin/ClientReportDashboard';
@@ -80,6 +83,7 @@ import DeepSeekChatPanel from './components/DeepSeekChatPanel';
 import CategoryManagement from './components/ui/admin/CategoryManagement';
 import DataStreamsManagement from './components/DataStreamsManagement';
 import DemoShowcase from './pages/DemoShowcase';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import OnboardingVisualization from './pages/OnboardingVisualization';
 import LightDOMSlotsDemo from './pages/LightDOMSlotsDemo';
 import BlockchainBenchmarkDemo from './pages/BlockchainBenchmarkDemo';
@@ -176,6 +180,8 @@ const AppContent: React.FC = () => {
           <Route path="deepseek-skills" element={<DeepSeekSkillsDashboard />} />
           <Route path="category-management" element={<CategoryManagement />} />
           <Route path="data-streams" element={<DataStreamsManagement />} />
+          <Route path="md3-dashboard" element={<MD3DashboardDemo />} />
+          <Route path="material-tailwind" element={<MaterialTailwindDemo />} />
         </Route>
         
         {/* Protected Routes */}

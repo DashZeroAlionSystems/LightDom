@@ -47,6 +47,10 @@ import {
   RobotOutlined,
   DeploymentUnitOutlined,
   FolderOutlined,
+  RocketOutlined,
+  BgColorsOutlined,
+  FormatPainterOutlined,
+  BlockOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../../../hooks/state/useAuth';
 import './AdminLayout.css';
@@ -77,36 +81,13 @@ const AdminLayout: React.FC = () => {
       type: 'divider' as const,
     },
     {
-      key: 'workflow',
-      icon: <ExperimentOutlined />,
-      label: 'Workflow',
+      key: 'content',
+      icon: <FolderOutlined />,
+      label: 'Content Management',
       children: [
-        { key: '/admin/user-workflows', label: 'User Workflows', icon: <TeamOutlined /> },
-        { key: '/admin/seo-workflows', label: 'SEO Workflows', icon: <GlobalOutlined /> },
-        { key: '/admin/workflow-creation', label: 'Workflow Builder', icon: <ExperimentOutlined /> },
+        { key: '/admin/category-management', label: 'Categories', icon: <FolderOutlined /> },
+        { key: '/admin/data-streams', label: 'Data Streams', icon: <SwapOutlined /> },
       ],
-    },
-    {
-      key: 'datamining',
-      icon: <DatabaseOutlined />,
-      label: 'Data Mining',
-      children: [
-        { key: '/admin/crawler', label: 'Web Crawler', icon: <GlobalOutlined /> },
-        { key: '/admin/crawler-workload', label: 'Crawler Workload', icon: <ApiOutlined /> },
-        { key: '/admin/analytics', label: 'Analytics', icon: <BarChartOutlined /> },
-      ],
-    },
-    {
-      key: 'training',
-      icon: <DeploymentUnitOutlined />,
-      label: 'Training',
-      children: [
-        { key: '/admin/training', label: 'AI Training Control', icon: <RobotOutlined /> },
-        { key: '/admin/training-data', label: 'Training Data Pipeline', icon: <DatabaseOutlined /> },
-      ],
-    },
-    {
-      type: 'divider' as const,
     },
     {
       key: 'users',
@@ -114,19 +95,89 @@ const AdminLayout: React.FC = () => {
       label: 'Users & Access',
       children: [
         { key: '/admin/users', label: 'User Management', icon: <UserOutlined /> },
-        { key: '/admin/monitoring', label: 'System Monitoring', icon: <ApiOutlined /> },
-        { key: '/admin/logs', label: 'System Logs', icon: <FileTextOutlined /> },
+        { key: '/admin/billing', label: 'Billing', icon: <DollarOutlined /> },
       ],
     },
     {
-      key: '/admin/settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
+      type: 'divider' as const,
     },
     {
-      key: '/admin/category-management',
-      icon: <FolderOutlined />,
-      label: 'Category Management',
+      key: 'workflow',
+      icon: <ExperimentOutlined />,
+      label: 'Workflows',
+      children: [
+        { key: '/admin/user-workflows', label: 'User Workflows', icon: <TeamOutlined /> },
+        { key: '/admin/seo-workflows', label: 'SEO Workflows', icon: <GlobalOutlined /> },
+        { key: '/admin/workflow-creation', label: 'Workflow Builder', icon: <ExperimentOutlined /> },
+        { key: '/admin/deepseek-workflows', label: 'DeepSeek Workflows', icon: <RobotOutlined /> },
+      ],
+    },
+    {
+      key: 'datamining',
+      icon: <DatabaseOutlined />,
+      label: 'Data Mining & SEO',
+      children: [
+        { key: '/admin/crawler', label: 'Web Crawler', icon: <GlobalOutlined /> },
+        { key: '/admin/crawler-workload', label: 'Crawler Workload', icon: <ApiOutlined /> },
+        { key: '/admin/crawler-campaigns', label: 'Crawler Campaigns', icon: <RocketOutlined /> },
+        { key: '/admin/analytics', label: 'Analytics', icon: <BarChartOutlined /> },
+      ],
+    },
+    {
+      key: 'training',
+      icon: <DeploymentUnitOutlined />,
+      label: 'AI & Training',
+      children: [
+        { key: '/admin/training', label: 'Training Control', icon: <RobotOutlined /> },
+        { key: '/admin/training-data', label: 'Training Data Pipeline', icon: <DatabaseOutlined /> },
+        { key: '/admin/deepseek-skills', label: 'DeepSeek Skills', icon: <ThunderboltOutlined /> },
+      ],
+    },
+    {
+      type: 'divider' as const,
+    },
+    {
+      key: 'design',
+      icon: <FormatPainterOutlined />,
+      label: 'Design System',
+      children: [
+        { key: '/admin/design-system', label: 'Design Guide', icon: <BgColorsOutlined /> },
+        { key: '/admin/motion-showcase', label: 'Motion Design', icon: <RocketOutlined /> },
+        { key: '/admin/design-tools', label: 'Design Tools', icon: <ToolOutlined /> },
+        { key: '/admin/styleguide-config', label: 'Styleguide Config', icon: <SettingOutlined /> },
+        { key: '/admin/menu-builder', label: 'Menu Builder', icon: <AppstoreOutlined /> },
+        { key: '/admin/component-builder', label: 'Component Builder', icon: <BlockOutlined /> },
+      ],
+    },
+    {
+      key: 'demos',
+      icon: <RocketOutlined />,
+      label: 'Demos',
+      children: [
+        { key: '/admin/copilot-ui', label: 'Copilot UI Demo', icon: <RobotOutlined /> },
+        { key: '/admin/md3-dashboard', label: 'MD3 Dashboard', icon: <DashboardOutlined /> },
+        { key: '/admin/material-tailwind', label: 'Material Tailwind', icon: <FormatPainterOutlined /> },
+        { key: '/admin/schema-linking', label: 'Schema Linking', icon: <ApiOutlined /> },
+        { key: '/admin/chrome-layers', label: 'Chrome Layers 3D', icon: <BlockOutlined /> },
+      ],
+    },
+    {
+      type: 'divider' as const,
+    },
+    {
+      key: 'system',
+      icon: <SettingOutlined />,
+      label: 'System',
+      children: [
+        { key: '/admin/monitoring', label: 'System Monitoring', icon: <ApiOutlined /> },
+        { key: '/admin/logs', label: 'System Logs', icon: <FileTextOutlined /> },
+        { key: '/admin/settings', label: 'Settings', icon: <SettingOutlined /> },
+      ],
+    },
+    {
+      key: '/admin/client-reports',
+      icon: <SnippetsOutlined />,
+      label: 'Client Reports',
     },
   ], []);
 
