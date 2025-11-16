@@ -1001,6 +1001,19 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load pattern mining routes:', err);
       });
 
+    // Import and register Data Streams routes
+    import('./api/data-streams-routes.js')
+      .then(dataStreamsModule => {
+        const createDataStreamsRouter = dataStreamsModule.default || dataStreamsModule.createDataStreamsRouter;
+        if (typeof createDataStreamsRouter === 'function') {
+          this.app.use('/api/data-streams', createDataStreamsRouter(this.db));
+          console.log('✅ Data Streams routes registered (CRUD with attribute management)');
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load data streams routes:', err);
+      });
+
     // Import and register Automated SEO Campaign routes
     import('./src/api/routes/automated-seo.routes.js')
       .then(seoModule => {
