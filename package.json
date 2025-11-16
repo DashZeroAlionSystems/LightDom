@@ -338,6 +338,8 @@
     "seo:test": "node scripts/test-seo-extraction.js",
     "seo:generate-dataset": "node scripts/generate-seo-training-data.js",
     "seo:worker": "node workers/seo-extraction-worker.js",
+    "seo:seed": "node scripts/seed-complete-system.js",
+    "seo:seed-all": "node scripts/seed-complete-system.js",
     "crawler:worker": "node workers/crawler-worker.js",
     "training:worker": "node workers/training-data-worker.js",
     "jobs:test": "node scripts/test-job-queue.js",
