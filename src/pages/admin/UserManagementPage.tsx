@@ -4,18 +4,18 @@
  * Provides full CRUD interface for user management
  */
 
-import React, { useState } from 'react';
-import { Layout, Tabs, Card, Statistic, Row, Col } from 'antd';
+import UserDetail from '@/components/admin/UserDetail';
+import UserForm from '@/components/admin/UserForm';
+import UserList from '@/components/admin/UserList';
 import {
-  UserOutlined,
-  TeamOutlined,
   CrownOutlined,
   DollarOutlined,
-  RiseOutlined
+  RiseOutlined,
+  TeamOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
-import UserList from './UserList';
-import UserDetail from './UserDetail';
-import UserForm from './UserForm';
+import { Card, Col, Layout, Row, Statistic, Tabs } from 'antd';
+import React, { useState } from 'react';
 
 const { Content } = Layout;
 const { TabPane } = Tabs;
@@ -31,8 +31,8 @@ const UserManagementPage: React.FC = () => {
       const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/users/stats/overview', {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -77,7 +77,7 @@ const UserManagementPage: React.FC = () => {
             <Row gutter={16}>
               <Col span={6}>
                 <Statistic
-                  title="Total Users"
+                  title='Total Users'
                   value={stats.overview?.total_users || 0}
                   prefix={<TeamOutlined />}
                   valueStyle={{ color: '#3f8600' }}
@@ -85,7 +85,7 @@ const UserManagementPage: React.FC = () => {
               </Col>
               <Col span={6}>
                 <Statistic
-                  title="Active Users"
+                  title='Active Users'
                   value={stats.overview?.active_users || 0}
                   prefix={<UserOutlined />}
                   valueStyle={{ color: '#1890ff' }}
@@ -93,7 +93,7 @@ const UserManagementPage: React.FC = () => {
               </Col>
               <Col span={6}>
                 <Statistic
-                  title="New Users (30d)"
+                  title='New Users (30d)'
                   value={stats.overview?.new_users_30d || 0}
                   prefix={<RiseOutlined />}
                   valueStyle={{ color: '#cf1322' }}
@@ -101,7 +101,7 @@ const UserManagementPage: React.FC = () => {
               </Col>
               <Col span={6}>
                 <Statistic
-                  title="Active (7d)"
+                  title='Active (7d)'
                   value={stats.overview?.active_users_7d || 0}
                   prefix={<UserOutlined />}
                 />
@@ -138,11 +138,8 @@ const UserManagementPage: React.FC = () => {
               key: 'list',
               label: 'User List',
               children: (
-                <UserList
-                  onUserSelect={handleUserSelect}
-                  onCreateUser={handleCreateUser}
-                />
-              )
+                <UserList onUserSelect={handleUserSelect} onCreateUser={handleCreateUser} />
+              ),
             },
             {
               key: 'detail',
@@ -154,7 +151,7 @@ const UserManagementPage: React.FC = () => {
                   onEdit={handleEditUser}
                   onBack={handleBackToList}
                 />
-              ) : null
+              ) : null,
             },
             {
               key: 'edit',
@@ -166,18 +163,13 @@ const UserManagementPage: React.FC = () => {
                   onSuccess={handleBackToList}
                   onCancel={handleBackToList}
                 />
-              ) : null
+              ) : null,
             },
             {
               key: 'create',
               label: 'Create User',
-              children: (
-                <UserForm
-                  onSuccess={handleBackToList}
-                  onCancel={handleBackToList}
-                />
-              )
-            }
+              children: <UserForm onSuccess={handleBackToList} onCancel={handleBackToList} />,
+            },
           ]}
         />
       </Content>

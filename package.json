@@ -98,7 +98,7 @@
     "architecture:validate": "echo 'Architecture validation would run here'",
     "quality:gates": "node scripts/quality-gates.js",
     "rules:validate": "node scripts/rule-validation-windows.js",
-    "research:start": "node start-research-pipeline.js full",
+    "research:start": "node start-research-pipeline.js",
     "research:mine": "node start-research-pipeline.js mine",
     "research:deepseek": "node start-research-pipeline.js deepseek",
     "research:stats": "node start-research-pipeline.js stats",
@@ -343,7 +343,6 @@
     "jobs:test": "node scripts/test-job-queue.js",
     "start:all": "node scripts/start-all-services.js",
     "research": "node research-cli.js",
-    "research:start": "node start-research-pipeline.js",
     "research:demo": "node demo-ai-research-pipeline.js",
     "research:demo:mock": "node demo-research-pipeline-mock.js",
     "research:analyze": "node analyze-target-articles.js",
@@ -529,6 +528,6 @@
   },
   "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac",
   "volta": {
-    "node": "20.18.0"
+    "node": "20.19.0"
   }
 }
