@@ -1,6 +1,7 @@
 import axios from 'axios';
 import pdfParse from 'pdf-parse';
 import { YoutubeTranscript } from 'youtube-transcript';
+import { DeepSeekOCRService } from '../deepseek-ocr-service.js';
 
 const SUPPORTED_TEXT_TYPES = new Set([
   'text/plain',
@@ -24,13 +25,27 @@ const SUPPORTED_IMAGE_TYPES = new Set([
   'image/bmp',
 ]);
 
-const SUPPORTED_VIDEO_TYPES = new Set([
-  'video/mp4',
-  'video/mpeg',
-  'video/quicktime',
-]);
+const SUPPORTED_VIDEO_TYPES = new Set(['video/mp4', 'video/mpeg', 'video/quicktime']);
 
 const DEFAULT_OCR_ENDPOINT = process.env.OCR_WORKER_URL || 'http://localhost:4205/ocr';
+const USE_DEEPSEEK_OCR = process.env.RAG_USE_DEEPSEEK_OCR === 'true';
+
+let deepseekOcrPromise = null;
+
+async function getDeepseekOcr() {
+  if (!USE_DEEPSEEK_OCR) return null;
+  if (!deepseekOcrPromise) {
+    deepseekOcrPromise = (async () => {
+      const service = new DeepSeekOCRService();
+      return service;
+    })().catch(error => {
+      deepseekOcrPromise = null;
+      console.warn('DeepSeek OCR initialization failed:', error.message);
+      return null;
+    });
+  }
+  return deepseekOcrPromise;
+}
 
 function stripHtml(htmlString) {
   return htmlString
@@ -111,6 +126,32 @@ async function extractFromText(buffer, mimeType) {
 }
 
 async function extractFromImage(buffer, options) {
+  const deepseekOcr = await getDeepseekOcr();
+
+  if (deepseekOcr) {
+    try {
+      const result = await deepseekOcr.processDocument(
+        { buffer },
+        {
+          language: options?.languageHint,
+          outputFormat: 'markdown',
+        }
+      );
+
+      return {
+        text: result?.text?.trim() ?? '',
+        metadata: {
+          model: result?.metadata?.model,
+          confidence: result?.metadata?.confidence,
+          compressionRatio: result?.metadata?.compressionRatio,
+          visionTokens: result?.metadata?.compressedTokens,
+        },
+      };
+    } catch (error) {
+      console.warn('DeepSeek OCR processing failed, falling back to worker:', error.message);
+    }
+  }
+
   const response = await callOcrWorker(buffer, options);
   return {
     text: response?.text?.trim() ?? '',
@@ -128,7 +169,7 @@ async function extractFromVideo(buffer, options) {
     try {
       const transcript = await YoutubeTranscript.fetchTranscript(options.youtubeUrl);
       const text = transcript
-        .map((entry) => entry.text)
+        .map(entry => entry.text)
         .join(' ')
         .replace(/\s+/g, ' ')
         .trim();

@@ -61,7 +61,7 @@ export class SmartNavigationSystem extends EventEmitter {
     
     // Metrics
     this.metrics = {
-      decisionsM ade: 0,
+      decisionsMade: 0,
       workflowsExecuted: 0,
       automationsTriggered: 0,
       successRate: 0,

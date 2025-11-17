@@ -17,12 +17,15 @@ export class CategoryInstanceFactory {
       service: 'service_instances',
       workflow: 'workflow_instances',
       seed: 'seed_instances',
+      seeder: 'seed_instances',
       crawler: 'crawler_instances',
       scheduler: 'scheduler_instances',
       neural_network: 'neural_network_instances',
       data_mining: 'data_mining_instances',
       data_stream: 'data_stream_instances',
-      attribute: 'attribute_instances'
+      attribute: 'attribute_instances',
+      model: 'model_registry',
+      training_data: 'training_datasets'
     };
     
     // Default configurations for each category
@@ -54,6 +57,12 @@ export class CategoryInstanceFactory {
         data_stream_ids: []
       },
       seed: {
+        status: 'pending',
+        seed_type: 'url',
+        priority: 5,
+        metadata: {}
+      },
+      seeder: {
         status: 'pending',
         seed_type: 'url',
         priority: 5,
@@ -99,6 +108,25 @@ export class CategoryInstanceFactory {
         validation_rules: {},
         display_config: {},
         data_stream_ids: []
+      },
+      model: {
+        status: 'draft',
+        model_type: 'foundation',
+        provider: 'internal',
+        configuration: {},
+        metadata: {}
+      },
+      training_data: {
+        dataset_type: 'classification',
+        domain: 'general',
+        task: 'prediction',
+        split_config: {
+          train: 0.7,
+          validation: 0.15,
+          test: 0.15
+        },
+        features_schema: [],
+        labels_schema: []
       }
     };
     
@@ -108,31 +136,46 @@ export class CategoryInstanceFactory {
       service: { optional_parents: ['app', 'campaign'] },
       workflow: { required_parent: 'campaign', optional_parent: 'service' },
       seed: { optional_parents: ['app', 'campaign'] },
+      seeder: { optional_parents: ['app', 'campaign'] },
       crawler: { optional_parents: ['app', 'campaign', 'workflow'] },
       data_mining: { optional_parents: ['app', 'campaign', 'workflow'] },
       data_stream: { required_parent: 'workflow' },
       scheduler: { required_parent: 'app' },
       neural_network: { optional_parents: ['app', 'campaign'] },
-      attribute: { required_parent: 'app' }
+      attribute: { required_parent: 'app' },
+      model: { optional_parents: ['app', 'service', 'neural_network'] },
+      training_data: { optional_parents: ['app', 'neural_network', 'model'] }
     };
+  }
+
+  normalizeCategoryKey(category) {
+    if (!category) return '';
+    return category
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '');
   }
 
   /**
    * Create a new category instance
    */
   async createInstance(category, instanceData, options = {}) {
-    const tableName = this.categoryTableMap[category];
+    const normalizedCategory = this.normalizeCategoryKey(category);
+    const tableName = this.categoryTableMap[normalizedCategory];
     if (!tableName) {
       throw new Error(`Invalid category type: ${category}`);
     }
 
     // Validate hierarchy if needed
     if (options.validateHierarchy !== false) {
-      await this.validateHierarchy(category, instanceData);
+      await this.validateHierarchy(normalizedCategory, instanceData);
     }
 
     // Merge with defaults
-    const config = this.mergeWithDefaults(category, instanceData);
+    const config = this.mergeWithDefaults(normalizedCategory, instanceData);
 
     // Build insert query
     const { query, values } = this.buildInsertQuery(tableName, config);
@@ -143,11 +186,11 @@ export class CategoryInstanceFactory {
 
       // Create relationships if parent IDs are provided
       if (options.createRelationships !== false) {
-        await this.createRelationships(category, instance.id, instanceData);
+        await this.createRelationships(normalizedCategory, instance.id, instanceData);
       }
 
       // Log creation
-      await this.logExecution(category, instance.id, 'create', 'completed', {
+      await this.logExecution(normalizedCategory, instance.id, 'create', 'completed', {
         input: config,
         output: instance
       });
@@ -155,6 +198,7 @@ export class CategoryInstanceFactory {
       return {
         success: true,
         category,
+        normalizedCategory,
         instance,
         message: `${category} instance created successfully`
       };
@@ -202,6 +246,11 @@ export class CategoryInstanceFactory {
    */
   async createHierarchyFromConfig(config) {
     const results = {};
+    const normalizedConfig = {};
+
+    Object.entries(config || {}).forEach(([key, value]) => {
+      normalizedConfig[this.normalizeCategoryKey(key)] = value;
+    });
     
     // Create in hierarchical order
     const order = [
@@ -210,17 +259,21 @@ export class CategoryInstanceFactory {
       'service',
       'workflow',
       'seed',
+      'seeder',
       'crawler',
       'scheduler',
       'neural_network',
+      'model',
+      'training_data',
       'data_mining',
       'data_stream',
       'attribute'
     ];
 
     for (const category of order) {
-      if (config[category]) {
-        const items = Array.isArray(config[category]) ? config[category] : [config[category]];
+      if (normalizedConfig[category]) {
+        const rawItems = normalizedConfig[category];
+        const items = Array.isArray(rawItems) ? rawItems : [rawItems];
         
         for (const item of items) {
           // Resolve parent references from previous creations
@@ -251,7 +304,8 @@ export class CategoryInstanceFactory {
    * Generate default config for a category
    */
   generateConfig(category, customization = {}) {
-    const defaultConfig = this.defaultConfigs[category];
+    const normalizedCategory = this.normalizeCategoryKey(category);
+    const defaultConfig = this.defaultConfigs[normalizedCategory];
     if (!defaultConfig) {
       throw new Error(`Unknown category: ${category}`);
     }
@@ -259,15 +313,16 @@ export class CategoryInstanceFactory {
     const config = {
       ...defaultConfig,
       ...customization,
-      name: customization.name || `${category}-${Date.now()}`,
-      description: customization.description || `Auto-generated ${category} instance`
+      name: customization.name || `${normalizedCategory}-${Date.now()}`,
+      description: customization.description || `Auto-generated ${normalizedCategory} instance`
     };
 
     // Add category-specific required fields
-    switch (category) {
+    switch (normalizedCategory) {
       case 'seed':
+      case 'seeder':
         if (!config.seed_value) {
-          config.seed_value = `https://example.com/${category}`;
+          config.seed_value = `https://example.com/${normalizedCategory}`;
         }
         break;
       case 'attribute':
@@ -290,6 +345,16 @@ export class CategoryInstanceFactory {
       case 'data_mining':
         if (!config.target_config) {
           config.target_config = { source: 'web' };
+        }
+        break;
+      case 'model':
+        if (!config.provider) {
+          config.provider = 'internal';
+        }
+        break;
+      case 'training_data':
+        if (!config.split_config) {
+          config.split_config = { train: 0.7, validation: 0.15, test: 0.15 };
         }
         break;
     }
@@ -325,6 +390,10 @@ export class CategoryInstanceFactory {
         ]
       }),
       seed: this.generateConfig('seed', {
+        seed_type: 'url',
+        seed_value: 'https://example.com/data'
+      }),
+      seeder: this.generateConfig('seeder', {
         seed_type: 'url',
         seed_value: 'https://example.com/data'
       }),
@@ -371,6 +440,15 @@ export class CategoryInstanceFactory {
         attribute_name: 'title',
         attribute_type: 'string',
         is_required: true
+      }),
+      model: this.generateConfig('model', {
+        name: `${appName}-model`,
+        model_type: 'foundation',
+        provider: 'internal'
+      }),
+      training_data: this.generateConfig('training_data', {
+        name: `${appName}-dataset`,
+        dataset_type: 'classification'
       })
     };
 
@@ -381,7 +459,8 @@ export class CategoryInstanceFactory {
    * Validate hierarchy rules
    */
   async validateHierarchy(category, data) {
-    const rules = this.hierarchyRules[category];
+    const normalizedCategory = this.normalizeCategoryKey(category);
+    const rules = this.hierarchyRules[normalizedCategory];
     if (!rules) return true;
 
     // Check required parent
@@ -533,7 +612,8 @@ export class CategoryInstanceFactory {
    * Get instance by ID
    */
   async getInstance(category, id) {
-    const tableName = this.categoryTableMap[category];
+    const normalizedCategory = this.normalizeCategoryKey(category);
+    const tableName = this.categoryTableMap[normalizedCategory];
     if (!tableName) {
       throw new Error(`Invalid category: ${category}`);
     }
@@ -550,7 +630,8 @@ export class CategoryInstanceFactory {
    * List instances by category
    */
   async listInstances(category, filters = {}) {
-    const tableName = this.categoryTableMap[category];
+    const normalizedCategory = this.normalizeCategoryKey(category);
+    const tableName = this.categoryTableMap[normalizedCategory];
     if (!tableName) {
       throw new Error(`Invalid category: ${category}`);
     }
@@ -579,12 +660,13 @@ export class CategoryInstanceFactory {
    * Get category hierarchy for an instance
    */
   async getHierarchy(category, instanceId) {
+    const normalizedCategory = this.normalizeCategoryKey(category);
     // Get ancestors (parents)
     const ancestors = await this.db.query(
       `SELECT parent_category, parent_id, relationship_type
        FROM category_relationships
        WHERE child_category = $1 AND child_id = $2`,
-      [category, instanceId]
+      [normalizedCategory, instanceId]
     );
 
     // Get descendants (children)
@@ -592,11 +674,11 @@ export class CategoryInstanceFactory {
       `SELECT child_category, child_id, relationship_type
        FROM category_relationships
        WHERE parent_category = $1 AND parent_id = $2`,
-      [category, instanceId]
+      [normalizedCategory, instanceId]
     );
 
     return {
-      category,
+      category: normalizedCategory,
       instance_id: instanceId,
       ancestors: ancestors.rows,
       descendants: descendants.rows

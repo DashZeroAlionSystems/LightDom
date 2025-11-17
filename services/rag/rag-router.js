@@ -1,22 +1,34 @@
+import { randomUUID } from 'crypto';
 import express from 'express';
 import multer from 'multer';
-import { randomUUID } from 'crypto';
-import createVectorStore from './vector-store.js';
-import createDeepSeekClient from './deepseek-client.js';
-import createEmbeddingClient from './openai-embedding-client.js';
-import createOllamaEmbeddingClient from './ollama-embedding-client.js';
-import createRagService from './rag-service.js';
+import ingestCodebase from './codebase-ingestor.js';
 import {
+  buildDocumentMetadata,
   extractTextFromUpload,
   extractTextFromUrl,
-  buildDocumentMetadata,
 } from './content-extractors.js';
+import createDeepSeekClient from './deepseek-client.js';
+import createOllamaEmbeddingClient from './ollama-embedding-client.js';
+import createEmbeddingClient from './openai-embedding-client.js';
+import createRagService from './rag-service.js';
+import createVectorStore from './vector-store.js';
+
+function normalizeEndpoint(url) {
+  if (!url) return null;
+  return url.endsWith('/') ? url.slice(0, -1) : url;
+}
+
+function hasRemoteKey() {
+  return Boolean(process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_KEY);
+}
 
 function isReadyEnvironment() {
-  return (
-    process.env.DEEPSEEK_API_KEY ||
-    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(process.env.DEEPSEEK_API_URL ?? '')
-  );
+  const hasRemote = hasRemoteKey();
+  const localEndpoint =
+    normalizeEndpoint(process.env.OLLAMA_ENDPOINT || process.env.OLLAMA_API_URL) ||
+    'http://127.0.0.1:11434';
+  const isLocalConfigured = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(localEndpoint);
+  return hasRemote || isLocalConfigured;
 }
 
 export function createRagRouter({ db, logger = console, chunker } = {}) {
@@ -45,11 +57,59 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
     if (!ragServicePromise) {
       ragServicePromise = (async () => {
         const vectorStore = createVectorStore(db, { logger });
-        const embeddingClient =
-          process.env.RAG_EMBED_PROVIDER === 'ollama'
-            ? createOllamaEmbeddingClient({})
-            : createEmbeddingClient({});
-        const deepseekClient = createDeepSeekClient({});
+        const preferredOllamaEndpoint =
+          normalizeEndpoint(process.env.OLLAMA_ENDPOINT || process.env.OLLAMA_API_URL) ||
+          'http://127.0.0.1:11434';
+
+        let localAvailable = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(
+          preferredOllamaEndpoint
+        );
+
+        if (localAvailable) {
+          try {
+            const probe = await fetch(`${preferredOllamaEndpoint}/api/tags`, { method: 'GET' });
+            if (!probe.ok) {
+              throw new Error(`status ${probe.status}`);
+            }
+          } catch (error) {
+            localAvailable = false;
+            logger.warn?.(
+              `Local Ollama not reachable at ${preferredOllamaEndpoint}: ${error.message}`
+            );
+          }
+        }
+
+        if (!localAvailable && !hasRemoteKey()) {
+          throw new Error(
+            'No RAG chat provider available. Start Ollama locally or configure DEEPSEEK_API_KEY/DEEPSEEK_KEY.'
+          );
+        }
+
+        const embeddingPreference =
+          process.env.RAG_EMBED_PROVIDER || (process.env.OPENAI_API_KEY ? 'openai' : 'ollama');
+
+        let embeddingClient;
+        if (embeddingPreference === 'ollama') {
+          embeddingClient = createOllamaEmbeddingClient({ baseUrl: preferredOllamaEndpoint });
+        } else {
+          try {
+            embeddingClient = createEmbeddingClient({});
+          } catch (error) {
+            logger.warn?.(
+              `Falling back to Ollama embeddings because OpenAI embedding client failed: ${error.message}`
+            );
+            embeddingClient = createOllamaEmbeddingClient({ baseUrl: preferredOllamaEndpoint });
+          }
+        }
+
+        const remoteBase =
+          normalizeEndpoint(process.env.DEEPSEEK_API_URL || process.env.DEEPSEEK_API_BASE_URL) ||
+          'https://api.deepseek.com/v1';
+
+        const deepseekClient = createDeepSeekClient({
+          baseUrl: localAvailable ? preferredOllamaEndpoint : remoteBase,
+        });
+
         const ragService = createRagService({
           vectorStore,
           embeddingClient,
@@ -59,7 +119,7 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
         });
         await vectorStore.init?.();
         return ragService;
-      })().catch((error) => {
+      })().catch(error => {
         ragServicePromise = null;
         throw error;
       });
@@ -70,19 +130,19 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
 
   function parseTags(input) {
     if (!input) return undefined;
-    if (Array.isArray(input)) return input.map((tag) => String(tag).trim()).filter(Boolean);
+    if (Array.isArray(input)) return input.map(tag => String(tag).trim()).filter(Boolean);
     if (typeof input === 'string') {
       try {
         const parsed = JSON.parse(input);
         if (Array.isArray(parsed)) {
-          return parsed.map((tag) => String(tag).trim()).filter(Boolean);
+          return parsed.map(tag => String(tag).trim()).filter(Boolean);
         }
       } catch (error) {
         // fall through to comma separation
       }
       return input
         .split(',')
-        .map((tag) => tag.trim())
+        .map(tag => tag.trim())
         .filter(Boolean);
     }
     return undefined;
@@ -205,7 +265,18 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
 
   router.post('/ingest/url', async (req, res) => {
     try {
-      const { url, youtubeUrl, documentId, title, source, uploadedBy, workspaceId, tags, knowledgeGraph, languageHint } = req.body;
+      const {
+        url,
+        youtubeUrl,
+        documentId,
+        title,
+        source,
+        uploadedBy,
+        workspaceId,
+        tags,
+        knowledgeGraph,
+        languageHint,
+      } = req.body;
 
       if (!url && !youtubeUrl) {
         return res.status(400).json({ error: 'url or youtubeUrl is required' });
@@ -227,7 +298,9 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
       } else if (url) {
         extraction = await extractTextFromUrl(url, options);
       } else {
-        return res.status(400).json({ error: 'Unable to process request without a valid url or youtubeUrl' });
+        return res
+          .status(400)
+          .json({ error: 'Unable to process request without a valid url or youtubeUrl' });
       }
 
       const inferredSource = source || url || youtubeUrl || 'remote';
@@ -252,6 +325,34 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
     } catch (error) {
       logger.error('RAG URL ingestion failed:', error);
       res.status(500).json({ error: error.message || 'Failed to ingest remote document' });
+    }
+  });
+
+  router.post('/ingest/codebase', async (req, res) => {
+    try {
+      const {
+        rootDir = process.env.RAG_CODEBASE_ROOT || process.cwd(),
+        includeExtensions,
+        excludeDirs,
+        maxFiles,
+        batchSize,
+      } = req.body || {};
+
+      const ragService = await getRagService();
+      const result = await ingestCodebase({
+        ragService,
+        rootDir,
+        includeExtensions,
+        excludeDirs,
+        maxFiles,
+        batchSize,
+        logger,
+      });
+
+      res.json({ status: 'ok', ...result });
+    } catch (error) {
+      logger.error('RAG codebase ingestion failed:', error);
+      res.status(500).json({ error: error.message || 'Failed to index codebase' });
     }
   });
 
@@ -307,8 +408,9 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
 
       const textDecoder = new TextDecoder();
 
-      const writeChunk = (chunk) => {
-        const text = typeof chunk === 'string' ? chunk : textDecoder.decode(chunk, { stream: true });
+      const writeChunk = chunk => {
+        const text =
+          typeof chunk === 'string' ? chunk : textDecoder.decode(chunk, { stream: true });
         if (!text) return;
         const lines = text.split(/\n+/);
         for (const line of lines) {
@@ -323,9 +425,11 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
         res.end();
       };
 
-      const handleError = (error) => {
+      const handleError = error => {
         logger.error('RAG stream error:', error);
-        res.write(`data: ${JSON.stringify({ type: 'error', message: error.message || 'Stream error' })}\n\n`);
+        res.write(
+          `data: ${JSON.stringify({ type: 'error', message: error.message || 'Stream error' })}\n\n`
+        );
         res.end();
       };
 
@@ -382,8 +486,7 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
     try {
       const ragService = await getRagService();
       const report = await ragService.healthCheck();
-      const statusCode =
-        report.status === 'ok' ? 200 : report.status === 'warn' ? 206 : 503;
+      const statusCode = report.status === 'ok' ? 200 : report.status === 'warn' ? 206 : 503;
       res.status(statusCode).json(report);
     } catch (error) {
       logger.error('RAG health check failed:', error);

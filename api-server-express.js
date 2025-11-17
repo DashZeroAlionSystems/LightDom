@@ -474,10 +474,29 @@ class DOMSpaceHarvesterAPI {
     });
 
     // Rate limiting
+    const rateLimitWindow = Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || '', 10);
+    const rateLimitMax = Number.parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '', 10);
     const limiter = rateLimit({
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 100, // limit each IP to 100 requests per windowMs
+      windowMs: Number.isNaN(rateLimitWindow) ? 15 * 60 * 1000 : rateLimitWindow,
+      max: Number.isNaN(rateLimitMax) ? 100 : rateLimitMax,
+      standardHeaders: true,
+      legacyHeaders: false,
       message: 'Too many requests from this IP',
+      skip: req => {
+        if (process.env.ENABLE_RATE_LIMITER === 'false') {
+          return true;
+        }
+        if (process.env.NODE_ENV !== 'production') {
+          return true;
+        }
+        const pathFragment = req.path || req.originalUrl || '';
+        if (typeof pathFragment === 'string' && pathFragment.startsWith('/api/rag')) {
+          return true;
+        }
+        const forwarded = req.headers['x-forwarded-for'];
+        const ip = (forwarded ? forwarded.split(',')[0] : req.ip) || '';
+        return ip === '127.0.0.1' || ip === '::1';
+      },
     });
     this.app.use(limiter);
 
@@ -641,14 +660,18 @@ class DOMSpaceHarvesterAPI {
       async langchainModule => {
         try {
           // Initialize the service
-          const { initializeLangChainOllamaService } = await import('./services/langchain-ollama-service.js');
+          const { initializeLangChainOllamaService } = await import(
+            './services/langchain-ollama-service.js'
+          );
           await initializeLangChainOllamaService();
-          
+
           this.app.use('/api/langchain', langchainModule.default);
           console.log('✅ LangChain Ollama routes registered at /api/langchain');
         } catch (error) {
           console.warn('⚠️ LangChain initialization failed:', error.message);
-          console.warn('   LangChain routes will be available but may not function without Ollama service');
+          console.warn(
+            '   LangChain routes will be available but may not function without Ollama service'
+          );
           this.app.use('/api/langchain', langchainModule.default);
         }
       }
@@ -872,7 +895,8 @@ class DOMSpaceHarvesterAPI {
     // Import and register AI Research Pipeline routes
     import('./api/research-pipeline-routes.js')
       .then(researchModule => {
-        const createResearchPipelineRoutes = researchModule.default || researchModule.createResearchPipelineRoutes;
+        const createResearchPipelineRoutes =
+          researchModule.default || researchModule.createResearchPipelineRoutes;
         if (typeof createResearchPipelineRoutes === 'function') {
           this.app.use('/api/research', createResearchPipelineRoutes(this.db));
         } else {
@@ -909,18 +933,19 @@ class DOMSpaceHarvesterAPI {
       import('./services/category-crud-auto-generator.js')
         .then(async crudModule => {
           try {
-            const CategoryCrudAutoGenerator = crudModule.default || crudModule.CategoryCrudAutoGenerator;
+            const CategoryCrudAutoGenerator =
+              crudModule.default || crudModule.CategoryCrudAutoGenerator;
             const crudGenerator = new CategoryCrudAutoGenerator(this.db);
-            
+
             // Store reference for later use
             this.categoryCrudGenerator = crudGenerator;
-            
+
             // Scan and generate APIs for all categories
             await crudGenerator.scanAndGenerateAPIs();
-            
+
             // Mount generated routes
             crudGenerator.mountRoutes(this.app);
-            
+
             // Import and register Category Management routes
             return import('./api/category-management-routes.js');
           } catch (error) {
@@ -929,9 +954,13 @@ class DOMSpaceHarvesterAPI {
           }
         })
         .then(mgmtModule => {
-          const createCategoryManagementRoutes = mgmtModule.default || mgmtModule.createCategoryManagementRoutes;
+          const createCategoryManagementRoutes =
+            mgmtModule.default || mgmtModule.createCategoryManagementRoutes;
           if (typeof createCategoryManagementRoutes === 'function') {
-            this.app.use('/api/category-management', createCategoryManagementRoutes(this.db, this.categoryCrudGenerator));
+            this.app.use(
+              '/api/category-management',
+              createCategoryManagementRoutes(this.db, this.categoryCrudGenerator)
+            );
             console.log('✅ Category Management & Auto-CRUD Generator registered');
             console.log('   📊 Auto-generated CRUD APIs available for all categories');
             console.log('   📍 Category management: /api/category-management');
@@ -941,14 +970,17 @@ class DOMSpaceHarvesterAPI {
         .catch(err => {
           console.error('Failed to load Category CRUD Auto-Generator:', err);
           console.log('⚠️  Loading mock category management routes for demo purposes...');
-          
+
           // Fallback to mock routes when DB is not available
           import('./api/category-management-mock-routes.js')
             .then(mockModule => {
-              const createMockRoutes = mockModule.default || mockModule.createCategoryManagementRoutesMock;
+              const createMockRoutes =
+                mockModule.default || mockModule.createCategoryManagementRoutesMock;
               if (typeof createMockRoutes === 'function') {
                 this.app.use('/api/category-management', createMockRoutes());
-                console.log('✅ Category Management routes registered (MOCK MODE - no database required)');
+                console.log(
+                  '✅ Category Management routes registered (MOCK MODE - no database required)'
+                );
                 console.log('   📍 Category management: /api/category-management');
                 console.log('   ⚠️  Using in-memory mock data for demonstration');
               }
@@ -1024,7 +1056,8 @@ class DOMSpaceHarvesterAPI {
     // Import and register Data Streams routes
     import('./api/data-streams-routes.js')
       .then(dataStreamsModule => {
-        const createDataStreamsRouter = dataStreamsModule.default || dataStreamsModule.createDataStreamsRouter;
+        const createDataStreamsRouter =
+          dataStreamsModule.default || dataStreamsModule.createDataStreamsRouter;
         if (typeof createDataStreamsRouter === 'function') {
           this.app.use('/api/data-streams', createDataStreamsRouter(this.db));
           console.log('✅ Data Streams routes registered (CRUD with attribute management)');
@@ -1160,7 +1193,9 @@ class DOMSpaceHarvesterAPI {
         } else {
           this.app.use('/api/chat', chatModule.default);
         }
-        console.log('✅ DeepSeek Chat routes registered (Ollama integration, conversation history enabled)');
+        console.log(
+          '✅ DeepSeek Chat routes registered (Ollama integration, conversation history enabled)'
+        );
       })
       .catch(err => {
         console.error('Failed to load DeepSeek chat routes:', err);
@@ -1175,7 +1210,9 @@ class DOMSpaceHarvesterAPI {
         } else {
           this.app.use('/api/storybook-mining', storybookModule.default);
         }
-        console.log('✅ Storybook Mining routes registered (Component extraction, story generation enabled)');
+        console.log(
+          '✅ Storybook Mining routes registered (Component extraction, story generation enabled)'
+        );
       })
       .catch(err => {
         console.error('Failed to load Storybook mining routes:', err);
@@ -1186,7 +1223,9 @@ class DOMSpaceHarvesterAPI {
       .then(discoveryModule => {
         const router = discoveryModule.default;
         this.app.use('/api/storybook-discovery', router);
-        console.log('✅ Storybook Discovery routes registered (URL discovery, seeding, crawling enabled)');
+        console.log(
+          '✅ Storybook Discovery routes registered (URL discovery, seeding, crawling enabled)'
+        );
       })
       .catch(err => {
         console.error('Failed to load Storybook discovery routes:', err);
@@ -4015,7 +4054,16 @@ class DOMSpaceHarvesterAPI {
     this.app.get('/api/health', async (req, res) => {
       try {
         // Check database connection
-        const dbResult = await this.db.query('SELECT NOW()');
+        let dbResult = { rows: [{ now: new Date().toISOString() }] };
+        let dbConnected = !this.dbDisabled;
+        if (!this.dbDisabled) {
+          try {
+            dbResult = await this.db.query('SELECT NOW()');
+          } catch (dbError) {
+            dbConnected = false;
+            console.warn('⚠️  Health check database query failed:', dbError.message);
+          }
+        }
 
         // Check crawler system
         const crawlerStatus = this.crawlerSystem
@@ -4023,9 +4071,10 @@ class DOMSpaceHarvesterAPI {
           : { running: false };
 
         // Get basic stats
-        const statsResult = this.dbDisabled
-          ? { rows: [{ total_targets: 0, total_optimizations: 0, total_schemas: 0 }] }
-          : await this.db.query(`
+        const statsResult =
+          this.dbDisabled || !dbConnected
+            ? { rows: [{ total_targets: 0, total_optimizations: 0, total_schemas: 0 }] }
+            : await this.db.query(`
             SELECT 
               (SELECT COUNT(*) FROM crawl_targets) as total_targets,
               (SELECT COUNT(*) FROM dom_optimizations) as total_optimizations,
@@ -4041,8 +4090,8 @@ class DOMSpaceHarvesterAPI {
           status: 'healthy',
           timestamp: new Date().toISOString(),
           database: {
-            connected: !this.dbDisabled,
-            serverTime: this.dbDisabled ? new Date().toISOString() : dbResult.rows[0].now,
+            connected: dbConnected,
+            serverTime: dbResult.rows[0]?.now || new Date().toISOString(),
           },
           crawler: crawlerStatus,
           statistics: statsResult.rows[0],

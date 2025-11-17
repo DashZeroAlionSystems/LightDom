@@ -1,6 +1,6 @@
 /**
  * Attribute Data Stream Service
- * 
+ *
  * Manages real-time data streams for individual SEO attributes and attribute bundles
  * Enables:
  * - Single attribute mining and streaming
@@ -16,32 +16,34 @@ import { Pool } from 'pg';
 class AttributeDataStreamService extends EventEmitter {
   constructor(config = {}) {
     super();
-    
+
     this.config = {
       streamProtocol: config.streamProtocol || 'websocket',
       bufferSize: config.bufferSize || 100,
       flushInterval: config.flushInterval || 5000,
       enableValidation: config.enableValidation !== false,
       enableTransformation: config.enableTransformation !== false,
-      ...config
+      ...config,
     };
 
-    this.db = config.db || new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 20
-    });
+    this.db =
+      config.db ||
+      new Pool({
+        connectionString: process.env.DATABASE_URL,
+        max: 20,
+      });
 
     // Stream registry
     this.streams = new Map();
     this.attributeConfig = null;
-    
+
     // Metrics
     this.metrics = {
       totalStreams: 0,
       activeStreams: 0,
       messagesProcessed: 0,
       validationErrors: 0,
-      throughput: 0
+      throughput: 0,
     };
   }
 
@@ -50,21 +52,21 @@ class AttributeDataStreamService extends EventEmitter {
    */
   async initialize() {
     console.log('🌊 Initializing Attribute Data Stream Service...');
-    
+
     try {
       // Load attribute configuration
       await this.loadAttributeConfig();
-      
+
       // Initialize database tables
       await this.initializeDatabase();
-      
+
       // Load existing streams
       await this.loadExistingStreams();
-      
+
       console.log('✅ Attribute Data Stream Service initialized');
       console.log(`   - ${Object.keys(this.attributeConfig).length} attributes loaded`);
       console.log(`   - ${this.streams.size} active streams`);
-      
+
       return { success: true };
     } catch (error) {
       console.error('❌ Failed to initialize:', error);
@@ -81,7 +83,7 @@ class AttributeDataStreamService extends EventEmitter {
       const result = await this.db.query(
         'SELECT * FROM attribute_configurations WHERE active = true'
       );
-      
+
       if (result.rows.length > 0) {
         this.attributeConfig = result.rows.reduce((acc, row) => {
           acc[row.attribute_name] = row.config;
@@ -99,14 +101,18 @@ class AttributeDataStreamService extends EventEmitter {
       const fs = await import('fs');
       const path = await import('path');
       const configPath = path.join(process.cwd(), 'config', 'seo-attributes.json');
-      const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      const fileContent = fs.readFileSync(configPath, 'utf8');
+      const configData = JSON.parse(fileContent);
       this.attributeConfig = configData.attributes || {};
-      
+
       // Save to database for future use
       await this.saveAttributeConfigToDatabase();
     } catch (error) {
-      console.error('❌ Failed to load attribute config:', error);
-      this.attributeConfig = {};
+      console.warn(
+        '⚠️  Failed to load attribute config from file, using fallback set:',
+        error.message
+      );
+      this.attributeConfig = this.getFallbackAttributeConfig();
     }
   }
 
@@ -115,7 +121,7 @@ class AttributeDataStreamService extends EventEmitter {
    */
   async saveAttributeConfigToDatabase() {
     console.log('💾 Saving attribute configuration to database...');
-    
+
     for (const [name, config] of Object.entries(this.attributeConfig)) {
       try {
         await this.db.query(
@@ -129,8 +135,85 @@ class AttributeDataStreamService extends EventEmitter {
         console.error(`Failed to save attribute ${name}:`, error.message);
       }
     }
-    
+
     console.log('✅ Attribute configuration saved');
+  }
+
+  getFallbackAttributeConfig() {
+    return {
+      title: {
+        category: 'meta',
+        selector: 'title',
+        type: 'string',
+        mlWeight: 0.1,
+      },
+      metaDescription: {
+        category: 'meta',
+        selector: 'meta[name="description"]',
+        type: 'string',
+        mlWeight: 0.08,
+      },
+      metaKeywords: {
+        category: 'meta',
+        selector: 'meta[name="keywords"]',
+        type: 'string',
+        mlWeight: 0.05,
+      },
+      canonical: {
+        category: 'technical',
+        selector: 'link[rel="canonical"]',
+        type: 'url',
+        mlWeight: 0.05,
+      },
+      h1: {
+        category: 'content',
+        selector: 'h1',
+        type: 'string',
+        mlWeight: 0.06,
+      },
+      h1Text: {
+        category: 'content',
+        selector: 'h1',
+        type: 'string',
+        mlWeight: 0.06,
+      },
+      h2Text: {
+        category: 'content',
+        selector: 'h2',
+        type: 'string',
+        mlWeight: 0.04,
+      },
+      wordCount: {
+        category: 'content',
+        selector: 'body',
+        type: 'number',
+        mlWeight: 0.05,
+      },
+      isSecure: {
+        category: 'technical',
+        selector: null,
+        type: 'boolean',
+        mlWeight: 0.04,
+      },
+      robots: {
+        category: 'technical',
+        selector: 'meta[name="robots"]',
+        type: 'string',
+        mlWeight: 0.03,
+      },
+      pageLoadTime: {
+        category: 'performance',
+        selector: null,
+        type: 'number',
+        mlWeight: 0.04,
+      },
+      firstContentfulPaint: {
+        category: 'performance',
+        selector: null,
+        type: 'number',
+        mlWeight: 0.04,
+      },
+    };
   }
 
   /**
@@ -153,7 +236,7 @@ class AttributeDataStreamService extends EventEmitter {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`,
-      
+
       // Stream messages buffer
       `CREATE TABLE IF NOT EXISTS attribute_stream_messages (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -168,7 +251,7 @@ class AttributeDataStreamService extends EventEmitter {
         INDEX idx_processed (processed),
         INDEX idx_created_at (created_at)
       )`,
-      
+
       // Stream analytics
       `CREATE TABLE IF NOT EXISTS attribute_stream_analytics (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -179,7 +262,7 @@ class AttributeDataStreamService extends EventEmitter {
         recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_stream_metric (stream_id, metric_name),
         INDEX idx_recorded_at (recorded_at)
-      )`
+      )`,
     ];
 
     for (const migration of migrations) {
@@ -198,11 +281,10 @@ class AttributeDataStreamService extends EventEmitter {
    */
   async loadExistingStreams() {
     try {
-      const result = await this.db.query(
-        'SELECT * FROM attribute_data_streams WHERE status = $1',
-        ['active']
-      );
-      
+      const result = await this.db.query('SELECT * FROM attribute_data_streams WHERE status = $1', [
+        'active',
+      ]);
+
       for (const row of result.rows) {
         const stream = {
           id: row.stream_id,
@@ -215,10 +297,10 @@ class AttributeDataStreamService extends EventEmitter {
           status: row.status,
           metrics: {
             messagesCount: row.messages_count || 0,
-            lastMessageAt: row.last_message_at
-          }
+            lastMessageAt: row.last_message_at,
+          },
         };
-        
+
         this.streams.set(stream.id, stream);
       }
     } catch (error) {
@@ -231,7 +313,7 @@ class AttributeDataStreamService extends EventEmitter {
    */
   async createAttributeStream(attributeName, config = {}) {
     console.log(`📊 Creating stream for attribute: ${attributeName}`);
-    
+
     const attributeConfig = this.attributeConfig[attributeName];
     if (!attributeConfig) {
       throw new Error(`Attribute not found: ${attributeName}`);
@@ -253,11 +335,11 @@ class AttributeDataStreamService extends EventEmitter {
         messagesCount: 0,
         lastMessageAt: null,
         throughput: 0,
-        validationErrors: 0
+        validationErrors: 0,
       },
       subscribers: new Set(),
       transformers: [],
-      validators: []
+      validators: [],
     };
 
     // Setup validation if enabled
@@ -296,7 +378,7 @@ class AttributeDataStreamService extends EventEmitter {
   async createBundledStream(streamName, attributeNames, config = {}) {
     console.log(`📊 Creating bundled stream: ${streamName}`);
     console.log(`   Attributes: ${attributeNames.join(', ')}`);
-    
+
     // Validate all attributes exist
     for (const attrName of attributeNames) {
       if (!this.attributeConfig[attrName]) {
@@ -313,7 +395,7 @@ class AttributeDataStreamService extends EventEmitter {
       attributes: attributeNames,
       attributeConfigs: attributeNames.map(name => ({
         name,
-        config: this.attributeConfig[name]
+        config: this.attributeConfig[name],
       })),
       buffer: [],
       bufferSize: config.bufferSize || this.config.bufferSize,
@@ -323,12 +405,12 @@ class AttributeDataStreamService extends EventEmitter {
         messagesCount: 0,
         lastMessageAt: null,
         throughput: 0,
-        validationErrors: 0
+        validationErrors: 0,
       },
       subscribers: new Set(),
       transformers: [],
       validators: [],
-      aggregators: config.aggregators || []
+      aggregators: config.aggregators || [],
     };
 
     // Setup validators for each attribute
@@ -338,7 +420,7 @@ class AttributeDataStreamService extends EventEmitter {
         if (attrConfig.validation) {
           stream.validators.push({
             attribute: attrName,
-            validator: this.createValidator(attrConfig.validation)
+            validator: this.createValidator(attrConfig.validation),
           });
         }
       }
@@ -381,9 +463,9 @@ class AttributeDataStreamService extends EventEmitter {
         this.emit('validationError', {
           streamId,
           data,
-          errors: validationResult.errors
+          errors: validationResult.errors,
         });
-        
+
         if (stream.config?.strictValidation) {
           throw new Error(`Validation failed: ${validationResult.errors.join(', ')}`);
         }
@@ -402,8 +484,8 @@ class AttributeDataStreamService extends EventEmitter {
       data,
       metadata: {
         streamId,
-        validated: true
-      }
+        validated: true,
+      },
     };
 
     stream.buffer.push(message);
@@ -434,7 +516,7 @@ class AttributeDataStreamService extends EventEmitter {
    * Create validator from validation config
    */
   createValidator(validationConfig) {
-    return (data) => {
+    return data => {
       const errors = [];
 
       if (validationConfig.required && !data) {
@@ -466,7 +548,7 @@ class AttributeDataStreamService extends EventEmitter {
 
       return {
         valid: errors.length === 0,
-        errors
+        errors,
       };
     };
   }
@@ -476,14 +558,14 @@ class AttributeDataStreamService extends EventEmitter {
    */
   createTransformer(transformType) {
     const transformers = {
-      trim: (data) => typeof data === 'string' ? data.trim() : data,
-      lowercase: (data) => typeof data === 'string' ? data.toLowerCase() : data,
-      uppercase: (data) => typeof data === 'string' ? data.toUpperCase() : data,
-      number: (data) => Number(data),
-      boolean: (data) => Boolean(data)
+      trim: data => (typeof data === 'string' ? data.trim() : data),
+      lowercase: data => (typeof data === 'string' ? data.toLowerCase() : data),
+      uppercase: data => (typeof data === 'string' ? data.toUpperCase() : data),
+      number: data => Number(data),
+      boolean: data => Boolean(data),
     };
 
-    return transformers[transformType] || ((data) => data);
+    return transformers[transformType] || (data => data);
   }
 
   /**
@@ -512,7 +594,7 @@ class AttributeDataStreamService extends EventEmitter {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -548,11 +630,7 @@ class AttributeDataStreamService extends EventEmitter {
           `INSERT INTO attribute_stream_messages 
            (stream_id, message_data, attributes, validated, processed)
            VALUES ($1, $2, $3, true, false)`,
-          [
-            streamId,
-            JSON.stringify(message.data),
-            JSON.stringify(stream.attributes)
-          ]
+          [streamId, JSON.stringify(message.data), JSON.stringify(stream.attributes)]
         );
       }
 
@@ -568,7 +646,7 @@ class AttributeDataStreamService extends EventEmitter {
 
       this.emit('bufferFlushed', {
         streamId,
-        messageCount: messages.length
+        messageCount: messages.length,
       });
     } catch (error) {
       console.error(`Failed to flush buffer for stream ${streamId}:`, error);
@@ -599,7 +677,7 @@ class AttributeDataStreamService extends EventEmitter {
           stream.protocol,
           stream.attributes,
           JSON.stringify(stream.config || {}),
-          stream.status
+          stream.status,
         ]
       );
     } catch (error) {
@@ -660,8 +738,8 @@ class AttributeDataStreamService extends EventEmitter {
         attributes: s.attributes,
         bufferSize: s.buffer.length,
         messagesCount: s.metrics.messagesCount,
-        subscribers: s.subscribers.size
-      }))
+        subscribers: s.subscribers.size,
+      })),
     };
   }
 
@@ -684,10 +762,10 @@ class AttributeDataStreamService extends EventEmitter {
 
     // Update status
     stream.status = 'closed';
-    await this.db.query(
-      'UPDATE attribute_data_streams SET status = $1 WHERE stream_id = $2',
-      ['closed', streamId]
-    );
+    await this.db.query('UPDATE attribute_data_streams SET status = $1 WHERE stream_id = $2', [
+      'closed',
+      streamId,
+    ]);
 
     this.streams.delete(streamId);
     this.metrics.activeStreams--;

@@ -1,191 +1,408 @@
-import React, { useState, useEffect, useRef } from 'react';
 import {
-  Card,
+  CodeOutlined,
+  HistoryOutlined,
+  ReloadOutlined,
+  RobotOutlined,
+  SendOutlined,
+  StopOutlined,
+  UploadOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+import {
+  Alert,
+  Badge,
   Button,
+  Card,
+  Col,
+  Divider,
   Input,
   List,
-  Avatar,
-  Space,
-  Typography,
-  Spin,
-  Empty,
-  Divider,
-  Badge,
-  Tooltip,
-  Modal,
-  Form,
   message,
+  Row,
+  Space,
+  Spin,
+  Tag,
+  Tooltip,
+  Typography,
 } from 'antd';
-import {
-  SendOutlined,
-  UserOutlined,
-  RobotOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-  HistoryOutlined,
-  ThunderboltOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
-import axios from 'axios';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-const { TextArea } = Input;
 const { Text, Paragraph } = Typography;
+const { TextArea } = Input;
 
-interface Message {
+type ChatRole = 'user' | 'assistant' | 'system';
+
+interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: ChatRole;
   content: string;
-  created_at: string;
+  timestamp: string;
 }
 
-interface Conversation {
-  id: string;
-  title: string;
-  created_at: string;
-  updated_at: string;
-  message_count?: number;
-  last_message?: string;
+interface ContextDocument {
+  documentId?: string;
+  content: string;
+  score?: number;
+  metadata?: Record<string, unknown>;
 }
+
+interface RagStatusProvider {
+  status?: string;
+  endpoint?: string;
+  model?: string;
+  availableModels?: string[];
+  configured?: boolean;
+}
+
+interface RagStatus {
+  status: 'ok' | 'warn' | 'error';
+  message: string;
+  endpoint?: string;
+  model?: string;
+  providers: {
+    ollama?: RagStatusProvider;
+    deepseek?: RagStatusProvider;
+  };
+}
+
+const toPayloadMessages = (messages: ChatMessage[]): Array<{ role: ChatRole; content: string }> =>
+  messages.map(({ role, content }) => ({ role, content }));
 
 export const DeepSeekChatPanel: React.FC = () => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [currentConversation, setCurrentConversation] = useState<any>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [status, setStatus] = useState<any>(null);
-  const [form] = Form.useForm();
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [indexing, setIndexing] = useState(false);
+  const [ragStatus, setRagStatus] = useState<RagStatus | null>(null);
+  const [contextDocs, setContextDocs] = useState<ContextDocument[]>([]);
+  const [lastError, setLastError] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const streamingControllerRef = useRef<AbortController | null>(null);
+  const sseBufferRef = useRef('');
 
   useEffect(() => {
-    loadConversations();
     loadStatus();
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const loadConversations = async () => {
-    try {
-      const response = await axios.get('/api/chat/conversations');
-      if (response.data.success) {
-        setConversations(response.data.conversations);
-        
-        // Auto-select first conversation if none selected
-        if (!currentConversation && response.data.conversations.length > 0) {
-          loadConversation(response.data.conversations[0].id);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load conversations:', error);
-    }
-  };
+  }, [messages]);
 
   const loadStatus = async () => {
     try {
-      const response = await axios.get('/api/chat/status');
-      if (response.data.success) {
-        setStatus(response.data.status);
+      const response = await fetch('/api/rag/health');
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || json.message || 'Failed to load RAG status');
       }
-    } catch (error) {
-      console.error('Failed to load status:', error);
-    }
-  };
-
-  const loadConversation = async (conversationId: string) => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`/api/chat/conversations/${conversationId}`);
-      if (response.data.success) {
-        setCurrentConversation(response.data.conversation);
-        setMessages(response.data.conversation.messages || []);
-      }
-    } catch (error) {
-      console.error('Failed to load conversation:', error);
-      message.error('Failed to load conversation');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateConversation = async (values: any) => {
-    setLoading(true);
-    try {
-      const response = await axios.post('/api/chat/conversations', values);
-      if (response.data.success) {
-        message.success('Conversation created');
-        setCreateModalVisible(false);
-        form.resetFields();
-        loadConversations();
-        loadConversation(response.data.conversation.id);
-      }
+      setRagStatus(json);
     } catch (error: any) {
-      message.error(error.response?.data?.error || 'Failed to create conversation');
-    } finally {
-      setLoading(false);
+      setRagStatus(null);
+      message.error(error.message || 'Unable to load RAG health status');
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() || !currentConversation) return;
+  const appendAssistantContent = (assistantId: string, chunk: string) => {
+    if (!chunk) return;
+    setMessages(prev =>
+      prev.map(msg => (msg.id === assistantId ? { ...msg, content: msg.content + chunk } : msg))
+    );
+  };
 
-    setSending(true);
-    const userMessage = inputValue.trim();
+  const handleSsePayload = (payload: string, assistantId: string) => {
+    if (!payload) return;
+
+    if (payload === '[DONE]') {
+      setIsStreaming(false);
+      streamingControllerRef.current = null;
+      return;
+    }
+
+    try {
+      const event = JSON.parse(payload);
+
+      if (event.type === 'context' && Array.isArray(event.documents)) {
+        setContextDocs(event.documents);
+        return;
+      }
+
+      if (event.error) {
+        const messageText =
+          typeof event.error === 'string'
+            ? event.error
+            : event.details || 'RAG provider returned an error';
+        setLastError(messageText);
+        message.error(messageText);
+        setIsStreaming(false);
+        streamingControllerRef.current = null;
+        return;
+      }
+
+      if (typeof event.token === 'string') {
+        appendAssistantContent(assistantId, event.token);
+        return;
+      }
+
+      if (event.done) {
+        setIsStreaming(false);
+        streamingControllerRef.current = null;
+        return;
+      }
+
+      if (event.result && typeof event.result === 'string') {
+        appendAssistantContent(assistantId, event.result);
+        return;
+      }
+
+      if (event.info && typeof event.info === 'string') {
+        appendAssistantContent(assistantId, `\n${event.info}`);
+        return;
+      }
+    } catch {
+      appendAssistantContent(assistantId, payload);
+    }
+  };
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isStreaming) return;
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: inputValue.trim(),
+      timestamp: new Date().toISOString(),
+    };
+
+    const requestMessages = toPayloadMessages([...messages, userMessage]);
+
+    const assistantId = `assistant-${Date.now()}`;
+    const placeholder: ChatMessage = {
+      id: assistantId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages(prev => [...prev, userMessage, placeholder]);
     setInputValue('');
+    setIsStreaming(true);
+    setLastError(null);
+
+    const controller = new AbortController();
+    streamingControllerRef.current = controller;
+    sseBufferRef.current = '';
 
     try {
-      const response = await axios.post(
-        `/api/chat/conversations/${currentConversation.id}/messages`,
-        { message: userMessage }
-      );
+      const response = await fetch('/api/rag/chat/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: requestMessages,
+          enableTools: true,
+        }),
+        signal: controller.signal,
+      });
 
-      if (response.data.success) {
-        setMessages([...messages, response.data.userMessage, response.data.aiMessage]);
-        loadConversations(); // Refresh conversation list to update last message
+      if (!response.ok || !response.body) {
+        const text = await response.text();
+        throw new Error(text || 'Failed to start RAG stream');
       }
-    } catch (error: any) {
-      message.error(error.response?.data?.error || 'Failed to send message');
-      setInputValue(userMessage); // Restore message on error
-    } finally {
-      setSending(false);
-    }
-  };
 
-  const handleDeleteConversation = async (conversationId: string) => {
-    Modal.confirm({
-      title: 'Delete Conversation',
-      content: 'Are you sure you want to delete this conversation?',
-      onOk: async () => {
-        try {
-          const response = await axios.delete(`/api/chat/conversations/${conversationId}`);
-          if (response.data.success) {
-            message.success('Conversation deleted');
-            if (currentConversation?.id === conversationId) {
-              setCurrentConversation(null);
-              setMessages([]);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        if (!chunk) continue;
+
+        sseBufferRef.current += chunk;
+
+        let separatorIndex = sseBufferRef.current.indexOf('\n\n');
+        while (separatorIndex >= 0) {
+          const rawEvent = sseBufferRef.current.slice(0, separatorIndex).trim();
+          sseBufferRef.current = sseBufferRef.current.slice(separatorIndex + 2);
+
+          if (rawEvent) {
+            const dataLines = rawEvent
+              .split('\n')
+              .filter(line => line.startsWith('data:'))
+              .map(line => line.slice(5).trim())
+              .filter(Boolean);
+
+            for (const data of dataLines) {
+              handleSsePayload(data, assistantId);
             }
-            loadConversations();
           }
-        } catch (error: any) {
-          message.error(error.response?.data?.error || 'Failed to delete conversation');
-        }
-      },
-    });
-  };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+          separatorIndex = sseBufferRef.current.indexOf('\n\n');
+        }
+      }
+
+      setIsStreaming(false);
+      streamingControllerRef.current = null;
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        const messageText = error.message || 'RAG streaming failed';
+        setLastError(messageText);
+        appendAssistantContent(assistantId, `\n\n[Error] ${messageText}`);
+        message.error(messageText);
+      }
+      setIsStreaming(false);
+      streamingControllerRef.current = null;
     }
   };
+
+  const handleStopStreaming = () => {
+    if (streamingControllerRef.current) {
+      streamingControllerRef.current.abort();
+      streamingControllerRef.current = null;
+      setIsStreaming(false);
+    }
+  };
+
+  const handleUploadTrigger = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setLastError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', file.name);
+
+      const response = await fetch('/api/rag/ingest/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Document ingestion failed');
+      }
+      message.success(`Ingested ${file.name}`);
+    } catch (error: any) {
+      const messageText = error.message || 'Failed to ingest document';
+      setLastError(messageText);
+      message.error(messageText);
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
+  };
+
+  const handleIndexCodebase = async () => {
+    setIndexing(true);
+    setLastError(null);
+    try {
+      const response = await fetch('/api/rag/ingest/codebase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw new Error(json.error || 'Codebase indexing failed');
+      }
+      const documentsProcessed = json.documentsProcessed ?? json.filesProcessed ?? 0;
+      const chunksProcessed = json.chunksProcessed ?? json.totalChunks ?? 0;
+      message.success(`Indexed ${documentsProcessed} files (${chunksProcessed} chunks)`);
+    } catch (error: any) {
+      const messageText = error.message || 'Failed to index codebase';
+      setLastError(messageText);
+      message.error(messageText);
+    } finally {
+      setIndexing(false);
+    }
+  };
+
+  const handleReset = () => {
+    setMessages([]);
+    setContextDocs([]);
+    setLastError(null);
+    setInputValue('');
+  };
+
+  const quickActions = useMemo(
+    () => [
+      {
+        key: 'upload',
+        label: 'Upload Document',
+        icon: <UploadOutlined />,
+        onClick: handleUploadTrigger,
+        loading: uploading,
+      },
+      {
+        key: 'index',
+        label: 'Index Codebase',
+        icon: <CodeOutlined />,
+        onClick: handleIndexCodebase,
+        loading: indexing,
+      },
+      {
+        key: 'reset',
+        label: 'Reset Thread',
+        icon: <HistoryOutlined />,
+        onClick: handleReset,
+        loading: false,
+      },
+    ],
+    [uploading, indexing]
+  );
+
+  const statusTag = useMemo(() => {
+    if (!ragStatus) {
+      return <Tag color='default'>Status Unknown</Tag>;
+    }
+    if (ragStatus.status === 'ok') {
+      return <Tag color='green'>Ready</Tag>;
+    }
+    if (ragStatus.status === 'warn') {
+      return <Tag color='gold'>Degraded</Tag>;
+    }
+    return <Tag color='red'>Unavailable</Tag>;
+  }, [ragStatus]);
+
+  const providerSummary = useMemo(() => {
+    if (!ragStatus) return null;
+    const ollama = ragStatus.providers?.ollama;
+    const deepseek = ragStatus.providers?.deepseek;
+    return (
+      <Space size='small'>
+        {ollama?.status && (
+          <Tooltip
+            title={`Endpoint: ${ollama.endpoint || 'local'}\nModel: ${ollama.model || 'n/a'}`}
+          >
+            <Tag
+              color={
+                ollama.status === 'ready'
+                  ? 'green'
+                  : ollama.status === 'unreachable'
+                    ? 'red'
+                    : 'blue'
+              }
+            >
+              Ollama: {ollama.status}
+            </Tag>
+          </Tooltip>
+        )}
+        {deepseek?.status && (
+          <Tag color={deepseek.status === 'configured' ? 'blue' : 'default'}>
+            DeepSeek: {deepseek.status}
+          </Tag>
+        )}
+      </Space>
+    );
+  }, [ragStatus]);
 
   return (
     <div style={{ padding: 24 }}>
@@ -193,215 +410,177 @@ export const DeepSeekChatPanel: React.FC = () => {
         title={
           <Space>
             <RobotOutlined />
-            <span>DeepSeek Chat</span>
-            {status?.ollamaConnected ? (
-              <Badge status="success" text="Connected" />
-            ) : (
-              <Badge status="error" text="Disconnected" />
-            )}
+            <Text strong>RAG Assistant</Text>
+            {statusTag}
           </Space>
         }
         extra={
           <Space>
-            <Tooltip title="Status">
-              <Text type="secondary">
-                Model: {status?.model || 'N/A'}
-              </Text>
-            </Tooltip>
-            <Button icon={<ReloadOutlined />} onClick={loadStatus} size="small">
+            {providerSummary}
+            <Button icon={<ReloadOutlined />} onClick={loadStatus} size='small'>
               Refresh
             </Button>
+            {isStreaming && (
+              <Button icon={<StopOutlined />} danger size='small' onClick={handleStopStreaming}>
+                Stop
+              </Button>
+            )}
           </Space>
         }
+        bodyStyle={{ display: 'flex', flexDirection: 'column', gap: 16 }}
       >
-        <div style={{ display: 'flex', height: 'calc(100vh - 250px)' }}>
-          {/* Conversations Sidebar */}
-          <div
-            style={{
-              width: 280,
-              borderRight: '1px solid #f0f0f0',
-              paddingRight: 16,
-              overflowY: 'auto',
-            }}
-          >
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setCreateModalVisible(true)}
-              block
-              style={{ marginBottom: 16 }}
-            >
-              New Conversation
-            </Button>
+        <input
+          type='file'
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
 
+        <Space wrap>
+          {quickActions.map(action => (
+            <Button
+              key={action.key}
+              icon={action.icon}
+              onClick={action.onClick}
+              loading={action.loading}
+            >
+              {action.label}
+            </Button>
+          ))}
+        </Space>
+
+        {lastError && (
+          <Alert type='error' message={lastError} closable onClose={() => setLastError(null)} />
+        )}
+
+        {contextDocs.length > 0 && (
+          <Card size='small' title='Retrieved Context' bordered>
             <List
-              size="small"
-              dataSource={conversations}
-              renderItem={(conv) => (
-                <List.Item
-                  style={{
-                    cursor: 'pointer',
-                    backgroundColor:
-                      currentConversation?.id === conv.id ? '#f0f5ff' : 'transparent',
-                    padding: '8px 12px',
-                    borderRadius: 4,
-                    marginBottom: 4,
-                  }}
-                  onClick={() => loadConversation(conv.id)}
-                  actions={[
-                    <Tooltip title="Delete">
-                      <Button
-                        type="text"
-                        size="small"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteConversation(conv.id);
-                        }}
-                      />
-                    </Tooltip>,
-                  ]}
-                >
+              size='small'
+              dataSource={contextDocs}
+              renderItem={(doc, index) => (
+                <List.Item key={doc.documentId || `doc-${index}`}>
                   <List.Item.Meta
-                    avatar={<HistoryOutlined />}
-                    title={conv.title || 'Untitled'}
+                    title={
+                      <Space>
+                        <Text strong>{doc.documentId || 'Document'}</Text>
+                        {typeof doc.score === 'number' && (
+                          <Badge count={`score ${doc.score.toFixed(2)}`} color='blue' />
+                        )}
+                      </Space>
+                    }
                     description={
-                      <Text type="secondary" ellipsis style={{ fontSize: 12 }}>
-                        {conv.message_count || 0} messages
-                      </Text>
+                      <Paragraph
+                        style={{ whiteSpace: 'pre-wrap', marginBottom: 0 }}
+                        ellipsis={{ rows: 4 }}
+                      >
+                        {doc.content}
+                      </Paragraph>
                     }
                   />
                 </List.Item>
               )}
             />
-          </div>
+          </Card>
+        )}
 
-          {/* Chat Area */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingLeft: 16 }}>
-            {currentConversation ? (
-              <>
-                <div
-                  style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    padding: '16px 0',
-                    marginBottom: 16,
-                  }}
-                >
-                  {loading ? (
-                    <div style={{ textAlign: 'center', padding: 50 }}>
-                      <Spin size="large" />
-                    </div>
-                  ) : messages.length === 0 ? (
-                    <Empty description="No messages yet. Start the conversation!" />
-                  ) : (
-                    <List
-                      dataSource={messages}
-                      renderItem={(msg) => (
-                        <List.Item
-                          style={{
-                            border: 'none',
-                            padding: '8px 0',
-                            alignItems: 'flex-start',
-                          }}
-                        >
-                          <List.Item.Meta
-                            avatar={
-                              <Avatar
-                                icon={msg.role === 'user' ? <UserOutlined /> : <RobotOutlined />}
-                                style={{
-                                  backgroundColor: msg.role === 'user' ? '#1890ff' : '#52c41a',
-                                }}
-                              />
-                            }
-                            title={
-                              <Space>
-                                <Text strong>{msg.role === 'user' ? 'You' : 'DeepSeek'}</Text>
-                                <Text type="secondary" style={{ fontSize: 12 }}>
-                                  {new Date(msg.created_at).toLocaleTimeString()}
-                                </Text>
-                              </Space>
-                            }
-                            description={
-                              <Paragraph
-                                style={{
-                                  whiteSpace: 'pre-wrap',
-                                  marginBottom: 0,
-                                  marginTop: 8,
-                                }}
-                              >
-                                {msg.content}
-                              </Paragraph>
-                            }
-                          />
-                        </List.Item>
-                      )}
-                    />
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 16 }}>
-                  <Space.Compact style={{ width: '100%' }}>
-                    <TextArea
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Type your message... (Shift+Enter for new line)"
-                      autoSize={{ minRows: 1, maxRows: 6 }}
-                      disabled={sending}
-                    />
-                    <Button
-                      type="primary"
-                      icon={<SendOutlined />}
-                      onClick={handleSendMessage}
-                      loading={sending}
-                      disabled={!inputValue.trim()}
-                    >
-                      Send
-                    </Button>
-                  </Space.Compact>
-                </div>
-              </>
+        <Card
+          size='small'
+          bordered
+          bodyStyle={{ height: '50vh', display: 'flex', flexDirection: 'column' }}
+        >
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: 8 }}>
+            {messages.length === 0 ? (
+              <div style={{ textAlign: 'center', marginTop: 40 }}>
+                <Text type='secondary'>
+                  Ask a question to start a conversation. Documents you ingest will be retrieved
+                  automatically.
+                </Text>
+              </div>
             ) : (
-              <Empty
-                description="Select a conversation or create a new one to start chatting"
-                style={{ marginTop: 100 }}
+              <List
+                dataSource={messages}
+                renderItem={msg => (
+                  <List.Item key={msg.id} style={{ border: 'none', padding: '12px 0' }}>
+                    <List.Item.Meta
+                      avatar={msg.role === 'user' ? <UserOutlined /> : <RobotOutlined />}
+                      title={
+                        <Space size='small'>
+                          <Text strong>{msg.role === 'user' ? 'You' : 'Assistant'}</Text>
+                          <Text type='secondary' style={{ fontSize: 12 }}>
+                            {new Date(msg.timestamp).toLocaleTimeString()}
+                          </Text>
+                        </Space>
+                      }
+                      description={
+                        <Paragraph style={{ whiteSpace: 'pre-wrap', marginBottom: 0 }}>
+                          {msg.content ||
+                            (isStreaming && msg.role === 'assistant' ? (
+                              <Spin size='small' />
+                            ) : null)}
+                        </Paragraph>
+                      }
+                    />
+                  </List.Item>
+                )}
               />
             )}
+            <div ref={messagesEndRef} />
           </div>
-        </div>
+
+          <Divider style={{ margin: '12px 0' }} />
+
+          <Space.Compact style={{ width: '100%' }}>
+            <TextArea
+              value={inputValue}
+              onChange={e => setInputValue(e.target.value)}
+              onPressEnter={event => {
+                if (!event.shiftKey) {
+                  event.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder='Ask about the codebase, ingested documents, or request actions...'
+              autoSize={{ minRows: 2, maxRows: 6 }}
+              disabled={isStreaming}
+            />
+            <Button
+              type='primary'
+              icon={<SendOutlined />}
+              onClick={handleSend}
+              disabled={!inputValue.trim() || isStreaming}
+            >
+              Send
+            </Button>
+          </Space.Compact>
+        </Card>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Card size='small' title='Tips'>
+              <List size='small'>
+                <List.Item>Upload design docs or specs to ground answers.</List.Item>
+                <List.Item>Run "Index Codebase" after major changes.</List.Item>
+                <List.Item>Ask the assistant to cite document IDs from context.</List.Item>
+              </List>
+            </Card>
+          </Col>
+          <Col span={12}>
+            <Card size='small' title='Provider Status'>
+              <Space direction='vertical'>
+                <Text type='secondary'>
+                  Endpoint:{' '}
+                  {ragStatus?.endpoint || ragStatus?.providers?.ollama?.endpoint || 'local'}
+                </Text>
+                <Text type='secondary'>
+                  Model:{' '}
+                  {ragStatus?.model || ragStatus?.providers?.ollama?.model || 'deepseek-r1:latest'}
+                </Text>
+              </Space>
+            </Card>
+          </Col>
+        </Row>
       </Card>
-
-      <Modal
-        title="Create New Conversation"
-        open={createModalVisible}
-        onCancel={() => {
-          setCreateModalVisible(false);
-          form.resetFields();
-        }}
-        footer={null}
-      >
-        <Form form={form} onFinish={handleCreateConversation} layout="vertical">
-          <Form.Item
-            name="title"
-            label="Conversation Title"
-            rules={[{ required: true, message: 'Please enter a title' }]}
-          >
-            <Input placeholder="e.g., Design System Discussion" />
-          </Form.Item>
-
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={loading}>
-                Create
-              </Button>
-              <Button onClick={() => setCreateModalVisible(false)}>Cancel</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };
