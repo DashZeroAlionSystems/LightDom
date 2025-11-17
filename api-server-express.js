@@ -118,6 +118,18 @@ class DOMSpaceHarvesterAPI {
         const ragRouter = createRagRouter({ db: this.db, logger: console });
         this.app.use('/api/rag', ragRouter);
         console.log('✅ RAG routes registered at /api/rag');
+        
+        // Mount enhanced RAG routes with DeepSeek tools
+        import('./api/enhanced-rag-routes.js')
+          .then(mod => {
+            const enhancedRagRouter = mod.default || mod;
+            this.app.locals.db = this.db; // Make db available to routes
+            this.app.use('/api/enhanced-rag', enhancedRagRouter);
+            console.log('✅ Enhanced RAG routes with DeepSeek tools mounted at /api/enhanced-rag');
+          })
+          .catch(err => {
+            console.warn('⚠️ Failed to mount enhanced RAG routes:', err?.message || err);
+          });
       } catch (error) {
         console.error('Failed to initialize RAG routes:', error.message);
         // Attempt to mount the minimal fallback proxy so the frontend remains functional
