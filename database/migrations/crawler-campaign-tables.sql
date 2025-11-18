@@ -94,7 +94,10 @@ CREATE INDEX IF NOT EXISTS idx_schedules_enabled ON crawler_schedules(enabled);
 CREATE INDEX IF NOT EXISTS idx_schedules_next_run ON crawler_schedules(next_run);
 
 -- Crawl Targets Table (URLs to be crawled)
-CREATE TABLE IF NOT EXISTS crawl_targets (
+-- Drop existing table if it exists with incompatible schema
+DROP TABLE IF EXISTS crawl_targets CASCADE;
+
+CREATE TABLE crawl_targets (
   id SERIAL PRIMARY KEY,
   campaign_id VARCHAR(255) NOT NULL,
   crawler_id VARCHAR(255),
@@ -126,12 +129,12 @@ CREATE TABLE IF NOT EXISTS crawl_targets (
   FOREIGN KEY (crawler_id) REFERENCES crawler_instances(id) ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_targets_campaign ON crawl_targets(campaign_id);
-CREATE INDEX IF NOT EXISTS idx_targets_crawler ON crawl_targets(crawler_id);
-CREATE INDEX IF NOT EXISTS idx_targets_url ON crawl_targets(url(255));
-CREATE INDEX IF NOT EXISTS idx_targets_status ON crawl_targets(status);
-CREATE INDEX IF NOT EXISTS idx_targets_priority ON crawl_targets(priority);
-CREATE INDEX IF NOT EXISTS idx_targets_campaign_status ON crawl_targets(campaign_id, status);
+CREATE INDEX idx_targets_campaign ON crawl_targets(campaign_id);
+CREATE INDEX idx_targets_crawler ON crawl_targets(crawler_id);
+CREATE INDEX idx_targets_url ON crawl_targets(url);
+CREATE INDEX idx_targets_status ON crawl_targets(status);
+CREATE INDEX idx_targets_priority ON crawl_targets(priority);
+CREATE INDEX idx_targets_campaign_status ON crawl_targets(campaign_id, status);
 
 -- Crawler Schemas Table (Data extraction schemas)
 CREATE TABLE IF NOT EXISTS crawler_schemas (
