@@ -8,25 +8,42 @@
  * - Service worker detection and cache inspection
  * - Offline mining capabilities
  * - Training data collection with deduplication
+ * 
+ * Now supports configuration-based setup via CachingLayerConfig
  */
 
 import puppeteer from 'puppeteer';
 import { AdvancedCacheManager } from './advanced-cache-manager.js';
+import { CachingLayerConfig } from './caching-layer-config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 
 export class CacheAwareCrawler {
   constructor(options = {}) {
-    this.cacheManager = options.cacheManager || new AdvancedCacheManager();
+    // Load configuration if not provided
+    this.cachingConfig = options.cachingConfig || new CachingLayerConfig(options.configPath);
+    
+    // Merge config with options
+    const config = this.cachingConfig.getCrawlerConfig();
+    const mergedOptions = { ...config, ...options };
+    
+    this.cacheManager = mergedOptions.cacheManager || new AdvancedCacheManager({ 
+      cachingConfig: this.cachingConfig 
+    });
     this.browser = null;
     this.config = {
-      enableCDP: options.enableCDP !== false,
-      enableOfflineMining: options.enableOfflineMining !== false,
-      enableScreenshots: options.enableScreenshots !== false,
-      enableOCR: options.enableOCR !== false,
-      screenshotDir: options.screenshotDir || './data/screenshots',
-      ...options
+      enableCDP: mergedOptions.enableCDP !== false,
+      enableOfflineMining: mergedOptions.enableOfflineMining !== false,
+      enableScreenshots: mergedOptions.enableScreenshots !== false,
+      enableOCR: mergedOptions.enableOCR !== false,
+      screenshotDir: mergedOptions.screenshotDir || './data/screenshots',
+      cacheStrategy: mergedOptions.cacheStrategy || 'stale-while-revalidate',
+      ...mergedOptions
     };
+    
+    // Log active configuration
+    const activeProfile = this.cachingConfig.getActiveProfile();
+    console.log(`📋 Crawler initialized with profile: ${activeProfile.name || 'custom'}`);
   }
 
   async initialize() {

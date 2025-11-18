@@ -8,50 +8,65 @@
  * - Network activity monitoring
  * - Offline mining capabilities
  * - Training data deduplication
+ * 
+ * Now supports configuration-based setup via CachingLayerConfig
  */
 
 import { Pool } from 'pg';
 import crypto from 'crypto';
 import { LRUCache } from 'lru-cache';
+import { CachingLayerConfig } from './caching-layer-config.js';
 
 export class AdvancedCacheManager {
   constructor(options = {}) {
-    this.dbPool = options.dbPool || this.createDatabasePool();
+    // Load configuration if not provided
+    this.cachingConfig = options.cachingConfig || new CachingLayerConfig(options.configPath);
     
-    // In-memory LRU caches for hot data
+    // Merge config with options (options take precedence)
+    const config = this.cachingConfig.getCacheManagerConfig();
+    const mergedOptions = { ...config, ...options };
+    
+    this.dbPool = mergedOptions.dbPool || this.createDatabasePool();
+    
+    // In-memory LRU caches for hot data (using config values)
     this.urlCache = new LRUCache({
-      max: options.urlCacheSize || 10000,
-      ttl: options.urlCacheTTL || 1000 * 60 * 60 * 24, // 24 hours
+      max: mergedOptions.urlCacheSize || 10000,
+      ttl: mergedOptions.urlCacheTTL || 1000 * 60 * 60 * 24, // 24 hours
       updateAgeOnGet: true
     });
     
     this.assetCache = new LRUCache({
-      max: options.assetCacheSize || 5000,
-      ttl: options.assetCacheTTL || 1000 * 60 * 60 * 24 * 7, // 7 days
+      max: mergedOptions.assetCacheSize || 5000,
+      ttl: mergedOptions.assetCacheTTL || 1000 * 60 * 60 * 24 * 7, // 7 days
       updateAgeOnGet: true
     });
     
     this.screenshotCache = new LRUCache({
-      max: options.screenshotCacheSize || 1000,
-      ttl: options.screenshotCacheTTL || 1000 * 60 * 60 * 24 * 30, // 30 days
+      max: mergedOptions.screenshotCacheSize || 1000,
+      ttl: mergedOptions.screenshotCacheTTL || 1000 * 60 * 60 * 24 * 30, // 30 days
       updateAgeOnGet: true
     });
     
     this.ocrCache = new LRUCache({
-      max: options.ocrCacheSize || 500,
-      ttl: options.ocrCacheTTL || 1000 * 60 * 60 * 24 * 30, // 30 days
+      max: mergedOptions.ocrCacheSize || 500,
+      ttl: mergedOptions.ocrCacheTTL || 1000 * 60 * 60 * 24 * 30, // 30 days
       updateAgeOnGet: true
     });
     
-    // Configuration
+    // Configuration (using config values)
     this.config = {
-      enableOfflineMining: options.enableOfflineMining !== false,
-      enableVisualDiffTracking: options.enableVisualDiffTracking !== false,
-      enableNetworkMonitoring: options.enableNetworkMonitoring !== false,
-      defaultCacheTTL: options.defaultCacheTTL || 1000 * 60 * 60 * 24, // 24 hours
-      staleWhileRevalidate: options.staleWhileRevalidate !== false,
-      compressionEnabled: options.compressionEnabled !== false
+      enableOfflineMining: mergedOptions.enableOfflineMining !== false,
+      enableVisualDiffTracking: mergedOptions.enableVisualDiffTracking !== false,
+      enableNetworkMonitoring: mergedOptions.enableNetworkMonitoring !== false,
+      defaultCacheTTL: mergedOptions.defaultCacheTTL || 1000 * 60 * 60 * 24, // 24 hours
+      staleWhileRevalidate: mergedOptions.staleWhileRevalidate !== false,
+      compressionEnabled: mergedOptions.compressionEnabled !== false,
+      cacheStrategy: mergedOptions.cacheStrategy || 'stale-while-revalidate'
     };
+    
+    // Log active configuration
+    const activeProfile = this.cachingConfig.getActiveProfile();
+    console.log(`📋 Cache Manager initialized with profile: ${activeProfile.name || 'custom'}`);
   }
 
   createDatabasePool() {
