@@ -12,6 +12,8 @@ import createOllamaEmbeddingClient from './ollama-embedding-client.js';
 import createEmbeddingClient from './openai-embedding-client.js';
 import createRagService from './rag-service.js';
 import createVectorStore from './vector-store.js';
+import { RagHealthMonitor } from './rag-health-monitor.js';
+import { createManagedRagService } from './rag-connection-manager.js';
 
 function normalizeEndpoint(url) {
   if (!url) return null;
@@ -47,85 +49,95 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
     },
   });
 
-  let ragServicePromise = null;
+  // Initialize health monitor
+  const healthMonitor = new RagHealthMonitor({ logger });
 
-  async function getRagService() {
-    if (!isReadyEnvironment()) {
-      throw new Error('DeepSeek API key not configured and Ollama endpoint not detected');
-    }
+  // Initialize managed RAG service with automatic reconnection
+  const managedRagService = createManagedRagService({
+    createServiceFn: async () => {
+      if (!isReadyEnvironment()) {
+        throw new Error('DeepSeek API key not configured and Ollama endpoint not detected');
+      }
 
-    if (!ragServicePromise) {
-      ragServicePromise = (async () => {
-        const vectorStore = createVectorStore(db, { logger });
-        const preferredOllamaEndpoint =
-          normalizeEndpoint(process.env.OLLAMA_ENDPOINT || process.env.OLLAMA_API_URL) ||
-          'http://127.0.0.1:11434';
+      const vectorStore = createVectorStore(db, { logger });
+      const preferredOllamaEndpoint =
+        normalizeEndpoint(process.env.OLLAMA_ENDPOINT || process.env.OLLAMA_API_URL) ||
+        'http://127.0.0.1:11434';
 
-        let localAvailable = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(
-          preferredOllamaEndpoint
-        );
+      let localAvailable = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(
+        preferredOllamaEndpoint
+      );
 
-        if (localAvailable) {
-          try {
-            const probe = await fetch(`${preferredOllamaEndpoint}/api/tags`, { method: 'GET' });
-            if (!probe.ok) {
-              throw new Error(`status ${probe.status}`);
-            }
-          } catch (error) {
-            localAvailable = false;
-            logger.warn?.(
-              `Local Ollama not reachable at ${preferredOllamaEndpoint}: ${error.message}`
-            );
+      if (localAvailable) {
+        try {
+          const probe = await fetch(`${preferredOllamaEndpoint}/api/tags`, { method: 'GET' });
+          if (!probe.ok) {
+            throw new Error(`status ${probe.status}`);
           }
-        }
-
-        if (!localAvailable && !hasRemoteKey()) {
-          throw new Error(
-            'No RAG chat provider available. Start Ollama locally or configure DEEPSEEK_API_KEY/DEEPSEEK_KEY.'
+        } catch (error) {
+          localAvailable = false;
+          logger.warn?.(
+            `Local Ollama not reachable at ${preferredOllamaEndpoint}: ${error.message}`
           );
         }
+      }
 
-        const embeddingPreference =
-          process.env.RAG_EMBED_PROVIDER || (process.env.OPENAI_API_KEY ? 'openai' : 'ollama');
+      if (!localAvailable && !hasRemoteKey()) {
+        throw new Error(
+          'No RAG chat provider available. Start Ollama locally or configure DEEPSEEK_API_KEY/DEEPSEEK_KEY.'
+        );
+      }
 
-        let embeddingClient;
-        if (embeddingPreference === 'ollama') {
+      const embeddingPreference =
+        process.env.RAG_EMBED_PROVIDER || (process.env.OPENAI_API_KEY ? 'openai' : 'ollama');
+
+      let embeddingClient;
+      if (embeddingPreference === 'ollama') {
+        embeddingClient = createOllamaEmbeddingClient({ baseUrl: preferredOllamaEndpoint });
+      } else {
+        try {
+          embeddingClient = createEmbeddingClient({});
+        } catch (error) {
+          logger.warn?.(
+            `Falling back to Ollama embeddings because OpenAI embedding client failed: ${error.message}`
+          );
           embeddingClient = createOllamaEmbeddingClient({ baseUrl: preferredOllamaEndpoint });
-        } else {
-          try {
-            embeddingClient = createEmbeddingClient({});
-          } catch (error) {
-            logger.warn?.(
-              `Falling back to Ollama embeddings because OpenAI embedding client failed: ${error.message}`
-            );
-            embeddingClient = createOllamaEmbeddingClient({ baseUrl: preferredOllamaEndpoint });
-          }
         }
+      }
 
-        const remoteBase =
-          normalizeEndpoint(process.env.DEEPSEEK_API_URL || process.env.DEEPSEEK_API_BASE_URL) ||
-          'https://api.deepseek.com/v1';
+      const remoteBase =
+        normalizeEndpoint(process.env.DEEPSEEK_API_URL || process.env.DEEPSEEK_API_BASE_URL) ||
+        'https://api.deepseek.com/v1';
 
-        const deepseekClient = createDeepSeekClient({
-          baseUrl: localAvailable ? preferredOllamaEndpoint : remoteBase,
-        });
-
-        const ragService = createRagService({
-          vectorStore,
-          embeddingClient,
-          deepseekClient,
-          logger,
-          chunker,
-        });
-        await vectorStore.init?.();
-        return ragService;
-      })().catch(error => {
-        ragServicePromise = null;
-        throw error;
+      const deepseekClient = createDeepSeekClient({
+        baseUrl: localAvailable ? preferredOllamaEndpoint : remoteBase,
       });
-    }
 
-    return ragServicePromise;
+      const ragService = createRagService({
+        vectorStore,
+        embeddingClient,
+        deepseekClient,
+        logger,
+        chunker,
+      });
+      await vectorStore.init?.();
+      
+      // Initialize health monitoring with the RAG service
+      healthMonitor.initialize({ db, ragService });
+      
+      return ragService;
+    },
+    logger,
+  });
+
+  async function getRagService() {
+    try {
+      const service = await managedRagService.getService();
+      return service;
+    } catch (error) {
+      logger.error('Failed to get RAG service:', error);
+      throw new Error(`RAG service unavailable: ${error.message}`);
+    }
   }
 
   function parseTags(input) {
@@ -484,15 +496,83 @@ export function createRagRouter({ db, logger = console, chunker } = {}) {
 
   router.get('/health', async (_req, res) => {
     try {
-      const ragService = await getRagService();
-      const report = await ragService.healthCheck();
-      const statusCode = report.status === 'ok' ? 200 : report.status === 'warn' ? 206 : 503;
-      res.status(statusCode).json(report);
+      // Get health status from monitor
+      const healthStatus = healthMonitor.getStatus();
+      const connectionStatus = managedRagService.getStatus();
+      const circuitBreakerStatus = healthMonitor.getCircuitBreakerStatus();
+      
+      // Determine HTTP status code based on health
+      let statusCode = 200;
+      if (healthStatus.status === 'unhealthy' || circuitBreakerStatus.state === 'open') {
+        statusCode = 503;
+      } else if (healthStatus.status === 'degraded' || circuitBreakerStatus.state === 'half-open') {
+        statusCode = 206;
+      }
+      
+      // Return comprehensive health report
+      res.status(statusCode).json({
+        status: healthStatus.status,
+        timestamp: healthStatus.timestamp,
+        uptime: healthStatus.uptime,
+        components: {
+          database: healthStatus.database,
+          vectorStore: healthStatus.vectorStore,
+          embedding: healthStatus.embedding,
+          llm: healthStatus.llm,
+        },
+        connection: connectionStatus,
+        circuitBreaker: circuitBreakerStatus,
+        environment: {
+          hasOllama: isReadyEnvironment(),
+          hasDeepSeek: hasRemoteKey(),
+        },
+      });
     } catch (error) {
       logger.error('RAG health check failed:', error);
       res.status(503).json({
         status: 'error',
         error: error.message || 'Failed to run RAG health check',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+
+  // Add connection status endpoint
+  router.get('/status', (_req, res) => {
+    const status = managedRagService.getStatus();
+    const circuitBreaker = healthMonitor.getCircuitBreakerStatus();
+    
+    res.json({
+      connected: status.isConnected,
+      available: managedRagService.isAvailable(),
+      retryCount: status.retryCount,
+      maxRetries: status.maxRetries,
+      lastError: status.lastError,
+      circuitBreaker: {
+        state: circuitBreaker.state,
+        failures: circuitBreaker.failures,
+      },
+      environment: {
+        hasOllama: isReadyEnvironment(),
+        hasDeepSeek: hasRemoteKey(),
+      },
+    });
+  });
+
+  // Add reconnect endpoint for manual recovery
+  router.post('/reconnect', async (_req, res) => {
+    try {
+      logger.info('Manual RAG service reconnection requested');
+      await managedRagService.reconnect();
+      res.json({
+        status: 'ok',
+        message: 'RAG service reconnected successfully',
+      });
+    } catch (error) {
+      logger.error('Manual reconnection failed:', error);
+      res.status(500).json({
+        status: 'error',
+        error: error.message,
       });
     }
   });
