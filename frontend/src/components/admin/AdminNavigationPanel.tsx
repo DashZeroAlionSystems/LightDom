@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import type { AdminNavigationCategory } from '@/services/adminNavigation';
 import type { AdminNavigationStatus } from '@/hooks/useAdminNavigation';
 import { Badge, Button, Card } from '@/components/ui';
-import { CheckCircle2, Loader2, Shield } from 'lucide-react';
+import { CheckCircle2, CloudOff, Loader2, Shield } from 'lucide-react';
 
 export interface AdminNavigationPanelProps {
   categories: AdminNavigationCategory[];
@@ -33,6 +33,12 @@ function renderStatusLabel(status: AdminNavigationStatus, templateCount: number)
       return (
         <Badge variant='success' className='gap-2'>
           <CheckCircle2 className='h-3 w-3' /> {templateCount} templates synced
+        </Badge>
+      );
+    case 'fallback':
+      return (
+        <Badge variant='warning' className='gap-2'>
+          <CloudOff className='h-3 w-3' /> Fallback templates active
         </Badge>
       );
     default:

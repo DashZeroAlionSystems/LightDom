@@ -405,7 +405,7 @@ psql -d lightdom -c "\dt"
 # Frontend Configuration
 VITE_OLLAMA_API_URL=http://localhost:3001/api/ollama
 VITE_OLLAMA_WS_URL=ws://localhost:3001
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=http://localhost:4100/api
 VITE_ENABLE_STREAMING=true
 VITE_DEV_TOOLS=true
 VITE_MOCK_OLLAMA=false

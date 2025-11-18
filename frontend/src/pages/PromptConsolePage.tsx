@@ -47,10 +47,12 @@ interface RetrievedDocument {
   metadata?: Record<string, unknown> | null;
 }
 
-const API_BASE =
-  ((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_BASE_URL as
+const rawApiBase =
+  (((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_URL as
     | string
-    | undefined) ?? '/api';
+    | undefined)?.trim()) || '/api';
+
+const API_BASE = rawApiBase.replace(/\/$/, '');
 
 const createMessage = (role: ChatRole, content: string): ChatMessage => ({
   id: crypto.randomUUID(),

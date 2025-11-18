@@ -207,7 +207,7 @@ PORT=3001
 NODE_ENV=development
 
 # Frontend
-VITE_API_URL=http://localhost:3001
+VITE_API_URL=http://localhost:4100/api
 ```
 
 ### Optional Environment Variables

@@ -25,7 +25,7 @@ import {
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { Activity, AlertCircle, Brain, Cog, ShieldCheck, Sparkles, Zap } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAdminNavigation } from '@/hooks/useAdminNavigation';
 import AdminNavigationPanel from './AdminNavigationPanel';
 import type { AdminNavigationTemplate } from '@/services/adminNavigation';
@@ -194,6 +194,7 @@ const AdminConsoleWorkspace: React.FC<AdminConsoleWorkspaceProps> = ({
   const { categories, status: navStatus, templateCount, refresh: refreshNav } = navigationHook();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const lastTemplateIdRef = useRef<string | null>(null);
 
   const openTabs = useMemo(
     () =>
@@ -251,6 +252,65 @@ const AdminConsoleWorkspace: React.FC<AdminConsoleWorkspaceProps> = ({
 
   const selectedTemplate: AdminNavigationTemplate | null = selectedTemplateEntry?.template || null;
   const selectedTemplateCategory = selectedTemplateEntry?.categoryId || null;
+
+  useEffect(() => {
+    if (!selectedTemplate) {
+      return;
+    }
+
+    if (lastTemplateIdRef.current === selectedTemplate.template_id) {
+      return;
+    }
+
+    lastTemplateIdRef.current = selectedTemplate.template_id;
+
+    const templateKnowledge = (selectedTemplate.knowledge_graph_attributes ?? {}) as Record<string, unknown>;
+    const workflowSummary = selectedTemplate.workflow_summary as Record<string, unknown> | null | undefined;
+
+    const summaryPrompt = typeof templateKnowledge['defaultPrompt'] === 'string'
+      ? (templateKnowledge['defaultPrompt'] as string)
+      : workflowSummary && typeof workflowSummary['prompt'] === 'string'
+        ? (workflowSummary['prompt'] as string)
+        : null;
+
+    if (summaryPrompt) {
+      setWorkflowPrompt(summaryPrompt);
+    }
+
+    const attributePresets = Array.isArray(templateKnowledge['attributePresets'])
+      ? (templateKnowledge['attributePresets'] as string[])
+      : [];
+    if (attributePresets.length) {
+      setSelectedAttributes(attributePresets);
+    }
+
+    const categoryPresets = Array.isArray(templateKnowledge['categoryPresets'])
+      ? (templateKnowledge['categoryPresets'] as string[])
+      : [];
+    const metadataCategories = [selectedTemplate.category, selectedTemplate.subcategory].filter(
+      (value): value is string => Boolean(value)
+    );
+    const mergedCategories = Array.from(new Set([...categoryPresets, ...metadataCategories]));
+    if (mergedCategories.length) {
+      setSelectedCategories(mergedCategories);
+    }
+
+    const autoTrainValue = typeof templateKnowledge['autoTrain'] === 'boolean'
+      ? (templateKnowledge['autoTrain'] as boolean)
+      : undefined;
+    if (typeof autoTrainValue === 'boolean') {
+      setAutoTrain(autoTrainValue);
+    }
+
+    const datasetSuggestion = typeof templateKnowledge['datasetNameSuggestion'] === 'string'
+      ? (templateKnowledge['datasetNameSuggestion'] as string)
+      : null;
+    if (datasetSuggestion) {
+      const today = new Date().toISOString().split('T')[0];
+      const resolvedDataset = datasetSuggestion.replace('{date}', today);
+      setDatasetName(resolvedDataset);
+    }
+  }, [selectedTemplate]);
 
   return (
     <WorkspaceLayout

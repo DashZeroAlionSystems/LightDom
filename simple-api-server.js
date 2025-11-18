@@ -8,8 +8,11 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 dotenv.config();
 
+import DeepSeekAPIService from './services/deepseek-api-service.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const deepSeekService = new DeepSeekAPIService();
 
 // Import services and engines - COMMENTED OUT FOR TESTING
 /*
@@ -130,7 +133,7 @@ let seoAnalyticsService = null;
 let walletService = null;
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || process.env.API_PORT || 4100;
 const DEEPSEEK_SERVICE_URL = process.env.DEEPSEEK_SERVICE_URL || 'http://127.0.0.1:4100';
 
 // Middleware
@@ -381,43 +384,76 @@ app.post('/api/rag/chat/stream', async (req, res) => {
       return res.status(400).json({ success: false, error: 'messages array is required' });
     }
 
+    const normalizedMessages = messages.map(m => ({
+      role: (m?.role || 'user').toString(),
+      content: (m?.content || '').toString(),
+    }));
+
     const endpoint =
       process.env.OLLAMA_BASE_URL || process.env.OLLAMA_ENDPOINT || 'http://127.0.0.1:11500';
-    const prompt = messages.map(m => `${m.role || 'user'}: ${m.content || ''}`).join('\n');
+    const prompt = normalizedMessages.map(m => `${m.role}: ${m.content}`).join('\n');
 
-    const r = await fetch(`${endpoint}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: process.env.OLLAMA_MODEL || process.env.DEEPSEEK_MODEL || 'deepseek-coder',
-        prompt,
-        stream: false,
-        options: { temperature: 0.2 },
-      }),
-    });
+    let responseText = null;
+    let provider = 'ollama';
+    let lastError = null;
 
-    if (!r.ok) {
-      const text = await r.text();
-      return res
-        .status(502)
-        .json({
-          success: false,
-          error: 'Ollama generate returned non-OK',
-          status: r.status,
-          details: text,
+    try {
+      const r = await fetch(`${endpoint}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: process.env.OLLAMA_MODEL || process.env.DEEPSEEK_MODEL || 'deepseek-coder',
+          prompt,
+          stream: false,
+          options: { temperature: 0.2 },
+        }),
+      });
+
+      if (!r.ok) {
+        const text = await r.text();
+        throw new Error(`Ollama responded with ${r.status}: ${text}`);
+      }
+
+      const json = await r.json();
+      responseText = json.response || (typeof json === 'string' ? json : JSON.stringify(json));
+    } catch (ollamaError) {
+      lastError = ollamaError;
+      provider = 'deepseek';
+
+      try {
+        responseText = await deepSeekService.chatCompletion(normalizedMessages, {
+          temperature: 0.2,
+          maxTokens: 1200,
         });
+      } catch (deepSeekError) {
+        lastError = deepSeekError;
+      }
     }
 
-    const json = await r.json();
-    const responseText = json.response || (typeof json === 'string' ? json : JSON.stringify(json));
+    if (!responseText) {
+      const fallbackMessage = lastError ? lastError.message || String(lastError) : 'Unknown error';
+      console.error('[simple-api-server] RAG chat stream failed:', fallbackMessage);
+      return res.status(503).json({
+        success: false,
+        error: 'Unable to reach the RAG chat service.',
+        hint: 'Start Ollama (`ollama serve`), configure OLLAMA_BASE_URL, or provide DEEPSEEK_API_KEY.',
+        details: fallbackMessage,
+      });
+    }
 
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     if (typeof res.flushHeaders === 'function') res.flushHeaders();
 
-    res.write(`data: ${JSON.stringify({ type: 'status', message: 'processing' })}\n\n`);
-    res.write(`data: ${JSON.stringify({ type: 'content', content: responseText })}\n\n`);
+    const providerLabel = provider === 'deepseek' && deepSeekService.mockMode ? 'deepseek-mock' : provider;
+    if (providerLabel !== 'ollama') {
+      const reason = lastError ? lastError.message || String(lastError) : 'Unknown';
+      console.warn(`[simple-api-server] Falling back to ${providerLabel} for RAG chat: ${reason}`);
+    }
+
+    res.write(`data: ${JSON.stringify({ type: 'status', message: 'processing', provider: providerLabel })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'content', content: responseText, provider: providerLabel })}\n\n`);
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
@@ -426,8 +462,8 @@ app.post('/api/rag/chat/stream', async (req, res) => {
       .status(503)
       .json({
         success: false,
-        error: 'Unable to reach the RAG chat service. Ensure Ollama and the backend are running.',
-        hint: 'Start Ollama with `ollama serve` and/or ensure OLLAMA_BASE_URL is correct',
+        error: 'Failed to process chat stream',
+        hint: 'Start Ollama (`ollama serve`) or ensure DEEPSEEK_API_KEY/URL are configured',
         details: err.message,
       });
   }

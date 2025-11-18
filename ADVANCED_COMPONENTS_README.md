@@ -293,7 +293,7 @@ npm run deploy:production
 ### Environment Configuration
 ```env
 # Development
-VITE_API_URL=http://localhost:3002
+VITE_API_URL=http://localhost:4100/api
 VITE_ENVIRONMENT=development
 
 # Production

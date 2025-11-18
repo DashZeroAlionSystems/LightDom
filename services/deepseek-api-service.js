@@ -69,6 +69,77 @@ class DeepSeekAPIService {
     this.cacheTTL = 300000; // 5 minutes
   }
 
+  async chatCompletion(messages, options = {}) {
+    const normalizedMessages = Array.isArray(messages)
+      ? messages.filter(m => m && typeof m === 'object' && typeof m.content === 'string')
+      : [];
+
+    if (!normalizedMessages.length) {
+      return 'No messages provided to DeepSeek chat completion.';
+    }
+
+    const temperature = options.temperature ?? 0.2;
+    const maxTokens = options.maxTokens ?? 1200;
+
+    if (this.mockMode && !this.isOllama) {
+      const lastUser = normalizedMessages
+        .slice()
+        .reverse()
+        .find(message => message.role === 'user');
+      const prompt = lastUser?.content || 'Provide campaign guidance.';
+      const fallback = this.mockGenerateWorkflow(prompt);
+      return Array.isArray(fallback?.seeds)
+        ? `Mock response: DeepSeek offline. Suggested focus areas include ${fallback.seeds.slice(0, 3).join(', ')}.`
+        : 'Mock response: DeepSeek offline.';
+    }
+
+    try {
+      if (this.isOllama) {
+        const payload = {
+          model: this.model,
+          messages: normalizedMessages,
+          stream: false,
+          options: { temperature },
+        };
+
+        if (options.maxTokens !== undefined) {
+          payload.options.num_predict = maxTokens;
+        }
+
+        const response = await this.client.post('/api/chat', payload);
+        const content =
+          response.data?.message?.content ??
+          response.data?.response ??
+          response.data?.choices?.[0]?.message?.content ??
+          '';
+        return typeof content === 'string' && content.trim().length
+          ? content
+          : 'The Ollama backend returned an empty response.';
+      }
+
+      const response = await this.client.post('/chat/completions', {
+        model: this.model,
+        messages: normalizedMessages,
+        temperature,
+        max_tokens: maxTokens,
+        stream: false,
+      });
+
+      const content = response.data?.choices?.[0]?.message?.content ?? '';
+      if (typeof content === 'string' && content.trim().length) {
+        return content;
+      }
+
+      return 'DeepSeek returned an empty response for the provided prompt.';
+    } catch (error) {
+      console.error('DeepSeek chatCompletion error:', error.message);
+      if (this.mockMode) {
+        return 'Fallback response: DeepSeek chat unavailable.';
+      }
+      throw error;
+    }
+  }
+
   createChatStream(messages, options = {}) {
     if (this.mockMode && !this.isOllama) {
       return Readable.from([
