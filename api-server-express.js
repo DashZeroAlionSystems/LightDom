@@ -737,7 +737,7 @@ class DOMSpaceHarvesterAPI {
     // Admin navigation routes (DB-driven sidebar metadata)
     this.app.use('/api/admin', createAdminNavigationRoutes(this.db));
 
-    // N8N Workflow Management Routes
+    // N8N Workflow Management Routes (Legacy)
     import('./api/n8n-workflow-routes.js')
       .then(n8nModule => {
         this.app.use('/api/n8n', n8nModule.default);
@@ -745,6 +745,17 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.warn('⚠️ Failed to load N8N workflow routes:', err.message);
+      });
+
+    // Enhanced N8N Workflow Management Routes with Database Integration
+    import('./api/n8n-workflow-management-routes.js')
+      .then(n8nManagementModule => {
+        const initializeRoutes = n8nManagementModule.default || n8nManagementModule.initializeN8NWorkflowRoutes;
+        this.app.use('/api/n8n-workflows', initializeRoutes(this.db));
+        console.log('✅ Enhanced N8N workflow management routes registered at /api/n8n-workflows');
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to load enhanced N8N workflow routes:', err.message);
       });
 
     // Client Site Script Injection Routes

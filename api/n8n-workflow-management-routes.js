@@ -16,6 +16,7 @@ import express from 'express';
 import axios from 'axios';
 import { randomBytes } from 'crypto';
 import { N8NWorkflowsDAL } from './data-access/n8n-workflows-dal.js';
+import { listTemplates, getTemplate, createWorkflowFromTemplate } from '../services/n8n-workflow-templates.js';
 
 const router = express.Router();
 
@@ -629,6 +630,158 @@ export function initializeN8NWorkflowRoutes(pool) {
       res.status(500).json({
         success: false,
         message: `[workflow][n8n][metrics] - error - ${error.message}`,
+        error: error.message
+      });
+    }
+  });
+
+  // ============================================================================
+  // WORKFLOW TEMPLATES
+  // ============================================================================
+
+  /**
+   * GET /api/n8n-workflows/templates
+   * List available workflow templates
+   */
+  router.get('/templates', (req, res) => {
+    try {
+      const { category } = req.query;
+      const templates = listTemplates(category);
+
+      // Format templates for response
+      const formattedTemplates = templates.map(template => ({
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        category: template.category,
+        tags: template.tags,
+        requiredServices: template.requiredServices,
+        configOptions: template.configOptions
+      }));
+
+      res.json({
+        success: true,
+        count: formattedTemplates.length,
+        templates: formattedTemplates
+      });
+    } catch (error) {
+      console.error('[workflow][n8n][templates] - error - Failed to list templates:', error);
+      res.status(500).json({
+        success: false,
+        message: `[workflow][n8n][templates] - error - ${error.message}`,
+        error: error.message
+      });
+    }
+  });
+
+  /**
+   * GET /api/n8n-workflows/templates/:id
+   * Get specific template details
+   */
+  router.get('/templates/:id', (req, res) => {
+    try {
+      const template = getTemplate(req.params.id);
+
+      if (!template) {
+        return res.status(404).json({
+          success: false,
+          message: `[workflow][n8n][templates] - error - Template not found: ${req.params.id}`
+        });
+      }
+
+      res.json({
+        success: true,
+        template: {
+          id: template.id,
+          name: template.name,
+          description: template.description,
+          category: template.category,
+          tags: template.tags,
+          requiredServices: template.requiredServices,
+          configOptions: template.configOptions
+        }
+      });
+    } catch (error) {
+      console.error('[workflow][n8n][templates] - error - Failed to get template:', error);
+      res.status(500).json({
+        success: false,
+        message: `[workflow][n8n][templates] - error - ${error.message}`,
+        error: error.message
+      });
+    }
+  });
+
+  /**
+   * POST /api/n8n-workflows/from-template
+   * Create workflow from template
+   */
+  router.post('/from-template', async (req, res) => {
+    try {
+      const { templateId, config, name, description, sync_to_n8n = true } = req.body;
+
+      if (!templateId) {
+        return res.status(400).json({
+          success: false,
+          message: '[workflow][n8n][from-template] - error - Template ID is required'
+        });
+      }
+
+      // Create workflow from template
+      const workflowDef = createWorkflowFromTemplate(templateId, config);
+      
+      // Override name/description if provided
+      if (name) workflowDef.name = name;
+      if (description) workflowDef.description = description;
+
+      const workflow_id = `wf_${randomBytes(16).toString('hex')}`;
+      
+      let n8n_id = null;
+      
+      // Sync to N8N if requested
+      if (sync_to_n8n) {
+        try {
+          const client = createN8NClient();
+          const n8nResponse = await client.post('/api/v1/workflows', workflowDef);
+          n8n_id = n8nResponse.data.data?.id || n8nResponse.data.id;
+          console.log(`[workflow][n8n][from-template] - info - Synced to N8N with ID: ${n8n_id}`);
+        } catch (n8nError) {
+          console.warn(`[workflow][n8n][from-template] - warning - Failed to sync to N8N: ${n8nError.message}`);
+        }
+      }
+
+      // Save to database
+      const workflow = await workflowDAL.createWorkflow({
+        workflow_id,
+        n8n_id,
+        name: workflowDef.name,
+        description: workflowDef.description || workflowDef.templateName,
+        workflow_type: workflowDef.category || 'automation',
+        workflow_definition: workflowDef,
+        tags: workflowDef.tags || [],
+        is_active: true,
+        created_by: req.user?.id || null
+      });
+
+      if (n8n_id) {
+        await workflowDAL.markAsSynced(workflow_id, n8n_id);
+      }
+
+      console.log(`[workflow][n8n][from-template] - info - Workflow created from template ${templateId}: ${workflow_id}`);
+
+      res.json({
+        success: true,
+        message: `[workflow][n8n][from-template] - info - Workflow created from template successfully`,
+        workflow,
+        template: {
+          id: templateId,
+          name: workflowDef.templateName
+        }
+      });
+    } catch (error) {
+      console.error('[workflow][n8n][from-template] - error - Failed to create workflow from template:', error);
+      res.status(500).json({
+        success: false,
+        message: `[workflow][n8n][from-template] - error - ${error.message}`,
         error: error.message
       });
     }
