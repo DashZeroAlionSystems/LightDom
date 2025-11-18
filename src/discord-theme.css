@@ -343,6 +343,83 @@ body {
   color: var(--discord-text-muted);
 }
 
+/* Ant Design Input Overrides - Fix Text Visibility */
+.ant-input,
+.ant-input-affix-wrapper input,
+.ant-input-number-input,
+.ant-select-selection-search-input,
+.ant-picker-input input,
+textarea.ant-input {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  caret-color: #000000 !important;
+}
+
+.ant-input::placeholder,
+.ant-input-affix-wrapper input::placeholder,
+textarea.ant-input::placeholder {
+  color: #999999 !important;
+  opacity: 1 !important;
+}
+
+.ant-input:focus,
+.ant-input-focused,
+.ant-input-affix-wrapper-focused,
+textarea.ant-input:focus {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  border-color: var(--discord-primary) !important;
+  box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2) !important;
+}
+
+/* Dark mode Ant Design inputs (when needed) */
+.dark-theme .ant-input,
+.dark-theme .ant-input-affix-wrapper input,
+.dark-theme textarea.ant-input {
+  color: #ffffff !important;
+  background-color: var(--discord-bg-quaternary) !important;
+  border-color: var(--discord-border) !important;
+}
+
+.dark-theme .ant-input::placeholder,
+.dark-theme .ant-input-affix-wrapper input::placeholder,
+.dark-theme textarea.ant-input::placeholder {
+  color: var(--discord-text-muted) !important;
+}
+
+/* Ant Design TextArea specific */
+.ant-input-textarea textarea {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+
+/* Ant Design Select - ensure visible text */
+.ant-select-selection-item {
+  color: #000000 !important;
+}
+
+.ant-select-selection-placeholder {
+  color: #999999 !important;
+}
+
+/* Ant Design Input Number */
+.ant-input-number {
+  background-color: #ffffff !important;
+}
+
+.ant-input-number-input {
+  color: #000000 !important;
+}
+
+/* Form labels visibility */
+.ant-form-item-label > label {
+  color: #000000 !important;
+}
+
+.dark-theme .ant-form-item-label > label {
+  color: var(--discord-text-primary) !important;
+}
+
 /* Status Indicators */
 .discord-status {
   display: inline-flex;
