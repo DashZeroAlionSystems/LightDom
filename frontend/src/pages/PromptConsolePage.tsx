@@ -12,6 +12,9 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { PromptInput, type PromptAction, type PromptToken } from '@/components/ui/PromptInput';
+import RagConnectionStatus from '@/components/RagConnectionStatus';
+import RagErrorBoundary from '@/components/RagErrorBoundary';
+import { useRagChat } from '@/hooks/useRagChat';
 
 type ChatRole = 'user' | 'assistant' | 'system';
 
@@ -70,19 +73,26 @@ const formatTimestamp = (isoString: string) => {
 
 const PromptConsolePage: React.FC = () => {
   const [conversation, setConversation] = useState<ChatMessage[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState('Ready');
   const [thinkingContent, setThinkingContent] = useState<string | null>(null);
   const [schemaSuggestion, setSchemaSuggestion] = useState<SchemaSuggestion | null>(null);
   const [componentSuggestion, setComponentSuggestion] = useState<ComponentSuggestion | null>(null);
-  const [retrievedDocuments, setRetrievedDocuments] = useState<RetrievedDocument[]>([]);
   const [ingesting, setIngesting] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const streamingMessageIdRef = useRef<string | null>(null);
   const conversationRef = useRef<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const streamingMessageIdRef = useRef<string | null>(null);
+
+  // Use RAG chat hook with automatic retry and error handling
+  const {
+    streamChat,
+    cancelStream,
+    isStreaming: loading,
+    error,
+    retrievedDocuments,
+    isAvailable,
+    healthStatus,
+  } = useRagChat();
 
   useEffect(() => {
     conversationRef.current = conversation;
@@ -1005,10 +1015,8 @@ const PromptConsolePage: React.FC = () => {
         }
       }
 
-      abortControllerRef.current?.abort();
-
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
+      // Cancel any existing stream
+      cancelStream();
 
       const userMessage = createMessage('user', trimmed);
       const assistantMessage: ChatMessage = {
@@ -1020,74 +1028,70 @@ const PromptConsolePage: React.FC = () => {
 
       streamingMessageIdRef.current = assistantMessage.id;
       setConversation((prev: ChatMessage[]) => [...prev, userMessage, assistantMessage]);
-      setLoading(true);
-      setError(null);
       setStatusMessage('Connecting…');
       setThinkingContent(null);
       setSchemaSuggestion(null);
       setComponentSuggestion(null);
-      setRetrievedDocuments([]);
 
       const messages = history
         .concat(userMessage)
         .map((msg: ChatMessage) => ({ role: msg.role, content: msg.content }));
 
       try {
-        const response = await fetch(`${API_BASE}/rag/chat/stream`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'text/event-stream',
-          },
-          body: JSON.stringify({ messages }),
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(text || `DeepSeek request failed with status ${response.status}`);
-        }
-
-        await handleStreamResponse(response, assistantMessage.id);
-      } catch (streamError) {
-        if ((streamError as Error).name === 'AbortError') {
-          return;
-        }
-        console.error('RAG chat request failed', streamError);
-        setError('Unable to reach the RAG chat service. Ensure the backend is running.');
-        setStatusMessage('RAG connection failed');
+        await streamChat(
+          messages,
+          {},
+          (chunk: string) => {
+            setConversation((prev: ChatMessage[]) => {
+              return prev.map(msg =>
+                msg.id === assistantMessage.id
+                  ? { ...msg, content: msg.content + chunk }
+                  : msg
+              );
+            });
+            setStatusMessage('Streaming…');
+          }
+        );
+        
+        // Mark message as complete
         markMessageComplete(assistantMessage.id);
-      } finally {
-        setLoading(false);
+        setStatusMessage('Complete');
+      } catch (streamError) {
+        console.error('RAG chat request failed', streamError);
+        markMessageComplete(assistantMessage.id);
       }
     },
-    [conversationRef, handleSlashCommand, handleStreamResponse, markMessageComplete]
+    [streamChat, cancelStream, handleSlashCommand, markMessageComplete]
   );
 
   return (
-    <div className='flex min-h-screen flex-col bg-surface text-on-surface'>
-      <header className='flex items-center justify-between border-b border-border/70 px-6 py-4'>
-        <div className='flex items-center gap-3'>
-          <div className='flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/15 text-primary'>
-            <Sparkles className='h-5 w-5' />
+    <RagErrorBoundary>
+      <div className='flex min-h-screen flex-col bg-surface text-on-surface'>
+        <header className='flex items-center justify-between border-b border-border/70 px-6 py-4'>
+          <div className='flex items-center gap-3'>
+            <div className='flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/15 text-primary'>
+              <Sparkles className='h-5 w-5' />
+            </div>
+            <div className='flex flex-col'>
+              <span className='text-xs font-semibold uppercase tracking-[0.2em] text-primary/80'>
+                DeepSeek Studio
+              </span>
+              <h1 className='text-lg font-semibold leading-tight'>Streaming conversation console</h1>
+            </div>
           </div>
-          <div className='flex flex-col'>
-            <span className='text-xs font-semibold uppercase tracking-[0.2em] text-primary/80'>
-              DeepSeek Studio
-            </span>
-            <h1 className='text-lg font-semibold leading-tight'>Streaming conversation console</h1>
+          <div className='flex items-center gap-4'>
+            <RagConnectionStatus showDetails={false} />
+            {loading && (
+              <span className='flex items-center gap-2 text-xs text-on-surface-variant'>
+                <Loader2 className='h-3.5 w-3.5 animate-spin text-primary' />
+                Listening…
+              </span>
+            )}
           </div>
-        </div>
-        {loading && (
-          <span className='flex items-center gap-2 text-xs text-on-surface-variant'>
-            <Loader2 className='h-3.5 w-3.5 animate-spin text-primary' />
-            Listening…
-          </span>
-        )}
-      </header>
+        </header>
 
-      <main className='flex-1 overflow-y-auto px-6 py-8'>
-        <div className='mx-auto flex w-full max-w-4xl flex-col gap-6'>
+        <main className='flex-1 overflow-y-auto px-6 py-8'>
+          <div className='mx-auto flex w-full max-w-4xl flex-col gap-6'>
           <input
             ref={fileInputRef}
             type='file'
