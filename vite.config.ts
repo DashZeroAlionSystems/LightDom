@@ -8,6 +8,16 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@/ml': path.resolve(__dirname, './src/ml'),
+      '@/database': path.resolve(__dirname, './src/database'),
+      '@/crawler': path.resolve(__dirname, './src/crawler'),
+      '@/design-system': path.resolve(__dirname, './src/design-system'),
+      '@/neural': path.resolve(__dirname, './src/neural'),
+      '@/rag': path.resolve(__dirname, './src/rag'),
+      '@/components': path.resolve(__dirname, './src/components'),
+      '@/vscode': path.resolve(__dirname, './src/components/vscode'),
+      '@/admin': path.resolve(__dirname, './src/components/admin'),
+      '@/stories': path.resolve(__dirname, './src/stories'),
     },
   },
   server: {

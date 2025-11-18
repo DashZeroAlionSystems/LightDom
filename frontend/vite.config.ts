@@ -63,6 +63,16 @@ export default defineConfig({
       '@/store': path.resolve(__dirname, './src/store'),
       '@/types': path.resolve(__dirname, './src/types'),
       '@/assets': path.resolve(__dirname, './src/assets'),
+      // Root src folder for shared ML/AI components
+      '@/ml': path.resolve(__dirname, '../src/ml'),
+      '@/database': path.resolve(__dirname, '../src/database'),
+      '@/crawler': path.resolve(__dirname, '../src/crawler'),
+      '@/design-system': path.resolve(__dirname, '../src/design-system'),
+      '@/neural': path.resolve(__dirname, '../src/neural'),
+      '@/rag': path.resolve(__dirname, '../src/rag'),
+      '@/vscode': path.resolve(__dirname, '../src/components/vscode'),
+      '@/admin': path.resolve(__dirname, '../src/components/admin'),
+      '@/stories': path.resolve(__dirname, '../src/stories'),
     },
   },
   server: {
