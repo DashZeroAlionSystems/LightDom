@@ -58,7 +58,9 @@ if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
     if (input instanceof Request) {
       const urlString = input.url;
       const origin = window.location.origin;
-      const relativePath = urlString.startsWith(origin) ? urlString.substring(origin.length) : urlString;
+      const relativePath = urlString.startsWith(origin)
+        ? urlString.substring(origin.length)
+        : urlString;
 
       if (shouldRewrite(relativePath)) {
         const rewrittenUrl = rewritePath(relativePath);

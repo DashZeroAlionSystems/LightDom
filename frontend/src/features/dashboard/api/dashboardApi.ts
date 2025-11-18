@@ -42,7 +42,7 @@ export type RecentCrawl = z.infer<typeof RecentCrawlSchema>;
 const jsonFetch = async <TSchema extends z.ZodTypeAny>(
   endpoint: string,
   schema: TSchema,
-  init?: RequestInit,
+  init?: RequestInit
 ): Promise<z.output<TSchema>> => {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: { 'Content-Type': 'application/json' },
@@ -62,9 +62,11 @@ const RecentCrawlsResponseSchema = z.object({
   crawls: z.array(RecentCrawlSchema).default([]),
 });
 
-const getMiningData = (): Promise<MiningData> => jsonFetch('/metaverse/mining-data', MiningDataSchema);
+const getMiningData = (): Promise<MiningData> =>
+  jsonFetch('/metaverse/mining-data', MiningDataSchema);
 
-const getCrawlerStats = (): Promise<CrawlerStats> => jsonFetch('/crawler/stats', CrawlerStatsSchema);
+const getCrawlerStats = (): Promise<CrawlerStats> =>
+  jsonFetch('/crawler/stats', CrawlerStatsSchema);
 
 const getRecentCrawls = async (limit = 5): Promise<RecentCrawl[]> => {
   const result = await jsonFetch(`/crawler/recent?limit=${limit}`, RecentCrawlsResponseSchema);

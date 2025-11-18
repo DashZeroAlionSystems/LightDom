@@ -446,26 +446,29 @@ app.post('/api/rag/chat/stream', async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
     if (typeof res.flushHeaders === 'function') res.flushHeaders();
 
-    const providerLabel = provider === 'deepseek' && deepSeekService.mockMode ? 'deepseek-mock' : provider;
+    const providerLabel =
+      provider === 'deepseek' && deepSeekService.mockMode ? 'deepseek-mock' : provider;
     if (providerLabel !== 'ollama') {
       const reason = lastError ? lastError.message || String(lastError) : 'Unknown';
       console.warn(`[simple-api-server] Falling back to ${providerLabel} for RAG chat: ${reason}`);
     }
 
-    res.write(`data: ${JSON.stringify({ type: 'status', message: 'processing', provider: providerLabel })}\n\n`);
-    res.write(`data: ${JSON.stringify({ type: 'content', content: responseText, provider: providerLabel })}\n\n`);
+    res.write(
+      `data: ${JSON.stringify({ type: 'status', message: 'processing', provider: providerLabel })}\n\n`
+    );
+    res.write(
+      `data: ${JSON.stringify({ type: 'content', content: responseText, provider: providerLabel })}\n\n`
+    );
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
     console.error('[simple-api-server] RAG chat stream failed:', err.message);
-    return res
-      .status(503)
-      .json({
-        success: false,
-        error: 'Failed to process chat stream',
-        hint: 'Start Ollama (`ollama serve`) or ensure DEEPSEEK_API_KEY/URL are configured',
-        details: err.message,
-      });
+    return res.status(503).json({
+      success: false,
+      error: 'Failed to process chat stream',
+      hint: 'Start Ollama (`ollama serve`) or ensure DEEPSEEK_API_KEY/URL are configured',
+      details: err.message,
+    });
   }
 });
 
@@ -486,7 +489,7 @@ app.post('/api/deepseek/chat', async (req, res) => {
     }
     res.write(': connected\n\n');
 
-    upstream.data.on('data', (chunk) => {
+    upstream.data.on('data', chunk => {
       res.write(chunk);
     });
 
@@ -497,11 +500,11 @@ app.post('/api/deepseek/chat', async (req, res) => {
       }
     });
 
-    upstream.data.on('error', (streamError) => {
+    upstream.data.on('error', streamError => {
       console.error('DeepSeek chat proxy stream error:', streamError.message);
       if (!res.writableEnded) {
         res.write(
-          `data: ${JSON.stringify({ type: 'error', message: 'DeepSeek stream error occurred.' })}\n\n`,
+          `data: ${JSON.stringify({ type: 'error', message: 'DeepSeek stream error occurred.' })}\n\n`
         );
         res.end();
       }

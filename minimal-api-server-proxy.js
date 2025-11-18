@@ -203,9 +203,7 @@ app.post('/api/rag/chat/stream', async (req, res) => {
       content: (m?.content || '').toString(),
     }));
 
-    const prompt = normalizedMessages
-      .map(m => `${m.role}: ${m.content}`)
-      .join('\n');
+    const prompt = normalizedMessages.map(m => `${m.role}: ${m.content}`).join('\n');
 
     let responseText = null;
     let provider = 'ollama';
@@ -259,23 +257,33 @@ app.post('/api/rag/chat/stream', async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
     if (typeof res.flushHeaders === 'function') res.flushHeaders();
 
-    const providerLabel = provider === 'deepseek' && deepSeekService.mockMode ? 'deepseek-mock' : provider;
+    const providerLabel =
+      provider === 'deepseek' && deepSeekService.mockMode ? 'deepseek-mock' : provider;
     if (providerLabel !== 'ollama') {
       const reason = lastError ? lastError.message || String(lastError) : 'Unknown';
-      console.warn(
-        `[minimal-api-proxy] Falling back to ${providerLabel} for RAG chat: ${reason}`
-      );
+      console.warn(`[minimal-api-proxy] Falling back to ${providerLabel} for RAG chat: ${reason}`);
     }
 
-    res.write(`data: ${JSON.stringify({ type: 'status', message: 'processing', provider: providerLabel })}\n\n`);
-    res.write(`data: ${JSON.stringify({ type: 'content', content: responseText, provider: providerLabel })}\n\n`);
+    res.write(
+      `data: ${JSON.stringify({ type: 'status', message: 'processing', provider: providerLabel })}\n\n`
+    );
+    res.write(
+      `data: ${JSON.stringify({ type: 'content', content: responseText, provider: providerLabel })}\n\n`
+    );
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('[minimal-api-proxy] chat stream failed:', err && (err.stack || err.message || err));
+    console.error(
+      '[minimal-api-proxy] chat stream failed:',
+      err && (err.stack || err.message || err)
+    );
     return res
       .status(503)
-      .json({ success: false, error: 'Failed to process chat stream', details: err.message || String(err) });
+      .json({
+        success: false,
+        error: 'Failed to process chat stream',
+        details: err.message || String(err),
+      });
   }
 });
 

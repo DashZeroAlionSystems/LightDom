@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getFallbackAdminNavigation } from '@/data/adminNavigationFallback';
 import {
   AdminNavigationCategory,
   AdminNavSocketMessage,
   fetchAdminNavigation,
   subscribeToAdminNavigation,
 } from '@/services/adminNavigation';
-import { getFallbackAdminNavigation } from '@/data/adminNavigationFallback';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export type AdminNavigationStatus = 'idle' | 'loading' | 'ready' | 'error' | 'fallback';
 
@@ -21,7 +21,7 @@ export function useAdminNavigation() {
     }
 
     loadingRef.current = true;
-    setStatus((prev) => (prev === 'ready' ? prev : 'loading'));
+    setStatus(prev => (prev === 'ready' ? prev : 'loading'));
     setError(null);
 
     try {

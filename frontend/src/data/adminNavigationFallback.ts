@@ -70,7 +70,12 @@ export function getFallbackAdminNavigation(): AdminNavigationCategory[] {
             autoTrain: false,
           },
           status_steps: [
-            { index: 0, id: 'match-library', title: 'Match strategist prompt to library', status: 'Running' },
+            {
+              index: 0,
+              id: 'match-library',
+              title: 'Match strategist prompt to library',
+              status: 'Running',
+            },
             { index: 1, id: 'surface-gaps', title: 'Surface library gaps', status: 'Pending' },
           ],
           workflow_summary: {
