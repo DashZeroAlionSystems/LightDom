@@ -17,6 +17,7 @@ import { applyCommandPaletteTheme, loadCommandPaletteTheme } from '@/config/comm
 // Pages
 import { PromptConsolePage } from '@/pages/PromptConsolePage';
 import { ComponentSchemaToolPage } from '@/pages/ComponentSchemaToolPage';
+import { SidebarDemoPage } from '@/pages/SidebarDemoPage';
 import AdminNavDemoPage from '@/pages/AdminNavDemoPage';
 import UnifiedDashboardDemoPage from '@/pages/UnifiedDashboardDemoPage';
 import WorkflowWizardDemoPage from '@/pages/WorkflowWizardDemoPage';
@@ -122,6 +123,9 @@ const App: React.FC = () => {
                     </PublicRoute>
                   }
                 />
+
+                {/* Demo Route - No Auth Required */}
+                <Route path='/sidebar-demo' element={<SidebarDemoPage />} />
 
                 {/* Protected Routes */}
                 <Route
