@@ -211,6 +211,59 @@ We have **substantial existing code** (~100+ services, 200+ files, 50+ component
 - Implement proper data retention policies
 - Use proper database migration strategies with rollback plans
 
+### Database Migration Standards
+**CRITICAL: Follow these rules for ALL database migrations**
+
+See [DATABASE_MIGRATION_RULES.md](DATABASE_MIGRATION_RULES.md) for complete guidelines.
+
+#### Migration File Requirements
+- **Naming**: `database/migrations/YYYYMMDD_descriptive_name.sql`
+- **Location**: Place all migrations in `database/migrations/` directory
+- **Idempotency**: ALL scripts MUST be idempotent (safe to run multiple times)
+
+#### SQL Script Standards
+```sql
+-- ✅ CORRECT: Use IF NOT EXISTS
+CREATE TABLE IF NOT EXISTS my_table (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_name ON my_table(name);
+
+-- ✅ CORRECT: Foreign keys with actions
+FOREIGN KEY (parent_id) REFERENCES parent(id) ON DELETE CASCADE;
+
+-- ✅ CORRECT: PostgreSQL syntax for indexes
+CREATE INDEX idx_url ON my_table(url);
+
+-- ❌ INCORRECT: MySQL syntax
+CREATE INDEX idx_url ON my_table(url(255));
+```
+
+#### Migration Checklist
+Before committing a migration, verify:
+- [ ] File follows naming convention `YYYYMMDD_descriptive_name.sql`
+- [ ] Uses `CREATE TABLE IF NOT EXISTS` (or justified DROP TABLE CASCADE)
+- [ ] Uses `CREATE INDEX IF NOT EXISTS`
+- [ ] Foreign keys have ON DELETE/UPDATE clauses
+- [ ] Timestamps have DEFAULT CURRENT_TIMESTAMP
+- [ ] Tables have updated_at triggers
+- [ ] Tables/columns have COMMENT documentation
+- [ ] Tested on clean database
+- [ ] Tested for idempotency (run twice, no errors)
+- [ ] No MySQL-specific syntax
+- [ ] Proper indexes on foreign keys and query columns
+
+#### Documentation Requirements
+See [DATABASE_TABLES_ANALYSIS.md](DATABASE_TABLES_ANALYSIS.md) for:
+- List of all existing tables (400+ tables documented)
+- Missing/recommended tables for crawler system
+- Migration status and priorities
+- Table relationship diagrams
+
 ## Performance Standards
 
 ### Frontend Performance
