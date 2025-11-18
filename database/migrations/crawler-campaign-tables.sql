@@ -208,6 +208,137 @@ CREATE INDEX IF NOT EXISTS idx_analytics_campaign ON campaign_analytics(campaign
 CREATE INDEX IF NOT EXISTS idx_analytics_recorded ON campaign_analytics(recorded_at DESC);
 CREATE INDEX IF NOT EXISTS idx_analytics_campaign_recorded ON campaign_analytics(campaign_id, recorded_at DESC);
 
+-- Crawler Clusters Table (Group crawlers together for coordinated operations)
+CREATE TABLE IF NOT EXISTS crawler_clusters (
+  id VARCHAR(255) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  reason TEXT,
+  
+  -- Cluster configuration
+  strategy VARCHAR(50) DEFAULT 'load-balanced',
+  max_crawlers INTEGER DEFAULT 10,
+  auto_scale BOOLEAN DEFAULT true,
+  
+  -- Status
+  status VARCHAR(50) DEFAULT 'active',
+  
+  -- Timestamps
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_clusters_status ON crawler_clusters(status);
+CREATE INDEX IF NOT EXISTS idx_clusters_name ON crawler_clusters(name);
+
+-- Cluster Membership Table (Many-to-many relationship between campaigns and clusters)
+CREATE TABLE IF NOT EXISTS cluster_campaigns (
+  id SERIAL PRIMARY KEY,
+  cluster_id VARCHAR(255) NOT NULL,
+  campaign_id VARCHAR(255) NOT NULL,
+  
+  -- Membership metadata
+  priority INTEGER DEFAULT 5,
+  role VARCHAR(100),
+  
+  -- Timestamps
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (cluster_id) REFERENCES crawler_clusters(id) ON DELETE CASCADE,
+  FOREIGN KEY (campaign_id) REFERENCES crawler_campaigns(id) ON DELETE CASCADE,
+  
+  UNIQUE(cluster_id, campaign_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_cluster_campaigns_cluster ON cluster_campaigns(cluster_id);
+CREATE INDEX IF NOT EXISTS idx_cluster_campaigns_campaign ON cluster_campaigns(campaign_id);
+
+-- Seeding Services Table (Services that collect URLs for crawling)
+CREATE TABLE IF NOT EXISTS seeding_services (
+  id VARCHAR(255) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  type VARCHAR(100) NOT NULL,
+  description TEXT,
+  
+  -- Configuration
+  config JSONB NOT NULL,
+  
+  -- Status
+  status VARCHAR(50) DEFAULT 'active',
+  enabled BOOLEAN DEFAULT true,
+  
+  -- Statistics
+  urls_collected INTEGER DEFAULT 0,
+  last_run_at TIMESTAMP,
+  
+  -- Timestamps
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_seeding_services_type ON seeding_services(type);
+CREATE INDEX IF NOT EXISTS idx_seeding_services_status ON seeding_services(status);
+
+-- Seeding Service Assignments (Connect campaigns to seeding services)
+CREATE TABLE IF NOT EXISTS campaign_seeding_services (
+  id SERIAL PRIMARY KEY,
+  campaign_id VARCHAR(255) NOT NULL,
+  seeding_service_id VARCHAR(255) NOT NULL,
+  
+  -- Configuration overrides
+  config_overrides JSONB,
+  
+  -- Status
+  enabled BOOLEAN DEFAULT true,
+  
+  -- Statistics
+  urls_added INTEGER DEFAULT 0,
+  last_execution TIMESTAMP,
+  
+  -- Timestamps
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (campaign_id) REFERENCES crawler_campaigns(id) ON DELETE CASCADE,
+  FOREIGN KEY (seeding_service_id) REFERENCES seeding_services(id) ON DELETE CASCADE,
+  
+  UNIQUE(campaign_id, seeding_service_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_campaign_seeding_campaign ON campaign_seeding_services(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_seeding_service ON campaign_seeding_services(seeding_service_id);
+
+-- Collected Seeds Table (URLs collected by seeding services)
+CREATE TABLE IF NOT EXISTS collected_seeds (
+  id SERIAL PRIMARY KEY,
+  seeding_service_id VARCHAR(255) NOT NULL,
+  campaign_id VARCHAR(255),
+  
+  -- URL information
+  url VARCHAR(2048) NOT NULL,
+  source VARCHAR(255),
+  method VARCHAR(100),
+  
+  -- Metadata
+  priority INTEGER DEFAULT 5,
+  metadata JSONB,
+  
+  -- Status
+  status VARCHAR(50) DEFAULT 'pending',
+  used BOOLEAN DEFAULT false,
+  
+  -- Timestamps
+  collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  used_at TIMESTAMP,
+  
+  FOREIGN KEY (seeding_service_id) REFERENCES seeding_services(id) ON DELETE CASCADE,
+  FOREIGN KEY (campaign_id) REFERENCES crawler_campaigns(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_collected_seeds_service ON collected_seeds(seeding_service_id);
+CREATE INDEX IF NOT EXISTS idx_collected_seeds_campaign ON collected_seeds(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_collected_seeds_status ON collected_seeds(status);
+CREATE INDEX IF NOT EXISTS idx_collected_seeds_url ON collected_seeds(url(255));
+
 -- Comments
 COMMENT ON TABLE crawler_campaigns IS 'Manages crawler campaign configurations and lifecycle';
 COMMENT ON TABLE crawler_instances IS 'Tracks individual crawler instances within campaigns';
@@ -216,3 +347,8 @@ COMMENT ON TABLE crawl_targets IS 'URLs to be crawled with status tracking';
 COMMENT ON TABLE crawler_schemas IS 'Data extraction schema definitions';
 COMMENT ON TABLE workflow_pipelines IS 'Workflow pipeline configurations for linked schemas';
 COMMENT ON TABLE campaign_analytics IS 'Historical analytics data for campaigns';
+COMMENT ON TABLE crawler_clusters IS 'Groups campaigns together for coordinated crawling operations';
+COMMENT ON TABLE cluster_campaigns IS 'Links campaigns to clusters with priority and role information';
+COMMENT ON TABLE seeding_services IS 'Services that collect URLs from sitemaps and other sources';
+COMMENT ON TABLE campaign_seeding_services IS 'Connects campaigns to seeding services with configuration';
+COMMENT ON TABLE collected_seeds IS 'URLs collected by seeding services ready for crawling';
