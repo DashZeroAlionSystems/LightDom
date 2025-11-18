@@ -5,16 +5,58 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Discord/Exodus-inspired dark theme
+        // Material Design 3 semantic tokens for RAG components
+        primary: {
+          DEFAULT: '#5865F2',
+          foreground: '#FFFFFF',
+        },
+        secondary: {
+          DEFAULT: '#6C7BFF',
+          foreground: '#FFFFFF',
+        },
+        success: {
+          DEFAULT: '#3BA55C',
+          foreground: '#FFFFFF',
+        },
+        error: {
+          DEFAULT: '#ED4245',
+          foreground: '#FFFFFF',
+        },
+        warning: {
+          DEFAULT: '#FAA61A',
+          foreground: '#000000',
+        },
+        destructive: {
+          DEFAULT: '#ED4245',
+          foreground: '#FFFFFF',
+        },
+        surface: {
+          DEFAULT: '#151A31',
+          hover: '#252B45',
+          container: '#1E2438',
+          'container-low': '#0A0E27',
+          'container-high': '#252B45',
+          'container-highest': '#2E3349',
+        },
+        'on-surface': {
+          DEFAULT: '#FFFFFF',
+          variant: '#B9BBBE',
+        },
+        'primary-foreground': '#FFFFFF',
+        'secondary-foreground': '#FFFFFF',
+        'success-foreground': '#FFFFFF',
+        'error-foreground': '#FFFFFF',
+        'destructive-foreground': '#FFFFFF',
+        outline: {
+          DEFAULT: '#2E3349',
+          variant: '#40444B',
+        },
+        // Discord/Exodus-inspired dark theme (legacy)
         background: {
           primary: '#0A0E27',
           secondary: '#151A31',
           tertiary: '#1E2438',
           elevated: '#252B45',
-        },
-        surface: {
-          DEFAULT: '#151A31',
-          hover: '#252B45',
         },
         accent: {
           blue: {
@@ -108,6 +150,10 @@ export default {
       boxShadow: {
         glow: '0 0 20px rgba(88, 101, 242, 0.4)',
         'glow-purple': '0 0 20px rgba(124, 92, 255, 0.4)',
+        // Material Design 3 elevation levels
+        'level-1': '0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15)',
+        'level-2': '0 2px 6px 2px rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.15)',
+        'level-3': '0 4px 8px 3px rgba(0, 0, 0, 0.3), 0 1px 3px 0 rgba(0, 0, 0, 0.15)',
         // Kaggle Material Design elevation
         'kaggle-sm':
           'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px',
