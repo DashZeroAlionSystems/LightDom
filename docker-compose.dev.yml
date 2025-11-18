@@ -59,6 +59,43 @@ services:
       until nc -z postgres-dev 5432; do echo "waiting for postgres..."; sleep 1; done && \
       npm run db:bootstrap
 
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: lightdom-n8n
+    restart: unless-stopped
+    ports:
+      - '5678:5678'
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=false
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=development
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=UTC
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres-dev
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=lightdom_dev
+      - DB_POSTGRESDB_USER=lightdom_user
+      - DB_POSTGRESDB_PASSWORD=lightdom_password
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-workflows:/home/node/.n8n/workflows
+    depends_on:
+      - postgres-dev
+      - redis
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
 volumes:
   postgres_dev_data:
+    driver: local
+  n8n_data:
     driver: local
