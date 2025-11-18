@@ -273,6 +273,8 @@
     "mcp:deepseek:start": "node --loader ts-node/esm src/mcp/deepseek-mcp-server.ts",
     "mcp:deepseek:examples": "node --loader ts-node/esm examples/deepseek-mcp-tools-examples.ts",
     "mcp:deepseek:test": "node --loader ts-node/esm examples/deepseek-mcp-tools-examples.ts",
+    "mcp:workflow-lifecycle": "npx --yes tsx src/mcp/n8n-workflow-lifecycle-mcp-server.ts",
+    "mcp:workflow-lifecycle:dev": "nodemon --watch src/mcp/n8n-workflow-lifecycle-mcp-server.ts --exec 'npx --yes tsx src/mcp/n8n-workflow-lifecycle-mcp-server.ts'",
     "mcp:session": "npm run ollama:session",
     "mcp:schema:map": "node --loader ts-node/esm -e \"import {SchemaRelationshipMapper} from './src/services/schema-relationship-mapper.js'; import {Pool} from 'pg'; const db = new Pool({host:'localhost',port:5432,database:'lightdom',user:'postgres',password:'postgres'}); const mapper = new SchemaRelationshipMapper(db); const graph = await mapper.generateCompleteSchemaMap(); const mermaid = await mapper.exportSchemaGraph(graph, 'mermaid'); console.log(mermaid); await db.end();\"",
     "mcp:tools:list": "node --loader ts-node/esm -e \"import {DeepSeekToolsRegistry} from './src/mcp/deepseek-tools-registry.js'; import {Pool} from 'pg'; const db = new Pool({host:'localhost',port:5432,database:'lightdom',user:'postgres',password:'postgres'}); const registry = new DeepSeekToolsRegistry(db); const tools = registry.listTools(); console.log('Available Tools:', tools.length); tools.forEach(t => console.log('  - ' + t.name + ': ' + t.description)); await db.end();\"",

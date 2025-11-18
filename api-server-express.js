@@ -737,7 +737,7 @@ class DOMSpaceHarvesterAPI {
     // Admin navigation routes (DB-driven sidebar metadata)
     this.app.use('/api/admin', createAdminNavigationRoutes(this.db));
 
-    // N8N Workflow Management Routes
+    // N8N Workflow Management Routes (Legacy)
     import('./api/n8n-workflow-routes.js')
       .then(n8nModule => {
         this.app.use('/api/n8n', n8nModule.default);
@@ -745,6 +745,17 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.warn('⚠️ Failed to load N8N workflow routes:', err.message);
+      });
+
+    // Enhanced N8N Workflow Management Routes with Database Integration
+    import('./api/n8n-workflow-management-routes.js')
+      .then(n8nManagementModule => {
+        const initializeRoutes = n8nManagementModule.default || n8nManagementModule.initializeN8NWorkflowRoutes;
+        this.app.use('/api/n8n-workflows', initializeRoutes(this.db));
+        console.log('✅ Enhanced N8N workflow management routes registered at /api/n8n-workflows');
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to load enhanced N8N workflow routes:', err.message);
       });
 
     // Client Site Script Injection Routes
@@ -757,14 +768,37 @@ class DOMSpaceHarvesterAPI {
         console.warn('⚠️ Failed to load client site routes:', err.message);
       });
 
-    // DeepSeek Workflow Management Routes
+    // DeepSeek Workflow Management Routes (Legacy)
     import('./api/deepseek-workflow-routes.js')
       .then(deepseekModule => {
-        this.app.use('/api/deepseek-workflows', deepseekModule.default);
-        console.log('✅ DeepSeek workflow management routes registered at /api/deepseek-workflows');
+        this.app.use('/api/deepseek-workflows-legacy', deepseekModule.default);
+        console.log('✅ DeepSeek workflow management routes (legacy) registered at /api/deepseek-workflows-legacy');
       })
       .catch(err => {
         console.warn('⚠️ Failed to load DeepSeek workflow routes:', err.message);
+      });
+
+    // Enhanced DeepSeek Workflow Management Routes with Lifecycle & Error Handling
+    import('./api/deepseek-workflow-management-routes.js')
+      .then(deepseekMgmtModule => {
+        const initializeRoutes = deepseekMgmtModule.default || deepseekMgmtModule.initializeDeepSeekWorkflowRoutes;
+        // Try to get DeepSeek service if available
+        let deepseekService = null;
+        try {
+          if (this.app.locals.deepseekService) {
+            deepseekService = this.app.locals.deepseekService;
+          }
+        } catch (e) {
+          // DeepSeek service not available yet
+        }
+        this.app.use('/api/deepseek-workflows', initializeRoutes(this.db, deepseekService));
+        console.log('✅ Enhanced DeepSeek workflow management routes registered at /api/deepseek-workflows');
+        console.log('   - Complete workflow lifecycle management');
+        console.log('   - Error logging and DeepSeek analysis');
+        console.log('   - Enhanced templates with all stages');
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to load enhanced DeepSeek workflow routes:', err.message);
       });
 
     // Import and register Embeddings routes (pgvector)
