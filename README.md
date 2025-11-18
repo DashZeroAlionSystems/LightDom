@@ -46,6 +46,27 @@ npm run api                            # 2. Start API server
 npm run langchain:test                 # 3. Test integration
 ```
 
+### 🔍 **RAG Service (Retrieval-Augmented Generation)** ⭐ NEW
+- **Standalone Service** - Independent RAG service with PM2 process management
+- **Document Ingestion** - Upload and process documents for semantic search
+- **Vector Embeddings** - Generate embeddings using Ollama or OpenAI
+- **Semantic Search** - Find relevant content using vector similarity
+- **AI Chat** - Context-aware conversations with DeepSeek integration
+- **Auto-Restart** - Automatic recovery from failures and crashes
+- **Health Monitoring** - Built-in health checks and metrics endpoints
+- **Comprehensive Logging** - File-based and stdout logging for debugging
+- **Production Ready** - Process management, error handling, graceful shutdown
+
+📖 **[RAG Service Documentation](services/rag/RAG_SERVICE_README.md)** | **[Ecosystem Config](ecosystem.config.cjs)**
+
+```bash
+# Quick start (requires PM2)
+npm install -g pm2                    # 1. Install PM2 globally
+npm run rag:start                     # 2. Start RAG service
+npm run rag:health                    # 3. Check service health
+npm run rag:logs                      # 4. View logs
+```
+
 ### Testing & Quality Assurance
 - **Integration Testing**: Comprehensive test suite for all platform components
 - **Workflow Simulation**: End-to-end user workflow testing
