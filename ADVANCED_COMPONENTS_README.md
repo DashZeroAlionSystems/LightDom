@@ -7,6 +7,7 @@ This document covers the advanced components and development tools recently adde
 ## 🚀 New Components
 
 ### 1. Design Tools Navigation (`DesignToolsNavigation.tsx`)
+
 **Location**: `/dashboard/design-tools` or `/admin/design-tools`
 
 A central navigation hub providing easy access to all design and development tools, organized by category:
@@ -17,11 +18,13 @@ A central navigation hub providing easy access to all design and development too
 - **Admin Tools**: User Management, System Monitoring, Security
 
 ### 2. Training Data Pipeline (`TrainingDataPipeline.tsx`)
+
 **Location**: `/dashboard/training-data` or `/admin/training-data`
 
 Comprehensive ML training data visualization and management system featuring:
 
 #### Key Features
+
 - **Real-time Pipeline Overview**: KPI metrics and status indicators
 - **Interactive Flow Visualization**: Step-by-step process diagrams
 - **Training Data Management**: Filterable table with search capabilities
@@ -30,6 +33,7 @@ Comprehensive ML training data visualization and management system featuring:
 - **Export Functionality**: Data export and reporting tools
 
 #### Technical Implementation
+
 - React hooks for state management
 - Real-time data simulation
 - Responsive design with mobile support
@@ -37,11 +41,13 @@ Comprehensive ML training data visualization and management system featuring:
 - Integration with existing UI component library
 
 ### 3. Design System Guide (`DesignSystemGuide.tsx`)
+
 **Location**: `/dashboard/design-system` or `/admin/design-system`
 
 Complete Material Design 3.0 system documentation with interactive demos:
 
 #### Features
+
 - **Color Palette**: 12-tone Material Design color system
 - **Typography Scale**: Complete type scale with examples
 - **Component Showcase**: Interactive button variants and form elements
@@ -50,6 +56,7 @@ Complete Material Design 3.0 system documentation with interactive demos:
 - **Motion Presets**: Easing curves and duration guidelines
 
 #### Design Tokens
+
 ```css
 /* Color System */
 --primary: 166 100% 37%;
@@ -65,11 +72,13 @@ Complete Material Design 3.0 system documentation with interactive demos:
 ```
 
 ### 4. Motion Design Showcase (`MotionDesignShowcase.tsx`)
+
 **Location**: `/dashboard/motion-showcase` or `/admin/motion-showcase`
 
 Interactive demonstrations of Material Design motion principles:
 
 #### Animation Categories
+
 - **Interactive States**: Button hover/press animations
 - **Layout Animations**: Staggered list entrances
 - **Shape Morphing**: Smooth geometric transformations
@@ -78,6 +87,7 @@ Interactive demonstrations of Material Design motion principles:
 - **Gesture Interactions**: Drag and touch-based animations
 
 #### Motion Presets (Material Design 3.0)
+
 - **Emphasized**: 500ms, `[0.05, 0.7, 0.1, 1.0]` - Important state changes
 - **Standard**: 300ms, `[0.2, 0.0, 0.0, 1.0]` - Common interactions
 - **Emphasized Decelerate**: 400ms, `[0.05, 0.7, 0.1, 1.0]` - Elements entering
@@ -86,6 +96,7 @@ Interactive demonstrations of Material Design motion principles:
 ## 🔧 Technical Architecture
 
 ### Dependencies Added
+
 ```json
 {
   "framer-motion": "^12.23.24"
@@ -93,6 +104,7 @@ Interactive demonstrations of Material Design motion principles:
 ```
 
 ### Component Structure
+
 ```
 src/components/
 ├── DesignToolsNavigation.tsx     # Central navigation hub
@@ -105,12 +117,14 @@ src/components/
 ```
 
 ### State Management
+
 - React hooks (`useState`, `useEffect`, `useCallback`)
 - Context API for theme and authentication
 - Real-time data simulation for demos
 - Local storage for user preferences
 
 ### Responsive Design
+
 - Mobile-first approach
 - Breakpoint system: Mobile (<640px), Tablet (640px-1024px), Desktop (1024px-1280px), Large (>1280px)
 - Fluid layouts with CSS Grid and Flexbox
@@ -119,7 +133,9 @@ src/components/
 ## 🎨 Design System Integration
 
 ### Material Design 3.0 Compliance
+
 All components follow Material Design 3.0 specifications:
+
 - **Color**: Dynamic color system with light/dark mode support
 - **Typography**: Complete type scale with proper line heights
 - **Spacing**: 8px grid system for consistent spacing
@@ -127,6 +143,7 @@ All components follow Material Design 3.0 specifications:
 - **Shape**: Consistent border radius scale
 
 ### Accessibility (WCAG 2.1 AA)
+
 - Semantic HTML structure
 - ARIA labels and descriptions
 - Keyboard navigation support
@@ -135,6 +152,7 @@ All components follow Material Design 3.0 specifications:
 - Focus management
 
 ### Performance Optimizations
+
 - Code splitting for large components
 - Lazy loading for heavy animations
 - Optimized bundle sizes
@@ -144,14 +162,16 @@ All components follow Material Design 3.0 specifications:
 ## 🚀 Usage Examples
 
 ### Navigation Integration
+
 ```tsx
 import DesignToolsNavigation from '@/components/DesignToolsNavigation';
 
 // Add to routing
-<Route path="/design-tools" element={<DesignToolsNavigation />} />
+<Route path='/design-tools' element={<DesignToolsNavigation />} />;
 ```
 
 ### Training Data Pipeline
+
 ```tsx
 import TrainingDataPipeline from '@/components/TrainingDataPipeline';
 
@@ -166,6 +186,7 @@ import TrainingDataPipeline from '@/components/TrainingDataPipeline';
 ```
 
 ### Design System Components
+
 ```tsx
 import DesignSystemGuide from '@/components/DesignSystemGuide';
 
@@ -180,6 +201,7 @@ import DesignSystemGuide from '@/components/DesignSystemGuide';
 ```
 
 ### Motion Design
+
 ```tsx
 import MotionDesignShowcase from '@/components/MotionDesignShowcase';
 
@@ -196,6 +218,7 @@ import MotionDesignShowcase from '@/components/MotionDesignShowcase';
 ## 🔍 Testing & Validation
 
 ### Component Testing
+
 ```bash
 # Test individual components
 npm run test -- TrainingDataPipeline
@@ -210,6 +233,7 @@ npm run test:visual
 ```
 
 ### Performance Testing
+
 ```bash
 # Bundle analysis
 npm run analyze:bundle
@@ -233,12 +257,14 @@ npm run test:animation-performance
 ## 🔧 Development Guidelines
 
 ### Code Style
+
 - TypeScript strict mode enabled
 - ESLint configuration following React best practices
 - Prettier for consistent formatting
 - Husky pre-commit hooks for quality gates
 
 ### Component Patterns
+
 ```tsx
 interface ComponentProps {
   variant?: 'primary' | 'secondary';
@@ -255,11 +281,7 @@ const Component: React.FC<ComponentProps> = ({
   ...props
 }) => {
   return (
-    <div
-      className={cn(componentVariants({ variant, size }))}
-      data-disabled={disabled}
-      {...props}
-    >
+    <div className={cn(componentVariants({ variant, size }))} data-disabled={disabled} {...props}>
       {children}
     </div>
   );
@@ -267,6 +289,7 @@ const Component: React.FC<ComponentProps> = ({
 ```
 
 ### Animation Guidelines
+
 - Use Material Design motion presets when possible
 - Respect user `prefers-reduced-motion` settings
 - Keep animations between 200-500ms
@@ -276,6 +299,7 @@ const Component: React.FC<ComponentProps> = ({
 ## 🚀 Deployment & Production
 
 ### Build Process
+
 ```bash
 # Production build
 npm run build
@@ -291,6 +315,7 @@ npm run deploy:production
 ```
 
 ### Environment Configuration
+
 ```env
 # Development
 VITE_API_URL=http://localhost:4100/api
@@ -305,12 +330,14 @@ VITE_ANALYTICS_ID=your_analytics_id
 ## 📊 Analytics & Monitoring
 
 ### Usage Tracking
+
 - Component interaction events
 - Performance metrics
 - Error tracking
 - User journey analytics
 
 ### Performance Monitoring
+
 - Core Web Vitals tracking
 - Animation frame rates
 - Memory usage monitoring
@@ -319,6 +346,7 @@ VITE_ANALYTICS_ID=your_analytics_id
 ## 🤝 Contributing
 
 ### Adding New Components
+
 1. Follow established patterns in existing components
 2. Include TypeScript interfaces
 3. Add accessibility attributes
@@ -327,6 +355,7 @@ VITE_ANALYTICS_ID=your_analytics_id
 6. Add to DesignToolsNavigation
 
 ### Design System Updates
+
 1. Update design tokens in CSS custom properties
 2. Modify Tailwind configuration
 3. Update component variants
@@ -343,11 +372,13 @@ VITE_ANALYTICS_ID=your_analytics_id
 ## 🐛 Known Issues & Limitations
 
 ### Current Limitations
+
 - Some TypeScript errors in legacy code (working on resolution)
 - Framer Motion requires JavaScript enabled
 - Advanced animations may impact performance on low-end devices
 
 ### Planned Improvements
+
 - Enhanced TypeScript coverage
 - Additional animation presets
 - More interactive component demos

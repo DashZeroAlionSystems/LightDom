@@ -5,6 +5,7 @@ This guide provides comprehensive instructions for starting the LightDom Space-B
 ## 🚀 Quick Start Options
 
 ### Option 1: Complete System (Recommended)
+
 Starts all services including databases, API, frontend, Electron app, and monitoring.
 
 ```bash
@@ -12,6 +13,7 @@ npm start
 ```
 
 ### Option 2: Development Mode
+
 Quick startup for development - starts essential services only.
 
 ```bash
@@ -19,6 +21,7 @@ npm run start:dev
 ```
 
 ### Option 3: Docker Mode
+
 Starts the system using Docker for databases and local services for development.
 
 ```bash
@@ -26,6 +29,7 @@ npm run start:docker
 ```
 
 ### Option 4: Legacy Scripts
+
 Use existing startup scripts for specific components.
 
 ```bash
@@ -36,6 +40,7 @@ npm run start:blockchain  # Blockchain app only
 ## 📋 What Each Startup Script Does
 
 ### `npm start` (Complete System)
+
 - ✅ Checks prerequisites (Docker, Node.js, required files)
 - ✅ Starts PostgreSQL database (Docker or local)
 - ✅ Starts Redis cache (Docker or local)
@@ -46,12 +51,14 @@ npm run start:blockchain  # Blockchain app only
 - ✅ Provides comprehensive system status
 
 ### `npm run start:dev` (Development Mode)
+
 - ✅ Starts API server
 - ✅ Starts Vite frontend
 - ✅ Launches Electron desktop app
-- ⚠️  Assumes databases are already running
+- ⚠️ Assumes databases are already running
 
 ### `npm run start:docker` (Docker Mode)
+
 - ✅ Checks Docker availability
 - ✅ Starts PostgreSQL and Redis via Docker Compose
 - ✅ Starts local API server (connected to Docker databases)
@@ -61,11 +68,13 @@ npm run start:blockchain  # Blockchain app only
 ## 🔧 Prerequisites
 
 ### Required Software
+
 - **Node.js** (v18 or higher)
 - **npm** (v8 or higher)
 - **Docker Desktop** (for database services)
 
 ### Required Files
+
 - `package.json`
 - `simple-api-server.js`
 - `web-crawler-service.js`
@@ -73,23 +82,26 @@ npm run start:blockchain  # Blockchain app only
 
 ## 🌐 Service Ports
 
-| Service | Port | URL |
-|---------|------|-----|
+| Service         | Port | URL                   |
+| --------------- | ---- | --------------------- |
 | Frontend (Vite) | 3000 | http://localhost:3000 |
-| API Server | 3001 | http://localhost:3001 |
-| PostgreSQL | 5434 | localhost:5434 |
-| Redis | 6380 | localhost:6380 |
+| API Server      | 3001 | http://localhost:3001 |
+| PostgreSQL      | 5434 | localhost:5434        |
+| Redis           | 6380 | localhost:6380        |
 
 ## 🗄️ Database Setup
 
 ### Automatic Setup (Recommended)
+
 The startup scripts will automatically:
+
 1. Check if Docker is available
 2. Start PostgreSQL and Redis via Docker Compose
 3. Initialize databases with required schemas
 4. Connect services to databases
 
 ### Manual Database Setup
+
 If you prefer to run databases manually:
 
 ```bash
@@ -106,6 +118,7 @@ docker-compose up -d postgres redis
 ### Common Issues
 
 #### 1. Port Already in Use
+
 ```bash
 # Check what's using the port
 netstat -ano | findstr :3000
@@ -118,6 +131,7 @@ kill -9 <PID>
 ```
 
 #### 2. Docker Not Running
+
 ```bash
 # Start Docker Desktop
 # Or install Docker if not available
@@ -125,6 +139,7 @@ kill -9 <PID>
 ```
 
 #### 3. Database Connection Issues
+
 ```bash
 # Check if databases are running
 docker ps
@@ -134,6 +149,7 @@ docker-compose restart postgres redis
 ```
 
 #### 4. Electron Not Starting
+
 ```bash
 # Check if frontend is running first
 curl http://localhost:3000
@@ -145,16 +161,19 @@ npm run electron:dev
 ### Service Health Checks
 
 #### API Server Health
+
 ```bash
 curl http://localhost:3001/api/health
 ```
 
 #### Frontend Health
+
 ```bash
 curl http://localhost:3000
 ```
 
 #### Database Health
+
 ```bash
 # PostgreSQL
 docker-compose exec postgres pg_isready -U lightdom_user -d lightdom
@@ -166,25 +185,31 @@ docker-compose exec redis redis-cli ping
 ## 📊 System Monitoring
 
 ### Built-in Monitoring
+
 - **Health Endpoints**: `/api/health`
 - **Crawler Stats**: `/api/crawler/stats`
 - **Mining Data**: `/api/metaverse/mining-data`
 - **System Status**: Displayed in console
 
 ### External Monitoring
+
 - **Grafana**: http://localhost:3005 (if monitoring stack is running)
 - **Prometheus**: http://localhost:9090 (if monitoring stack is running)
 
 ## 🛑 Stopping the System
 
 ### Graceful Shutdown
+
 Press `Ctrl+C` in the terminal where you started the system. This will:
+
 1. Stop all Node.js processes
 2. Stop Docker services
 3. Clean up resources
 
 ### Force Shutdown
+
 If graceful shutdown doesn't work:
+
 ```bash
 # Kill all Node processes
 pkill -f node
@@ -199,21 +224,25 @@ pkill -f electron
 ## 🔄 Development Workflow
 
 ### 1. Start Development Environment
+
 ```bash
 npm run start:dev
 ```
 
 ### 2. Make Changes
+
 - Edit files in `src/` directory
 - Vite will hot-reload frontend changes
 - API server will restart automatically
 
 ### 3. Test Changes
+
 - Frontend: http://localhost:3000
 - API: http://localhost:3001/api/health
 - Desktop App: Electron window
 
 ### 4. Stop and Restart
+
 ```bash
 # Stop with Ctrl+C
 # Restart with npm run start:dev
@@ -222,6 +251,7 @@ npm run start:dev
 ## 🚀 Production Deployment
 
 ### Using Docker Compose
+
 ```bash
 # Build and start all services
 docker-compose up -d
@@ -234,6 +264,7 @@ docker-compose logs -f
 ```
 
 ### Using PM2 (Process Manager)
+
 ```bash
 # Install PM2
 npm install -g pm2
@@ -292,6 +323,7 @@ PRIVATE_KEY=your_private_key_here
 ## 📞 Support
 
 If you encounter issues:
+
 1. Check the troubleshooting section above
 2. Review the console output for error messages
 3. Ensure all prerequisites are installed
@@ -301,9 +333,10 @@ If you encounter issues:
 ## 🎉 Success Indicators
 
 When the system starts successfully, you should see:
+
 - ✅ All services started messages
 - 🌐 Frontend accessible at http://localhost:3000
 - 🔌 API server responding at http://localhost:3001
-- 🖥️  Electron desktop app window opened
-- 🕷️  Web crawler actively crawling websites
+- 🖥️ Electron desktop app window opened
+- 🕷️ Web crawler actively crawling websites
 - 📊 System status displayed in console

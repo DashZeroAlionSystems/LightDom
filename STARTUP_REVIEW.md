@@ -11,10 +11,12 @@ The LightDom application has well-structured startup scripts that properly initi
 ## Startup Scripts Overview
 
 ### 1. **start-lightdom-complete.js** (Primary - Full System)
+
 **Command:** `npm start`
 **Location:** `/home/user/LightDom/start-lightdom-complete.js`
 
 **Services Started:**
+
 - ✅ PostgreSQL Database (port 5434 via Docker, or local on 5432)
 - ✅ Redis Cache (port 6380 via Docker, or local on 6379)
 - ✅ API Server (simple-api-server.js on port 3001)
@@ -24,11 +26,13 @@ The LightDom application has well-structured startup scripts that properly initi
 - ✅ Monitoring Services (health checks)
 
 **Prerequisites Checked:**
+
 - ✅ Docker availability
 - ✅ Node.js version
 - ✅ Required files: package.json, simple-api-server.js, web-crawler-service.js, electron/main.cjs
 
 **Features:**
+
 - Graceful shutdown handlers (SIGINT, SIGTERM, uncaughtException, unhandledRejection)
 - Service health monitoring (30-second intervals)
 - Automatic fallback if Docker services unavailable
@@ -37,22 +41,26 @@ The LightDom application has well-structured startup scripts that properly initi
 ---
 
 ### 2. **start-complete-system.js**
+
 **Command:** `npm run start:complete`
 **Location:** `/home/user/LightDom/start-complete-system.js`
 
 **Services Started:**
+
 - ✅ API Server (api-server-express.js on port 3001)
 - ✅ Headless Chrome Server (src/server/HeadlessAPIServer.ts on port 3002)
 - ✅ Frontend (Vite on port 3000)
-- ⚠️  Blockchain Runner (mentioned but not auto-started)
+- ⚠️ Blockchain Runner (mentioned but not auto-started)
 
 **Startup Sequence:**
+
 1. API Server (3s wait)
 2. Headless Server (2s wait)
 3. Frontend (2s wait)
 4. Blockchain notice (manual start)
 
 **Features:**
+
 - Sequential startup with delays for service initialization
 - Health checks every 30 seconds
 - Graceful shutdown support
@@ -60,10 +68,12 @@ The LightDom application has well-structured startup scripts that properly initi
 ---
 
 ### 3. **start-dev.js** (Development Environment)
+
 **Command:** `npm run start:dev`
 **Location:** `/home/user/LightDom/start-dev.js`
 
 **Services Started:**
+
 - ✅ API Server (simple-api-server.js on port 3001)
 - ✅ Frontend (Vite on port 3000)
 - ✅ Electron Desktop App
@@ -73,24 +83,28 @@ The LightDom application has well-structured startup scripts that properly initi
 ---
 
 ### 4. **start-blockchain-app.js** (Blockchain Focus)
+
 **Command:** `npm run start:blockchain`
 **Location:** `/home/user/LightDom/start-blockchain-app.js`
 
 **Services Started:**
+
 - ✅ Local Hardhat Node (port 8545) - if NETWORK=localhost
 - ✅ Smart Contract Deployment (if AUTO_DEPLOY_CONTRACTS=true)
 - ✅ PostgreSQL Database Connection
 - ✅ API Server (api-server-express.js on port 3001)
 - ✅ Frontend (Vite on port 3000)
-- ⚠️  Monitoring (Prometheus/Grafana) - if METRICS_ENABLED=true
+- ⚠️ Monitoring (Prometheus/Grafana) - if METRICS_ENABLED=true
 
 **Prerequisites Checked:**
+
 - Node.js version
 - npm availability
 - PostgreSQL connection
 - Environment file (.env)
 
 **Features:**
+
 - Hardhat node automatic startup
 - Contract deployment automation
 - Database health checks
@@ -103,21 +117,25 @@ The LightDom application has well-structured startup scripts that properly initi
 ### Critical Files (All Present ✅)
 
 #### Startup Scripts
+
 - ✅ `start-lightdom-complete.js` - Main startup
 - ✅ `start-complete-system.js` - Full system
 - ✅ `start-dev.js` - Development
 - ✅ `start-blockchain-app.js` - Blockchain focused
 
 #### API Servers
+
 - ✅ `simple-api-server.js` - Basic API with crawler integration
 - ✅ `api-server-express.js` - Full Express API with WebSocket, DB, blockchain
 
 #### Services
+
 - ✅ `web-crawler-service.js` - Web crawler service
 - ✅ `src/server/HeadlessAPIServer.ts` - Headless Chrome service
 - ✅ `electron/main.cjs` - Electron main process
 
 #### Utilities (All Present ✅)
+
 - ✅ `utils/CrawlerSupervisor.js`
 - ✅ `utils/MetricsCollector.js`
 - ✅ `utils/HeadlessBlockchainRunner.js`
@@ -125,6 +143,7 @@ The LightDom application has well-structured startup scripts that properly initi
 - ✅ `crawler/RealWebCrawlerSystem.js`
 
 #### Database Schemas (All Present ✅)
+
 - ✅ `database/blockchain_schema.sql`
 - ✅ `database/optimization_schema.sql`
 - ✅ `database/bridge_schema.sql`
@@ -133,6 +152,7 @@ The LightDom application has well-structured startup scripts that properly initi
 - ✅ `database/03-bridge.sql`
 
 #### Docker Configuration (All Present ✅)
+
 - ✅ `docker-compose.yml` - Main production config
 - ✅ `docker-compose.dev.yml` - Development config
 - ✅ `docker-compose.test.yml` - Testing config
@@ -141,12 +161,14 @@ The LightDom application has well-structured startup scripts that properly initi
 - ✅ `Dockerfile.test` - Testing Dockerfile
 
 #### Configuration Files (All Present ✅)
+
 - ✅ `.env.example` - Environment template
 - ✅ `.env` - Environment configuration
 - ✅ `nginx.conf` - Nginx reverse proxy config
 - ✅ `monitoring/prometheus/prometheus.yml` - Prometheus config
 
 #### Frontend (All Present ✅)
+
 - ✅ `index.html` - Main HTML entry
 - ✅ `src/main.tsx` - React application entry
 - ✅ `package.json` - Dependencies and scripts
@@ -169,29 +191,30 @@ The LightDom application has well-structured startup scripts that properly initi
 
 ### Required Services
 
-| Service | Port | Required | Auto-Started | Fallback |
-|---------|------|----------|--------------|----------|
-| PostgreSQL | 5434 (Docker) / 5432 (local) | Optional | Yes (Docker) | Graceful degradation |
-| Redis | 6380 (Docker) / 6379 (local) | Optional | Yes (Docker) | Graceful degradation |
-| API Server | 3001 | **Required** | Yes | None |
-| Frontend | 3000 | **Required** | Yes | None |
-| Electron | N/A | Optional | Yes | None |
+| Service    | Port                         | Required     | Auto-Started | Fallback             |
+| ---------- | ---------------------------- | ------------ | ------------ | -------------------- |
+| PostgreSQL | 5434 (Docker) / 5432 (local) | Optional     | Yes (Docker) | Graceful degradation |
+| Redis      | 6380 (Docker) / 6379 (local) | Optional     | Yes (Docker) | Graceful degradation |
+| API Server | 3001                         | **Required** | Yes          | None                 |
+| Frontend   | 3000                         | **Required** | Yes          | None                 |
+| Electron   | N/A                          | Optional     | Yes          | None                 |
 
 ### Optional Services
 
-| Service | Port | Auto-Started | Enable Via |
-|---------|------|--------------|------------|
-| Hardhat Node | 8545 | Conditional | NETWORK=localhost |
-| Prometheus | 9090 | No | METRICS_ENABLED=true |
-| Grafana | 3000 | No | METRICS_ENABLED=true |
-| Headless Chrome | 3002 | Yes (start-complete-system.js) | Manual |
-| Nginx | 80/443 | No | Docker only |
+| Service         | Port   | Auto-Started                   | Enable Via           |
+| --------------- | ------ | ------------------------------ | -------------------- |
+| Hardhat Node    | 8545   | Conditional                    | NETWORK=localhost    |
+| Prometheus      | 9090   | No                             | METRICS_ENABLED=true |
+| Grafana         | 3000   | No                             | METRICS_ENABLED=true |
+| Headless Chrome | 3002   | Yes (start-complete-system.js) | Manual               |
+| Nginx           | 80/443 | No                             | Docker only          |
 
 ---
 
 ## Environment Configuration
 
 ### Required Environment Variables
+
 The following are **required** in `.env` for full functionality:
 
 ```bash
@@ -316,6 +339,7 @@ CHROME_DEVTOOLS=false
 ## Frontend Initialization (src/main.tsx)
 
 ### Components Loaded
+
 - ✅ React 19.1.1
 - ✅ ReactDOM client-side rendering
 - ✅ Multiple dashboard components
@@ -324,6 +348,7 @@ CHROME_DEVTOOLS=false
 - ✅ CSS imports
 
 ### Routes Available
+
 - `/` - Landing page
 - `/dashboard` - Simple dashboard
 - `/space-optimization` - Space optimization dashboard
@@ -343,6 +368,7 @@ CHROME_DEVTOOLS=false
 ## Electron Desktop App (electron/main.cjs)
 
 ### Initialization
+
 1. ✅ Create browser window (1400x900)
 2. ✅ Enable security features (contextIsolation, no nodeIntegration)
 3. ✅ Auto-detect Vite dev server (ports 3000-3015)
@@ -351,6 +377,7 @@ CHROME_DEVTOOLS=false
 6. ✅ Load preload script
 
 ### Features
+
 - ✅ Multi-port scanning for dev server
 - ✅ Graceful fallback to production
 - ✅ Dev mode detection
@@ -404,6 +431,7 @@ CHROME_DEVTOOLS=false
 ## Recommendations
 
 ### Priority 1: Critical (None)
+
 All critical files and services are present and properly configured. ✅
 
 ### Priority 2: High
@@ -508,6 +536,7 @@ The LightDom startup scripts are well-architected with:
 8. ✅ **Environment configuration** flexibility
 
 ### Minor Issues (1)
+
 - ⚠️ Missing BackgroundWorkerService.js (Docker worker only)
 
 ### The application is production-ready with all necessary services properly configured and initialized.
@@ -517,6 +546,7 @@ The LightDom startup scripts are well-architected with:
 ## Quick Start Guide
 
 ### For Development
+
 ```bash
 # Option 1: Quick dev (no Docker)
 npm run start:dev
@@ -526,6 +556,7 @@ npm start
 ```
 
 ### For Production
+
 ```bash
 # Docker deployment
 docker-compose up -d
@@ -535,6 +566,7 @@ npm run start:complete
 ```
 
 ### For Blockchain Development
+
 ```bash
 npm run start:blockchain
 ```
@@ -546,21 +578,25 @@ npm run start:blockchain
 ### Common Issues
 
 **Issue: PostgreSQL won't connect**
+
 - Check if Docker is running: `docker ps`
 - Check if port 5434 is available: `lsof -i :5434`
 - Verify .env database credentials
 
 **Issue: Frontend won't load**
+
 - Check if Vite is running: `curl http://localhost:3000`
 - Check for port conflicts
 - Try `npm run dev` separately
 
 **Issue: API Server errors**
+
 - Check logs in terminal
 - Verify .env configuration
 - Test health: `curl http://localhost:3001/api/health`
 
 **Issue: Electron won't start**
+
 - Check if frontend is running first
 - Try `npm run electron` separately
 - Check Electron logs
