@@ -957,7 +957,17 @@ router.get('/endpoints/list', (req, res) => {
     { method: 'POST', path: '/api/campaigns/deepseek/build-schema', description: 'Build data extraction schema' },
     { method: 'POST', path: '/api/campaigns/deepseek/generate-pipeline', description: 'Generate workflow pipeline' },
     { method: 'POST', path: '/api/campaigns/deepseek/research-neural-network', description: 'Research neural network setup' },
-    { method: 'GET', path: '/api/campaigns/deepseek/health', description: 'Check DeepSeek API health' }
+    { method: 'GET', path: '/api/campaigns/deepseek/health', description: 'Check DeepSeek API health' },
+    
+    // Advanced Features
+    { method: 'POST', path: '/api/campaigns/:campaignId/proxies', description: 'Add proxy to campaign' },
+    { method: 'GET', path: '/api/campaigns/:campaignId/proxies/stats', description: 'Get proxy statistics' },
+    { method: 'POST', path: '/api/campaigns/:campaignId/3d-layers/enable', description: 'Enable 3D layers mining' },
+    { method: 'POST', path: '/api/campaigns/:campaignId/ocr/enable', description: 'Enable OCR for campaign' },
+    { method: 'GET', path: '/api/campaigns/:campaignId/robots-txt', description: 'Check robots.txt compliance' },
+    { method: 'POST', path: '/api/campaigns/:campaignId/test-config', description: 'Test advanced configuration' },
+    { method: 'POST', path: '/api/campaigns/:campaignId/crawl-advanced', description: 'Crawl with advanced features' },
+    { method: 'GET', path: '/api/campaigns/advanced/status', description: 'Get advanced features status' }
   ];
 
   res.json({
@@ -965,6 +975,208 @@ router.get('/endpoints/list', (req, res) => {
     data: endpoints,
     count: endpoints.length
   });
+});
+
+// ==================== ADVANCED FEATURES ROUTES ====================
+
+/**
+ * @route   POST /api/campaigns/:campaignId/proxies
+ * @desc    Add proxy to campaign
+ * @access  Public
+ */
+router.post('/:campaignId/proxies', async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const proxyConfig = req.body;
+
+    const proxy = await campaignService.addProxyToCampaign(campaignId, proxyConfig);
+
+    res.json({
+      success: true,
+      data: proxy,
+      message: 'Proxy added to campaign'
+    });
+  } catch (error) {
+    console.error('Error adding proxy:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/campaigns/:campaignId/proxies/stats
+ * @desc    Get proxy statistics
+ * @access  Public
+ */
+router.get('/:campaignId/proxies/stats', async (req, res) => {
+  try {
+    const stats = await campaignService.getProxyStats();
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting proxy stats:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/campaigns/:campaignId/3d-layers/enable
+ * @desc    Enable 3D layers mining for campaign
+ * @access  Public
+ */
+router.post('/:campaignId/3d-layers/enable', async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const config = req.body;
+
+    const campaign = await campaignService.enable3DLayersMining(campaignId, config);
+
+    res.json({
+      success: true,
+      data: campaign,
+      message: '3D layers mining enabled'
+    });
+  } catch (error) {
+    console.error('Error enabling 3D layers:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/campaigns/:campaignId/ocr/enable
+ * @desc    Enable OCR for campaign
+ * @access  Public
+ */
+router.post('/:campaignId/ocr/enable', async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const config = req.body;
+
+    const campaign = await campaignService.enableOCR(campaignId, config);
+
+    res.json({
+      success: true,
+      data: campaign,
+      message: 'OCR enabled'
+    });
+  } catch (error) {
+    console.error('Error enabling OCR:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/campaigns/:campaignId/robots-txt
+ * @desc    Check robots.txt compliance for campaign
+ * @access  Public
+ */
+router.get('/:campaignId/robots-txt', async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const result = await campaignService.checkRobotsTxtForCampaign(campaignId);
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error checking robots.txt:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/campaigns/:campaignId/test-config
+ * @desc    Test advanced configuration for campaign
+ * @access  Public
+ */
+router.post('/:campaignId/test-config', async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const result = await campaignService.testAdvancedConfiguration(campaignId);
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error testing configuration:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/campaigns/:campaignId/crawl-advanced
+ * @desc    Crawl URL with advanced features
+ * @access  Public
+ */
+router.post('/:campaignId/crawl-advanced', async (req, res) => {
+  try {
+    const { campaignId } = req.params;
+    const { url, options } = req.body;
+
+    if (!url) {
+      return res.status(400).json({
+        success: false,
+        error: 'URL is required'
+      });
+    }
+
+    const result = await campaignService.crawlWithAdvancedFeatures(campaignId, url, options || {});
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error crawling with advanced features:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/campaigns/advanced/status
+ * @desc    Get advanced features status
+ * @access  Public
+ */
+router.get('/advanced/status', (req, res) => {
+  try {
+    const status = campaignService.getAdvancedFeaturesStatus();
+
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (error) {
+    console.error('Error getting advanced features status:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 });
 
 export default router;

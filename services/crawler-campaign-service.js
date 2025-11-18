@@ -7,10 +7,12 @@
  * - Load balancing across crawler instances
  * - Scheduling and automation
  * - Analytics and reporting
+ * - Advanced features: proxies, 3D layers, OCR, robots.txt
  */
 
 import deepSeekService from './deepseek-api-service.js';
 import { EventEmitter } from 'events';
+import AdvancedCrawlerIntegration from './advanced-crawler-integration-service.js';
 
 class CrawlerCampaignService extends EventEmitter {
   constructor(config = {}) {
@@ -22,6 +24,8 @@ class CrawlerCampaignService extends EventEmitter {
       defaultPayloadSize: config.defaultPayloadSize || 100,
       loadBalancingStrategy: config.loadBalancingStrategy || 'least-busy',
       enableAutoScaling: config.enableAutoScaling !== false,
+      // Advanced features
+      enableAdvancedFeatures: config.enableAdvancedFeatures !== false,
       ...config
     };
 
@@ -32,6 +36,14 @@ class CrawlerCampaignService extends EventEmitter {
     this.analytics = new Map();
     
     this.db = config.db || null;
+
+    // Advanced crawler integration
+    if (this.config.enableAdvancedFeatures) {
+      this.advancedIntegration = new AdvancedCrawlerIntegration(config);
+      console.log('✅ Advanced crawler features enabled');
+    } else {
+      this.advancedIntegration = null;
+    }
   }
 
   /**
@@ -1192,6 +1204,194 @@ class CrawlerCampaignService extends EventEmitter {
       console.error('Error deleting campaign:', error);
       throw error;
     }
+  }
+
+  // ==================== ADVANCED FEATURES ====================
+
+  /**
+   * Initialize advanced features
+   */
+  async initializeAdvancedFeatures() {
+    if (!this.advancedIntegration) {
+      throw new Error('Advanced features not enabled');
+    }
+    return await this.advancedIntegration.initialize();
+  }
+
+  /**
+   * Add proxy to campaign configuration
+   */
+  addProxyToCampaign(campaignId, proxyConfig) {
+    if (!this.advancedIntegration) {
+      throw new Error('Advanced features not enabled');
+    }
+
+    const proxy = this.advancedIntegration.addProxy(proxyConfig);
+    
+    const campaign = this.campaigns.get(campaignId);
+    if (campaign) {
+      if (!campaign.configuration.proxies) {
+        campaign.configuration.proxies = [];
+      }
+      campaign.configuration.proxies.push(proxy.id);
+      this.campaigns.set(campaignId, campaign);
+    }
+
+    return proxy;
+  }
+
+  /**
+   * Get proxy statistics for campaign
+   */
+  getProxyStats() {
+    if (!this.advancedIntegration) {
+      throw new Error('Advanced features not enabled');
+    }
+    return this.advancedIntegration.getProxyStats();
+  }
+
+  /**
+   * Enable 3D layers mining for campaign
+   */
+  async enable3DLayersMining(campaignId, config = {}) {
+    const campaign = this.campaigns.get(campaignId);
+    if (!campaign) {
+      throw new Error(`Campaign not found: ${campaignId}`);
+    }
+
+    campaign.configuration.layers3D = {
+      enabled: true,
+      maxDepth: config.maxDepth || 8,
+      minImportance: config.minImportance || 0.4,
+      extractCompositing: config.extractCompositing !== false,
+      gpuAcceleration: config.gpuAcceleration || 'auto',
+    };
+
+    this.campaigns.set(campaignId, campaign);
+    
+    if (this.db) {
+      await this.updateCampaignConfig(campaignId, { configuration: campaign.configuration });
+    }
+
+    return campaign;
+  }
+
+  /**
+   * Enable OCR for campaign
+   */
+  async enableOCR(campaignId, config = {}) {
+    const campaign = this.campaigns.get(campaignId);
+    if (!campaign) {
+      throw new Error(`Campaign not found: ${campaignId}`);
+    }
+
+    campaign.configuration.ocr = {
+      enabled: true,
+      maxImages: config.maxImages || 4,
+      compressionRatio: config.compressionRatio || 0.1,
+      minPrecision: config.minPrecision || 0.95,
+    };
+
+    this.campaigns.set(campaignId, campaign);
+    
+    if (this.db) {
+      await this.updateCampaignConfig(campaignId, { configuration: campaign.configuration });
+    }
+
+    return campaign;
+  }
+
+  /**
+   * Check robots.txt for campaign URLs
+   */
+  async checkRobotsTxtForCampaign(campaignId) {
+    const campaign = this.campaigns.get(campaignId);
+    if (!campaign) {
+      throw new Error(`Campaign not found: ${campaignId}`);
+    }
+
+    if (!this.advancedIntegration) {
+      return { allowed: true, message: 'Advanced features not enabled' };
+    }
+
+    const urlObj = new URL(campaign.clientSiteUrl);
+    const robotsCheck = await this.advancedIntegration.getRobotsTxt(urlObj.hostname);
+
+    return {
+      allowed: robotsCheck.allowed,
+      crawlDelay: robotsCheck.crawlDelay,
+      domain: urlObj.hostname,
+    };
+  }
+
+  /**
+   * Test advanced configuration for campaign
+   */
+  async testAdvancedConfiguration(campaignId) {
+    const campaign = this.campaigns.get(campaignId);
+    if (!campaign) {
+      throw new Error(`Campaign not found: ${campaignId}`);
+    }
+
+    if (!this.advancedIntegration) {
+      return { error: 'Advanced features not enabled' };
+    }
+
+    return await this.advancedIntegration.testConfiguration(campaign.clientSiteUrl);
+  }
+
+  /**
+   * Crawl with advanced features
+   */
+  async crawlWithAdvancedFeatures(campaignId, url, options = {}) {
+    if (!this.advancedIntegration) {
+      throw new Error('Advanced features not enabled');
+    }
+
+    const campaign = this.campaigns.get(campaignId);
+    if (!campaign) {
+      throw new Error(`Campaign not found: ${campaignId}`);
+    }
+
+    // Merge campaign configuration with options
+    const crawlOptions = {
+      ...campaign.configuration,
+      ...options,
+    };
+
+    return await this.advancedIntegration.crawlAdvanced(url, crawlOptions);
+  }
+
+  /**
+   * Get advanced features status
+   */
+  getAdvancedFeaturesStatus() {
+    if (!this.advancedIntegration) {
+      return {
+        enabled: false,
+        features: {
+          proxies: false,
+          robots: false,
+          layers3D: false,
+          ocr: false,
+        },
+      };
+    }
+
+    return {
+      enabled: true,
+      initialized: this.advancedIntegration.initialized,
+      features: {
+        proxies: this.advancedIntegration.configService.config.proxies.enabled,
+        robots: this.advancedIntegration.configService.config.robots.enabled,
+        layers3D: this.advancedIntegration.configService.config.layers3D.enabled,
+        ocr: this.advancedIntegration.configService.config.ocr.enabled,
+      },
+      stats: {
+        proxies: this.advancedIntegration.configService.proxyPool.length,
+        robotsCache: this.advancedIntegration.configService.robotsCache.size,
+      },
+    };
   }
 }
 
