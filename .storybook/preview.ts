@@ -1,5 +1,5 @@
 import type { Preview } from '@storybook/react-vite'
-import '../src/discord-theme.css'
+import '../src/index.css'
 
 /**
  * Storybook Preview Configuration
