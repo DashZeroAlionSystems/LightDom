@@ -7,6 +7,7 @@
 import express from 'express';
 import campaignService from '../../services/crawler-campaign-service.js';
 import deepSeekService from '../../services/deepseek-api-service.js';
+import templateService from '../../services/default-campaign-template-service.js';
 
 const router = express.Router();
 
@@ -967,7 +968,13 @@ router.get('/endpoints/list', (req, res) => {
     { method: 'GET', path: '/api/campaigns/:campaignId/robots-txt', description: 'Check robots.txt compliance' },
     { method: 'POST', path: '/api/campaigns/:campaignId/test-config', description: 'Test advanced configuration' },
     { method: 'POST', path: '/api/campaigns/:campaignId/crawl-advanced', description: 'Crawl with advanced features' },
-    { method: 'GET', path: '/api/campaigns/advanced/status', description: 'Get advanced features status' }
+    { method: 'GET', path: '/api/campaigns/advanced/status', description: 'Get advanced features status' },
+    
+    // Campaign Templates
+    { method: 'GET', path: '/api/campaigns/templates', description: 'List all campaign templates' },
+    { method: 'GET', path: '/api/campaigns/templates/:type', description: 'Get specific template configuration' },
+    { method: 'GET', path: '/api/campaigns/templates/:type/sql', description: 'Get SQL for template database table' },
+    { method: 'POST', path: '/api/campaigns/from-template', description: 'Create campaign from template' }
   ];
 
   res.json({
@@ -1172,6 +1179,140 @@ router.get('/advanced/status', (req, res) => {
     });
   } catch (error) {
     console.error('Error getting advanced features status:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// ==================== CAMPAIGN TEMPLATES ====================
+
+/**
+ * @route   GET /api/campaigns/templates
+ * @desc    List all available campaign templates
+ * @access  Public
+ */
+router.get('/templates', (req, res) => {
+  try {
+    const templates = templateService.listTemplates();
+    
+    res.json({
+      success: true,
+      data: templates,
+      count: templates.length
+    });
+  } catch (error) {
+    console.error('Error listing templates:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/campaigns/templates/:type
+ * @desc    Get a specific campaign template
+ * @access  Public
+ */
+router.get('/templates/:type', (req, res) => {
+  try {
+    const { type } = req.params;
+    const template = templateService.getTemplate(type);
+    
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        error: `Template not found: ${type}`
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: template
+    });
+  } catch (error) {
+    console.error('Error getting template:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/campaigns/templates/:type/sql
+ * @desc    Get SQL for creating template database table
+ * @access  Public
+ */
+router.get('/templates/:type/sql', (req, res) => {
+  try {
+    const { type } = req.params;
+    const template = templateService.getTemplate(type);
+    
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        error: `Template not found: ${type}`
+      });
+    }
+    
+    const sql = templateService.generateTableSQL(template);
+    
+    res.json({
+      success: true,
+      data: {
+        template: type,
+        sql
+      }
+    });
+  } catch (error) {
+    console.error('Error generating SQL:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/campaigns/from-template
+ * @desc    Create campaign from template
+ * @access  Public
+ */
+router.post('/from-template', async (req, res) => {
+  try {
+    const { templateType, clientSiteUrl, customConfig } = req.body;
+    
+    if (!templateType || !clientSiteUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'templateType and clientSiteUrl are required'
+      });
+    }
+    
+    // Get template
+    const template = templateService.applyTemplate(templateType, customConfig || {});
+    
+    // Create campaign with template configuration
+    const prompt = `Create a ${template.name} for ${clientSiteUrl}`;
+    const campaign = await campaignService.createCampaignFromPrompt(
+      prompt,
+      clientSiteUrl,
+      {
+        ...template,
+        templateType
+      }
+    );
+    
+    res.json({
+      success: true,
+      data: campaign,
+      message: 'Campaign created from template'
+    });
+  } catch (error) {
+    console.error('Error creating campaign from template:', error);
     res.status(500).json({
       success: false,
       error: error.message
