@@ -48,6 +48,7 @@ import BillingManagement from './components/ui/admin/BillingManagement';
 import CrawlerDashboard from './components/ui/admin/CrawlerDashboard';
 import CrawlerWorkloadDashboard from './components/ui/admin/CrawlerWorkloadDashboard';
 import CrawlerCampaignDashboard from './components/CrawlerCampaignDashboard';
+import LeadManagementDashboard from './components/LeadManagementDashboard';
 import TrainingControlPanel from './components/ui/admin/TrainingControlPanel';
 import UserManagementWorkflow from './components/ui/admin/UserManagementWorkflow';
 import SEOCrawlerWorkflow from './components/ui/admin/SEOCrawlerWorkflow';
@@ -158,6 +159,7 @@ const AppContent: React.FC = () => {
           <Route path="crawler" element={<CrawlerDashboard />} />
           <Route path="crawler-workload" element={<CrawlerWorkloadDashboard />} />
           <Route path="crawler-campaigns" element={<CrawlerCampaignDashboard />} />
+          <Route path="leads" element={<LeadManagementDashboard />} />
           <Route path="training" element={<TrainingControlPanel />} />
           <Route path="monitoring" element={<SystemMonitoring />} />
           <Route path="logs" element={<SystemLogs />} />
@@ -250,6 +252,7 @@ const AppContent: React.FC = () => {
           <Route path="admin/crawler" element={<CrawlerDashboard />} />
           <Route path="admin/crawler-workload" element={<CrawlerWorkloadDashboard />} />
           <Route path="admin/crawler-campaigns" element={<CrawlerCampaignDashboard />} />
+          <Route path="admin/leads" element={<LeadManagementDashboard />} />
           <Route path="admin/training" element={<TrainingControlPanel />} />
           <Route path="admin/analytics" element={<AdminAnalyticsDashboard />} />
           <Route path="admin/user-workflows" element={<UserManagementWorkflow />} />
