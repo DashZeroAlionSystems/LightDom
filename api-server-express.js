@@ -1067,6 +1067,21 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load campaign routes:', err);
       });
 
+    // Import and register Lead Generation routes
+    import('./api/lead-routes.js')
+      .then(leadModule => {
+        const createLeadRoutes = leadModule.default || leadModule.createLeadRoutes;
+        if (typeof createLeadRoutes === 'function') {
+          this.app.use('/api/leads', createLeadRoutes(this.db, this.io));
+        } else {
+          this.app.use('/api/leads', leadModule.default);
+        }
+        console.log('✅ Lead generation routes registered (Crawler & campaign integration enabled)');
+      })
+      .catch(err => {
+        console.error('Failed to load lead routes:', err);
+      });
+
     // Import and register Workflow Orchestration routes
     import('./src/api/routes/workflow-orchestration.routes.js')
       .then(workflowModule => {
@@ -5988,6 +6003,17 @@ class DOMSpaceHarvesterAPI {
             dbErr?.message || dbErr
           );
           this.dbDisabled = true;
+        }
+      }
+
+      // Initialize campaign-lead integration (if database is available)
+      if (!this.dbDisabled) {
+        try {
+          const { initializeCampaignLeadIntegration } = await import('./services/campaign-lead-integration.js');
+          this.campaignLeadIntegration = initializeCampaignLeadIntegration(this.db, this.io);
+          console.log('✅ Campaign-Lead integration initialized');
+        } catch (integrationErr) {
+          console.warn('⚠️  Campaign-Lead integration failed to initialize:', integrationErr?.message || integrationErr);
         }
       }
 
