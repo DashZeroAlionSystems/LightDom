@@ -10,10 +10,10 @@
  * - API server running on port 3001
  */
 
-import { describe, it, before, after, expect } from '@jest/globals';
-import { Pool } from 'pg';
-import { io as SocketIOClient, Socket } from 'socket.io-client';
+import { after, before, describe, expect, it } from '@jest/globals';
 import fetch from 'node-fetch';
+import { Pool } from 'pg';
+import { Socket, io as SocketIOClient } from 'socket.io-client';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 const WS_URL = process.env.WS_URL || 'ws://localhost:3001';

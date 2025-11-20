@@ -3,31 +3,31 @@
  * View and filter system logs for debugging and monitoring
  */
 
-import React, { useState } from 'react';
 import {
-  Card,
-  Table,
-  Tag,
-  Space,
-  Typography,
-  Input,
-  Select,
-  DatePicker,
-  Button,
-  Modal,
-  Tooltip
-} from 'antd';
-import {
-  HistoryOutlined,
-  SearchOutlined,
-  FilterOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
   DownloadOutlined,
   EyeOutlined,
-  WarningOutlined,
-  CheckCircleOutlined,
+  FilterOutlined,
+  HistoryOutlined,
   InfoCircleOutlined,
-  CloseCircleOutlined
+  SearchOutlined,
+  WarningOutlined,
 } from '@ant-design/icons';
+import {
+  Button,
+  DatePicker,
+  Input,
+  Modal,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
+import React, { useState } from 'react';
+import { Card as DSCard } from '../../../utils/AdvancedReusableComponents';
 
 const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
@@ -54,7 +54,7 @@ const SystemLogs: React.FC = () => {
       message: 'User authentication successful',
       user: 'john@example.com',
       ip: '192.168.1.1',
-      details: 'User logged in successfully using OAuth2'
+      details: 'User logged in successfully using OAuth2',
     },
     {
       id: '2',
@@ -62,7 +62,7 @@ const SystemLogs: React.FC = () => {
       level: 'warning',
       service: 'Database',
       message: 'Slow query detected',
-      details: 'Query execution took 3.5s, which is above the threshold of 2s'
+      details: 'Query execution took 3.5s, which is above the threshold of 2s',
     },
     {
       id: '3',
@@ -70,7 +70,7 @@ const SystemLogs: React.FC = () => {
       level: 'error',
       service: 'Background Worker',
       message: 'Failed to process job',
-      details: 'Job ID: 12345, Error: Connection timeout'
+      details: 'Job ID: 12345, Error: Connection timeout',
     },
     {
       id: '4',
@@ -79,7 +79,7 @@ const SystemLogs: React.FC = () => {
       service: 'Cache Server',
       message: 'Cache cleared successfully',
       user: 'admin@example.com',
-      details: 'Manual cache clear operation completed'
+      details: 'Manual cache clear operation completed',
     },
     {
       id: '5',
@@ -87,7 +87,7 @@ const SystemLogs: React.FC = () => {
       level: 'debug',
       service: 'API Server',
       message: 'Request processed',
-      details: 'GET /api/users - 200 OK - 45ms'
+      details: 'GET /api/users - 200 OK - 45ms',
     },
     {
       id: '6',
@@ -95,7 +95,7 @@ const SystemLogs: React.FC = () => {
       level: 'error',
       service: 'Email Service',
       message: 'Failed to send email',
-      details: 'SMTP connection error: Connection refused'
+      details: 'SMTP connection error: Connection refused',
     },
     {
       id: '7',
@@ -105,7 +105,7 @@ const SystemLogs: React.FC = () => {
       message: 'Rate limit approaching',
       user: 'user@example.com',
       ip: '10.0.0.5',
-      details: 'User has made 95 requests in the last minute (limit: 100)'
+      details: 'User has made 95 requests in the last minute (limit: 100)',
     },
     {
       id: '8',
@@ -113,8 +113,8 @@ const SystemLogs: React.FC = () => {
       level: 'info',
       service: 'Database',
       message: 'Backup completed successfully',
-      details: 'Database backup created: backup_2024_10_22.sql.gz'
-    }
+      details: 'Database backup created: backup_2024_10_22.sql.gz',
+    },
   ]);
 
   const [searchText, setSearchText] = useState('');
@@ -125,21 +125,31 @@ const SystemLogs: React.FC = () => {
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'info': return 'blue';
-      case 'warning': return 'orange';
-      case 'error': return 'red';
-      case 'debug': return 'green';
-      default: return 'default';
+      case 'info':
+        return 'blue';
+      case 'warning':
+        return 'orange';
+      case 'error':
+        return 'red';
+      case 'debug':
+        return 'green';
+      default:
+        return 'default';
     }
   };
 
   const getLevelIcon = (level: string) => {
     switch (level) {
-      case 'info': return <InfoCircleOutlined />;
-      case 'warning': return <WarningOutlined />;
-      case 'error': return <CloseCircleOutlined />;
-      case 'debug': return <CheckCircleOutlined />;
-      default: return <InfoCircleOutlined />;
+      case 'info':
+        return <InfoCircleOutlined />;
+      case 'warning':
+        return <WarningOutlined />;
+      case 'error':
+        return <CloseCircleOutlined />;
+      case 'debug':
+        return <CheckCircleOutlined />;
+      default:
+        return <InfoCircleOutlined />;
     }
   };
 
@@ -151,7 +161,7 @@ const SystemLogs: React.FC = () => {
   const handleExportLogs = () => {
     const csvContent = [
       ['Timestamp', 'Level', 'Service', 'Message', 'User', 'IP', 'Details'].join(','),
-      ...filteredLogs.map(log => 
+      ...filteredLogs.map(log =>
         [
           log.timestamp.toISOString(),
           log.level,
@@ -159,9 +169,9 @@ const SystemLogs: React.FC = () => {
           `"${log.message}"`,
           log.user || '',
           log.ip || '',
-          `"${log.details || ''}"`
+          `"${log.details || ''}"`,
         ].join(',')
-      )
+      ),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -180,12 +190,8 @@ const SystemLogs: React.FC = () => {
       title: 'Timestamp',
       dataIndex: 'timestamp',
       key: 'timestamp',
-      render: (date: Date) => (
-        <Text style={{ fontSize: '12px' }}>
-          {date.toLocaleString()}
-        </Text>
-      ),
-      width: 180
+      render: (date: Date) => <Text style={{ fontSize: '12px' }}>{date.toLocaleString()}</Text>,
+      width: 180,
     },
     {
       title: 'Level',
@@ -196,48 +202,49 @@ const SystemLogs: React.FC = () => {
           {level.toUpperCase()}
         </Tag>
       ),
-      width: 100
+      width: 100,
     },
     {
       title: 'Service',
       dataIndex: 'service',
       key: 'service',
-      width: 150
+      width: 150,
     },
     {
       title: 'Message',
       dataIndex: 'message',
       key: 'message',
-      ellipsis: true
+      ellipsis: true,
     },
     {
       title: 'User',
       dataIndex: 'user',
       key: 'user',
       render: (user?: string) => user || '-',
-      width: 150
+      width: 150,
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (record: LogEntry) => (
-        <Tooltip title="View Details">
+        <Tooltip title='View Details'>
           <Button
-            type="text"
+            type='text'
             icon={<EyeOutlined />}
-            size="small"
+            size='small'
             onClick={() => handleViewDetails(record)}
           />
         </Tooltip>
       ),
-      width: 80
-    }
+      width: 80,
+    },
   ];
 
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = log.message.toLowerCase().includes(searchText.toLowerCase()) ||
-                         log.service.toLowerCase().includes(searchText.toLowerCase()) ||
-                         (log.user && log.user.toLowerCase().includes(searchText.toLowerCase()));
+    const matchesSearch =
+      log.message.toLowerCase().includes(searchText.toLowerCase()) ||
+      log.service.toLowerCase().includes(searchText.toLowerCase()) ||
+      (log.user && log.user.toLowerCase().includes(searchText.toLowerCase()));
     const matchesLevel = selectedLevel === 'all' || log.level === selectedLevel;
     const matchesService = selectedService === 'all' || log.service === selectedService;
     return matchesSearch && matchesLevel && matchesService;
@@ -247,85 +254,91 @@ const SystemLogs: React.FC = () => {
 
   return (
     <div>
-      <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <Title level={3} style={{ margin: 0 }}>
-            <HistoryOutlined /> System Logs
-          </Title>
-          <Button
-            icon={<DownloadOutlined />}
-            onClick={handleExportLogs}
+      <DSCard.Root>
+        <DSCard.Body>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '24px',
+            }}
           >
-            Export Logs
-          </Button>
-        </div>
+            <Title level={3} style={{ margin: 0 }}>
+              <HistoryOutlined /> System Logs
+            </Title>
+            <Button icon={<DownloadOutlined />} onClick={handleExportLogs}>
+              Export Logs
+            </Button>
+          </div>
 
-        <Space style={{ marginBottom: '16px', width: '100%' }} direction="vertical">
-          <Space wrap>
-            <Search
-              placeholder="Search logs..."
-              allowClear
-              style={{ width: 300 }}
-              onChange={(e) => setSearchText(e.target.value)}
-              prefix={<SearchOutlined />}
-            />
-            <Select
-              style={{ width: 150 }}
-              placeholder="Filter by level"
-              value={selectedLevel}
-              onChange={setSelectedLevel}
-              suffixIcon={<FilterOutlined />}
-            >
-              <Select.Option value="all">All Levels</Select.Option>
-              <Select.Option value="info">Info</Select.Option>
-              <Select.Option value="warning">Warning</Select.Option>
-              <Select.Option value="error">Error</Select.Option>
-              <Select.Option value="debug">Debug</Select.Option>
-            </Select>
-            <Select
-              style={{ width: 180 }}
-              placeholder="Filter by service"
-              value={selectedService}
-              onChange={setSelectedService}
-              suffixIcon={<FilterOutlined />}
-            >
-              <Select.Option value="all">All Services</Select.Option>
-              {services.map(service => (
-                <Select.Option key={service} value={service}>
-                  {service}
-                </Select.Option>
-              ))}
-            </Select>
-            <RangePicker style={{ width: 300 }} />
+          <Space style={{ marginBottom: '16px', width: '100%' }} direction='vertical'>
+            <Space wrap>
+              <Search
+                placeholder='Search logs...'
+                allowClear
+                style={{ width: 300 }}
+                onChange={e => setSearchText(e.target.value)}
+                prefix={<SearchOutlined />}
+              />
+              <Select
+                style={{ width: 150 }}
+                placeholder='Filter by level'
+                value={selectedLevel}
+                onChange={setSelectedLevel}
+                suffixIcon={<FilterOutlined />}
+              >
+                <Select.Option value='all'>All Levels</Select.Option>
+                <Select.Option value='info'>Info</Select.Option>
+                <Select.Option value='warning'>Warning</Select.Option>
+                <Select.Option value='error'>Error</Select.Option>
+                <Select.Option value='debug'>Debug</Select.Option>
+              </Select>
+              <Select
+                style={{ width: 180 }}
+                placeholder='Filter by service'
+                value={selectedService}
+                onChange={setSelectedService}
+                suffixIcon={<FilterOutlined />}
+              >
+                <Select.Option value='all'>All Services</Select.Option>
+                {services.map(service => (
+                  <Select.Option key={service} value={service}>
+                    {service}
+                  </Select.Option>
+                ))}
+              </Select>
+              <RangePicker style={{ width: 300 }} />
+            </Space>
           </Space>
-        </Space>
 
-        <Table
-          columns={columns}
-          dataSource={filteredLogs}
-          rowKey="id"
-          size="small"
-          pagination={{
-            pageSize: 20,
-            showSizeChanger: true,
-            showTotal: (total) => `Total ${total} logs`
-          }}
-        />
-      </Card>
+          <Table
+            columns={columns}
+            dataSource={filteredLogs}
+            rowKey='id'
+            size='small'
+            pagination={{
+              pageSize: 20,
+              showSizeChanger: true,
+              showTotal: total => `Total ${total} logs`,
+            }}
+          />
+        </DSCard.Body>
+      </DSCard.Root>
 
       <Modal
-        title="Log Details"
+        title='Log Details'
         open={detailsModalVisible}
         onCancel={() => setDetailsModalVisible(false)}
         footer={[
-          <Button key="close" onClick={() => setDetailsModalVisible(false)}>
+          <Button key='close' onClick={() => setDetailsModalVisible(false)}>
             Close
-          </Button>
+          </Button>,
         ]}
         width={700}
       >
         {selectedLog && (
-          <Space direction="vertical" style={{ width: '100%' }}>
+          <Space direction='vertical' style={{ width: '100%' }}>
             <div>
               <Text strong>Timestamp:</Text>
               <br />
@@ -371,7 +384,7 @@ const SystemLogs: React.FC = () => {
                     backgroundColor: '#f5f5f5',
                     padding: '12px',
                     borderRadius: '4px',
-                    marginTop: '8px'
+                    marginTop: '8px',
                   }}
                   copyable
                 >

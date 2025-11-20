@@ -1,0 +1,156 @@
+{
+  "cluster_id": "medical-insurance-cluster",
+  "cluster_name": "Medical Insurance Lead Generation Cluster",
+  "description": "Coordinated cluster combining lead generation, SEO optimization, and competitor analysis for the South African medical insurance market",
+  
+  "campaigns": [
+    {
+      "campaign_id": "sa-medical-insurance-leads-24-7",
+      "campaign_name": "SA Medical Insurance Leads - 24/7",
+      "campaign_type": "lead_generation",
+      "priority": 1,
+      "weight": 50
+    },
+    {
+      "campaign_id": "medical-seo-optimization",
+      "campaign_name": "Medical Insurance SEO Campaign",
+      "campaign_type": "seo_optimization",
+      "priority": 2,
+      "weight": 30
+    },
+    {
+      "campaign_id": "medical-competitor-analysis",
+      "campaign_name": "Competitor Intelligence",
+      "campaign_type": "competitor_analysis",
+      "priority": 3,
+      "weight": 20
+    }
+  ],
+  
+  "shared_resources": {
+    "url_seeds": true,
+    "schema_registry": true,
+    "analytics": true,
+    "crawler_pool": true,
+    "data_storage": true
+  },
+  
+  "resource_allocation": {
+    "max_total_crawlers": 10,
+    "crawler_distribution": {
+      "sa-medical-insurance-leads-24-7": 5,
+      "medical-seo-optimization": 3,
+      "medical-competitor-analysis": 2
+    },
+    "bandwidth_limit_mbps": 100,
+    "storage_quota_gb": 1000
+  },
+  
+  "execution_strategy": "parallel",
+  "coordination": {
+    "share_discovered_urls": true,
+    "share_extracted_data": true,
+    "cross_campaign_deduplication": true,
+    "unified_analytics": true
+  },
+  
+  "data_flow": {
+    "lead_generation_to_seo": {
+      "enabled": true,
+      "flow_type": "discovered_urls",
+      "description": "URLs discovered during lead generation are analyzed for SEO opportunities"
+    },
+    "competitor_to_lead_gen": {
+      "enabled": true,
+      "flow_type": "competitor_insights",
+      "description": "Competitor analysis informs lead generation targeting"
+    },
+    "seo_to_all": {
+      "enabled": true,
+      "flow_type": "keyword_insights",
+      "description": "SEO keyword analysis improves all campaigns"
+    }
+  },
+  
+  "seo_campaign_config": {
+    "campaign_id": "medical-seo-optimization",
+    "target_sites": "lead_generated_sites",
+    "optimization_goals": [
+      "improve_page_rank",
+      "increase_backlinks",
+      "optimize_content",
+      "improve_site_speed"
+    ],
+    "auto_apply_optimizations": false,
+    "approval_required": true
+  },
+  
+  "competitor_analysis_config": {
+    "campaign_id": "medical-competitor-analysis",
+    "competitor_sources": [
+      "discovery_bank_health",
+      "momentum_health",
+      "discovery_health",
+      "bonitas",
+      "fedhealth"
+    ],
+    "analysis_frequency": "daily",
+    "metrics_tracked": [
+      "pricing_changes",
+      "new_products",
+      "marketing_campaigns",
+      "page_rank_changes",
+      "backlink_changes",
+      "content_updates"
+    ]
+  },
+  
+  "alerts": {
+    "cluster_wide_alerts": true,
+    "alert_consolidation": true,
+    "notification_channels": ["email", "slack", "dashboard"],
+    "alert_rules": [
+      {
+        "name": "cluster_performance_degradation",
+        "condition": "any_campaign_error_rate > 25%",
+        "action": "notify_admin"
+      },
+      {
+        "name": "high_quality_lead_detected",
+        "condition": "lead_score > 90",
+        "action": "immediate_notification"
+      },
+      {
+        "name": "competitor_price_change",
+        "condition": "competitor_pricing_changed",
+        "action": "notify_marketing_team"
+      }
+    ]
+  },
+  
+  "reporting": {
+    "unified_dashboard": true,
+    "report_frequency": "daily",
+    "report_recipients": ["admin@lightdom.io"],
+    "metrics_included": [
+      "total_leads_generated",
+      "lead_quality_distribution",
+      "urls_crawled",
+      "seo_improvements",
+      "competitor_insights",
+      "cluster_roi"
+    ]
+  },
+  
+  "compliance": {
+    "gdpr_compliant": true,
+    "popia_compliant": true,
+    "data_sharing_consent": true,
+    "opt_out_mechanism": true,
+    "audit_trail": true
+  },
+  
+  "status": "active",
+  "created_at": "2025-11-18T00:00:00Z",
+  "updated_at": "2025-11-18T00:00:00Z"
+}

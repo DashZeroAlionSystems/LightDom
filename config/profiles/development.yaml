@@ -1,0 +1,38 @@
+# Development Profile Configuration
+# Optimized for debugging and testing
+environment: "development"
+
+defaults:
+  scraper:
+    headless: false           # Show browser for debugging
+    slowMo: 100              # Slow down for observation
+    devtools: true           # Open devtools
+    
+  rateLimiting:
+    requestsPerSecond: 0.5    # Very conservative
+    concurrent: 1             # One at a time
+    respectCrawlDelay: true
+    
+  logging:
+    level: "debug"            # Verbose logging
+    logRequests: true
+    logResponses: true
+    logToConsole: true
+    logToFile: true
+    colorize: true
+    
+  monitoring:
+    enabled: true
+    verbose: true
+    trackMemory: true
+    trackCPU: true
+    
+  output:
+    destination: "./dev-output"
+    overwrite: true           # Overwrite for testing
+    prettyPrint: true
+    
+  errorHandling:
+    continueOnError: false    # Stop on errors for debugging
+    verboseErrors: true
+    stackTrace: true

@@ -7,30 +7,35 @@ The Background Data Mining System is a comprehensive, AI-powered web crawling so
 ## Key Features
 
 ### 🔄 **Continuous Background Mining**
+
 - Multi-threaded worker system for concurrent crawling
 - Priority-based task queue
 - Smart URL caching with TTL (Time To Live)
 - Automatic retry mechanism with exponential backoff
 
 ### 🧠 **AI-Powered Configuration**
+
 - Generate crawler configs from natural language prompts
 - Powered by Ollama (DeepSeek-R1, Llama3, Mixtral)
 - Automatic selector generation
 - Intelligent data type detection
 
 ### 📊 **Schema-Linked Architecture**
+
 - Mining jobs linked to workflow processes
 - Workflows connected to specific tasks
 - Task status tracking per attribute
 - Real-time progress monitoring
 
 ### 🎯 **Attribute-Based Mining**
+
 - Break down subjects into individual attributes
 - Mine each attribute independently
 - Selective re-mining for missing/updated data
 - Priority-based attribute extraction
 
 ### 🚫 **Smart Deduplication**
+
 - URL-level caching to prevent duplicate crawls
 - Schema version tracking for attribute updates
 - Configurable cache TTL
@@ -39,9 +44,27 @@ The Background Data Mining System is a comprehensive, AI-powered web crawling so
 ## Installation
 
 No additional dependencies needed beyond the main project. The system uses:
+
 - Puppeteer (already installed)
 - PostgreSQL (existing database)
 - Ollama (optional, for AI config generation)
+
+### Optional: Local DB-backed Dev Mode
+
+The minimal API proxy and the mining stack can optionally persist developer data to PostgreSQL instead of the on-disk `data/` JSON files. To enable DB-backed dev mode, set your DB env vars and optionally a manager API key:
+
+```powershell
+$env:DB_HOST='127.0.0.1'
+$env:DB_PORT='5432'
+$env:DB_NAME='dom_space_harvester'
+$env:DB_USER='postgres'
+$env:DB_PASSWORD='postgres'
+$env:MANAGER_API_KEY='changeme'
+# then start the minimal proxy (it will auto-create small dev tables)
+node minimal-api-server-proxy.js
+```
+
+When DB is configured the minimal proxy will create three lightweight tables used for development: `deepseek_memory`, `prompt_executions`, and `service_processes`. If DB is not configured the proxy falls back to `data/deepseek_memory.json` and `data/prompt_executions.json`.
 
 ### Optional: Install Ollama
 
@@ -65,6 +88,14 @@ ollama serve
 ```bash
 npm run mining:daemon
 ```
+
+If you want to validate the headless extractor quickly (without a full mining job), run the test script:
+
+```powershell
+node ./scripts/test_headless_extractor.js https://example.com
+```
+
+This will attempt to use Playwright or Puppeteer if installed; if not available it falls back to a safe HTTP-based heuristic parser.
 
 This starts the background service with 3 worker threads.
 
@@ -130,11 +161,9 @@ Mining jobs are configured using JSON files. Here's the complete structure:
   "name": "Human-readable job name",
   "subject": "single-word-identifier",
   "description": "Detailed description of what to mine",
-  
-  "seedUrls": [
-    "https://example.com/start-here"
-  ],
-  
+
+  "seedUrls": ["https://example.com/start-here"],
+
   "attributes": [
     {
       "name": "attribute_name",
@@ -151,7 +180,7 @@ Mining jobs are configured using JSON files. Here's the complete structure:
       }
     }
   ],
-  
+
   "config": {
     "maxDepth": 3,
     "maxUrls": 1000,
@@ -164,7 +193,7 @@ Mining jobs are configured using JSON files. Here's the complete structure:
     "rateLimitMs": 1000,
     "timeout": 30000
   },
-  
+
   "scheduling": {
     "enabled": true,
     "frequency": "daily|weekly|monthly|cron-expression",
@@ -248,16 +277,19 @@ The system decides whether to re-mine a URL based on:
 ### Prompt Engineering Tips
 
 **Good Prompts:**
+
 - ✅ "Mine technical blog posts about Python, focusing on tutorials and code examples"
 - ✅ "Extract product data from e-commerce sites, including prices, descriptions, and reviews"
 - ✅ "Collect news articles about AI, including headlines, authors, and publish dates"
 
 **Bad Prompts:**
+
 - ❌ "Mine stuff"
 - ❌ "Get data"
 - ❌ "Crawl website"
 
 **Include:**
+
 - Subject matter (what to mine)
 - Data types (what attributes to extract)
 - Optional: Target URLs
@@ -289,6 +321,7 @@ npm run mining:add examples/mining-configs/seo-articles.json
 ```
 
 This mines SEO articles with 12 attributes including:
+
 - Article title
 - Meta description
 - Author
@@ -307,6 +340,7 @@ npm run mining:add examples/mining-configs/e-commerce-products.json
 ```
 
 Extracts product data:
+
 - Product name
 - Price
 - Description
@@ -350,15 +384,8 @@ Control which URLs to crawl with patterns:
 {
   "config": {
     "urlPatterns": {
-      "include": [
-        "/blog/\\d{4}/.*",
-        "/articles/[a-z-]+$"
-      ],
-      "exclude": [
-        "/tag/",
-        "/category/",
-        "\\.pdf$"
-      ]
+      "include": ["/blog/\\d{4}/.*", "/articles/[a-z-]+$"],
+      "exclude": ["/tag/", "/category/", "\\.pdf$"]
     }
   }
 }
@@ -372,8 +399,8 @@ Set up recurring mining jobs:
 {
   "scheduling": {
     "enabled": true,
-    "frequency": "0 2 * * *",  // 2 AM daily (cron)
-    "maxRuns": 30  // Run 30 times then stop
+    "frequency": "0 2 * * *", // 2 AM daily (cron)
+    "maxRuns": 30 // Run 30 times then stop
   }
 }
 ```
@@ -387,6 +414,7 @@ npm run mining:status
 ```
 
 Output:
+
 ```
 📊 Mining Jobs Status
 
@@ -405,6 +433,7 @@ npm run mining:job 12ab34cd --follow
 ```
 
 Output (updates every second):
+
 ```
 📋 Mining Job Details
 
@@ -430,17 +459,17 @@ Check mining data directly:
 
 ```sql
 -- View all active mining jobs
-SELECT * FROM workflow_process_instances 
+SELECT * FROM workflow_process_instances
 WHERE status = 'running';
 
 -- View crawled URLs
-SELECT url, crawled_at 
-FROM crawl_results 
-ORDER BY crawled_at DESC 
+SELECT url, crawled_at
+FROM crawl_results
+ORDER BY crawled_at DESC
 LIMIT 10;
 
 -- View mining statistics
-SELECT 
+SELECT
   COUNT(*) as total_crawls,
   COUNT(DISTINCT url) as unique_urls,
   AVG(EXTRACT(EPOCH FROM (completed_at - started_at))) as avg_duration_seconds
@@ -457,9 +486,9 @@ Adjust number of concurrent workers:
 ```javascript
 // In mining daemon
 const service = new BackgroundDataMiningService({
-  workerCount: 5,  // More workers = faster, but more resource intensive
+  workerCount: 5, // More workers = faster, but more resource intensive
   maxConcurrentCrawls: 10,
-  crawlDelayMs: 500  // Lower = faster, but may hit rate limits
+  crawlDelayMs: 500, // Lower = faster, but may hit rate limits
 });
 ```
 
@@ -470,8 +499,8 @@ Respect target sites and avoid getting blocked:
 ```json
 {
   "config": {
-    "rateLimitMs": 2000,  // 2 seconds between requests
-    "timeout": 30000      // 30 second timeout
+    "rateLimitMs": 2000, // 2 seconds between requests
+    "timeout": 30000 // 30 second timeout
   }
 }
 ```
@@ -482,7 +511,7 @@ Control how long to cache URL data:
 
 ```javascript
 const service = new BackgroundDataMiningService({
-  urlCacheTTL: 7 * 24 * 60 * 60 * 1000  // 7 days
+  urlCacheTTL: 7 * 24 * 60 * 60 * 1000, // 7 days
 });
 ```
 
@@ -553,9 +582,7 @@ const jobId = await service.createMiningJob({
   name: 'My Mining Job',
   subject: 'my-data',
   seedUrls: ['https://example.com'],
-  attributes: [
-    { name: 'title', selector: 'h1', priority: 10 }
-  ]
+  attributes: [{ name: 'title', selector: 'h1', priority: 10 }],
 });
 
 // Monitor events
@@ -587,6 +614,7 @@ await service.stopJob(jobId);
 ## Support
 
 For issues or questions:
+
 1. Check this documentation
 2. Review example configs in `examples/mining-configs/`
 3. Check the code comments in `services/background-mining-service.js`

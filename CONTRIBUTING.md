@@ -145,6 +145,47 @@ make type-check
 
 ## Code Standards
 
+### 🚨 CRITICAL: Search Existing Code First
+
+**Before creating ANY new code, you MUST:**
+
+1. **Search the codebase comprehensively**
+   ```bash
+   # Search by keywords
+   grep -r "feature-keyword" services/ src/ api/
+   
+   # Find files by name
+   find . -name "*feature*" -not -path "*/node_modules/*"
+   
+   # Search for similar classes/functions
+   grep -r "class.*Feature" . --include="*.ts" --include="*.js"
+   ```
+
+2. **Review existing services**
+   - `services/` - 100+ service files
+   - `api/` - API route handlers
+   - `src/services/` - TypeScript services
+   - `src/components/` - React components
+   - `scripts/` - Automation scripts
+
+3. **Use the search-first validation tool**
+   ```bash
+   npm run rules:search-first
+   # or interactive mode
+   npm run rules:search-first:interactive
+   ```
+
+4. **Document your search in the PR**
+   ```markdown
+   ## Existing Code Search
+   - [x] Searched for similar functionality using: [keywords]
+   - [x] Reviewed existing services
+   - [ ] Found existing code: [list if any]
+   - [ ] Reason for new code: [explain why]
+   ```
+
+See [Search-First Rule Documentation](.github/CODE_REVIEW_RULES.md#-core-principle-existing-code-first) for complete details.
+
 ### TypeScript/JavaScript
 
 - Use TypeScript for all new code

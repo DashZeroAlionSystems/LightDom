@@ -32,7 +32,16 @@
       "@/features/*": ["./src/features/*"],
       "@/store/*": ["./src/store/*"],
       "@/types/*": ["./src/types/*"],
-      "@/assets/*": ["./src/assets/*"]
+      "@/assets/*": ["./src/assets/*"],
+      "@/ml/*": ["../src/ml/*"],
+      "@/database/*": ["../src/database/*"],
+      "@/crawler/*": ["../src/crawler/*"],
+      "@/design-system/*": ["../src/design-system/*"],
+      "@/neural/*": ["../src/neural/*"],
+      "@/rag/*": ["../src/rag/*"],
+      "@/vscode/*": ["../src/components/vscode/*"],
+      "@/admin/*": ["../src/components/admin/*"],
+      "@/stories/*": ["../src/stories/*"]
     }
   },
   "include": ["src"],

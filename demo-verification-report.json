@@ -1,0 +1,318 @@
+{
+  "total": 30,
+  "passed": 24,
+  "failed": 6,
+  "warnings": 10,
+  "details": [
+    {
+      "file": "chrome-layers-demo.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 55 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "chrome-react-demo.js",
+      "status": "failed",
+      "issues": [
+        "Uses require() in ES module context - should use import"
+      ],
+      "warnings": [
+        "No design system component imports detected - consider using reusable components"
+      ],
+      "suggestions": [
+        "Uses hardcoded URLs: http://localhost:3001, http://localhost:3003, http://localhost:3001, http://localhost:3003, http://localhost:3001, http://localhost:3003 - consider using environment variables",
+        "Has 76 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "component-schema-tool-demo.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Uses hardcoded URLs: http://localhost:3000, http://localhost:3001 - consider using environment variables",
+        "Has 66 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "cross-platform-chrome-react-demo.js",
+      "status": "failed",
+      "issues": [
+        "Uses require() in ES module context - should use import"
+      ],
+      "warnings": [
+        "No design system component imports detected - consider using reusable components"
+      ],
+      "suggestions": [
+        "Uses hardcoded URLs: http://localhost:3001, http://localhost:3003, http://localhost:3001, http://localhost:3003, http://localhost:3001, http://localhost:3001, http://localhost:3003 - consider using environment variables",
+        "Has 125 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-advanced-datamining.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 89 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-agent-orchestration.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 17 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-blockchain-algorithm-optimization.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Uses hardcoded URLs: http://localhost:11434 - consider using environment variables",
+        "Has 107 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-category-auto-crud.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Uses hardcoded URLs: http://localhost:3001, http://localhost:3001 - consider using environment variables",
+        "Has 15 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-category-instances.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Uses hardcoded URLs: http://localhost:3001, http://localhost:3001, http://localhost:3001, http://localhost:3001 - consider using environment variables",
+        "Has 79 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-client-zone.js",
+      "status": "failed",
+      "issues": [
+        "Uses require() in ES module context - should use import"
+      ],
+      "warnings": [],
+      "suggestions": [
+        "Uses hardcoded URLs: http://localhost:3001, http://localhost:3001 - consider using environment variables",
+        "Has 38 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-complete-system-integration.ts",
+      "status": "passed",
+      "issues": [],
+      "warnings": [
+        "No design system component imports detected - consider using reusable components",
+        "Async functions should have error handling"
+      ],
+      "suggestions": [
+        "Has 62 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-component-dashboard-generator.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [
+        "No design system component imports detected - consider using reusable components"
+      ],
+      "suggestions": [
+        "Has 50 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-data-mining-system.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 17 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-design-system-enhancement.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 82 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-dom-3d-mining.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 76 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-enhanced-ui-mining.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 85 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-merge-conflicts.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [
+        "No design system component imports detected - consider using reusable components"
+      ],
+      "suggestions": [
+        "Has 30 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-onboarding.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [
+        "Missing JSDoc description - add documentation for clarity"
+      ],
+      "suggestions": [
+        "Has 42 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-styleguide-config-system.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 89 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-styleguide-generator.js",
+      "status": "failed",
+      "issues": [
+        "Uses require() in ES module context - should use import"
+      ],
+      "warnings": [
+        "No design system component imports detected - consider using reusable components"
+      ],
+      "suggestions": [
+        "Has 46 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-system-integration.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Uses hardcoded URLs: http://localhost:3001, http://localhost:3001, http://localhost:3000, http://localhost:3000, http://localhost:6006 - consider using environment variables",
+        "Has 71 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-url-seeding-service.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Uses hardcoded URLs: http://localhost:3001 - consider using environment variables",
+        "Has 17 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "demo-workflow.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 27 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "gpu-headless-chrome-demo.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 54 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "schema-linking-demo.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 75 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "schema-map-generation-demo.js",
+      "status": "failed",
+      "issues": [
+        "Uses require() in ES module context - should use import"
+      ],
+      "warnings": [
+        "Async functions should have error handling"
+      ],
+      "suggestions": [
+        "Has 138 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "schema-mining-demo.js",
+      "status": "failed",
+      "issues": [
+        "Uses require() in ES module context - should use import"
+      ],
+      "warnings": [
+        "Async functions should have error handling"
+      ],
+      "suggestions": [
+        "Has 172 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "training-data-crawler-demo.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 119 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "workflow-generator-demo.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 118 console.log statements - consider using a logging library"
+      ]
+    },
+    {
+      "file": "workflow-wizard-demo.js",
+      "status": "passed",
+      "issues": [],
+      "warnings": [],
+      "suggestions": [
+        "Has 57 console.log statements - consider using a logging library"
+      ]
+    }
+  ]
+}

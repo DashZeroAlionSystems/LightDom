@@ -1,0 +1,77 @@
+# Single Page Application Crawler Configuration
+# Full browser automation for JavaScript-heavy sites
+name: "Single Page Application Crawler"
+description: "Full browser automation for JavaScript-heavy sites"
+version: "1.0.0"
+
+# Use full browser for SPAs
+scraper:
+  primary: "puppeteer"
+  headless: true
+  javascriptEnabled: true
+  
+# Browser Configuration
+browser:
+  viewport:
+    width: 1920
+    height: 1080
+  userAgent: "LightDom Bot/1.0 (+https://lightdom.io/bot)"
+  args:
+    - "--no-sandbox"
+    - "--disable-setuid-sandbox"
+    - "--disable-dev-shm-usage"
+  
+# Wait for dynamic content
+waitStrategy:
+  type: "networkidle"         # Wait until network is idle
+  timeout: 30000              # 30 second timeout
+  waitForSelector: ".content" # Wait for content to load
+  additionalWait: 1000        # Extra wait after selector found
+  
+# Target Configuration
+target:
+  seedUrls:
+    - "https://spa-example.com"
+  maxDepth: 2
+  maxPages: 500
+  followExternalLinks: false
+  respectRobotsTxt: true
+  
+# Rate Limiting - More conservative for SPAs
+rateLimiting:
+  requestsPerSecond: 0.5      # Slower for resource-heavy sites
+  concurrent: 2
+  cooldownAfterErrors: 60000  # 1 minute cooldown after errors
+  adaptiveRateLimiting: true
+  
+# Data Extraction - Wait for React/Vue to render
+extraction:
+  waitFor: "domcontentloaded"
+  selectors:
+    title: "h1"
+    content: "[data-content], .content, main"
+    data: "[data-json]"
+  
+# Performance Monitoring
+monitoring:
+  enabled: true
+  captureMetrics: true
+  metrics:
+    - "loadTime"
+    - "domContentLoaded"
+    - "firstContentfulPaint"
+    - "largestContentfulPaint"
+  
+# Output
+output:
+  format: "json"
+  destination: "./output/spa-{timestamp}.json"
+  includeMetadata: true
+  includePerformanceMetrics: true
+  
+# Error Handling
+errorHandling:
+  maxRetries: 2
+  retryDelay: 5000
+  timeoutRetry: true
+  continueOnError: true

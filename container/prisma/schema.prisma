@@ -1,0 +1,76 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Entity {
+  id          String   @id @default(uuid())
+  entityType  String
+  data        Json
+  metadata    Json     @default("{}")
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  sourceRels  Relationship[] @relation("source")
+  targetRels  Relationship[] @relation("target")
+
+  @@index([entityType])
+  @@index([createdAt])
+}
+
+model Relationship {
+  id               String   @id @default(uuid())
+  sourceEntityId   String
+  targetEntityId   String
+  relationshipType String
+  properties       Json     @default("{}")
+  strength         Float    @default(1.0)
+  createdAt        DateTime @default(now())
+
+  sourceEntity     Entity   @relation("source", fields: [sourceEntityId], references: [id], onDelete: Cascade)
+  targetEntity     Entity   @relation("target", fields: [targetEntityId], references: [id], onDelete: Cascade)
+
+  @@index([sourceEntityId, relationshipType])
+  @@index([targetEntityId, relationshipType])
+  @@index([relationshipType])
+}
+
+model FunctionalityMapping {
+  id               String   @id @default(uuid())
+  entityType       String
+  functionalityName String
+  handlerConfig    Json
+  uiSchema         Json?
+  validationRules  Json?
+  enabled          Boolean  @default(true)
+  priority         Int      @default(5)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([entityType])
+  @@index([functionalityName])
+}
+
+model EnrichmentQueue {
+  id             String    @id @default(uuid())
+  entityId       String
+  enrichmentType String
+  status         String    @default("pending")
+  inputData      Json?
+  outputData     Json?
+  error          String?
+  processedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([status])
+  @@index([enrichmentType])
+  @@index([createdAt])
+}

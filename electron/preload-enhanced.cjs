@@ -51,6 +51,9 @@ const electronAPI = {
   // =========================================================================
   worker: {
     execute: (task) => ipcRenderer.invoke('worker:execute', task),
+    createAttributeWorker: (attributeName, options) => 
+      ipcRenderer.invoke('worker:createAttributeWorker', { attributeName, options }),
+    getStatus: () => ipcRenderer.invoke('worker:getStatus'),
   },
 
   // =========================================================================
@@ -59,6 +62,8 @@ const electronAPI = {
   puppeteer: {
     crawl: (options) => ipcRenderer.invoke('puppeteer:crawl', options),
     screenshot: (options) => ipcRenderer.invoke('puppeteer:screenshot', options),
+    mineAttribute: (options) => ipcRenderer.invoke('puppeteer:mineAttribute', options),
+    generateOGImage: (options) => ipcRenderer.invoke('puppeteer:generateOGImage', options),
   },
 
   // =========================================================================
@@ -103,6 +108,14 @@ const electronAPI = {
     workerMessage: (callback) => {
       ipcRenderer.on('worker-message', (event, data) => callback(data));
       return () => ipcRenderer.removeAllListeners('worker-message');
+    },
+
+    /**
+     * Listen for attribute worker messages
+     */
+    attributeWorkerMessage: (callback) => {
+      ipcRenderer.on('attribute-worker-message', (event, data) => callback(data));
+      return () => ipcRenderer.removeAllListeners('attribute-worker-message');
     },
 
     /**

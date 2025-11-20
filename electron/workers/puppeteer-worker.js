@@ -2,13 +2,23 @@
  * Puppeteer Worker Process
  * Handles web scraping, screenshots, and browser automation tasks
  * Runs in separate process for isolation and performance
+ * 
+ * Enhanced with WebDriver BiDi support for:
+ * - Bidirectional event streaming
+ * - Real-time network monitoring
+ * - Attribute-based data mining
+ * - Cross-browser compatibility
  */
 
 const puppeteer = require('puppeteer');
 
 const WORKER_ID = process.env.WORKER_ID || '0';
+const USE_BIDI = process.env.USE_BIDI === 'true' || false;
+const ATTRIBUTE_TARGET = process.env.ATTRIBUTE_TARGET || null;
+
 let browser = null;
 let currentPage = null;
+let biDiEventHandlers = new Map();
 
 // Logging
 const log = {
@@ -22,15 +32,15 @@ const log = {
 // =============================================================================
 
 /**
- * Initialize browser instance
+ * Initialize browser instance with optional WebDriver BiDi support
  */
 async function initBrowser() {
   if (browser) return browser;
 
-  log.info('Initializing browser...');
+  log.info('Initializing browser...', USE_BIDI ? '(WebDriver BiDi mode)' : '(CDP mode)');
 
   try {
-    browser = await puppeteer.launch({
+    const launchOptions = {
       headless: 'new', // Use new headless mode
       args: [
         '--no-sandbox',
@@ -40,24 +50,83 @@ async function initBrowser() {
         '--no-first-run',
         '--no-zygote',
         '--disable-gpu',
+        '--disable-blink-features=AutomationControlled', // Anti-detection
       ],
       defaultViewport: {
         width: 1920,
         height: 1080,
       },
-    });
+      ignoreDefaultArgs: ['--enable-automation'], // Anti-detection
+    };
+
+    // Use WebDriver BiDi if enabled (requires Puppeteer 21.0.0+)
+    if (USE_BIDI) {
+      launchOptions.protocol = 'webDriverBiDi';
+      log.info('WebDriver BiDi protocol enabled for cross-browser compatibility');
+    }
+
+    browser = await puppeteer.launch(launchOptions);
 
     browser.on('disconnected', () => {
       log.info('Browser disconnected, will reinitialize on next task');
       browser = null;
+      biDiEventHandlers.clear();
     });
 
+    // Setup BiDi event handlers if enabled
+    if (USE_BIDI) {
+      setupBiDiEventHandlers(browser);
+    }
+
     log.info('Browser initialized');
+    if (ATTRIBUTE_TARGET) {
+      log.info('Worker configured for attribute mining:', ATTRIBUTE_TARGET);
+    }
+    
     return browser;
   } catch (error) {
     log.error('Failed to initialize browser:', error);
     throw error;
   }
+}
+
+/**
+ * Setup WebDriver BiDi event handlers for real-time monitoring
+ */
+function setupBiDiEventHandlers(browserInstance) {
+  log.info('Setting up WebDriver BiDi event handlers');
+
+  // Network response monitoring
+  const networkHandler = (event) => {
+    log.debug('Network response:', event.response?.url);
+    if (process.send) {
+      process.send({
+        type: 'biDiEvent',
+        event: 'network.responseReceived',
+        data: {
+          url: event.response?.url,
+          status: event.response?.status,
+          timestamp: Date.now(),
+        },
+      });
+    }
+  };
+  biDiEventHandlers.set('network', networkHandler);
+
+  // Console log streaming
+  const consoleHandler = (entry) => {
+    log.debug('Console entry:', entry.level, entry.text);
+    if (process.send) {
+      process.send({
+        type: 'biDiEvent',
+        event: 'log.entryAdded',
+        data: entry,
+      });
+    }
+  };
+  biDiEventHandlers.set('console', consoleHandler);
+
+  log.info('BiDi event handlers configured');
 }
 
 /**
@@ -367,6 +436,234 @@ async function analyzeDOMStructure(options) {
 }
 
 /**
+ * Mine specific attribute from a webpage
+ * Supports multiple selector strategies with fallbacks
+ */
+async function mineAttribute(options) {
+  const { url, attribute, timeout = 30000 } = options;
+
+  log.info('Mining attribute:', attribute.name, 'from', url);
+
+  let page;
+  try {
+    page = await getPage();
+
+    await page.goto(url, {
+      waitUntil: 'networkidle2',
+      timeout,
+    });
+
+    // Wait for specific selector if provided
+    if (attribute.waitFor) {
+      try {
+        await page.waitForSelector(attribute.waitFor, { timeout: 10000 });
+      } catch (error) {
+        log.warn('Wait selector not found, continuing anyway:', attribute.waitFor);
+      }
+    }
+
+    // Try each selector in the fallback chain
+    let extractedData = null;
+    for (const selector of attribute.selectors || []) {
+      try {
+        const data = await page.evaluate((sel, attrType) => {
+          const element = document.querySelector(sel);
+          if (!element) return null;
+
+          // Extract based on attribute type
+          switch (attrType) {
+            case 'text':
+              return element.textContent?.trim();
+            case 'html':
+              return element.innerHTML;
+            case 'attribute':
+              return element.getAttribute(sel.split('@')[1]);
+            case 'json':
+              return JSON.parse(element.textContent || '{}');
+            default:
+              return element.textContent?.trim();
+          }
+        }, selector, attribute.type || 'text');
+
+        if (data) {
+          extractedData = data;
+          log.info('Successfully extracted using selector:', selector);
+          break;
+        }
+      } catch (error) {
+        log.debug('Selector failed:', selector, error.message);
+        continue;
+      }
+    }
+
+    // Fallback to pattern-based extraction if no selector worked
+    if (!extractedData && attribute.pattern) {
+      extractedData = await page.evaluate((pattern) => {
+        const bodyText = document.body.textContent || '';
+        const regex = new RegExp(pattern);
+        const match = bodyText.match(regex);
+        return match ? match[1] || match[0] : null;
+      }, attribute.pattern);
+    }
+
+    // Validate extracted data
+    if (attribute.validator) {
+      const isValid = await validateData(extractedData, attribute.validator);
+      if (!isValid) {
+        log.warn('Validation failed for attribute:', attribute.name);
+      }
+    }
+
+    log.info('Attribute mining completed:', attribute.name);
+
+    return {
+      success: true,
+      attribute: attribute.name,
+      data: extractedData,
+      url,
+      timestamp: new Date().toISOString(),
+      validated: attribute.validator ? true : undefined,
+    };
+  } catch (error) {
+    log.error('Attribute mining error:', error.message);
+    return {
+      success: false,
+      attribute: attribute.name,
+      error: error.message,
+      url,
+    };
+  } finally {
+    if (page) {
+      await closePage(page);
+    }
+  }
+}
+
+/**
+ * Validate extracted data against rules
+ */
+function validateData(data, validator) {
+  if (!validator) return true;
+
+  try {
+    // Type validation
+    if (validator.type) {
+      const actualType = typeof data;
+      if (actualType !== validator.type) {
+        return false;
+      }
+    }
+
+    // Regex pattern validation
+    if (validator.pattern && typeof data === 'string') {
+      const regex = new RegExp(validator.pattern);
+      if (!regex.test(data)) {
+        return false;
+      }
+    }
+
+    // Range validation for numbers
+    if (validator.min !== undefined && data < validator.min) {
+      return false;
+    }
+    if (validator.max !== undefined && data > validator.max) {
+      return false;
+    }
+
+    // Length validation for strings
+    if (validator.minLength && data.length < validator.minLength) {
+      return false;
+    }
+    if (validator.maxLength && data.length > validator.maxLength) {
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    log.error('Validation error:', error);
+    return false;
+  }
+}
+
+/**
+ * Generate social media Open Graph image
+ */
+async function generateOGImage(options) {
+  const { template, data, width = 1200, height = 630, timeout = 30000 } = options;
+
+  log.info('Generating OG image with template:', template);
+
+  let page;
+  try {
+    page = await getPage();
+
+    // Set viewport to OG image dimensions
+    await page.setViewport({
+      width,
+      height,
+      deviceScaleFactor: 2, // High DPI for quality
+    });
+
+    // Generate HTML from template and data
+    const html = renderTemplate(template, data);
+
+    // Load HTML content
+    await page.setContent(html, {
+      waitUntil: 'networkidle0',
+      timeout,
+    });
+
+    // Wait for fonts and images to load
+    await page.waitForTimeout(1000);
+
+    // Generate screenshot
+    const screenshot = await page.screenshot({
+      type: 'png',
+      encoding: 'binary',
+      omitBackground: false,
+    });
+
+    log.info('OG image generated successfully');
+
+    return {
+      success: true,
+      image: screenshot.toString('base64'),
+      dimensions: { width, height },
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    log.error('OG image generation error:', error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
+  } finally {
+    if (page) {
+      await closePage(page);
+    }
+  }
+}
+
+/**
+ * Simple template renderer
+ */
+function renderTemplate(template, data) {
+  if (typeof template === 'string') {
+    // Simple variable replacement
+    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+      return data[key] || '';
+    });
+  }
+  
+  // If template is an object with HTML property
+  if (template.html) {
+    return renderTemplate(template.html, data);
+  }
+  
+  return template;
+}
+
+/**
  * Monitor page performance
  */
 async function monitorPerformance(options) {
@@ -457,6 +754,12 @@ async function handleTask(task) {
 
       case 'monitorPerformance':
         return await monitorPerformance(options);
+
+      case 'mineAttribute':
+        return await mineAttribute(options);
+
+      case 'generateOGImage':
+        return await generateOGImage(options);
 
       case 'shutdown':
         log.info('Shutdown requested');
