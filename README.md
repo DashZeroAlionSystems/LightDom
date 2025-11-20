@@ -134,6 +134,25 @@ npm run mining:generate "mine blog posts about AI" # 2. Generate config with AI
 npm run mining:status                              # 3. Monitor progress
 ```
 
+### 💾 **Advanced Caching System for Data Mining** ⭐ NEW
+- **Multi-Tier Caching** - LRU in-memory + PostgreSQL + IndexedDB + Service Worker
+- **Chrome DevTools Protocol** - Cache interception, network monitoring, performance metrics
+- **Offline Mining** - Detect and mine PWAs, inspect service worker caches
+- **Visual Comparison** - Screenshot hashing for change detection with OCR integration
+- **Training Data Deduplication** - Hash-based deduplication for neural network datasets
+- **Smart Caching Strategies** - TTL-based expiration, stale-while-revalidate, asset caching
+- **Network Activity Monitoring** - Track cache hits, service worker usage, resource types
+- **8 Database Tables** - Comprehensive storage for URLs, assets, screenshots, OCR, training data
+
+📖 **[Quick Start Guide](ADVANCED_CACHING_QUICKSTART.md)** | **[Full Documentation](ADVANCED_CACHING_SYSTEM_README.md)** | **[Demo](demo-advanced-caching-system.js)** | **[Integration Tests](test/integration/advanced-caching-system.test.js)**
+
+```bash
+# Get started in 3 commands
+node demo-advanced-caching-system.js  # 1. Run comprehensive demo
+npm run cache:stats                   # 2. View cache statistics
+npm run test:caching                  # 3. Run integration tests
+```
+
 ### ⚡ **Blockchain Algorithm Optimization** ⭐ NEW
 - **Algorithm Benchmarking** - Compare PoW, PoS, PoO, DPoS for SEO data mining performance
 - **Real-Time Simulation** - Test algorithms on live pattern detection workloads

@@ -15,7 +15,7 @@ import { EventEmitter } from 'events';
 import fetch from 'node-fetch';
 
 const OLLAMA_URL = process.env.OLLAMA_HOST || 'http://127.0.0.1:11500';
-const API_URL = process.env.API_URL || 'http://localhost:3001';
+const API_URL = process.env.API_URL || 'http://localhost:4100';
 const CHECK_INTERVAL = parseInt(process.env.CHECK_INTERVAL) || 30000; // 30 seconds
 
 class RAGConnectivityMonitor extends EventEmitter {

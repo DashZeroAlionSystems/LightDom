@@ -1,9 +1,9 @@
 /**
  * DeepSeek API Service
- * 
+ *
  * Provides integration with DeepSeek API for AI-powered workflow management,
  * crawler configuration generation, and schema building.
- * 
+ *
  * Features:
  * - Workflow generation from natural language prompts
  * - Schema generation and linking
@@ -13,8 +13,8 @@
  */
 
 import axios from 'axios';
-import { Readable } from 'stream';
 import dotenv from 'dotenv';
+import { Readable } from 'stream';
 
 dotenv.config();
 
@@ -69,6 +69,77 @@ class DeepSeekAPIService {
     this.cacheTTL = 300000; // 5 minutes
   }
 
+  async chatCompletion(messages, options = {}) {
+    const normalizedMessages = Array.isArray(messages)
+      ? messages.filter(m => m && typeof m === 'object' && typeof m.content === 'string')
+      : [];
+
+    if (!normalizedMessages.length) {
+      return 'No messages provided to DeepSeek chat completion.';
+    }
+
+    const temperature = options.temperature ?? 0.2;
+    const maxTokens = options.maxTokens ?? 1200;
+
+    if (this.mockMode && !this.isOllama) {
+      const lastUser = normalizedMessages
+        .slice()
+        .reverse()
+        .find(message => message.role === 'user');
+      const prompt = lastUser?.content || 'Provide campaign guidance.';
+      const fallback = this.mockGenerateWorkflow(prompt);
+      return Array.isArray(fallback?.seeds)
+        ? `Mock response: DeepSeek offline. Suggested focus areas include ${fallback.seeds.slice(0, 3).join(', ')}.`
+        : 'Mock response: DeepSeek offline.';
+    }
+
+    try {
+      if (this.isOllama) {
+        const payload = {
+          model: this.model,
+          messages: normalizedMessages,
+          stream: false,
+          options: { temperature },
+        };
+
+        if (options.maxTokens !== undefined) {
+          payload.options.num_predict = maxTokens;
+        }
+
+        const response = await this.client.post('/api/chat', payload);
+        const content =
+          response.data?.message?.content ??
+          response.data?.response ??
+          response.data?.choices?.[0]?.message?.content ??
+          '';
+        return typeof content === 'string' && content.trim().length
+          ? content
+          : 'The Ollama backend returned an empty response.';
+      }
+
+      const response = await this.client.post('/chat/completions', {
+        model: this.model,
+        messages: normalizedMessages,
+        temperature,
+        max_tokens: maxTokens,
+        stream: false,
+      });
+
+      const content = response.data?.choices?.[0]?.message?.content ?? '';
+      if (typeof content === 'string' && content.trim().length) {
+        return content;
+      }
+
+      return 'DeepSeek returned an empty response for the provided prompt.';
+    } catch (error) {
+      console.error('DeepSeek chatCompletion error:', error.message);
+      if (this.mockMode) {
+        return 'Fallback response: DeepSeek chat unavailable.';
+      }
+      throw error;
+    }
+  }
+
   createChatStream(messages, options = {}) {
     if (this.mockMode && !this.isOllama) {
       return Readable.from([
@@ -92,7 +163,7 @@ class DeepSeekAPIService {
           };
           const response = await this.client.post('/api/chat', payload, { responseType: 'stream' });
 
-          response.data.on('data', (chunk) => {
+          response.data.on('data', chunk => {
             controller.push(chunk);
           });
 
@@ -100,7 +171,7 @@ class DeepSeekAPIService {
             controller.push(null);
           });
 
-          response.data.on('error', (err) => {
+          response.data.on('error', err => {
             controller.destroy(err);
           });
         } catch (error) {
@@ -126,10 +197,10 @@ class DeepSeekAPIService {
             max_tokens: options.maxTokens ?? 2000,
             stream: true,
           },
-          { responseType: 'stream' },
+          { responseType: 'stream' }
         );
 
-        response.data.on('data', (chunk) => {
+        response.data.on('data', chunk => {
           controller.push(chunk);
         });
 
@@ -137,7 +208,7 @@ class DeepSeekAPIService {
           controller.push(null);
         });
 
-        response.data.on('error', (err) => {
+        response.data.on('error', err => {
           controller.destroy(err);
         });
       } catch (error) {
@@ -289,16 +360,19 @@ Output JSON:
         model: this.model,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Client site: ${clientSiteUrl}\n\nCampaign: ${campaignDescription}` }
+          {
+            role: 'user',
+            content: `Client site: ${clientSiteUrl}\n\nCampaign: ${campaignDescription}`,
+          },
         ],
         temperature: 0.5,
         max_tokens: 1500,
-        response_format: { type: 'json_object' }
+        response_format: { type: 'json_object' },
       });
 
       const content = response.data.choices[0].message.content;
       const seeds = JSON.parse(content);
-      
+
       this.setCache(cacheKey, seeds);
       return seeds;
     } catch (error) {
@@ -362,16 +436,16 @@ Output JSON:
         model: this.model,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
+          { role: 'user', content: userPrompt },
         ],
         temperature: 0.6,
         max_tokens: 2000,
-        response_format: { type: 'json_object' }
+        response_format: { type: 'json_object' },
       });
 
       const content = response.data.choices[0].message.content;
       const schema = JSON.parse(content);
-      
+
       this.setCache(cacheKey, schema);
       return schema;
     } catch (error) {
@@ -385,7 +459,10 @@ Output JSON:
    */
   async optimizeCrawlerConfig(currentConfig, analyticsData, options = {}) {
     if (this.mockMode) {
-      return { ...currentConfig, parallelCrawlers: Math.min(currentConfig.parallelCrawlers + 2, 20) };
+      return {
+        ...currentConfig,
+        parallelCrawlers: Math.min(currentConfig.parallelCrawlers + 2, 20),
+      };
     }
 
     try {
@@ -405,11 +482,11 @@ Output JSON with optimized configuration.`;
         model: this.model,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
+          { role: 'user', content: userPrompt },
         ],
         temperature: 0.4,
         max_tokens: 1500,
-        response_format: { type: 'json_object' }
+        response_format: { type: 'json_object' },
       });
 
       const content = response.data.choices[0].message.content;
@@ -465,11 +542,11 @@ Output JSON:
         model: this.model,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
+          { role: 'user', content: userPrompt },
         ],
         temperature: 0.5,
         max_tokens: 2000,
-        response_format: { type: 'json_object' }
+        response_format: { type: 'json_object' },
       });
 
       const content = response.data.choices[0].message.content;
@@ -504,10 +581,10 @@ Output JSON with structured recommendations.`;
         model: this.model,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Requirements: ${JSON.stringify(requirements)}` }
+          { role: 'user', content: `Requirements: ${JSON.stringify(requirements)}` },
         ],
         temperature: 0.3,
-        max_tokens: 2500
+        max_tokens: 2500,
       });
 
       const content = response.data.choices[0].message.content;
@@ -522,20 +599,20 @@ Output JSON with structured recommendations.`;
   getFromCache(key) {
     const cached = this.cache.get(key);
     if (!cached) return null;
-    
+
     const { data, timestamp } = cached;
     if (Date.now() - timestamp > this.cacheTTL) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return data;
   }
 
   setCache(key, data) {
     this.cache.set(key, {
       data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -546,47 +623,42 @@ Output JSON with structured recommendations.`;
   // Mock implementations for when API is not available
   mockGenerateWorkflow(prompt) {
     const baseUrl = prompt.match(/https?:\/\/[^\s]+/)?.[0] || 'https://example.com';
-    
+
     return {
       workflowName: 'SEO Training Data Collection',
       description: `Automated workflow for ${prompt}`,
       summary: `Generated automation workflow in response to: ${prompt}`,
-      seeds: [
-        baseUrl,
-        `${baseUrl}/blog`,
-        `${baseUrl}/products`,
-        `${baseUrl}/about`
-      ],
+      seeds: [baseUrl, `${baseUrl}/blog`, `${baseUrl}/products`, `${baseUrl}/about`],
       schema: {
         name: 'seo_training_data',
         attributes: ['url', 'title', 'meta_description', 'content', 'headings', 'links', 'images'],
         relationships: {
-          linkedSchemas: ['page_performance', 'seo_metrics']
-        }
+          linkedSchemas: ['page_performance', 'seo_metrics'],
+        },
       },
       configuration: {
         maxDepth: 3,
         parallelCrawlers: 5,
         rateLimit: 100,
         respectRobotsTxt: true,
-        timeout: 30000
+        timeout: 30000,
       },
       schedule: {
         frequency: 'daily',
         time: '02:00',
-        enabled: true
+        enabled: true,
       },
       analytics: {
         trackPageViews: true,
         trackErrors: true,
-        trackPerformance: true
-      }
+        trackPerformance: true,
+      },
     };
   }
 
   mockGenerateSeeds(clientSiteUrl) {
     const domain = new URL(clientSiteUrl).hostname;
-    
+
     return {
       primarySeeds: [
         clientSiteUrl,
@@ -594,26 +666,23 @@ Output JSON with structured recommendations.`;
         `${clientSiteUrl}/products`,
         `${clientSiteUrl}/services`,
         `${clientSiteUrl}/about`,
-        `${clientSiteUrl}/contact`
+        `${clientSiteUrl}/contact`,
       ],
-      competitorSeeds: [
-        `https://competitor1.com`,
-        `https://competitor2.com`
-      ],
+      competitorSeeds: [`https://competitor1.com`, `https://competitor2.com`],
       authoritySeeds: [
         'https://moz.com/blog',
         'https://searchengineland.com',
-        'https://www.searchenginejournal.com'
+        'https://www.searchenginejournal.com',
       ],
       trainingDataSeeds: [
         'https://example.com/industry-news',
-        'https://example.com/best-practices'
+        'https://example.com/best-practices',
       ],
       priority: {
         [clientSiteUrl]: 10,
         [`${clientSiteUrl}/blog`]: 9,
-        [`${clientSiteUrl}/products`]: 9
-      }
+        [`${clientSiteUrl}/products`]: 9,
+      },
     };
   }
 
@@ -628,54 +697,54 @@ Output JSON with structured recommendations.`;
           type: 'string',
           required: true,
           description: 'Crawled page URL',
-          validators: ['url']
+          validators: ['url'],
         },
         {
           name: 'title',
           type: 'string',
           required: true,
           description: 'Page title',
-          validators: []
+          validators: [],
         },
         {
           name: 'content',
           type: 'string',
           required: true,
           description: 'Main page content',
-          validators: []
+          validators: [],
         },
         {
           name: 'metadata',
           type: 'object',
           required: false,
           description: 'Page metadata',
-          validators: []
+          validators: [],
         },
         {
           name: 'crawled_at',
           type: 'string',
           required: true,
           description: 'Timestamp of crawl',
-          validators: ['iso8601']
-        }
+          validators: ['iso8601'],
+        },
       ],
       linkedSchemas: {
         forward: ['seo_metrics', 'page_performance'],
-        backward: ['crawl_job']
+        backward: ['crawl_job'],
       },
       indexes: ['url', 'crawled_at'],
       triggers: [
         {
           event: 'onCreate',
           action: 'analyze_seo',
-          linkedWorkflow: 'seo_analysis_pipeline'
+          linkedWorkflow: 'seo_analysis_pipeline',
         },
         {
           event: 'onCreate',
           action: 'extract_links',
-          linkedWorkflow: 'link_discovery_pipeline'
-        }
-      ]
+          linkedWorkflow: 'link_discovery_pipeline',
+        },
+      ],
     };
   }
 
@@ -688,37 +757,37 @@ Output JSON with structured recommendations.`;
           schemas: ['crawler_data'],
           parallel: true,
           dependencies: [],
-          errorHandling: 'retry'
+          errorHandling: 'retry',
         },
         {
           name: 'Analysis',
           schemas: ['seo_metrics', 'page_performance'],
           parallel: true,
           dependencies: ['Data Collection'],
-          errorHandling: 'retry'
+          errorHandling: 'retry',
         },
         {
           name: 'Storage',
           schemas: ['training_data'],
           parallel: false,
           dependencies: ['Analysis'],
-          errorHandling: 'fail'
-        }
+          errorHandling: 'fail',
+        },
       ],
       functionCalls: [
         {
           trigger: 'onCrawlComplete',
           schema: 'crawler_data',
           function: 'analyzeSEO',
-          params: { depth: 'full' }
+          params: { depth: 'full' },
         },
         {
           trigger: 'onAnalysisComplete',
           schema: 'seo_metrics',
           function: 'storeTrainingData',
-          params: { format: 'json' }
-        }
-      ]
+          params: { format: 'json' },
+        },
+      ],
     };
   }
 
@@ -770,7 +839,7 @@ Output JSON with structured recommendations.`;
 - **Cloud (AWS p3.8xlarge)**: ~$12.24/hour
 - **On-premise**: $5,000-$15,000 initial + electricity
 `,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -782,7 +851,7 @@ Output JSON with structured recommendations.`;
       return {
         status: 'healthy',
         mode: 'mock',
-        message: 'Running in mock mode (API key not configured)'
+        message: 'Running in mock mode (API key not configured)',
       };
     }
 
@@ -793,13 +862,13 @@ Output JSON with structured recommendations.`;
         status: 'healthy',
         mode: 'live',
         message: 'DeepSeek API is accessible',
-        models: response.data.data?.map(m => m.id) || []
+        models: response.data.data?.map(m => m.id) || [],
       };
     } catch (error) {
       return {
         status: 'unhealthy',
         mode: 'error',
-        message: error.message
+        message: error.message,
       };
     }
   }

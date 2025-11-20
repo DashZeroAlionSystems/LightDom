@@ -1,9 +1,9 @@
-import React from 'react';
+import { Badge, Button, Card } from '@/components/ui';
+import type { AdminNavigationStatus } from '@/hooks/useAdminNavigation';
 import { cn } from '@/lib/utils';
 import type { AdminNavigationCategory } from '@/services/adminNavigation';
-import type { AdminNavigationStatus } from '@/hooks/useAdminNavigation';
-import { Badge, Button, Card } from '@/components/ui';
-import { CheckCircle2, Loader2, Shield } from 'lucide-react';
+import { CheckCircle2, CloudOff, Loader2, Shield } from 'lucide-react';
+import React from 'react';
 
 export interface AdminNavigationPanelProps {
   categories: AdminNavigationCategory[];
@@ -35,10 +35,14 @@ function renderStatusLabel(status: AdminNavigationStatus, templateCount: number)
           <CheckCircle2 className='h-3 w-3' /> {templateCount} templates synced
         </Badge>
       );
-    default:
+    case 'fallback':
       return (
-        <Badge variant='secondary'>Watcher idle</Badge>
+        <Badge variant='warning' className='gap-2'>
+          <CloudOff className='h-3 w-3' /> Fallback templates active
+        </Badge>
       );
+    default:
+      return <Badge variant='secondary'>Watcher idle</Badge>;
   }
 }
 
@@ -56,7 +60,9 @@ export const AdminNavigationPanel: React.FC<AdminNavigationPanelProps> = ({
       <div className='flex items-center justify-between gap-2 rounded-2xl border border-outline/15 bg-surface-container-low px-3 py-2'>
         <div className='flex flex-col gap-0'>
           <span className='md3-title-small text-on-surface'>Workflow templates</span>
-          <span className='md3-body-small text-on-surface-variant'>Sourced from n8n and schema directories</span>
+          <span className='md3-body-small text-on-surface-variant'>
+            Sourced from n8n and schema directories
+          </span>
         </div>
         <div className='flex items-center gap-2'>
           {renderStatusLabel(status, templateCount)}
@@ -70,30 +76,32 @@ export const AdminNavigationPanel: React.FC<AdminNavigationPanelProps> = ({
 
       {categories.length === 0 && status === 'ready' ? (
         <Card variant='outlined' className='p-4 text-sm text-on-surface-variant'>
-          No templates have been discovered yet. Add files to <code>n8n/templates</code> or <code>schemas/workflow-templates</code> to populate the admin navigation automatically.
+          No templates have been discovered yet. Add files to <code>n8n/templates</code> or{' '}
+          <code>schemas/workflow-templates</code> to populate the admin navigation automatically.
         </Card>
       ) : null}
 
       <div className='space-y-3'>
-        {categories.map((category) => {
+        {categories.map(category => {
           return (
-            <Card key={category.category_id} variant='filled' padding='md' className='space-y-3 border border-outline/15 bg-surface'>
+            <Card
+              key={category.category_id}
+              variant='filled'
+              padding='md'
+              className='space-y-3 border border-outline/15 bg-surface'
+            >
               <div className='flex items-center justify-between gap-2'>
                 <div>
                   <p className='md3-title-small text-on-surface'>{category.category}</p>
                   {category.subcategory && (
-                    <p className='md3-body-small text-on-surface-variant'>
-                      {category.subcategory}
-                    </p>
+                    <p className='md3-body-small text-on-surface-variant'>{category.subcategory}</p>
                   )}
                 </div>
-                {category.icon && (
-                  <span className='text-xl'>{category.icon}</span>
-                )}
+                {category.icon && <span className='text-xl'>{category.icon}</span>}
               </div>
 
               <div className='space-y-2'>
-                {category.templates.map((template) => (
+                {category.templates.map(template => (
                   <button
                     key={template.template_id}
                     type='button'

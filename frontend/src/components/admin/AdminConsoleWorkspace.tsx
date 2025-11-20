@@ -23,12 +23,12 @@ import {
   WorkspaceTabs,
   WorkspaceToggleGroup,
 } from '@/components/ui';
-import { cn } from '@/lib/utils';
-import { Activity, AlertCircle, Brain, Cog, ShieldCheck, Sparkles, Zap } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
 import { useAdminNavigation } from '@/hooks/useAdminNavigation';
-import AdminNavigationPanel from './AdminNavigationPanel';
+import { cn } from '@/lib/utils';
 import type { AdminNavigationTemplate } from '@/services/adminNavigation';
+import { Activity, AlertCircle, Brain, Cog, ShieldCheck, Sparkles, Zap } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import AdminNavigationPanel from './AdminNavigationPanel';
 
 const ADMIN_MODULES = [
   {
@@ -194,6 +194,7 @@ const AdminConsoleWorkspace: React.FC<AdminConsoleWorkspaceProps> = ({
   const { categories, status: navStatus, templateCount, refresh: refreshNav } = navigationHook();
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const lastTemplateIdRef = useRef<string | null>(null);
 
   const openTabs = useMemo(
     () =>
@@ -239,9 +240,7 @@ const AdminConsoleWorkspace: React.FC<AdminConsoleWorkspaceProps> = ({
     if (!selectedTemplateId) {
       return null;
     }
-    return (
-      flatTemplates.find(entry => entry.template.template_id === selectedTemplateId) || null
-    );
+    return flatTemplates.find(entry => entry.template.template_id === selectedTemplateId) || null;
   }, [flatTemplates, selectedTemplateId]);
 
   const handleSelectTemplate = (categoryId: string, templateId: string) => {
@@ -251,6 +250,74 @@ const AdminConsoleWorkspace: React.FC<AdminConsoleWorkspaceProps> = ({
 
   const selectedTemplate: AdminNavigationTemplate | null = selectedTemplateEntry?.template || null;
   const selectedTemplateCategory = selectedTemplateEntry?.categoryId || null;
+
+  useEffect(() => {
+    if (!selectedTemplate) {
+      return;
+    }
+
+    if (lastTemplateIdRef.current === selectedTemplate.template_id) {
+      return;
+    }
+
+    lastTemplateIdRef.current = selectedTemplate.template_id;
+
+    const templateKnowledge = (selectedTemplate.knowledge_graph_attributes ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const workflowSummary = selectedTemplate.workflow_summary as
+      | Record<string, unknown>
+      | null
+      | undefined;
+
+    const summaryPrompt =
+      typeof templateKnowledge['defaultPrompt'] === 'string'
+        ? (templateKnowledge['defaultPrompt'] as string)
+        : workflowSummary && typeof workflowSummary['prompt'] === 'string'
+          ? (workflowSummary['prompt'] as string)
+          : null;
+
+    if (summaryPrompt) {
+      setWorkflowPrompt(summaryPrompt);
+    }
+
+    const attributePresets = Array.isArray(templateKnowledge['attributePresets'])
+      ? (templateKnowledge['attributePresets'] as string[])
+      : [];
+    if (attributePresets.length) {
+      setSelectedAttributes(attributePresets);
+    }
+
+    const categoryPresets = Array.isArray(templateKnowledge['categoryPresets'])
+      ? (templateKnowledge['categoryPresets'] as string[])
+      : [];
+    const metadataCategories = [selectedTemplate.category, selectedTemplate.subcategory].filter(
+      (value): value is string => Boolean(value)
+    );
+    const mergedCategories = Array.from(new Set([...categoryPresets, ...metadataCategories]));
+    if (mergedCategories.length) {
+      setSelectedCategories(mergedCategories);
+    }
+
+    const autoTrainValue =
+      typeof templateKnowledge['autoTrain'] === 'boolean'
+        ? (templateKnowledge['autoTrain'] as boolean)
+        : undefined;
+    if (typeof autoTrainValue === 'boolean') {
+      setAutoTrain(autoTrainValue);
+    }
+
+    const datasetSuggestion =
+      typeof templateKnowledge['datasetNameSuggestion'] === 'string'
+        ? (templateKnowledge['datasetNameSuggestion'] as string)
+        : null;
+    if (datasetSuggestion) {
+      const today = new Date().toISOString().split('T')[0];
+      const resolvedDataset = datasetSuggestion.replace('{date}', today);
+      setDatasetName(resolvedDataset);
+    }
+  }, [selectedTemplate]);
 
   return (
     <WorkspaceLayout
@@ -707,7 +774,9 @@ const AdminConsoleWorkspace: React.FC<AdminConsoleWorkspaceProps> = ({
                 {selectedTemplate.icon ? (
                   <Badge variant='tertiary'>{selectedTemplate.icon}</Badge>
                 ) : null}
-                <Badge variant='outline'>Schema v{selectedTemplate.schema_version || '1.0.0'}</Badge>
+                <Badge variant='outline'>
+                  Schema v{selectedTemplate.schema_version || '1.0.0'}
+                </Badge>
               </div>
 
               {selectedTemplate.status_steps?.length ? (
@@ -725,7 +794,9 @@ const AdminConsoleWorkspace: React.FC<AdminConsoleWorkspaceProps> = ({
                           {step.index + 1}. {step.title}
                         </p>
                         {step.description && (
-                          <p className='md3-body-small text-on-surface-variant'>{step.description}</p>
+                          <p className='md3-body-small text-on-surface-variant'>
+                            {step.description}
+                          </p>
                         )}
                         {step.status && (
                           <Badge variant='secondary' className='mt-2 w-fit'>
@@ -756,7 +827,9 @@ const AdminConsoleWorkspace: React.FC<AdminConsoleWorkspaceProps> = ({
           </div>
         ) : (
           <Card variant='filled' padding='lg' className='border border-outline/15'>
-            <p className='md3-body-medium text-on-surface'>Select a template to inspect its configuration and workflow steps.</p>
+            <p className='md3-body-medium text-on-surface'>
+              Select a template to inspect its configuration and workflow steps.
+            </p>
           </Card>
         )}
       </WorkspaceSection>

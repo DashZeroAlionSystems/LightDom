@@ -7,15 +7,17 @@ import fs from 'fs/promises';
 import path from 'path';
 import { Pool } from 'pg';
 import servicesConfig from './scripts/services-config.js';
+import DeepSeekAPIService from './services/deepseek-api-service.js';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.MINIMAL_API_PORT || process.env.PORT || 3001;
+const PORT = process.env.MINIMAL_API_PORT || process.env.PORT || 4100;
 // Prefer the canonical OLLAMA_BASE_URL env var but fall back to older names for compatibility
 const OLLAMA_ENDPOINT =
   process.env.OLLAMA_BASE_URL || process.env.OLLAMA_ENDPOINT || 'http://127.0.0.1:11500';
 const DEFAULT_MODEL = process.env.OLLAMA_MODEL || process.env.DEEPSEEK_MODEL || 'deepseek-coder';
+const deepSeekService = new DeepSeekAPIService();
 
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
@@ -196,59 +198,92 @@ app.post('/api/rag/chat/stream', async (req, res) => {
       return res.status(400).json({ success: false, error: 'messages array is required' });
     }
 
-    // Build a simple prompt from conversation history
-    const prompt = messages
-      .map(m => {
-        const role = (m.role || 'user').toString();
-        const content = (m.content || '').toString();
-        return `${role}: ${content}`;
-      })
-      .join('\n');
+    const normalizedMessages = messages.map(m => ({
+      role: (m?.role || 'user').toString(),
+      content: (m?.content || '').toString(),
+    }));
 
-    const r = await fetch(`${OLLAMA_ENDPOINT}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: DEFAULT_MODEL,
-        prompt,
-        stream: false,
-        options: { temperature: 0.2 },
-      }),
-    });
+    const prompt = normalizedMessages.map(m => `${m.role}: ${m.content}`).join('\n');
 
-    if (!r.ok) {
-      const text = await r.text();
-      return res
-        .status(502)
-        .json({
-          success: false,
-          error: 'Ollama generate returned non-OK',
-          status: r.status,
-          details: text,
+    let responseText = null;
+    let provider = 'ollama';
+    let lastError = null;
+
+    try {
+      const r = await fetch(`${OLLAMA_ENDPOINT}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: DEFAULT_MODEL,
+          prompt,
+          stream: false,
+          options: { temperature: 0.2 },
+        }),
+      });
+
+      if (!r.ok) {
+        const text = await r.text();
+        throw new Error(`Ollama responded with ${r.status}: ${text}`);
+      }
+
+      const json = await r.json();
+      responseText = json.response || (typeof json === 'string' ? json : JSON.stringify(json));
+    } catch (ollamaError) {
+      lastError = ollamaError;
+      provider = 'deepseek';
+
+      try {
+        responseText = await deepSeekService.chatCompletion(normalizedMessages, {
+          temperature: 0.2,
+          maxTokens: 1200,
         });
+      } catch (deepSeekError) {
+        lastError = deepSeekError;
+      }
     }
 
-    const json = await r.json();
-    const responseText = json.response || (typeof json === 'string' ? json : JSON.stringify(json));
+    if (!responseText) {
+      const fallbackMessage = lastError ? lastError.message || String(lastError) : 'Unknown error';
+      console.error('[minimal-api-proxy] chat stream failed:', fallbackMessage);
+      return res.status(503).json({
+        success: false,
+        error: 'Failed to process chat stream',
+        details: fallbackMessage,
+      });
+    }
 
-    // Send a simple Server-Sent Events stream back so the frontend can parse line-by-line
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     if (typeof res.flushHeaders === 'function') res.flushHeaders();
 
-    // Informational status
-    res.write(`data: ${JSON.stringify({ type: 'status', message: 'processing' })}\n\n`);
-    // Main content chunk
-    res.write(`data: ${JSON.stringify({ type: 'content', content: responseText })}\n\n`);
-    // Mark stream complete
+    const providerLabel =
+      provider === 'deepseek' && deepSeekService.mockMode ? 'deepseek-mock' : provider;
+    if (providerLabel !== 'ollama') {
+      const reason = lastError ? lastError.message || String(lastError) : 'Unknown';
+      console.warn(`[minimal-api-proxy] Falling back to ${providerLabel} for RAG chat: ${reason}`);
+    }
+
+    res.write(
+      `data: ${JSON.stringify({ type: 'status', message: 'processing', provider: providerLabel })}\n\n`
+    );
+    res.write(
+      `data: ${JSON.stringify({ type: 'content', content: responseText, provider: providerLabel })}\n\n`
+    );
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('[minimal-api-proxy] chat stream failed:', err && (err.stack || err.message || err));
+    console.error(
+      '[minimal-api-proxy] chat stream failed:',
+      err && (err.stack || err.message || err)
+    );
     return res
       .status(503)
-      .json({ success: false, error: 'Failed to process chat stream', details: err.message || String(err) });
+      .json({
+        success: false,
+        error: 'Failed to process chat stream',
+        details: err.message || String(err),
+      });
   }
 });
 

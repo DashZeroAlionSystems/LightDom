@@ -5,11 +5,13 @@ Comprehensive React-based UI for interacting with DeepSeek AI, creating workflow
 ## 🎨 Components
 
 ### 1. DeepSeek Chat Component
+
 **Location:** `src/components/DeepSeekChat.tsx`
 
 Interactive chat interface for conversing with DeepSeek AI via Ollama.
 
 **Features:**
+
 - Real-time bidirectional streaming with visual feedback
 - Tool call indicators showing AI actions
 - Conversation history with user/assistant/tool messages
@@ -18,23 +20,26 @@ Interactive chat interface for conversing with DeepSeek AI via Ollama.
 - Clear conversation functionality
 
 **Usage:**
+
 ```tsx
 import { DeepSeekChat } from './components/DeepSeekChat';
 
 <DeepSeekChat
-  onWorkflowCreated={(workflow) => console.log('Workflow created:', workflow)}
-  onDataMiningStarted={(campaign) => console.log('Campaign started:', campaign)}
+  onWorkflowCreated={workflow => console.log('Workflow created:', workflow)}
+  onDataMiningStarted={campaign => console.log('Campaign started:', campaign)}
   streamingEnabled={true}
   toolsEnabled={true}
-/>
+/>;
 ```
 
 ### 2. Workflow Visual Editor
+
 **Location:** `src/components/WorkflowVisualEditor.tsx`
 
 Drag-and-drop interface for building and editing workflows.
 
 **Features:**
+
 - Add/edit/delete workflow steps
 - Visual dependency graph
 - Step configuration panels
@@ -44,24 +49,27 @@ Drag-and-drop interface for building and editing workflows.
 - Save and execute workflows
 
 **Usage:**
+
 ```tsx
 import { WorkflowVisualEditor } from './components/WorkflowVisualEditor';
 
 <WorkflowVisualEditor
   workflow={existingWorkflow}
-  onSave={(workflow) => saveWorkflow(workflow)}
-  onExecute={(workflowId) => runWorkflow(workflowId)}
+  onSave={workflow => saveWorkflow(workflow)}
+  onExecute={workflowId => runWorkflow(workflowId)}
   enableDataMining={true}
   enableVisualComponents={true}
-/>
+/>;
 ```
 
 ### 3. Monitoring Dashboard
+
 **Location:** `src/components/MonitoringDashboard.tsx`
 
 Real-time dashboard for monitoring all system activity.
 
 **Features:**
+
 - Live workflow execution status
 - Success/failure statistics with progress bars
 - Execution history timeline
@@ -71,6 +79,7 @@ Real-time dashboard for monitoring all system activity.
 - Tabbed interface for different views
 
 **Usage:**
+
 ```tsx
 import { MonitoringDashboard } from './components/MonitoringDashboard';
 
@@ -80,17 +89,19 @@ import { MonitoringDashboard } from './components/MonitoringDashboard';
   showAIConversations={true}
   showDataStreams={true}
   showAnalytics={true}
-/>
+/>;
 ```
 
 ### 4. Supporting Components
 
 **DataStreamChart** (`src/components/DataStreamChart.tsx`)
+
 - Visualizes individual data streams
 - Shows stream status and last update
 - Data point count display
 
 **ToolCallHistory** (`src/components/ToolCallHistory.tsx`)
+
 - Lists all AI tool calls
 - Expandable details for arguments and results
 - Success/failure indicators
@@ -99,11 +110,13 @@ import { MonitoringDashboard } from './components/MonitoringDashboard';
 ## 🪝 React Hooks
 
 ### useOllamaChat
+
 **Location:** `src/hooks/useOllamaChat.ts`
 
 Manages Ollama DeepSeek chat conversations with WebSocket streaming support.
 
 **Returns:**
+
 - `messages`: Array of conversation messages
 - `isStreaming`: Boolean indicating if AI is currently responding
 - `isConnected`: WebSocket connection status
@@ -114,25 +127,23 @@ Manages Ollama DeepSeek chat conversations with WebSocket streaming support.
 - `getConversationHistory()`: Get full conversation
 
 **Usage:**
+
 ```tsx
-const {
-  messages,
-  isStreaming,
-  sendMessage,
-  clearConversation
-} = useOllamaChat({
+const { messages, isStreaming, sendMessage, clearConversation } = useOllamaChat({
   streamingEnabled: true,
   toolsEnabled: true,
-  onWorkflowCreated: (workflow) => handleWorkflow(workflow)
+  onWorkflowCreated: workflow => handleWorkflow(workflow),
 });
 ```
 
 ### useWorkflowExecution
+
 **Location:** `src/hooks/useWorkflowExecution.ts`
 
 Manages workflow execution and monitoring.
 
 **Returns:**
+
 - `executions`: Array of workflow executions
 - `isExecuting`: Boolean indicating if workflow is running
 - `currentExecution`: Current execution details
@@ -141,11 +152,13 @@ Manages workflow execution and monitoring.
 - `getWorkflowExecutions(id)`: Get all executions for workflow
 
 ### useDataStream
+
 **Location:** `src/hooks/useDataStream.ts`
 
 Manages real-time data streams and metrics.
 
 **Returns:**
+
 - `streams`: Array of active data streams
 - `metrics`: System metrics (data points, processing time, error rate)
 - `refresh()`: Manually refresh streams and metrics
@@ -153,6 +166,7 @@ Manages real-time data streams and metrics.
 ## 🧪 Testing Suite
 
 ### Unit Tests
+
 **Location:** `test/unit/ollama-integration.test.ts`
 
 - 45+ tests covering Ollama integration
@@ -162,6 +176,7 @@ Manages real-time data streams and metrics.
 - Mock Ollama server for isolated testing
 
 **Run:**
+
 ```bash
 npm run test -- ollama-integration
 ```
@@ -169,32 +184,38 @@ npm run test -- ollama-integration
 ### Integration Tests
 
 **Workflow Creation** (`test/integration/workflow-creation.test.ts`)
+
 - AI-powered workflow creation
 - Data mining campaign attachment
 - Visual component integration
 - Database query testing
 
 **Bidirectional Streaming** (`test/integration/streaming.test.ts`)
+
 - WebSocket connection tests
 - HTTP streaming tests
 - Tool call handling in streams
 - Conversation management
 
 **Run:**
+
 ```bash
 npm run test:integration
 ```
 
 ### E2E Tests
+
 **Location:** `test/e2e/deepseek-ui.spec.ts`
 
 Playwright tests for full UI workflows:
+
 - Chat interface interaction
 - Workflow editor operations
 - Dashboard navigation
 - Real-time updates
 
 **Run:**
+
 ```bash
 npm run test:e2e
 ```
@@ -202,6 +223,7 @@ npm run test:e2e
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - Ollama with DeepSeek model
 - PostgreSQL database
@@ -244,6 +266,7 @@ npm run automation # Automation system
 Open browser to `http://localhost:5173`
 
 **Available Routes:**
+
 - `/` - Home dashboard
 - `/chat` - DeepSeek Chat interface
 - `/workflows` - Workflow Visual Editor
@@ -300,7 +323,7 @@ import { ConfigProvider } from 'antd';
   }}
 >
   <App />
-</ConfigProvider>
+</ConfigProvider>;
 ```
 
 ### Adding Custom Tools
@@ -318,15 +341,15 @@ const customTool = {
     parameters: {
       type: 'object',
       properties: {
-        param1: { type: 'string', description: 'First parameter' }
+        param1: { type: 'string', description: 'First parameter' },
       },
-      required: ['param1']
-    }
-  }
+      required: ['param1'],
+    },
+  },
 };
 
 // Register in your component
-ollamaIntegration.registerTool(customTool, async (args) => {
+ollamaIntegration.registerTool(customTool, async args => {
   // Your tool implementation
   return { result: 'success' };
 });
@@ -339,7 +362,7 @@ Extend the component types in `WorkflowVisualEditor.tsx`:
 ```tsx
 const COMPONENT_TYPES = [
   ...existingTypes,
-  { value: 'my-component', label: 'My Component', icon: '🎯' }
+  { value: 'my-component', label: 'My Component', icon: '🎯' },
 ];
 ```
 
@@ -405,7 +428,7 @@ psql -d lightdom -c "\dt"
 # Frontend Configuration
 VITE_OLLAMA_API_URL=http://localhost:3001/api/ollama
 VITE_OLLAMA_WS_URL=ws://localhost:3001
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=http://localhost:4100/api
 VITE_ENABLE_STREAMING=true
 VITE_DEV_TOOLS=true
 VITE_MOCK_OLLAMA=false
@@ -433,6 +456,7 @@ See repository LICENSE file.
 ## 🆘 Support
 
 For issues or questions:
+
 1. Check `OLLAMA_DEEPSEEK_GUIDE.md`
 2. Review test files for usage examples
 3. Open an issue on GitHub
