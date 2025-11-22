@@ -28,13 +28,13 @@ CREATE TABLE IF NOT EXISTS user_feedback (
   -- Metadata
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  metadata JSONB DEFAULT '{}'::jsonb,
-  
-  INDEX idx_session_feedback (session_id, created_at DESC),
-  INDEX idx_conversation_feedback (conversation_id),
-  INDEX idx_feedback_type (feedback_type, created_at DESC),
-  INDEX idx_user_feedback (user_id, created_at DESC) WHERE user_id IS NOT NULL
+  metadata JSONB DEFAULT '{}'::jsonb
 );
+
+CREATE INDEX IF NOT EXISTS idx_session_feedback ON user_feedback(session_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_conversation_feedback ON user_feedback(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_feedback_type ON user_feedback(feedback_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_user_feedback ON user_feedback(user_id, created_at DESC) WHERE user_id IS NOT NULL;
 
 -- User preferences for model behavior and response styles
 CREATE TABLE IF NOT EXISTS user_preferences (
@@ -64,11 +64,12 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   
   metadata JSONB DEFAULT '{}'::jsonb,
   
-  UNIQUE (user_id, session_id, preference_category, preference_key),
-  INDEX idx_user_prefs (user_id, is_active) WHERE user_id IS NOT NULL,
-  INDEX idx_session_prefs (session_id, is_active),
-  INDEX idx_preference_category (preference_category, is_active)
+  UNIQUE (user_id, session_id, preference_category, preference_key)
 );
+
+CREATE INDEX IF NOT EXISTS idx_user_prefs ON user_preferences(user_id, is_active) WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_session_prefs ON user_preferences(session_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_preference_category ON user_preferences(preference_category, is_active);
 
 -- A/B testing system for comparing response templates and styles
 CREATE TABLE IF NOT EXISTS ab_test_campaigns (
@@ -101,10 +102,10 @@ CREATE TABLE IF NOT EXISTS ab_test_campaigns (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   created_by INTEGER,
-  metadata JSONB DEFAULT '{}'::jsonb,
-  
-  INDEX idx_ab_campaign_status (status, started_at DESC)
+  metadata JSONB DEFAULT '{}'::jsonb
 );
+
+CREATE INDEX IF NOT EXISTS idx_ab_campaign_status ON ab_test_campaigns(status, started_at DESC);
 
 -- Track individual user participation in A/B tests
 CREATE TABLE IF NOT EXISTS ab_test_assignments (
@@ -130,10 +131,11 @@ CREATE TABLE IF NOT EXISTS ab_test_assignments (
   
   metadata JSONB DEFAULT '{}'::jsonb,
   
-  UNIQUE (campaign_id, session_id),
-  INDEX idx_ab_assignment (campaign_id, assigned_variant),
-  INDEX idx_ab_session (session_id, campaign_id)
+  UNIQUE (campaign_id, session_id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_ab_assignment ON ab_test_assignments(campaign_id, assigned_variant);
+CREATE INDEX IF NOT EXISTS idx_ab_session ON ab_test_assignments(session_id, campaign_id);
 
 -- Admin-driven A/B test questions and user responses
 CREATE TABLE IF NOT EXISTS ab_test_questions (
@@ -155,10 +157,10 @@ CREATE TABLE IF NOT EXISTS ab_test_questions (
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   
-  metadata JSONB DEFAULT '{}'::jsonb,
-  
-  INDEX idx_ab_question_campaign (campaign_id, is_active)
+  metadata JSONB DEFAULT '{}'::jsonb
 );
+
+CREATE INDEX IF NOT EXISTS idx_ab_question_campaign ON ab_test_questions(campaign_id, is_active);
 
 -- User responses to A/B test questions
 CREATE TABLE IF NOT EXISTS ab_test_responses (
@@ -177,11 +179,11 @@ CREATE TABLE IF NOT EXISTS ab_test_responses (
   shown_at TIMESTAMP,
   responded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   
-  metadata JSONB DEFAULT '{}'::jsonb,
-  
-  INDEX idx_ab_response_question (question_id, responded_at DESC),
-  INDEX idx_ab_response_campaign (campaign_id, responded_at DESC)
+  metadata JSONB DEFAULT '{}'::jsonb
 );
+
+CREATE INDEX IF NOT EXISTS idx_ab_response_question ON ab_test_responses(question_id, responded_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ab_response_campaign ON ab_test_responses(campaign_id, responded_at DESC);
 
 -- Comprehensive communication logs for all services
 CREATE TABLE IF NOT EXISTS communication_logs (
@@ -221,14 +223,14 @@ CREATE TABLE IF NOT EXISTS communication_logs (
   -- Relationships
   parent_log_id INTEGER REFERENCES communication_logs(id),
   
-  metadata JSONB DEFAULT '{}'::jsonb,
-  
-  INDEX idx_comm_log_session (session_id, created_at DESC),
-  INDEX idx_comm_log_service (service_name, created_at DESC),
-  INDEX idx_comm_log_type (log_type, created_at DESC),
-  INDEX idx_comm_log_status (status, workflow_stage),
-  INDEX idx_comm_log_conversation (conversation_id, created_at DESC) WHERE conversation_id IS NOT NULL
+  metadata JSONB DEFAULT '{}'::jsonb
 );
+
+CREATE INDEX IF NOT EXISTS idx_comm_log_session ON communication_logs(session_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_comm_log_service ON communication_logs(service_name, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_comm_log_type ON communication_logs(log_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_comm_log_status ON communication_logs(status, workflow_stage);
+CREATE INDEX IF NOT EXISTS idx_comm_log_conversation ON communication_logs(conversation_id, created_at DESC) WHERE conversation_id IS NOT NULL;
 
 -- Status-driven workflow tracking
 CREATE TABLE IF NOT EXISTS workflow_states (
@@ -253,12 +255,12 @@ CREATE TABLE IF NOT EXISTS workflow_states (
   user_id INTEGER,
   parent_workflow_id INTEGER REFERENCES workflow_states(id),
   
-  metadata JSONB DEFAULT '{}'::jsonb,
-  
-  INDEX idx_workflow_entity (workflow_type, entity_id, entered_state_at DESC),
-  INDEX idx_workflow_state (workflow_name, current_state),
-  INDEX idx_workflow_session (session_id, entered_state_at DESC) WHERE session_id IS NOT NULL
+  metadata JSONB DEFAULT '{}'::jsonb
 );
+
+CREATE INDEX IF NOT EXISTS idx_workflow_entity ON workflow_states(workflow_type, entity_id, entered_state_at DESC);
+CREATE INDEX IF NOT EXISTS idx_workflow_state ON workflow_states(workflow_name, current_state);
+CREATE INDEX IF NOT EXISTS idx_workflow_session ON workflow_states(session_id, entered_state_at DESC) WHERE session_id IS NOT NULL;
 
 -- Model interaction patterns learned from feedback
 CREATE TABLE IF NOT EXISTS model_interaction_patterns (
@@ -290,11 +292,11 @@ CREATE TABLE IF NOT EXISTS model_interaction_patterns (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_used_at TIMESTAMP,
   
-  metadata JSONB DEFAULT '{}'::jsonb,
-  
-  INDEX idx_pattern_category (pattern_category, is_active),
-  INDEX idx_pattern_performance (positive_feedback_rate DESC, usage_count DESC) WHERE is_active = true
+  metadata JSONB DEFAULT '{}'::jsonb
 );
+
+CREATE INDEX IF NOT EXISTS idx_pattern_category ON model_interaction_patterns(pattern_category, is_active);
+CREATE INDEX IF NOT EXISTS idx_pattern_performance ON model_interaction_patterns(positive_feedback_rate DESC, usage_count DESC) WHERE is_active = true;
 
 -- Create views for quick analytics
 

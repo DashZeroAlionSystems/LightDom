@@ -1307,7 +1307,8 @@ const PromptConsolePage: React.FC = () => {
         </div>
       </footer>
     </div>
-  );
+  </RagErrorBoundary>
+);
 };
 
 export { PromptConsolePage };

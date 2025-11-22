@@ -12,7 +12,7 @@ import {
   type RagHealthStatus,
   RagApiClient,
   RagApiError,
-} from './ragApiClient';
+} from '../services/ragApiClient';
 
 // Global singleton client instance
 let globalRagClient: RagApiClient | null = null;
