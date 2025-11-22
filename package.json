@@ -411,6 +411,7 @@
     "seo:extract-rules": "node scripts/seo-mine.js extract-rules",
     "crawlee:test": "node test-crawlee-service.js",
     "crawlee:example": "node example-crawlee-seo.js",
+    "crawlee:demo": "node demo-crawlee-integration.js",
     "crawlee:migrate": "node scripts/run-all-migrations.js migrate"
   },
   "dependencies": {
