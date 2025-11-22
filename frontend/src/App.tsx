@@ -32,6 +32,7 @@ import SpaceMiningDemoPage from '@/pages/SpaceMiningDemoPage';
 import ServiceGraphVisualizerDemoPage from '@/pages/ServiceGraphVisualizerDemoPage';
 import MetaverseNftDemoPage from '@/pages/MetaverseNftDemoPage';
 import DataMiningOperationsDemoPage from '@/pages/DataMiningOperationsDemoPage';
+import CrawleeManager from '@/pages/CrawleeManager';
 import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { RegisterPage } from '@/pages/RegisterPage';
@@ -304,6 +305,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <ComponentSchemaToolPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/crawlee-manager'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CrawleeManager />
                       </Layout>
                     </ProtectedRoute>
                   }
