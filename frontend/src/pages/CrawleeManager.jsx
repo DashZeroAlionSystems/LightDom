@@ -39,9 +39,7 @@ import {
   EditOutlined,
   ReloadOutlined,
   SettingOutlined,
-  ApiOutlined,
-  BugOutlined,
-  LineChartOutlined
+  ApiOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 
@@ -49,13 +47,114 @@ const { TextArea } = Input;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
+const DEFAULT_URL_PATTERNS = {
+  include: ['*'],
+  exclude: [],
+  maxDepth: 3,
+  sameDomain: true,
+  respectRobotsTxt: true
+};
+
+const DEFAULT_SELECTORS = {
+  title: 'h1',
+  description: 'meta[name="description"]',
+  keywords: 'meta[name="keywords"]'
+};
+
+const safeParseJSON = (value, fallback) => {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+
+  if (typeof value === 'object') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    if (!value.trim()) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      return fallback;
+    }
+  }
+
+  return fallback;
+};
+
+const sanitizeSeederPayload = (payload) => JSON.parse(
+  JSON.stringify(payload, (key, value) => {
+    if (value === undefined || value === null) {
+      return undefined;
+    }
+
+    if (Array.isArray(value) && value.length === 0) {
+      return undefined;
+    }
+
+    if (typeof value === 'object' && Object.keys(value).length === 0) {
+      return undefined;
+    }
+
+    return value;
+  })
+);
+
+const parseJsonField = (rawValue, label, fallback) => {
+  if (rawValue === undefined || rawValue === null || rawValue === '') {
+    return fallback;
+  }
+
+  if (typeof rawValue !== 'string') {
+    return rawValue;
+  }
+
+  try {
+    return JSON.parse(rawValue);
+  } catch (error) {
+    throw new Error(`Invalid JSON in ${label}`);
+  }
+};
+
+const normalizeCrawlerRecord = (crawler) => {
+  if (!crawler) {
+    return null;
+  }
+
+  const normalizedTags = Array.isArray(crawler.tags) ? crawler.tags : safeParseJSON(crawler.tags, []);
+
+  return {
+    ...crawler,
+    config: safeParseJSON(crawler.config, {}),
+    request_config: safeParseJSON(crawler.request_config, {}),
+    autoscaling_config: safeParseJSON(crawler.autoscaling_config, {}),
+    session_pool_config: safeParseJSON(crawler.session_pool_config, {}),
+    proxy_config: safeParseJSON(crawler.proxy_config, {}),
+    storage_config: safeParseJSON(crawler.storage_config, {}),
+    request_queue_config: safeParseJSON(crawler.request_queue_config, {}),
+    error_handling_config: safeParseJSON(crawler.error_handling_config, {}),
+    url_patterns: safeParseJSON(crawler.url_patterns, DEFAULT_URL_PATTERNS),
+    selectors: safeParseJSON(crawler.selectors, DEFAULT_SELECTORS),
+    stats: safeParseJSON(crawler.stats, {}),
+    tags: normalizedTags,
+    metadata: safeParseJSON(crawler.metadata, {}),
+    schedule: safeParseJSON(crawler.schedule, null)
+  };
+};
+
 const CrawleeManager = () => {
   const [crawlers, setCrawlers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [modalMode, setModalMode] = useState('create');
   const [detailsDrawerVisible, setDetailsDrawerVisible] = useState(false);
   const [selectedCrawler, setSelectedCrawler] = useState(null);
+  const [editingCrawler, setEditingCrawler] = useState(null);
   const [crawlerTypes, setCrawlerTypes] = useState([]);
+  const [modalSubmitting, setModalSubmitting] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -67,8 +166,12 @@ const CrawleeManager = () => {
     setLoading(true);
     try {
       const response = await axios.get('/api/crawlee/crawlers');
-      setCrawlers(response.data.crawlers || []);
+      const crawlerList = Array.isArray(response.data.crawlers)
+        ? response.data.crawlers.map(normalizeCrawlerRecord)
+        : [];
+      setCrawlers(crawlerList);
     } catch (error) {
+      console.error('Failed to fetch crawlers:', error);
       message.error('Failed to fetch crawlers');
     } finally {
       setLoading(false);
@@ -84,34 +187,330 @@ const CrawleeManager = () => {
     }
   };
 
-  const handleCreateCrawler = async (values) => {
+  const openCreateModal = () => {
+    setModalMode('create');
+    setEditingCrawler(null);
+    form.resetFields();
+    form.setFieldsValue({
+      selectors: JSON.stringify(DEFAULT_SELECTORS, null, 2),
+      url_patterns: JSON.stringify(DEFAULT_URL_PATTERNS, null, 2),
+      seed_urls: '',
+      seeder_keywords: [],
+      client_site_url: '',
+      auto_start_seeder: true
+    });
+    setCreateModalVisible(true);
+  };
+
+  const openEditModal = (crawler) => {
+    const normalized = normalizeCrawlerRecord(crawler);
+    setModalMode('edit');
+    setEditingCrawler(normalized);
+    form.resetFields();
+
+    form.setFieldsValue({
+      name: normalized.name,
+      description: normalized.description,
+      type: normalized.type,
+      campaign_id: normalized.campaign_id,
+      seeder_service_id: normalized.seeder_service_id,
+      tags: normalized.tags || [],
+      selectors: JSON.stringify(normalized.selectors || {}, null, 2),
+      url_patterns: JSON.stringify(normalized.url_patterns || {}, null, 2),
+      seed_urls: '',
+      seeder_keywords: normalized.tags || [],
+      client_site_url: normalized.metadata?.clientSiteUrl || '',
+      auto_start_seeder: true,
+      config: {
+        maxRequestsPerCrawl: normalized.config?.maxRequestsPerCrawl ?? 1000,
+        maxConcurrency: normalized.config?.maxConcurrency ?? 10,
+        maxRequestRetries: normalized.config?.maxRequestRetries ?? 3,
+        requestHandlerTimeoutSecs: normalized.config?.requestHandlerTimeoutSecs ?? 60,
+        useSessionPool: normalized.config?.useSessionPool ?? true
+      }
+    });
+
+    setCreateModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setCreateModalVisible(false);
+    setModalMode('create');
+    setEditingCrawler(null);
+    setModalSubmitting(false);
+    form.resetFields();
+  };
+
+  const createSeederServiceForCrawler = async (crawler, options = {}) => {
+    const normalizedCrawler = normalizeCrawlerRecord(crawler);
+    if (!normalizedCrawler) {
+      return null;
+    }
+
+    const {
+      seedUrls = [],
+      keywords = [],
+      clientSiteUrl,
+      instanceId,
+      autoStart = true
+    } = options;
+
+    const normalizedConfig = normalizedCrawler.config || {};
+    const normalizedUrlPatterns = normalizedCrawler.url_patterns || DEFAULT_URL_PATTERNS;
+    const normalizedTags = normalizedCrawler.tags || [];
+
+    const resolvedInstanceId = instanceId
+      || normalizedCrawler.seeder_service_id
+      || `seeder_${normalizedCrawler.id}`;
+
+    const finalSeedUrls = Array.isArray(seedUrls) ? seedUrls : [];
+    const finalKeywords = Array.isArray(keywords) && keywords.length > 0 ? keywords : normalizedTags;
+
+    const payload = sanitizeSeederPayload({
+      instanceId: resolvedInstanceId,
+      name: `${normalizedCrawler.name || normalizedCrawler.id} Seeder`,
+      description: `Auto-generated seeding configuration for ${normalizedCrawler.name || normalizedCrawler.id}`,
+      clientId: normalizedCrawler.campaign_id || 'default',
+      clientSiteUrl: clientSiteUrl || finalSeedUrls[0] || undefined,
+      campaignId: normalizedCrawler.campaign_id || undefined,
+      maxSeedsPerInstance: 1000,
+      seedRefreshInterval: 3600000,
+      searchDepth: normalizedUrlPatterns?.maxDepth ?? 3,
+      minBacklinkQuality: 0.5,
+      enableSearchAlgorithms: true,
+      enableRelatedURLDiscovery: true,
+      enableBacklinkGeneration: true,
+      seeds: finalSeedUrls,
+      keywords: finalKeywords,
+      topics: finalKeywords.slice(0, 10),
+      crawlerConfig: {
+        maxDepth: normalizedUrlPatterns?.maxDepth ?? 3,
+        parallelCrawlers: normalizedConfig?.maxConcurrency ?? 5,
+        requestDelay: normalizedConfig?.requestHandlerTimeoutSecs
+          ? Math.min(normalizedConfig.requestHandlerTimeoutSecs * 1000, 60000)
+          : 2000,
+        respectRobotsTxt: normalizedUrlPatterns?.respectRobotsTxt !== false
+      }
+    });
+
     try {
-      // Parse JSON fields
-      if (values.selectors) {
+      let created = false;
+      let started = false;
+
+      if (resolvedInstanceId) {
         try {
-          values.selectors = JSON.parse(values.selectors);
-        } catch (e) {
-          message.error('Invalid JSON in selectors');
-          return;
+          const existing = await axios.get(`/api/seeding/config/${resolvedInstanceId}`);
+          if (existing.data?.config) {
+            await axios.put(`/api/seeding/config/${resolvedInstanceId}`, payload);
+
+            if (autoStart) {
+              try {
+                await axios.post(`/api/seeding/start/${resolvedInstanceId}`);
+                started = true;
+              } catch (startError) {
+                if (!(startError.response && startError.response.status === 400)) {
+                  message.warning('Seeder exists but failed to start automatically');
+                }
+              }
+            }
+
+            return { seederId: resolvedInstanceId, created, started };
+          }
+        } catch (error) {
+          if (!(error.response && error.response.status === 404)) {
+            throw error;
+          }
         }
       }
 
-      if (values.url_patterns) {
+      const response = await axios.post('/api/seeding/config', payload);
+      const seederId = response.data?.config?.instanceId || resolvedInstanceId;
+      created = true;
+
+      if (seederId && seederId !== normalizedCrawler.seeder_service_id) {
+        await axios.put(`/api/crawlee/crawlers/${normalizedCrawler.id}`, {
+          seeder_service_id: seederId
+        });
+      }
+
+      if (autoStart && seederId) {
         try {
-          values.url_patterns = JSON.parse(values.url_patterns);
-        } catch (e) {
-          message.error('Invalid JSON in URL patterns');
-          return;
+          await axios.post(`/api/seeding/start/${seederId}`);
+          started = true;
+        } catch (startError) {
+          if (!(startError.response && startError.response.status === 400)) {
+            message.warning('Seeder created but failed to start automatically');
+          }
         }
       }
 
-      await axios.post('/api/crawlee/crawlers', values);
-      message.success('Crawler created successfully');
-      setCreateModalVisible(false);
-      form.resetFields();
+      return { seederId, created, started };
+    } catch (error) {
+      throw new Error(error.response?.data?.error || error.message);
+    }
+  };
+
+  const handleSubmitCrawler = async (formValues) => {
+    const values = { ...formValues };
+
+    let selectors;
+    let urlPatterns;
+
+    try {
+      selectors = parseJsonField(values.selectors, 'selectors', {});
+      urlPatterns = parseJsonField(values.url_patterns, 'URL patterns', DEFAULT_URL_PATTERNS);
+    } catch (parseError) {
+      message.error(parseError.message);
+      return;
+    }
+
+    values.selectors = selectors;
+    values.url_patterns = urlPatterns;
+
+    const seedUrlsRaw = values.seed_urls;
+    const seedUrls = typeof seedUrlsRaw === 'string'
+      ? seedUrlsRaw.split(/\r?\n/).map((url) => url.trim()).filter(Boolean)
+      : Array.isArray(seedUrlsRaw) ? seedUrlsRaw : [];
+
+    const seederKeywords = Array.isArray(values.seeder_keywords) ? values.seeder_keywords : [];
+    const clientSiteUrl = values.client_site_url ? values.client_site_url.trim() : '';
+    const autoStartSeeder = values.auto_start_seeder !== false;
+
+    delete values.seed_urls;
+    delete values.seeder_keywords;
+    delete values.client_site_url;
+    delete values.auto_start_seeder;
+
+    if (values.campaign_id) {
+      values.campaign_id = values.campaign_id.trim();
+    }
+
+    values.tags = Array.isArray(values.tags) ? values.tags : values.tags ? [values.tags] : [];
+
+    const trimmedSeederId = values.seeder_service_id ? values.seeder_service_id.trim() : '';
+    values.seeder_service_id = trimmedSeederId || null;
+
+    setModalSubmitting(true);
+    const hideMessage = message.loading(modalMode === 'create' ? 'Creating crawler...' : 'Updating crawler...', 0);
+
+    try {
+      if (modalMode === 'create') {
+        const response = await axios.post('/api/crawlee/crawlers', values);
+        const createdCrawler = normalizeCrawlerRecord(response.data?.crawler);
+
+        const seederResult = await createSeederServiceForCrawler(
+          {
+            ...createdCrawler,
+            campaign_id: values.campaign_id,
+            tags: values.tags,
+            seeder_service_id: createdCrawler?.seeder_service_id || values.seeder_service_id
+          },
+          {
+            seedUrls,
+            keywords: seederKeywords.length > 0 ? seederKeywords : values.tags,
+            clientSiteUrl,
+            instanceId: trimmedSeederId || undefined,
+            autoStart: autoStartSeeder
+          }
+        );
+
+        if (seederResult?.seederId) {
+          const seederMessage = seederResult.created ? ' and seeder provisioned' : ' and seeder ready';
+          message.success(`Crawler created${seederMessage}`);
+        } else {
+          message.success('Crawler created successfully');
+        }
+      } else if (editingCrawler) {
+        await axios.put(`/api/crawlee/crawlers/${editingCrawler.id}`, values);
+
+        const shouldProvisionSeeder = !editingCrawler.seeder_service_id
+          || (trimmedSeederId && trimmedSeederId !== editingCrawler.seeder_service_id)
+          || seedUrls.length > 0
+          || seederKeywords.length > 0
+          || clientSiteUrl;
+
+        if (shouldProvisionSeeder) {
+          const updatedCrawlerResponse = await axios.get(`/api/crawlee/crawlers/${editingCrawler.id}`);
+          const updatedCrawler = normalizeCrawlerRecord(updatedCrawlerResponse.data?.crawler);
+
+          await createSeederServiceForCrawler(
+            {
+              ...updatedCrawler,
+              campaign_id: values.campaign_id ?? updatedCrawler.campaign_id,
+              tags: values.tags.length > 0 ? values.tags : updatedCrawler.tags
+            },
+            {
+              seedUrls,
+              keywords: seederKeywords.length > 0 ? seederKeywords : values.tags,
+              clientSiteUrl,
+              instanceId: trimmedSeederId || updatedCrawler.seeder_service_id || undefined,
+              autoStart: autoStartSeeder
+            }
+          );
+        }
+
+        message.success('Crawler updated successfully');
+      }
+
+      closeModal();
       fetchCrawlers();
     } catch (error) {
-      message.error('Failed to create crawler: ' + error.message);
+      console.error('Crawler save failed:', error);
+      message.error(error.response?.data?.error || error.message);
+    } finally {
+      hideMessage();
+      setModalSubmitting(false);
+    }
+  };
+
+  const handleCreateSeederForCrawler = async (crawler) => {
+    const hide = message.loading('Provisioning seeder service...', 0);
+    try {
+      const result = await createSeederServiceForCrawler(crawler, { autoStart: true });
+      if (result?.seederId) {
+        message.success(result.created ? 'Seeder service created' : 'Seeder service ready');
+        fetchCrawlers();
+      }
+    } catch (error) {
+      message.error(error.message || 'Failed to provision seeder');
+    } finally {
+      hide();
+    }
+  };
+
+  const handleStartSeeder = async (instanceId) => {
+    if (!instanceId) {
+      return;
+    }
+
+    const hide = message.loading('Starting seeder service...', 0);
+    try {
+      await axios.post(`/api/seeding/start/${instanceId}`);
+      message.success('Seeder service started');
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        message.info(error.response.data?.error || 'Seeder service already running');
+      } else {
+        message.error(error.response?.data?.error || error.message);
+      }
+    } finally {
+      hide();
+    }
+  };
+
+  const handleStopSeeder = async (instanceId) => {
+    if (!instanceId) {
+      return;
+    }
+
+    const hide = message.loading('Stopping seeder service...', 0);
+    try {
+      await axios.post(`/api/seeding/stop/${instanceId}`);
+      message.success('Seeder service stopped');
+    } catch (error) {
+      message.error(error.response?.data?.error || error.message);
+    } finally {
+      hide();
     }
   };
 
@@ -168,22 +567,11 @@ const CrawleeManager = () => {
   const showCrawlerDetails = async (crawlerId) => {
     try {
       const response = await axios.get(`/api/crawlee/crawlers/${crawlerId}`);
-      setSelectedCrawler(response.data.crawler);
+      setSelectedCrawler(normalizeCrawlerRecord(response.data.crawler));
       setDetailsDrawerVisible(true);
     } catch (error) {
       message.error('Failed to fetch crawler details');
     }
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      idle: 'default',
-      running: 'processing',
-      paused: 'warning',
-      completed: 'success',
-      error: 'error'
-    };
-    return colors[status] || 'default';
   };
 
   const columns = [
@@ -229,6 +617,14 @@ const CrawleeManager = () => {
       }
     },
     {
+      title: 'Seeder',
+      dataIndex: 'seeder_service_id',
+      key: 'seeder_service_id',
+      render: (value) => (
+        value ? <Tag color="green">{value}</Tag> : <Tag color="default">Not Linked</Tag>
+      )
+    },
+    {
       title: 'Created',
       dataIndex: 'created_at',
       key: 'created_at',
@@ -246,6 +642,22 @@ const CrawleeManager = () => {
               onClick={() => showCrawlerDetails(record.id)}
             />
           </Tooltip>
+          <Tooltip title="Edit">
+            <Button
+              icon={<EditOutlined />}
+              size="small"
+              onClick={() => openEditModal(record)}
+            />
+          </Tooltip>
+          {!record.seeder_service_id && (
+            <Tooltip title="Provision Seeder">
+              <Button
+                icon={<SettingOutlined />}
+                size="small"
+                onClick={() => handleCreateSeederForCrawler(record)}
+              />
+            </Tooltip>
+          )}
           
           {record.status === 'idle' && (
             <Tooltip title="Start">
@@ -325,7 +737,7 @@ const CrawleeManager = () => {
             <Button 
               type="primary" 
               icon={<PlusOutlined />}
-              onClick={() => setCreateModalVisible(true)}
+              onClick={openCreateModal}
             >
               Create Crawler
             </Button>
@@ -351,19 +763,18 @@ const CrawleeManager = () => {
 
       {/* Create Crawler Modal */}
       <Modal
-        title="Create New Crawler"
+        title={modalMode === 'create' ? 'Create New Crawler' : 'Edit Crawler'}
         open={createModalVisible}
-        onCancel={() => {
-          setCreateModalVisible(false);
-          form.resetFields();
-        }}
+        onCancel={closeModal}
         footer={null}
         width={800}
+        maskClosable={!modalSubmitting}
+        closable={!modalSubmitting}
       >
         <Form
           form={form}
           layout="vertical"
-          onFinish={handleCreateCrawler}
+          onFinish={handleSubmitCrawler}
         >
           <Tabs defaultActiveKey="basic">
             <TabPane tab="Basic Settings" key="basic">
@@ -505,18 +916,48 @@ const CrawleeManager = () => {
                   <Option value="news">News</Option>
                 </Select>
               </Form.Item>
+
+              <Form.Item
+                name="seed_urls"
+                label="Initial Seed URLs"
+                tooltip="Provide one URL per line to prime the seeding service."
+              >
+                <TextArea rows={4} placeholder="https://example.com\nhttps://example.com/about" />
+              </Form.Item>
+
+              <Form.Item
+                name="seeder_keywords"
+                label="Seeder Keywords"
+                tooltip="Used to expand discovery beyond the initial seed URLs."
+              >
+                <Select mode="tags" placeholder="Add keywords..." />
+              </Form.Item>
+
+              <Form.Item
+                name="client_site_url"
+                label="Client Site URL"
+                tooltip="Optional primary site used for relevance scoring."
+              >
+                <Input placeholder="https://client-site.com" />
+              </Form.Item>
+
+              <Form.Item
+                name="auto_start_seeder"
+                label="Auto start seeder after creation"
+                valuePropName="checked"
+                initialValue
+              >
+                <Switch />
+              </Form.Item>
             </TabPane>
           </Tabs>
 
           <Form.Item style={{ marginTop: 16, marginBottom: 0 }}>
             <Space>
-              <Button type="primary" htmlType="submit">
-                Create Crawler
+              <Button type="primary" htmlType="submit" loading={modalSubmitting}>
+                {modalMode === 'create' ? 'Create Crawler' : 'Save Changes'}
               </Button>
-              <Button onClick={() => {
-                setCreateModalVisible(false);
-                form.resetFields();
-              }}>
+              <Button onClick={closeModal} disabled={modalSubmitting}>
                 Cancel
               </Button>
             </Space>
@@ -548,6 +989,16 @@ const CrawleeManager = () => {
                 <Descriptions.Item label="Status">
                   <Badge status={selectedCrawler.status === 'running' ? 'processing' : 'default'} 
                          text={selectedCrawler.status.toUpperCase()} />
+                </Descriptions.Item>
+                <Descriptions.Item label="Campaign">
+                  {selectedCrawler.campaign_id || '—'}
+                </Descriptions.Item>
+                <Descriptions.Item label="Seeder Service">
+                  {selectedCrawler.seeder_service_id ? (
+                    <Tag color="green">{selectedCrawler.seeder_service_id}</Tag>
+                  ) : (
+                    <Tag>No seeder linked</Tag>
+                  )}
                 </Descriptions.Item>
                 <Descriptions.Item label="Created">
                   {new Date(selectedCrawler.created_at).toLocaleString()}
@@ -603,6 +1054,57 @@ const CrawleeManager = () => {
               <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
                 {JSON.stringify(selectedCrawler.selectors, null, 2)}
               </pre>
+            </TabPane>
+            <TabPane tab="Seeder Service" key="seeder">
+              {selectedCrawler.seeder_service_id ? (
+                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                  <Alert
+                    message={`Seeder Service: ${selectedCrawler.seeder_service_id}`}
+                    description="Manage the URL discovery pipeline powering this crawler."
+                    type="success"
+                    showIcon
+                  />
+                  <Space wrap>
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={() => handleStartSeeder(selectedCrawler.seeder_service_id)}
+                    >
+                      Start Seeder
+                    </Button>
+                    <Button
+                      size="small"
+                      danger
+                      onClick={() => handleStopSeeder(selectedCrawler.seeder_service_id)}
+                    >
+                      Stop Seeder
+                    </Button>
+                    <Button
+                      size="small"
+                      icon={<SettingOutlined />}
+                      onClick={() => handleCreateSeederForCrawler(selectedCrawler)}
+                    >
+                      Rebuild Seeder
+                    </Button>
+                  </Space>
+                </Space>
+              ) : (
+                <Alert
+                  message="No seeder service linked"
+                  description="Provision a seeder to automatically feed fresh URLs into this crawler's queue."
+                  type="warning"
+                  showIcon
+                  action={
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={() => handleCreateSeederForCrawler(selectedCrawler)}
+                    >
+                      Create Seeder
+                    </Button>
+                  }
+                />
+              )}
             </TabPane>
           </Tabs>
         </Drawer>

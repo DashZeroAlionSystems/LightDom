@@ -112,6 +112,12 @@ export const NavigationSidebar: React.FC = () => {
             icon={<LucideIcons.Terminal className="w-5 h-5" />}
             label="Prompt Console"
           />
+          <SidebarNavItem
+            to="/crawlee-manager"
+            icon={<LucideIcons.Sitemap className="w-5 h-5" />}
+            label="Crawler Dashboard"
+            description="Manage crawlers & seeding"
+          />
         </SidebarCategory>
 
         <SidebarDivider />

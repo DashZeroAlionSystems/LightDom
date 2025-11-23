@@ -613,7 +613,8 @@ class CrawleeService extends EventEmitter {
       'name', 'description', 'config', 'request_config', 'autoscaling_config',
       'session_pool_config', 'proxy_config', 'storage_config', 'request_queue_config',
       'error_handling_config', 'url_patterns', 'selectors', 'request_handler',
-      'failed_request_handler', 'schedule', 'tags', 'metadata'
+      'failed_request_handler', 'schedule', 'tags', 'metadata', 'campaign_id',
+      'seeder_service_id'
     ];
 
     for (const field of allowedFields) {
