@@ -39,6 +39,7 @@ import { RegisterPage } from '@/pages/RegisterPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
 import { WorkflowsPage } from '@/pages/WorkflowsPage';
+import NeuralNetworkManagementPage from '@/pages/NeuralNetworkManagementPage';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -275,6 +276,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <DataMiningOperationsDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/neural-network-management'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NeuralNetworkManagementPage />
                       </Layout>
                     </ProtectedRoute>
                   }

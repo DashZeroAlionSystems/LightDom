@@ -840,6 +840,21 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load neural network routes:', err);
       });
 
+    // Import and register Neural Network Dashboard routes
+    import('./api/neural-network-dashboard-routes.js')
+      .then(dashboardModule => {
+        const dashboardRouter = dashboardModule.default || dashboardModule.createNeuralNetworkDashboardRoutes;
+        if (typeof dashboardRouter === 'function') {
+          this.app.use('/api/neural-network-dashboard', dashboardRouter(this.pool));
+        } else {
+          this.app.use('/api/neural-network-dashboard', dashboardRouter);
+        }
+        console.log('Neural network dashboard routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load neural network dashboard routes:', err);
+      });
+
     // Import and register TensorFlow Workflow Orchestration routes
     import('./api/tensorflow-workflow-routes.js')
       .then(tfModule => {

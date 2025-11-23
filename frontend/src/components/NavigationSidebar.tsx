@@ -149,6 +149,13 @@ export const NavigationSidebar: React.FC = () => {
             icon={<LucideIcons.Database className="w-5 h-5" />}
             label="Data Mining"
           />
+          <SidebarNavItem
+            to="/neural-network-management"
+            icon={<LucideIcons.Brain className="w-5 h-5" />}
+            label="Neural Networks"
+            description="AI & ML management"
+          />
+          />
         </SidebarCategory>
 
         <SidebarDivider />
