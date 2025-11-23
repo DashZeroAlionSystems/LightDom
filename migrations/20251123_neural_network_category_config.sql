@@ -37,7 +37,7 @@ INSERT INTO categories (
             "max_limit": 100
         },
         "authentication": {
-            "required": false,
+            "required": true,
             "roles": ["admin", "ml_engineer"]
         },
         "relationships": {
