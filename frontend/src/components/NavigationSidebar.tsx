@@ -118,6 +118,12 @@ export const NavigationSidebar: React.FC = () => {
             label="Crawler Dashboard"
             description="Manage crawlers & seeding"
           />
+          <SidebarNavItem
+            to="/neural-networks"
+            icon={<LucideIcons.Brain className="w-5 h-5" />}
+            label="Neural Networks"
+            description="AI/ML model management"
+          />
         </SidebarCategory>
 
         <SidebarDivider />

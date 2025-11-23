@@ -33,6 +33,7 @@ import ServiceGraphVisualizerDemoPage from '@/pages/ServiceGraphVisualizerDemoPa
 import MetaverseNftDemoPage from '@/pages/MetaverseNftDemoPage';
 import DataMiningOperationsDemoPage from '@/pages/DataMiningOperationsDemoPage';
 import CrawleeManager from '@/pages/CrawleeManager';
+import NeuralNetworkManagementPage from '@/pages/NeuralNetworkManagementPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { RegisterPage } from '@/pages/RegisterPage';
@@ -315,6 +316,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <CrawleeManager />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/neural-networks'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NeuralNetworkManagementPage />
                       </Layout>
                     </ProtectedRoute>
                   }
