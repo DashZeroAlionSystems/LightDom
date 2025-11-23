@@ -1,7 +1,7 @@
 // Minimal API Server (proxy-style) that forwards requests to Ollama directly
 import { spawn } from 'child_process';
-import { randomUUID } from 'crypto';
 import cors from 'cors';
+import { randomUUID } from 'crypto';
 import dotenv from 'dotenv';
 import express from 'express';
 import fs from 'fs/promises';
@@ -146,14 +146,15 @@ const DEFAULT_STATS = {
 const DEFAULT_TYPE_SELECTORS = {
   title: 'title',
   description: 'meta[name="description"]',
-  links: 'a[href]'
+  links: 'a[href]',
 };
 
 const DEFAULT_CRAWLER_TYPES = [
   {
     id: 'cheerio',
     name: 'CheerioCrawler',
-    description: 'HTML parsing crawler that uses Cheerio to transform static content at high speed.',
+    description:
+      'HTML parsing crawler that uses Cheerio to transform static content at high speed.',
     features: ['Low memory footprint', 'Streaming HTML parsing', 'Ideal for static sites'],
     usage: 'Use for high-volume crawling of static HTML pages or content-heavy blogs.',
     docs_url: 'https://crawlee.dev/docs/api/cheerio-crawler/class/CheerioCrawler',
@@ -163,34 +164,36 @@ const DEFAULT_CRAWLER_TYPES = [
       requestHandlerTimeoutSecs: 30,
       navigationTimeoutSecs: 30,
       useSessionPool: false,
-      persistCookiesPerSession: false
+      persistCookiesPerSession: false,
     },
     default_request_config: {
       headless: true,
       ignoreSslErrors: false,
-      useChrome: false
+      useChrome: false,
     },
     default_url_patterns: {
       include: ['*'],
       exclude: ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp'],
       maxDepth: 3,
       sameDomain: true,
-      respectRobotsTxt: true
+      respectRobotsTxt: true,
     },
     default_selectors: {
       title: 'title',
       description: 'meta[name="description"]',
       content: 'article, main, .content',
-      links: 'a[href]'
+      links: 'a[href]',
     },
-    notes: 'Does not execute JavaScript; relies on HTML responses returned by the target server.'
+    notes: 'Does not execute JavaScript; relies on HTML responses returned by the target server.',
   },
   {
     id: 'playwright',
     name: 'PlaywrightCrawler',
-    description: 'Headless browser crawler backed by Playwright for rich SPA rendering and automation.',
+    description:
+      'Headless browser crawler backed by Playwright for rich SPA rendering and automation.',
     features: ['Full JavaScript execution', 'Cross-browser automation', 'Network interception'],
-    usage: 'Select for modern SPAs, authenticated portals, or when you need deterministic browser sessions.',
+    usage:
+      'Select for modern SPAs, authenticated portals, or when you need deterministic browser sessions.',
     docs_url: 'https://crawlee.dev/docs/api/playwright-crawler/class/PlaywrightCrawler',
     default_config: {
       maxRequestsPerCrawl: 500,
@@ -198,35 +201,37 @@ const DEFAULT_CRAWLER_TYPES = [
       navigationTimeoutSecs: 45,
       requestHandlerTimeoutSecs: 90,
       useSessionPool: true,
-      persistCookiesPerSession: true
+      persistCookiesPerSession: true,
     },
     default_request_config: {
       headless: true,
       ignoreSslErrors: false,
       useChrome: true,
       launchOptions: {
-        args: ['--disable-dev-shm-usage']
-      }
+        args: ['--disable-dev-shm-usage'],
+      },
     },
     default_url_patterns: {
       include: ['*'],
       exclude: ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp', '*.svg'],
       maxDepth: 2,
       sameDomain: true,
-      respectRobotsTxt: true
+      respectRobotsTxt: true,
     },
     default_selectors: {
       title: 'title',
       description: 'meta[name="description"]',
       primaryContent: '[data-main], main, article',
-      links: 'a[href]'
+      links: 'a[href]',
     },
-    notes: 'Supports Chromium, Firefox, and WebKit contexts. Handles page.evaluate hooks and browser contexts.'
+    notes:
+      'Supports Chromium, Firefox, and WebKit contexts. Handles page.evaluate hooks and browser contexts.',
   },
   {
     id: 'puppeteer',
     name: 'PuppeteerCrawler',
-    description: 'Chrome DevTools protocol powered crawler ideal for screenshot capture and precise control.',
+    description:
+      'Chrome DevTools protocol powered crawler ideal for screenshot capture and precise control.',
     features: ['Chrome automation', 'Screenshot capture', 'Fine-grained network control'],
     usage: 'Choose when you require Chrome-specific APIs, PDF rendering, or viewport manipulation.',
     docs_url: 'https://crawlee.dev/docs/api/puppeteer-crawler/class/PuppeteerCrawler',
@@ -236,28 +241,29 @@ const DEFAULT_CRAWLER_TYPES = [
       navigationTimeoutSecs: 45,
       requestHandlerTimeoutSecs: 120,
       useSessionPool: true,
-      persistCookiesPerSession: true
+      persistCookiesPerSession: true,
     },
     default_request_config: {
       headless: true,
       ignoreSslErrors: false,
       useChrome: true,
-      slowMo: 0
+      slowMo: 0,
     },
     default_url_patterns: {
       include: ['*'],
       exclude: ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp', '*.svg', '*.mp4', '*.mp3'],
       maxDepth: 2,
       sameDomain: true,
-      respectRobotsTxt: true
+      respectRobotsTxt: true,
     },
     default_selectors: {
       title: 'title',
       description: 'meta[name="description"]',
       ographImage: 'meta[property="og:image"]',
-      links: 'a[href]'
+      links: 'a[href]',
     },
-    notes: 'Utilises Chromium; customise launch options for device emulation or performance tracing.'
+    notes:
+      'Utilises Chromium; customise launch options for device emulation or performance tracing.',
   },
   {
     id: 'jsdom',
@@ -271,32 +277,33 @@ const DEFAULT_CRAWLER_TYPES = [
       maxConcurrency: 15,
       navigationTimeoutSecs: 35,
       requestHandlerTimeoutSecs: 60,
-      useSessionPool: true
+      useSessionPool: true,
     },
     default_request_config: {
       headless: true,
       ignoreSslErrors: false,
-      useChrome: false
+      useChrome: false,
     },
     default_url_patterns: {
       include: ['*'],
       exclude: ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp'],
       maxDepth: 3,
       sameDomain: true,
-      respectRobotsTxt: true
+      respectRobotsTxt: true,
     },
     default_selectors: {
       title: 'title',
       description: 'meta[name="description"]',
       primaryContent: 'article, main, .content',
-      links: 'a[href]'
+      links: 'a[href]',
     },
-    notes: 'Executes JavaScript inside JSDOM environment; does not provide full browser APIs.'
+    notes: 'Executes JavaScript inside JSDOM environment; does not provide full browser APIs.',
   },
   {
     id: 'http',
     name: 'HttpCrawler',
-    description: 'Minimal HTTP-based crawler optimised for API harvesting and low-latency scraping.',
+    description:
+      'Minimal HTTP-based crawler optimised for API harvesting and low-latency scraping.',
     features: ['Extremely fast', 'Stream-friendly', 'Minimal resource usage'],
     usage: 'Best for REST API harvesting, sitemap ingestion, or when rendering is unnecessary.',
     docs_url: 'https://crawlee.dev/docs/api/http-crawler/class/HttpCrawler',
@@ -306,27 +313,27 @@ const DEFAULT_CRAWLER_TYPES = [
       requestHandlerTimeoutSecs: 15,
       navigationTimeoutSecs: 15,
       useSessionPool: false,
-      persistCookiesPerSession: false
+      persistCookiesPerSession: false,
     },
     default_request_config: {
       headless: true,
       ignoreSslErrors: false,
       useChrome: false,
-      maxRetries: 2
+      maxRetries: 2,
     },
     default_url_patterns: {
       include: ['*'],
       exclude: ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp', '*.svg'],
       maxDepth: 1,
       sameDomain: true,
-      respectRobotsTxt: true
+      respectRobotsTxt: true,
     },
     default_selectors: {
       data: '$',
-      links: 'a[href]'
+      links: 'a[href]',
     },
-    notes: 'Operates on raw HTTP responses; pair with custom parsers for JSON or XML payloads.'
-  }
+    notes: 'Operates on raw HTTP responses; pair with custom parsers for JSON or XML payloads.',
+  },
 ];
 
 async function loadCrawlerStore() {
@@ -422,8 +429,8 @@ function normalizeCrawlerRecord(crawler) {
     tags: Array.isArray(crawler.tags)
       ? crawler.tags
       : crawler.tags
-      ? [crawler.tags].flat().filter(Boolean)
-      : [],
+        ? [crawler.tags].flat().filter(Boolean)
+        : [],
     metadata:
       crawler.metadata && typeof crawler.metadata === 'object' && !Array.isArray(crawler.metadata)
         ? { ...crawler.metadata }
@@ -627,13 +634,11 @@ app.post('/api/rag/chat/stream', async (req, res) => {
       '[minimal-api-proxy] chat stream failed:',
       err && (err.stack || err.message || err)
     );
-    return res
-      .status(503)
-      .json({
-        success: false,
-        error: 'Failed to process chat stream',
-        details: err.message || String(err),
-      });
+    return res.status(503).json({
+      success: false,
+      error: 'Failed to process chat stream',
+      details: err.message || String(err),
+    });
   }
 });
 
