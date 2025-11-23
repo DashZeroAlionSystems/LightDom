@@ -466,7 +466,10 @@ INSERT INTO neural_network_models (model_name, model_type, description, is_defau
   ('duplicate_content_detector', 'data_mining', 'Identifies duplicate and near-duplicate content', true, 'available', ARRAY['mining', 'duplicates']),
   ('project_organization_advisor', 'development', 'Recommends project organization strategies', true, 'available', ARRAY['development', 'organization']),
   ('crawlee_tensorflow_integration', 'scraping', 'Integrates Crawlee with TensorFlow for intelligent crawling', true, 'available', ARRAY['crawling', 'tensorflow', 'crawlee'])
-ON CONFLICT (model_name) DO NOTHING;
+ON CONFLICT (model_name) DO UPDATE SET
+  description = EXCLUDED.description,
+  status = EXCLUDED.status,
+  updated_at = NOW();
 
 -- ============================================================================
 -- COMMENTS

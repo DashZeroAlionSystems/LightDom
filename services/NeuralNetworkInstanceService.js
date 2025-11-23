@@ -10,7 +10,6 @@ import * as tf from '@tensorflow/tfjs-node';
 export class NeuralNetworkInstanceService {
   constructor(dbPool) {
     this.db = dbPool;
-    this.activeModels = new Map(); // Cache for loaded models
   }
 
   /**
@@ -126,6 +125,7 @@ export class NeuralNetworkInstanceService {
 
   /**
    * Create default data streams for the instance
+   * Creates streams in parallel for better performance
    * @param {string} instanceId - Neural network instance ID
    * @param {Object} client - Database client
    */
@@ -154,8 +154,9 @@ export class NeuralNetworkInstanceService {
       }
     ];
 
-    for (const stream of streams) {
-      await client.query(`
+    // Create streams in parallel for better performance
+    await Promise.all(streams.map(stream => 
+      client.query(`
         INSERT INTO neural_network_data_streams (
           neural_network_id, name, stream_type, source_type, 
           destination_type, source_config, destination_config, status
@@ -169,8 +170,8 @@ export class NeuralNetworkInstanceService {
         stream.destination_type,
         stream.source_config || {},
         stream.destination_config || {}
-      ]);
-    }
+      ])
+    ));
   }
 
   /**

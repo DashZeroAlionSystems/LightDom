@@ -62,9 +62,10 @@ export const NeuralNetworkInstanceForm: React.FC<NeuralNetworkInstanceFormProps>
       };
 
       await onSubmit(processedValues);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error submitting form:', error);
-      message.error(error.message || 'Failed to create neural network instance');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create neural network instance';
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }

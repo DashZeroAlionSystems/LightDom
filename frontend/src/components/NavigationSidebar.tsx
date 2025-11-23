@@ -155,7 +155,6 @@ export const NavigationSidebar: React.FC = () => {
             label="Neural Networks"
             description="AI & ML management"
           />
-          />
         </SidebarCategory>
 
         <SidebarDivider />
