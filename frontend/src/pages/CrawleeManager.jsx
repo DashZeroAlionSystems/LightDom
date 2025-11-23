@@ -155,6 +155,7 @@ const CrawleeManager = () => {
   const [editingCrawler, setEditingCrawler] = useState(null);
   const [crawlerTypes, setCrawlerTypes] = useState([]);
   const [modalSubmitting, setModalSubmitting] = useState(false);
+  const [crawlerTypesLoading, setCrawlerTypesLoading] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -179,11 +180,14 @@ const CrawleeManager = () => {
   };
 
   const fetchCrawlerTypes = async () => {
+    setCrawlerTypesLoading(true);
     try {
       const response = await axios.get('/api/crawlee/crawler-types');
       setCrawlerTypes(response.data.types || []);
     } catch (error) {
       console.error('Failed to fetch crawler types:', error);
+    } finally {
+      setCrawlerTypesLoading(false);
     }
   };
 
@@ -720,6 +724,42 @@ const CrawleeManager = () => {
     }
   ];
 
+  const crawlerTypeColumns = [
+    {
+      title: 'Type',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text, record) => (
+        <Space direction="vertical" size={0}>
+          <strong>{text}</strong>
+          <small style={{ color: '#888' }}>{record.id}</small>
+        </Space>
+      )
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description'
+    },
+    {
+      title: 'Key Features',
+      dataIndex: 'features',
+      key: 'features',
+      render: (features = []) => (
+        <Space wrap>
+          {features.map(feature => (
+            <Tag key={feature} color="geekblue">{feature}</Tag>
+          ))}
+        </Space>
+      )
+    },
+    {
+      title: 'Best For',
+      dataIndex: 'usage',
+      key: 'usage'
+    }
+  ];
+
   return (
     <div style={{ padding: '24px' }}>
       <Card 
@@ -758,6 +798,27 @@ const CrawleeManager = () => {
           rowKey="id"
           loading={loading}
           pagination={{ pageSize: 10 }}
+        />
+      </Card>
+
+      <Card
+        title="Crawler Types & Capabilities"
+        style={{ marginTop: 24 }}
+      >
+        <Alert
+          message="Crawler engine overview"
+          description="Choose a crawler type that matches the rendering requirements of your target domain. Use full browser automation for heavy JavaScript sites and lighter engines for static pages."
+          type="success"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+
+        <Table
+          columns={crawlerTypeColumns}
+          dataSource={crawlerTypes}
+          rowKey="id"
+          pagination={false}
+          loading={crawlerTypesLoading}
         />
       </Card>
 

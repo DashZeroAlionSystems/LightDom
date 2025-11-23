@@ -114,7 +114,7 @@ export const NavigationSidebar: React.FC = () => {
           />
           <SidebarNavItem
             to="/crawlee-manager"
-            icon={<LucideIcons.Sitemap className="w-5 h-5" />}
+            icon={<LucideIcons.Network className="w-5 h-5" />}
             label="Crawler Dashboard"
             description="Manage crawlers & seeding"
           />
