@@ -93,6 +93,62 @@ const ProfessionalSidebar: React.FC<SidebarProps> = ({
       description: 'Overview and stats',
     },
     {
+      key: 'categories',
+      icon: <DatabaseOutlined />,
+      label: 'Categories',
+      description: 'Category Management',
+      children: [
+        {
+          key: 'categories/neural-network',
+          icon: <ExperimentOutlined />,
+          label: 'Neural Network',
+          description: 'AI/ML models',
+        },
+        {
+          key: 'categories/data-streams',
+          icon: <GlobalOutlined />,
+          label: 'Data Streams',
+          description: 'Real-time pipelines',
+        },
+        {
+          key: 'categories/data-mining',
+          icon: <DatabaseOutlined />,
+          label: 'Data Mining',
+          description: 'Mining jobs',
+        },
+        {
+          key: 'categories/crawling',
+          icon: <SearchOutlined />,
+          label: 'Crawling',
+          description: 'Web scrapers',
+        },
+        {
+          key: 'categories/seeding',
+          icon: <ClusterOutlined />,
+          label: 'Seeding',
+          description: 'Data seeders',
+        },
+        {
+          key: 'categories/attributes',
+          icon: <ApiOutlined />,
+          label: 'Attributes',
+          description: 'Data attributes',
+        },
+        {
+          key: 'categories/data-training',
+          icon: <RocketOutlined />,
+          label: 'Data Training',
+          description: 'Training pipelines',
+        },
+        {
+          key: 'categories/services',
+          icon: <ApiOutlined />,
+          label: 'Services',
+          description: 'Microservices',
+        },
+      ],
+    },
+    {
       key: 'mining',
       icon: <ThunderboltOutlined />,
       label: 'Mining Console',
