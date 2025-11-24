@@ -853,6 +853,34 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.error('Failed to load neural network dashboard routes:', err);
+    // Import and register Data Stream routes
+    import('./api/data-stream-routes.js')
+      .then(streamModule => {
+        const streamRouter = streamModule.default || streamModule.createDataStreamRoutes;
+        if (typeof streamRouter === 'function') {
+          this.app.use('/api/data-streams', streamRouter(this.pool));
+        } else {
+          this.app.use('/api/data-streams', streamRouter);
+        }
+        console.log('✅ Data stream routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load data stream routes:', err);
+      });
+
+    // Import and register Attribute routes
+    import('./api/attribute-routes.js')
+      .then(attrModule => {
+        const attrRouter = attrModule.default || attrModule.createAttributeRoutes;
+        if (typeof attrRouter === 'function') {
+          this.app.use('/api/attributes', attrRouter(this.pool));
+        } else {
+          this.app.use('/api/attributes', attrRouter);
+        }
+        console.log('✅ Attribute routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load attribute routes:', err);
       });
 
     // Import and register TensorFlow Workflow Orchestration routes

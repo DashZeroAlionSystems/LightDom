@@ -1,6 +1,7 @@
 // Minimal API Server (proxy-style) that forwards requests to Ollama directly
 import { spawn } from 'child_process';
 import cors from 'cors';
+import { randomUUID } from 'crypto';
 import dotenv from 'dotenv';
 import express from 'express';
 import fs from 'fs/promises';
@@ -88,6 +89,362 @@ async function readJsonFile(fileName) {
     if (err && err.code === 'ENOENT') return [];
     throw err;
   }
+}
+
+const CRAWLER_STORE_FILE = 'crawlee-crawlers.json';
+const CRAWLER_TYPES_FILE = 'crawlee-crawler-types.json';
+
+const DEFAULT_CRAWLER_CONFIG = {
+  maxRequestsPerCrawl: 1000,
+  maxConcurrency: 10,
+  minConcurrency: 1,
+  maxRequestRetries: 3,
+  requestHandlerTimeoutSecs: 60,
+  navigationTimeoutSecs: 60,
+  keepAlive: true,
+  useSessionPool: true,
+  persistCookiesPerSession: true,
+};
+
+const DEFAULT_REQUEST_CONFIG = {
+  headless: true,
+  ignoreSslErrors: false,
+  useChrome: false,
+};
+
+const DEFAULT_URL_PATTERNS = {
+  include: ['*'],
+  exclude: [],
+  maxDepth: 3,
+  sameDomain: true,
+  respectRobotsTxt: true,
+};
+
+const DEFAULT_STORAGE_CONFIG = {
+  enableDatasets: true,
+  enableKeyValueStores: true,
+  enableRequestQueues: true,
+  persistStorage: true,
+  purgeOnStart: false,
+};
+
+const DEFAULT_ERROR_HANDLING = {
+  maxRequestRetries: 3,
+  retryDelayMs: 1000,
+  maxRetryDelayMs: 60000,
+  retryMultiplier: 2,
+  ignoreHttpErrors: false,
+  ignoreSslErrors: false,
+};
+
+const DEFAULT_STATS = {
+  requestsTotal: 0,
+  requestsFinished: 0,
+  requestsFailed: 0,
+};
+
+const DEFAULT_TYPE_SELECTORS = {
+  title: 'title',
+  description: 'meta[name="description"]',
+  links: 'a[href]',
+};
+
+const DEFAULT_CRAWLER_TYPES = [
+  {
+    id: 'cheerio',
+    name: 'CheerioCrawler',
+    description:
+      'HTML parsing crawler that uses Cheerio to transform static content at high speed.',
+    features: ['Low memory footprint', 'Streaming HTML parsing', 'Ideal for static sites'],
+    usage: 'Use for high-volume crawling of static HTML pages or content-heavy blogs.',
+    docs_url: 'https://crawlee.dev/docs/api/cheerio-crawler/class/CheerioCrawler',
+    default_config: {
+      maxRequestsPerCrawl: 2000,
+      maxConcurrency: 25,
+      requestHandlerTimeoutSecs: 30,
+      navigationTimeoutSecs: 30,
+      useSessionPool: false,
+      persistCookiesPerSession: false,
+    },
+    default_request_config: {
+      headless: true,
+      ignoreSslErrors: false,
+      useChrome: false,
+    },
+    default_url_patterns: {
+      include: ['*'],
+      exclude: ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp'],
+      maxDepth: 3,
+      sameDomain: true,
+      respectRobotsTxt: true,
+    },
+    default_selectors: {
+      title: 'title',
+      description: 'meta[name="description"]',
+      content: 'article, main, .content',
+      links: 'a[href]',
+    },
+    notes: 'Does not execute JavaScript; relies on HTML responses returned by the target server.',
+  },
+  {
+    id: 'playwright',
+    name: 'PlaywrightCrawler',
+    description:
+      'Headless browser crawler backed by Playwright for rich SPA rendering and automation.',
+    features: ['Full JavaScript execution', 'Cross-browser automation', 'Network interception'],
+    usage:
+      'Select for modern SPAs, authenticated portals, or when you need deterministic browser sessions.',
+    docs_url: 'https://crawlee.dev/docs/api/playwright-crawler/class/PlaywrightCrawler',
+    default_config: {
+      maxRequestsPerCrawl: 500,
+      maxConcurrency: 8,
+      navigationTimeoutSecs: 45,
+      requestHandlerTimeoutSecs: 90,
+      useSessionPool: true,
+      persistCookiesPerSession: true,
+    },
+    default_request_config: {
+      headless: true,
+      ignoreSslErrors: false,
+      useChrome: true,
+      launchOptions: {
+        args: ['--disable-dev-shm-usage'],
+      },
+    },
+    default_url_patterns: {
+      include: ['*'],
+      exclude: ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp', '*.svg'],
+      maxDepth: 2,
+      sameDomain: true,
+      respectRobotsTxt: true,
+    },
+    default_selectors: {
+      title: 'title',
+      description: 'meta[name="description"]',
+      primaryContent: '[data-main], main, article',
+      links: 'a[href]',
+    },
+    notes:
+      'Supports Chromium, Firefox, and WebKit contexts. Handles page.evaluate hooks and browser contexts.',
+  },
+  {
+    id: 'puppeteer',
+    name: 'PuppeteerCrawler',
+    description:
+      'Chrome DevTools protocol powered crawler ideal for screenshot capture and precise control.',
+    features: ['Chrome automation', 'Screenshot capture', 'Fine-grained network control'],
+    usage: 'Choose when you require Chrome-specific APIs, PDF rendering, or viewport manipulation.',
+    docs_url: 'https://crawlee.dev/docs/api/puppeteer-crawler/class/PuppeteerCrawler',
+    default_config: {
+      maxRequestsPerCrawl: 600,
+      maxConcurrency: 6,
+      navigationTimeoutSecs: 45,
+      requestHandlerTimeoutSecs: 120,
+      useSessionPool: true,
+      persistCookiesPerSession: true,
+    },
+    default_request_config: {
+      headless: true,
+      ignoreSslErrors: false,
+      useChrome: true,
+      slowMo: 0,
+    },
+    default_url_patterns: {
+      include: ['*'],
+      exclude: ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp', '*.svg', '*.mp4', '*.mp3'],
+      maxDepth: 2,
+      sameDomain: true,
+      respectRobotsTxt: true,
+    },
+    default_selectors: {
+      title: 'title',
+      description: 'meta[name="description"]',
+      ographImage: 'meta[property="og:image"]',
+      links: 'a[href]',
+    },
+    notes:
+      'Utilises Chromium; customise launch options for device emulation or performance tracing.',
+  },
+  {
+    id: 'jsdom',
+    name: 'JSDOMCrawler',
+    description: 'Node.js powered DOM emulation crawler with lightweight JavaScript execution.',
+    features: ['No external browser dependency', 'Partial JavaScript execution', 'Fast startup'],
+    usage: 'Use for moderately dynamic sites where full browser automation is unnecessary.',
+    docs_url: 'https://crawlee.dev/docs/api/jsdom-crawler/class/JSDOMCrawler',
+    default_config: {
+      maxRequestsPerCrawl: 1200,
+      maxConcurrency: 15,
+      navigationTimeoutSecs: 35,
+      requestHandlerTimeoutSecs: 60,
+      useSessionPool: true,
+    },
+    default_request_config: {
+      headless: true,
+      ignoreSslErrors: false,
+      useChrome: false,
+    },
+    default_url_patterns: {
+      include: ['*'],
+      exclude: ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp'],
+      maxDepth: 3,
+      sameDomain: true,
+      respectRobotsTxt: true,
+    },
+    default_selectors: {
+      title: 'title',
+      description: 'meta[name="description"]',
+      primaryContent: 'article, main, .content',
+      links: 'a[href]',
+    },
+    notes: 'Executes JavaScript inside JSDOM environment; does not provide full browser APIs.',
+  },
+  {
+    id: 'http',
+    name: 'HttpCrawler',
+    description:
+      'Minimal HTTP-based crawler optimised for API harvesting and low-latency scraping.',
+    features: ['Extremely fast', 'Stream-friendly', 'Minimal resource usage'],
+    usage: 'Best for REST API harvesting, sitemap ingestion, or when rendering is unnecessary.',
+    docs_url: 'https://crawlee.dev/docs/api/http-crawler/class/HttpCrawler',
+    default_config: {
+      maxRequestsPerCrawl: 5000,
+      maxConcurrency: 50,
+      requestHandlerTimeoutSecs: 15,
+      navigationTimeoutSecs: 15,
+      useSessionPool: false,
+      persistCookiesPerSession: false,
+    },
+    default_request_config: {
+      headless: true,
+      ignoreSslErrors: false,
+      useChrome: false,
+      maxRetries: 2,
+    },
+    default_url_patterns: {
+      include: ['*'],
+      exclude: ['*.png', '*.jpg', '*.jpeg', '*.gif', '*.webp', '*.svg'],
+      maxDepth: 1,
+      sameDomain: true,
+      respectRobotsTxt: true,
+    },
+    default_selectors: {
+      data: '$',
+      links: 'a[href]',
+    },
+    notes: 'Operates on raw HTTP responses; pair with custom parsers for JSON or XML payloads.',
+  },
+];
+
+async function loadCrawlerStore() {
+  await ensureDataDir();
+  const records = await readJsonFile(CRAWLER_STORE_FILE);
+  return Array.isArray(records) ? records : [];
+}
+
+async function saveCrawlerStore(crawlers) {
+  await ensureDataDir();
+  const fp = path.join(DATA_DIR, CRAWLER_STORE_FILE);
+  await fs.writeFile(fp, JSON.stringify(crawlers, null, 2), 'utf-8');
+}
+
+async function getCrawlerFromStore(id) {
+  const crawlers = await loadCrawlerStore();
+  return crawlers.find(c => c.id === id) || null;
+}
+
+async function updateCrawlerInStore(id, updater) {
+  const crawlers = await loadCrawlerStore();
+  const index = crawlers.findIndex(c => c.id === id);
+  if (index === -1) return null;
+
+  const current = { ...crawlers[index] };
+  const updated = await updater(current);
+
+  if (updated === null) {
+    crawlers.splice(index, 1);
+    await saveCrawlerStore(crawlers);
+    return null;
+  }
+
+  crawlers[index] = updated;
+  await saveCrawlerStore(crawlers);
+  return crawlers[index];
+}
+
+function normalizeCrawlerRecord(crawler) {
+  const createdAt = crawler.created_at || new Date().toISOString();
+  const updatedAt = crawler.updated_at || createdAt;
+
+  return {
+    id: crawler.id,
+    name: crawler.name || 'Crawler',
+    description: crawler.description || '',
+    type: crawler.type || 'cheerio',
+    status: crawler.status || 'idle',
+    config: { ...DEFAULT_CRAWLER_CONFIG, ...(crawler.config || {}) },
+    request_config: { ...DEFAULT_REQUEST_CONFIG, ...(crawler.request_config || {}) },
+    autoscaling_config: {
+      enabled: true,
+      minConcurrency: 1,
+      maxConcurrency: 10,
+      desiredConcurrency: 5,
+      desiredConcurrencyRatio: 0.9,
+      scaleUpStepRatio: 0.1,
+      scaleDownStepRatio: 0.05,
+      ...(crawler.autoscaling_config || {}),
+    },
+    session_pool_config: {
+      maxPoolSize: 1000,
+      sessionOptions: {
+        maxAgeSecs: 3000,
+        maxUsageCount: 50,
+        maxErrorScore: 3,
+      },
+      ...(crawler.session_pool_config || {}),
+    },
+    proxy_config: {
+      enabled: false,
+      proxyUrls: [],
+      ...(crawler.proxy_config || {}),
+    },
+    storage_config: { ...DEFAULT_STORAGE_CONFIG, ...(crawler.storage_config || {}) },
+    request_queue_config: {
+      maxConcurrency: 1000,
+      maxRequestsPerMinute: 120,
+      autoRequestQueueCleanup: true,
+      ...(crawler.request_queue_config || {}),
+    },
+    error_handling_config: { ...DEFAULT_ERROR_HANDLING, ...(crawler.error_handling_config || {}) },
+    url_patterns: { ...DEFAULT_URL_PATTERNS, ...(crawler.url_patterns || {}) },
+    selectors: crawler.selectors || {},
+    request_handler: crawler.request_handler || null,
+    failed_request_handler: crawler.failed_request_handler || null,
+    pre_navigation_hooks: crawler.pre_navigation_hooks || [],
+    post_navigation_hooks: crawler.post_navigation_hooks || [],
+    schedule: crawler.schedule || null,
+    campaign_id: crawler.campaign_id || null,
+    seeder_service_id: crawler.seeder_service_id || null,
+    created_by: crawler.created_by || null,
+    tags: Array.isArray(crawler.tags)
+      ? crawler.tags
+      : crawler.tags
+        ? [crawler.tags].flat().filter(Boolean)
+        : [],
+    metadata:
+      crawler.metadata && typeof crawler.metadata === 'object' && !Array.isArray(crawler.metadata)
+        ? { ...crawler.metadata }
+        : {},
+    stats: { ...DEFAULT_STATS, ...(crawler.stats || {}) },
+    seeds: Array.isArray(crawler.seeds) ? crawler.seeds : [],
+    results: Array.isArray(crawler.results) ? crawler.results : [],
+    logs: Array.isArray(crawler.logs) ? crawler.logs : [],
+    created_at: createdAt,
+    updated_at: updatedAt,
+    started_at: crawler.started_at || null,
+    finished_at: crawler.finished_at || null,
+    last_run_at: crawler.last_run_at || null,
+  };
 }
 
 // Ensure DB schema exists for dev persistence
@@ -277,13 +634,11 @@ app.post('/api/rag/chat/stream', async (req, res) => {
       '[minimal-api-proxy] chat stream failed:',
       err && (err.stack || err.message || err)
     );
-    return res
-      .status(503)
-      .json({
-        success: false,
-        error: 'Failed to process chat stream',
-        details: err.message || String(err),
-      });
+    return res.status(503).json({
+      success: false,
+      error: 'Failed to process chat stream',
+      details: err.message || String(err),
+    });
   }
 });
 
@@ -463,6 +818,402 @@ app.get('/api/deepseek/executions', async (req, res) => {
     return res
       .status(500)
       .json({ success: false, error: 'Failed to read executions', details: err.message });
+  }
+});
+
+// --- Lightweight Crawlee endpoints for development ---
+app.get('/api/crawlee/crawler-types', (req, res) => {
+  return res.json({ success: true, types: DEFAULT_CRAWLER_TYPES });
+});
+
+app.get('/api/crawlee/config-template', (req, res) => {
+  return res.json({
+    success: true,
+    template: {
+      name: 'My Crawler',
+      description: 'Crawler description',
+      type: 'cheerio',
+      config: DEFAULT_CRAWLER_CONFIG,
+      url_patterns: DEFAULT_URL_PATTERNS,
+      selectors: {
+        title: 'h1',
+        description: 'meta[name="description"]',
+        content: '.main-content',
+      },
+    },
+  });
+});
+
+app.get('/api/crawlee/crawlers', async (req, res) => {
+  try {
+    const crawlers = await loadCrawlerStore();
+    const normalized = crawlers.map(normalizeCrawlerRecord);
+    return res.json({ success: true, crawlers: normalized });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to list crawlers', details: err.message });
+  }
+});
+
+app.post('/api/crawlee/crawlers', async (req, res) => {
+  try {
+    const payload = req.body || {};
+    const crawlers = await loadCrawlerStore();
+    const id = payload.id || `crawler_${Date.now()}_${randomUUID().slice(0, 8)}`;
+    const now = new Date().toISOString();
+
+    const record = normalizeCrawlerRecord({
+      id,
+      name: payload.name,
+      description: payload.description,
+      type: DEFAULT_CRAWLER_TYPES.some(t => t.id === payload.type) ? payload.type : 'cheerio',
+      status: 'idle',
+      config: { ...DEFAULT_CRAWLER_CONFIG, ...(payload.config || {}) },
+      request_config: { ...DEFAULT_REQUEST_CONFIG, ...(payload.request_config || {}) },
+      autoscaling_config: payload.autoscaling_config,
+      session_pool_config: payload.session_pool_config,
+      proxy_config: payload.proxy_config,
+      storage_config: payload.storage_config,
+      request_queue_config: payload.request_queue_config,
+      error_handling_config: payload.error_handling_config,
+      url_patterns: { ...DEFAULT_URL_PATTERNS, ...(payload.url_patterns || {}) },
+      selectors: payload.selectors || {},
+      campaign_id: payload.campaign_id || null,
+      seeder_service_id: payload.seeder_service_id || null,
+      created_by: payload.created_by || null,
+      tags: payload.tags || [],
+      metadata: payload.metadata || {},
+      stats: DEFAULT_STATS,
+      seeds: [],
+      created_at: now,
+      updated_at: now,
+    });
+
+    crawlers.unshift(record);
+    await saveCrawlerStore(crawlers);
+
+    return res.json({ success: true, crawler: record });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to create crawler', details: err.message });
+  }
+});
+
+app.get('/api/crawlee/crawlers/:id', async (req, res) => {
+  try {
+    const crawler = await getCrawlerFromStore(req.params.id);
+    if (!crawler) {
+      return res.status(404).json({ success: false, error: 'Crawler not found' });
+    }
+    return res.json({ success: true, crawler: normalizeCrawlerRecord(crawler) });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to get crawler', details: err.message });
+  }
+});
+
+app.put('/api/crawlee/crawlers/:id', async (req, res) => {
+  try {
+    const updates = req.body || {};
+    const updated = await updateCrawlerInStore(req.params.id, existing => {
+      if (!existing) return null;
+      const normalized = normalizeCrawlerRecord(existing);
+      const next = { ...normalized };
+
+      if (updates.name !== undefined) next.name = updates.name;
+      if (updates.description !== undefined) next.description = updates.description;
+      if (updates.type && DEFAULT_CRAWLER_TYPES.some(t => t.id === updates.type)) {
+        next.type = updates.type;
+      }
+      if (updates.status) next.status = updates.status;
+      if (updates.config) next.config = { ...normalized.config, ...updates.config };
+      if (updates.request_config)
+        next.request_config = { ...normalized.request_config, ...updates.request_config };
+      if (updates.autoscaling_config)
+        next.autoscaling_config = {
+          ...normalized.autoscaling_config,
+          ...updates.autoscaling_config,
+        };
+      if (updates.session_pool_config)
+        next.session_pool_config = {
+          ...normalized.session_pool_config,
+          ...updates.session_pool_config,
+        };
+      if (updates.proxy_config)
+        next.proxy_config = { ...normalized.proxy_config, ...updates.proxy_config };
+      if (updates.storage_config)
+        next.storage_config = { ...normalized.storage_config, ...updates.storage_config };
+      if (updates.request_queue_config)
+        next.request_queue_config = {
+          ...normalized.request_queue_config,
+          ...updates.request_queue_config,
+        };
+      if (updates.error_handling_config)
+        next.error_handling_config = {
+          ...normalized.error_handling_config,
+          ...updates.error_handling_config,
+        };
+      if (updates.url_patterns)
+        next.url_patterns = { ...normalized.url_patterns, ...updates.url_patterns };
+      if (updates.selectors) next.selectors = { ...normalized.selectors, ...updates.selectors };
+      if (updates.request_handler !== undefined) next.request_handler = updates.request_handler;
+      if (updates.failed_request_handler !== undefined)
+        next.failed_request_handler = updates.failed_request_handler;
+      if (updates.pre_navigation_hooks)
+        next.pre_navigation_hooks = Array.isArray(updates.pre_navigation_hooks)
+          ? updates.pre_navigation_hooks
+          : next.pre_navigation_hooks;
+      if (updates.post_navigation_hooks)
+        next.post_navigation_hooks = Array.isArray(updates.post_navigation_hooks)
+          ? updates.post_navigation_hooks
+          : next.post_navigation_hooks;
+      if (updates.schedule !== undefined) next.schedule = updates.schedule;
+      if (updates.campaign_id !== undefined) next.campaign_id = updates.campaign_id || null;
+      if (updates.seeder_service_id !== undefined)
+        next.seeder_service_id = updates.seeder_service_id || null;
+      if (updates.tags)
+        next.tags = Array.isArray(updates.tags)
+          ? updates.tags
+          : [updates.tags].flat().filter(Boolean);
+      if (updates.metadata)
+        next.metadata = {
+          ...next.metadata,
+          ...(typeof updates.metadata === 'object' && !Array.isArray(updates.metadata)
+            ? updates.metadata
+            : {}),
+        };
+      if (updates.stats)
+        next.stats = {
+          ...next.stats,
+          ...(typeof updates.stats === 'object' && !Array.isArray(updates.stats)
+            ? updates.stats
+            : {}),
+        };
+      if (updates.seeds && Array.isArray(updates.seeds)) next.seeds = updates.seeds;
+      if (updates.results && Array.isArray(updates.results)) next.results = updates.results;
+
+      if (updates.started_at !== undefined) next.started_at = updates.started_at;
+      if (updates.finished_at !== undefined) next.finished_at = updates.finished_at;
+      if (updates.last_run_at !== undefined) next.last_run_at = updates.last_run_at;
+
+      next.updated_at = new Date().toISOString();
+      return next;
+    });
+
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Crawler not found' });
+    }
+    return res.json({ success: true, crawler: normalizeCrawlerRecord(updated) });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to update crawler', details: err.message });
+  }
+});
+
+app.delete('/api/crawlee/crawlers/:id', async (req, res) => {
+  try {
+    const crawlers = await loadCrawlerStore();
+    const index = crawlers.findIndex(c => c.id === req.params.id);
+    if (index === -1) {
+      return res.status(404).json({ success: false, error: 'Crawler not found' });
+    }
+    crawlers.splice(index, 1);
+    await saveCrawlerStore(crawlers);
+    return res.json({ success: true });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to delete crawler', details: err.message });
+  }
+});
+
+app.post('/api/crawlee/crawlers/:id/start', async (req, res) => {
+  try {
+    const { seedUrls = [] } = req.body || {};
+    const updated = await updateCrawlerInStore(req.params.id, existing => {
+      if (!existing) return null;
+      const normalized = normalizeCrawlerRecord(existing);
+      const now = new Date().toISOString();
+      normalized.status = 'running';
+      normalized.started_at = now;
+      normalized.last_run_at = now;
+
+      if (Array.isArray(seedUrls) && seedUrls.length > 0) {
+        const newSeeds = seedUrls
+          .map(url => (typeof url === 'string' ? { url } : url))
+          .filter(Boolean)
+          .map(seed => ({
+            url: seed.url,
+            label: seed.label || null,
+            added_at: now,
+            status: 'pending',
+            userData: seed.userData || seed.user_data || null,
+          }));
+        normalized.seeds = [...normalized.seeds, ...newSeeds];
+      }
+
+      return { ...normalized, updated_at: now };
+    });
+
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Crawler not found' });
+    }
+
+    return res.json({ success: true, crawler: normalizeCrawlerRecord(updated) });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to start crawler', details: err.message });
+  }
+});
+
+app.post('/api/crawlee/crawlers/:id/pause', async (req, res) => {
+  try {
+    const updated = await updateCrawlerInStore(req.params.id, existing => {
+      if (!existing) return null;
+      const normalized = normalizeCrawlerRecord(existing);
+      normalized.status = 'paused';
+      normalized.updated_at = new Date().toISOString();
+      return normalized;
+    });
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Crawler not found' });
+    }
+    return res.json({ success: true, crawler: normalizeCrawlerRecord(updated) });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to pause crawler', details: err.message });
+  }
+});
+
+app.post('/api/crawlee/crawlers/:id/resume', async (req, res) => {
+  try {
+    const updated = await updateCrawlerInStore(req.params.id, existing => {
+      if (!existing) return null;
+      const normalized = normalizeCrawlerRecord(existing);
+      normalized.status = 'running';
+      normalized.updated_at = new Date().toISOString();
+      return normalized;
+    });
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Crawler not found' });
+    }
+    return res.json({ success: true, crawler: normalizeCrawlerRecord(updated) });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to resume crawler', details: err.message });
+  }
+});
+
+app.post('/api/crawlee/crawlers/:id/stop', async (req, res) => {
+  try {
+    const updated = await updateCrawlerInStore(req.params.id, existing => {
+      if (!existing) return null;
+      const normalized = normalizeCrawlerRecord(existing);
+      normalized.status = 'idle';
+      normalized.finished_at = new Date().toISOString();
+      normalized.updated_at = normalized.finished_at;
+      return normalized;
+    });
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Crawler not found' });
+    }
+    return res.json({ success: true, crawler: normalizeCrawlerRecord(updated) });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to stop crawler', details: err.message });
+  }
+});
+
+app.get('/api/crawlee/crawlers/:id/stats', async (req, res) => {
+  try {
+    const crawler = await getCrawlerFromStore(req.params.id);
+    if (!crawler) {
+      return res.status(404).json({ success: false, error: 'Crawler not found' });
+    }
+    const normalized = normalizeCrawlerRecord(crawler);
+    return res.json({ success: true, stats: normalized.stats });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to get stats', details: err.message });
+  }
+});
+
+app.post('/api/crawlee/crawlers/:id/seeds', async (req, res) => {
+  try {
+    const seedsPayload = req.body?.seeds || [];
+    if (!Array.isArray(seedsPayload) || seedsPayload.length === 0) {
+      return res.status(400).json({ success: false, error: 'seeds array is required' });
+    }
+
+    const updated = await updateCrawlerInStore(req.params.id, existing => {
+      if (!existing) return null;
+      const normalized = normalizeCrawlerRecord(existing);
+      const now = new Date().toISOString();
+      const additions = seedsPayload
+        .map(seed => (typeof seed === 'string' ? { url: seed } : seed))
+        .filter(seed => seed && seed.url)
+        .map(seed => ({
+          url: seed.url,
+          label: seed.label || null,
+          priority: seed.priority || 0,
+          status: seed.status || 'pending',
+          added_at: now,
+          userData: seed.userData || seed.user_data || null,
+        }));
+
+      normalized.seeds = [...normalized.seeds, ...additions];
+      normalized.updated_at = now;
+      return normalized;
+    });
+
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Crawler not found' });
+    }
+
+    return res.json({ success: true, seeds: normalizeCrawlerRecord(updated).seeds });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to add seeds', details: err.message });
+  }
+});
+
+app.get('/api/crawlee/crawlers/:id/results', async (req, res) => {
+  try {
+    const crawler = await getCrawlerFromStore(req.params.id);
+    if (!crawler) {
+      return res.status(404).json({ success: false, error: 'Crawler not found' });
+    }
+    const normalized = normalizeCrawlerRecord(crawler);
+    return res.json({ success: true, results: normalized.results || [] });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to get results', details: err.message });
+  }
+});
+
+app.get('/api/crawlee/crawlers/:id/logs', async (req, res) => {
+  try {
+    const crawler = await getCrawlerFromStore(req.params.id);
+    if (!crawler) {
+      return res.status(404).json({ success: false, error: 'Crawler not found' });
+    }
+    const normalized = normalizeCrawlerRecord(crawler);
+    return res.json({ success: true, logs: normalized.logs || [] });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to get logs', details: err.message });
   }
 });
 
