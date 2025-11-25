@@ -401,11 +401,12 @@ export class CodebaseEmbeddingIndexer extends EventEmitter {
         
         chunkIndex++;
         
-        // Start new chunk with overlap
-        const overlapLines = Math.ceil(overlap / (chunkSize / currentChunk.length));
-        currentChunk = currentChunk.slice(-overlapLines);
+        // Start new chunk with overlap (avoid division by zero)
+        const avgLineSize = currentChunk.length > 0 ? chunkSize / currentChunk.length : chunkSize;
+        const overlapLines = avgLineSize > 0 ? Math.ceil(overlap / avgLineSize) : 0;
+        currentChunk = currentChunk.slice(-Math.max(overlapLines, 1));
         currentSize = currentChunk.join('\n').length;
-        startLine = i - overlapLines;
+        startLine = i - Math.min(overlapLines, currentChunk.length);
       }
       
       currentChunk.push(line);

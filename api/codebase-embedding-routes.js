@@ -19,8 +19,8 @@
  */
 
 import { Router } from 'express';
-import { CodebaseEmbeddingIndexer, createCodebaseEmbeddingIndexer } from './codebase-embedding-indexer.js';
-import { EMBEDDING_MODELS, DEFAULT_MODELS } from './ollama-embedding-service.js';
+import { createCodebaseEmbeddingIndexer } from '../services/rag/codebase-embedding-indexer.js';
+import { EMBEDDING_MODELS, DEFAULT_MODELS } from '../services/rag/ollama-embedding-service.js';
 
 const router = Router();
 
