@@ -815,6 +815,16 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load embeddings routes:', err);
       });
 
+    // Import and register Codebase Embedding Indexer routes (mxbai-embed-large)
+    import('./api/codebase-embedding-routes.js')
+      .then(codebaseModule => {
+        this.app.use('/api/codebase-index', codebaseModule.default);
+        console.log('✅ Codebase embedding index routes registered (mxbai-embed-large)');
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to load codebase embedding routes:', err.message);
+      });
+
     // Import and register Workflow Wizard routes
     import('./api/workflow-wizard-routes.js')
       .then(wizardModule => {
