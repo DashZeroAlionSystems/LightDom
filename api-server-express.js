@@ -853,6 +853,23 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.error('Failed to load neural network dashboard routes:', err);
+      });
+
+    // Import and register Pretrained Model Training routes
+    import('./api/pretrained-model-training-routes.js')
+      .then(pretrainedModule => {
+        const pretrainedRouter = pretrainedModule.default || pretrainedModule.createPretrainedModelRoutes;
+        if (typeof pretrainedRouter === 'function') {
+          this.app.use('/api', pretrainedRouter(this.pool));
+        } else {
+          this.app.use('/api', pretrainedRouter);
+        }
+        console.log('✅ Pretrained Model Training routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load pretrained model training routes:', err);
+      });
+
     // Import and register Data Stream routes
     import('./api/data-stream-routes.js')
       .then(streamModule => {
