@@ -305,8 +305,21 @@ export function createUnifiedRAGRouter(options = {}) {
       const fs = await import('fs/promises');
       const path = await import('path');
       
+      // Extract file extensions from glob patterns
+      const getExtensions = (patternList) => {
+        return patternList
+          .filter(p => p.includes('*.'))
+          .map(p => {
+            const match = p.match(/\*(\.[a-zA-Z0-9]+)$/);
+            return match ? match[1] : null;
+          })
+          .filter(Boolean);
+      };
+      
+      const validExtensions = getExtensions(patterns);
+      
       // Simple recursive file finder
-      const findFiles = async (dir, pattern) => {
+      const findFiles = async (dir) => {
         const files = [];
         
         const walkDir = async (currentDir) => {
@@ -323,11 +336,10 @@ export function createUnifiedRAGRouter(options = {}) {
               if (entry.isDirectory()) {
                 await walkDir(fullPath);
               } else if (entry.isFile()) {
-                // Check if matches any pattern
+                // Check if file extension matches any pattern
                 const ext = path.extname(entry.name);
-                const extensions = patterns.map(p => p.replace('**/*', ''));
                 
-                if (extensions.some(e => e === ext)) {
+                if (validExtensions.includes(ext)) {
                   files.push(fullPath);
                   if (files.length >= maxFiles) return;
                 }
@@ -342,7 +354,7 @@ export function createUnifiedRAGRouter(options = {}) {
         return files;
       };
       
-      const files = await findFiles(rootDir, patterns);
+      const files = await findFiles(rootDir);
       let indexed = 0;
       const errors = [];
       

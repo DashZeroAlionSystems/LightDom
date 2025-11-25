@@ -167,25 +167,30 @@ class DocumentProcessor {
       
       // Find the matching closing brace
       const start = match.index;
-      let braceCount = 0;
+      let braceCount = 1; // Start at 1 because the declaration already has an opening brace
       let end = match.index + match[1].length;
       
       for (let i = match.index + match[1].length; i < content.length; i++) {
-        if (content[i] === '{') braceCount++;
-        else if (content[i] === '}') {
+        if (content[i] === '{') {
+          braceCount++;
+        } else if (content[i] === '}') {
+          braceCount--;
           if (braceCount === 0) {
             end = i + 1;
             break;
           }
-          braceCount--;
         }
       }
+      
+      // Extract name from declaration (e.g., "function myFunc" -> "myFunc", "class MyClass" -> "MyClass")
+      const wordMatches = match[1].match(/\b(function|class|const|async)\s+(\w+)/);
+      const name = wordMatches?.[2] || 'unknown';
       
       sections.push({
         type: 'function_or_class',
         content: content.slice(start, end).trim(),
         startIndex: start,
-        name: match[1].match(/\w+/g)?.[1] || 'unknown',
+        name,
       });
       
       lastIndex = end;
@@ -312,19 +317,27 @@ class DocumentProcessor {
   }
 
   /**
-   * Detect programming language
+   * Detect programming language with priority ordering
+   * More specific patterns are checked first to avoid false positives
    */
   detectLanguage(content) {
-    const patterns = {
-      javascript: /(?:import|export|const|let|var|function|=>\s*\{)/,
-      typescript: /(?:interface|type\s+\w+\s*=|:\s*\w+\[\]|<\w+>)/,
-      python: /(?:def\s+\w+|import\s+\w+|from\s+\w+\s+import|class\s+\w+:)/,
-      java: /(?:public\s+class|private\s+|protected\s+|void\s+)/,
-      go: /(?:func\s+\w+|package\s+\w+|import\s+\()/,
-      rust: /(?:fn\s+\w+|pub\s+fn|impl\s+\w+|struct\s+\w+)/,
-    };
+    // Ordered by specificity - more specific patterns first
+    const patterns = [
+      // TypeScript - check before JavaScript (has more specific syntax)
+      { lang: 'typescript', pattern: /(?:interface\s+\w+|type\s+\w+\s*=|:\s*\w+\[\]|<\w+>|:\s*string|:\s*number|:\s*boolean)/ },
+      // Rust - very specific syntax
+      { lang: 'rust', pattern: /(?:fn\s+\w+\s*\(|pub\s+fn|impl\s+\w+|struct\s+\w+\s*\{|let\s+mut\s+)/ },
+      // Go - specific patterns
+      { lang: 'go', pattern: /(?:func\s+\w+\s*\(|package\s+\w+\s*\n|import\s+\()/ },
+      // Python - indentation-based syntax
+      { lang: 'python', pattern: /(?:def\s+\w+\s*\(.*\)\s*:|from\s+\w+\s+import|class\s+\w+.*:)/ },
+      // Java - class-based with modifiers
+      { lang: 'java', pattern: /(?:public\s+class|private\s+\w+\s+\w+|protected\s+|void\s+\w+\s*\()/ },
+      // JavaScript - general patterns (checked last among specific languages)
+      { lang: 'javascript', pattern: /(?:import\s+\{|export\s+(?:default\s+)?(?:function|class|const)|const\s+\w+\s*=|let\s+\w+\s*=|=>\s*\{)/ },
+    ];
     
-    for (const [lang, pattern] of Object.entries(patterns)) {
+    for (const { lang, pattern } of patterns) {
       if (pattern.test(content)) {
         return lang;
       }
@@ -449,8 +462,15 @@ class DocumentProcessor {
     while (start < content.length) {
       const end = Math.min(start + size, content.length);
       chunks.push(content.slice(start, end));
-      start = end - overlap;
-      if (start >= content.length - overlap) break;
+      
+      // If we've reached the end of content, stop
+      if (end >= content.length) break;
+      
+      // Move start forward, ensuring we make progress
+      const nextStart = end - overlap;
+      
+      // Prevent infinite loop by ensuring start always increases
+      start = Math.max(nextStart, start + 1);
     }
     
     return chunks;
