@@ -1,16 +1,20 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Send, Sparkles, FileText, Image as ImageIcon } from 'lucide-react';
+import { Send, Sparkles, FileText, Image as ImageIcon, Code, Search, X } from 'lucide-react';
 import { Button } from './Button';
 
 export interface PromptInputProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  onSend?: (value: string) => void;
+  onSend?: (value: string, context?: string) => void;
   loading?: boolean;
   showExamples?: boolean;
   maxLength?: number;
   aiModel?: string;
   onModelChange?: (model: string) => void;
   supportedModels?: string[];
+  /** Enable codebase context integration */
+  enableCodebaseContext?: boolean;
+  /** Callback when codebase context is requested */
+  onCodebaseContextRequest?: (query: string) => Promise<{ context: string; files: string[] } | null>;
 }
 
 export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProps>(
