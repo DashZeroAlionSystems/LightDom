@@ -197,17 +197,17 @@ class PretrainedModelTrainingService extends EventEmitter {
         $8, $9, $10, $11, 'active')
       RETURNING *
     `, [
-      name,
-      description || `Training pipeline for ${pretrainedModel.name}`,
-      clientId,
-      sourceType,
-      JSON.stringify({ crawler: true, realtime: sourceType === 'crawler' }),
-      neuralNetworkId,
-      pretrainedModelId,
-      JSON.stringify(finalTrainingConfig),
-      scheduleType,
-      this.config.minTrainingDataPoints,
-      this.config.qualityThreshold
+      name,                                                              // $1: name
+      description || `Training pipeline for ${pretrainedModel.name}`,   // $2: description
+      clientId,                                                          // $3: client_id
+      sourceType,                                                        // $4: source_type
+      JSON.stringify({ crawler: true, realtime: sourceType === 'crawler' }), // $5: source_config
+      neuralNetworkId,                                                   // $6: neural_network_id
+      pretrainedModelId,                                                 // $7: pretrained_model_id (used in subquery)
+      JSON.stringify(finalTrainingConfig),                               // $8: training_config
+      scheduleType,                                                      // $9: schedule_type
+      this.config.minTrainingDataPoints,                                 // $10: min_data_points
+      this.config.qualityThreshold                                       // $11: quality_threshold
     ]);
 
     const pipeline = result.rows[0];
@@ -490,9 +490,8 @@ class PretrainedModelTrainingService extends EventEmitter {
       console.log(`   - Final accuracy: ${(finalMetrics.accuracy * 100).toFixed(2)}%`);
 
       return finalMetrics;
-
-    } catch (error) {
-      throw error;
+    } finally {
+      // Cleanup is handled by the session management
     }
   }
 
@@ -589,11 +588,24 @@ class PretrainedModelTrainingService extends EventEmitter {
    * Make inference with pretrained model
    */
   async predict(neuralNetworkId, input, options = {}) {
+    // Find session specifically for the requested neural network ID
     const session = Array.from(this.trainingSessions.values())
-      .find(s => s.pipelineId && s.status === 'completed');
+      .find(s => {
+        // Check if this session is for the requested neural network
+        const matchesNeuralNetwork = s.trainer && 
+          s.status === 'completed';
+        
+        // If we have pipeline info, verify it matches the neural network
+        if (s.pipelineId && this.activePipelines.has(s.pipelineId)) {
+          const pipeline = this.activePipelines.get(s.pipelineId);
+          return matchesNeuralNetwork && pipeline.neural_network_id === neuralNetworkId;
+        }
+        
+        return matchesNeuralNetwork;
+      });
 
     if (!session || !session.trainer) {
-      throw new Error('No trained model available for inference');
+      throw new Error(`No trained model available for neural network: ${neuralNetworkId}`);
     }
 
     const startTime = Date.now();

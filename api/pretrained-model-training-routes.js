@@ -334,8 +334,12 @@ export function createPretrainedModelRoutes(dbPool) {
         paramIndex++;
       }
       
+      // Validate and parse limit with fallback to default
+      const parsedLimit = parseInt(limit, 10);
+      const validLimit = Number.isNaN(parsedLimit) || parsedLimit < 1 ? 50 : Math.min(parsedLimit, 1000);
+      
       query += ` LIMIT $${paramIndex}`;
-      params.push(parseInt(limit));
+      params.push(validLimit);
       
       const result = await dbPool.query(query, params);
       
