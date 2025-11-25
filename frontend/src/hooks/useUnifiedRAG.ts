@@ -3,6 +3,13 @@
  * 
  * Provides seamless integration between the PromptInput component
  * and the unified RAG service.
+ * 
+ * Enhanced Features:
+ * - Multimodal support (images via DeepSeek OCR)
+ * - Hybrid search (keyword + semantic)
+ * - Document versioning
+ * - Streaming tool execution
+ * - Agent mode with planning
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -14,12 +21,36 @@ export interface Message {
 }
 
 export interface RAGConfig {
-  mode: 'assistant' | 'developer' | 'codebase';
+  mode: 'assistant' | 'developer' | 'codebase' | 'agent';
   includeDatabase: boolean;
   includeCodebase: boolean;
+  hybridSearch?: boolean;
   temperature?: number;
   maxTokens?: number;
   topK?: number;
+}
+
+export interface RAGFeatures {
+  multimodal: {
+    enabled: boolean;
+    ocrEndpoint?: string;
+    supportedTypes?: string[];
+  };
+  hybridSearch: {
+    enabled: boolean;
+    semanticWeight?: number;
+    keywordWeight?: number;
+  };
+  versioning: {
+    enabled: boolean;
+    maxVersions?: number;
+  };
+  agent: {
+    enabled: boolean;
+    planningEnabled?: boolean;
+    availableTools?: string[];
+    maxSteps?: number;
+  };
 }
 
 export interface RAGHealth {
@@ -32,6 +63,27 @@ export interface RAGHealth {
   vectorStore?: {
     status: string;
   };
+  ocr?: {
+    status: string;
+    endpoint?: string;
+  };
+  agent?: {
+    status: string;
+    planningEnabled?: boolean;
+    availableTools?: string[];
+  };
+  features?: RAGFeatures;
+}
+
+export interface AgentEvent {
+  type: 'planning_start' | 'planning_complete' | 'step_start' | 'step_complete' | 'plan_complete' | 'plan_aborted' | 'error';
+  step?: number;
+  action?: string;
+  tool?: string;
+  success?: boolean;
+  result?: unknown;
+  error?: string;
+  plan?: unknown[];
 }
 
 export interface UseUnifiedRAGOptions {
@@ -47,6 +99,7 @@ export interface UseUnifiedRAGResult {
   isLoading: boolean;
   error: string | null;
   health: RAGHealth | null;
+  features: RAGFeatures | null;
   currentConfig: RAGConfig;
   
   // Actions
@@ -56,6 +109,13 @@ export interface UseUnifiedRAGResult {
   updateConfig: (config: Partial<RAGConfig>) => void;
   checkHealth: () => Promise<RAGHealth>;
   
+  // Enhanced Actions (NEW)
+  indexImage: (file: File, options?: { title?: string; language?: string }) => Promise<{ documentId: string; chunksIndexed: number }>;
+  hybridSearch: (query: string, options?: { limit?: number; semanticWeight?: number; keywordWeight?: number }) => Promise<unknown[]>;
+  getDocumentVersions: (documentId: string) => Promise<unknown[]>;
+  executeAgentTask: (task: string, context?: Record<string, unknown>) => Promise<unknown>;
+  streamAgentTask: (task: string, onEvent: (event: AgentEvent) => void, context?: Record<string, unknown>) => Promise<void>;
+  
   // Context
   lastRetrievedDocs: unknown[];
 }
@@ -64,6 +124,7 @@ const DEFAULT_CONFIG: RAGConfig = {
   mode: 'assistant',
   includeDatabase: true,
   includeCodebase: true,
+  hybridSearch: false,
   temperature: 0.7,
   maxTokens: 4096,
   topK: 5,
@@ -310,6 +371,164 @@ export function useUnifiedRAG(options: UseUnifiedRAGOptions = {}): UseUnifiedRAG
     setCurrentConfig(prev => ({ ...prev, ...config }));
   }, []);
 
+  // ==================== NEW ENHANCED FUNCTIONS ====================
+
+  // Features state
+  const [features, setFeatures] = useState<RAGFeatures | null>(null);
+
+  // Fetch features on mount
+  useEffect(() => {
+    const fetchFeatures = async () => {
+      try {
+        const response = await fetch(`${apiBase}/features`);
+        if (response.ok) {
+          const data = await response.json();
+          setFeatures(data.features);
+        } else {
+          console.warn('Failed to fetch RAG features:', response.status);
+          // Set default features to indicate unavailable state
+          setFeatures({
+            multimodal: { enabled: false },
+            hybridSearch: { enabled: false },
+            versioning: { enabled: false },
+            agent: { enabled: false },
+          });
+        }
+      } catch (err) {
+        console.warn('Error fetching RAG features:', err instanceof Error ? err.message : 'Unknown error');
+        // Set default features to indicate unavailable state
+        setFeatures({
+          multimodal: { enabled: false },
+          hybridSearch: { enabled: false },
+          versioning: { enabled: false },
+          agent: { enabled: false },
+        });
+      }
+    };
+    fetchFeatures();
+  }, [apiBase]);
+
+  // Index image using OCR (NEW)
+  const indexImage = useCallback(async (
+    file: File,
+    options?: { title?: string; language?: string }
+  ): Promise<{ documentId: string; chunksIndexed: number }> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    if (options?.title) formData.append('title', options.title);
+    if (options?.language) formData.append('language', options.language);
+
+    const response = await fetch(`${apiBase}/index/image`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Image indexing failed');
+    }
+
+    return response.json();
+  }, [apiBase]);
+
+  // Hybrid search (NEW)
+  const hybridSearch = useCallback(async (
+    query: string,
+    options?: { limit?: number; semanticWeight?: number; keywordWeight?: number }
+  ): Promise<unknown[]> => {
+    const response = await fetch(`${apiBase}/search/hybrid`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, ...options }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Hybrid search failed');
+    }
+
+    const data = await response.json();
+    return data.results;
+  }, [apiBase]);
+
+  // Get document versions (NEW)
+  const getDocumentVersions = useCallback(async (documentId: string): Promise<unknown[]> => {
+    const response = await fetch(`${apiBase}/document/${encodeURIComponent(documentId)}/versions`);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to get document versions');
+    }
+
+    const data = await response.json();
+    return data.versions;
+  }, [apiBase]);
+
+  // Execute agent task (NEW)
+  const executeAgentTask = useCallback(async (
+    task: string,
+    context?: Record<string, unknown>
+  ): Promise<unknown> => {
+    const response = await fetch(`${apiBase}/agent/execute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task, context }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Agent execution failed');
+    }
+
+    return response.json();
+  }, [apiBase]);
+
+  // Stream agent task (NEW)
+  const streamAgentTask = useCallback(async (
+    task: string,
+    onEvent: (event: AgentEvent) => void,
+    context?: Record<string, unknown>
+  ): Promise<void> => {
+    const response = await fetch(`${apiBase}/agent/stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task, context }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Agent stream failed');
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('No response body');
+
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n');
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+
+        try {
+          const event = JSON.parse(data) as AgentEvent;
+          onEvent(event);
+        } catch (parseError) {
+          // Log parsing errors for debugging but continue processing
+          console.debug('Failed to parse agent event:', data.substring(0, 100), parseError);
+        }
+      }
+    }
+  }, [apiBase]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -324,12 +543,19 @@ export function useUnifiedRAG(options: UseUnifiedRAGOptions = {}): UseUnifiedRAG
     isLoading,
     error,
     health,
+    features,
     currentConfig,
     sendPrompt,
     streamPrompt,
     clearConversation,
     updateConfig,
     checkHealth,
+    // Enhanced functions
+    indexImage,
+    hybridSearch,
+    getDocumentVersions,
+    executeAgentTask,
+    streamAgentTask,
     lastRetrievedDocs,
   };
 }

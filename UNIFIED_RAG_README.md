@@ -28,6 +28,31 @@ This is a clean, unified RAG (Retrieval-Augmented Generation) system designed fr
 - Llama 3.3 (large community)
 - Easy model switching via configuration
 
+### 5. **Multimodal Support** (NEW)
+- Image OCR via DeepSeek-OCR
+- Automatic text extraction from images
+- Vision token compression for efficiency
+
+### 6. **Hybrid Search** (NEW)
+- Combines semantic (vector) and keyword (full-text) search
+- Configurable weighting between search methods
+- Better recall for diverse queries
+
+### 7. **Document Versioning** (NEW)
+- Track changes to indexed documents
+- Automatic version history
+- Skip re-indexing for unchanged content
+
+### 8. **Streaming Tool Execution** (NEW)
+- Real-time updates during tool execution
+- Progress tracking for long-running operations
+- Abortable operations
+
+### 9. **Agent Mode with Planning** (NEW)
+- Task decomposition into executable steps
+- Tool execution (file, git, project, system)
+- Plan monitoring and error handling
+
 ## Architecture
 
 ```
@@ -37,7 +62,8 @@ This is a clean, unified RAG (Retrieval-Augmented Generation) system designed fr
 │  │   PromptInput     │  │      useUnifiedRAG Hook         │ │
 │  │   Component       │──│  - sendPrompt()                 │ │
 │  │                   │  │  - streamPrompt()               │ │
-│  └───────────────────┘  │  - conversation state           │ │
+│  └───────────────────┘  │  - indexImage() (NEW)           │ │
+│                         │  - streamAgentTask() (NEW)      │ │
 │                         └─────────────────────────────────┘ │
 └─────────────────────────┬───────────────────────────────────┘
                           │ /api/unified-rag
@@ -50,25 +76,34 @@ This is a clean, unified RAG (Retrieval-Augmented Generation) system designed fr
 │  │  - Content type detection                             │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │  ContextBuilder                                       │   │
-│  │  - Retrieved docs context                             │   │
-│  │  - Database schema context                            │   │
-│  │  - Codebase structure context                         │   │
+│  │  ImageProcessor (NEW - Multimodal)                    │   │
+│  │  - OCR processing via DeepSeek-OCR                    │   │
+│  │  - Vision token compression                           │   │
 │  └──────────────────────────────────────────────────────┘   │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │  LLMClient                                            │   │
-│  │  - Ollama (local)                                     │   │
-│  │  - DeepSeek API (remote)                              │   │
-│  │  - Streaming support                                  │   │
+│  │  HybridSearchEngine (NEW)                             │   │
+│  │  - Semantic + Keyword search                          │   │
+│  │  - Configurable weighting                             │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  AgentPlanner (NEW)                                   │   │
+│  │  - Task planning with LLM                             │   │
+│  │  - Tool execution (file, git, project, system)        │   │
+│  │  - Streaming execution updates                        │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  DocumentVersionManager (NEW)                         │   │
+│  │  - Version tracking                                   │   │
+│  │  - Change detection                                   │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────┬───────────────────────────────────┘
                           │
-          ┌───────────────┴───────────────┐
-          │                               │
-   ┌──────▼──────┐              ┌────────▼────────┐
-   │  PostgreSQL │              │     Ollama      │
-   │  + pgvector │              │  DeepSeek R1    │
-   └─────────────┘              └─────────────────┘
+    ┌─────────────────────┼─────────────────────┐
+    │                     │                     │
+┌───▼────┐          ┌────▼─────┐         ┌─────▼─────┐
+│PostgreSQL│         │  Ollama  │         │ OCR Worker │
+│+ pgvector│         │DeepSeek R1│        │(DeepSeek-OCR)│
+└──────────┘         └──────────┘         └───────────┘
 ```
 
 ## Quick Start
@@ -160,6 +195,19 @@ function RAGChat() {
     // await sendPrompt(prompt);
   };
 
+  // NEW: Index an image
+  const handleImageUpload = async (file: File) => {
+    const result = await indexImage(file, { title: file.name });
+    console.log('Indexed:', result.documentId);
+  };
+
+  // NEW: Execute agent task
+  const handleAgentTask = async (task: string) => {
+    await streamAgentTask(task, (event) => {
+      console.log('Agent event:', event);
+    });
+  };
+
   return (
     <div>
       <div className="messages">
@@ -186,7 +234,7 @@ function RAGChat() {
 
 ## API Reference
 
-### Endpoints
+### Core Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -203,20 +251,85 @@ function RAGChat() {
 | POST | `/config` | Update config |
 | GET | `/models` | List available models |
 
+### Enhanced Endpoints (NEW)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/index/image` | Index image using OCR (Multimodal) |
+| POST | `/search/hybrid` | Hybrid search (semantic + keyword) |
+| GET | `/document/:id/versions` | Get document version history |
+| POST | `/agent/execute` | Execute agent task with planning |
+| POST | `/agent/stream` | Stream agent task execution (SSE) |
+| GET | `/features` | Get enabled features status |
+
 ### Chat Request Body
 
 ```typescript
 {
   prompt: string;           // User's message
   conversationId?: string;  // For conversation continuity
-  mode?: 'assistant' | 'developer' | 'codebase';
+  mode?: 'assistant' | 'developer' | 'codebase' | 'agent';
   includeDatabase?: boolean;
   includeCodebase?: boolean;
+  hybridSearch?: boolean;   // NEW: Enable hybrid search
   stream?: boolean;
   temperature?: number;
   maxTokens?: number;
   topK?: number;
 }
+```
+
+### Image Index Request (NEW)
+
+```bash
+# Index an image using OCR
+curl -X POST http://localhost:3001/api/unified-rag/index/image \
+  -F "image=@document.png" \
+  -F "title=My Document" \
+  -F "language=en"
+```
+
+### Hybrid Search Request (NEW)
+
+```typescript
+{
+  query: string;
+  limit?: number;
+  semanticWeight?: number;  // Default: 0.7
+  keywordWeight?: number;   // Default: 0.3
+  minScore?: number;
+}
+```
+
+### Agent Task Request (NEW)
+
+```typescript
+{
+  task: string;             // Task description
+  context?: {               // Optional context
+    cwd?: string;
+    files?: string[];
+  };
+}
+```
+
+### Agent Stream Events (NEW)
+
+```typescript
+// Planning start
+{ type: 'planning_start', task: string }
+
+// Planning complete
+{ type: 'planning_complete', success: boolean, plan: Step[] }
+
+// Step start
+{ type: 'step_start', step: number, action: string, tool: string }
+
+// Step complete
+{ type: 'step_complete', step: number, success: boolean, result: any }
+
+// Plan complete
+{ type: 'plan_complete', totalSteps: number, executedSteps: number }
 ```
 
 ### Stream Response Events

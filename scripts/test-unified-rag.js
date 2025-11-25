@@ -70,6 +70,11 @@ test('Service has expected methods', async () => {
     'updateConfig',
     'getConversation',
     'clearConversation',
+    // NEW enhanced methods
+    'indexImage',
+    'getDocumentVersions',
+    'executeAgentTask',
+    'streamAgentTask',
   ];
   
   for (const method of expectedMethods) {
@@ -100,13 +105,17 @@ test('Can import unified RAG router', async () => {
   if (!createUnifiedRAGRouter) throw new Error('createUnifiedRAGRouter not exported');
 });
 
-// Test 6: Config has correct structure
+// Test 6: Config has correct structure (including new features)
 test('Config has correct structure', async () => {
   const { createUnifiedRAGService } = await import('../services/rag/unified-rag-service.js');
   const service = createUnifiedRAGService();
   const config = service.getConfig();
   
-  const requiredSections = ['llm', 'embedding', 'processing', 'vectorStore', 'context', 'endpoints'];
+  const requiredSections = [
+    'llm', 'embedding', 'processing', 'vectorStore', 'context', 'endpoints',
+    // NEW sections
+    'hybridSearch', 'multimodal', 'versioning', 'agent'
+  ];
   for (const section of requiredSections) {
     if (!config[section]) {
       throw new Error(`Missing config section: ${section}`);
@@ -118,7 +127,7 @@ test('Config has correct structure', async () => {
   if (!config.llm.provider) throw new Error('LLM provider not configured');
 });
 
-// Test 7: Health check returns proper structure
+// Test 7: Health check returns proper structure (with new features)
 test('Health check returns proper structure', async () => {
   const { createUnifiedRAGService } = await import('../services/rag/unified-rag-service.js');
   const service = createUnifiedRAGService({
@@ -131,6 +140,10 @@ test('Health check returns proper structure', async () => {
   if (!health.llm) throw new Error('LLM health missing');
   if (!health.vectorStore) throw new Error('VectorStore health missing');
   if (!health.stats) throw new Error('Stats missing');
+  // NEW: Check enhanced health properties
+  if (!health.features) throw new Error('Features status missing');
+  if (!health.ocr) throw new Error('OCR status missing');
+  if (!health.agent) throw new Error('Agent status missing');
 });
 
 // Test 8: Config can be updated
@@ -148,6 +161,51 @@ test('Config can be updated', async () => {
   if (newConfig.llm.model !== 'test-model') {
     throw new Error('Config update failed');
   }
+});
+
+// Test 9: NEW - Agent planner exists
+test('Agent planner is available', async () => {
+  const { createUnifiedRAGService } = await import('../services/rag/unified-rag-service.js');
+  const service = createUnifiedRAGService();
+  
+  const config = service.getConfig();
+  if (!config.agent) throw new Error('Agent config missing');
+  if (typeof config.agent.enabled !== 'boolean') throw new Error('Agent enabled flag missing');
+  if (!config.agent.tools || !Array.isArray(config.agent.tools)) throw new Error('Agent tools missing');
+});
+
+// Test 10: NEW - Hybrid search config exists
+test('Hybrid search configuration exists', async () => {
+  const { createUnifiedRAGService } = await import('../services/rag/unified-rag-service.js');
+  const service = createUnifiedRAGService();
+  
+  const config = service.getConfig();
+  if (!config.hybridSearch) throw new Error('Hybrid search config missing');
+  if (typeof config.hybridSearch.enabled !== 'boolean') throw new Error('Hybrid search enabled flag missing');
+  if (typeof config.hybridSearch.semanticWeight !== 'number') throw new Error('Semantic weight missing');
+  if (typeof config.hybridSearch.keywordWeight !== 'number') throw new Error('Keyword weight missing');
+});
+
+// Test 11: NEW - Multimodal config exists
+test('Multimodal configuration exists', async () => {
+  const { createUnifiedRAGService } = await import('../services/rag/unified-rag-service.js');
+  const service = createUnifiedRAGService();
+  
+  const config = service.getConfig();
+  if (!config.multimodal) throw new Error('Multimodal config missing');
+  if (typeof config.multimodal.enabled !== 'boolean') throw new Error('Multimodal enabled flag missing');
+  if (!config.multimodal.ocrEndpoint) throw new Error('OCR endpoint missing');
+});
+
+// Test 12: NEW - Versioning config exists
+test('Versioning configuration exists', async () => {
+  const { createUnifiedRAGService } = await import('../services/rag/unified-rag-service.js');
+  const service = createUnifiedRAGService();
+  
+  const config = service.getConfig();
+  if (!config.versioning) throw new Error('Versioning config missing');
+  if (typeof config.versioning.enabled !== 'boolean') throw new Error('Versioning enabled flag missing');
+  if (typeof config.versioning.maxVersions !== 'number') throw new Error('Max versions missing');
 });
 
 // Run all tests

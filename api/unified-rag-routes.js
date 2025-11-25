@@ -22,12 +22,36 @@ export function createUnifiedRAGRouter(options = {}) {
   const router = express.Router();
   const { db, logger = console } = options;
   
-  // Configure multer for file uploads
+  // Allowed file types for security
+  const ALLOWED_FILE_TYPES = [
+    'text/plain', 'text/markdown', 'text/x-markdown',
+    'application/json', 'application/javascript',
+    'text/javascript', 'text/typescript',
+    'text/html', 'text/css',
+  ];
+  
+  const ALLOWED_IMAGE_TYPES = [
+    'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif',
+  ];
+  
+  // File filter for validation
+  const fileFilter = (req, file, cb) => {
+    const isAllowed = [...ALLOWED_FILE_TYPES, ...ALLOWED_IMAGE_TYPES].includes(file.mimetype);
+    if (isAllowed) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type not allowed: ${file.mimetype}`), false);
+    }
+  };
+  
+  // Configure multer for file uploads with security
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 50 * 1024 * 1024, // 50MB
+      fileSize: 25 * 1024 * 1024, // 25MB max (reduced for security)
+      files: 1, // Only one file at a time
     },
+    fileFilter,
   });
   
   // Initialize RAG service
@@ -551,6 +575,201 @@ export function createUnifiedRAGRouter(options = {}) {
           { name: 'qwen2.5:14b', description: 'Fast, high quality, Apache 2.0 license' },
           { name: 'llama3.3:70b', description: 'Strong general purpose' },
         ],
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ==================== NEW ENHANCED ROUTES ====================
+
+  /**
+   * POST /index/image
+   * Index an image using OCR (NEW - Multimodal support)
+   */
+  router.post('/index/image', upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'image file is required' });
+      }
+      
+      const result = await ragService.indexImage(req.file.buffer, {
+        documentId: req.body.documentId,
+        title: req.body.title || req.file.originalname,
+        language: req.body.language,
+        metadata: {
+          originalName: req.file.originalname,
+          mimeType: req.file.mimetype,
+          size: req.file.size,
+        },
+      });
+      
+      if (!result.success && result.error) {
+        return res.status(422).json({
+          status: 'error',
+          error: result.error,
+        });
+      }
+      
+      res.json({
+        status: 'ok',
+        ...result,
+      });
+    } catch (error) {
+      logger.error('Image indexing failed:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * POST /search/hybrid
+   * Hybrid search combining semantic and keyword search (NEW)
+   */
+  router.post('/search/hybrid', async (req, res) => {
+    try {
+      const { query, limit = 5, semanticWeight, keywordWeight, minScore } = req.body;
+      
+      if (!query) {
+        return res.status(400).json({ error: 'query is required' });
+      }
+      
+      const results = await ragService.search(query, {
+        limit,
+        hybrid: true,
+        semanticWeight,
+        keywordWeight,
+        minScore,
+      });
+      
+      res.json({
+        status: 'ok',
+        results,
+        searchType: 'hybrid',
+      });
+    } catch (error) {
+      logger.error('Hybrid search failed:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * GET /document/:id/versions
+   * Get version history for a document (NEW - Document versioning)
+   */
+  router.get('/document/:id/versions', async (req, res) => {
+    try {
+      const versions = await ragService.getDocumentVersions(req.params.id);
+      
+      res.json({
+        status: 'ok',
+        documentId: req.params.id,
+        versions,
+        totalVersions: versions.length,
+      });
+    } catch (error) {
+      logger.error('Version history failed:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * POST /agent/execute
+   * Execute an agent task with planning (NEW - Agent mode)
+   */
+  router.post('/agent/execute', async (req, res) => {
+    try {
+      const { task, context } = req.body;
+      
+      if (!task) {
+        return res.status(400).json({ error: 'task is required' });
+      }
+      
+      const result = await ragService.executeAgentTask(task, { context });
+      
+      res.json({
+        status: result.success ? 'ok' : 'error',
+        ...result,
+      });
+    } catch (error) {
+      logger.error('Agent execution failed:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * POST /agent/stream
+   * Stream agent task execution (NEW - Streaming tool execution)
+   */
+  router.post('/agent/stream', async (req, res) => {
+    try {
+      const { task, context } = req.body;
+      
+      if (!task) {
+        return res.status(400).json({ error: 'task is required' });
+      }
+      
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders?.();
+      
+      try {
+        for await (const event of ragService.streamAgentTask(task, { context })) {
+          res.write(`data: ${JSON.stringify(event)}\n\n`);
+        }
+        
+        res.write('data: [DONE]\n\n');
+        res.end();
+      } catch (error) {
+        res.write(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`);
+        res.end();
+      }
+      
+      req.on('close', () => {
+        try {
+          res.end();
+        } catch {
+          // Ignore
+        }
+      });
+    } catch (error) {
+      logger.error('Agent stream failed:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * GET /features
+   * Get enabled features status (NEW)
+   */
+  router.get('/features', async (req, res) => {
+    try {
+      const config = ragService.getConfig();
+      
+      res.json({
+        status: 'ok',
+        features: {
+          multimodal: {
+            enabled: config.multimodal?.enabled || false,
+            ocrEndpoint: config.multimodal?.ocrEndpoint,
+            supportedTypes: config.multimodal?.supportedImageTypes,
+          },
+          hybridSearch: {
+            enabled: config.hybridSearch?.enabled || false,
+            semanticWeight: config.hybridSearch?.semanticWeight,
+            keywordWeight: config.hybridSearch?.keywordWeight,
+          },
+          versioning: {
+            enabled: config.versioning?.enabled || false,
+            maxVersions: config.versioning?.maxVersions,
+          },
+          agent: {
+            enabled: config.agent?.enabled || false,
+            planningEnabled: config.agent?.planningEnabled,
+            availableTools: config.agent?.tools,
+            maxSteps: config.agent?.maxSteps,
+          },
+        },
       });
     } catch (error) {
       res.status(500).json({ error: error.message });

@@ -8,13 +8,36 @@
  * - Database and codebase access for context
  * - Support for multiple LLM backends (DeepSeek, Llama, Qwen)
  * 
+ * Enhanced Features:
+ * - Multimodal support (images via DeepSeek OCR)
+ * - Hybrid search (keyword + semantic)
+ * - Document versioning
+ * - Streaming tool execution
+ * - Agent mode with planning
+ * 
  * @module services/rag/unified-rag-service
  */
 
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import fs from 'fs/promises';
 import path from 'path';
 import { EventEmitter } from 'events';
+
+// Import deepseek tools with fallback for environments where it may not be available
+let deepseekTools = null;
+try {
+  const toolsModule = await import('./deepseek-tools.js');
+  deepseekTools = toolsModule.deepseekTools || toolsModule.default;
+} catch (error) {
+  console.warn('DeepSeek tools not available:', error.message);
+  deepseekTools = {
+    command: () => Promise.resolve({ success: false, error: 'Tools not available' }),
+    git: {},
+    file: {},
+    project: {},
+    system: {},
+  };
+}
 
 /**
  * Unified RAG Service Configuration
@@ -43,14 +66,46 @@ const DEFAULT_CONFIG = {
     chunkOverlap: 200,
     preserveStructure: true, // Keep document structure
     extractMetadata: true,
-    supportedFormats: ['text', 'markdown', 'code', 'json', 'html'],
+    supportedFormats: ['text', 'markdown', 'code', 'json', 'html', 'image'],
   },
   
   // Vector Store
   vectorStore: {
     tableName: 'rag_documents',
+    versionsTableName: 'rag_document_versions', // NEW: for versioning
     topK: 5,
     minScore: 0.6,
+  },
+  
+  // Hybrid Search Configuration (NEW)
+  hybridSearch: {
+    enabled: true,
+    semanticWeight: 0.7, // Weight for semantic search
+    keywordWeight: 0.3,  // Weight for keyword search
+    minKeywordScore: 0.3,
+  },
+  
+  // Multimodal Configuration (NEW)
+  multimodal: {
+    enabled: true,
+    ocrEndpoint: process.env.OCR_WORKER_ENDPOINT || 'http://localhost:8000',
+    supportedImageTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/gif'],
+    maxImageSize: 25 * 1024 * 1024, // 25MB
+  },
+  
+  // Document Versioning (NEW)
+  versioning: {
+    enabled: true,
+    maxVersions: 10, // Keep last 10 versions per document
+    trackChanges: true,
+  },
+  
+  // Agent Configuration (NEW)
+  agent: {
+    enabled: true,
+    planningEnabled: true,
+    maxSteps: 10, // Maximum planning steps
+    tools: ['file', 'git', 'project', 'system'], // Available tool categories
   },
   
   // Context Sources
@@ -67,6 +122,524 @@ const DEFAULT_CONFIG = {
     deepseek: process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1',
   },
 };
+
+/**
+ * Image Processor - Multimodal support via DeepSeek OCR
+ */
+class ImageProcessor {
+  constructor(config) {
+    this.config = config;
+  }
+
+  /**
+   * Process image using OCR
+   * @param {Buffer|string} imageData - Image buffer or base64 string
+   * @param {Object} options - Processing options
+   * @returns {Promise<Object>} Extracted text and metadata
+   */
+  async processImage(imageData, options = {}) {
+    const ocrEndpoint = this.config.multimodal?.ocrEndpoint || 'http://localhost:8000';
+    
+    try {
+      // Prepare base64 data
+      let base64Data;
+      if (Buffer.isBuffer(imageData)) {
+        base64Data = `data:image/png;base64,${imageData.toString('base64')}`;
+      } else if (typeof imageData === 'string') {
+        base64Data = imageData.startsWith('data:') ? imageData : `data:image/png;base64,${imageData}`;
+      } else {
+        throw new Error('Invalid image data format');
+      }
+
+      const response = await fetch(`${ocrEndpoint}/ocr`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          base64Data,
+          languageHint: options.language || 'en',
+          compressionRatio: options.compressionRatio || 0.1,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OCR request failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      return {
+        text: result.text || '',
+        confidence: result.confidence || 0,
+        language: result.language,
+        blocks: result.blocks || [],
+        metadata: {
+          type: 'image',
+          processedAt: new Date().toISOString(),
+          ocrModel: result.model || 'unknown',
+          latencyMs: result.latencyMs,
+        },
+      };
+    } catch (error) {
+      console.warn('OCR processing failed:', error.message);
+      return {
+        text: '',
+        confidence: 0,
+        error: error.message,
+        metadata: { type: 'image', error: true },
+      };
+    }
+  }
+
+  /**
+   * Check if OCR service is available
+   */
+  async checkOCRAvailability() {
+    try {
+      const ocrEndpoint = this.config.multimodal?.ocrEndpoint || 'http://localhost:8000';
+      const response = await fetch(`${ocrEndpoint}/health`, { method: 'GET' });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
+/**
+ * Hybrid Search Engine - Combines keyword and semantic search
+ */
+class HybridSearchEngine {
+  constructor(config, db) {
+    this.config = config;
+    this.db = db;
+  }
+
+  /**
+   * Perform keyword search using PostgreSQL full-text search
+   */
+  async keywordSearch(query, options = {}) {
+    if (!this.db) return [];
+    
+    const limit = options.limit || this.config.vectorStore.topK;
+    const tableName = this.config.vectorStore.tableName;
+    
+    // Use PostgreSQL's to_tsquery for keyword search
+    const sql = `
+      SELECT id, document_id, chunk_index, content, metadata,
+             ts_rank(to_tsvector('english', content), plainto_tsquery('english', $1)) AS score
+      FROM ${tableName}
+      WHERE to_tsvector('english', content) @@ plainto_tsquery('english', $1)
+      ORDER BY score DESC
+      LIMIT $2
+    `;
+    
+    try {
+      const { rows } = await this.db.query(sql, [query, limit]);
+      return rows;
+    } catch (error) {
+      console.warn('Keyword search failed:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Combine semantic and keyword search results
+   */
+  combineResults(semanticResults, keywordResults, options = {}) {
+    const semanticWeight = options.semanticWeight ?? this.config.hybridSearch?.semanticWeight ?? 0.7;
+    const keywordWeight = options.keywordWeight ?? this.config.hybridSearch?.keywordWeight ?? 0.3;
+    
+    // Create a map to combine scores
+    const combined = new Map();
+    
+    // Add semantic results
+    for (const result of semanticResults) {
+      combined.set(result.id, {
+        ...result,
+        semanticScore: result.score,
+        keywordScore: 0,
+        combinedScore: result.score * semanticWeight,
+      });
+    }
+    
+    // Add/update with keyword results
+    for (const result of keywordResults) {
+      const existing = combined.get(result.id);
+      if (existing) {
+        existing.keywordScore = result.score;
+        existing.combinedScore = 
+          existing.semanticScore * semanticWeight + result.score * keywordWeight;
+      } else {
+        combined.set(result.id, {
+          ...result,
+          semanticScore: 0,
+          keywordScore: result.score,
+          combinedScore: result.score * keywordWeight,
+        });
+      }
+    }
+    
+    // Sort by combined score and return
+    return Array.from(combined.values())
+      .sort((a, b) => b.combinedScore - a.combinedScore)
+      .slice(0, options.limit || this.config.vectorStore.topK);
+  }
+}
+
+/**
+ * Document Version Manager - Track document changes
+ */
+class DocumentVersionManager {
+  constructor(config, db) {
+    this.config = config;
+    this.db = db;
+  }
+
+  /**
+   * Initialize versioning tables
+   */
+  async initializeVersionTable() {
+    if (!this.db || !this.config.versioning?.enabled) return;
+    
+    const tableName = this.config.vectorStore.versionsTableName || 'rag_document_versions';
+    
+    const ddl = `
+      CREATE TABLE IF NOT EXISTS ${tableName} (
+        id TEXT PRIMARY KEY,
+        document_id TEXT NOT NULL,
+        version INTEGER NOT NULL,
+        content_hash TEXT NOT NULL,
+        chunk_count INTEGER DEFAULT 0,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(document_id, version)
+      )
+    `;
+    
+    try {
+      await this.db.query(ddl);
+    } catch (error) {
+      console.warn('Version table creation failed:', error.message);
+    }
+  }
+
+  /**
+   * Create a new version for a document
+   */
+  async createVersion(documentId, content, metadata = {}) {
+    if (!this.db || !this.config.versioning?.enabled) {
+      return { version: 1, isNew: true };
+    }
+    
+    const tableName = this.config.vectorStore.versionsTableName || 'rag_document_versions';
+    const contentHash = crypto.createHash('sha256').update(content).digest('hex');
+    
+    // Get current version
+    const versionResult = await this.db.query(
+      `SELECT MAX(version) as max_version, content_hash 
+       FROM ${tableName} 
+       WHERE document_id = $1
+       GROUP BY content_hash
+       ORDER BY MAX(version) DESC
+       LIMIT 1`,
+      [documentId]
+    );
+    
+    const currentVersion = versionResult.rows[0]?.max_version || 0;
+    const lastHash = versionResult.rows[0]?.content_hash;
+    
+    // Check if content has changed
+    if (lastHash === contentHash) {
+      return { version: currentVersion, isNew: false, unchanged: true };
+    }
+    
+    const newVersion = currentVersion + 1;
+    const versionId = `${documentId}::v${newVersion}`;
+    
+    // Insert new version
+    await this.db.query(
+      `INSERT INTO ${tableName} (id, document_id, version, content_hash, metadata)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [versionId, documentId, newVersion, contentHash, JSON.stringify(metadata)]
+    );
+    
+    // Cleanup old versions if exceeding limit
+    const maxVersions = this.config.versioning?.maxVersions || 10;
+    await this.db.query(
+      `DELETE FROM ${tableName} 
+       WHERE document_id = $1 
+         AND version <= $2 - $3`,
+      [documentId, newVersion, maxVersions]
+    );
+    
+    return { version: newVersion, isNew: true, contentHash };
+  }
+
+  /**
+   * Get version history for a document
+   */
+  async getVersionHistory(documentId) {
+    if (!this.db) return [];
+    
+    const tableName = this.config.vectorStore.versionsTableName || 'rag_document_versions';
+    
+    const { rows } = await this.db.query(
+      `SELECT version, content_hash, chunk_count, metadata, created_at
+       FROM ${tableName}
+       WHERE document_id = $1
+       ORDER BY version DESC`,
+      [documentId]
+    );
+    
+    return rows;
+  }
+}
+
+/**
+ * Agent Planner - Planning and tool execution for agent mode
+ */
+class AgentPlanner {
+  constructor(config, llmClient) {
+    this.config = config;
+    this.llmClient = llmClient;
+    this.tools = deepseekTools;
+  }
+
+  /**
+   * Create an execution plan for a task
+   */
+  async createPlan(task, context = {}) {
+    const planningPrompt = `You are an AI agent that can execute tasks using available tools.
+
+AVAILABLE TOOLS:
+1. file.read(filePath) - Read a file
+2. file.write(filePath, content) - Write to a file
+3. file.list(dirPath) - List directory contents
+4. git.status() - Get git status
+5. git.diff() - Get git diff
+6. git.log() - Get commit log
+7. project.getInfo() - Get project information
+8. system.getInfo() - Get system information
+
+TASK: ${task}
+
+CONTEXT: ${JSON.stringify(context)}
+
+Create a step-by-step plan to accomplish this task. For each step, specify:
+1. The action to take
+2. The tool to use (if any)
+3. The expected outcome
+
+Return your plan as a JSON array with this structure:
+[
+  {
+    "step": 1,
+    "action": "description of action",
+    "tool": "tool.method" or null,
+    "params": {} or null,
+    "expectedOutcome": "what we expect to happen"
+  }
+]
+
+Only return the JSON array, no other text.`;
+
+    try {
+      const response = await this.llmClient.chat([
+        { role: 'system', content: 'You are a planning agent. Always respond with valid JSON.' },
+        { role: 'user', content: planningPrompt },
+      ], { temperature: 0.3 });
+
+      // Robust JSON extraction with multiple strategies
+      let plan = null;
+      
+      // Strategy 1: Try to parse the entire response as JSON
+      try {
+        plan = JSON.parse(response.trim());
+        if (!Array.isArray(plan)) plan = null;
+      } catch {
+        // Not valid JSON, try extraction strategies
+      }
+      
+      // Strategy 2: Extract JSON array using regex
+      if (!plan) {
+        // Find the outermost matching brackets
+        const startIdx = response.indexOf('[');
+        if (startIdx !== -1) {
+          let bracketCount = 0;
+          let endIdx = -1;
+          
+          for (let i = startIdx; i < response.length; i++) {
+            if (response[i] === '[') bracketCount++;
+            else if (response[i] === ']') {
+              bracketCount--;
+              if (bracketCount === 0) {
+                endIdx = i + 1;
+                break;
+              }
+            }
+          }
+          
+          if (endIdx !== -1) {
+            try {
+              plan = JSON.parse(response.slice(startIdx, endIdx));
+            } catch {
+              // Failed to parse extracted JSON
+            }
+          }
+        }
+      }
+      
+      // Strategy 3: Look for JSON in code blocks
+      if (!plan) {
+        const codeBlockMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          try {
+            plan = JSON.parse(codeBlockMatch[1].trim());
+          } catch {
+            // Failed to parse code block content
+          }
+        }
+      }
+      
+      if (Array.isArray(plan) && plan.length > 0) {
+        return {
+          success: true,
+          plan,
+          totalSteps: plan.length,
+        };
+      }
+      
+      throw new Error('Could not parse valid plan from response');
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        plan: [],
+      };
+    }
+  }
+
+  /**
+   * Execute a single step of the plan
+   */
+  async executeStep(step) {
+    if (!step.tool) {
+      return {
+        success: true,
+        result: 'No tool execution required',
+        step: step.step,
+      };
+    }
+
+    try {
+      // Parse tool path (e.g., "file.read" -> ["file", "read"])
+      const toolPath = step.tool.split('.');
+      
+      // Validate tool path (whitelist approach for security)
+      const allowedToolCategories = ['file', 'git', 'project', 'system'];
+      if (!allowedToolCategories.includes(toolPath[0])) {
+        throw new Error(`Tool category not allowed: ${toolPath[0]}`);
+      }
+      
+      let tool = this.tools;
+      
+      for (const part of toolPath) {
+        // Validate part contains only safe characters
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(part)) {
+          throw new Error(`Invalid tool path component: ${part}`);
+        }
+        tool = tool[part];
+        if (!tool) {
+          throw new Error(`Tool not found: ${step.tool}`);
+        }
+      }
+
+      if (typeof tool !== 'function') {
+        throw new Error(`${step.tool} is not a function`);
+      }
+
+      // Validate and sanitize parameters
+      const params = step.params || {};
+      const sanitizedParams = {};
+      
+      // Only allow known parameter types
+      for (const [key, value] of Object.entries(params)) {
+        if (typeof key !== 'string' || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
+          throw new Error(`Invalid parameter name: ${key}`);
+        }
+        // Only allow primitive types and arrays
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || Array.isArray(value)) {
+          sanitizedParams[key] = value;
+        } else {
+          throw new Error(`Invalid parameter type for ${key}`);
+        }
+      }
+      
+      // Execute the tool with sanitized parameters
+      const result = await tool(...Object.values(sanitizedParams));
+      
+      return {
+        success: true,
+        result,
+        step: step.step,
+        tool: step.tool,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        step: step.step,
+        tool: step.tool,
+      };
+    }
+  }
+
+  /**
+   * Execute a full plan with streaming updates
+   */
+  async *executePlan(plan) {
+    const maxSteps = this.config.agent?.maxSteps || 10;
+    const results = [];
+
+    for (let i = 0; i < Math.min(plan.length, maxSteps); i++) {
+      const step = plan[i];
+      
+      yield {
+        type: 'step_start',
+        step: step.step,
+        action: step.action,
+        tool: step.tool,
+      };
+
+      const result = await this.executeStep(step);
+      results.push(result);
+
+      yield {
+        type: 'step_complete',
+        step: step.step,
+        success: result.success,
+        result: result.result,
+        error: result.error,
+      };
+
+      // Stop on error if critical
+      if (!result.success && step.critical) {
+        yield {
+          type: 'plan_aborted',
+          reason: `Critical step ${step.step} failed: ${result.error}`,
+        };
+        break;
+      }
+    }
+
+    yield {
+      type: 'plan_complete',
+      totalSteps: plan.length,
+      executedSteps: results.length,
+      successfulSteps: results.filter(r => r.success).length,
+      results,
+    };
+  }
+}
 
 /**
  * Document Processor - Docling-style structured extraction
@@ -897,9 +1470,16 @@ export class UnifiedRAGService extends EventEmitter {
     this.db = options.db || null;
     this.logger = options.logger || console;
     
+    // Core components
     this.documentProcessor = new DocumentProcessor(this.config.processing);
     this.contextBuilder = new ContextBuilder(this.config, this.db);
     this.llmClient = new LLMClient(this.config);
+    
+    // Enhanced components (NEW)
+    this.imageProcessor = new ImageProcessor(this.config);
+    this.hybridSearch = new HybridSearchEngine(this.config, this.db);
+    this.versionManager = new DocumentVersionManager(this.config, this.db);
+    this.agentPlanner = new AgentPlanner(this.config, this.llmClient);
     
     // Conversation state
     this.conversations = new Map();
@@ -908,6 +1488,8 @@ export class UnifiedRAGService extends EventEmitter {
     this.stats = {
       queriesProcessed: 0,
       documentsIndexed: 0,
+      imagesProcessed: 0,
+      toolExecutions: 0,
       averageResponseTime: 0,
     };
   }
@@ -935,12 +1517,25 @@ export class UnifiedRAGService extends EventEmitter {
   async initialize() {
     if (this.db) {
       await this.initializeVectorStore();
+      
+      // Initialize versioning table (NEW)
+      if (this.config.versioning?.enabled) {
+        await this.versionManager.initializeVersionTable();
+      }
     }
     
     // Check LLM availability
     const available = await this.llmClient.checkAvailability();
     if (!available) {
       this.logger.warn('LLM provider not available. Some features may not work.');
+    }
+    
+    // Check OCR availability (NEW)
+    if (this.config.multimodal?.enabled) {
+      const ocrAvailable = await this.imageProcessor.checkOCRAvailability();
+      if (!ocrAvailable) {
+        this.logger.warn('OCR service not available. Image processing will be disabled.');
+      }
     }
     
     this.emit('initialized');
@@ -992,6 +1587,25 @@ export class UnifiedRAGService extends EventEmitter {
     const documentId = options.documentId || crypto.randomUUID();
     const title = options.title || 'Untitled';
     
+    // Create version if versioning is enabled (NEW)
+    let versionInfo = { version: 1, isNew: true };
+    if (this.config.versioning?.enabled && this.db) {
+      versionInfo = await this.versionManager.createVersion(documentId, content, {
+        title,
+        type: options.type,
+      });
+      
+      // If content hasn't changed, skip re-indexing
+      if (versionInfo.unchanged) {
+        return {
+          documentId,
+          chunksIndexed: 0,
+          metadata: { unchanged: true, version: versionInfo.version },
+          version: versionInfo.version,
+        };
+      }
+    }
+    
     // Process document
     const processed = await this.documentProcessor.process(content, options);
     
@@ -1030,6 +1644,7 @@ export class UnifiedRAGService extends EventEmitter {
                 ...chunk.metadata,
                 ...processed.metadata,
                 title,
+                version: versionInfo.version, // Include version in metadata
               }),
               `[${embedding.join(',')}]`,
             ]
@@ -1051,11 +1666,12 @@ export class UnifiedRAGService extends EventEmitter {
       documentId,
       chunksIndexed: processed.chunks.length,
       metadata: processed.metadata,
+      version: versionInfo.version,
     };
   }
 
   /**
-   * Search for relevant documents
+   * Search for relevant documents (supports hybrid search)
    */
   async search(query, options = {}) {
     if (!this.db) {
@@ -1064,10 +1680,12 @@ export class UnifiedRAGService extends EventEmitter {
     
     const limit = options.limit || this.config.vectorStore.topK;
     const minScore = options.minScore ?? this.config.vectorStore.minScore;
+    const useHybrid = options.hybrid ?? this.config.hybridSearch?.enabled ?? false;
     
-    // Generate query embedding
+    // Generate query embedding for semantic search
     const [queryEmbedding] = await this.llmClient.embed([query]);
     
+    // Semantic search
     const sql = `
       SELECT id, document_id, chunk_index, content, metadata,
              1 - (embedding <=> $1) AS score
@@ -1076,12 +1694,141 @@ export class UnifiedRAGService extends EventEmitter {
       LIMIT $2
     `;
     
-    const { rows } = await this.db.query(sql, [
+    const { rows: semanticResults } = await this.db.query(sql, [
       `[${queryEmbedding.join(',')}]`,
-      limit,
+      limit * 2, // Get more for hybrid combination
     ]);
     
-    return rows.filter(row => row.score >= minScore);
+    // If hybrid search is enabled, combine with keyword search
+    if (useHybrid) {
+      const keywordResults = await this.hybridSearch.keywordSearch(query, { limit: limit * 2 });
+      const combinedResults = this.hybridSearch.combineResults(
+        semanticResults,
+        keywordResults,
+        { limit, ...options }
+      );
+      return combinedResults.filter(row => row.combinedScore >= minScore);
+    }
+    
+    return semanticResults.filter(row => row.score >= minScore).slice(0, limit);
+  }
+
+  /**
+   * Index an image using OCR (NEW)
+   */
+  async indexImage(imageData, options = {}) {
+    if (!this.config.multimodal?.enabled) {
+      throw new Error('Multimodal support is not enabled');
+    }
+    
+    // Process image with OCR
+    const ocrResult = await this.imageProcessor.processImage(imageData, options);
+    
+    if (!ocrResult.text) {
+      return {
+        success: false,
+        error: ocrResult.error || 'No text extracted from image',
+      };
+    }
+    
+    // Index the extracted text
+    const indexResult = await this.indexDocument(ocrResult.text, {
+      ...options,
+      type: 'image',
+      metadata: {
+        ...options.metadata,
+        ...ocrResult.metadata,
+        confidence: ocrResult.confidence,
+      },
+    });
+    
+    this.stats.imagesProcessed++;
+    
+    return {
+      ...indexResult,
+      ocrConfidence: ocrResult.confidence,
+      extractedBlocks: ocrResult.blocks?.length || 0,
+    };
+  }
+
+  /**
+   * Get document version history (NEW)
+   */
+  async getDocumentVersions(documentId) {
+    return this.versionManager.getVersionHistory(documentId);
+  }
+
+  /**
+   * Execute agent task with planning (NEW)
+   */
+  async executeAgentTask(task, options = {}) {
+    if (!this.config.agent?.enabled) {
+      throw new Error('Agent mode is not enabled');
+    }
+    
+    // Create a plan for the task
+    const { success, plan, error } = await this.agentPlanner.createPlan(task, options.context || {});
+    
+    if (!success) {
+      return {
+        success: false,
+        error: `Planning failed: ${error}`,
+      };
+    }
+    
+    // Execute the plan
+    const results = [];
+    for await (const event of this.agentPlanner.executePlan(plan)) {
+      results.push(event);
+      this.emit('agent-event', event);
+      
+      if (event.type === 'step_complete') {
+        this.stats.toolExecutions++;
+      }
+    }
+    
+    return {
+      success: true,
+      plan,
+      execution: results,
+    };
+  }
+
+  /**
+   * Stream agent task execution (NEW)
+   */
+  async *streamAgentTask(task, options = {}) {
+    if (!this.config.agent?.enabled) {
+      throw new Error('Agent mode is not enabled');
+    }
+    
+    yield {
+      type: 'planning_start',
+      task,
+    };
+    
+    // Create a plan for the task
+    const planResult = await this.agentPlanner.createPlan(task, options.context || {});
+    
+    yield {
+      type: 'planning_complete',
+      success: planResult.success,
+      plan: planResult.plan,
+      error: planResult.error,
+    };
+    
+    if (!planResult.success) {
+      return;
+    }
+    
+    // Execute the plan with streaming
+    for await (const event of this.agentPlanner.executePlan(planResult.plan)) {
+      yield event;
+      
+      if (event.type === 'step_complete') {
+        this.stats.toolExecutions++;
+      }
+    }
   }
 
   /**
@@ -1097,9 +1844,10 @@ export class UnifiedRAGService extends EventEmitter {
       context: {},
     };
     
-    // Search for relevant documents
+    // Search for relevant documents (with optional hybrid search)
     const retrieved = await this.search(prompt, {
       limit: options.topK || 5,
+      hybrid: options.hybridSearch,
     });
     
     // Build context
@@ -1298,6 +2046,14 @@ Additional Codebase Expert Mode:
       status: 'healthy',
       llm: { status: 'unknown' },
       vectorStore: { status: 'unknown' },
+      ocr: { status: 'unknown' },       // NEW
+      agent: { status: 'unknown' },      // NEW
+      features: {                        // NEW
+        multimodal: this.config.multimodal?.enabled || false,
+        hybridSearch: this.config.hybridSearch?.enabled || false,
+        versioning: this.config.versioning?.enabled || false,
+        agentMode: this.config.agent?.enabled || false,
+      },
       stats: this.stats,
     };
     
@@ -1327,6 +2083,33 @@ Additional Codebase Expert Mode:
       status.vectorStore = { status: 'not_configured' };
     }
     
+    // Check OCR service (NEW)
+    if (this.config.multimodal?.enabled) {
+      try {
+        const ocrAvailable = await this.imageProcessor.checkOCRAvailability();
+        status.ocr = {
+          status: ocrAvailable ? 'healthy' : 'unavailable',
+          endpoint: this.config.multimodal.ocrEndpoint,
+        };
+      } catch (error) {
+        status.ocr = { status: 'error', error: error.message };
+      }
+    } else {
+      status.ocr = { status: 'disabled' };
+    }
+    
+    // Check agent tools (NEW)
+    if (this.config.agent?.enabled) {
+      status.agent = {
+        status: 'healthy',
+        planningEnabled: this.config.agent.planningEnabled,
+        availableTools: this.config.agent.tools,
+        maxSteps: this.config.agent.maxSteps,
+      };
+    } else {
+      status.agent = { status: 'disabled' };
+    }
+    
     return status;
   }
 
@@ -1346,6 +2129,9 @@ Additional Codebase Expert Mode:
     // Re-initialize clients with new config
     this.llmClient = new LLMClient(this.config);
     this.contextBuilder = new ContextBuilder(this.config, this.db);
+    this.imageProcessor = new ImageProcessor(this.config);
+    this.hybridSearch = new HybridSearchEngine(this.config, this.db);
+    this.agentPlanner = new AgentPlanner(this.config, this.llmClient);
     
     this.emit('config-updated', this.config);
   }
