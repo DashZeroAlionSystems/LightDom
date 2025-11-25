@@ -220,7 +220,8 @@ class HybridSearchEngine {
     if (!this.db) return [];
     
     const limit = options.limit || this.config.vectorStore.topK;
-    const tableName = this.config.vectorStore.tableName;
+    // Table name is from configuration, not user input - sanitize for safety
+    const tableName = this.sanitizeIdentifier(this.config.vectorStore.tableName);
     
     // Use PostgreSQL's to_tsquery for keyword search
     const sql = `
@@ -239,6 +240,17 @@ class HybridSearchEngine {
       console.warn('Keyword search failed:', error.message);
       return [];
     }
+  }
+  
+  /**
+   * Sanitize SQL identifier (table/column name)
+   */
+  sanitizeIdentifier(name) {
+    // Only allow alphanumeric characters and underscores
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+      throw new Error(`Invalid SQL identifier: ${name}`);
+    }
+    return name;
   }
 
   /**
@@ -1483,6 +1495,7 @@ export class UnifiedRAGService extends EventEmitter {
     
     // Conversation state
     this.conversations = new Map();
+    this.lastCleanupTime = Date.now();
     
     // Stats
     this.stats = {
@@ -1883,11 +1896,13 @@ export class UnifiedRAGService extends EventEmitter {
       maxTokens: options.maxTokens,
     });
     
-    // Update conversation
-    conversation.messages.push(userMessage);
+    // Update conversation with timestamps
+    const timestamp = new Date().toISOString();
+    conversation.messages.push({ ...userMessage, timestamp });
     conversation.messages.push({
       role: 'assistant',
       content: response,
+      timestamp,
     });
     this.conversations.set(conversationId, conversation);
     
@@ -1975,11 +1990,13 @@ export class UnifiedRAGService extends EventEmitter {
       }
     }
     
-    // Update conversation
-    conversation.messages.push(userMessage);
+    // Update conversation with timestamps
+    const timestamp = new Date().toISOString();
+    conversation.messages.push({ ...userMessage, timestamp });
     conversation.messages.push({
       role: 'assistant',
       content: fullResponse,
+      timestamp,
     });
     this.conversations.set(conversationId, conversation);
     
@@ -2039,9 +2056,34 @@ Additional Codebase Expert Mode:
   }
 
   /**
+   * Clear old conversations to prevent memory leaks
+   * Removes conversations older than maxAge (default: 1 hour)
+   */
+  cleanupOldConversations(maxAgeMs = 60 * 60 * 1000) {
+    const now = Date.now();
+    for (const [id, conversation] of this.conversations.entries()) {
+      const lastMessage = conversation.messages[conversation.messages.length - 1];
+      if (lastMessage?.timestamp) {
+        const messageTime = new Date(lastMessage.timestamp).getTime();
+        if (now - messageTime > maxAgeMs) {
+          this.conversations.delete(id);
+        }
+      }
+    }
+  }
+
+  /**
    * Health check
    */
   async healthCheck() {
+    // Cleanup old conversations periodically (max once every 5 minutes)
+    const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+    const now = Date.now();
+    if (now - this.lastCleanupTime > CLEANUP_INTERVAL) {
+      this.cleanupOldConversations();
+      this.lastCleanupTime = now;
+    }
+    
     const status = {
       status: 'healthy',
       llm: { status: 'unknown' },
