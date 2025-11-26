@@ -1,186 +1,336 @@
 -- Migration: SEO Attributes and Vector Storage
--- Purpose: Store ~192 SEO attributes per page with pgvector embeddings
--- Requires: pgvector extension
+-- Purpose: Store SEO attributes and optional pgvector embeddings with graceful fallback when the extension is absent.
+DO $$
+DECLARE
+  vector_available BOOLEAN;
+  table_exists BOOLEAN;
+  embedding_type TEXT;
+  create_table_sql TEXT;
+BEGIN
+  vector_available := EXISTS (
+    SELECT 1
+    FROM pg_type
+    WHERE typname = 'vector'
+  );
 
--- Enable pgvector extension (requires superuser or rds_superuser role)
-CREATE EXTENSION IF NOT EXISTS vector;
+  table_exists := EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
+      AND table_name = 'seo_attributes'
+  );
 
--- SEO Attributes table (comprehensive per-page metrics)
-CREATE TABLE IF NOT EXISTS seo_attributes (
-  id BIGSERIAL PRIMARY KEY,
-  url TEXT NOT NULL,
-  crawl_session_id TEXT,
-  timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-  
-  -- META & HEAD (40+)
-  title TEXT,
-  title_length INTEGER,
-  meta_description TEXT,
-  meta_description_length INTEGER,
-  meta_keywords TEXT,
-  meta_author TEXT,
-  meta_robots TEXT,
-  meta_viewport TEXT,
-  canonical TEXT,
-  alternate TEXT,
-  prev_url TEXT,
-  next_url TEXT,
-  
-  -- Open Graph
-  og_title TEXT,
-  og_description TEXT,
-  og_image TEXT,
-  og_url TEXT,
-  og_type TEXT,
-  og_site_name TEXT,
-  og_locale TEXT,
-  
-  -- Twitter Card
-  twitter_card TEXT,
-  twitter_site TEXT,
-  twitter_creator TEXT,
-  twitter_title TEXT,
-  twitter_description TEXT,
-  twitter_image TEXT,
-  
-  -- Language
-  lang TEXT,
-  charset TEXT,
-  
-  -- Icons
-  favicon TEXT,
-  apple_touch_icon TEXT,
-  
-  -- HEADING STRUCTURE (20+)
-  h1_count INTEGER DEFAULT 0,
-  h2_count INTEGER DEFAULT 0,
-  h3_count INTEGER DEFAULT 0,
-  h4_count INTEGER DEFAULT 0,
-  h5_count INTEGER DEFAULT 0,
-  h6_count INTEGER DEFAULT 0,
-  h1_text TEXT,
-  h2_text TEXT,
-  h3_text TEXT,
-  total_headings INTEGER DEFAULT 0,
-  heading_hierarchy_valid BOOLEAN DEFAULT FALSE,
-  
-  -- CONTENT (30+)
-  body_text_length INTEGER DEFAULT 0,
-  word_count INTEGER DEFAULT 0,
-  paragraph_count INTEGER DEFAULT 0,
-  list_count INTEGER DEFAULT 0,
-  list_item_count INTEGER DEFAULT 0,
-  table_count INTEGER DEFAULT 0,
-  form_count INTEGER DEFAULT 0,
-  input_count INTEGER DEFAULT 0,
-  button_count INTEGER DEFAULT 0,
-  textarea_count INTEGER DEFAULT 0,
-  select_count INTEGER DEFAULT 0,
-  sentence_count INTEGER DEFAULT 0,
-  avg_words_per_sentence NUMERIC(10,2) DEFAULT 0,
-  
-  -- LINKS (25+)
-  total_links INTEGER DEFAULT 0,
-  internal_links_count INTEGER DEFAULT 0,
-  external_links_count INTEGER DEFAULT 0,
-  anchor_links_count INTEGER DEFAULT 0,
-  nofollow_links_count INTEGER DEFAULT 0,
-  dofollow_links_count INTEGER DEFAULT 0,
-  internal_to_external_ratio NUMERIC(10,2) DEFAULT 0,
-  empty_href_count INTEGER DEFAULT 0,
-  
-  -- IMAGES (20+)
-  total_images INTEGER DEFAULT 0,
-  images_with_alt INTEGER DEFAULT 0,
-  images_without_alt INTEGER DEFAULT 0,
-  images_with_title INTEGER DEFAULT 0,
-  images_with_lazy_load INTEGER DEFAULT 0,
-  alt_text_coverage NUMERIC(5,2) DEFAULT 0,
-  
-  -- STRUCTURED DATA (15+)
-  structured_data_count INTEGER DEFAULT 0,
-  schema_types TEXT,
-  has_article_schema BOOLEAN DEFAULT FALSE,
-  has_product_schema BOOLEAN DEFAULT FALSE,
-  has_organization_schema BOOLEAN DEFAULT FALSE,
-  has_breadcrumb_schema BOOLEAN DEFAULT FALSE,
-  itemscope_count INTEGER DEFAULT 0,
-  itemprop_count INTEGER DEFAULT 0,
-  
-  -- PERFORMANCE (15+)
-  html_size INTEGER DEFAULT 0,
-  css_link_count INTEGER DEFAULT 0,
-  js_script_count INTEGER DEFAULT 0,
-  inline_script_count INTEGER DEFAULT 0,
-  inline_style_count INTEGER DEFAULT 0,
-  prefetch_count INTEGER DEFAULT 0,
-  preconnect_count INTEGER DEFAULT 0,
-  preload_count INTEGER DEFAULT 0,
-  dns_preconnect_count INTEGER DEFAULT 0,
-  
-  -- MOBILE & ACCESSIBILITY (10+)
-  has_viewport_meta BOOLEAN DEFAULT FALSE,
-  has_apple_mobile_web_app_capable BOOLEAN DEFAULT FALSE,
-  has_theme_color BOOLEAN DEFAULT FALSE,
-  aria_label_count INTEGER DEFAULT 0,
-  aria_describedby_count INTEGER DEFAULT 0,
-  role_count INTEGER DEFAULT 0,
-  accessibility_score NUMERIC(5,2) DEFAULT 0,
-  
-  -- URL STRUCTURE (10+)
-  protocol TEXT,
-  hostname TEXT,
-  pathname TEXT,
-  pathname_length INTEGER,
-  path_depth INTEGER,
-  has_query_params BOOLEAN DEFAULT FALSE,
-  query_param_count INTEGER DEFAULT 0,
-  has_fragment BOOLEAN DEFAULT FALSE,
-  is_secure BOOLEAN DEFAULT FALSE,
-  
-  -- SOCIAL SIGNALS (8+)
-  facebook_count INTEGER DEFAULT 0,
-  twitter_count INTEGER DEFAULT 0,
-  linkedin_count INTEGER DEFAULT 0,
-  instagram_count INTEGER DEFAULT 0,
-  youtube_count INTEGER DEFAULT 0,
-  pinterest_count INTEGER DEFAULT 0,
-  social_share_count INTEGER DEFAULT 0,
-  
-  -- SECURITY & BEST PRACTICES (8+)
-  has_https_in_links BOOLEAN DEFAULT FALSE,
-  has_insecure_content BOOLEAN DEFAULT FALSE,
-  has_iframe BOOLEAN DEFAULT FALSE,
-  iframe_count INTEGER DEFAULT 0,
-  has_external_scripts BOOLEAN DEFAULT FALSE,
-  has_crossorigin_links BOOLEAN DEFAULT FALSE,
-  
-  -- COMPUTED SCORES (5+)
-  seo_score NUMERIC(5,2) DEFAULT 0,
-  content_quality_score NUMERIC(5,2) DEFAULT 0,
-  technical_score NUMERIC(5,2) DEFAULT 0,
-  overall_score NUMERIC(5,2) DEFAULT 0,
-  
-  -- Embedding vector (1536 dimensions for OpenAI ada-002 or similar)
-  embedding vector(1536),
-  
-  -- Metadata
-  raw_attributes JSONB,
-  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
+  IF NOT table_exists THEN
+    IF vector_available THEN
+      create_table_sql := $sql$
+        CREATE TABLE IF NOT EXISTS seo_attributes (
+          id BIGSERIAL PRIMARY KEY,
+          url TEXT NOT NULL,
+          crawl_session_id TEXT,
+          timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+          title TEXT,
+          title_length INTEGER,
+          meta_description TEXT,
+          meta_description_length INTEGER,
+          meta_keywords TEXT,
+          meta_author TEXT,
+          meta_robots TEXT,
+          meta_viewport TEXT,
+          canonical TEXT,
+          alternate TEXT,
+          prev_url TEXT,
+          next_url TEXT,
+          og_title TEXT,
+          og_description TEXT,
+          og_image TEXT,
+          og_url TEXT,
+          og_type TEXT,
+          og_site_name TEXT,
+          og_locale TEXT,
+          twitter_card TEXT,
+          twitter_site TEXT,
+          twitter_creator TEXT,
+          twitter_title TEXT,
+          twitter_description TEXT,
+          twitter_image TEXT,
+          lang TEXT,
+          charset TEXT,
+          favicon TEXT,
+          apple_touch_icon TEXT,
+          h1_count INTEGER DEFAULT 0,
+          h2_count INTEGER DEFAULT 0,
+          h3_count INTEGER DEFAULT 0,
+          h4_count INTEGER DEFAULT 0,
+          h5_count INTEGER DEFAULT 0,
+          h6_count INTEGER DEFAULT 0,
+          h1_text TEXT,
+          h2_text TEXT,
+          h3_text TEXT,
+          total_headings INTEGER DEFAULT 0,
+          heading_hierarchy_valid BOOLEAN DEFAULT FALSE,
+          body_text_length INTEGER DEFAULT 0,
+          word_count INTEGER DEFAULT 0,
+          paragraph_count INTEGER DEFAULT 0,
+          list_count INTEGER DEFAULT 0,
+          list_item_count INTEGER DEFAULT 0,
+          table_count INTEGER DEFAULT 0,
+          form_count INTEGER DEFAULT 0,
+          input_count INTEGER DEFAULT 0,
+          button_count INTEGER DEFAULT 0,
+          textarea_count INTEGER DEFAULT 0,
+          select_count INTEGER DEFAULT 0,
+          sentence_count INTEGER DEFAULT 0,
+          avg_words_per_sentence NUMERIC(10,2) DEFAULT 0,
+          total_links INTEGER DEFAULT 0,
+          internal_links_count INTEGER DEFAULT 0,
+          external_links_count INTEGER DEFAULT 0,
+          anchor_links_count INTEGER DEFAULT 0,
+          nofollow_links_count INTEGER DEFAULT 0,
+          dofollow_links_count INTEGER DEFAULT 0,
+          internal_to_external_ratio NUMERIC(10,2) DEFAULT 0,
+          empty_href_count INTEGER DEFAULT 0,
+          total_images INTEGER DEFAULT 0,
+          images_with_alt INTEGER DEFAULT 0,
+          images_without_alt INTEGER DEFAULT 0,
+          images_with_title INTEGER DEFAULT 0,
+          images_with_lazy_load INTEGER DEFAULT 0,
+          alt_text_coverage NUMERIC(5,2) DEFAULT 0,
+          structured_data_count INTEGER DEFAULT 0,
+          schema_types TEXT,
+          has_article_schema BOOLEAN DEFAULT FALSE,
+          has_product_schema BOOLEAN DEFAULT FALSE,
+          has_organization_schema BOOLEAN DEFAULT FALSE,
+          has_breadcrumb_schema BOOLEAN DEFAULT FALSE,
+          itemscope_count INTEGER DEFAULT 0,
+          itemprop_count INTEGER DEFAULT 0,
+          html_size INTEGER DEFAULT 0,
+          css_link_count INTEGER DEFAULT 0,
+          js_script_count INTEGER DEFAULT 0,
+          inline_script_count INTEGER DEFAULT 0,
+          inline_style_count INTEGER DEFAULT 0,
+          prefetch_count INTEGER DEFAULT 0,
+          preconnect_count INTEGER DEFAULT 0,
+          preload_count INTEGER DEFAULT 0,
+          dns_preconnect_count INTEGER DEFAULT 0,
+          has_viewport_meta BOOLEAN DEFAULT FALSE,
+          has_apple_mobile_web_app_capable BOOLEAN DEFAULT FALSE,
+          has_theme_color BOOLEAN DEFAULT FALSE,
+          aria_label_count INTEGER DEFAULT 0,
+          aria_describedby_count INTEGER DEFAULT 0,
+          role_count INTEGER DEFAULT 0,
+          accessibility_score NUMERIC(5,2) DEFAULT 0,
+          protocol TEXT,
+          hostname TEXT,
+          pathname TEXT,
+          pathname_length INTEGER,
+          path_depth INTEGER,
+          has_query_params BOOLEAN DEFAULT FALSE,
+          query_param_count INTEGER DEFAULT 0,
+          has_fragment BOOLEAN DEFAULT FALSE,
+          is_secure BOOLEAN DEFAULT FALSE,
+          facebook_count INTEGER DEFAULT 0,
+          twitter_count INTEGER DEFAULT 0,
+          linkedin_count INTEGER DEFAULT 0,
+          instagram_count INTEGER DEFAULT 0,
+          youtube_count INTEGER DEFAULT 0,
+          pinterest_count INTEGER DEFAULT 0,
+          social_share_count INTEGER DEFAULT 0,
+          has_https_in_links BOOLEAN DEFAULT FALSE,
+          has_insecure_content BOOLEAN DEFAULT FALSE,
+          has_iframe BOOLEAN DEFAULT FALSE,
+          iframe_count INTEGER DEFAULT 0,
+          has_external_scripts BOOLEAN DEFAULT FALSE,
+          has_crossorigin_links BOOLEAN DEFAULT FALSE,
+          seo_score NUMERIC(5,2) DEFAULT 0,
+          content_quality_score NUMERIC(5,2) DEFAULT 0,
+          technical_score NUMERIC(5,2) DEFAULT 0,
+          overall_score NUMERIC(5,2) DEFAULT 0,
+          embedding VECTOR(1536),
+          raw_attributes JSONB,
+          created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+        )
+      $sql$;
+    ELSE
+      create_table_sql := $sql$
+        CREATE TABLE IF NOT EXISTS seo_attributes (
+          id BIGSERIAL PRIMARY KEY,
+          url TEXT NOT NULL,
+          crawl_session_id TEXT,
+          timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+          title TEXT,
+          title_length INTEGER,
+          meta_description TEXT,
+          meta_description_length INTEGER,
+          meta_keywords TEXT,
+          meta_author TEXT,
+          meta_robots TEXT,
+          meta_viewport TEXT,
+          canonical TEXT,
+          alternate TEXT,
+          prev_url TEXT,
+          next_url TEXT,
+          og_title TEXT,
+          og_description TEXT,
+          og_image TEXT,
+          og_url TEXT,
+          og_type TEXT,
+          og_site_name TEXT,
+          og_locale TEXT,
+          twitter_card TEXT,
+          twitter_site TEXT,
+          twitter_creator TEXT,
+          twitter_title TEXT,
+          twitter_description TEXT,
+          twitter_image TEXT,
+          lang TEXT,
+          charset TEXT,
+          favicon TEXT,
+          apple_touch_icon TEXT,
+          h1_count INTEGER DEFAULT 0,
+          h2_count INTEGER DEFAULT 0,
+          h3_count INTEGER DEFAULT 0,
+          h4_count INTEGER DEFAULT 0,
+          h5_count INTEGER DEFAULT 0,
+          h6_count INTEGER DEFAULT 0,
+          h1_text TEXT,
+          h2_text TEXT,
+          h3_text TEXT,
+          total_headings INTEGER DEFAULT 0,
+          heading_hierarchy_valid BOOLEAN DEFAULT FALSE,
+          body_text_length INTEGER DEFAULT 0,
+          word_count INTEGER DEFAULT 0,
+          paragraph_count INTEGER DEFAULT 0,
+          list_count INTEGER DEFAULT 0,
+          list_item_count INTEGER DEFAULT 0,
+          table_count INTEGER DEFAULT 0,
+          form_count INTEGER DEFAULT 0,
+          input_count INTEGER DEFAULT 0,
+          button_count INTEGER DEFAULT 0,
+          textarea_count INTEGER DEFAULT 0,
+          select_count INTEGER DEFAULT 0,
+          sentence_count INTEGER DEFAULT 0,
+          avg_words_per_sentence NUMERIC(10,2) DEFAULT 0,
+          total_links INTEGER DEFAULT 0,
+          internal_links_count INTEGER DEFAULT 0,
+          external_links_count INTEGER DEFAULT 0,
+          anchor_links_count INTEGER DEFAULT 0,
+          nofollow_links_count INTEGER DEFAULT 0,
+          dofollow_links_count INTEGER DEFAULT 0,
+          internal_to_external_ratio NUMERIC(10,2) DEFAULT 0,
+          empty_href_count INTEGER DEFAULT 0,
+          total_images INTEGER DEFAULT 0,
+          images_with_alt INTEGER DEFAULT 0,
+          images_without_alt INTEGER DEFAULT 0,
+          images_with_title INTEGER DEFAULT 0,
+          images_with_lazy_load INTEGER DEFAULT 0,
+          alt_text_coverage NUMERIC(5,2) DEFAULT 0,
+          structured_data_count INTEGER DEFAULT 0,
+          schema_types TEXT,
+          has_article_schema BOOLEAN DEFAULT FALSE,
+          has_product_schema BOOLEAN DEFAULT FALSE,
+          has_organization_schema BOOLEAN DEFAULT FALSE,
+          has_breadcrumb_schema BOOLEAN DEFAULT FALSE,
+          itemscope_count INTEGER DEFAULT 0,
+          itemprop_count INTEGER DEFAULT 0,
+          html_size INTEGER DEFAULT 0,
+          css_link_count INTEGER DEFAULT 0,
+          js_script_count INTEGER DEFAULT 0,
+          inline_script_count INTEGER DEFAULT 0,
+          inline_style_count INTEGER DEFAULT 0,
+          prefetch_count INTEGER DEFAULT 0,
+          preconnect_count INTEGER DEFAULT 0,
+          preload_count INTEGER DEFAULT 0,
+          dns_preconnect_count INTEGER DEFAULT 0,
+          has_viewport_meta BOOLEAN DEFAULT FALSE,
+          has_apple_mobile_web_app_capable BOOLEAN DEFAULT FALSE,
+          has_theme_color BOOLEAN DEFAULT FALSE,
+          aria_label_count INTEGER DEFAULT 0,
+          aria_describedby_count INTEGER DEFAULT 0,
+          role_count INTEGER DEFAULT 0,
+          accessibility_score NUMERIC(5,2) DEFAULT 0,
+          protocol TEXT,
+          hostname TEXT,
+          pathname TEXT,
+          pathname_length INTEGER,
+          path_depth INTEGER,
+          has_query_params BOOLEAN DEFAULT FALSE,
+          query_param_count INTEGER DEFAULT 0,
+          has_fragment BOOLEAN DEFAULT FALSE,
+          is_secure BOOLEAN DEFAULT FALSE,
+          facebook_count INTEGER DEFAULT 0,
+          twitter_count INTEGER DEFAULT 0,
+          linkedin_count INTEGER DEFAULT 0,
+          instagram_count INTEGER DEFAULT 0,
+          youtube_count INTEGER DEFAULT 0,
+          pinterest_count INTEGER DEFAULT 0,
+          social_share_count INTEGER DEFAULT 0,
+          has_https_in_links BOOLEAN DEFAULT FALSE,
+          has_insecure_content BOOLEAN DEFAULT FALSE,
+          has_iframe BOOLEAN DEFAULT FALSE,
+          iframe_count INTEGER DEFAULT 0,
+          has_external_scripts BOOLEAN DEFAULT FALSE,
+          has_crossorigin_links BOOLEAN DEFAULT FALSE,
+          seo_score NUMERIC(5,2) DEFAULT 0,
+          content_quality_score NUMERIC(5,2) DEFAULT 0,
+          technical_score NUMERIC(5,2) DEFAULT 0,
+          overall_score NUMERIC(5,2) DEFAULT 0,
+          embedding DOUBLE PRECISION[],
+          raw_attributes JSONB,
+          created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+        )
+      $sql$;
+    END IF;
 
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_seo_attributes_url ON seo_attributes(url);
-CREATE INDEX IF NOT EXISTS idx_seo_attributes_crawl_session ON seo_attributes(crawl_session_id);
-CREATE INDEX IF NOT EXISTS idx_seo_attributes_timestamp ON seo_attributes(timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_seo_attributes_overall_score ON seo_attributes(overall_score DESC);
-CREATE INDEX IF NOT EXISTS idx_seo_attributes_hostname ON seo_attributes(hostname);
+    EXECUTE create_table_sql;
 
--- Vector similarity index (HNSW for fast approximate nearest neighbor search)
-CREATE INDEX IF NOT EXISTS idx_seo_attributes_embedding ON seo_attributes 
-USING hnsw (embedding vector_cosine_ops)
-WITH (m = 16, ef_construction = 64);
+    IF NOT vector_available THEN
+      RAISE NOTICE 'pgvector not available; seo_attributes.embedding uses double precision[] fallback.';
+    END IF;
+  ELSE
+    SELECT udt_name
+    INTO embedding_type
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'seo_attributes'
+      AND column_name = 'embedding';
+
+    IF embedding_type IS NULL THEN
+      IF vector_available THEN
+        EXECUTE 'ALTER TABLE seo_attributes ADD COLUMN embedding vector(1536)';
+      ELSE
+        EXECUTE 'ALTER TABLE seo_attributes ADD COLUMN embedding double precision[]';
+        RAISE NOTICE 'pgvector not available; added seo_attributes.embedding as double precision[].';
+      END IF;
+    END IF;
+  END IF;
+
+  EXECUTE 'CREATE INDEX IF NOT EXISTS idx_seo_attributes_url ON seo_attributes(url)';
+  EXECUTE 'CREATE INDEX IF NOT EXISTS idx_seo_attributes_crawl_session ON seo_attributes(crawl_session_id)';
+  EXECUTE 'CREATE INDEX IF NOT EXISTS idx_seo_attributes_timestamp ON seo_attributes(timestamp DESC)';
+  EXECUTE 'CREATE INDEX IF NOT EXISTS idx_seo_attributes_overall_score ON seo_attributes(overall_score DESC)';
+  EXECUTE 'CREATE INDEX IF NOT EXISTS idx_seo_attributes_hostname ON seo_attributes(hostname)';
+
+  IF vector_available THEN
+    SELECT udt_name
+    INTO embedding_type
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'seo_attributes'
+      AND column_name = 'embedding';
+
+    IF embedding_type = 'vector' THEN
+      EXECUTE 'CREATE INDEX IF NOT EXISTS idx_seo_attributes_embedding ON seo_attributes USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 64)';
+    ELSE
+      RAISE NOTICE 'Vector type available but embedding column uses %, skipping vector similarity index.', embedding_type;
+    END IF;
+  ELSE
+    RAISE NOTICE 'pgvector not available; skipping vector similarity index creation for seo_attributes.';
+  END IF;
+END;
+$$;
+
 
 -- SEO Training Data table (aggregated/prepared datasets for ML)
 CREATE TABLE IF NOT EXISTS seo_training_data (
@@ -278,12 +428,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_seo_attributes_updated_at ON seo_attributes;
 CREATE TRIGGER update_seo_attributes_updated_at BEFORE UPDATE ON seo_attributes
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_seo_training_data_updated_at ON seo_training_data;
 CREATE TRIGGER update_seo_training_data_updated_at BEFORE UPDATE ON seo_training_data
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_seo_recommendations_updated_at ON seo_recommendations;
 CREATE TRIGGER update_seo_recommendations_updated_at BEFORE UPDATE ON seo_recommendations
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

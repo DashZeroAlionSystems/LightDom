@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS url_seeds (
     UNIQUE(instance_id, url)
 );
 
-CREATE INDEX idx_url_seeds_instance ON url_seeds(instance_id);
-CREATE INDEX idx_url_seeds_status ON url_seeds(status);
-CREATE INDEX idx_url_seeds_priority ON url_seeds(priority DESC);
+CREATE INDEX IF NOT EXISTS idx_url_seeds_instance ON url_seeds(instance_id);
+CREATE INDEX IF NOT EXISTS idx_url_seeds_status ON url_seeds(status);
+CREATE INDEX IF NOT EXISTS idx_url_seeds_priority ON url_seeds(priority DESC);
 
 -- Backlinks Table
 CREATE TABLE IF NOT EXISTS backlinks (
@@ -36,10 +36,10 @@ CREATE TABLE IF NOT EXISTS backlinks (
     UNIQUE(instance_id, source_url, target_url)
 );
 
-CREATE INDEX idx_backlinks_instance ON backlinks(instance_id);
-CREATE INDEX idx_backlinks_client ON backlinks(client_id);
-CREATE INDEX idx_backlinks_relevance ON backlinks(relevance DESC);
-CREATE INDEX idx_backlinks_target ON backlinks(target_url);
+CREATE INDEX IF NOT EXISTS idx_backlinks_instance ON backlinks(instance_id);
+CREATE INDEX IF NOT EXISTS idx_backlinks_client ON backlinks(client_id);
+CREATE INDEX IF NOT EXISTS idx_backlinks_relevance ON backlinks(relevance DESC);
+CREATE INDEX IF NOT EXISTS idx_backlinks_target ON backlinks(target_url);
 
 -- Seeding Configurations Table
 CREATE TABLE IF NOT EXISTS seeding_configs (
@@ -55,9 +55,9 @@ CREATE TABLE IF NOT EXISTS seeding_configs (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_seeding_configs_instance ON seeding_configs(instance_id);
-CREATE INDEX idx_seeding_configs_client ON seeding_configs(client_id);
-CREATE INDEX idx_seeding_configs_status ON seeding_configs(status);
+CREATE INDEX IF NOT EXISTS idx_seeding_configs_instance ON seeding_configs(instance_id);
+CREATE INDEX IF NOT EXISTS idx_seeding_configs_client ON seeding_configs(client_id);
+CREATE INDEX IF NOT EXISTS idx_seeding_configs_status ON seeding_configs(status);
 
 -- Backlink Reports Table
 CREATE TABLE IF NOT EXISTS backlink_reports (
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS backlink_reports (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_backlink_reports_client ON backlink_reports(client_id);
+CREATE INDEX IF NOT EXISTS idx_backlink_reports_client ON backlink_reports(client_id);
 
 -- Domain Authority Metrics Table
 CREATE TABLE IF NOT EXISTS domain_authority (
@@ -82,8 +82,8 @@ CREATE TABLE IF NOT EXISTS domain_authority (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_domain_authority_domain ON domain_authority(domain);
-CREATE INDEX idx_domain_authority_score ON domain_authority(authority DESC);
+CREATE INDEX IF NOT EXISTS idx_domain_authority_domain ON domain_authority(domain);
+CREATE INDEX IF NOT EXISTS idx_domain_authority_score ON domain_authority(authority DESC);
 
 -- Rich Snippets Table
 CREATE TABLE IF NOT EXISTS rich_snippets (
@@ -96,8 +96,8 @@ CREATE TABLE IF NOT EXISTS rich_snippets (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_rich_snippets_url ON rich_snippets(url);
-CREATE INDEX idx_rich_snippets_type ON rich_snippets(schema_type);
+CREATE INDEX IF NOT EXISTS idx_rich_snippets_url ON rich_snippets(url);
+CREATE INDEX IF NOT EXISTS idx_rich_snippets_type ON rich_snippets(schema_type);
 
 -- Add trigger to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
