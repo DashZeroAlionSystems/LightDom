@@ -17,6 +17,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { addMiningRoutes } from './api-mining-routes.js';
 import createGitRoutes from './api/git-routes.js';
 import createUserRoutes from './api/routes/user-management.js';
+import createCrawleeRoutes from './api/crawlee-routes.js';
 import { RealWebCrawlerSystem } from './crawler/RealWebCrawlerSystem.js';
 import createAdminNavigationRoutes from './services/admin-navigation-routes.js';
 import { createRagRouter } from './services/rag/rag-router.js';
@@ -267,6 +268,9 @@ class DOMSpaceHarvesterAPI {
 
     // Setup crawler admin API routes
     this.setupCrawlerAdminRoutes();
+
+    // Setup Crawlee crawler API routes
+    this.setupCrawleeRoutes();
 
     // Setup training control API routes
     this.setupTrainingControlRoutes();
@@ -834,6 +838,49 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.error('Failed to load neural network routes:', err);
+      });
+
+    // Import and register Neural Network Dashboard routes
+    import('./api/neural-network-dashboard-routes.js')
+      .then(dashboardModule => {
+        const dashboardRouter = dashboardModule.default || dashboardModule.createNeuralNetworkDashboardRoutes;
+        if (typeof dashboardRouter === 'function') {
+          this.app.use('/api/neural-network-dashboard', dashboardRouter(this.pool));
+        } else {
+          this.app.use('/api/neural-network-dashboard', dashboardRouter);
+        }
+        console.log('Neural network dashboard routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load neural network dashboard routes:', err);
+    // Import and register Data Stream routes
+    import('./api/data-stream-routes.js')
+      .then(streamModule => {
+        const streamRouter = streamModule.default || streamModule.createDataStreamRoutes;
+        if (typeof streamRouter === 'function') {
+          this.app.use('/api/data-streams', streamRouter(this.pool));
+        } else {
+          this.app.use('/api/data-streams', streamRouter);
+        }
+        console.log('✅ Data stream routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load data stream routes:', err);
+      });
+
+    // Import and register Attribute routes
+    import('./api/attribute-routes.js')
+      .then(attrModule => {
+        const attrRouter = attrModule.default || attrModule.createAttributeRoutes;
+        if (typeof attrRouter === 'function') {
+          this.app.use('/api/attributes', attrRouter(this.pool));
+        } else {
+          this.app.use('/api/attributes', attrRouter);
+        }
+        console.log('✅ Attribute routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load attribute routes:', err);
       });
 
     // Import and register TensorFlow Workflow Orchestration routes
@@ -4888,6 +4935,18 @@ class DOMSpaceHarvesterAPI {
       console.log('✅ Crawler admin routes registered');
     } catch (err) {
       console.error('Failed to load crawler admin routes:', err);
+    }
+  }
+
+  async setupCrawleeRoutes() {
+    console.log('🕸️ Setting up Crawlee crawler API routes...');
+
+    try {
+      const crawleeRoutes = createCrawleeRoutes(this.db);
+      this.app.use('/api/crawlee', crawleeRoutes);
+      console.log('✅ Crawlee routes registered at /api/crawlee');
+    } catch (err) {
+      console.error('Failed to load Crawlee routes:', err);
     }
   }
 

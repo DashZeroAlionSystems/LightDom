@@ -20,13 +20,154 @@ CREATE TABLE IF NOT EXISTS campaigns (
   auto_stop_config JSONB
 );
 
-CREATE INDEX IF NOT EXISTS idx_campaigns_client ON campaigns(client_id);
-CREATE INDEX IF NOT EXISTS idx_campaigns_status ON campaigns(status);
-CREATE INDEX IF NOT EXISTS idx_campaigns_plan ON campaigns(plan);
+DO $$
+BEGIN
+  IF to_regclass('public.campaigns') IS NOT NULL THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'client_id'
+    ) THEN
+      EXECUTE 'ALTER TABLE campaigns ADD COLUMN client_id VARCHAR(255)';
+      EXECUTE 'UPDATE campaigns SET client_id = COALESCE(client_id, ''legacy-client'')';
+      BEGIN
+        EXECUTE 'ALTER TABLE campaigns ALTER COLUMN client_id SET NOT NULL';
+      EXCEPTION
+        WHEN others THEN
+          RAISE NOTICE 'Could not enforce NOT NULL on campaigns.client_id: %', SQLERRM;
+      END;
+    END IF;
 
--- Link campaigns to MCP servers
-ALTER TABLE mcp_servers ADD COLUMN IF NOT EXISTS campaign_id VARCHAR(255) REFERENCES campaigns(id);
-ALTER TABLE mcp_stream_sessions ADD COLUMN IF NOT EXISTS campaign_id VARCHAR(255) REFERENCES campaigns(id);
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'client_id' AND is_nullable = 'YES'
+    ) THEN
+      BEGIN
+        EXECUTE 'UPDATE campaigns SET client_id = COALESCE(client_id, ''legacy-client'') WHERE client_id IS NULL';
+        EXECUTE 'ALTER TABLE campaigns ALTER COLUMN client_id SET NOT NULL';
+      EXCEPTION
+        WHEN others THEN
+          RAISE NOTICE 'Could not enforce NOT NULL on existing campaigns.client_id column: %', SQLERRM;
+      END;
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'plan'
+    ) THEN
+      EXECUTE 'ALTER TABLE campaigns ADD COLUMN plan VARCHAR(50)';
+      EXECUTE 'UPDATE campaigns SET plan = COALESCE(plan, ''free'')';
+    END IF;
+
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'plan' AND is_nullable = 'YES'
+    ) THEN
+      BEGIN
+        EXECUTE 'UPDATE campaigns SET plan = COALESCE(plan, ''free'') WHERE plan IS NULL';
+        EXECUTE 'ALTER TABLE campaigns ALTER COLUMN plan SET NOT NULL';
+      EXCEPTION
+        WHEN others THEN
+          RAISE NOTICE 'Could not enforce NOT NULL on campaigns.plan: %', SQLERRM;
+      END;
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'limits'
+    ) THEN
+      EXECUTE 'ALTER TABLE campaigns ADD COLUMN limits JSONB DEFAULT ''{}''::jsonb';
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'usage'
+    ) THEN
+      EXECUTE 'ALTER TABLE campaigns ADD COLUMN usage JSONB DEFAULT ''{}''::jsonb';
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'status'
+    ) THEN
+      EXECUTE 'ALTER TABLE campaigns ADD COLUMN status VARCHAR(50) DEFAULT ''active''';
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'billing_cycle'
+    ) THEN
+      EXECUTE 'ALTER TABLE campaigns ADD COLUMN billing_cycle VARCHAR(50)';
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'next_billing_date'
+    ) THEN
+      EXECUTE 'ALTER TABLE campaigns ADD COLUMN next_billing_date TIMESTAMP';
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'auto_stop_config'
+    ) THEN
+      EXECUTE 'ALTER TABLE campaigns ADD COLUMN auto_stop_config JSONB';
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'idx_campaigns_client'
+    ) THEN
+      EXECUTE 'CREATE INDEX idx_campaigns_client ON campaigns(client_id)';
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'idx_campaigns_status'
+    ) THEN
+      EXECUTE 'CREATE INDEX idx_campaigns_status ON campaigns(status)';
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'idx_campaigns_plan'
+    ) THEN
+      EXECUTE 'CREATE INDEX idx_campaigns_plan ON campaigns(plan)';
+    END IF;
+  END IF;
+END;
+$$;
+
+DO $$
+DECLARE
+  campaign_id_type TEXT := 'VARCHAR(255)';
+BEGIN
+  IF to_regclass('public.campaigns') IS NOT NULL THEN
+    SELECT format_type(a.atttypid, a.atttypmod)
+    INTO campaign_id_type
+    FROM pg_attribute a
+    JOIN pg_class c ON c.oid = a.attrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relname = 'campaigns'
+      AND a.attname = 'id'
+      AND a.attisdropped = false
+    LIMIT 1;
+  ELSE
+    RAISE NOTICE 'Skipping campaign links; campaigns table not found.';
+  END IF;
+
+  IF campaign_id_type IS NULL THEN
+    campaign_id_type := 'VARCHAR(255)';
+  END IF;
+
+  IF to_regclass('public.mcp_servers') IS NOT NULL THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'mcp_servers' AND column_name = 'campaign_id'
+    ) THEN
+      EXECUTE format('ALTER TABLE mcp_servers ADD COLUMN campaign_id %s', campaign_id_type);
+    END IF;
+  ELSE
+    RAISE NOTICE 'Skipping campaign_id on mcp_servers; table not found.';
+  END IF;
+
+  IF to_regclass('public.mcp_stream_sessions') IS NOT NULL THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'mcp_stream_sessions' AND column_name = 'campaign_id'
+    ) THEN
+      EXECUTE format('ALTER TABLE mcp_stream_sessions ADD COLUMN campaign_id %s', campaign_id_type);
+    END IF;
+  ELSE
+    RAISE NOTICE 'Skipping campaign_id on mcp_stream_sessions; table not found.';
+  END IF;
+END;
+$$;
 
 -- ====================================
 -- Trust Scoring System
@@ -111,25 +252,93 @@ CREATE TABLE IF NOT EXISTS failure_analysis (
 CREATE INDEX IF NOT EXISTS idx_failure_message ON failure_analysis(error_message);
 CREATE INDEX IF NOT EXISTS idx_failure_timestamp ON failure_analysis(timestamp);
 
--- Auto-generated schemas
-ALTER TABLE schemas ADD COLUMN IF NOT EXISTS auto_generated BOOLEAN DEFAULT false;
-ALTER TABLE schemas ADD COLUMN IF NOT EXISTS trust_score DECIMAL(5,4);
-ALTER TABLE schemas ADD COLUMN IF NOT EXISTS based_on_pattern_id INTEGER;
+DO $$
+BEGIN
+  IF to_regclass('public.schemas') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE schemas ADD COLUMN IF NOT EXISTS auto_generated BOOLEAN DEFAULT false';
+    EXECUTE 'ALTER TABLE schemas ADD COLUMN IF NOT EXISTS trust_score DECIMAL(5,4)';
+    EXECUTE 'ALTER TABLE schemas ADD COLUMN IF NOT EXISTS based_on_pattern_id INTEGER';
+  ELSE
+    RAISE NOTICE 'Skipping schema alterations; schemas table missing.';
+  END IF;
+END;
+$$;
 
--- ====================================
--- Multi-Schema Orchestration
--- ====================================
-CREATE TABLE IF NOT EXISTS orchestrations (
-  id VARCHAR(255) PRIMARY KEY,
-  campaign_id VARCHAR(255) REFERENCES campaigns(id),
-  schema_ids JSONB NOT NULL,
-  task JSONB NOT NULL,
-  results JSONB,
-  errors JSONB,
-  created_at TIMESTAMP DEFAULT NOW(),
-  completed_at TIMESTAMP,
-  duration_ms INTEGER
-);
+DO $$
+DECLARE
+  orchestration_campaign_type TEXT := 'VARCHAR(255)';
+  orchestration_statement TEXT;
+  campaigns_available BOOLEAN := to_regclass('public.campaigns') IS NOT NULL;
+BEGIN
+  IF campaigns_available THEN
+    SELECT format_type(a.atttypid, a.atttypmod)
+    INTO orchestration_campaign_type
+    FROM pg_attribute a
+    JOIN pg_class c ON c.oid = a.attrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relname = 'campaigns'
+      AND a.attname = 'id'
+      AND a.attisdropped = false
+    LIMIT 1;
+  END IF;
+
+  IF orchestration_campaign_type IS NULL THEN
+    orchestration_campaign_type := 'VARCHAR(255)';
+  END IF;
+
+  IF to_regclass('public.orchestrations') IS NULL THEN
+    orchestration_statement := format(
+      'CREATE TABLE orchestrations (
+         id VARCHAR(255) PRIMARY KEY,
+         campaign_id %s%s,
+         schema_ids JSONB NOT NULL,
+         task JSONB NOT NULL,
+         results JSONB,
+         errors JSONB,
+         created_at TIMESTAMP DEFAULT NOW(),
+         completed_at TIMESTAMP,
+         duration_ms INTEGER
+       )',
+      orchestration_campaign_type,
+      CASE
+        WHEN campaigns_available THEN ' REFERENCES campaigns(id)'
+        ELSE ''
+      END
+    );
+
+    BEGIN
+      EXECUTE orchestration_statement;
+    EXCEPTION
+      WHEN others THEN
+        RAISE NOTICE 'Failed to create orchestrations with FK constraint: %', SQLERRM;
+        orchestration_statement := format(
+          'CREATE TABLE orchestrations (
+             id VARCHAR(255) PRIMARY KEY,
+             campaign_id %s,
+             schema_ids JSONB NOT NULL,
+             task JSONB NOT NULL,
+             results JSONB,
+             errors JSONB,
+             created_at TIMESTAMP DEFAULT NOW(),
+             completed_at TIMESTAMP,
+             duration_ms INTEGER
+           )',
+          orchestration_campaign_type
+        );
+        EXECUTE orchestration_statement;
+    END;
+  END IF;
+
+  IF to_regclass('public.orchestrations') IS NOT NULL THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'orchestrations' AND column_name = 'campaign_id'
+    ) THEN
+      EXECUTE format('ALTER TABLE orchestrations ADD COLUMN campaign_id %s', orchestration_campaign_type);
+    END IF;
+  END IF;
+END;
+$$;
 
 CREATE INDEX IF NOT EXISTS idx_orchestrations_campaign ON orchestrations(campaign_id);
 CREATE INDEX IF NOT EXISTS idx_orchestrations_created ON orchestrations(created_at);
@@ -154,96 +363,134 @@ CREATE INDEX IF NOT EXISTS idx_engagement_timestamp ON free_plan_engagement(time
 -- ====================================
 
 -- Campaign health view
-CREATE OR REPLACE VIEW campaign_health AS
-SELECT 
-  c.id,
-  c.name,
-  c.plan,
-  c.status,
-  (c.usage->>'executions')::int as used_executions,
-  (c.limits->>'maxExecutions')::int as max_executions,
-  CASE 
-    WHEN (c.limits->>'maxExecutions')::int = -1 THEN 100
-    ELSE ((c.usage->>'executions')::float / NULLIF((c.limits->>'maxExecutions')::int, 0) * 100)
-  END as usage_percentage,
-  c.next_billing_date,
-  EXTRACT(DAYS FROM (c.next_billing_date - NOW())) as days_until_billing
-FROM campaigns c
-WHERE c.status = 'active';
+DO $$
+BEGIN
+  IF to_regclass('public.campaigns') IS NOT NULL THEN
+    EXECUTE $view$
+      CREATE OR REPLACE VIEW campaign_health AS
+      SELECT 
+        c.id,
+        c.name,
+        c.plan,
+        c.status,
+        (c.usage->>'executions')::int AS used_executions,
+        (c.limits->>'maxExecutions')::int AS max_executions,
+        CASE 
+          WHEN (c.limits->>'maxExecutions')::int = -1 THEN 100
+          ELSE ((c.usage->>'executions')::float / NULLIF((c.limits->>'maxExecutions')::int, 0) * 100)
+        END AS usage_percentage,
+        c.next_billing_date,
+        EXTRACT(DAYS FROM (c.next_billing_date - NOW())) AS days_until_billing
+      FROM campaigns c
+      WHERE c.status = 'active'
+    $view$;
+  ELSE
+    RAISE NOTICE 'Skipping campaign_health view; campaigns table missing.';
+  END IF;
+END;
+$$;
 
 -- Trust leaderboard
-CREATE OR REPLACE VIEW trust_leaderboard AS
-SELECT 
-  type,
-  identifier,
-  total_executions,
-  successful_executions,
-  (successful_executions::float / NULLIF(total_executions, 0)) as success_rate,
-  last_used,
-  CASE 
-    WHEN (successful_executions::float / NULLIF(total_executions, 0)) > 0.9 THEN 'excellent'
-    WHEN (successful_executions::float / NULLIF(total_executions, 0)) > 0.7 THEN 'good'
-    WHEN (successful_executions::float / NULLIF(total_executions, 0)) > 0.5 THEN 'acceptable'
-    ELSE 'poor'
-  END as trust_level
-FROM trust_scores
-WHERE total_executions > 10
-ORDER BY success_rate DESC, total_executions DESC;
+DO $$
+BEGIN
+  IF to_regclass('public.trust_scores') IS NOT NULL THEN
+    EXECUTE $view$
+      CREATE OR REPLACE VIEW trust_leaderboard AS
+      SELECT 
+        type,
+        identifier,
+        total_executions,
+        successful_executions,
+        (successful_executions::float / NULLIF(total_executions, 0)) AS success_rate,
+        last_used,
+        CASE 
+          WHEN (successful_executions::float / NULLIF(total_executions, 0)) > 0.9 THEN 'excellent'
+          WHEN (successful_executions::float / NULLIF(total_executions, 0)) > 0.7 THEN 'good'
+          WHEN (successful_executions::float / NULLIF(total_executions, 0)) > 0.5 THEN 'acceptable'
+          ELSE 'poor'
+        END AS trust_level
+      FROM trust_scores
+      WHERE total_executions > 10
+      ORDER BY success_rate DESC, total_executions DESC
+    $view$;
+  ELSE
+    RAISE NOTICE 'Skipping trust_leaderboard view; trust_scores table missing.';
+  END IF;
+END;
+$$;
 
 -- Atomic component hierarchy
-CREATE OR REPLACE VIEW component_hierarchy AS
-WITH RECURSIVE component_tree AS (
-  -- Base case: atoms (no parents)
-  SELECT 
-    id,
-    component_type,
-    name,
-    category,
-    trust_score,
-    usage_count,
-    parent_components,
-    1 as depth,
-    ARRAY[id] as path
-  FROM atomic_components
-  WHERE parent_components IS NULL OR parent_components = '{}'
-  
-  UNION ALL
-  
-  -- Recursive case: build up the hierarchy
-  SELECT 
-    ac.id,
-    ac.component_type,
-    ac.name,
-    ac.category,
-    ac.trust_score,
-    ac.usage_count,
-    ac.parent_components,
-    ct.depth + 1,
-    ct.path || ac.id
-  FROM atomic_components ac
-  JOIN component_tree ct ON ac.parent_components @> ARRAY[ct.id]
-  WHERE ac.id != ALL(ct.path) -- Prevent cycles
-)
-SELECT * FROM component_tree
-ORDER BY depth, trust_score DESC;
+DO $$
+BEGIN
+  IF to_regclass('public.atomic_components') IS NOT NULL THEN
+    EXECUTE $view$
+      CREATE OR REPLACE VIEW component_hierarchy AS
+      WITH RECURSIVE component_tree AS (
+        SELECT 
+          id,
+          component_type,
+          name,
+          category,
+          trust_score,
+          usage_count,
+          parent_components,
+          1 AS depth,
+          ARRAY[id] AS path
+        FROM atomic_components
+        WHERE parent_components IS NULL OR parent_components = '{}'
+
+        UNION ALL
+
+        SELECT 
+          ac.id,
+          ac.component_type,
+          ac.name,
+          ac.category,
+          ac.trust_score,
+          ac.usage_count,
+          ac.parent_components,
+          ct.depth + 1,
+          ct.path || ac.id
+        FROM atomic_components ac
+        JOIN component_tree ct ON ac.parent_components @> ARRAY[ct.id]
+        WHERE ac.id != ALL(ct.path)
+      )
+      SELECT * FROM component_tree
+      ORDER BY depth, trust_score DESC
+    $view$;
+  ELSE
+    RAISE NOTICE 'Skipping component_hierarchy view; atomic_components table missing.';
+  END IF;
+END;
+$$;
 
 -- Free plan conversion insights
-CREATE OR REPLACE VIEW free_plan_insights AS
-SELECT 
-  user_id,
-  COUNT(*) as total_actions,
-  COUNT(DISTINCT action) as unique_actions,
-  MAX(timestamp) as last_active,
-  MIN(timestamp) as first_active,
-  EXTRACT(DAYS FROM (MAX(timestamp) - MIN(timestamp))) as days_active,
-  COUNT(*) / NULLIF(EXTRACT(DAYS FROM (MAX(timestamp) - MIN(timestamp))), 0) as avg_daily_actions,
-  CASE 
-    WHEN COUNT(*) > 100 THEN 'high'
-    WHEN COUNT(*) > 50 THEN 'medium'
-    ELSE 'low'
-  END as conversion_potential
-FROM free_plan_engagement
-GROUP BY user_id;
+DO $$
+BEGIN
+  IF to_regclass('public.free_plan_engagement') IS NOT NULL THEN
+    EXECUTE $view$
+      CREATE OR REPLACE VIEW free_plan_insights AS
+      SELECT 
+        user_id,
+        COUNT(*) AS total_actions,
+        COUNT(DISTINCT action) AS unique_actions,
+        MAX(timestamp) AS last_active,
+        MIN(timestamp) AS first_active,
+        EXTRACT(DAYS FROM (MAX(timestamp) - MIN(timestamp))) AS days_active,
+        COUNT(*) / NULLIF(EXTRACT(DAYS FROM (MAX(timestamp) - MIN(timestamp))), 0) AS avg_daily_actions,
+        CASE 
+          WHEN COUNT(*) > 100 THEN 'high'
+          WHEN COUNT(*) > 50 THEN 'medium'
+          ELSE 'low'
+        END AS conversion_potential
+      FROM free_plan_engagement
+      GROUP BY user_id
+    $view$;
+  ELSE
+    RAISE NOTICE 'Skipping free_plan_insights view; free_plan_engagement table missing.';
+  END IF;
+END;
+$$;
 
 -- ====================================
 -- Functions
@@ -394,31 +641,102 @@ EXECUTE FUNCTION update_trust_score();
 -- Sample Data
 -- ====================================
 
--- Sample campaigns
-INSERT INTO campaigns (id, client_id, name, plan, limits, usage, billing_cycle, next_billing_date, auto_stop_config) VALUES
-  (
-    'campaign-free-001',
-    'client-001',
-    'Free Tier Campaign',
-    'free',
-    '{"maxExecutions": 100, "maxSchemas": 3, "maxBundles": 1, "autoOptimization": false}'::jsonb,
-    '{"executions": 0, "schemas": 0, "bundles": 0}'::jsonb,
-    'monthly',
-    NOW() + INTERVAL '30 days',
-    '{"onBillingEnd": true, "onLimitReached": true}'::jsonb
-  ),
-  (
-    'campaign-pro-001',
-    'client-002',
-    'Pro Campaign',
-    'pro',
-    '{"maxExecutions": 10000, "maxSchemas": 50, "maxBundles": 20, "autoOptimization": true}'::jsonb,
-    '{"executions": 0, "schemas": 0, "bundles": 0}'::jsonb,
-    'monthly',
-    NOW() + INTERVAL '30 days',
-    '{"onBillingEnd": true, "onLimitReached": false}'::jsonb
-  )
-ON CONFLICT (id) DO NOTHING;
+DO $$
+DECLARE
+  campaign_id_type TEXT;
+  is_numeric_id BOOLEAN := false;
+  has_campaign_code BOOLEAN := false;
+  has_prompt BOOLEAN := false;
+  base_columns TEXT;
+  free_values TEXT;
+  pro_values TEXT;
+BEGIN
+  IF to_regclass('public.campaigns') IS NOT NULL THEN
+    SELECT format_type(a.atttypid, a.atttypmod)
+    INTO campaign_id_type
+    FROM pg_attribute a
+    JOIN pg_class c ON c.oid = a.attrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relname = 'campaigns'
+      AND a.attname = 'id'
+      AND a.attisdropped = false
+    LIMIT 1;
+
+    SELECT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'campaign_id'
+    ) INTO has_campaign_code;
+
+    SELECT EXISTS (
+      SELECT 1 FROM information_schema.columns WHERE table_name = 'campaigns' AND column_name = 'prompt'
+    ) INTO has_prompt;
+
+    IF campaign_id_type ILIKE 'int%' OR campaign_id_type ILIKE 'bigint%' THEN
+      is_numeric_id := true;
+    END IF;
+
+    base_columns := 'client_id, name, plan, limits, usage, billing_cycle, next_billing_date, auto_stop_config';
+    free_values := format('%s, %s, %s, %s::jsonb, %s::jsonb, %s, NOW() + INTERVAL ''30 days'', %s::jsonb',
+      quote_literal('client-001'),
+      quote_literal('Free Tier Campaign'),
+      quote_literal('free'),
+      quote_literal('{"maxExecutions": 100, "maxSchemas": 3, "maxBundles": 1, "autoOptimization": false}'),
+      quote_literal('{"executions": 0, "schemas": 0, "bundles": 0}'),
+      quote_literal('monthly'),
+      quote_literal('{"onBillingEnd": true, "onLimitReached": true}')
+    );
+
+    pro_values := format('%s, %s, %s, %s::jsonb, %s::jsonb, %s, NOW() + INTERVAL ''30 days'', %s::jsonb',
+      quote_literal('client-002'),
+      quote_literal('Pro Campaign'),
+      quote_literal('pro'),
+      quote_literal('{"maxExecutions": 10000, "maxSchemas": 50, "maxBundles": 20, "autoOptimization": true}'),
+      quote_literal('{"executions": 0, "schemas": 0, "bundles": 0}'),
+      quote_literal('monthly'),
+      quote_literal('{"onBillingEnd": true, "onLimitReached": false}')
+    );
+
+    IF has_campaign_code THEN
+      base_columns := base_columns || ', campaign_id';
+      free_values := free_values || ', ' || quote_literal('campaign-free-001');
+      pro_values := pro_values || ', ' || quote_literal('campaign-pro-001');
+    END IF;
+
+    IF has_prompt THEN
+      base_columns := base_columns || ', prompt';
+      free_values := free_values || ', ' || quote_literal('Automated system-generated campaign prompt.');
+      pro_values := pro_values || ', ' || quote_literal('Automated professional campaign prompt.');
+    END IF;
+
+    IF is_numeric_id THEN
+      IF NOT EXISTS (
+        SELECT 1 FROM campaigns WHERE name = 'Free Tier Campaign'
+      ) THEN
+        EXECUTE format('INSERT INTO campaigns (%s) VALUES (%s)', base_columns, free_values);
+      END IF;
+
+      IF NOT EXISTS (
+        SELECT 1 FROM campaigns WHERE name = 'Pro Campaign'
+      ) THEN
+        EXECUTE format('INSERT INTO campaigns (%s) VALUES (%s)', base_columns, pro_values);
+      END IF;
+    ELSE
+      base_columns := 'id, ' || base_columns;
+      free_values := quote_literal('campaign-free-001') || ', ' || free_values;
+      pro_values := quote_literal('campaign-pro-001') || ', ' || pro_values;
+
+      EXECUTE format(
+        'INSERT INTO campaigns (%s) VALUES (%s), (%s) ON CONFLICT (id) DO NOTHING',
+        base_columns,
+        free_values,
+        pro_values
+      );
+    END IF;
+  ELSE
+    RAISE NOTICE 'Skipping campaign seed data; campaigns table missing.';
+  END IF;
+END;
+$$;
 
 -- Sample atomic components
 INSERT INTO atomic_components (component_type, name, category, definition, trust_score, usage_count) VALUES
@@ -435,10 +753,34 @@ INSERT INTO trust_scores (type, identifier, total_executions, successful_executi
 ON CONFLICT (type, identifier) DO NOTHING;
 
 -- Comments for documentation
-COMMENT ON TABLE campaigns IS 'Campaign governance with billing integration and resource limits';
-COMMENT ON TABLE trust_scores IS 'Trust scoring system for patterns, configs, and schemas';
-COMMENT ON TABLE atomic_components IS 'Atomic design components: atoms, molecules, organisms, templates, pages';
-COMMENT ON TABLE trusted_paths IS 'Proven progression paths for efficient resource usage';
-COMMENT ON TABLE failure_analysis IS 'Self-evaluation and auto-fix suggestions';
-COMMENT ON TABLE orchestrations IS 'Multi-schema parallel task execution for campaigns';
-COMMENT ON TABLE free_plan_engagement IS 'Free user engagement tracking for conversion insights';
+DO $$
+BEGIN
+  IF to_regclass('public.campaigns') IS NOT NULL THEN
+    EXECUTE 'COMMENT ON TABLE campaigns IS ''Campaign governance with billing integration and resource limits''';
+  END IF;
+
+  IF to_regclass('public.trust_scores') IS NOT NULL THEN
+    EXECUTE 'COMMENT ON TABLE trust_scores IS ''Trust scoring system for patterns, configs, and schemas''';
+  END IF;
+
+  IF to_regclass('public.atomic_components') IS NOT NULL THEN
+    EXECUTE 'COMMENT ON TABLE atomic_components IS ''Atomic design components: atoms, molecules, organisms, templates, pages''';
+  END IF;
+
+  IF to_regclass('public.trusted_paths') IS NOT NULL THEN
+    EXECUTE 'COMMENT ON TABLE trusted_paths IS ''Proven progression paths for efficient resource usage''';
+  END IF;
+
+  IF to_regclass('public.failure_analysis') IS NOT NULL THEN
+    EXECUTE 'COMMENT ON TABLE failure_analysis IS ''Self-evaluation and auto-fix suggestions''';
+  END IF;
+
+  IF to_regclass('public.orchestrations') IS NOT NULL THEN
+    EXECUTE 'COMMENT ON TABLE orchestrations IS ''Multi-schema parallel task execution for campaigns''';
+  END IF;
+
+  IF to_regclass('public.free_plan_engagement') IS NOT NULL THEN
+    EXECUTE 'COMMENT ON TABLE free_plan_engagement IS ''Free user engagement tracking for conversion insights''';
+  END IF;
+END;
+$$;

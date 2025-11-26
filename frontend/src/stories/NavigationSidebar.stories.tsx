@@ -1,10 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { BrowserRouter } from 'react-router-dom';
 import { NavigationSidebar } from '../components/NavigationSidebar';
 
 /**
  * NavigationSidebar Component
- * 
+ *
  * A comprehensive, collapsible navigation sidebar with categorized menu items,
  * user profile section, and smooth transitions. Built with atomic components
  * for maximum reusability.
@@ -60,12 +59,10 @@ The sidebar is built from smaller, reusable atoms:
     },
   },
   decorators: [
-    (Story) => (
-      <BrowserRouter>
-        <div className="flex h-screen bg-background">
-          <Story />
-        </div>
-      </BrowserRouter>
+    Story => (
+      <div className='flex h-screen bg-background'>
+        <Story />
+      </div>
     ),
   ],
   tags: ['autodocs'],

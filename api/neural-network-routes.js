@@ -98,12 +98,12 @@ export function createNeuralNetworkRoutes(dbPool) {
 
   /**
    * POST /api/neural-networks/instances/:id/predict
-   * Make a prediction using a neural network instance
+   * Make predictions using a neural network instance
    */
   router.post('/instances/:id/predict', async (req, res) => {
     try {
       const prediction = await manager.predict(req.params.id, req.body.input);
-      res.json({ prediction });
+      res.json({ success: true, prediction });
     } catch (error) {
       console.error('Error making prediction:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Prediction failed' });
@@ -111,30 +111,44 @@ export function createNeuralNetworkRoutes(dbPool) {
   });
 
   /**
-   * DELETE /api/neural-networks/instances/:id
-   * Delete (archive) a neural network instance
+   * POST /api/neural-networks/datasets/upload
+   * Upload training dataset for a neural network instance
    */
-  router.delete('/instances/:id', async (req, res) => {
+  router.post('/datasets/upload', async (req, res) => {
     try {
-      await manager.deleteInstance(req.params.id);
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting instance:', error);
-      res.status(500).json({ error: 'Failed to delete instance' });
-    }
-  });
+      const multer = await import('multer');
+      const upload = multer.default({ dest: 'uploads/' });
+      
+      upload.single('file')(req, res, async (err) => {
+        if (err) {
+          return res.status(400).json({ error: 'File upload failed', message: err.message });
+        }
 
-  /**
-   * GET /api/neural-networks/client/:clientId/instances
-   * Get all instances for a specific client
-   */
-  router.get('/client/:clientId/instances', async (req, res) => {
-    try {
-      const instances = manager.getClientInstances(req.params.clientId);
-      res.json(instances);
+        const { instanceId, datasetName, datasetType } = req.body;
+        const file = req.file;
+
+        if (!file) {
+          return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        // Here you would process the uploaded dataset
+        // For now, we'll just acknowledge the upload
+        res.json({
+          success: true,
+          message: 'Dataset uploaded successfully',
+          dataset: {
+            instanceId,
+            name: datasetName,
+            type: datasetType,
+            filename: file.originalname,
+            size: file.size,
+            uploadedAt: new Date().toISOString(),
+          },
+        });
+      });
     } catch (error) {
-      console.error('Error getting client instances:', error);
-      res.status(500).json({ error: 'Failed to get client instances' });
+      console.error('Error uploading dataset:', error);
+      res.status(500).json({ error: 'Failed to upload dataset', message: error.message });
     }
   });
 
@@ -148,52 +162,38 @@ export function createNeuralNetworkRoutes(dbPool) {
         {
           value: 'seo_optimization',
           label: 'SEO Optimization',
-          description: 'Optimize website SEO based on best practices and data',
-        },
-        {
-          value: 'component_generation',
-          label: 'Component Generation',
-          description: 'Generate React components from specifications',
-        },
-        {
-          value: 'workflow_prediction',
-          label: 'Workflow Prediction',
-          description: 'Predict optimal workflows based on patterns',
-        },
-        {
-          value: 'accessibility_improvement',
-          label: 'Accessibility Improvement',
-          description: 'Enhance website accessibility compliance',
-        },
-        {
-          value: 'ux_pattern_recognition',
-          label: 'UX Pattern Recognition',
-          description: 'Recognize and classify UX patterns',
-        },
-        {
-          value: 'schema_relationship_learning',
-          label: 'Schema Relationship Learning',
-          description: 'Learn relationships between schemas',
-        },
-        {
-          value: 'performance_optimization',
-          label: 'Performance Optimization',
-          description: 'Optimize website performance metrics',
-        },
-        {
-          value: 'design_system_extraction',
-          label: 'Design System Extraction',
-          description: 'Extract design systems from websites',
+          description: 'Optimize content for search engines',
+          defaultModels: ['scraping', 'data_mining'],
         },
         {
           value: 'content_generation',
           label: 'Content Generation',
-          description: 'Generate optimized content',
+          description: 'Generate high-quality content',
+          defaultModels: ['text_generation', 'nlp'],
+        },
+        {
+          value: 'crawler_optimization',
+          label: 'Crawler Optimization',
+          description: 'Improve web crawling efficiency',
+          defaultModels: ['scraping', 'pattern_recognition'],
+        },
+        {
+          value: 'data_mining',
+          label: 'Data Mining',
+          description: 'Extract valuable insights from data',
+          defaultModels: ['data_mining', 'clustering'],
+        },
+        {
+          value: 'pattern_recognition',
+          label: 'Pattern Recognition',
+          description: 'Identify patterns in data',
+          defaultModels: ['classification', 'pattern_recognition'],
         },
         {
           value: 'sentiment_analysis',
           label: 'Sentiment Analysis',
-          description: 'Analyze sentiment in content',
+          description: 'Analyze sentiment in text',
+          defaultModels: ['nlp', 'sentiment'],
         },
       ];
 
@@ -201,45 +201,6 @@ export function createNeuralNetworkRoutes(dbPool) {
     } catch (error) {
       console.error('Error getting model types:', error);
       res.status(500).json({ error: 'Failed to get model types' });
-    }
-  });
-
-  /**
-   * GET /api/neural-networks/stats
-   * Get overall statistics
-   */
-  router.get('/stats', async (req, res) => {
-    try {
-      const instances = manager.getAllInstances();
-
-      const stats = {
-        total: instances.length,
-        byStatus: {
-          ready: instances.filter(i => i.status === 'ready').length,
-          training: instances.filter(i => i.status === 'training').length,
-          error: instances.filter(i => i.status === 'error').length,
-          initializing: instances.filter(i => i.status === 'initializing').length,
-          paused: instances.filter(i => i.status === 'paused').length,
-        },
-        byModelType: instances.reduce((acc, i) => {
-          acc[i.modelType] = (acc[i.modelType] || 0) + 1;
-          return acc;
-        }, {}),
-        avgAccuracy:
-          instances
-            .filter(i => i.performance?.accuracy)
-            .reduce((sum, i) => sum + (i.performance?.accuracy || 0), 0) /
-          (instances.filter(i => i.performance?.accuracy).length || 1),
-        totalPredictions: instances.reduce(
-          (sum, i) => sum + (i.performance?.predictionCount || 0),
-          0
-        ),
-      };
-
-      res.json(stats);
-    } catch (error) {
-      console.error('Error getting stats:', error);
-      res.status(500).json({ error: 'Failed to get stats' });
     }
   });
 

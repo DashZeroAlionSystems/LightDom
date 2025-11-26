@@ -1,4 +1,6 @@
 import type { Preview } from '@storybook/react-vite'
+import { createElement } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import '../src/index.css'
 
 /**
@@ -111,7 +113,7 @@ const preview: Preview = {
   // Apply global decorators
   decorators: [
     (Story, context) => {
-      // Apply motion preference
+      // Apply motion preference globally so demos honour accessibility settings.
       const motionPreference = context.globals.motion;
       if (motionPreference === 'reduced' || motionPreference === 'none') {
         document.documentElement.style.setProperty(
@@ -121,8 +123,8 @@ const preview: Preview = {
       } else {
         document.documentElement.style.removeProperty('--animation-duration');
       }
-      
-      return Story();
+
+      return createElement(MemoryRouter, null, createElement(Story));
     },
   ],
 };

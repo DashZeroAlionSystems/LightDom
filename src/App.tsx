@@ -65,6 +65,18 @@ import ChromeLayers3DDashboard from './components/ChromeLayers3DDashboard';
 import NeuralNetworkDashboard from './components/ui/dashboard/NeuralNetworkDashboard';
 import TensorFlowNeuralNetworkDashboard from './components/dashboards/TensorFlowNeuralNetworkDashboard';
 import CampaignTrainingAdminDashboard from './components/dashboards/CampaignTrainingAdminDashboard';
+
+// Category Dashboards
+import { 
+  NeuralNetworkDashboard as CategoryNeuralNetworkDashboard,
+  DataStreamsDashboard,
+  DataMiningDashboard,
+  CrawlingDashboard,
+  SeedingDashboard,
+  AttributesDashboard,
+  DataTrainingDashboard,
+  ServicesDashboard,
+} from './components/ui/dashboard/categories';
 import PaintTimelineViewer from './components/visualizations/PaintTimelineViewer';
 import InteractiveSEOWorkflowDashboard from './components/InteractiveSEOWorkflowDashboard';
 import SEOCampaignManagementDashboard from './components/SEOCampaignManagementDashboard';
@@ -242,6 +254,16 @@ const AppContent: React.FC = () => {
           <Route path="demos/nft-marketplace" element={<MetaverseNFTMarketplace />} />
           <Route path="demos/bridge-usecases" element={<BridgeUseCasesShowcase />} />
           <Route path="demos/3d-mining" element={<DOM3DMiningVisualization />} />
+          
+          {/* Category Dashboards */}
+          <Route path="categories/neural-network" element={<CategoryNeuralNetworkDashboard />} />
+          <Route path="categories/data-streams" element={<DataStreamsDashboard />} />
+          <Route path="categories/data-mining" element={<DataMiningDashboard />} />
+          <Route path="categories/crawling" element={<CrawlingDashboard />} />
+          <Route path="categories/seeding" element={<SeedingDashboard />} />
+          <Route path="categories/attributes" element={<AttributesDashboard />} />
+          <Route path="categories/data-training" element={<DataTrainingDashboard />} />
+          <Route path="categories/services" element={<ServicesDashboard />} />
           
           {/* Admin Routes within Dashboard */}
           <Route path="admin" element={<AdminDashboard />} />

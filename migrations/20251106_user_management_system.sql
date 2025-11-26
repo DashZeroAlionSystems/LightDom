@@ -2,9 +2,29 @@
 -- Comprehensive schema for user CRUD, roles, plans, and authentication
 -- Created: 2025-11-06
 
--- Enable required extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_available_extensions WHERE name = 'uuid-ossp'
+    ) THEN
+        EXECUTE 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
+    ELSE
+        RAISE NOTICE 'uuid-ossp extension unavailable; skipping creation.';
+    END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_available_extensions WHERE name = 'pgcrypto'
+    ) THEN
+        EXECUTE 'CREATE EXTENSION IF NOT EXISTS "pgcrypto"';
+    ELSE
+        RAISE NOTICE 'pgcrypto extension unavailable; skipping creation.';
+    END IF;
+END;
+$$;
 
 -- ============================================================================
 -- USER ROLES TABLE
@@ -91,9 +111,13 @@ ON CONFLICT (plan_name) DO NOTHING;
 -- Extend existing users table with new fields for comprehensive management
 -- Note: This assumes the base users table exists from blockchain_schema.sql
 
--- Add new columns to users table if they don't exist
 DO $$
 BEGIN
+    IF to_regclass('public.users') IS NULL THEN
+        RAISE NOTICE 'Base users table not found; skipping user column enhancements.';
+        RETURN;
+    END IF;
+
     -- Add password hash for email/password authentication
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'password_hash') THEN
         ALTER TABLE users ADD COLUMN password_hash VARCHAR(255);
@@ -212,85 +236,118 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'deleted_at') THEN
         ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP WITH TIME ZONE;
     END IF;
-END$$;
+END;
+$$;
 
--- ============================================================================
--- USER SESSIONS TABLE
--- ============================================================================
-CREATE TABLE IF NOT EXISTS user_sessions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    session_token VARCHAR(255) UNIQUE NOT NULL,
-    refresh_token VARCHAR(255) UNIQUE,
-    ip_address INET,
-    user_agent TEXT,
-    device_info JSONB DEFAULT '{}'::jsonb,
-    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    last_activity_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT true
-);
+DO $$
+BEGIN
+    IF to_regclass('public.users') IS NOT NULL THEN
+        EXECUTE $user_sessions$
+            CREATE TABLE IF NOT EXISTS user_sessions (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+                session_token VARCHAR(255) UNIQUE NOT NULL,
+                refresh_token VARCHAR(255) UNIQUE,
+                ip_address INET,
+                user_agent TEXT,
+                device_info JSONB DEFAULT '{}'::jsonb,
+                expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                last_activity_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                is_active BOOLEAN DEFAULT true
+            )
+        $user_sessions$;
 
--- Index for session lookup
-CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
-CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_sessions_active ON user_sessions(is_active, expires_at);
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_user_sessions_active ON user_sessions(is_active, expires_at)';
+    ELSE
+        RAISE NOTICE 'Users table missing; skipping user_sessions creation.';
+    END IF;
+END;
+$$;
 
 -- ============================================================================
 -- USER ACTIVITY LOGS TABLE
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS user_activity_logs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    action VARCHAR(100) NOT NULL, -- e.g., 'login', 'logout', 'profile_update', 'password_change'
-    resource VARCHAR(100), -- What was affected (e.g., 'user', 'project', 'settings')
-    resource_id UUID, -- ID of the affected resource
-    details JSONB DEFAULT '{}'::jsonb,
-    ip_address INET,
-    user_agent TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+DO $$
+BEGIN
+    IF to_regclass('public.users') IS NOT NULL THEN
+        EXECUTE $activity_logs$
+            CREATE TABLE IF NOT EXISTS user_activity_logs (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+                action VARCHAR(100) NOT NULL,
+                resource VARCHAR(100),
+                resource_id UUID,
+                details JSONB DEFAULT '{}'::jsonb,
+                ip_address INET,
+                user_agent TEXT,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+        $activity_logs$;
 
--- Indexes for efficient querying
-CREATE INDEX IF NOT EXISTS idx_user_activity_logs_user_id ON user_activity_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_activity_logs_action ON user_activity_logs(action);
-CREATE INDEX IF NOT EXISTS idx_user_activity_logs_created_at ON user_activity_logs(created_at DESC);
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_user_activity_logs_user_id ON user_activity_logs(user_id)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_user_activity_logs_action ON user_activity_logs(action)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_user_activity_logs_created_at ON user_activity_logs(created_at DESC)';
+    ELSE
+        RAISE NOTICE 'Users table missing; skipping user_activity_logs creation.';
+    END IF;
+END;
+$$;
 
 -- ============================================================================
 -- USER API KEYS TABLE
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS user_api_keys (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    key_name VARCHAR(100) NOT NULL,
-    api_key VARCHAR(64) UNIQUE NOT NULL, -- Hashed API key
-    api_key_prefix VARCHAR(16) NOT NULL, -- First few chars for display
-    scopes JSONB DEFAULT '[]'::jsonb, -- What this key can access
-    last_used_at TIMESTAMP WITH TIME ZONE,
-    usage_count INTEGER DEFAULT 0,
-    rate_limit INTEGER DEFAULT 1000, -- Requests per day
-    expires_at TIMESTAMP WITH TIME ZONE,
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+DO $$
+BEGIN
+    IF to_regclass('public.users') IS NOT NULL THEN
+        EXECUTE $api_keys$
+            CREATE TABLE IF NOT EXISTS user_api_keys (
+                id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+                key_name VARCHAR(100) NOT NULL,
+                api_key VARCHAR(64) UNIQUE NOT NULL,
+                api_key_prefix VARCHAR(16) NOT NULL,
+                scopes JSONB DEFAULT '[]'::jsonb,
+                last_used_at TIMESTAMP WITH TIME ZONE,
+                usage_count INTEGER DEFAULT 0,
+                rate_limit INTEGER DEFAULT 1000,
+                expires_at TIMESTAMP WITH TIME ZONE,
+                is_active BOOLEAN DEFAULT true,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+        $api_keys$;
 
--- Index for API key lookup
-CREATE INDEX IF NOT EXISTS idx_user_api_keys_key ON user_api_keys(api_key);
-CREATE INDEX IF NOT EXISTS idx_user_api_keys_user_id ON user_api_keys(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_api_keys_active ON user_api_keys(is_active, expires_at);
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_user_api_keys_key ON user_api_keys(api_key)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_user_api_keys_user_id ON user_api_keys(user_id)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_user_api_keys_active ON user_api_keys(is_active, expires_at)';
+    ELSE
+        RAISE NOTICE 'Users table missing; skipping user_api_keys creation.';
+    END IF;
+END;
+$$;
 
 -- ============================================================================
 -- INDEXES FOR USERS TABLE
 -- ============================================================================
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
-CREATE INDEX IF NOT EXISTS idx_users_wallet_address ON users(wallet_address);
-CREATE INDEX IF NOT EXISTS idx_users_role_id ON users(role_id);
-CREATE INDEX IF NOT EXISTS idx_users_plan_id ON users(plan_id);
-CREATE INDEX IF NOT EXISTS idx_users_account_status ON users(account_status);
-CREATE INDEX IF NOT EXISTS idx_users_subscription_status ON users(subscription_status);
-CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at DESC);
+DO $$
+BEGIN
+    IF to_regclass('public.users') IS NOT NULL THEN
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_users_wallet_address ON users(wallet_address)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_users_role_id ON users(role_id)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_users_plan_id ON users(plan_id)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_users_account_status ON users(account_status)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_users_subscription_status ON users(subscription_status)';
+        EXECUTE 'CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at DESC)';
+    ELSE
+        RAISE NOTICE 'Users table not found; skipping user index creation.';
+    END IF;
+END;
+$$;
 
 -- ============================================================================
 -- UPDATE TRIGGER FOR updated_at
@@ -304,82 +361,153 @@ END;
 $$ language 'plpgsql';
 
 -- Apply trigger to all tables with updated_at
-CREATE TRIGGER update_user_roles_updated_at BEFORE UPDATE ON user_roles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_user_plans_updated_at BEFORE UPDATE ON user_plans FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_user_api_keys_updated_at BEFORE UPDATE ON user_api_keys FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$
+BEGIN
+    IF to_regclass('public.user_roles') IS NOT NULL THEN
+        EXECUTE 'DROP TRIGGER IF EXISTS update_user_roles_updated_at ON user_roles';
+        EXECUTE 'CREATE TRIGGER update_user_roles_updated_at BEFORE UPDATE ON user_roles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()';
+    ELSE
+        RAISE NOTICE 'Skipping trigger creation on user_roles; table not found.';
+    END IF;
+
+    IF to_regclass('public.user_plans') IS NOT NULL THEN
+        EXECUTE 'DROP TRIGGER IF EXISTS update_user_plans_updated_at ON user_plans';
+        EXECUTE 'CREATE TRIGGER update_user_plans_updated_at BEFORE UPDATE ON user_plans FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()';
+    ELSE
+        RAISE NOTICE 'Skipping trigger creation on user_plans; table not found.';
+    END IF;
+
+    IF to_regclass('public.users') IS NOT NULL THEN
+        EXECUTE 'DROP TRIGGER IF EXISTS update_users_updated_at ON users';
+        EXECUTE 'CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()';
+    ELSE
+        RAISE NOTICE 'Skipping trigger creation on users; table not found.';
+    END IF;
+
+    IF to_regclass('public.user_api_keys') IS NOT NULL THEN
+        EXECUTE 'DROP TRIGGER IF EXISTS update_user_api_keys_updated_at ON user_api_keys';
+        EXECUTE 'CREATE TRIGGER update_user_api_keys_updated_at BEFORE UPDATE ON user_api_keys FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()';
+    ELSE
+        RAISE NOTICE 'Skipping trigger creation on user_api_keys; table not found.';
+    END IF;
+END;
+$$;
 
 -- ============================================================================
 -- HELPER VIEWS
 -- ============================================================================
 
--- View for user details with role and plan information
-CREATE OR REPLACE VIEW user_details_view AS
-SELECT 
-    u.id,
-    u.wallet_address,
-    u.username,
-    u.email,
-    u.first_name,
-    u.last_name,
-    u.avatar_url,
-    u.bio,
-    u.phone,
-    u.company,
-    u.location,
-    u.timezone,
-    u.language,
-    u.email_verified,
-    u.account_status,
-    u.subscription_status,
-    u.subscription_started_at,
-    u.subscription_expires_at,
-    u.trial_ends_at,
-    u.last_login_at,
-    u.login_count,
-    u.reputation_score,
-    u.total_space_harvested,
-    u.optimization_count,
-    u.created_at,
-    u.updated_at,
-    ur.role_name,
-    ur.role_label,
-    ur.permissions as role_permissions,
-    up.plan_name,
-    up.plan_label,
-    up.features as plan_features,
-    up.limits as plan_limits,
-    up.price_monthly,
-    up.price_yearly
-FROM users u
-LEFT JOIN user_roles ur ON u.role_id = ur.id
-LEFT JOIN user_plans up ON u.plan_id = up.id
-WHERE u.deleted_at IS NULL;
+DO $$
+BEGIN
+    IF to_regclass('public.users') IS NOT NULL THEN
+        EXECUTE $view_user_details$
+            CREATE OR REPLACE VIEW user_details_view AS
+            SELECT 
+                u.id,
+                u.wallet_address,
+                u.username,
+                u.email,
+                u.first_name,
+                u.last_name,
+                u.avatar_url,
+                u.bio,
+                u.phone,
+                u.company,
+                u.location,
+                u.timezone,
+                u.language,
+                u.email_verified,
+                u.account_status,
+                u.subscription_status,
+                u.subscription_started_at,
+                u.subscription_expires_at,
+                u.trial_ends_at,
+                u.last_login_at,
+                u.login_count,
+                u.reputation_score,
+                u.total_space_harvested,
+                u.optimization_count,
+                u.created_at,
+                u.updated_at,
+                ur.role_name,
+                ur.role_label,
+                ur.permissions as role_permissions,
+                up.plan_name,
+                up.plan_label,
+                up.features as plan_features,
+                up.limits as plan_limits,
+                up.price_monthly,
+                up.price_yearly
+            FROM users u
+            LEFT JOIN user_roles ur ON u.role_id = ur.id
+            LEFT JOIN user_plans up ON u.plan_id = up.id
+            WHERE u.deleted_at IS NULL
+        $view_user_details$;
+    ELSE
+        RAISE NOTICE 'users table missing; skipping user_details_view creation.';
+    END IF;
+END;
+$$;
 
 -- View for active sessions
-CREATE OR REPLACE VIEW active_sessions_view AS
-SELECT 
-    s.id,
-    s.user_id,
-    u.username,
-    u.email,
-    s.ip_address,
-    s.user_agent,
-    s.last_activity_at,
-    s.expires_at,
-    s.created_at
-FROM user_sessions s
-JOIN users u ON s.user_id = u.id
-WHERE s.is_active = true 
-  AND s.expires_at > CURRENT_TIMESTAMP;
+DO $$
+BEGIN
+    IF to_regclass('public.user_sessions') IS NOT NULL AND to_regclass('public.users') IS NOT NULL THEN
+        EXECUTE $view_sessions$
+            CREATE OR REPLACE VIEW active_sessions_view AS
+            SELECT 
+                s.id,
+                s.user_id,
+                u.username,
+                u.email,
+                s.ip_address,
+                s.user_agent,
+                s.last_activity_at,
+                s.expires_at,
+                s.created_at
+            FROM user_sessions s
+            JOIN users u ON s.user_id = u.id
+            WHERE s.is_active = true 
+              AND s.expires_at > CURRENT_TIMESTAMP
+                $view_sessions$;
+    ELSE
+        RAISE NOTICE 'Required tables for active_sessions_view missing; skipping view creation.';
+    END IF;
+END;
+$$;
 
--- ============================================================================
--- COMMENTS FOR DOCUMENTATION
--- ============================================================================
-COMMENT ON TABLE user_roles IS 'Defines user roles with associated permissions';
-COMMENT ON TABLE user_plans IS 'Subscription plans with features and pricing';
-COMMENT ON TABLE user_sessions IS 'Active user sessions for authentication';
-COMMENT ON TABLE user_activity_logs IS 'Audit trail of all user actions';
-COMMENT ON TABLE user_api_keys IS 'API keys for programmatic access';
+DO $$
+BEGIN
+    IF to_regclass('public.user_roles') IS NOT NULL THEN
+        EXECUTE 'COMMENT ON TABLE user_roles IS ''Defines user roles with associated permissions''';
+    ELSE
+        RAISE NOTICE 'Skipping comment for user_roles; table not found.';
+    END IF;
+
+    IF to_regclass('public.user_plans') IS NOT NULL THEN
+        EXECUTE 'COMMENT ON TABLE user_plans IS ''Subscription plans with features and pricing''';
+    ELSE
+        RAISE NOTICE 'Skipping comment for user_plans; table not found.';
+    END IF;
+
+    IF to_regclass('public.user_sessions') IS NOT NULL THEN
+        EXECUTE 'COMMENT ON TABLE user_sessions IS ''Active user sessions for authentication''';
+    ELSE
+        RAISE NOTICE 'Skipping comment for user_sessions; table not found.';
+    END IF;
+
+    IF to_regclass('public.user_activity_logs') IS NOT NULL THEN
+        EXECUTE 'COMMENT ON TABLE user_activity_logs IS ''Audit trail of all user actions''';
+    ELSE
+        RAISE NOTICE 'Skipping comment for user_activity_logs; table not found.';
+    END IF;
+
+    IF to_regclass('public.user_api_keys') IS NOT NULL THEN
+        EXECUTE 'COMMENT ON TABLE user_api_keys IS ''API keys for programmatic access''';
+    ELSE
+        RAISE NOTICE 'Skipping comment for user_api_keys; table not found.';
+    END IF;
+END;
+$$;
 
 -- Migration complete
