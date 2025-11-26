@@ -840,6 +840,49 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load neural network routes:', err);
       });
 
+    // Import and register Neural Network Dashboard routes
+    import('./api/neural-network-dashboard-routes.js')
+      .then(dashboardModule => {
+        const dashboardRouter = dashboardModule.default || dashboardModule.createNeuralNetworkDashboardRoutes;
+        if (typeof dashboardRouter === 'function') {
+          this.app.use('/api/neural-network-dashboard', dashboardRouter(this.pool));
+        } else {
+          this.app.use('/api/neural-network-dashboard', dashboardRouter);
+        }
+        console.log('Neural network dashboard routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load neural network dashboard routes:', err);
+    // Import and register Data Stream routes
+    import('./api/data-stream-routes.js')
+      .then(streamModule => {
+        const streamRouter = streamModule.default || streamModule.createDataStreamRoutes;
+        if (typeof streamRouter === 'function') {
+          this.app.use('/api/data-streams', streamRouter(this.pool));
+        } else {
+          this.app.use('/api/data-streams', streamRouter);
+        }
+        console.log('✅ Data stream routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load data stream routes:', err);
+      });
+
+    // Import and register Attribute routes
+    import('./api/attribute-routes.js')
+      .then(attrModule => {
+        const attrRouter = attrModule.default || attrModule.createAttributeRoutes;
+        if (typeof attrRouter === 'function') {
+          this.app.use('/api/attributes', attrRouter(this.pool));
+        } else {
+          this.app.use('/api/attributes', attrRouter);
+        }
+        console.log('✅ Attribute routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load attribute routes:', err);
+      });
+
     // Import and register TensorFlow Workflow Orchestration routes
     import('./api/tensorflow-workflow-routes.js')
       .then(tfModule => {

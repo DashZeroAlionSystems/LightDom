@@ -33,12 +33,14 @@ import ServiceGraphVisualizerDemoPage from '@/pages/ServiceGraphVisualizerDemoPa
 import MetaverseNftDemoPage from '@/pages/MetaverseNftDemoPage';
 import DataMiningOperationsDemoPage from '@/pages/DataMiningOperationsDemoPage';
 import CrawleeManager from '@/pages/CrawleeManager';
+import NeuralNetworkManagementPage from '@/pages/NeuralNetworkManagementPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
 import { WorkflowsPage } from '@/pages/WorkflowsPage';
+import NeuralNetworkManagementPage from '@/pages/NeuralNetworkManagementPage';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -280,6 +282,16 @@ const App: React.FC = () => {
                   }
                 />
                 <Route
+                  path='/neural-network-management'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NeuralNetworkManagementPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path='/workflows'
                   element={
                     <ProtectedRoute>
@@ -315,6 +327,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <CrawleeManager />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/neural-networks'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NeuralNetworkManagementPage />
                       </Layout>
                     </ProtectedRoute>
                   }
