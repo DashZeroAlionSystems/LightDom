@@ -131,6 +131,18 @@ class DOMSpaceHarvesterAPI {
           .catch(err => {
             console.warn('⚠️ Failed to mount enhanced RAG routes:', err?.message || err);
           });
+        
+        // Mount NEW Unified RAG routes (clean redesign)
+        import('./api/unified-rag-routes.js')
+          .then(mod => {
+            const createUnifiedRAGRouter = mod.createUnifiedRAGRouter || mod.default;
+            const unifiedRagRouter = createUnifiedRAGRouter({ db: this.db, logger: console });
+            this.app.use('/api/unified-rag', unifiedRagRouter);
+            console.log('✅ Unified RAG routes mounted at /api/unified-rag (new design)');
+          })
+          .catch(err => {
+            console.warn('⚠️ Failed to mount unified RAG routes:', err?.message || err);
+          });
       } catch (error) {
         console.error('Failed to initialize RAG routes:', error.message);
         // Attempt to mount the minimal fallback proxy so the frontend remains functional
