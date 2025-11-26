@@ -26,28 +26,6 @@ export const NavigationSidebar: React.FC = () => {
   };
 
   return (
-<<<<<<< HEAD
-    <AdminSidebar
-      featureToggles={adminSidebarDefaults.featureToggles}
-      user={{
-        name: user?.name || user?.email,
-        email: user?.email,
-        role: 'Administrator',
-      }}
-      notificationCount={0}
-      onSettingsClick={() => navigate('/settings')}
-      onNotificationsClick={() => toast.success('Notifications feature coming soon!')}
-      onLogoutClick={handleLogout}
-      onCreatePage={() => {
-        toast.success('Launching page creation wizard');
-        navigate('/workflow-wizard');
-      }}
-      onCreateDashboard={() => {
-        toast.success('Opening dashboard assembly surface');
-        navigate('/unified-dashboard');
-      }}
-    />
-=======
     <SidebarContainer defaultCollapsed={false}>
       {/* Header with logo and collapse button */}
       <SidebarHeader brandName='LightDom' brandSubtitle='Professional Platform' />
@@ -202,6 +180,25 @@ export const NavigationSidebar: React.FC = () => {
         notificationCount={0}
       />
     </SidebarContainer>
->>>>>>> dcf0bc313ac7509824b1a0ab654dc9d1b391fa59
+    <AdminSidebar
+      featureToggles={adminSidebarDefaults.featureToggles}
+      user={{
+        name: user?.name || user?.email,
+        email: user?.email,
+        role: 'Administrator',
+      }}
+      notificationCount={0}
+      onSettingsClick={() => navigate('/settings')}
+      onNotificationsClick={() => toast.success('Notifications feature coming soon!')}
+      onLogoutClick={handleLogout}
+      onCreatePage={() => {
+        toast.success('Launching page creation wizard');
+        navigate('/workflow-wizard');
+      }}
+      onCreateDashboard={() => {
+        toast.success('Opening dashboard assembly surface');
+        navigate('/unified-dashboard');
+      }}
+    />
   );
 };
