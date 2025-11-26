@@ -447,6 +447,279 @@ function normalizeCrawlerRecord(crawler) {
   };
 }
 
+function createCrawlerTypeSlug(value) {
+  if (!value) return '';
+  return value
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
+}
+
+function parseJsonFieldStrict(value, fieldName, fallback) {
+  if (value === undefined || value === null) return fallback;
+  if (typeof value === 'object') return value;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return fallback;
+    try {
+      return JSON.parse(trimmed);
+    } catch (err) {
+      throw new Error(`Invalid JSON for ${fieldName}`);
+    }
+  }
+  return fallback;
+}
+
+function coerceFeatureList(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value
+      .map(item => (item === undefined || item === null ? '' : item.toString().trim()))
+      .filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map(part => part.trim())
+      .filter(Boolean);
+  }
+  if (typeof value === 'object') {
+    return Object.values(value)
+      .map(item => (item === undefined || item === null ? '' : item.toString().trim()))
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function normalizeCrawlerTypeRecord(type) {
+  const rawId = type?.id || type?.name || '';
+  const id = rawId.toString().trim();
+
+  const features = coerceFeatureList(type?.features);
+
+  const normalized = {
+    id,
+    name: type?.name || id || 'Crawler Type',
+    description: type?.description || '',
+    features,
+    usage: type?.usage || '',
+    docs_url: type?.docs_url || null,
+    default_config: {
+      ...DEFAULT_CRAWLER_CONFIG,
+      ...(type?.default_config && typeof type.default_config === 'object'
+        ? type.default_config
+        : {}),
+    },
+    default_request_config: {
+      ...DEFAULT_REQUEST_CONFIG,
+      ...(type?.default_request_config && typeof type.default_request_config === 'object'
+        ? type.default_request_config
+        : {}),
+    },
+    default_url_patterns: {
+      ...DEFAULT_URL_PATTERNS,
+      ...(type?.default_url_patterns && typeof type.default_url_patterns === 'object'
+        ? type.default_url_patterns
+        : {}),
+    },
+    default_selectors: {
+      ...DEFAULT_TYPE_SELECTORS,
+      ...(type?.default_selectors && typeof type.default_selectors === 'object'
+        ? type.default_selectors
+        : {}),
+    },
+    notes: type?.notes || null,
+  };
+
+  if (type?.created_at) normalized.created_at = type.created_at;
+  if (type?.updated_at) normalized.updated_at = type.updated_at;
+
+  return normalized;
+}
+
+async function loadCrawlerTypesFromFileRaw() {
+  await ensureDataDir();
+  try {
+    const records = await readJsonFile(CRAWLER_TYPES_FILE);
+    return Array.isArray(records) ? records : [];
+  } catch (err) {
+    if (err && err.code === 'ENOENT') return [];
+    throw err;
+  }
+}
+
+async function saveCrawlerTypesToFile(types) {
+  await ensureDataDir();
+  const fp = path.join(DATA_DIR, CRAWLER_TYPES_FILE);
+  const normalized = (Array.isArray(types) ? types : [])
+    .map(normalizeCrawlerTypeRecord)
+    .filter(type => type.id)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  await fs.writeFile(fp, JSON.stringify(normalized, null, 2), 'utf-8');
+}
+
+async function ensureCrawlerTypeTable() {
+  if (!pgPool) return;
+  await pgPool.query(`
+    CREATE TABLE IF NOT EXISTS crawler_types (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      features JSONB DEFAULT '[]'::jsonb,
+      usage TEXT,
+      docs_url TEXT,
+      default_config JSONB DEFAULT '{}'::jsonb,
+      default_request_config JSONB DEFAULT '{}'::jsonb,
+      default_url_patterns JSONB DEFAULT '{}'::jsonb,
+      default_selectors JSONB DEFAULT '{}'::jsonb,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+}
+
+async function seedCrawlerTypesInDB() {
+  if (!pgPool) return;
+  try {
+    await ensureCrawlerTypeTable();
+    const result = await pgPool.query('SELECT COUNT(*)::int AS count FROM crawler_types');
+    const count = result.rows?.[0]?.count || 0;
+    if (count === 0) {
+      for (const type of DEFAULT_CRAWLER_TYPES) {
+        await upsertCrawlerTypeRecord(type);
+      }
+    }
+  } catch (err) {
+    console.warn(
+      'Failed to seed crawler types in Postgres',
+      err && err.message ? err.message : err
+    );
+  }
+}
+
+async function loadCrawlerTypesFromDB() {
+  await ensureCrawlerTypeTable();
+  const result = await pgPool.query(`
+    SELECT id, name, description, features, usage, docs_url,
+           default_config, default_request_config, default_url_patterns,
+           default_selectors, notes, created_at, updated_at
+    FROM crawler_types
+    ORDER BY name ASC;
+  `);
+
+  return result.rows.map(row =>
+    normalizeCrawlerTypeRecord({
+      ...row,
+      created_at: row.created_at ? row.created_at.toISOString?.() || row.created_at : null,
+      updated_at: row.updated_at ? row.updated_at.toISOString?.() || row.updated_at : null,
+    })
+  );
+}
+
+async function loadCrawlerTypes() {
+  if (pgPool) {
+    await seedCrawlerTypesInDB();
+    return loadCrawlerTypesFromDB();
+  }
+
+  const rawTypes = await loadCrawlerTypesFromFileRaw();
+  if (!rawTypes || rawTypes.length === 0) {
+    const defaults = DEFAULT_CRAWLER_TYPES.map(normalizeCrawlerTypeRecord);
+    await saveCrawlerTypesToFile(defaults);
+    return defaults;
+  }
+  return rawTypes.map(normalizeCrawlerTypeRecord).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function getCrawlerTypeById(typeId) {
+  if (!typeId) return null;
+  if (pgPool) {
+    await ensureCrawlerTypeTable();
+    const result = await pgPool.query(
+      `SELECT id, name, description, features, usage, docs_url,
+              default_config, default_request_config, default_url_patterns,
+              default_selectors, notes, created_at, updated_at
+         FROM crawler_types
+         WHERE id = $1
+         LIMIT 1;`,
+      [typeId]
+    );
+    if (result.rows.length === 0) return null;
+    const row = result.rows[0];
+    return normalizeCrawlerTypeRecord({
+      ...row,
+      created_at: row.created_at ? row.created_at.toISOString?.() || row.created_at : null,
+      updated_at: row.updated_at ? row.updated_at.toISOString?.() || row.updated_at : null,
+    });
+  }
+
+  const types = await loadCrawlerTypes();
+  return types.find(type => type.id === typeId) || null;
+}
+
+async function upsertCrawlerTypeRecord(type) {
+  const normalized = normalizeCrawlerTypeRecord(type);
+  if (!normalized.id) {
+    throw new Error('Crawler type id is required');
+  }
+
+  if (pgPool) {
+    await ensureCrawlerTypeTable();
+    await pgPool.query(
+      `INSERT INTO crawler_types (
+        id, name, description, features, usage, docs_url,
+        default_config, default_request_config, default_url_patterns,
+        default_selectors, notes
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6,
+        $7, $8, $9, $10, $11
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        name = EXCLUDED.name,
+        description = EXCLUDED.description,
+        features = EXCLUDED.features,
+        usage = EXCLUDED.usage,
+        docs_url = EXCLUDED.docs_url,
+        default_config = EXCLUDED.default_config,
+        default_request_config = EXCLUDED.default_request_config,
+        default_url_patterns = EXCLUDED.default_url_patterns,
+        default_selectors = EXCLUDED.default_selectors,
+        notes = EXCLUDED.notes,
+        updated_at = CURRENT_TIMESTAMP;`,
+      [
+        normalized.id,
+        normalized.name,
+        normalized.description,
+        normalized.features,
+        normalized.usage,
+        normalized.docs_url,
+        normalized.default_config,
+        normalized.default_request_config,
+        normalized.default_url_patterns,
+        normalized.default_selectors,
+        normalized.notes,
+      ]
+    );
+    return normalized;
+  }
+
+  const types = await loadCrawlerTypesFromFileRaw();
+  const index = types.findIndex(
+    type => (type.id || '').toLowerCase() === normalized.id.toLowerCase()
+  );
+  if (index === -1) {
+    types.push(normalized);
+  } else {
+    types[index] = normalized;
+  }
+  await saveCrawlerTypesToFile(types);
+  return normalized;
+}
+
 // Ensure DB schema exists for dev persistence
 async function ensureDBSchema() {
   if (!pgPool) return;
@@ -488,6 +761,8 @@ async function ensureDBSchema() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    await ensureCrawlerTypeTable();
   } catch (err) {
     console.warn(
       'Failed to ensure DB schema for minimal proxy:',
@@ -822,26 +1097,122 @@ app.get('/api/deepseek/executions', async (req, res) => {
 });
 
 // --- Lightweight Crawlee endpoints for development ---
-app.get('/api/crawlee/crawler-types', (req, res) => {
-  return res.json({ success: true, types: DEFAULT_CRAWLER_TYPES });
+app.get('/api/crawlee/crawler-types', async (req, res) => {
+  try {
+    const types = await loadCrawlerTypes();
+    return res.json({ success: true, types });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to list crawler types', details: err.message });
+  }
 });
 
-app.get('/api/crawlee/config-template', (req, res) => {
-  return res.json({
-    success: true,
-    template: {
+app.get('/api/crawlee/crawler-types/:id', async (req, res) => {
+  try {
+    const type = await getCrawlerTypeById(req.params.id);
+    if (!type) {
+      return res.status(404).json({ success: false, error: 'Crawler type not found' });
+    }
+    return res.json({ success: true, type });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to load crawler type', details: err.message });
+  }
+});
+
+app.post('/api/crawlee/crawler-types', async (req, res) => {
+  try {
+    const payload = req.body || {};
+    const baseId = payload.id || payload.name;
+    if (!baseId) {
+      return res.status(400).json({ success: false, error: 'name or id is required' });
+    }
+
+    const slug = createCrawlerTypeSlug(baseId) || createCrawlerTypeSlug(payload.name);
+    if (!slug) {
+      return res.status(400).json({ success: false, error: 'Unable to derive crawler type id' });
+    }
+
+    const existing = await getCrawlerTypeById(slug);
+    if (existing) {
+      return res.status(409).json({ success: false, error: 'Crawler type already exists' });
+    }
+
+    let defaultConfig;
+    let defaultRequestConfig;
+    let defaultUrlPatterns;
+    let defaultSelectors;
+
+    try {
+      defaultConfig = parseJsonFieldStrict(payload.default_config, 'default_config', {});
+      defaultRequestConfig = parseJsonFieldStrict(
+        payload.default_request_config,
+        'default_request_config',
+        {}
+      );
+      defaultUrlPatterns = parseJsonFieldStrict(
+        payload.default_url_patterns,
+        'default_url_patterns',
+        {}
+      );
+      defaultSelectors = parseJsonFieldStrict(payload.default_selectors, 'default_selectors', {});
+    } catch (parseErr) {
+      return res.status(400).json({ success: false, error: parseErr.message });
+    }
+
+    const typeRecord = {
+      id: slug,
+      name: payload.name || slug,
+      description: payload.description || '',
+      usage: payload.usage || '',
+      features: coerceFeatureList(payload.features),
+      docs_url: payload.docs_url || null,
+      notes: payload.notes || null,
+      default_config: defaultConfig,
+      default_request_config: defaultRequestConfig,
+      default_url_patterns: defaultUrlPatterns,
+      default_selectors: defaultSelectors,
+    };
+
+    const stored = await upsertCrawlerTypeRecord(typeRecord);
+    return res.status(201).json({ success: true, type: stored });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to create crawler type', details: err.message });
+  }
+});
+
+app.get('/api/crawlee/config-template', async (req, res) => {
+  try {
+    const requestedType = req.query.type || req.query.typeId || req.query.crawlerType;
+    let templateType = null;
+    if (requestedType) {
+      templateType = await getCrawlerTypeById(requestedType);
+    }
+
+    const baseTemplate = {
       name: 'My Crawler',
-      description: 'Crawler description',
-      type: 'cheerio',
-      config: DEFAULT_CRAWLER_CONFIG,
-      url_patterns: DEFAULT_URL_PATTERNS,
-      selectors: {
+      description: templateType?.description || 'Crawler description',
+      type: templateType?.id || 'cheerio',
+      config: templateType?.default_config || { ...DEFAULT_CRAWLER_CONFIG },
+      request_config: templateType?.default_request_config || { ...DEFAULT_REQUEST_CONFIG },
+      url_patterns: templateType?.default_url_patterns || { ...DEFAULT_URL_PATTERNS },
+      selectors: templateType?.default_selectors || {
         title: 'h1',
         description: 'meta[name="description"]',
         content: '.main-content',
       },
-    },
-  });
+    };
+
+    return res.json({ success: true, template: baseTemplate, type: templateType || null });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to build config template', details: err.message });
+  }
 });
 
 app.get('/api/crawlee/crawlers', async (req, res) => {
@@ -863,27 +1234,47 @@ app.post('/api/crawlee/crawlers', async (req, res) => {
     const id = payload.id || `crawler_${Date.now()}_${randomUUID().slice(0, 8)}`;
     const now = new Date().toISOString();
 
+    const requestedTypeId = payload.type
+      ? createCrawlerTypeSlug(payload.type) || payload.type
+      : null;
+    const typeRecord = requestedTypeId ? await getCrawlerTypeById(requestedTypeId) : null;
+    const resolvedType = typeRecord?.id || 'cheerio';
+
+    const configDefaults = typeRecord?.default_config || {};
+    const requestConfigDefaults = typeRecord?.default_request_config || {};
+    const urlPatternDefaults = typeRecord?.default_url_patterns || {};
+    const selectorDefaults = typeRecord?.default_selectors || {};
+
+    const derivedTags =
+      Array.isArray(payload.tags) && payload.tags.length > 0
+        ? payload.tags
+        : typeRecord?.features || [];
+
+    const metadataDefaults = typeRecord?.docs_url
+      ? { crawler_type_docs_url: typeRecord.docs_url }
+      : {};
+
     const record = normalizeCrawlerRecord({
       id,
       name: payload.name,
       description: payload.description,
-      type: DEFAULT_CRAWLER_TYPES.some(t => t.id === payload.type) ? payload.type : 'cheerio',
+      type: resolvedType,
       status: 'idle',
-      config: { ...DEFAULT_CRAWLER_CONFIG, ...(payload.config || {}) },
-      request_config: { ...DEFAULT_REQUEST_CONFIG, ...(payload.request_config || {}) },
+      config: { ...configDefaults, ...(payload.config || {}) },
+      request_config: { ...requestConfigDefaults, ...(payload.request_config || {}) },
       autoscaling_config: payload.autoscaling_config,
       session_pool_config: payload.session_pool_config,
       proxy_config: payload.proxy_config,
       storage_config: payload.storage_config,
       request_queue_config: payload.request_queue_config,
       error_handling_config: payload.error_handling_config,
-      url_patterns: { ...DEFAULT_URL_PATTERNS, ...(payload.url_patterns || {}) },
-      selectors: payload.selectors || {},
+      url_patterns: { ...urlPatternDefaults, ...(payload.url_patterns || {}) },
+      selectors: { ...selectorDefaults, ...(payload.selectors || {}) },
       campaign_id: payload.campaign_id || null,
       seeder_service_id: payload.seeder_service_id || null,
       created_by: payload.created_by || null,
-      tags: payload.tags || [],
-      metadata: payload.metadata || {},
+      tags: derivedTags,
+      metadata: { ...metadataDefaults, ...(payload.metadata || {}) },
       stats: DEFAULT_STATS,
       seeds: [],
       created_at: now,
@@ -918,20 +1309,48 @@ app.get('/api/crawlee/crawlers/:id', async (req, res) => {
 app.put('/api/crawlee/crawlers/:id', async (req, res) => {
   try {
     const updates = req.body || {};
+    const requestedTypeId = updates.type
+      ? createCrawlerTypeSlug(updates.type) || updates.type
+      : null;
+    const proposedType = requestedTypeId ? await getCrawlerTypeById(requestedTypeId) : null;
+
     const updated = await updateCrawlerInStore(req.params.id, existing => {
       if (!existing) return null;
       const normalized = normalizeCrawlerRecord(existing);
       const next = { ...normalized };
 
+      if (proposedType) {
+        next.type = proposedType.id;
+        next.config = { ...proposedType.default_config, ...next.config };
+        next.request_config = {
+          ...proposedType.default_request_config,
+          ...next.request_config,
+        };
+        next.url_patterns = {
+          ...proposedType.default_url_patterns,
+          ...next.url_patterns,
+        };
+        next.selectors = { ...proposedType.default_selectors, ...next.selectors };
+        if (!updates.tags || updates.tags.length === 0) {
+          next.tags = [...proposedType.features];
+        }
+        if (proposedType.docs_url) {
+          next.metadata = {
+            ...next.metadata,
+            crawler_type_docs_url: proposedType.docs_url,
+          };
+        }
+      }
+
       if (updates.name !== undefined) next.name = updates.name;
       if (updates.description !== undefined) next.description = updates.description;
-      if (updates.type && DEFAULT_CRAWLER_TYPES.some(t => t.id === updates.type)) {
-        next.type = updates.type;
+      if (updates.type && proposedType) {
+        next.type = proposedType.id;
       }
       if (updates.status) next.status = updates.status;
-      if (updates.config) next.config = { ...normalized.config, ...updates.config };
+      if (updates.config) next.config = { ...next.config, ...updates.config };
       if (updates.request_config)
-        next.request_config = { ...normalized.request_config, ...updates.request_config };
+        next.request_config = { ...next.request_config, ...updates.request_config };
       if (updates.autoscaling_config)
         next.autoscaling_config = {
           ...normalized.autoscaling_config,
@@ -939,26 +1358,26 @@ app.put('/api/crawlee/crawlers/:id', async (req, res) => {
         };
       if (updates.session_pool_config)
         next.session_pool_config = {
-          ...normalized.session_pool_config,
+          ...next.session_pool_config,
           ...updates.session_pool_config,
         };
       if (updates.proxy_config)
-        next.proxy_config = { ...normalized.proxy_config, ...updates.proxy_config };
+        next.proxy_config = { ...next.proxy_config, ...updates.proxy_config };
       if (updates.storage_config)
-        next.storage_config = { ...normalized.storage_config, ...updates.storage_config };
+        next.storage_config = { ...next.storage_config, ...updates.storage_config };
       if (updates.request_queue_config)
         next.request_queue_config = {
-          ...normalized.request_queue_config,
+          ...next.request_queue_config,
           ...updates.request_queue_config,
         };
       if (updates.error_handling_config)
         next.error_handling_config = {
-          ...normalized.error_handling_config,
+          ...next.error_handling_config,
           ...updates.error_handling_config,
         };
       if (updates.url_patterns)
-        next.url_patterns = { ...normalized.url_patterns, ...updates.url_patterns };
-      if (updates.selectors) next.selectors = { ...normalized.selectors, ...updates.selectors };
+        next.url_patterns = { ...next.url_patterns, ...updates.url_patterns };
+      if (updates.selectors) next.selectors = { ...next.selectors, ...updates.selectors };
       if (updates.request_handler !== undefined) next.request_handler = updates.request_handler;
       if (updates.failed_request_handler !== undefined)
         next.failed_request_handler = updates.failed_request_handler;
@@ -1438,6 +1857,10 @@ app.get('/api/services/:id/status', requireManagerAuth, (req, res) => {
 // Ensure data dir exists before starting server
 ensureDataDir().catch(err =>
   console.warn('ensureDataDir error', err && err.message ? err.message : err)
+);
+
+loadCrawlerTypes().catch(err =>
+  console.warn('Failed to warm crawler types store', err && err.message ? err.message : err)
 );
 
 // Start server with port fallback if default port is in use

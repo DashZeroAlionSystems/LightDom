@@ -22,6 +22,7 @@ import {
   Card,
   Col,
   Descriptions,
+  Divider,
   Drawer,
   Form,
   Input,
@@ -33,19 +34,21 @@ import {
   Row,
   Select,
   Space,
+  Spin,
   Statistic,
   Switch,
   Table,
   Tabs,
   Tag,
   Tooltip,
+  Typography,
 } from 'antd';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
 const { TextArea } = Input;
 const { Option } = Select;
-const { TabPane } = Tabs;
+const { Link } = Typography;
 
 const DEFAULT_URL_PATTERNS = {
   include: ['*'],
@@ -59,6 +62,20 @@ const DEFAULT_SELECTORS = {
   title: 'h1',
   description: 'meta[name="description"]',
   keywords: 'meta[name="keywords"]',
+};
+
+const DEFAULT_CRAWLER_CONFIG = {
+  maxRequestsPerCrawl: 1000,
+  maxConcurrency: 10,
+  maxRequestRetries: 3,
+  requestHandlerTimeoutSecs: 60,
+  useSessionPool: true,
+};
+
+const DEFAULT_REQUEST_CONFIG = {
+  headless: true,
+  ignoreSslErrors: false,
+  useChrome: false,
 };
 
 const safeParseJSON = (value, fallback) => {
@@ -159,7 +176,12 @@ const CrawleeManager = () => {
   const [crawlerTypes, setCrawlerTypes] = useState([]);
   const [modalSubmitting, setModalSubmitting] = useState(false);
   const [crawlerTypesLoading, setCrawlerTypesLoading] = useState(false);
+  const [selectedTypeDetails, setSelectedTypeDetails] = useState(null);
+  const [typeDetailsLoading, setTypeDetailsLoading] = useState(false);
+  const [typeModalVisible, setTypeModalVisible] = useState(false);
+  const [typeModalSubmitting, setTypeModalSubmitting] = useState(false);
   const [form] = Form.useForm();
+  const [typeForm] = Form.useForm();
 
   useEffect(() => {
     fetchCrawlers();
@@ -194,19 +216,110 @@ const CrawleeManager = () => {
     }
   };
 
+  const handleCrawlerTypeChange = async (typeId, options = {}) => {
+    const { applyDefaults = false, silent = false } = options;
+
+    if (!typeId) {
+      setSelectedTypeDetails(null);
+      return;
+    }
+
+    setTypeDetailsLoading(true);
+    try {
+      let typeDetails = crawlerTypes.find(type => type.id === typeId);
+      if (!typeDetails) {
+        const response = await axios.get(`/api/crawlee/crawler-types/${typeId}`);
+        typeDetails = response.data?.type;
+      }
+
+      if (!typeDetails) {
+        setSelectedTypeDetails(null);
+        if (!silent) {
+          message.warning('Crawler type not found');
+        }
+        return;
+      }
+
+      setSelectedTypeDetails(typeDetails);
+
+      if (applyDefaults) {
+        const configDefaults = typeDetails.default_config || {};
+        const selectorsDefaults = typeDetails.default_selectors || DEFAULT_SELECTORS;
+        const urlPatternsDefaults = typeDetails.default_url_patterns || DEFAULT_URL_PATTERNS;
+
+        const existingConfig = form.getFieldValue('config') || {};
+
+        form.setFieldsValue({
+          type: typeDetails.id,
+          config: {
+            ...existingConfig,
+            maxRequestsPerCrawl:
+              configDefaults.maxRequestsPerCrawl ??
+              existingConfig.maxRequestsPerCrawl ??
+              DEFAULT_CRAWLER_CONFIG.maxRequestsPerCrawl,
+            maxConcurrency:
+              configDefaults.maxConcurrency ??
+              existingConfig.maxConcurrency ??
+              DEFAULT_CRAWLER_CONFIG.maxConcurrency,
+            maxRequestRetries:
+              configDefaults.maxRequestRetries ??
+              existingConfig.maxRequestRetries ??
+              DEFAULT_CRAWLER_CONFIG.maxRequestRetries,
+            requestHandlerTimeoutSecs:
+              configDefaults.requestHandlerTimeoutSecs ??
+              existingConfig.requestHandlerTimeoutSecs ??
+              DEFAULT_CRAWLER_CONFIG.requestHandlerTimeoutSecs,
+            useSessionPool:
+              configDefaults.useSessionPool ??
+              existingConfig.useSessionPool ??
+              DEFAULT_CRAWLER_CONFIG.useSessionPool,
+          },
+          selectors: JSON.stringify(selectorsDefaults, null, 2),
+          url_patterns: JSON.stringify(urlPatternsDefaults, null, 2),
+        });
+
+        const existingTags = form.getFieldValue('tags');
+        if ((!existingTags || existingTags.length === 0) && Array.isArray(typeDetails.features)) {
+          form.setFieldsValue({ tags: typeDetails.features });
+        }
+      }
+    } catch (error) {
+      setSelectedTypeDetails(null);
+      if (!silent) {
+        message.error('Failed to load crawler type details');
+      }
+    } finally {
+      setTypeDetailsLoading(false);
+    }
+  };
+
   const openCreateModal = () => {
     setModalMode('create');
     setEditingCrawler(null);
     form.resetFields();
+    setSelectedTypeDetails(null);
+
+    const defaultTypeId = (crawlerTypes[0] && crawlerTypes[0].id) || 'cheerio';
+
     form.setFieldsValue({
+      type: defaultTypeId,
       selectors: JSON.stringify(DEFAULT_SELECTORS, null, 2),
       url_patterns: JSON.stringify(DEFAULT_URL_PATTERNS, null, 2),
       seed_urls: '',
       seeder_keywords: [],
       client_site_url: '',
       auto_start_seeder: true,
+      config: {
+        maxRequestsPerCrawl: DEFAULT_CRAWLER_CONFIG.maxRequestsPerCrawl,
+        maxConcurrency: DEFAULT_CRAWLER_CONFIG.maxConcurrency,
+        maxRequestRetries: DEFAULT_CRAWLER_CONFIG.maxRequestRetries,
+        requestHandlerTimeoutSecs: DEFAULT_CRAWLER_CONFIG.requestHandlerTimeoutSecs,
+        useSessionPool: DEFAULT_CRAWLER_CONFIG.useSessionPool,
+      },
     });
+
     setCreateModalVisible(true);
+    handleCrawlerTypeChange(defaultTypeId, { applyDefaults: true, silent: true });
   };
 
   const openEditModal = crawler => {
@@ -229,15 +342,20 @@ const CrawleeManager = () => {
       client_site_url: normalized.metadata?.clientSiteUrl || '',
       auto_start_seeder: true,
       config: {
-        maxRequestsPerCrawl: normalized.config?.maxRequestsPerCrawl ?? 1000,
-        maxConcurrency: normalized.config?.maxConcurrency ?? 10,
-        maxRequestRetries: normalized.config?.maxRequestRetries ?? 3,
-        requestHandlerTimeoutSecs: normalized.config?.requestHandlerTimeoutSecs ?? 60,
-        useSessionPool: normalized.config?.useSessionPool ?? true,
+        maxRequestsPerCrawl:
+          normalized.config?.maxRequestsPerCrawl ?? DEFAULT_CRAWLER_CONFIG.maxRequestsPerCrawl,
+        maxConcurrency: normalized.config?.maxConcurrency ?? DEFAULT_CRAWLER_CONFIG.maxConcurrency,
+        maxRequestRetries:
+          normalized.config?.maxRequestRetries ?? DEFAULT_CRAWLER_CONFIG.maxRequestRetries,
+        requestHandlerTimeoutSecs:
+          normalized.config?.requestHandlerTimeoutSecs ??
+          DEFAULT_CRAWLER_CONFIG.requestHandlerTimeoutSecs,
+        useSessionPool: normalized.config?.useSessionPool ?? DEFAULT_CRAWLER_CONFIG.useSessionPool,
       },
     });
 
     setCreateModalVisible(true);
+    handleCrawlerTypeChange(normalized.type, { applyDefaults: false, silent: true });
   };
 
   const closeModal = () => {
@@ -245,15 +363,110 @@ const CrawleeManager = () => {
     setModalMode('create');
     setEditingCrawler(null);
     setModalSubmitting(false);
+    setSelectedTypeDetails(null);
     form.resetFields();
   };
 
-  const createSeederServiceForCrawler = async (crawler, options = {}) => {
-    const normalizedCrawler = normalizeCrawlerRecord(crawler);
-    if (!normalizedCrawler) {
-      return null;
+  const openAddTypeModal = () => {
+    typeForm.resetFields();
+    typeForm.setFieldsValue({
+      features: [],
+      default_config: JSON.stringify(DEFAULT_CRAWLER_CONFIG, null, 2),
+      default_request_config: JSON.stringify(DEFAULT_REQUEST_CONFIG, null, 2),
+      default_url_patterns: JSON.stringify(DEFAULT_URL_PATTERNS, null, 2),
+      default_selectors: JSON.stringify(DEFAULT_SELECTORS, null, 2),
+    });
+    setTypeModalVisible(true);
+    setTypeModalSubmitting(false);
+  };
+
+  const closeTypeModal = () => {
+    setTypeModalVisible(false);
+    setTypeModalSubmitting(false);
+    typeForm.resetFields();
+  };
+
+  const handleSubmitCrawlerType = async values => {
+    const submission = { ...values };
+    const trimmedName = submission.name ? submission.name.trim() : '';
+    const trimmedId = submission.id ? submission.id.trim() : '';
+
+    if (!trimmedName && !trimmedId) {
+      message.error('Please provide a crawler type name');
+      return;
     }
 
+    let defaultConfig;
+    let defaultRequestConfig;
+    let defaultUrlPatterns;
+    let defaultSelectors;
+
+    try {
+      defaultConfig = JSON.parse(
+        JSON.stringify(
+          parseJsonField(submission.default_config, 'default configuration', DEFAULT_CRAWLER_CONFIG)
+        )
+      );
+      defaultRequestConfig = JSON.parse(
+        JSON.stringify(
+          parseJsonField(
+            submission.default_request_config,
+            'default request configuration',
+            DEFAULT_REQUEST_CONFIG
+          )
+        )
+      );
+      defaultUrlPatterns = JSON.parse(
+        JSON.stringify(
+          parseJsonField(
+            submission.default_url_patterns,
+            'default URL patterns',
+            DEFAULT_URL_PATTERNS
+          )
+        )
+      );
+      defaultSelectors = JSON.parse(
+        JSON.stringify(
+          parseJsonField(submission.default_selectors, 'default selectors', DEFAULT_SELECTORS)
+        )
+      );
+    } catch (error) {
+      message.error(error.message);
+      return;
+    }
+
+    const features = Array.isArray(submission.features)
+      ? submission.features.map(item => item && item.toString().trim()).filter(Boolean)
+      : [];
+
+    const payload = {
+      id: trimmedId || undefined,
+      name: trimmedName || undefined,
+      description: submission.description ? submission.description.trim() : undefined,
+      usage: submission.usage ? submission.usage.trim() : undefined,
+      docs_url: submission.docs_url ? submission.docs_url.trim() : undefined,
+      notes: submission.notes ? submission.notes.trim() : undefined,
+      features,
+      default_config: defaultConfig,
+      default_request_config: defaultRequestConfig,
+      default_url_patterns: defaultUrlPatterns,
+      default_selectors: defaultSelectors,
+    };
+
+    setTypeModalSubmitting(true);
+    try {
+      await axios.post('/api/crawlee/crawler-types', payload);
+      message.success('Crawler type saved');
+      closeTypeModal();
+      fetchCrawlerTypes();
+    } catch (error) {
+      message.error(error.response?.data?.error || error.message);
+    } finally {
+      setTypeModalSubmitting(false);
+    }
+  };
+
+  const createSeederServiceForCrawler = async (normalizedCrawler, options = {}) => {
     const { seedUrls = [], keywords = [], clientSiteUrl, instanceId, autoStart = true } = options;
 
     const normalizedConfig = normalizedCrawler.config || {};
@@ -771,6 +984,19 @@ const CrawleeManager = () => {
       dataIndex: 'usage',
       key: 'usage',
     },
+    {
+      title: 'Docs',
+      dataIndex: 'docs_url',
+      key: 'docs_url',
+      render: url =>
+        url ? (
+          <Link href={url} target='_blank' rel='noreferrer'>
+            Reference
+          </Link>
+        ) : (
+          '—'
+        ),
+    },
   ];
 
   return (
@@ -810,7 +1036,15 @@ const CrawleeManager = () => {
         />
       </Card>
 
-      <Card title='Crawler Types & Capabilities' style={{ marginTop: 24 }}>
+      <Card
+        title='Crawler Types & Capabilities'
+        style={{ marginTop: 24 }}
+        extra={
+          <Button icon={<PlusOutlined />} onClick={openAddTypeModal}>
+            Add Crawler Type
+          </Button>
+        }
+      >
         <Alert
           message='Crawler engine overview'
           description='Choose a crawler type that matches the rendering requirements of your target domain. Use full browser automation for heavy JavaScript sites and lighter engines for static pages.'
@@ -839,192 +1073,268 @@ const CrawleeManager = () => {
         closable={!modalSubmitting}
       >
         <Form form={form} layout='vertical' onFinish={handleSubmitCrawler}>
-          <Tabs defaultActiveKey='basic'>
-            <TabPane tab='Basic Settings' key='basic'>
-              <Form.Item
-                name='name'
-                label='Crawler Name'
-                rules={[{ required: true, message: 'Please enter crawler name' }]}
-              >
-                <Input placeholder='My SEO Crawler' />
-              </Form.Item>
+          <Tabs
+            defaultActiveKey='basic'
+            items={[
+              {
+                key: 'basic',
+                label: 'Basic Settings',
+                children: (
+                  <>
+                    <Form.Item
+                      name='name'
+                      label='Crawler Name'
+                      rules={[{ required: true, message: 'Please enter crawler name' }]}
+                    >
+                      <Input placeholder='My SEO Crawler' />
+                    </Form.Item>
 
-              <Form.Item name='description' label='Description'>
-                <TextArea rows={3} placeholder='Describe what this crawler does...' />
-              </Form.Item>
+                    <Form.Item name='description' label='Description'>
+                      <TextArea rows={3} placeholder='Describe what this crawler does...' />
+                    </Form.Item>
 
-              <Form.Item
-                name='type'
-                label='Crawler Type'
-                rules={[{ required: true, message: 'Please select crawler type' }]}
-                initialValue='cheerio'
-              >
-                <Select placeholder='Select crawler type'>
-                  {crawlerTypes.map(type => (
-                    <Option key={type.id} value={type.id}>
-                      <Space direction='vertical' size={0}>
-                        <strong>{type.name}</strong>
-                        <small>{type.description}</small>
-                      </Space>
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </TabPane>
+                    <Form.Item
+                      name='type'
+                      label='Crawler Type'
+                      rules={[{ required: true, message: 'Please select crawler type' }]}
+                      initialValue='cheerio'
+                    >
+                      <Select
+                        placeholder='Select crawler type'
+                        onChange={value =>
+                          handleCrawlerTypeChange(value, { applyDefaults: modalMode === 'create' })
+                        }
+                      >
+                        {crawlerTypes.map(type => (
+                          <Option key={type.id} value={type.id}>
+                            <Space direction='vertical' size={0}>
+                              <strong>{type.name}</strong>
+                              <small>{type.description}</small>
+                            </Space>
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
 
-            <TabPane tab='Configuration' key='config'>
-              <Row gutter={16}>
-                <Col span={12}>
+                    {typeDetailsLoading ? (
+                      <div style={{ marginBottom: 16 }}>
+                        <Spin size='small' />
+                      </div>
+                    ) : selectedTypeDetails ? (
+                      <Alert
+                        type='success'
+                        showIcon
+                        message={`${selectedTypeDetails.name} guidance`}
+                        description={
+                          <div>
+                            {selectedTypeDetails.usage && (
+                              <div style={{ marginBottom: 8 }}>{selectedTypeDetails.usage}</div>
+                            )}
+                            {Array.isArray(selectedTypeDetails.features) &&
+                              selectedTypeDetails.features.length > 0 && (
+                                <Space wrap>
+                                  {selectedTypeDetails.features.map(feature => (
+                                    <Tag key={feature} color='processing'>
+                                      {feature}
+                                    </Tag>
+                                  ))}
+                                </Space>
+                              )}
+                            {selectedTypeDetails.docs_url && (
+                              <div style={{ marginTop: 8 }}>
+                                <Link
+                                  href={selectedTypeDetails.docs_url}
+                                  target='_blank'
+                                  rel='noreferrer'
+                                >
+                                  View Crawlee documentation
+                                </Link>
+                              </div>
+                            )}
+                          </div>
+                        }
+                        style={{ marginBottom: 16 }}
+                      />
+                    ) : null}
+                  </>
+                ),
+              },
+              {
+                key: 'config',
+                label: 'Configuration',
+                children: (
+                  <>
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Form.Item
+                          name={['config', 'maxRequestsPerCrawl']}
+                          label='Max Requests Per Crawl'
+                          initialValue={1000}
+                        >
+                          <InputNumber min={1} max={10000} style={{ width: '100%' }} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          name={['config', 'maxConcurrency']}
+                          label='Max Concurrency'
+                          initialValue={10}
+                        >
+                          <InputNumber min={1} max={100} style={{ width: '100%' }} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Form.Item
+                          name={['config', 'maxRequestRetries']}
+                          label='Max Request Retries'
+                          initialValue={3}
+                        >
+                          <InputNumber min={0} max={10} style={{ width: '100%' }} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          name={['config', 'requestHandlerTimeoutSecs']}
+                          label='Request Timeout (seconds)'
+                          initialValue={60}
+                        >
+                          <InputNumber min={1} max={300} style={{ width: '100%' }} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+
+                    <Form.Item
+                      name={['config', 'useSessionPool']}
+                      label='Use Session Pool'
+                      valuePropName='checked'
+                      initialValue={true}
+                    >
+                      <Switch />
+                    </Form.Item>
+                  </>
+                ),
+              },
+              {
+                key: 'urls',
+                label: 'URL Patterns',
+                children: (
                   <Form.Item
-                    name={['config', 'maxRequestsPerCrawl']}
-                    label='Max Requests Per Crawl'
-                    initialValue={1000}
+                    name='url_patterns'
+                    label='URL Patterns (JSON)'
+                    initialValue={JSON.stringify(
+                      {
+                        include: ['*'],
+                        exclude: [],
+                        maxDepth: 3,
+                        sameDomain: true,
+                        respectRobotsTxt: true,
+                      },
+                      null,
+                      2
+                    )}
                   >
-                    <InputNumber min={1} max={10000} style={{ width: '100%' }} />
+                    <TextArea
+                      rows={10}
+                      placeholder='{"include": ["*"], "exclude": [], "maxDepth": 3}'
+                    />
                   </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name={['config', 'maxConcurrency']}
-                    label='Max Concurrency'
-                    initialValue={10}
-                  >
-                    <InputNumber min={1} max={100} style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-              </Row>
+                ),
+              },
+              {
+                key: 'extraction',
+                label: 'Data Extraction',
+                children: (
+                  <>
+                    <Alert
+                      message='Define CSS selectors for data extraction'
+                      description='Use JSON format: {"title": "h1", "price": ".price", "description": "meta[name=description]"}'
+                      type='info'
+                      showIcon
+                      style={{ marginBottom: 16 }}
+                    />
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name={['config', 'maxRequestRetries']}
-                    label='Max Request Retries'
-                    initialValue={3}
-                  >
-                    <InputNumber min={0} max={10} style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name={['config', 'requestHandlerTimeoutSecs']}
-                    label='Request Timeout (seconds)'
-                    initialValue={60}
-                  >
-                    <InputNumber min={1} max={300} style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-              </Row>
+                    <Form.Item
+                      name='selectors'
+                      label='Selectors (JSON)'
+                      initialValue={JSON.stringify(
+                        {
+                          title: 'h1',
+                          description: 'meta[name="description"]',
+                          keywords: 'meta[name="keywords"]',
+                        },
+                        null,
+                        2
+                      )}
+                    >
+                      <TextArea rows={10} placeholder='{"title": "h1", "price": ".price"}' />
+                    </Form.Item>
+                  </>
+                ),
+              },
+              {
+                key: 'integration',
+                label: 'Integration',
+                children: (
+                  <>
+                    <Form.Item name='campaign_id' label='Campaign ID (Optional)'>
+                      <Input placeholder='campaign_xyz123' />
+                    </Form.Item>
 
-              <Form.Item
-                name={['config', 'useSessionPool']}
-                label='Use Session Pool'
-                valuePropName='checked'
-                initialValue={true}
-              >
-                <Switch />
-              </Form.Item>
-            </TabPane>
+                    <Form.Item name='seeder_service_id' label='Seeder Service ID (Optional)'>
+                      <Input placeholder='seeder_abc456' />
+                    </Form.Item>
 
-            <TabPane tab='URL Patterns' key='urls'>
-              <Form.Item
-                name='url_patterns'
-                label='URL Patterns (JSON)'
-                initialValue={JSON.stringify(
-                  {
-                    include: ['*'],
-                    exclude: [],
-                    maxDepth: 3,
-                    sameDomain: true,
-                    respectRobotsTxt: true,
-                  },
-                  null,
-                  2
-                )}
-              >
-                <TextArea
-                  rows={10}
-                  placeholder='{"include": ["*"], "exclude": [], "maxDepth": 3}'
-                />
-              </Form.Item>
-            </TabPane>
+                    <Form.Item name='tags' label='Tags'>
+                      <Select mode='tags' placeholder='Add tags...'>
+                        <Option value='seo'>SEO</Option>
+                        <Option value='product'>Product</Option>
+                        <Option value='news'>News</Option>
+                      </Select>
+                    </Form.Item>
 
-            <TabPane tab='Data Extraction' key='extraction'>
-              <Alert
-                message='Define CSS selectors for data extraction'
-                description='Use JSON format: {"title": "h1", "price": ".price", "description": "meta[name=description]"}'
-                type='info'
-                showIcon
-                style={{ marginBottom: 16 }}
-              />
+                    <Form.Item
+                      name='seed_urls'
+                      label='Initial Seed URLs'
+                      tooltip='Provide one URL per line to prime the seeding service.'
+                    >
+                      <TextArea
+                        rows={4}
+                        placeholder='https://example.com\nhttps://example.com/about'
+                      />
+                    </Form.Item>
 
-              <Form.Item
-                name='selectors'
-                label='Selectors (JSON)'
-                initialValue={JSON.stringify(
-                  {
-                    title: 'h1',
-                    description: 'meta[name="description"]',
-                    keywords: 'meta[name="keywords"]',
-                  },
-                  null,
-                  2
-                )}
-              >
-                <TextArea rows={10} placeholder='{"title": "h1", "price": ".price"}' />
-              </Form.Item>
-            </TabPane>
+                    <Form.Item
+                      name='seeder_keywords'
+                      label='Seeder Keywords'
+                      tooltip='Used to expand discovery beyond the initial seed URLs.'
+                    >
+                      <Select mode='tags' placeholder='Add keywords...' />
+                    </Form.Item>
 
-            <TabPane tab='Integration' key='integration'>
-              <Form.Item name='campaign_id' label='Campaign ID (Optional)'>
-                <Input placeholder='campaign_xyz123' />
-              </Form.Item>
+                    <Form.Item
+                      name='client_site_url'
+                      label='Client Site URL'
+                      tooltip='Optional primary site used for relevance scoring.'
+                    >
+                      <Input placeholder='https://client-site.com' />
+                    </Form.Item>
 
-              <Form.Item name='seeder_service_id' label='Seeder Service ID (Optional)'>
-                <Input placeholder='seeder_abc456' />
-              </Form.Item>
-
-              <Form.Item name='tags' label='Tags'>
-                <Select mode='tags' placeholder='Add tags...'>
-                  <Option value='seo'>SEO</Option>
-                  <Option value='product'>Product</Option>
-                  <Option value='news'>News</Option>
-                </Select>
-              </Form.Item>
-
-              <Form.Item
-                name='seed_urls'
-                label='Initial Seed URLs'
-                tooltip='Provide one URL per line to prime the seeding service.'
-              >
-                <TextArea rows={4} placeholder='https://example.com\nhttps://example.com/about' />
-              </Form.Item>
-
-              <Form.Item
-                name='seeder_keywords'
-                label='Seeder Keywords'
-                tooltip='Used to expand discovery beyond the initial seed URLs.'
-              >
-                <Select mode='tags' placeholder='Add keywords...' />
-              </Form.Item>
-
-              <Form.Item
-                name='client_site_url'
-                label='Client Site URL'
-                tooltip='Optional primary site used for relevance scoring.'
-              >
-                <Input placeholder='https://client-site.com' />
-              </Form.Item>
-
-              <Form.Item
-                name='auto_start_seeder'
-                label='Auto start seeder after creation'
-                valuePropName='checked'
-                initialValue
-              >
-                <Switch />
-              </Form.Item>
-            </TabPane>
-          </Tabs>
+                    <Form.Item
+                      name='auto_start_seeder'
+                      label='Auto start seeder after creation'
+                      valuePropName='checked'
+                      initialValue
+                    >
+                      <Switch />
+                    </Form.Item>
+                  </>
+                ),
+              },
+            ]}
+          />
 
           <Form.Item style={{ marginTop: 16, marginBottom: 0 }}>
             <Space>
@@ -1032,6 +1342,110 @@ const CrawleeManager = () => {
                 {modalMode === 'create' ? 'Create Crawler' : 'Save Changes'}
               </Button>
               <Button onClick={closeModal} disabled={modalSubmitting}>
+                Cancel
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title='Add Crawler Type'
+        open={typeModalVisible}
+        onCancel={closeTypeModal}
+        footer={null}
+        width={720}
+        maskClosable={!typeModalSubmitting}
+        closable={!typeModalSubmitting}
+      >
+        <Form form={typeForm} layout='vertical' onFinish={handleSubmitCrawlerType}>
+          <Alert
+            message='Use Crawlee docs to align configuration'
+            description='Visit the official Crawlee guides to copy launch options, handler defaults, and selectors before saving a reusable crawler type.'
+            type='info'
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+
+          <Form.Item
+            name='name'
+            label='Type Name'
+            rules={[{ required: true, message: 'Please provide a crawler type name' }]}
+          >
+            <Input placeholder='PlaywrightCrawler' disabled={typeModalSubmitting} />
+          </Form.Item>
+
+          <Form.Item
+            name='id'
+            label='Identifier (optional)'
+            tooltip='Slug stored as the internal type id. Leave blank to derive from the name.'
+          >
+            <Input placeholder='playwright' disabled={typeModalSubmitting} />
+          </Form.Item>
+
+          <Form.Item name='description' label='Summary'>
+            <TextArea
+              rows={2}
+              placeholder='Short description of when to use this crawler'
+              disabled={typeModalSubmitting}
+            />
+          </Form.Item>
+
+          <Form.Item name='usage' label='Best Use Case'>
+            <TextArea
+              rows={2}
+              placeholder='Ex: Dynamic SPAs with heavy JavaScript'
+              disabled={typeModalSubmitting}
+            />
+          </Form.Item>
+
+          <Form.Item name='docs_url' label='Documentation URL'>
+            <Input
+              placeholder='https://crawlee.dev/docs/api/playwright-crawler/...'
+              disabled={typeModalSubmitting}
+            />
+          </Form.Item>
+
+          <Form.Item name='features' label='Key Features'>
+            <Select
+              mode='tags'
+              placeholder='Add highlight features'
+              disabled={typeModalSubmitting}
+            />
+          </Form.Item>
+
+          <Divider orientation='left'>Default Configuration</Divider>
+
+          <Form.Item name='default_config' label='Crawler Config (JSON)'>
+            <TextArea rows={6} disabled={typeModalSubmitting} />
+          </Form.Item>
+
+          <Form.Item name='default_request_config' label='Request Config (JSON)'>
+            <TextArea rows={4} disabled={typeModalSubmitting} />
+          </Form.Item>
+
+          <Form.Item name='default_url_patterns' label='URL Patterns (JSON)'>
+            <TextArea rows={4} disabled={typeModalSubmitting} />
+          </Form.Item>
+
+          <Form.Item name='default_selectors' label='Selectors (JSON)'>
+            <TextArea rows={4} disabled={typeModalSubmitting} />
+          </Form.Item>
+
+          <Form.Item name='notes' label='Notes'>
+            <TextArea
+              rows={3}
+              placeholder='Internal notes or reminders'
+              disabled={typeModalSubmitting}
+            />
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Space>
+              <Button type='primary' htmlType='submit' loading={typeModalSubmitting}>
+                Save Crawler Type
+              </Button>
+              <Button onClick={closeTypeModal} disabled={typeModalSubmitting}>
                 Cancel
               </Button>
             </Space>
@@ -1051,140 +1465,160 @@ const CrawleeManager = () => {
             setSelectedCrawler(null);
           }}
         >
-          <Tabs defaultActiveKey='overview'>
-            <TabPane tab='Overview' key='overview'>
-              <Descriptions bordered column={1}>
-                <Descriptions.Item label='ID'>{selectedCrawler.id}</Descriptions.Item>
-                <Descriptions.Item label='Name'>{selectedCrawler.name}</Descriptions.Item>
-                <Descriptions.Item label='Description'>
-                  {selectedCrawler.description}
-                </Descriptions.Item>
-                <Descriptions.Item label='Type'>
-                  <Tag color='blue'>{selectedCrawler.type}</Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label='Status'>
-                  <Badge
-                    status={selectedCrawler.status === 'running' ? 'processing' : 'default'}
-                    text={selectedCrawler.status.toUpperCase()}
-                  />
-                </Descriptions.Item>
-                <Descriptions.Item label='Campaign'>
-                  {selectedCrawler.campaign_id || '—'}
-                </Descriptions.Item>
-                <Descriptions.Item label='Seeder Service'>
-                  {selectedCrawler.seeder_service_id ? (
-                    <Tag color='green'>{selectedCrawler.seeder_service_id}</Tag>
-                  ) : (
-                    <Tag>No seeder linked</Tag>
-                  )}
-                </Descriptions.Item>
-                <Descriptions.Item label='Created'>
-                  {new Date(selectedCrawler.created_at).toLocaleString()}
-                </Descriptions.Item>
-                {selectedCrawler.started_at && (
-                  <Descriptions.Item label='Started'>
-                    {new Date(selectedCrawler.started_at).toLocaleString()}
-                  </Descriptions.Item>
-                )}
-              </Descriptions>
+          <Tabs
+            defaultActiveKey='overview'
+            items={[
+              {
+                key: 'overview',
+                label: 'Overview',
+                children: (
+                  <>
+                    <Descriptions bordered column={1}>
+                      <Descriptions.Item label='ID'>{selectedCrawler.id}</Descriptions.Item>
+                      <Descriptions.Item label='Name'>{selectedCrawler.name}</Descriptions.Item>
+                      <Descriptions.Item label='Description'>
+                        {selectedCrawler.description}
+                      </Descriptions.Item>
+                      <Descriptions.Item label='Type'>
+                        <Tag color='blue'>{selectedCrawler.type}</Tag>
+                      </Descriptions.Item>
+                      <Descriptions.Item label='Status'>
+                        <Badge
+                          status={selectedCrawler.status === 'running' ? 'processing' : 'default'}
+                          text={selectedCrawler.status.toUpperCase()}
+                        />
+                      </Descriptions.Item>
+                      <Descriptions.Item label='Campaign'>
+                        {selectedCrawler.campaign_id || '—'}
+                      </Descriptions.Item>
+                      <Descriptions.Item label='Seeder Service'>
+                        {selectedCrawler.seeder_service_id ? (
+                          <Tag color='green'>{selectedCrawler.seeder_service_id}</Tag>
+                        ) : (
+                          <Tag>No seeder linked</Tag>
+                        )}
+                      </Descriptions.Item>
+                      <Descriptions.Item label='Created'>
+                        {new Date(selectedCrawler.created_at).toLocaleString()}
+                      </Descriptions.Item>
+                      {selectedCrawler.started_at && (
+                        <Descriptions.Item label='Started'>
+                          {new Date(selectedCrawler.started_at).toLocaleString()}
+                        </Descriptions.Item>
+                      )}
+                    </Descriptions>
 
-              {selectedCrawler.stats && (
-                <Card title='Statistics' style={{ marginTop: 16 }}>
-                  <Row gutter={16}>
-                    <Col span={8}>
-                      <Statistic
-                        title='Total Requests'
-                        value={selectedCrawler.stats.requestsTotal || 0}
-                      />
-                    </Col>
-                    <Col span={8}>
-                      <Statistic
-                        title='Finished'
-                        value={selectedCrawler.stats.requestsFinished || 0}
-                        valueStyle={{ color: '#3f8600' }}
-                      />
-                    </Col>
-                    <Col span={8}>
-                      <Statistic
-                        title='Failed'
-                        value={selectedCrawler.stats.requestsFailed || 0}
-                        valueStyle={{ color: '#cf1322' }}
-                      />
-                    </Col>
-                  </Row>
-                </Card>
-              )}
-            </TabPane>
-
-            <TabPane tab='Configuration' key='config'>
-              <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
-                {JSON.stringify(selectedCrawler.config, null, 2)}
-              </pre>
-            </TabPane>
-
-            <TabPane tab='URL Patterns' key='patterns'>
-              <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
-                {JSON.stringify(selectedCrawler.url_patterns, null, 2)}
-              </pre>
-            </TabPane>
-
-            <TabPane tab='Selectors' key='selectors'>
-              <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
-                {JSON.stringify(selectedCrawler.selectors, null, 2)}
-              </pre>
-            </TabPane>
-            <TabPane tab='Seeder Service' key='seeder'>
-              {selectedCrawler.seeder_service_id ? (
-                <Space direction='vertical' size='middle' style={{ width: '100%' }}>
-                  <Alert
-                    message={`Seeder Service: ${selectedCrawler.seeder_service_id}`}
-                    description='Manage the URL discovery pipeline powering this crawler.'
-                    type='success'
-                    showIcon
-                  />
-                  <Space wrap>
-                    <Button
-                      size='small'
-                      type='primary'
-                      onClick={() => handleStartSeeder(selectedCrawler.seeder_service_id)}
-                    >
-                      Start Seeder
-                    </Button>
-                    <Button
-                      size='small'
-                      danger
-                      onClick={() => handleStopSeeder(selectedCrawler.seeder_service_id)}
-                    >
-                      Stop Seeder
-                    </Button>
-                    <Button
-                      size='small'
-                      icon={<SettingOutlined />}
-                      onClick={() => handleCreateSeederForCrawler(selectedCrawler)}
-                    >
-                      Rebuild Seeder
-                    </Button>
+                    {selectedCrawler.stats && (
+                      <Card title='Statistics' style={{ marginTop: 16 }}>
+                        <Row gutter={16}>
+                          <Col span={8}>
+                            <Statistic
+                              title='Total Requests'
+                              value={selectedCrawler.stats.requestsTotal || 0}
+                            />
+                          </Col>
+                          <Col span={8}>
+                            <Statistic
+                              title='Finished'
+                              value={selectedCrawler.stats.requestsFinished || 0}
+                              valueStyle={{ color: '#3f8600' }}
+                            />
+                          </Col>
+                          <Col span={8}>
+                            <Statistic
+                              title='Failed'
+                              value={selectedCrawler.stats.requestsFailed || 0}
+                              valueStyle={{ color: '#cf1322' }}
+                            />
+                          </Col>
+                        </Row>
+                      </Card>
+                    )}
+                  </>
+                ),
+              },
+              {
+                key: 'config',
+                label: 'Configuration',
+                children: (
+                  <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
+                    {JSON.stringify(selectedCrawler.config, null, 2)}
+                  </pre>
+                ),
+              },
+              {
+                key: 'patterns',
+                label: 'URL Patterns',
+                children: (
+                  <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
+                    {JSON.stringify(selectedCrawler.url_patterns, null, 2)}
+                  </pre>
+                ),
+              },
+              {
+                key: 'selectors',
+                label: 'Selectors',
+                children: (
+                  <pre style={{ background: '#f5f5f5', padding: 16, borderRadius: 4 }}>
+                    {JSON.stringify(selectedCrawler.selectors, null, 2)}
+                  </pre>
+                ),
+              },
+              {
+                key: 'seeder',
+                label: 'Seeder Service',
+                children: selectedCrawler.seeder_service_id ? (
+                  <Space direction='vertical' size='middle' style={{ width: '100%' }}>
+                    <Alert
+                      message={`Seeder Service: ${selectedCrawler.seeder_service_id}`}
+                      description='Manage the URL discovery pipeline powering this crawler.'
+                      type='success'
+                      showIcon
+                    />
+                    <Space wrap>
+                      <Button
+                        size='small'
+                        type='primary'
+                        onClick={() => handleStartSeeder(selectedCrawler.seeder_service_id)}
+                      >
+                        Start Seeder
+                      </Button>
+                      <Button
+                        size='small'
+                        danger
+                        onClick={() => handleStopSeeder(selectedCrawler.seeder_service_id)}
+                      >
+                        Stop Seeder
+                      </Button>
+                      <Button
+                        size='small'
+                        icon={<SettingOutlined />}
+                        onClick={() => handleCreateSeederForCrawler(selectedCrawler)}
+                      >
+                        Rebuild Seeder
+                      </Button>
+                    </Space>
                   </Space>
-                </Space>
-              ) : (
-                <Alert
-                  message='No seeder service linked'
-                  description="Provision a seeder to automatically feed fresh URLs into this crawler's queue."
-                  type='warning'
-                  showIcon
-                  action={
-                    <Button
-                      size='small'
-                      type='primary'
-                      onClick={() => handleCreateSeederForCrawler(selectedCrawler)}
-                    >
-                      Create Seeder
-                    </Button>
-                  }
-                />
-              )}
-            </TabPane>
-          </Tabs>
+                ) : (
+                  <Alert
+                    message='No seeder service linked'
+                    description="Provision a seeder to automatically feed fresh URLs into this crawler's queue."
+                    type='warning'
+                    showIcon
+                    action={
+                      <Button
+                        size='small'
+                        type='primary'
+                        onClick={() => handleCreateSeederForCrawler(selectedCrawler)}
+                      >
+                        Create Seeder
+                      </Button>
+                    }
+                  />
+                ),
+              },
+            ]}
+          />
         </Drawer>
       )}
     </div>

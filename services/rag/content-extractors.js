@@ -1,5 +1,4 @@
 import axios from 'axios';
-import pdfParse from 'pdf-parse';
 import { YoutubeTranscript } from 'youtube-transcript';
 import { DeepSeekOCRService } from '../deepseek-ocr-service.js';
 
@@ -88,7 +87,23 @@ async function callOcrWorker(buffer, { languageHint } = {}) {
   return response.data;
 }
 
+let pdfParseModulePromise = null;
+
+async function getPdfParse() {
+  if (!pdfParseModulePromise) {
+    pdfParseModulePromise = import('pdf-parse/lib/pdf-parse.js')
+      .then(mod => mod.default || mod)
+      .catch(error => {
+        pdfParseModulePromise = null;
+        throw new Error(`Failed to load pdf-parse library: ${error.message}`);
+      });
+  }
+
+  return pdfParseModulePromise;
+}
+
 async function extractFromPdf(buffer) {
+  const pdfParse = await getPdfParse();
   const result = await pdfParse(buffer);
   return {
     text: result.text?.trim() ?? '',

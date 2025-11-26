@@ -2,6 +2,11 @@ import { EventEmitter } from 'events';
 import { Logger } from '../../utils/Logger';
 import HeadlessChromeService from './HeadlessChromeService';
 import { CrawlResult, CrawlOptions, WebsiteData, OptimizationOpportunity } from '@/types/CrawlerTypes';
+import { databaseIntegration } from './DatabaseIntegration.js';
+import { serviceHub } from './ServiceHub.js';
+import { seoCrawler } from './SEOCrawler.js';
+import { crawlerPersistence } from './CrawlerPersistenceService.js';
+
 let BullQueueWC: any;
 let RedisCtorWC: any;
 
@@ -525,6 +530,167 @@ export class WebCrawlerService extends EventEmitter {
     } catch (error) {
       this.logger.error('Error during cleanup:', error);
       throw error;
+    }
+  }
+}
+
+/**
+ * SEOEnrichmentService
+ * - enrichSiteById: enrich a particular crawled_sites row (fills title/description/og/twitter/structuredData/links/images, etc)
+ * - enrichMissingFieldsBatch: iterate and enrich sites missing critical attributes
+ */
+export class SEOEnrichmentService {
+  async enrichSiteById(siteId: string, opts: { useAI?: boolean, timeoutMs?: number } = {}) {
+    await databaseIntegration.initialize();
+    const q = await databaseIntegration.query('SELECT * FROM crawled_sites WHERE id = $1', [siteId]);
+    if (!q || !q.rows || q.rows.length === 0) {
+      throw new Error(`Site ${siteId} not found`);
+    }
+
+    const row = q.rows[0];
+    const url = row.url;
+
+    // Check what we already have
+    const metadata = row.metadata ? (typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata) : {};
+    const missing = !metadata.title || !metadata.description || !(metadata.ogTags && Object.keys(metadata.ogTags).length);
+
+    // If nothing missing and force not requested, return
+    if (!missing && !opts.useAI) {
+      return row;
+    }
+
+    // Try enhanced crawler if available
+    const webCrawler: any = serviceHub.getWebCrawler?.() || (serviceHub as any).webCrawler;
+    let extracted: any = null;
+
+    try {
+      if (webCrawler && typeof webCrawler.crawlWebsiteWithAI === 'function' && opts.useAI) {
+        const result = await webCrawler.crawlWebsiteWithAI(url, { useAI: true, extractWithAI: true, extractData: ['html','head','meta','script','link','img'], timeout: opts.timeoutMs || 30000 });
+        extracted = result.extractedData || result.websiteData || result.aiResult;
+      } else if (webCrawler && typeof webCrawler.crawlWebsite === 'function') {
+        // Start crawl job then poll result
+        const crawlId = await webCrawler.crawlWebsite(url, { waitUntil: 'networkidle2', timeout: opts.timeoutMs || 30000 });
+        // Poll for result (simple loop)
+        const deadline = Date.now() + (opts.timeoutMs || 30_000);
+        while (Date.now() < deadline) {
+          const res = await webCrawler.getCrawlResult(crawlId).catch(() => null);
+          if (res) {
+            extracted = res.websiteData || res.extractedData || res;
+            break;
+          }
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+    } catch (err) {
+      console.warn('Enhanced/web crawler enrichment failed, falling back to SEOCrawler:', err?.message || err);
+      extracted = null;
+    }
+
+    // Fallback to simple SEO crawler
+    if (!extracted) {
+      try {
+        const seoResult = await seoCrawler.crawlUrl(url);
+        extracted = {
+          title: seoResult.title,
+          description: seoResult.description,
+          keywords: seoResult.keywords,
+          links: { internal: seoResult.links || [], external: [] },
+          images: seoResult.images || [],
+          headings: { h1: seoResult.h1Tags || [], h2: seoResult.h2Tags || [] },
+          performance: { loadTime: seoResult.loadTime },
+          content: { wordCount: seoResult.wordCount }
+        };
+      } catch (err) {
+        console.error('SEOCrawler fallback failed:', err);
+        throw new Error('All enrichment attempts failed');
+      }
+    }
+
+    // Map extracted -> metadata
+    const newMetadata = {
+      ...metadata,
+      title: metadata.title || extracted.title || extracted.pageTitle || '',
+      description: metadata.description || extracted.description || '',
+      keywords: metadata.keywords || extracted.keywords || [],
+      ogTags: { ...(metadata.ogTags || {}), ...(extracted.ogTags || { title: extracted.ogTitle, description: extracted.ogDescription, image: extracted.ogImage }) },
+      twitter: { ...(metadata.twitter || {}), ...(extracted.twitter || {}) },
+      structuredData: metadata.structuredData || extracted.structuredData || [],
+      links: metadata.links || extracted.links || {},
+      images: metadata.images || extracted.images || [],
+      scripts: metadata.scripts || extracted.scripts || [],
+      stylesheets: metadata.stylesheets || extracted.stylesheets || [],
+      performance: metadata.performance || extracted.performance || {}
+    };
+
+    // Persist top-level columns and metadata
+    const updatedSite = {
+      id: row.id,
+      url: row.url,
+      domain: row.domain,
+      lastCrawled: new Date(),
+      crawlFrequency: row.crawl_frequency || 24,
+      priority: row.priority || 5,
+      seoScore: row.seo_score || 0,
+      optimizationPotential: row.optimization_potential || 0,
+      currentSize: row.current_size || 0,
+      optimizedSize: row.optimized_size || 0,
+      spaceReclaimed: row.space_reclaimed || 0,
+      blockchainRecorded: row.blockchain_recorded || false,
+
+      // set top-level SEO fields (so they end up in their own columns too)
+      title: newMetadata.title,
+      description: newMetadata.description,
+      keywords: newMetadata.keywords,
+      canonicalUrl: newMetadata.canonical || newMetadata.canonicalUrl || null,
+      robotsMeta: newMetadata.robots || null,
+
+      ogTitle: newMetadata.ogTags?.title || null,
+      ogDescription: newMetadata.ogTags?.description || null,
+      ogImage: newMetadata.ogTags?.image || null,
+      ogUrl: newMetadata.ogTags?.url || row.url,
+
+      twitterCard: (newMetadata.twitter && newMetadata.twitter.card) || null,
+      twitterTitle: (newMetadata.twitter && newMetadata.twitter.title) || null,
+      twitterDescription: (newMetadata.twitter && newMetadata.twitter.description) || null,
+      twitterImage: (newMetadata.twitter && newMetadata.twitter.image) || null,
+
+      structuredData: newMetadata.structuredData || [],
+      headings: newMetadata.headings || {},
+      contentAnalysis: newMetadata.content || {},
+      links: newMetadata.links || {},
+      images: newMetadata.images || [],
+      scripts: newMetadata.scripts || [],
+      stylesheets: newMetadata.stylesheets || [],
+      inlineStyles: newMetadata.inlineStyles || {},
+
+      metadata: newMetadata
+    };
+
+    // Reuse the existing persistence API
+    await crawlerPersistence.recordCrawledSite(updatedSite as any);
+
+    // Load and return the updated DB row
+    const reloaded = await databaseIntegration.query('SELECT * FROM crawled_sites WHERE id = $1', [siteId]);
+    return reloaded.rows[0];
+  }
+
+  /**
+   * Batch enrich missing fields (simple example)
+   */
+  async enrichMissingFieldsBatch(limit = 50) {
+    await databaseIntegration.initialize();
+    const rows = await databaseIntegration.query(
+      `SELECT id FROM crawled_sites 
+       WHERE (coalesce(title,'') = '' OR coalesce(description,'') = '' OR metadata::text NOT ILIKE '%og_tags%')
+       ORDER BY last_crawled ASC
+       LIMIT $1`, [limit]
+    );
+    for (const r of rows.rows) {
+      try {
+        await this.enrichSiteById(r.id, { useAI: false, timeoutMs: 25000 });
+      } catch (err) {
+        console.warn('Enrichment failed for', r.id, err?.message || err);
+      }
     }
   }
 }

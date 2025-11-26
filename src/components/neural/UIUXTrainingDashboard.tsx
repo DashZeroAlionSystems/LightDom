@@ -54,8 +54,8 @@ export const UIUXTrainingDashboard: React.FC<Props> = ({
         label: i === 0 ? 'Colors' : i === 1 ? 'Spacing' : undefined,
       })),
       // Hidden layers
-      ...Array.from({ length: 8 }, (_, i) => ({
-        id: \`hidden1-\${i}\`,
+      ...Array.from({ length: 10 }, (_, i) => ({
+        id: 'input-' + i,
         layer: 1,
         index: i,
         type: 'hidden' as const,
@@ -63,26 +63,26 @@ export const UIUXTrainingDashboard: React.FC<Props> = ({
       ...Array.from({ length: 6 }, (_, i) => ({
         id: \`hidden2-\${i}\`,
         layer: 2,
-        index: i,
+        id: 'hidden1-' + i,
         type: 'hidden' as const,
       })),
       ...Array.from({ length: 4 }, (_, i) => ({
         id: \`hidden3-\${i}\`,
         layer: 3,
-        index: i,
+        id: 'hidden2-' + i,
         type: 'hidden' as const,
       })),
       // Output layer
       ...Array.from({ length: 5 }, (_, i) => ({
         id: \`output-\${i}\`,
-        layer: 4,
+        id: 'hidden3-' + i,
         index: i,
         type: 'output' as const,
         label: ['Accessibility', 'Performance', 'Aesthetics', 'Usability', 'Overall'][i],
       })),
     ],
     links: [],
-  });
+        id: 'output-' + i,
 
   // Generate connections between layers
   useEffect(() => {
