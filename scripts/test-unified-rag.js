@@ -208,5 +208,36 @@ test('Versioning configuration exists', async () => {
   if (typeof config.versioning.maxVersions !== 'number') throw new Error('Max versions missing');
 });
 
+// Test 13: NEW - Docling config exists
+test('Docling configuration exists', async () => {
+  const { createUnifiedRAGService } = await import('../services/rag/unified-rag-service.js');
+  const service = createUnifiedRAGService();
+  
+  const config = service.getConfig();
+  if (!config.docling) throw new Error('Docling config missing');
+  if (typeof config.docling.enabled !== 'boolean') throw new Error('Docling enabled flag missing');
+  if (!config.docling.endpoint) throw new Error('Docling endpoint missing');
+  if (!Array.isArray(config.docling.supportedFormats)) throw new Error('Supported formats missing');
+});
+
+// Test 14: NEW - Service has Docling methods
+test('Service has Docling methods', async () => {
+  const { createUnifiedRAGService } = await import('../services/rag/unified-rag-service.js');
+  const service = createUnifiedRAGService();
+  
+  const methods = [
+    'convertAndIndexDocument',
+    'convertAndIndexFromUrl',
+    'getSupportedFormats',
+    'isDocumentTypeSupported',
+  ];
+  
+  for (const method of methods) {
+    if (typeof service[method] !== 'function') {
+      throw new Error(`Missing Docling method: ${method}`);
+    }
+  }
+});
+
 // Run all tests
 runTests().catch(console.error);

@@ -116,8 +116,34 @@ export interface UseUnifiedRAGResult {
   executeAgentTask: (task: string, context?: Record<string, unknown>) => Promise<unknown>;
   streamAgentTask: (task: string, onEvent: (event: AgentEvent) => void, context?: Record<string, unknown>) => Promise<void>;
   
+  // Docling Document Conversion (NEW)
+  convertDocument: (file: File, options?: { title?: string; chunkSize?: number; extractTables?: boolean }) => Promise<ConversionResult>;
+  convertFromUrl: (url: string, options?: { title?: string; chunkSize?: number }) => Promise<ConversionResult>;
+  getSupportedFormats: () => Promise<SupportedFormats>;
+  
   // Context
   lastRetrievedDocs: unknown[];
+}
+
+export interface ConversionResult {
+  success: boolean;
+  documentId?: string;
+  chunksIndexed?: number;
+  version?: number;
+  conversion?: {
+    format: string;
+    markdown?: string;
+    tables?: unknown[];
+    figures?: unknown[];
+    sections?: unknown[];
+  };
+  error?: string;
+}
+
+export interface SupportedFormats {
+  formats: Record<string, string[]>;
+  all_mimetypes: string[];
+  doclingEnabled: boolean;
 }
 
 const DEFAULT_CONFIG: RAGConfig = {
@@ -529,6 +555,64 @@ export function useUnifiedRAG(options: UseUnifiedRAGOptions = {}): UseUnifiedRAG
     }
   }, [apiBase]);
 
+  // Convert document using Docling (NEW)
+  const convertDocument = useCallback(async (
+    file: File,
+    options?: { title?: string; chunkSize?: number; extractTables?: boolean }
+  ): Promise<ConversionResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (options?.title) formData.append('title', options.title);
+    if (options?.chunkSize) formData.append('chunkSize', String(options.chunkSize));
+    if (options?.extractTables !== undefined) formData.append('extractTables', String(options.extractTables));
+
+    const response = await fetch(`${apiBase}/convert`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Document conversion failed');
+    }
+
+    return response.json();
+  }, [apiBase]);
+
+  // Convert document from URL using Docling (NEW)
+  const convertFromUrl = useCallback(async (
+    url: string,
+    options?: { title?: string; chunkSize?: number }
+  ): Promise<ConversionResult> => {
+    const response = await fetch(`${apiBase}/convert/url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url,
+        title: options?.title,
+        chunkSize: options?.chunkSize,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'URL conversion failed');
+    }
+
+    return response.json();
+  }, [apiBase]);
+
+  // Get supported document formats (NEW)
+  const getSupportedFormats = useCallback(async (): Promise<SupportedFormats> => {
+    const response = await fetch(`${apiBase}/convert/formats`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to get supported formats');
+    }
+    
+    return response.json();
+  }, [apiBase]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -556,6 +640,10 @@ export function useUnifiedRAG(options: UseUnifiedRAGOptions = {}): UseUnifiedRAG
     getDocumentVersions,
     executeAgentTask,
     streamAgentTask,
+    // Docling document conversion
+    convertDocument,
+    convertFromUrl,
+    getSupportedFormats,
     lastRetrievedDocs,
   };
 }

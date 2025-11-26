@@ -32,11 +32,22 @@ export function createUnifiedRAGRouter(options = {}) {
   
   const ALLOWED_IMAGE_TYPES = [
     'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif',
+    'image/tiff', 'image/bmp',
   ];
   
-  // File filter for validation
+  // Docling-supported document types
+  const ALLOWED_DOCUMENT_TYPES = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation', // PPTX
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
+    'text/asciidoc',
+  ];
+  
+  // File filter for validation (includes Docling formats)
   const fileFilter = (req, file, cb) => {
-    const isAllowed = [...ALLOWED_FILE_TYPES, ...ALLOWED_IMAGE_TYPES].includes(file.mimetype);
+    const allAllowed = [...ALLOWED_FILE_TYPES, ...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOCUMENT_TYPES];
+    const isAllowed = allAllowed.includes(file.mimetype);
     if (isAllowed) {
       cb(null, true);
     } else {
@@ -48,7 +59,7 @@ export function createUnifiedRAGRouter(options = {}) {
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 25 * 1024 * 1024, // 25MB max (reduced for security)
+      fileSize: 50 * 1024 * 1024, // 50MB max for documents
       files: 1, // Only one file at a time
     },
     fileFilter,
@@ -668,6 +679,105 @@ export function createUnifiedRAGRouter(options = {}) {
       });
     } catch (error) {
       logger.error('Version history failed:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ==========================================
+  // DOCLING DOCUMENT CONVERSION ROUTES
+  // ==========================================
+
+  /**
+   * POST /convert
+   * Convert a document using Docling
+   * Supports: PDF, DOCX, PPTX, XLSX, HTML, Images, Markdown, AsciiDoc
+   */
+  router.post('/convert', upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const { title, chunkSize, chunkOverlap, extractTables, extractFigures } = req.body;
+
+      const result = await ragService.convertAndIndexDocument(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype,
+        {
+          title,
+          chunkSize: chunkSize ? parseInt(chunkSize, 10) : undefined,
+          chunkOverlap: chunkOverlap ? parseInt(chunkOverlap, 10) : undefined,
+          extractTables: extractTables !== 'false',
+          extractFigures: extractFigures !== 'false',
+        }
+      );
+
+      if (!result.success) {
+        return res.status(500).json({
+          status: 'error',
+          error: result.error,
+        });
+      }
+
+      res.json({
+        status: 'ok',
+        ...result,
+      });
+    } catch (error) {
+      logger.error('Document conversion failed:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * POST /convert/url
+   * Convert a document from URL using Docling
+   */
+  router.post('/convert/url', async (req, res) => {
+    try {
+      const { url, title, chunkSize } = req.body;
+
+      if (!url) {
+        return res.status(400).json({ error: 'url is required' });
+      }
+
+      const result = await ragService.convertAndIndexFromUrl(url, {
+        title,
+        chunkSize: chunkSize ? parseInt(chunkSize, 10) : undefined,
+      });
+
+      if (!result.success) {
+        return res.status(500).json({
+          status: 'error',
+          error: result.error,
+        });
+      }
+
+      res.json({
+        status: 'ok',
+        ...result,
+      });
+    } catch (error) {
+      logger.error('URL conversion failed:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * GET /convert/formats
+   * Get supported document formats for conversion
+   */
+  router.get('/convert/formats', async (req, res) => {
+    try {
+      const formats = await ragService.getSupportedFormats();
+      res.json({
+        status: 'ok',
+        ...formats,
+        doclingEnabled: ragService.getConfig().docling?.enabled || false,
+      });
+    } catch (error) {
+      logger.error('Get formats failed:', error);
       res.status(500).json({ error: error.message });
     }
   });

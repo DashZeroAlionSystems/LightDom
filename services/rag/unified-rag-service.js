@@ -93,6 +93,26 @@ const DEFAULT_CONFIG = {
     maxImageSize: 25 * 1024 * 1024, // 25MB
   },
   
+  // Docling Configuration (NEW)
+  docling: {
+    enabled: true,
+    endpoint: process.env.DOCLING_ENDPOINT || 'http://localhost:8001',
+    supportedFormats: [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation', // PPTX
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
+      'text/html',
+      'text/markdown',
+      'text/asciidoc',
+      'image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/tiff', 'image/bmp',
+    ],
+    chunkSize: 1000,
+    chunkOverlap: 200,
+    extractTables: true,
+    extractFigures: true,
+  },
+  
   // Document Versioning (NEW)
   versioning: {
     enabled: true,
@@ -201,6 +221,141 @@ class ImageProcessor {
     } catch {
       return false;
     }
+  }
+}
+
+/**
+ * Docling Client - Document conversion via Docling service
+ * Supports: PDF, DOCX, PPTX, XLSX, HTML, Images, Markdown, AsciiDoc
+ */
+class DoclingClient {
+  constructor(config) {
+    this.config = config;
+    this.endpoint = config.docling?.endpoint || 'http://localhost:8001';
+  }
+
+  /**
+   * Check if Docling service is available
+   */
+  async checkAvailability() {
+    try {
+      const response = await fetch(`${this.endpoint}/health`, { method: 'GET' });
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          available: true,
+          doclingAvailable: data.docling_available,
+          supportedFormats: data.supported_formats,
+        };
+      }
+      return { available: false };
+    } catch {
+      return { available: false };
+    }
+  }
+
+  /**
+   * Get supported document formats
+   */
+  async getSupportedFormats() {
+    try {
+      const response = await fetch(`${this.endpoint}/formats`, { method: 'GET' });
+      if (response.ok) {
+        return await response.json();
+      }
+      return { formats: {}, all_mimetypes: [] };
+    } catch {
+      return { formats: {}, all_mimetypes: [] };
+    }
+  }
+
+  /**
+   * Convert a document using Docling
+   * @param {Buffer|Blob} fileData - File data
+   * @param {string} filename - Original filename
+   * @param {string} contentType - MIME type
+   * @param {Object} options - Conversion options
+   */
+  async convertDocument(fileData, filename, contentType, options = {}) {
+    const formData = new FormData();
+    
+    // Create blob from buffer if needed
+    const blob = fileData instanceof Blob ? fileData : new Blob([fileData], { type: contentType });
+    formData.append('file', blob, filename);
+    formData.append('chunk_size', String(options.chunkSize || this.config.docling?.chunkSize || 1000));
+    formData.append('chunk_overlap', String(options.chunkOverlap || this.config.docling?.chunkOverlap || 200));
+    formData.append('extract_tables', String(options.extractTables ?? this.config.docling?.extractTables ?? true));
+    formData.append('extract_figures', String(options.extractFigures ?? this.config.docling?.extractFigures ?? true));
+
+    try {
+      const response = await fetch(`${this.endpoint}/convert`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Docling conversion failed: ${response.status} - ${error}`);
+      }
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        documentId: result.document_id,
+        format: result.format,
+        text: result.text,
+        markdown: result.markdown,
+        chunks: result.chunks || [],
+        tables: result.tables || [],
+        figures: result.figures || [],
+        sections: result.sections || [],
+        metadata: result.metadata || {},
+        processingTimeMs: result.processing_time_ms,
+        error: result.error,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        text: '',
+        chunks: [],
+      };
+    }
+  }
+
+  /**
+   * Convert a document from URL
+   */
+  async convertFromUrl(url, options = {}) {
+    const formData = new FormData();
+    formData.append('url', url);
+    formData.append('chunk_size', String(options.chunkSize || this.config.docling?.chunkSize || 1000));
+
+    try {
+      const response = await fetch(`${this.endpoint}/convert/url`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Docling URL conversion failed: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Check if a file type is supported
+   */
+  isSupported(contentType) {
+    const supportedFormats = this.config.docling?.supportedFormats || [];
+    return supportedFormats.includes(contentType);
   }
 }
 
@@ -1493,6 +1648,9 @@ export class UnifiedRAGService extends EventEmitter {
     this.versionManager = new DocumentVersionManager(this.config, this.db);
     this.agentPlanner = new AgentPlanner(this.config, this.llmClient);
     
+    // Docling client for document conversion
+    this.doclingClient = new DoclingClient(this.config);
+    
     // Conversation state
     this.conversations = new Map();
     this.lastCleanupTime = Date.now();
@@ -1501,6 +1659,7 @@ export class UnifiedRAGService extends EventEmitter {
     this.stats = {
       queriesProcessed: 0,
       documentsIndexed: 0,
+      documentsConverted: 0,
       imagesProcessed: 0,
       toolExecutions: 0,
       averageResponseTime: 0,
@@ -1541,6 +1700,16 @@ export class UnifiedRAGService extends EventEmitter {
     const available = await this.llmClient.checkAvailability();
     if (!available) {
       this.logger.warn('LLM provider not available. Some features may not work.');
+    }
+    
+    // Check Docling availability
+    if (this.config.docling?.enabled) {
+      const doclingStatus = await this.doclingClient.checkAvailability();
+      if (!doclingStatus.available) {
+        this.logger.warn('Docling service not available. Document conversion will be limited.');
+      } else {
+        this.logger.info('✅ Docling service available. Supported formats:', doclingStatus.supportedFormats);
+      }
     }
     
     // Check OCR availability (NEW)
@@ -1762,6 +1931,125 @@ export class UnifiedRAGService extends EventEmitter {
       ocrConfidence: ocrResult.confidence,
       extractedBlocks: ocrResult.blocks?.length || 0,
     };
+  }
+
+  /**
+   * Convert and index a document using Docling (NEW)
+   * Supports: PDF, DOCX, PPTX, XLSX, HTML, Images, Markdown, AsciiDoc
+   * @param {Buffer} fileData - File data buffer
+   * @param {string} filename - Original filename
+   * @param {string} contentType - MIME type
+   * @param {Object} options - Conversion and indexing options
+   */
+  async convertAndIndexDocument(fileData, filename, contentType, options = {}) {
+    if (!this.config.docling?.enabled) {
+      throw new Error('Docling document conversion is not enabled');
+    }
+
+    // Convert using Docling
+    const conversionResult = await this.doclingClient.convertDocument(
+      fileData, 
+      filename, 
+      contentType,
+      {
+        chunkSize: options.chunkSize || this.config.docling.chunkSize,
+        chunkOverlap: options.chunkOverlap || this.config.docling.chunkOverlap,
+        extractTables: options.extractTables ?? this.config.docling.extractTables,
+        extractFigures: options.extractFigures ?? this.config.docling.extractFigures,
+      }
+    );
+
+    if (!conversionResult.success) {
+      return {
+        success: false,
+        error: conversionResult.error || 'Document conversion failed',
+      };
+    }
+
+    this.stats.documentsConverted++;
+
+    // Index the converted text
+    const indexResult = await this.indexDocument(conversionResult.text, {
+      documentId: options.documentId || conversionResult.documentId,
+      title: options.title || filename,
+      type: conversionResult.format,
+      metadata: {
+        ...options.metadata,
+        originalFilename: filename,
+        contentType,
+        format: conversionResult.format,
+        tableCount: conversionResult.tables?.length || 0,
+        figureCount: conversionResult.figures?.length || 0,
+        processingTimeMs: conversionResult.processingTimeMs,
+      },
+    });
+
+    return {
+      success: true,
+      ...indexResult,
+      conversion: {
+        format: conversionResult.format,
+        markdown: conversionResult.markdown,
+        tables: conversionResult.tables,
+        figures: conversionResult.figures,
+        sections: conversionResult.sections,
+        originalMetadata: conversionResult.metadata,
+      },
+    };
+  }
+
+  /**
+   * Convert document from URL using Docling (NEW)
+   */
+  async convertAndIndexFromUrl(url, options = {}) {
+    if (!this.config.docling?.enabled) {
+      throw new Error('Docling document conversion is not enabled');
+    }
+
+    const conversionResult = await this.doclingClient.convertFromUrl(url, options);
+
+    if (!conversionResult.success) {
+      return {
+        success: false,
+        error: conversionResult.error || 'URL conversion failed',
+      };
+    }
+
+    this.stats.documentsConverted++;
+
+    // Index the converted text
+    const indexResult = await this.indexDocument(conversionResult.text, {
+      documentId: conversionResult.document_id,
+      title: options.title || url,
+      type: 'url',
+      metadata: {
+        sourceUrl: url,
+        ...conversionResult.metadata,
+      },
+    });
+
+    return {
+      success: true,
+      ...indexResult,
+      conversion: {
+        markdown: conversionResult.markdown,
+        chunks: conversionResult.chunks,
+      },
+    };
+  }
+
+  /**
+   * Get supported document formats from Docling
+   */
+  async getSupportedFormats() {
+    return this.doclingClient.getSupportedFormats();
+  }
+
+  /**
+   * Check if a content type is supported for conversion
+   */
+  isDocumentTypeSupported(contentType) {
+    return this.doclingClient.isSupported(contentType);
   }
 
   /**
@@ -2152,6 +2440,25 @@ Additional Codebase Expert Mode:
       status.agent = { status: 'disabled' };
     }
     
+    // Check Docling service (NEW)
+    if (this.config.docling?.enabled) {
+      try {
+        const doclingStatus = await this.doclingClient.checkAvailability();
+        status.docling = {
+          status: doclingStatus.available ? 'healthy' : 'unavailable',
+          endpoint: this.config.docling.endpoint,
+          supportedFormats: doclingStatus.supportedFormats || [],
+        };
+        // Add docling to features
+        status.features.docling = true;
+      } catch (error) {
+        status.docling = { status: 'error', error: error.message };
+      }
+    } else {
+      status.docling = { status: 'disabled' };
+      status.features.docling = false;
+    }
+    
     return status;
   }
 
@@ -2174,6 +2481,7 @@ Additional Codebase Expert Mode:
     this.imageProcessor = new ImageProcessor(this.config);
     this.hybridSearch = new HybridSearchEngine(this.config, this.db);
     this.agentPlanner = new AgentPlanner(this.config, this.llmClient);
+    this.doclingClient = new DoclingClient(this.config);
     
     this.emit('config-updated', this.config);
   }
