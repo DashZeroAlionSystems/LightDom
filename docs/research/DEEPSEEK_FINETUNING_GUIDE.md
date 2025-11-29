@@ -4,7 +4,7 @@
 
 This comprehensive guide documents finetuning options for DeepSeek models, including LoRA/QLoRA approaches for local customization, training data format specifications, best practices for domain-specific tuning, and examples for tool-use training. This document is designed for developers integrating DeepSeek into the LightDom platform.
 
-**Last Updated**: November 2024  
+**Last Updated**: November 29, 2024  
 **Status**: Research Complete  
 **Related Implementation**: `services/deepseek-component-finetuning-service.js`, `training_data/`
 
@@ -842,8 +842,8 @@ def evaluate_finetuned_model(model, tokenizer, eval_dataset):
     }
   ]},
   {"role": "tool", "tool_call_id": "call_1", "name": "generateSchema", "content": "{\"$schema\": \"http://json-schema.org/draft-07/schema#\", \"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\"}, \"price\": {\"type\": \"number\"}, \"availability\": {\"type\": \"boolean\"}, \"category\": {\"type\": \"string\"}}}"},
-  {"role": "tool", "tool_call_id": "call_2", "name": "createWorkflow", "content": "{\"workflowId\": \"wf_789\", \"status\": \"scheduled\", \"nextRun\": \"2024-11-30T00:00:00Z\"}"},
-  {"role": "assistant", "content": "I've set up your e-commerce system:\n\n**Schema Created:**\n```json\n{\n  \"name\": \"string\",\n  \"price\": \"number\",\n  \"availability\": \"boolean\",\n  \"category\": \"string\"\n}\n```\n\n**Workflow Scheduled:**\n- Name: daily-product-sync\n- ID: wf_789\n- Schedule: Daily\n- Next run: 2024-11-30 at midnight\n\nThe workflow will automatically mine and sync product data every day."}
+  {"role": "tool", "tool_call_id": "call_2", "name": "createWorkflow", "content": "{\"workflowId\": \"wf_789\", \"status\": \"scheduled\", \"nextRun\": \"<next scheduled time>\"}"},
+  {"role": "assistant", "content": "I've set up your e-commerce system:\n\n**Schema Created:**\n```json\n{\n  \"name\": \"string\",\n  \"price\": \"number\",\n  \"availability\": \"boolean\",\n  \"category\": \"string\"\n}\n```\n\n**Workflow Scheduled:**\n- Name: daily-product-sync\n- ID: wf_789\n- Schedule: Daily\n- Next run: Tomorrow at midnight\n\nThe workflow will automatically mine and sync product data every day."}
 ]}
 ```
 
@@ -852,19 +852,19 @@ def evaluate_finetuned_model(model, tokenizer, eval_dataset):
 ```jsonl
 {"messages": [
   {"role": "system", "content": "You are a LightDom assistant. Handle errors gracefully and suggest alternatives."},
-  {"role": "user", "content": "Mine data from internal-network-server.local"},
+  {"role": "user", "content": "Mine data from internal-server.example.com"},
   {"role": "assistant", "content": null, "tool_calls": [
     {
       "id": "call_err1",
       "type": "function",
       "function": {
         "name": "mineAttribute",
-        "arguments": "{\"url\": \"https://internal-network-server.local\", \"attribute\": {\"name\": \"general\"}}"
+        "arguments": "{\"url\": \"https://internal-server.example.com\", \"attribute\": {\"name\": \"general\"}}"
       }
     }
   ]},
-  {"role": "tool", "tool_call_id": "call_err1", "name": "mineAttribute", "content": "{\"success\": false, \"error\": \"NETWORK_ERROR\", \"message\": \"Unable to reach internal-network-server.local - host not accessible\"}"},
-  {"role": "assistant", "content": "I wasn't able to access that URL. The error indicates the host `internal-network-server.local` isn't accessible from my environment.\n\n**Possible solutions:**\n\n1. **VPN/Tunnel**: If this is an internal server, you might need to set up a tunnel or VPN connection first\n2. **Proxy Configuration**: Configure a proxy that has access to your internal network\n3. **Alternative URL**: If there's a public-facing version of this service, please provide that URL\n4. **Local Agent**: Consider running a LightDom agent inside your network that can access internal resources\n\nWould you like help with any of these options?"}
+  {"role": "tool", "tool_call_id": "call_err1", "name": "mineAttribute", "content": "{\"success\": false, \"error\": \"NETWORK_ERROR\", \"message\": \"Unable to reach internal-server.example.com - host not accessible\"}"},
+  {"role": "assistant", "content": "I wasn't able to access that URL. The error indicates the host `internal-server.example.com` isn't accessible from my environment.\n\n**Possible solutions:**\n\n1. **VPN/Tunnel**: If this is an internal server, you might need to set up a tunnel or VPN connection first\n2. **Proxy Configuration**: Configure a proxy that has access to your internal network\n3. **Alternative URL**: If there's a public-facing version of this service, please provide that URL\n4. **Local Agent**: Consider running a LightDom agent inside your network that can access internal resources\n\nWould you like help with any of these options?"}
 ]}
 ```
 
