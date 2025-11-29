@@ -257,6 +257,7 @@ ComponentName.displayName = 'ComponentName';
 // ComponentName.types.ts
 import type { VariantProps } from 'class-variance-authority';
 import type { HTMLAttributes, ReactNode } from 'react';
+import type { componentVariants } from './ComponentName'; // Import from component file
 
 /**
  * ComponentName Props
