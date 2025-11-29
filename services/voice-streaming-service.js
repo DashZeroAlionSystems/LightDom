@@ -398,7 +398,7 @@ export class VoiceStreamingService extends EventEmitter {
       await this.loadDefaultConfig();
     }
 
-    return this.config!;
+    return this.config;
   }
 
   /**
@@ -784,7 +784,7 @@ export class VoiceStreamingService extends EventEmitter {
         throw new Error(`DeepSeek API error: ${response.status}`);
       }
 
-      const data = await response.json() as { response?: string };
+      const data = await response.json();
       return {
         response: data.response || '',
         model,
@@ -823,10 +823,7 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Execute a generic API call
    */
-  async executeApiCall(
-    config: Record<string, any>,
-    inputData
-  ) {
+  async executeApiCall(config, inputData) {
     // Placeholder for generic API call execution
     return { apiCallExecuted: true, config, inputData };
   }
