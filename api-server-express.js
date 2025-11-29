@@ -1388,6 +1388,40 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load Storybook discovery routes:', err);
       });
 
+    // Import and register Storybook Model Training routes (11 pretrained models integration)
+    import('./api/storybook-training-routes.js')
+      .then(trainingModule => {
+        const createRoutes = trainingModule.default || trainingModule.createStorybookTrainingRoutes;
+        if (typeof createRoutes === 'function') {
+          this.app.use('/api/storybook-training', createRoutes({ db: this.db }));
+        } else {
+          this.app.use('/api/storybook-training', trainingModule.default);
+        }
+        console.log(
+          '✅ Storybook Training routes registered (11 pretrained models, training pipeline enabled)'
+        );
+      })
+      .catch(err => {
+        console.error('Failed to load Storybook training routes:', err);
+      });
+
+    // Import and register Command Service routes (CRUD for /commands)
+    import('./api/command-routes.js')
+      .then(commandModule => {
+        const createRoutes = commandModule.default || commandModule.createCommandRoutes;
+        if (typeof createRoutes === 'function') {
+          this.app.use('/api/commands', createRoutes({ db: this.db }));
+        } else {
+          this.app.use('/api/commands', commandModule.default);
+        }
+        console.log(
+          '✅ Command Service routes registered (CRUD for /commands, slash command execution)'
+        );
+      })
+      .catch(err => {
+        console.error('Failed to load Command Service routes:', err);
+      });
+
     // Import and register MCP Server Management routes (Agent instances with schema linking)
     import('./api/mcp-server-routes.js')
       .then(mcpModule => {
