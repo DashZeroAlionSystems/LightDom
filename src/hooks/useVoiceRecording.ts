@@ -189,6 +189,9 @@ export function useVoiceRecording(config: VoiceRecordingConfig = {}): UseVoiceRe
     return DEFAULT_WAKE_WORDS.some(word => normalizedText.includes(word));
   }, [wakeWord]);
 
+  // Ref to hold the current stopRecording function to avoid circular deps
+  const stopRecordingRef = useRef<() => void>(() => {});
+
   // Reset silence timer
   const resetSilenceTimer = useCallback(() => {
     if (silenceTimerRef.current) {
@@ -197,7 +200,7 @@ export function useVoiceRecording(config: VoiceRecordingConfig = {}): UseVoiceRe
     
     silenceTimerRef.current = setTimeout(() => {
       if (isRecording && !isListeningForWakeWord) {
-        stopRecording();
+        stopRecordingRef.current();
       }
     }, silenceTimeout * 1000);
   }, [isRecording, isListeningForWakeWord, silenceTimeout]);
@@ -260,12 +263,14 @@ export function useVoiceRecording(config: VoiceRecordingConfig = {}): UseVoiceRe
           
           onWakeWordDetected?.(detectedWakeWord);
           
-          // Stop wake word detection and start recording
+          // Stop wake word detection and start recording after a short delay
           recognition.stop();
           setIsListeningForWakeWord(false);
           
-          // Start actual recording
-          startRecording();
+          // Use setTimeout to ensure state has updated before starting recording
+          setTimeout(() => {
+            startRecording();
+          }, 50);
         }
         
         onTranscript?.(finalTranscript, true, resultConfidence);
@@ -284,7 +289,11 @@ export function useVoiceRecording(config: VoiceRecordingConfig = {}): UseVoiceRe
           onWakeWordDetected?.(detectedWakeWord);
           recognition.stop();
           setIsListeningForWakeWord(false);
-          startRecording();
+          
+          // Use setTimeout to ensure state has updated before starting recording
+          setTimeout(() => {
+            startRecording();
+          }, 50);
         }
       }
 
@@ -399,6 +408,11 @@ export function useVoiceRecording(config: VoiceRecordingConfig = {}): UseVoiceRe
       clearTimeout(maxDurationTimerRef.current);
     }
   }, []);
+
+  // Update the ref whenever stopRecording changes
+  useEffect(() => {
+    stopRecordingRef.current = stopRecording;
+  }, [stopRecording]);
 
   // Toggle recording
   const toggleRecording = useCallback(() => {

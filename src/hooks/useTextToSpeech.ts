@@ -104,6 +104,7 @@ export function useTextToSpeech(config: TextToSpeechConfig = {}): UseTextToSpeec
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const queueRef = useRef<string[]>([]);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const speakRef = useRef<(text: string) => void>(() => {});
 
   // Initialize speech synthesis
   useEffect(() => {
@@ -163,7 +164,7 @@ export function useTextToSpeech(config: TextToSpeechConfig = {}): UseTextToSpeec
       const nextText = queueRef.current.shift();
       setQueueLength(queueRef.current.length);
       if (nextText) {
-        speak(nextText);
+        speakRef.current(nextText);
       }
     }
   }, [isSpeaking]);
@@ -262,6 +263,11 @@ export function useTextToSpeech(config: TextToSpeechConfig = {}): UseTextToSpeec
     onProgress,
     processQueue,
   ]);
+
+  // Update the speakRef when speak changes
+  useEffect(() => {
+    speakRef.current = speak;
+  }, [speak]);
 
   // Pause speech
   const pause = useCallback(() => {

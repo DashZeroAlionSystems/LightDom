@@ -402,32 +402,47 @@ CREATE INDEX IF NOT EXISTS idx_voice_workflow_runs_status ON voice_workflow_runs
 CREATE INDEX IF NOT EXISTS idx_bidi_connections_session ON bidi_stream_connections(session_id);
 CREATE INDEX IF NOT EXISTS idx_bidi_connections_status ON bidi_stream_connections(status);
 
--- Add update triggers
+-- Create update_updated_at_column function if it doesn't exist
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Add update triggers (using DROP IF EXISTS to avoid conflicts)
+DROP TRIGGER IF EXISTS update_voice_configs_updated_at ON voice_service_configs;
 CREATE TRIGGER update_voice_configs_updated_at 
     BEFORE UPDATE ON voice_service_configs
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_voice_sessions_updated_at ON voice_sessions;
 CREATE TRIGGER update_voice_sessions_updated_at 
     BEFORE UPDATE ON voice_sessions
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_voice_commands_updated_at ON voice_commands;
 CREATE TRIGGER update_voice_commands_updated_at 
     BEFORE UPDATE ON voice_commands
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_tts_voices_updated_at ON tts_voices;
 CREATE TRIGGER update_tts_voices_updated_at 
     BEFORE UPDATE ON tts_voices
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_voice_workflows_updated_at ON voice_workflows;
 CREATE TRIGGER update_voice_workflows_updated_at 
     BEFORE UPDATE ON voice_workflows
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_voice_workflow_runs_updated_at ON voice_workflow_runs;
 CREATE TRIGGER update_voice_workflow_runs_updated_at 
     BEFORE UPDATE ON voice_workflow_runs
     FOR EACH ROW 

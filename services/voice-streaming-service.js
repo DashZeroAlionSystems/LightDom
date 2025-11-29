@@ -14,111 +14,121 @@ import { EventEmitter } from 'events';
 import { Pool } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
 
-// Voice service configuration interface
-export interface VoiceServiceConfig {
-  wakeWord: string;
-  wakeWordSensitivity: number;
-  wakeWordEnabled: boolean;
-  language: string;
-  speechRecognitionModel: string;
-  ttsProvider: string;
-  ttsVoiceId: string;
-  ttsSpeed: number;
-  ttsPitch: number;
-  ttsVolume: number;
-  ttsEnabled: boolean;
-  bidiStreamingEnabled: boolean;
-  privacyMode: 'wake_word_only' | 'push_to_talk' | 'always_listening' | 'disabled';
-  autoStopOnSilenceSeconds: number;
-  deleteRecordingsAfterProcessing: boolean;
-  autorunEnabled: boolean;
-}
+/**
+ * @typedef {Object} VoiceServiceConfig
+ * @property {string} wakeWord
+ * @property {number} wakeWordSensitivity
+ * @property {boolean} wakeWordEnabled
+ * @property {string} language
+ * @property {string} speechRecognitionModel
+ * @property {string} ttsProvider
+ * @property {string} ttsVoiceId
+ * @property {number} ttsSpeed
+ * @property {number} ttsPitch
+ * @property {number} ttsVolume
+ * @property {boolean} ttsEnabled
+ * @property {boolean} bidiStreamingEnabled
+ * @property {'wake_word_only'|'push_to_talk'|'always_listening'|'disabled'} privacyMode
+ * @property {number} autoStopOnSilenceSeconds
+ * @property {boolean} deleteRecordingsAfterProcessing
+ * @property {boolean} autorunEnabled
+ */
 
-// Voice session state
-export interface VoiceSession {
-  sessionId: string;
-  configId: string;
-  userId?: string;
-  campaignId?: string;
-  status: 'active' | 'paused' | 'processing' | 'completed' | 'error' | 'cancelled';
-  startedAt: Date;
-  messagesCount: number;
-  lastTranscript?: string;
-  lastResponse?: string;
-  context: Record<string, any>;
-}
+/**
+ * @typedef {Object} VoiceSession
+ * @property {string} sessionId
+ * @property {string} configId
+ * @property {string} [userId]
+ * @property {string} [campaignId]
+ * @property {'active'|'paused'|'processing'|'completed'|'error'|'cancelled'} status
+ * @property {Date} startedAt
+ * @property {number} messagesCount
+ * @property {string} [lastTranscript]
+ * @property {string} [lastResponse]
+ * @property {Object} context
+ */
 
-// Voice message structure
-export interface VoiceMessage {
-  messageId: string;
-  sessionId: string;
-  direction: 'input' | 'output';
-  messageType: 'voice' | 'text' | 'wake_word' | 'command' | 'system';
-  transcript?: string;
-  audioUrl?: string;
-  audioDurationMs?: number;
-  confidenceScore?: number;
-  timestamp: Date;
-}
+/**
+ * @typedef {Object} VoiceMessage
+ * @property {string} messageId
+ * @property {string} sessionId
+ * @property {'input'|'output'} direction
+ * @property {'voice'|'text'|'wake_word'|'command'|'system'} messageType
+ * @property {string} [transcript]
+ * @property {string} [audioUrl]
+ * @property {number} [audioDurationMs]
+ * @property {number} [confidenceScore]
+ * @property {Date} timestamp
+ */
 
-// Voice command structure
-export interface VoiceCommand {
-  commandId: string;
-  commandPhrase: string;
-  commandPattern: string;
-  commandType: 'wake_word' | 'action' | 'query' | 'navigation' | 'workflow' | 'system';
-  actionType: string;
-  actionConfig: Record<string, any>;
-  workflowId?: string;
-  requiresConfirmation: boolean;
-  responseTemplate?: string;
-}
+/**
+ * @typedef {Object} VoiceCommand
+ * @property {string} commandId
+ * @property {string} commandPhrase
+ * @property {string} commandPattern
+ * @property {'wake_word'|'action'|'query'|'navigation'|'workflow'|'system'} commandType
+ * @property {string} actionType
+ * @property {Object} actionConfig
+ * @property {string} [workflowId]
+ * @property {boolean} requiresConfirmation
+ * @property {string} [responseTemplate]
+ */
 
-// TTS Voice option
-export interface TTSVoice {
-  voiceId: string;
-  provider: string;
-  name: string;
-  displayName: string;
-  language: string;
-  gender?: string;
-  quality: 'standard' | 'enhanced' | 'neural' | 'premium';
-  isDefault: boolean;
-  supportsStreaming: boolean;
-}
+/**
+ * @typedef {Object} TTSVoice
+ * @property {string} voiceId
+ * @property {string} provider
+ * @property {string} name
+ * @property {string} displayName
+ * @property {string} language
+ * @property {string} [gender]
+ * @property {'standard'|'enhanced'|'neural'|'premium'} quality
+ * @property {boolean} isDefault
+ * @property {boolean} supportsStreaming
+ */
 
-// Voice workflow step
-export interface VoiceWorkflowStep {
-  step: number;
-  type: 'detect_wake_word' | 'capture_audio' | 'speech_to_text' | 'process' | 'text_to_speech' | 'stream_audio' | 'api_call';
-  handler: string;
-  config: Record<string, any>;
-}
+/**
+ * @typedef {Object} VoiceWorkflowStep
+ * @property {number} step
+ * @property {'detect_wake_word'|'capture_audio'|'speech_to_text'|'process'|'text_to_speech'|'stream_audio'|'api_call'} type
+ * @property {string} handler
+ * @property {Object} config
+ */
 
-// Voice workflow
-export interface VoiceWorkflow {
-  workflowId: string;
-  name: string;
-  description?: string;
-  category?: string;
-  steps: VoiceWorkflowStep[];
-  autorunEnabled: boolean;
-  status: 'active' | 'inactive' | 'draft' | 'testing';
-}
+/**
+ * @typedef {Object} VoiceWorkflow
+ * @property {string} workflowId
+ * @property {string} name
+ * @property {string} [description]
+ * @property {string} [category]
+ * @property {VoiceWorkflowStep[]} steps
+ * @property {boolean} autorunEnabled
+ * @property {'active'|'inactive'|'draft'|'testing'} status
+ */
 
 /**
  * Voice Streaming Service Class
  */
 export class VoiceStreamingService extends EventEmitter {
-  private db: Pool;
-  private activeSessions: Map<string, VoiceSession>;
-  private commands: Map<string, VoiceCommand>;
-  private voices: Map<string, TTSVoice>;
-  private workflows: Map<string, VoiceWorkflow>;
-  private config: VoiceServiceConfig | null;
-  private isInitialized: boolean;
+  /** @type {Pool} */
+  db;
+  /** @type {Map<string, VoiceSession>} */
+  activeSessions;
+  /** @type {Map<string, VoiceCommand>} */
+  commands;
+  /** @type {Map<string, TTSVoice>} */
+  voices;
+  /** @type {Map<string, VoiceWorkflow>} */
+  workflows;
+  /** @type {VoiceServiceConfig|null} */
+  config;
+  /** @type {boolean} */
+  isInitialized;
 
-  constructor(dbPool?: Pool) {
+  /**
+   * @param {Pool} [dbPool]
+   */
+  constructor(dbPool) {
     super();
     
     this.db = dbPool || new Pool({
@@ -139,8 +149,9 @@ export class VoiceStreamingService extends EventEmitter {
 
   /**
    * Initialize the voice service
+   * @returns {Promise<void>}
    */
-  async initialize(): Promise<void> {
+  async initialize() {
     if (this.isInitialized) return;
 
     try {
@@ -171,7 +182,7 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Load default voice configuration from database
    */
-  private async loadDefaultConfig(): Promise<void> {
+  async loadDefaultConfig() {
     try {
       const result = await this.db.query(`
         SELECT * FROM voice_service_configs 
@@ -248,7 +259,7 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Load voice commands from database
    */
-  private async loadVoiceCommands(): Promise<void> {
+  async loadVoiceCommands() {
     try {
       const result = await this.db.query(`
         SELECT * FROM voice_commands 
@@ -278,7 +289,7 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Load TTS voices from database
    */
-  private async loadTTSVoices(): Promise<void> {
+  async loadTTSVoices() {
     try {
       const result = await this.db.query(`
         SELECT * FROM tts_voices 
@@ -308,7 +319,7 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Load voice workflows from database
    */
-  private async loadWorkflows(): Promise<void> {
+  async loadWorkflows() {
     try {
       const result = await this.db.query(`
         SELECT * FROM voice_workflows 
@@ -336,19 +347,19 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Get current configuration
    */
-  getConfig(): VoiceServiceConfig | null {
+  getConfig() {
     return this.config;
   }
 
   /**
    * Update configuration
    */
-  async updateConfig(configId: string, updates: Partial<VoiceServiceConfig>): Promise<VoiceServiceConfig> {
-    const updateFields: string[] = [];
-    const values: any[] = [];
+  async updateConfig(configId, updates) {
+    const updateFields = [];
+    const values = [];
     let paramIndex = 1;
 
-    const fieldMapping: Record<string, string> = {
+    const fieldMapping = {
       wakeWord: 'wake_word',
       wakeWordSensitivity: 'wake_word_sensitivity',
       wakeWordEnabled: 'wake_word_enabled',
@@ -393,10 +404,10 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Start a new voice session
    */
-  async startSession(userId?: string, campaignId?: string): Promise<VoiceSession> {
+  async startSession(userId, campaignId) {
     const sessionId = uuidv4();
     
-    const session: VoiceSession = {
+    const session = {
       sessionId,
       configId: 'default-voice-config',
       userId,
@@ -427,7 +438,7 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * End a voice session
    */
-  async endSession(sessionId: string): Promise<void> {
+  async endSession(sessionId) {
     const session = this.activeSessions.get(sessionId);
     if (session) {
       session.status = 'completed';
@@ -453,7 +464,7 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Check if text contains wake word
    */
-  detectWakeWord(text: string): VoiceCommand | null {
+  detectWakeWord(text) {
     const normalizedText = text.toLowerCase().trim();
     
     for (const command of this.commands.values()) {
@@ -483,7 +494,7 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Match a voice command
    */
-  matchCommand(text: string): VoiceCommand | null {
+  matchCommand(text) {
     const normalizedText = text.toLowerCase().trim();
     
     for (const command of this.commands.values()) {
@@ -512,14 +523,14 @@ export class VoiceStreamingService extends EventEmitter {
    * Record a voice message
    */
   async recordMessage(
-    sessionId: string,
-    direction: 'input' | 'output',
-    messageType: VoiceMessage['messageType'],
-    content: Partial<VoiceMessage>
-  ): Promise<VoiceMessage> {
+    sessionId,
+    direction,
+    messageType,
+    content
+  ) {
     const messageId = uuidv4();
     
-    const message: VoiceMessage = {
+    const message = {
       messageId,
       sessionId,
       direction,
@@ -575,49 +586,49 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Get available TTS voices
    */
-  getVoices(): TTSVoice[] {
+  getVoices() {
     return Array.from(this.voices.values());
   }
 
   /**
    * Get voice by ID
    */
-  getVoice(voiceId: string): TTSVoice | undefined {
+  getVoice(voiceId) {
     return this.voices.get(voiceId);
   }
 
   /**
    * Get default voice
    */
-  getDefaultVoice(): TTSVoice | undefined {
+  getDefaultVoice() {
     return Array.from(this.voices.values()).find(v => v.isDefault);
   }
 
   /**
    * Get available voice commands
    */
-  getCommands(): VoiceCommand[] {
+  getCommands() {
     return Array.from(this.commands.values());
   }
 
   /**
    * Get available workflows
    */
-  getWorkflows(): VoiceWorkflow[] {
+  getWorkflows() {
     return Array.from(this.workflows.values());
   }
 
   /**
    * Get workflow by ID
    */
-  getWorkflow(workflowId: string): VoiceWorkflow | undefined {
+  getWorkflow(workflowId) {
     return this.workflows.get(workflowId);
   }
 
   /**
    * Execute a voice workflow
    */
-  async executeWorkflow(workflowId: string, sessionId: string, inputData: Record<string, any> = {}): Promise<any> {
+  async executeWorkflow(workflowId, sessionId, inputData = {}) {
     const workflow = this.workflows.get(workflowId);
     if (!workflow) {
       throw new Error(`Workflow not found: ${workflowId}`);
@@ -633,7 +644,7 @@ export class VoiceStreamingService extends EventEmitter {
         VALUES ($1, $2, $3, 'running', $4)
       `, [runId, workflowId, sessionId, JSON.stringify(inputData)]);
 
-      const stepResults: any[] = [];
+      const stepResults = [];
       let currentData = inputData;
 
       // Execute each step
@@ -691,7 +702,7 @@ export class VoiceStreamingService extends EventEmitter {
             error_message = $2,
             updated_at = CURRENT_TIMESTAMP
         WHERE run_id = $1
-      `, [runId, (error as Error).message]);
+      `, [runId, error.message]);
 
       this.emit('workflow:failed', { runId, workflowId, error });
       throw error;
@@ -701,11 +712,11 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Execute a single workflow step
    */
-  private async executeWorkflowStep(
-    step: VoiceWorkflowStep,
-    inputData: Record<string, any>,
-    sessionId: string
-  ): Promise<Record<string, any>> {
+  async executeWorkflowStep(
+    step,
+    inputData,
+    sessionId
+  ) {
     switch (step.type) {
       case 'detect_wake_word':
         // Wake word detection is handled by the client
@@ -746,11 +757,11 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Process text with DeepSeek
    */
-  private async processWithDeepSeek(
-    text: string,
-    sessionId: string,
-    config: Record<string, any> = {}
-  ): Promise<Record<string, any>> {
+  async processWithDeepSeek(
+    text,
+    sessionId,
+    config = {}
+  ) {
     const ollamaUrl = process.env.OLLAMA_API_URL || 'http://localhost:11434';
     const model = config.model || process.env.OLLAMA_MODEL || 'deepseek-r1:latest';
 
@@ -783,7 +794,7 @@ export class VoiceStreamingService extends EventEmitter {
       console.error('DeepSeek processing error:', error);
       return {
         response: 'I apologize, but I encountered an error processing your request.',
-        error: (error as Error).message,
+        error: error.message,
         processed: false,
       };
     }
@@ -792,10 +803,10 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Generate speech from text
    */
-  private async generateSpeech(
-    text: string,
-    config: Record<string, any> = {}
-  ): Promise<Record<string, any>> {
+  async generateSpeech(
+    text,
+    config = {}
+  ) {
     const voiceId = config.voice || this.config?.ttsVoiceId || 'deepseek-natural';
     const voice = this.voices.get(voiceId);
 
@@ -812,10 +823,10 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Execute a generic API call
    */
-  private async executeApiCall(
+  async executeApiCall(
     config: Record<string, any>,
-    inputData: Record<string, any>
-  ): Promise<Record<string, any>> {
+    inputData
+  ) {
     // Placeholder for generic API call execution
     return { apiCallExecuted: true, config, inputData };
   }
@@ -823,7 +834,7 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Get session statistics
    */
-  async getSessionStats(sessionId: string): Promise<any> {
+  async getSessionStats(sessionId) {
     try {
       const result = await this.db.query(`
         SELECT 
@@ -847,7 +858,7 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Get service statistics
    */
-  async getServiceStats(): Promise<any> {
+  async getServiceStats() {
     try {
       const result = await this.db.query(`
         SELECT * FROM v_voice_service_stats
@@ -872,7 +883,7 @@ export class VoiceStreamingService extends EventEmitter {
   /**
    * Cleanup and shutdown
    */
-  async shutdown(): Promise<void> {
+  async shutdown() {
     console.log('🛑 Shutting down Voice Streaming Service...');
     
     // End all active sessions
@@ -887,9 +898,9 @@ export class VoiceStreamingService extends EventEmitter {
 }
 
 // Export singleton instance
-let voiceServiceInstance: VoiceStreamingService | null = null;
+let voiceServiceInstance = null;
 
-export function getVoiceStreamingService(db?: Pool): VoiceStreamingService {
+export function getVoiceStreamingService(db) {
   if (!voiceServiceInstance) {
     voiceServiceInstance = new VoiceStreamingService(db);
   }
