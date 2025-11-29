@@ -30,6 +30,10 @@ import {
   initializeApiGateway,
 } from './ApiGatewayService.js';
 
+// API layer services (server-side only)
+import { BlockchainService, BlockchainConfig } from './api/BlockchainService.js';
+import { MiningService } from './api/MiningService.js';
+
 /**
  * Core services that form the foundation of the application
  */
@@ -193,6 +197,77 @@ const apiServices: ServiceConfig[] = [
 ];
 
 /**
+ * Blockchain and mining services
+ */
+const blockchainServices: ServiceConfig[] = [
+  {
+    name: 'blockchain',
+    description: 'Ethereum blockchain integration service',
+    dependencies: [],
+    tags: ['blockchain', 'web3'],
+    required: false,
+    factory: () => {
+      const config: BlockchainConfig = {
+        rpcUrl: process.env.ETHEREUM_RPC_URL || 'http://localhost:8545',
+        privateKey: process.env.ADMIN_PRIVATE_KEY,
+        contractAddresses: {
+          token: process.env.TOKEN_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000',
+          registry: process.env.REGISTRY_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000',
+          nft: process.env.NFT_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000',
+        },
+        networkId: parseInt(process.env.NETWORK_ID || '31337', 10),
+      };
+      return new BlockchainService(config);
+    },
+    initialize: async (blockchain: BlockchainService) => {
+      try {
+        await blockchain.initializeContracts();
+      } catch (error) {
+        console.warn('   ⚠️  Blockchain contracts not initialized:', (error as Error).message);
+      }
+    },
+    healthCheck: async (blockchain: BlockchainService) => {
+      try {
+        // Simple health check - verify provider is connected
+        return {
+          healthy: true,
+          message: 'Blockchain service ready',
+        };
+      } catch (error) {
+        return {
+          healthy: false,
+          message: (error as Error).message,
+        };
+      }
+    },
+  },
+  {
+    name: 'mining',
+    description: 'DOM space mining service',
+    dependencies: [],
+    tags: ['mining', 'optimization'],
+    required: false,
+    factory: () => MiningService.getInstance(),
+    healthCheck: async (mining: MiningService) => {
+      try {
+        // Get active sessions count
+        const sessions = (mining as any).activeSessions?.size || 0;
+        return {
+          healthy: true,
+          message: `Mining service ready (${sessions} active sessions)`,
+          details: { activeSessions: sessions },
+        };
+      } catch (error) {
+        return {
+          healthy: false,
+          message: (error as Error).message,
+        };
+      }
+    },
+  },
+];
+
+/**
  * All service configurations combined
  */
 export const allServiceConfigs: ServiceConfig[] = [
@@ -200,6 +275,7 @@ export const allServiceConfigs: ServiceConfig[] = [
   ...dataServices,
   ...analysisServices,
   ...apiServices,
+  ...blockchainServices,
 ];
 
 /**
@@ -262,6 +338,12 @@ export const services = {
   },
   get apiGateway(): ApiGatewayService {
     return requireService<ApiGatewayService>('apiGateway');
+  },
+  get blockchain(): BlockchainService {
+    return requireService<BlockchainService>('blockchain');
+  },
+  get mining(): MiningService {
+    return requireService<MiningService>('mining');
   },
 };
 

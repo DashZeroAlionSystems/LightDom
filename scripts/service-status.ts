@@ -14,10 +14,6 @@ import {
   registerAllServices,
   allServiceConfigs,
 } from '../src/services/ServiceRegistry.js';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
 
 async function main() {
   console.log('\n🔍 LightDom Service Status\n');

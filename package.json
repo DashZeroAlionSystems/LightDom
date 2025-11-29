@@ -34,6 +34,7 @@
     "services": "node cli/service-cli.js",
     "services:init": "tsx init-services.ts",
     "services:status": "tsx scripts/service-status.ts",
+    "services:demo": "tsx examples/service-manager-demo.ts",
     "orchestrator": "node scripts/startup-orchestrator.js",
     "orchestrator:demo": "node examples/full-stack-integration.js",
     "demo:launcher": "node demo-launcher.js",
