@@ -83,3 +83,6 @@ export {
   ModelCard,
   NeuralNetworkVisualizer,
 } from '../../../../src/components/ui/NeuralNetwork';
+
+// Codebase Search - Semantic codebase search with AI context
+export { CodebaseSearch } from './CodebaseSearch';
