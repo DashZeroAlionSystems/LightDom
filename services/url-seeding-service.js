@@ -753,6 +753,164 @@ export class URLSeedingService extends EventEmitter {
       console.error('Failed to save backlink:', error);
     }
   }
+
+  /**
+   * Discover URLs by topic using multiple strategies
+   * 
+   * @param {string} topic - Topic to search for
+   * @param {Object} options - Discovery options
+   * @returns {Promise<Array>} Array of discovered URLs
+   */
+  async discoverURLsByTopic(topic, options = {}) {
+    const {
+      maxUrls = 50,
+      minQuality = 0.7,
+      sources = ['search', 'related', 'authority']
+    } = options;
+
+    console.log(`🔍 Discovering URLs for topic: ${topic}`);
+
+    const discoveredUrls = [];
+    const urlSet = new Set();
+
+    // Strategy 1: Search engine simulation (using common patterns)
+    if (sources.includes('search')) {
+      const searchUrls = this.generateSearchUrls(topic);
+      for (const url of searchUrls) {
+        if (!urlSet.has(url)) {
+          urlSet.add(url);
+          discoveredUrls.push({
+            url,
+            source: 'search',
+            topic,
+            quality: 0.8,
+            discoveredAt: new Date().toISOString()
+          });
+        }
+      }
+    }
+
+    // Strategy 2: Related URLs from existing seeds
+    if (sources.includes('related')) {
+      const existingSeeds = this.getSeeds({ limit: 10 });
+      for (const seed of existingSeeds) {
+        for (const relatedUrl of seed.relatedUrls || []) {
+          if (!urlSet.has(relatedUrl) && this.isTopicRelevant(relatedUrl, topic)) {
+            urlSet.add(relatedUrl);
+            discoveredUrls.push({
+              url: relatedUrl,
+              source: 'related',
+              topic,
+              quality: 0.7,
+              discoveredAt: new Date().toISOString()
+            });
+          }
+        }
+      }
+    }
+
+    // Strategy 3: Authority domains for topic
+    if (sources.includes('authority')) {
+      const authorityUrls = this.getAuthorityUrlsForTopic(topic);
+      for (const url of authorityUrls) {
+        if (!urlSet.has(url)) {
+          urlSet.add(url);
+          discoveredUrls.push({
+            url,
+            source: 'authority',
+            topic,
+            quality: 0.9,
+            discoveredAt: new Date().toISOString()
+          });
+        }
+      }
+    }
+
+    // Filter by quality threshold
+    const filteredUrls = discoveredUrls.filter(u => u.quality >= minQuality);
+
+    // Limit to maxUrls
+    const limitedUrls = filteredUrls.slice(0, maxUrls);
+
+    // Add discovered URLs as seeds
+    for (const urlData of limitedUrls) {
+      await this.addSeed(urlData.url, {
+        topic,
+        priority: Math.floor(urlData.quality * 10),
+        source: urlData.source
+      });
+    }
+
+    console.log(`✅ Discovered ${limitedUrls.length} URLs for topic: ${topic}`);
+
+    return limitedUrls;
+  }
+
+  /**
+   * Generate search URLs for a topic
+   */
+  generateSearchUrls(topic) {
+    const urls = [];
+    const topicSlug = topic.toLowerCase().replace(/\s+/g, '-');
+
+    // Common domain patterns for topics
+    const patterns = [
+      `https://en.wikipedia.org/wiki/${topicSlug}`,
+      `https://www.reddit.com/r/${topicSlug}`,
+      `https://github.com/topics/${topicSlug}`,
+      `https://medium.com/tag/${topicSlug}`,
+      `https://dev.to/t/${topicSlug}`
+    ];
+
+    return patterns;
+  }
+
+  /**
+   * Check if URL is relevant to topic
+   */
+  isTopicRelevant(url, topic) {
+    const urlLower = url.toLowerCase();
+    const topicLower = topic.toLowerCase();
+    const topicWords = topicLower.split(/\s+/);
+
+    // Check if any topic word is in the URL
+    return topicWords.some(word => urlLower.includes(word));
+  }
+
+  /**
+   * Get authority URLs for a topic
+   */
+  getAuthorityUrlsForTopic(topic) {
+    const topicLower = topic.toLowerCase();
+    const urls = [];
+
+    // Map topics to authority domains
+    const authorityMap = {
+      'seo': ['https://moz.com', 'https://searchengineland.com', 'https://www.searchenginejournal.com'],
+      'javascript': ['https://developer.mozilla.org', 'https://javascript.info', 'https://v8.dev'],
+      'react': ['https://react.dev', 'https://reactjs.org', 'https://github.com/facebook/react'],
+      'nodejs': ['https://nodejs.org', 'https://github.com/nodejs/node', 'https://nodejs.dev'],
+      'python': ['https://python.org', 'https://docs.python.org', 'https://realpython.com'],
+      'ai': ['https://openai.com', 'https://deepmind.com', 'https://huggingface.co'],
+      'blockchain': ['https://ethereum.org', 'https://bitcoin.org', 'https://web3.foundation']
+    };
+
+    // Find matching authority domains
+    for (const [key, domains] of Object.entries(authorityMap)) {
+      if (topicLower.includes(key)) {
+        urls.push(...domains);
+      }
+    }
+
+    return urls;
+  }
+
+  /**
+   * Get all seeds
+   */
+  getAllSeeds() {
+    return Array.from(this.seeds.values());
+  }
 }
 
 export default URLSeedingService;

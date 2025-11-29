@@ -10,9 +10,27 @@
  * - Manages blockchain rewards for data contributions
  */
 
-import * as tf from '@tensorflow/tfjs-node';
+import * as tf from '@tensorflow/tfjs';
+import { createRequire } from 'module';
 import { createClient } from 'redis';
-import type { PoolClient } from 'pg';
+
+const requireTF = createRequire(import.meta.url);
+
+const TENSORFLOW_BACKEND = (() => {
+  try {
+    requireTF('@tensorflow/tfjs-node');
+    if (typeof tf.setBackend === 'function' && typeof tf.findBackend === 'function' && tf.findBackend('tensorflow')) {
+      tf.setBackend('tensorflow').catch(() => {});
+    }
+    console.log('SEOTrainingPipelineService: native TensorFlow backend enabled');
+    return 'tensorflow';
+  } catch (err) {
+    console.warn('SEOTrainingPipelineService: native TensorFlow bindings unavailable, using @tensorflow/tfjs fallback');
+    return 'tfjs';
+  }
+})();
+
+const TF_NODE_AVAILABLE = TENSORFLOW_BACKEND === 'tensorflow';
 
 interface TrainingDataPoint {
   url: string;
@@ -85,6 +103,10 @@ export class SEOTrainingPipelineService {
 
       for (const row of result.rows) {
         try {
+          if (!TF_NODE_AVAILABLE) {
+            console.warn(`Skipping load for ${row.model_name}: native TensorFlow bindings are required to read models from disk.`);
+            continue;
+          }
           const model = await tf.loadLayersModel(`file://${row.model_path}`);
           this.currentModels.set(row.model_type, model);
           console.log(`Loaded model: ${row.model_name} (${row.model_type})`);
@@ -296,6 +318,9 @@ export class SEOTrainingPipelineService {
       // Save model
       const modelVersion = `v${Date.now()}`;
       const modelPath = `/tmp/seo_models/${modelType}_${modelVersion}`;
+      if (!TF_NODE_AVAILABLE) {
+        throw new Error('TensorFlow native bindings are required to save SEO training models. Install optional dependency @tensorflow/tfjs-node to enable persistence.');
+      }
       await model.save(`file://${modelPath}`);
 
       // Store model metadata in database
@@ -580,6 +605,10 @@ export class SEOTrainingPipelineService {
       );
 
       // Load model into memory
+      if (!TF_NODE_AVAILABLE) {
+        throw new Error('TensorFlow native bindings are required to load SEO training models from disk. Install optional dependency @tensorflow/tfjs-node to enable deployment.');
+      }
+
       const model = await tf.loadLayersModel(`file://${model_path}`);
       this.currentModels.set(model_type, model);
 

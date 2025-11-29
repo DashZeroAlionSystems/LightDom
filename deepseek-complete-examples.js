@@ -173,7 +173,7 @@ async function example7_DataMiningPipeline() {
   );
 
   console.log('Pipeline tasks:', result.workflow.tasks.length);
-  console.log('Data schemas:', result.schemas.map((s: any) => s.name));
+  console.log('Data schemas:', result.schemas.map(s => s.name));
   console.log('Execution progress:', result.execution.progress + '%');
 
   return result;

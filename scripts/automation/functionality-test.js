@@ -19,6 +19,8 @@ const execAsync = promisify(exec);
 const ALLOW_SIMPLE_API_SERVER = process.env.ALLOW_SIMPLE_API_SERVER === 'true' || process.env.ALLOW_FAKE_API === 'true';
 // Timeout (ms) to wait for API server startup detection. Increase in CI if needed.
 const API_STARTUP_TIMEOUT_MS = parseInt(process.env.API_STARTUP_TIMEOUT || '15000', 10);
+// Timeout (ms) to wait for the frontend preview server to become available.
+const FRONTEND_STARTUP_TIMEOUT_MS = parseInt(process.env.FRONTEND_STARTUP_TIMEOUT || '20000', 10);
 
 class FunctionalityTester {
   constructor() {
@@ -166,6 +168,7 @@ class FunctionalityTester {
       // Test if frontend is accessible
       const ports = [Number(process.env.VITE_PORT || 3000), 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010];
       let frontendFound = false;
+      let frontendVerified = false;
       
       for (const port of ports) {
         try {
@@ -190,12 +193,39 @@ class FunctionalityTester {
         }
       }
       
-      if (frontendFound) {
+      if (!frontendFound) {
+        this.log('  ⚙️  Frontend not running; attempting to build and launch preview...', 'info');
+        let previewProcess;
+        try {
+          await execAsync('npm run build', { maxBuffer: 1024 * 1024 * 20 });
+          this.log('  ✓ Frontend build completed', 'success');
+
+          previewProcess = spawn('npm', ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '3000'], {
+            cwd: process.cwd(),
+            shell: true,
+            stdio: 'pipe',
+            env: { ...process.env, VITE_PREVIEW_PORT: '3000' }
+          });
+
+          await this.waitForUrl('http://127.0.0.1:3000', FRONTEND_STARTUP_TIMEOUT_MS);
+          this.log('  ✓ Frontend preview server reachable on port 3000', 'success');
+          frontendVerified = true;
+        } catch (error) {
+          this.log(`  🚨 CRITICAL: Unable to launch frontend preview (${error.message})`, 'critical');
+          this.criticalIssues.push('Frontend build/preview failed - app UI unavailable');
+        } finally {
+          if (previewProcess) {
+            try { previewProcess.kill(); } catch (err) { /* ignore */ }
+          }
+        }
+      } else {
+        frontendVerified = true;
+      }
+
+      if (frontendVerified) {
         this.log('  ✓ Frontend is accessible', 'success');
         this.results.passed++;
       } else {
-        this.log('  🚨 CRITICAL: Frontend not accessible', 'critical');
-        this.criticalIssues.push('Frontend not accessible - app unusable');
         this.results.critical++;
       }
       this.results.total++;
@@ -252,6 +282,64 @@ class FunctionalityTester {
     await this.testMockData();
 
     this.generateReport();
+  }
+
+  waitForUrl(url, timeoutMs = 10000) {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      let settled = false;
+
+      const attempt = () => {
+        if (settled) {
+          return;
+        }
+
+        const req = http.get(url, (res) => {
+          res.resume();
+          if (settled) {
+            return;
+          }
+
+          if (res.statusCode >= 200 && res.statusCode < 400) {
+            settled = true;
+            resolve();
+          } else if (Date.now() - start > timeoutMs) {
+            settled = true;
+            reject(new Error(`Status ${res.statusCode}`));
+          } else {
+            setTimeout(attempt, 500);
+          }
+        });
+
+        req.on('error', () => {
+          req.destroy();
+          if (settled) {
+            return;
+          }
+          if (Date.now() - start > timeoutMs) {
+            settled = true;
+            reject(new Error(`Unable to reach ${url}`));
+          } else {
+            setTimeout(attempt, 500);
+          }
+        });
+
+        req.setTimeout(2000, () => {
+          req.destroy();
+          if (settled) {
+            return;
+          }
+          if (Date.now() - start > timeoutMs) {
+            settled = true;
+            reject(new Error(`Timeout contacting ${url}`));
+          } else {
+            setTimeout(attempt, 500);
+          }
+        });
+      };
+
+      attempt();
+    });
   }
 
   generateReport() {

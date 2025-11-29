@@ -1,0 +1,170 @@
+{
+  "name": "Auto-Scaling Data Pipeline",
+  "description": "Automatically scale data processing based on queue size",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "id": "check_queue_size",
+      "name": "Check Processing Queue Size",
+      "type": "api_call",
+      "method": "GET",
+      "endpoint": "http://localhost:3000/api/enrich/status/queue",
+      "input": {},
+      "onFailure": "abort",
+      "timeout": 10000
+    },
+    {
+      "id": "decide_scaling",
+      "name": "Decide if Scaling Needed",
+      "type": "conditional",
+      "condition": {
+        "type": "greaterThan",
+        "field": "check_queue_size.waiting",
+        "value": 1000
+      },
+      "then": [
+        {
+          "id": "calculate_workers_needed",
+          "name": "Calculate Workers Needed",
+          "type": "data_transformation",
+          "transformation": "custom",
+          "function": "(data) => { return Math.min(Math.ceil(data.waiting / 100), 10); }",
+          "input": {
+            "data": "${previousResults.check_queue_size}"
+          }
+        },
+        {
+          "id": "spawn_workers",
+          "name": "Spawn Additional Workers",
+          "type": "loop",
+          "input": {
+            "items": "${Array.from({ length: previousResults.calculate_workers_needed }, (_, i) => i + 1)}"
+          },
+          "subtasks": [
+            {
+              "id": "create_worker",
+              "name": "Create Worker ${loopIndex}",
+              "type": "api_call",
+              "method": "POST",
+              "endpoint": "http://localhost:3001/api/workers/containers/create",
+              "input": {
+                "workerId": "auto-worker-${loopIndex}",
+                "type": "enrichment"
+              },
+              "timeout": 15000
+            },
+            {
+              "id": "start_worker",
+              "name": "Start Worker ${loopIndex}",
+              "type": "api_call",
+              "method": "POST",
+              "endpoint": "http://localhost:3001/api/workers/containers/${previousResults.create_worker.container_id}/start",
+              "input": {},
+              "timeout": 15000
+            }
+          ]
+        },
+        {
+          "id": "wait_processing",
+          "name": "Wait for Queue to Process",
+          "type": "loop",
+          "input": {
+            "items": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+          },
+          "maxIterations": 12,
+          "subtasks": [
+            {
+              "id": "check_queue_again",
+              "name": "Check Queue Status",
+              "type": "api_call",
+              "method": "GET",
+              "endpoint": "http://localhost:3000/api/enrich/status/queue",
+              "input": {},
+              "timeout": 10000
+            },
+            {
+              "id": "check_if_empty",
+              "name": "Check if Queue Empty",
+              "type": "conditional",
+              "condition": {
+                "type": "lessThan",
+                "field": "check_queue_again.waiting",
+                "value": 100
+              },
+              "then": [
+                {
+                  "id": "stop_loop",
+                  "name": "Queue Processed",
+                  "type": "wait",
+                  "delay": 1000
+                }
+              ],
+              "else": [
+                {
+                  "id": "wait_longer",
+                  "name": "Wait 5 Minutes",
+                  "type": "wait",
+                  "delay": 300000
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "scale_down",
+          "name": "Scale Down Workers",
+          "type": "loop",
+          "input": {
+            "items": "${previousResults.spawn_workers}"
+          },
+          "subtasks": [
+            {
+              "id": "stop_worker",
+              "name": "Stop Worker",
+              "type": "api_call",
+              "method": "POST",
+              "endpoint": "http://localhost:3001/api/workers/containers/${loopItem.create_worker.container_id}/stop",
+              "input": {},
+              "timeout": 15000
+            },
+            {
+              "id": "destroy_worker",
+              "name": "Destroy Worker",
+              "type": "api_call",
+              "method": "DELETE",
+              "endpoint": "http://localhost:3001/api/workers/containers/${loopItem.create_worker.container_id}",
+              "input": {},
+              "timeout": 15000
+            }
+          ]
+        }
+      ],
+      "else": [
+        {
+          "id": "log_no_scaling",
+          "name": "No Scaling Needed",
+          "type": "wait",
+          "delay": 1000
+        }
+      ]
+    },
+    {
+      "id": "save_scaling_event",
+      "name": "Save Scaling Event",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/entities",
+      "input": {
+        "entityType": "ScalingEvent",
+        "data": {
+          "queue_size": "${previousResults.check_queue_size.waiting}",
+          "workers_spawned": "${previousResults.decide_scaling.branch === 'then' ? previousResults.decide_scaling.results.calculate_workers_needed : 0}",
+          "scaling_decision": "${previousResults.decide_scaling.branch}",
+          "timestamp": "${new Date().toISOString()}"
+        }
+      },
+      "onFailure": "continue",
+      "timeout": 10000
+    }
+  ]
+}

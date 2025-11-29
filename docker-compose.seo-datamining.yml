@@ -1,0 +1,235 @@
+# Docker Compose for LightDom SEO Data Mining Workloads
+# Orchestrates multiple containerized data mining workers for SEO optimization
+
+version: '3.8'
+
+services:
+  # API Server - Main coordination service
+  api-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: lightdom-api
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - BLOCKCHAIN_ENABLED=true
+      - DB_DISABLED=false
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=lightdom
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - lightdom-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: lightdom-postgres
+    environment:
+      - POSTGRES_DB=lightdom
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-postgres.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - lightdom-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: lightdom-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - lightdom-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # SEO Data Mining Worker 1
+  seo-worker-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.seo-datamining
+    container_name: lightdom-seo-worker-1
+    environment:
+      - NODE_ENV=production
+      - WORKLOAD_TYPE=seo-datamining
+      - WORKER_ID=1
+      - API_URL=http://api-server:3001
+      - BLOCKCHAIN_RPC_URL=http://blockchain:8545
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=lightdom
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      - api-server
+      - postgres
+      - redis
+    networks:
+      - lightdom-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # SEO Data Mining Worker 2
+  seo-worker-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.seo-datamining
+    container_name: lightdom-seo-worker-2
+    environment:
+      - NODE_ENV=production
+      - WORKLOAD_TYPE=seo-datamining
+      - WORKER_ID=2
+      - API_URL=http://api-server:3001
+      - BLOCKCHAIN_RPC_URL=http://blockchain:8545
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=lightdom
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      - api-server
+      - postgres
+      - redis
+    networks:
+      - lightdom-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # SEO Data Mining Worker 3
+  seo-worker-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.seo-datamining
+    container_name: lightdom-seo-worker-3
+    environment:
+      - NODE_ENV=production
+      - WORKLOAD_TYPE=seo-datamining
+      - WORKER_ID=3
+      - API_URL=http://api-server:3001
+      - BLOCKCHAIN_RPC_URL=http://blockchain:8545
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=lightdom
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      - api-server
+      - postgres
+      - redis
+    networks:
+      - lightdom-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Blockchain Node (for mining algorithms)
+  blockchain:
+    image: trufflesuite/ganache:latest
+    container_name: lightdom-blockchain
+    ports:
+      - "8545:8545"
+    command: >
+      --mnemonic "test test test test test test test test test test test junk"
+      --networkId 1337
+      --chainId 1337
+      --gasLimit 10000000
+      --gasPrice 20000000000
+      --defaultBalanceEther 1000
+    networks:
+      - lightdom-network
+    restart: unless-stopped
+
+  # Monitoring Service
+  monitoring:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
+    container_name: lightdom-monitoring
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=production
+      - API_URL=http://api-server:3001
+    depends_on:
+      - api-server
+    networks:
+      - lightdom-network
+    restart: unless-stopped
+
+networks:
+  lightdom-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+
+# To use this compose file:
+# 
+# Start all services:
+#   docker-compose -f docker-compose.seo-datamining.yml up -d
+#
+# Scale SEO workers:
+#   docker-compose -f docker-compose.seo-datamining.yml up -d --scale seo-worker-1=5
+#
+# View logs:
+#   docker-compose -f docker-compose.seo-datamining.yml logs -f seo-worker-1
+#
+# Stop all services:
+#   docker-compose -f docker-compose.seo-datamining.yml down
+#
+# Stop and remove volumes:
+#   docker-compose -f docker-compose.seo-datamining.yml down -v

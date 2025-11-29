@@ -30,6 +30,15 @@
       "@/core/*": ["src/core/*"],
       "@/server/*": ["src/server/*"],
       "@/types/*": ["src/types/*"],
+      "@/ml/*": ["src/ml/*"],
+      "@/database/*": ["src/database/*"],
+      "@/crawler/*": ["src/crawler/*"],
+      "@/design-system/*": ["src/design-system/*"],
+      "@/neural/*": ["src/neural/*"],
+      "@/rag/*": ["src/rag/*"],
+      "@/vscode/*": ["src/components/vscode/*"],
+      "@/admin/*": ["src/components/admin/*"],
+      "@/stories/*": ["src/stories/*"],
       "@ant-design/icons": ["src/types/ant-design-icons-shim.d.ts"],
       "@ant-design/icons/*": ["src/types/ant-design-icons-shim.d.ts"]
     }

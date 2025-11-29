@@ -3,11 +3,30 @@
  * Manages per-client neural network instances with isolated training data
  */
 
+import * as tf from '@tensorflow/tfjs';
 import { EventEmitter } from 'events';
-import { Pool } from 'pg';
-import * as tf from '@tensorflow/tfjs-node';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { createRequire } from 'module';
 import { join } from 'path';
+import { Pool } from 'pg';
+
+const requireTF = createRequire(import.meta.url);
+
+const TENSORFLOW_BACKEND = (() => {
+  try {
+    requireTF('@tensorflow/tfjs-node');
+    if (typeof tf.setBackend === 'function' && typeof tf.findBackend === 'function' && tf.findBackend('tensorflow')) {
+      tf.setBackend('tensorflow').catch(() => {});
+    }
+    console.log('NeuralNetworkInstanceManager: native TensorFlow backend enabled');
+    return 'tensorflow';
+  } catch (err) {
+    console.warn('NeuralNetworkInstanceManager: native TensorFlow bindings unavailable, using @tensorflow/tfjs fallback');
+    return 'tfjs';
+  }
+})();
+
+const TF_NODE_AVAILABLE = TENSORFLOW_BACKEND === 'tensorflow';
 
 export interface NeuralNetworkInstance {
   id: string;
@@ -489,6 +508,10 @@ export class NeuralNetworkInstanceManager extends EventEmitter {
    */
   private async saveModel(instanceId: string, model: tf.LayersModel): Promise<void> {
     const modelPath = join(this.modelsDir, instanceId);
+    if (!TF_NODE_AVAILABLE) {
+      throw new Error('TensorFlow native bindings are required to save neural network models. Install optional dependency @tensorflow/tfjs-node to enable persistence.');
+    }
+
     await model.save(`file://${modelPath}`);
     console.log(`💾 Saved model: ${modelPath}`);
   }
@@ -498,6 +521,9 @@ export class NeuralNetworkInstanceManager extends EventEmitter {
    */
   private async loadModel(instanceId: string): Promise<tf.LayersModel> {
     const modelPath = join(this.modelsDir, instanceId, 'model.json');
+    if (!TF_NODE_AVAILABLE) {
+      throw new Error('TensorFlow native bindings are required to load neural network models from disk. Install optional dependency @tensorflow/tfjs-node to enable loading.');
+    }
     const model = await tf.loadLayersModel(`file://${modelPath}`);
     console.log(`📂 Loaded model: ${instanceId}`);
     return model;

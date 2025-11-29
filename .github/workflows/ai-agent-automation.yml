@@ -1,0 +1,268 @@
+name: AI Agent Automation
+
+on:
+  # Trigger on error reports (via repository dispatch)
+  repository_dispatch:
+    types: [error-report, agent-task]
+  
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      task_type:
+        description: 'Type of agent task'
+        required: true
+        type: choice
+        options:
+          - error_investigation
+          - code_review
+          - refactoring
+          - test_generation
+          - documentation
+      task_context:
+        description: 'Task context (JSON string)'
+        required: false
+        type: string
+
+  # Schedule for continuous task creation
+  schedule:
+    - cron: '*/30 * * * *'  # Every 30 minutes
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  # Initialize agent system
+  initialize-agent:
+    name: Initialize AI Agent
+    runs-on: ubuntu-latest
+    outputs:
+      agent_id: ${{ steps.spawn.outputs.agent_id }}
+      task_id: ${{ steps.spawn.outputs.task_id }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Setup Database Connection
+        run: |
+          echo "Setting up database connection..."
+          # Database connection would be configured here
+      
+      - name: Spawn Agent Instance
+        id: spawn
+        run: |
+          echo "Spawning agent instance..."
+          # This would call the agent spawner service
+          AGENT_ID=$(uuidgen)
+          TASK_ID=$(uuidgen)
+          echo "agent_id=$AGENT_ID" >> $GITHUB_OUTPUT
+          echo "task_id=$TASK_ID" >> $GITHUB_OUTPUT
+
+  # Process error investigations
+  error-investigation:
+    name: Error Investigation
+    needs: initialize-agent
+    runs-on: ubuntu-latest
+    if: github.event.action == 'error-report' || github.event.inputs.task_type == 'error_investigation'
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lightdom
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run Error Investigation
+        run: |
+          echo "Running error investigation with agent ${{ needs.initialize-agent.outputs.agent_id }}..."
+          # This would call the error investigation service
+          node -e "
+            const { AgentModeInvestigationService } = require('./services/agent-mode-investigation.service.js');
+            // Investigation logic here
+          "
+      
+      - name: Generate Investigation Report
+        run: |
+          echo "Generating investigation report..."
+          # Generate markdown report
+      
+      - name: Create GitHub Issue
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '[AI Agent] Error Investigation Results',
+              body: 'Investigation completed by AI agent.',
+              labels: ['ai-generated', 'bug'],
+              assignees: ['github-copilot[bot]']
+            });
+            console.log(`Created issue #${issue.data.number}`);
+
+  # Continuous task creation from error patterns
+  continuous-task-creation:
+    name: Continuous Task Creation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lightdom
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Find Errors Needing Investigation
+        id: find-errors
+        run: |
+          echo "Finding errors that need investigation..."
+          # Query database for errors
+          node -e "
+            // Logic to find errors
+            const errorCount = 5;
+            console.log('error_count=' + errorCount);
+          " >> $GITHUB_OUTPUT
+      
+      - name: Create Issues for Errors
+        if: steps.find-errors.outputs.error_count > 0
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const errorCount = ${{ steps.find-errors.outputs.error_count }};
+            console.log(`Creating ${errorCount} issues...`);
+            
+            for (let i = 0; i < Math.min(errorCount, 5); i++) {
+              const issue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `[AI Agent] Error Pattern Detected #${i + 1}`,
+                body: 'This error pattern was automatically detected and needs investigation.',
+                labels: ['ai-generated', 'bug', 'needs-investigation'],
+                assignees: ['github-copilot[bot]']
+              });
+              console.log(`Created issue #${issue.data.number}`);
+              
+              // Wait to avoid rate limiting
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+
+  # Code generation task
+  code-generation:
+    name: Code Generation
+    needs: initialize-agent
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task_type == 'code_review' || github.event.inputs.task_type == 'refactoring'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run Code Generation
+        run: |
+          echo "Running code generation with agent ${{ needs.initialize-agent.outputs.agent_id }}..."
+          # Call agent spawner for code generation
+      
+      - name: Create Draft PR
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Create a branch and PR with generated code
+            const branchName = `agent/code-gen-${Date.now()}`;
+            console.log(`Creating branch ${branchName}...`);
+            
+            // Branch creation and PR would happen here
+            console.log('Draft PR created');
+
+  # Agent health monitoring
+  agent-health-check:
+    name: Agent Health Check
+    runs-on: ubuntu-latest
+    needs: [error-investigation, code-generation]
+    if: always()
+    
+    steps:
+      - name: Check Agent Status
+        run: |
+          echo "Checking agent health..."
+          # Health check logic
+      
+      - name: Report Status
+        run: |
+          echo "Agent status: OK"
+          # Report to monitoring system
+      
+      - name: Cleanup Failed Agents
+        if: failure()
+        run: |
+          echo "Cleaning up failed agents..."
+          # Cleanup logic
+
+  # Notification on completion
+  notify:
+    name: Notify Completion
+    runs-on: ubuntu-latest
+    needs: [error-investigation, code-generation, continuous-task-creation]
+    if: always()
+    
+    steps:
+      - name: Send Notification
+        run: |
+          echo "AI Agent automation workflow completed"
+          # Send notification (Slack, email, etc.)

@@ -1,0 +1,642 @@
+{
+  "name": "Enhanced Neural Network Crawler Configuration",
+  "version": "2.0.0",
+  "description": "Advanced neural network configuration for intelligent web crawling with ML-based decision making",
+  
+  "neuralNetworks": {
+    "urlPrioritization": {
+      "enabled": true,
+      "architecture": "sequential",
+      "model": {
+        "type": "tensorflow",
+        "layers": [
+          {
+            "type": "dense",
+            "units": 256,
+            "activation": "relu",
+            "inputShape": [192],
+            "name": "input_layer"
+          },
+          {
+            "type": "dropout",
+            "rate": 0.3,
+            "name": "dropout_1"
+          },
+          {
+            "type": "dense",
+            "units": 128,
+            "activation": "relu",
+            "name": "hidden_layer_1"
+          },
+          {
+            "type": "dropout",
+            "rate": 0.2,
+            "name": "dropout_2"
+          },
+          {
+            "type": "dense",
+            "units": 64,
+            "activation": "relu",
+            "name": "hidden_layer_2"
+          },
+          {
+            "type": "dense",
+            "units": 50,
+            "activation": "softmax",
+            "name": "output_layer"
+          }
+        ],
+        "compiler": {
+          "optimizer": {
+            "type": "adam",
+            "learningRate": 0.001,
+            "beta1": 0.9,
+            "beta2": 0.999
+          },
+          "loss": "categoricalCrossentropy",
+          "metrics": ["accuracy", "precision", "recall"]
+        }
+      },
+      "training": {
+        "batchSize": 32,
+        "epochs": 100,
+        "validationSplit": 0.2,
+        "shuffle": true,
+        "callbacks": [
+          {
+            "type": "earlyStopping",
+            "monitor": "val_loss",
+            "patience": 10,
+            "restoreBestWeights": true
+          },
+          {
+            "type": "modelCheckpoint",
+            "filepath": "./models/url-prioritization-{epoch:02d}-{val_accuracy:.2f}.h5",
+            "monitor": "val_accuracy",
+            "saveBestOnly": true
+          },
+          {
+            "type": "reduceLROnPlateau",
+            "monitor": "val_loss",
+            "factor": 0.5,
+            "patience": 5,
+            "minLearningRate": 0.00001
+          }
+        ]
+      },
+      "inference": {
+        "batchSize": 1,
+        "threshold": 0.7,
+        "topK": 5
+      }
+    },
+    
+    "contentClassification": {
+      "enabled": true,
+      "architecture": "convolutional",
+      "model": {
+        "type": "tensorflow",
+        "layers": [
+          {
+            "type": "embedding",
+            "inputDim": 10000,
+            "outputDim": 128,
+            "inputLength": 500,
+            "name": "embedding_layer"
+          },
+          {
+            "type": "conv1d",
+            "filters": 128,
+            "kernelSize": 5,
+            "activation": "relu",
+            "name": "conv1d_1"
+          },
+          {
+            "type": "maxPooling1d",
+            "poolSize": 4,
+            "name": "pooling_1"
+          },
+          {
+            "type": "lstm",
+            "units": 64,
+            "returnSequences": false,
+            "name": "lstm_layer"
+          },
+          {
+            "type": "dense",
+            "units": 32,
+            "activation": "relu",
+            "name": "dense_1"
+          },
+          {
+            "type": "dropout",
+            "rate": 0.5,
+            "name": "dropout_final"
+          },
+          {
+            "type": "dense",
+            "units": 20,
+            "activation": "softmax",
+            "name": "output_classification"
+          }
+        ],
+        "compiler": {
+          "optimizer": "rmsprop",
+          "loss": "categoricalCrossentropy",
+          "metrics": ["accuracy"]
+        }
+      },
+      "training": {
+        "batchSize": 64,
+        "epochs": 50,
+        "validationSplit": 0.15
+      }
+    },
+    
+    "scraperSelection": {
+      "enabled": true,
+      "architecture": "decision-tree-ensemble",
+      "model": {
+        "type": "brain.js",
+        "network": "LSTM",
+        "options": {
+          "inputSize": 50,
+          "outputSize": 5,
+          "hiddenLayers": [30, 20],
+          "learningRate": 0.01,
+          "decayRate": 0.999,
+          "iterations": 20000,
+          "errorThresh": 0.005,
+          "activation": "sigmoid"
+        }
+      },
+      "outputMapping": {
+        "0": "cheerio",
+        "1": "puppeteer",
+        "2": "playwright",
+        "3": "custom-seo",
+        "4": "custom-3d"
+      }
+    },
+    
+    "adaptiveRateLimiting": {
+      "enabled": true,
+      "architecture": "reinforcement-learning",
+      "model": {
+        "type": "tensorflow",
+        "algorithm": "Q-learning",
+        "stateSpace": {
+          "dimensions": 8,
+          "features": [
+            "server_response_time",
+            "error_rate",
+            "success_rate",
+            "concurrent_requests",
+            "time_of_day",
+            "server_load_estimate",
+            "historical_rate_limit_hits",
+            "content_type"
+          ]
+        },
+        "actionSpace": {
+          "dimensions": 5,
+          "actions": [
+            "increase_rate_50_percent",
+            "increase_rate_25_percent",
+            "maintain_rate",
+            "decrease_rate_25_percent",
+            "decrease_rate_50_percent"
+          ]
+        },
+        "learningParameters": {
+          "discountFactor": 0.95,
+          "learningRate": 0.1,
+          "explorationRate": 0.2,
+          "explorationDecay": 0.995,
+          "minExplorationRate": 0.01
+        }
+      }
+    },
+    
+    "contentQualityPrediction": {
+      "enabled": true,
+      "architecture": "ensemble",
+      "models": [
+        {
+          "name": "quality-classifier",
+          "type": "tensorflow",
+          "weight": 0.4,
+          "layers": [
+            {
+              "type": "dense",
+              "units": 128,
+              "activation": "relu",
+              "inputShape": [100]
+            },
+            {
+              "type": "dense",
+              "units": 64,
+              "activation": "relu"
+            },
+            {
+              "type": "dense",
+              "units": 1,
+              "activation": "sigmoid"
+            }
+          ]
+        },
+        {
+          "name": "quality-regressor",
+          "type": "brain.js",
+          "weight": 0.3,
+          "network": "NeuralNetwork",
+          "options": {
+            "hiddenLayers": [50, 25],
+            "activation": "leaky-relu"
+          }
+        },
+        {
+          "name": "quality-rf",
+          "type": "random-forest",
+          "weight": 0.3,
+          "config": {
+            "nTrees": 100,
+            "maxDepth": 10,
+            "minSamplesSplit": 5
+          }
+        }
+      ],
+      "ensembleMethod": "weighted-average"
+    }
+  },
+  
+  "featureEngineering": {
+    "urlFeatures": {
+      "enabled": true,
+      "features": [
+        {
+          "name": "domain_authority",
+          "type": "numeric",
+          "normalization": "min-max",
+          "source": "external-api"
+        },
+        {
+          "name": "url_depth",
+          "type": "numeric",
+          "normalization": "standard",
+          "source": "computed"
+        },
+        {
+          "name": "has_keywords",
+          "type": "binary",
+          "source": "text-analysis"
+        },
+        {
+          "name": "url_length",
+          "type": "numeric",
+          "normalization": "log",
+          "source": "computed"
+        },
+        {
+          "name": "tld_type",
+          "type": "categorical",
+          "encoding": "one-hot",
+          "categories": ["com", "org", "net", "edu", "gov", "other"],
+          "source": "parsed"
+        },
+        {
+          "name": "subdomain_count",
+          "type": "numeric",
+          "source": "parsed"
+        },
+        {
+          "name": "query_param_count",
+          "type": "numeric",
+          "source": "parsed"
+        },
+        {
+          "name": "has_ssl",
+          "type": "binary",
+          "source": "protocol"
+        }
+      ]
+    },
+    
+    "contentFeatures": {
+      "enabled": true,
+      "features": [
+        {
+          "name": "word_count",
+          "type": "numeric",
+          "normalization": "log"
+        },
+        {
+          "name": "heading_count",
+          "type": "numeric"
+        },
+        {
+          "name": "image_count",
+          "type": "numeric"
+        },
+        {
+          "name": "link_count",
+          "type": "numeric"
+        },
+        {
+          "name": "script_count",
+          "type": "numeric"
+        },
+        {
+          "name": "css_count",
+          "type": "numeric"
+        },
+        {
+          "name": "has_video",
+          "type": "binary"
+        },
+        {
+          "name": "reading_time_minutes",
+          "type": "numeric"
+        },
+        {
+          "name": "text_to_html_ratio",
+          "type": "numeric",
+          "normalization": "standard"
+        },
+        {
+          "name": "meta_description_length",
+          "type": "numeric"
+        }
+      ]
+    },
+    
+    "performanceFeatures": {
+      "enabled": true,
+      "features": [
+        {
+          "name": "load_time_ms",
+          "type": "numeric",
+          "normalization": "log"
+        },
+        {
+          "name": "dom_ready_ms",
+          "type": "numeric",
+          "normalization": "log"
+        },
+        {
+          "name": "ttfb_ms",
+          "type": "numeric",
+          "normalization": "log"
+        },
+        {
+          "name": "resource_count",
+          "type": "numeric"
+        },
+        {
+          "name": "total_size_kb",
+          "type": "numeric",
+          "normalization": "log"
+        },
+        {
+          "name": "render_blocking_resources",
+          "type": "numeric"
+        }
+      ]
+    }
+  },
+  
+  "trainingPipeline": {
+    "dataCollection": {
+      "sources": [
+        {
+          "type": "historical-crawls",
+          "path": "./training-data/crawls",
+          "weight": 0.6
+        },
+        {
+          "type": "labeled-dataset",
+          "path": "./training-data/labeled",
+          "weight": 0.3
+        },
+        {
+          "type": "synthetic-data",
+          "generator": "data-augmentation",
+          "weight": 0.1
+        }
+      ],
+      "minSamples": 10000,
+      "balancing": "smote"
+    },
+    
+    "preprocessing": {
+      "steps": [
+        "remove-duplicates",
+        "handle-missing-values",
+        "normalize-features",
+        "encode-categoricals",
+        "feature-scaling",
+        "train-test-split"
+      ],
+      "trainTestSplit": 0.8,
+      "validationSplit": 0.2
+    },
+    
+    "training": {
+      "mode": "distributed",
+      "workers": 4,
+      "gpuEnabled": false,
+      "continuousLearning": true,
+      "retrainingTriggers": [
+        {
+          "type": "sample-count",
+          "threshold": 1000,
+          "description": "Retrain after 1000 new samples"
+        },
+        {
+          "type": "performance-degradation",
+          "metricThreshold": 0.05,
+          "description": "Retrain if accuracy drops by 5%"
+        },
+        {
+          "type": "scheduled",
+          "cron": "0 2 * * 0",
+          "description": "Weekly retraining on Sundays at 2 AM"
+        }
+      ]
+    },
+    
+    "evaluation": {
+      "metrics": [
+        "accuracy",
+        "precision",
+        "recall",
+        "f1-score",
+        "roc-auc",
+        "confusion-matrix"
+      ],
+      "crossValidation": {
+        "enabled": true,
+        "folds": 5,
+        "stratified": true
+      },
+      "benchmarks": {
+        "minAccuracy": 0.85,
+        "minPrecision": 0.80,
+        "minRecall": 0.80,
+        "minF1Score": 0.82
+      }
+    }
+  },
+  
+  "deployment": {
+    "modelVersioning": {
+      "enabled": true,
+      "storage": "filesystem",
+      "path": "./models/versions",
+      "retentionPolicy": {
+        "keepLast": 10,
+        "keepBest": 5
+      }
+    },
+    
+    "servingConfig": {
+      "mode": "real-time",
+      "batchSize": 1,
+      "maxLatency": 100,
+      "caching": {
+        "enabled": true,
+        "ttl": 3600,
+        "maxSize": 10000
+      },
+      "loadBalancing": {
+        "enabled": false,
+        "strategy": "round-robin"
+      }
+    },
+    
+    "monitoring": {
+      "enabled": true,
+      "metrics": [
+        "inference-latency",
+        "prediction-confidence",
+        "model-accuracy",
+        "feature-drift",
+        "prediction-distribution"
+      ],
+      "alerting": {
+        "enabled": true,
+        "channels": ["log", "webhook"],
+        "thresholds": {
+          "inferenceLatency": 200,
+          "accuracyDrop": 0.1,
+          "featureDrift": 0.3
+        }
+      }
+    }
+  },
+  
+  "integration": {
+    "crawler": {
+      "enabled": true,
+      "services": [
+        "enhanced-web-crawler-service",
+        "neural-crawler-orchestrator",
+        "campaign-web-crawler-worker"
+      ],
+      "hooks": {
+        "beforeCrawl": "predict-url-priority",
+        "afterCrawl": "collect-training-data",
+        "onError": "adjust-rate-limiting"
+      }
+    },
+    
+    "dataMining": {
+      "enabled": true,
+      "autoScraperSelection": true,
+      "adaptiveStrategies": true,
+      "qualityFiltering": true
+    },
+    
+    "api": {
+      "enabled": true,
+      "endpoints": [
+        {
+          "path": "/api/neural/predict-url-priority",
+          "method": "POST",
+          "model": "urlPrioritization"
+        },
+        {
+          "path": "/api/neural/classify-content",
+          "method": "POST",
+          "model": "contentClassification"
+        },
+        {
+          "path": "/api/neural/select-scraper",
+          "method": "POST",
+          "model": "scraperSelection"
+        },
+        {
+          "path": "/api/neural/predict-quality",
+          "method": "POST",
+          "model": "contentQualityPrediction"
+        },
+        {
+          "path": "/api/neural/train",
+          "method": "POST",
+          "auth": "required"
+        },
+        {
+          "path": "/api/neural/models",
+          "method": "GET",
+          "description": "List available models"
+        },
+        {
+          "path": "/api/neural/metrics",
+          "method": "GET",
+          "description": "Get model performance metrics"
+        }
+      ]
+    }
+  },
+  
+  "experimentTracking": {
+    "enabled": true,
+    "backend": "local",
+    "experiments": {
+      "autoLog": true,
+      "logParameters": true,
+      "logMetrics": true,
+      "logArtifacts": true
+    },
+    "comparison": {
+      "enabled": true,
+      "baselineModel": "urlPrioritization-v1.0",
+      "metrics": ["accuracy", "latency", "resource-usage"]
+    }
+  },
+  
+  "optimization": {
+    "hyperparameterTuning": {
+      "enabled": false,
+      "method": "grid-search",
+      "parameters": {
+        "learningRate": [0.001, 0.01, 0.1],
+        "batchSize": [16, 32, 64],
+        "layers": [[128, 64], [256, 128, 64], [512, 256, 128]]
+      },
+      "scoring": "f1-score"
+    },
+    
+    "modelCompression": {
+      "enabled": false,
+      "techniques": ["quantization", "pruning"],
+      "targetSizeReduction": 0.5
+    },
+    
+    "autoML": {
+      "enabled": false,
+      "framework": "auto-sklearn",
+      "timeLimit": 3600
+    }
+  }
+}

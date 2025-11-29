@@ -1,0 +1,347 @@
+/**
+ * Agent Sessions Panel Styles
+ * VSCode-inspired design with modern, secure aesthetics
+ */
+
+.agent-sessions-panel {
+  background: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.agent-sessions-panel .panel-header {
+  border-bottom: 1px solid #e8e8e8;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.agent-sessions-panel .panel-content {
+  background: #ffffff;
+}
+
+/* Session Collapse */
+.agent-sessions-panel .sessions-collapse {
+  border: none;
+  background: transparent;
+}
+
+.agent-sessions-panel .sessions-collapse .ant-collapse-item {
+  border: none;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.agent-sessions-panel .sessions-collapse .ant-collapse-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.agent-sessions-panel .sessions-collapse .ant-collapse-header {
+  padding: 12px 16px !important;
+  background: #fafafa;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.agent-sessions-panel .sessions-collapse .ant-collapse-item-active .ant-collapse-header {
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f5ff 100%);
+  border-bottom: 1px solid #d9d9d9;
+  border-radius: 6px 6px 0 0;
+}
+
+.agent-sessions-panel .sessions-collapse .ant-collapse-content {
+  border-top: none;
+  background: #ffffff;
+  border-radius: 0 0 6px 6px;
+}
+
+.agent-sessions-panel .sessions-collapse .ant-collapse-content-box {
+  padding: 12px;
+}
+
+/* Session Panel */
+.agent-sessions-panel .session-panel {
+  position: relative;
+}
+
+.agent-sessions-panel .session-panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #1890ff 0%, #52c41a 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.agent-sessions-panel .session-panel:hover::before {
+  opacity: 1;
+}
+
+/* Agent Cards */
+.agent-sessions-panel .agent-card {
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.agent-sessions-panel .agent-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #1890ff;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.agent-sessions-panel .agent-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+  transform: translateX(2px);
+}
+
+.agent-sessions-panel .agent-card:hover::before {
+  opacity: 1;
+}
+
+.agent-sessions-panel .agent-card.selected {
+  border-color: #1890ff;
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f5ff 100%);
+  box-shadow: 0 2px 12px rgba(24, 144, 255, 0.2);
+}
+
+.agent-sessions-panel .agent-card.selected::before {
+  opacity: 1;
+  width: 4px;
+}
+
+/* Status Indicators */
+.agent-sessions-panel .ant-badge-status-dot {
+  width: 8px;
+  height: 8px;
+}
+
+.agent-sessions-panel .ant-badge-status-processing .ant-badge-status-dot {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* Tags */
+.agent-sessions-panel .ant-tag {
+  border-radius: 4px;
+  font-weight: 500;
+  border: none;
+}
+
+/* Buttons */
+.agent-sessions-panel .ant-btn-dashed {
+  border-style: dashed;
+  border-color: #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+.agent-sessions-panel .ant-btn-dashed:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+  background: #f0f5ff;
+}
+
+/* Empty State */
+.agent-sessions-panel .ant-empty {
+  padding: 40px 20px;
+}
+
+.agent-sessions-panel .ant-empty-description {
+  color: #8c8c8c;
+  font-size: 13px;
+}
+
+/* Scrollbar Styling */
+.agent-sessions-panel .panel-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.agent-sessions-panel .panel-content::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 3px;
+}
+
+.agent-sessions-panel .panel-content::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.agent-sessions-panel .panel-content::-webkit-scrollbar-thumb:hover {
+  background: #8c8c8c;
+}
+
+/* Modal Styling */
+.agent-sessions-panel .ant-modal-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.agent-sessions-panel .ant-modal-title {
+  font-weight: 600;
+  color: #262626;
+}
+
+.agent-sessions-panel .ant-form-item-label > label {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+/* Select Dropdowns */
+.agent-sessions-panel .ant-select-selector {
+  border-radius: 6px !important;
+}
+
+.agent-sessions-panel .ant-select-multiple .ant-select-selection-item {
+  border-radius: 4px;
+  background: #f0f5ff;
+  border-color: #adc6ff;
+}
+
+/* Input Fields */
+.agent-sessions-panel .ant-input,
+.agent-sessions-panel .ant-input-textarea textarea {
+  border-radius: 6px;
+  border-color: #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+.agent-sessions-panel .ant-input:hover,
+.agent-sessions-panel .ant-input-textarea textarea:hover {
+  border-color: #40a9ff;
+}
+
+.agent-sessions-panel .ant-input:focus,
+.agent-sessions-panel .ant-input-textarea textarea:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+/* Dropdown Menu */
+.agent-sessions-panel .ant-dropdown-menu {
+  border-radius: 6px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+}
+
+.agent-sessions-panel .ant-dropdown-menu-item {
+  border-radius: 4px;
+  margin: 2px 4px;
+}
+
+/* Progress Indicators */
+.agent-sessions-panel .ant-progress-line {
+  font-size: 12px;
+}
+
+.agent-sessions-panel .ant-progress-text {
+  font-size: 11px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .agent-sessions-panel .panel-content {
+    max-height: calc(100vh - 300px);
+  }
+
+  .agent-sessions-panel .agent-card {
+    margin-bottom: 12px;
+  }
+}
+
+/* Dark Mode Support (if needed) */
+@media (prefers-color-scheme: dark) {
+  .agent-sessions-panel {
+    background: #1f1f1f;
+  }
+
+  .agent-sessions-panel .panel-header {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+    border-bottom-color: #3a3a3a;
+  }
+
+  .agent-sessions-panel .panel-content {
+    background: #141414;
+  }
+
+  .agent-sessions-panel .sessions-collapse .ant-collapse-item {
+    background: #1f1f1f;
+  }
+
+  .agent-sessions-panel .sessions-collapse .ant-collapse-header {
+    background: #1f1f1f;
+  }
+
+  .agent-sessions-panel .agent-card {
+    background: #1f1f1f;
+    border-color: #3a3a3a;
+  }
+
+  .agent-sessions-panel .agent-card.selected {
+    background: linear-gradient(135deg, #0d3a5f 0%, #0f2942 100%);
+  }
+}
+
+/* Animation for new items */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.agent-sessions-panel .agent-card,
+.agent-sessions-panel .session-panel {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Secure/Professional Look */
+.agent-sessions-panel .ant-card-head {
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+  font-weight: 600;
+}
+
+.agent-sessions-panel .ant-divider {
+  margin: 12px 0;
+  border-top-color: #e8e8e8;
+}
+
+/* Loading States */
+.agent-sessions-panel .ant-spin {
+  color: #1890ff;
+}
+
+.agent-sessions-panel .ant-spin-dot-item {
+  background-color: #1890ff;
+}

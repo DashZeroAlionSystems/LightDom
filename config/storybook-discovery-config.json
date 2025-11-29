@@ -1,0 +1,479 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Storybook Discovery Configuration",
+  "description": "Configuration for discovering and mining Storybook component libraries from the internet",
+  "type": "object",
+  "properties": {
+    "discovery": {
+      "type": "object",
+      "description": "Storybook discovery settings",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Storybook discovery"
+        },
+        "searchEngines": {
+          "type": "array",
+          "description": "Search engines to use for discovery",
+          "items": {
+            "type": "string",
+            "enum": ["google", "github", "npm", "manual"]
+          },
+          "default": ["github", "npm"]
+        },
+        "searchQueries": {
+          "type": "array",
+          "description": "Search queries for finding Storybook instances",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "storybook.js.org",
+            ".storybook/main.js",
+            ".storybook/preview.js",
+            "stories.tsx",
+            "stories.jsx",
+            "component library storybook",
+            "design system storybook"
+          ]
+        },
+        "targetPatterns": {
+          "type": "array",
+          "description": "URL patterns that likely contain Storybook instances",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/storybook/**",
+            "**/?path=/story/**",
+            "**/?path=/docs/**",
+            "**/docs/**",
+            "**/design-system/**",
+            "**/component-library/**",
+            "**/*.github.io/**",
+            "**/vercel.app/**",
+            "**/netlify.app/**"
+          ]
+        },
+        "detectionSignals": {
+          "type": "object",
+          "description": "Signals that indicate a Storybook instance",
+          "properties": {
+            "domSelectors": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "#storybook-root",
+                "#docs-root",
+                "[data-storybook]",
+                ".sb-show-main",
+                ".sidebar-container",
+                "#storybook-preview-iframe"
+              ]
+            },
+            "metaTags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "storybook",
+                "component library",
+                "design system"
+              ]
+            },
+            "scriptPatterns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "storybook",
+                "stories",
+                "preview-",
+                "manager-"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "mining": {
+      "type": "object",
+      "description": "Component mining settings",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable component mining"
+        },
+        "componentTypes": {
+          "type": "array",
+          "description": "Types of components to mine",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "Button",
+            "Input",
+            "Card",
+            "Modal",
+            "Navigation",
+            "Form",
+            "Table",
+            "Dropdown",
+            "Tab",
+            "Alert",
+            "Badge",
+            "Avatar",
+            "Tooltip",
+            "Progress",
+            "Menu",
+            "Checkbox",
+            "Radio",
+            "Switch",
+            "Slider",
+            "DatePicker"
+          ]
+        },
+        "extractData": {
+          "type": "object",
+          "properties": {
+            "stories": {
+              "type": "boolean",
+              "default": true,
+              "description": "Extract story definitions"
+            },
+            "props": {
+              "type": "boolean",
+              "default": true,
+              "description": "Extract component props/args"
+            },
+            "docs": {
+              "type": "boolean",
+              "default": true,
+              "description": "Extract documentation"
+            },
+            "code": {
+              "type": "boolean",
+              "default": true,
+              "description": "Extract source code"
+            },
+            "styles": {
+              "type": "boolean",
+              "default": true,
+              "description": "Extract CSS/styling"
+            },
+            "interactions": {
+              "type": "boolean",
+              "default": true,
+              "description": "Extract interaction tests"
+            },
+            "accessibility": {
+              "type": "boolean",
+              "default": true,
+              "description": "Extract a11y information"
+            }
+          }
+        },
+        "maxComponentsPerSite": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum components to extract per site"
+        },
+        "minQualityScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5,
+          "description": "Minimum quality score for components (0-1)"
+        }
+      }
+    },
+    "crawler": {
+      "type": "object",
+      "description": "Crawler configuration for Storybook instances",
+      "properties": {
+        "maxConcurrency": {
+          "type": "number",
+          "default": 3,
+          "description": "Maximum concurrent crawlers"
+        },
+        "maxDepth": {
+          "type": "number",
+          "default": 2,
+          "description": "Maximum crawl depth"
+        },
+        "requestDelay": {
+          "type": "number",
+          "default": 2000,
+          "description": "Delay between requests in milliseconds"
+        },
+        "timeout": {
+          "type": "number",
+          "default": 30000,
+          "description": "Request timeout in milliseconds"
+        },
+        "userAgent": {
+          "type": "string",
+          "default": "LightDom-Storybook-Miner/1.0 (+https://github.com/DashZeroAlionSystems/LightDom)"
+        },
+        "respectRobotsTxt": {
+          "type": "boolean",
+          "default": true
+        },
+        "javascriptEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable JavaScript execution (required for Storybook)"
+        },
+        "waitForStorybook": {
+          "type": "number",
+          "default": 5000,
+          "description": "Time to wait for Storybook to load (ms)"
+        }
+      }
+    },
+    "seeding": {
+      "type": "object",
+      "description": "URL seeding configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "initialSeeds": {
+          "type": "array",
+          "description": "Initial seed URLs for Storybook discovery",
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "priority": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 10,
+                "default": 5
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["url"]
+          },
+          "default": [
+            {
+              "url": "https://storybook.js.org/showcase",
+              "priority": 10,
+              "tags": ["official", "showcase"]
+            },
+            {
+              "url": "https://component.gallery",
+              "priority": 9,
+              "tags": ["gallery", "component-library"]
+            },
+            {
+              "url": "https://github.com/topics/storybook",
+              "priority": 8,
+              "tags": ["github", "discovery"]
+            },
+            {
+              "url": "https://www.npmjs.com/search?q=storybook",
+              "priority": 7,
+              "tags": ["npm", "discovery"]
+            }
+          ]
+        },
+        "autoDiscovery": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically discover new Storybook URLs"
+        },
+        "maxSeedsPerSession": {
+          "type": "number",
+          "default": 1000,
+          "description": "Maximum seeds to process per session"
+        }
+      }
+    },
+    "generation": {
+      "type": "object",
+      "description": "Storybook generation settings",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "outputDir": {
+          "type": "string",
+          "default": "./generated-storybooks",
+          "description": "Directory for generated Storybook files"
+        },
+        "framework": {
+          "type": "string",
+          "enum": ["react", "vue", "angular", "web-components", "html"],
+          "default": "react",
+          "description": "Target framework for generation"
+        },
+        "generateDocs": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate documentation pages"
+        },
+        "generateTests": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate interaction tests"
+        },
+        "preserveStructure": {
+          "type": "boolean",
+          "default": true,
+          "description": "Preserve original component structure"
+        },
+        "addMetadata": {
+          "type": "boolean",
+          "default": true,
+          "description": "Add mining metadata to generated files"
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "description": "Storage configuration for mined data",
+      "properties": {
+        "database": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "tables": {
+              "type": "object",
+              "properties": {
+                "storybookInstances": {
+                  "type": "string",
+                  "default": "storybook_instances"
+                },
+                "minedComponents": {
+                  "type": "string",
+                  "default": "mined_components"
+                },
+                "componentStories": {
+                  "type": "string",
+                  "default": "component_stories"
+                },
+                "designTokens": {
+                  "type": "string",
+                  "default": "design_tokens"
+                }
+              }
+            }
+          }
+        },
+        "filesystem": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "baseDir": {
+              "type": "string",
+              "default": "./mined-storybooks"
+            }
+          }
+        }
+      }
+    },
+    "monitoring": {
+      "type": "object",
+      "description": "Monitoring and statistics",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "logLevel": {
+          "type": "string",
+          "enum": ["debug", "info", "warn", "error"],
+          "default": "info"
+        },
+        "metricsInterval": {
+          "type": "number",
+          "default": 60000,
+          "description": "Interval for metrics collection (ms)"
+        },
+        "trackMetrics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "instancesDiscovered",
+            "componentsMined",
+            "storiesGenerated",
+            "successRate",
+            "averageQuality",
+            "processingTime"
+          ]
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "name": "React Component Libraries",
+      "description": "Discover React-based component libraries",
+      "discovery": {
+        "searchQueries": [
+          "react storybook",
+          "react component library",
+          "react design system"
+        ]
+      },
+      "mining": {
+        "componentTypes": ["Button", "Input", "Modal", "Card"]
+      },
+      "generation": {
+        "framework": "react"
+      }
+    },
+    {
+      "name": "Material Design Systems",
+      "description": "Mine Material Design implementations",
+      "discovery": {
+        "searchQueries": [
+          "material design storybook",
+          "material-ui components",
+          "mui storybook"
+        ]
+      }
+    },
+    {
+      "name": "Open Source Libraries",
+      "description": "Discover open source component libraries",
+      "seeding": {
+        "initialSeeds": [
+          {
+            "url": "https://github.com/topics/component-library",
+            "priority": 10
+          },
+          {
+            "url": "https://github.com/topics/design-system",
+            "priority": 9
+          }
+        ]
+      }
+    }
+  ]
+}

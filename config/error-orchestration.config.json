@@ -1,0 +1,318 @@
+{
+    "analysis": {
+        "rateLimit": {
+            "maxRequestsPerMinute": 10,
+            "maxConcurrent": 3
+        },
+        "thresholds": {
+            "minOccurrences": 3,
+            "minConfidence": 0.7,
+            "autoFixConfidence": 0.9
+        },
+        "scheduling": {
+            "enabled": true,
+            "intervalMs": 60000,
+            "batchSize": 10
+        }
+    },
+    "git": {
+        "autoCommit": false,
+        "requireApproval": true,
+        "branchPrefix": "fix/deepseek-",
+        "commitMessageTemplate": "fix({{component}}): {{summary}}\n\n{{details}}\n\nGenerated-by: DeepSeek Error Orchestration\nError-Hash: {{errorHash}}\nConfidence: {{confidence}}",
+        "useGitHubDesktop": true,
+        "configTableKey": "default",
+        "workflowTemplates": [
+            {
+                "name": "git-sync-default",
+                "description": "Synchronize DeepSeek remediation branches across environments",
+                "source": "config/templates/git-sync.workflow.json"
+            }
+        ]
+    },
+    "security": {
+        "redaction": {
+            "enabled": true,
+            "patterns": [
+                "password",
+                "passwd",
+                "api_key",
+                "apiKey",
+                "api_secret",
+                "apiSecret",
+                "secret",
+                "token",
+                "auth",
+                "bearer",
+                "jwt",
+                "private_key",
+                "privateKey"
+            ],
+            "customRegex": [
+                "(?i)(password|passwd|pwd)\\s*[=:]\\s*['\"][^\\s'\"]+",
+                "(?i)(api[_-]?key|apikey)\\s*[=:]\\s*['\"][A-Za-z0-9_\\-]+",
+                "(?i)(token|bearer)\\s*[=:]\\s*['\"][A-Za-z0-9_\\-\\.]+",
+                "sk-[A-Za-z0-9]{20,}",
+                "ghp_[A-Za-z0-9]{36,}",
+                "gho_[A-Za-z0-9]{36,}"
+            ]
+        },
+        "auditLogging": {
+            "enabled": true,
+            "logLevel": "info",
+            "retentionDays": 90
+        },
+        "allowedNetworks": [
+            "127.0.0.1",
+            "::1"
+        ]
+    },
+    "ollama": {
+        "endpoint": {
+            "url": "http://127.0.0.1:11434",
+            "model": "deepseek-r1:latest",
+            "timeoutMs": 30000
+        },
+        "prompts": {
+            "errorAnalysis": "You are an expert software debugging assistant. Analyze the following error and provide:\n1. Root cause analysis\n2. Potential fixes\n3. Related code that may need changes\n4. Confidence score (0-1)\n\nError Details:\n{{errorDetails}}\n\nProvide response as JSON with keys: rootCause, suggestedFixes, relatedFiles, confidence",
+            "fixGeneration": "Generate a code fix for the following error. Include:\n1. Complete fixed code\n2. Explanation of changes\n3. Test cases to verify the fix\n\nError: {{error}}\nContext: {{context}}\n\nProvide response as JSON with keys: fixedCode, explanation, testCases",
+            "commitMessage": "Generate a conventional commit message for the following fix:\n\nComponent: {{component}}\nError: {{error}}\nFix Summary: {{fixSummary}}\n\nFollow conventional commits format (type(scope): subject). Be concise and descriptive."
+        },
+        "parameters": {
+            "temperature": 0.3,
+            "maxTokens": 2048,
+            "topP": 0.9
+        }
+    },
+    "actions": {
+        "enabledTypes": [
+            "log_only",
+            "create_ticket",
+            "generate_pr"
+        ],
+        "ticketing": {
+            "system": "database",
+            "autoAssign": false,
+            "labels": [
+                "bug",
+                "automated",
+                "deepseek",
+                "needs-review"
+            ]
+        },
+        "prGeneration": {
+            "enabled": true,
+            "draftMode": true,
+            "reviewers": []
+        },
+        "workflow": {
+            "expectedResolutionMinutes": 240,
+            "maxParallelFixes": 3,
+            "escalationPolicy": "docs/error-orchestration/escalation.md"
+        }
+    },
+    "notifications": {
+        "enabled": true,
+        "channels": [
+            "console"
+        ],
+        "severityFilter": [
+            "critical",
+            "error"
+        ]
+    },
+    "logging": {
+        "policy": "service-attribute-status",
+        "format": "{service}{attribute}{status} - {message}",
+        "retentionDays": 180
+    },
+    "dependencies": {
+        "ollama": {
+            "requiredModels": [
+                "deepseek-r1:latest"
+            ],
+            "healthEndpoint": "/api/tags",
+            "ragTools": [
+                "scan_codebase"
+            ]
+        }
+    },
+    "activeEnvironment": "dev",
+    "environments": {
+        "dev": {
+            "name": "Development",
+            "description": "Local developer sandbox with permissive thresholds",
+            "severityGate": [
+                "warning",
+                "error",
+                "critical"
+            ],
+            "analysis": {
+                "rateLimit": {
+                    "maxRequestsPerMinute": 15,
+                    "maxConcurrent": 3
+                },
+                "thresholds": {
+                    "minOccurrences": 1,
+                    "minConfidence": 0.65,
+                    "autoFixConfidence": 0.9
+                }
+            },
+            "actions": {
+                "enabledTypes": [
+                    "log_only",
+                    "create_ticket",
+                    "generate_pr"
+                ],
+                "workflow": {
+                    "expectedResolutionMinutes": 480,
+                    "maxParallelFixes": 5
+                }
+            },
+            "git": {
+                "requireApproval": false,
+                "branchPrefix": "fix/dev-deepseek-"
+            },
+            "notifications": {
+                "channels": [
+                    "console"
+                ],
+                "severityFilter": [
+                    "error",
+                    "critical"
+                ]
+            },
+            "sla": {
+                "expectedResolutionMinutes": 480
+            }
+        },
+        "staging": {
+            "name": "Staging",
+            "description": "Pre-production environment with stricter thresholds",
+            "severityGate": [
+                "error",
+                "critical"
+            ],
+            "analysis": {
+                "rateLimit": {
+                    "maxRequestsPerMinute": 10,
+                    "maxConcurrent": 2
+                },
+                "thresholds": {
+                    "minOccurrences": 2,
+                    "minConfidence": 0.75,
+                    "autoFixConfidence": 0.92
+                }
+            },
+            "actions": {
+                "workflow": {
+                    "expectedResolutionMinutes": 240,
+                    "maxParallelFixes": 3,
+                    "escalationPolicy": "notify:on-call-staging"
+                }
+            },
+            "git": {
+                "requireApproval": true
+            },
+            "notifications": {
+                "channels": [
+                    "console",
+                    "slack"
+                ],
+                "severityFilter": [
+                    "error",
+                    "critical"
+                ]
+            },
+            "sla": {
+                "expectedResolutionMinutes": 240,
+                "reviewCadenceMinutes": 30
+            }
+        },
+        "prod": {
+            "name": "Production",
+            "description": "Production environment. Only critical issues auto-process",
+            "severityGate": [
+                "critical"
+            ],
+            "analysis": {
+                "rateLimit": {
+                    "maxRequestsPerMinute": 6,
+                    "maxConcurrent": 1
+                },
+                "thresholds": {
+                    "minOccurrences": 3,
+                    "minConfidence": 0.85,
+                    "autoFixConfidence": 0.95
+                }
+            },
+            "actions": {
+                "enabledTypes": [
+                    "log_only",
+                    "create_ticket"
+                ],
+                "workflow": {
+                    "expectedResolutionMinutes": 120,
+                    "maxParallelFixes": 2,
+                    "escalationPolicy": "pagerduty:core"
+                }
+            },
+            "git": {
+                "requireApproval": true,
+                "autoCommit": false
+            },
+            "notifications": {
+                "channels": [
+                    "slack",
+                    "email"
+                ],
+                "severityFilter": [
+                    "critical"
+                ]
+            },
+            "sla": {
+                "expectedResolutionMinutes": 120,
+                "reviewCadenceMinutes": 15
+            }
+        }
+    },
+    "mcp": {
+        "servers": [
+            {
+                "name": "ollama-deepseek",
+                "endpoint": "http://127.0.0.1:11434",
+                "capabilities": [
+                    "llm",
+                    "rag"
+                ],
+                "models": [
+                    "deepseek-r1:latest"
+                ],
+                "description": "Local Ollama runtime hosting DeepSeek models"
+            },
+            {
+                "name": "lightdom-error-orchestration",
+                "endpoint": "http://localhost:3001/api/error-orchestration",
+                "capabilities": [
+                    "error-metrics",
+                    "git-workflow"
+                ],
+                "description": "REST gateway exposing metrics and workflow triggers"
+            }
+        ],
+        "prompts": {
+            "errorRemediation": "You orchestrate DeepSeek-driven remediation. Consider the active environment, severity gates, SLA expectations, and available workflow templates before proposing actions.",
+            "configSynthesis": "Produce updated configuration JSON reflecting requested adjustments. Preserve logging format {service}{attribute}{status} - {message}."
+        }
+    },
+    "rag": {
+        "promptTemplates": {
+            "diagnostic": "Use retrieved context to reason about error {{errorHash}}. Highlight dependencies, likely root causes, and required Git workflows.",
+            "postAction": "Summarize remediation outcome for error {{errorId}}. Include action IDs, ticket references, and residual risk."
+        },
+        "datasets": [
+            "codebase-index",
+            "error-playbook"
+        ]
+    }
+}

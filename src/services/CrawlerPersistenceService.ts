@@ -22,6 +22,34 @@ export interface CrawledSite {
   blockchainRecorded: boolean;
   transactionHash?: string;
   metaverseSlotId?: string;
+
+  // Top-level SEO attributes (mirrors key entries in metadata for easier queries)
+  title?: string;
+  description?: string;
+  keywords?: string[]; // text[]
+  canonicalUrl?: string;
+  robotsMeta?: string;
+
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  ogUrl?: string;
+
+  twitterCard?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImage?: string;
+
+  // Rich JSON fields
+  structuredData?: any[]; // JSONB
+  headings?: any; // JSONB of heading counts / structures
+  contentAnalysis?: any; // JSONB analytics of content
+  links?: any; // JSONB
+  images?: any; // JSONB
+  scripts?: any; // JSONB
+  stylesheets?: any; // JSONB
+  inlineStyles?: any; // JSONB
+
   metadata: SiteMetadata;
 }
 
@@ -220,20 +248,77 @@ export class CrawlerPersistenceService {
           id, url, domain, last_crawled, crawl_frequency, priority,
           seo_score, optimization_potential, current_size, optimized_size,
           space_reclaimed, blockchain_recorded, transaction_hash, 
-          metaverse_slot_id, metadata
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+          metaverse_slot_id,
+          title, description, keywords, canonical_url, robots_meta,
+          og_title, og_description, og_image, og_url,
+          twitter_card, twitter_title, twitter_description, twitter_image,
+          structured_data, headings, content_analysis, links, images,
+          scripts, stylesheets, inline_styles, metadata
+        ) VALUES (
+          $1,$2,$3,$4,$5,$6,
+          $7,$8,$9,$10,
+          $11,$12,$13,$14,
+          $15,$16,$17,$18,$19,
+          $20,$21,$22,$23,
+          $24,$25,$26,$27,
+          $28,$29,$30,$31,$32,
+          $33,$34,$35,$36
+        )
         ON CONFLICT (id) DO UPDATE SET
           last_crawled = $4, crawl_frequency = $5, priority = $6,
           seo_score = $7, optimization_potential = $8, current_size = $9,
           optimized_size = $10, space_reclaimed = $11, 
           blockchain_recorded = $12, transaction_hash = $13,
-          metaverse_slot_id = $14, metadata = $15`,
+          metaverse_slot_id = $14,
+          title = $15, description = $16, keywords = $17, canonical_url = $18, robots_meta = $19,
+          og_title = $20, og_description = $21, og_image = $22, og_url = $23,
+          twitter_card = $24, twitter_title = $25, twitter_description = $26, twitter_image = $27,
+          structured_data = $28, headings = $29, content_analysis = $30, links = $31, images = $32,
+          scripts = $33, stylesheets = $34, inline_styles = $35, metadata = $36`,
         [
-          site.id, site.url, site.domain, site.lastCrawled, site.crawlFrequency,
-          site.priority, site.seoScore, site.optimizationPotential,
-          site.currentSize, site.optimizedSize, site.spaceReclaimed,
-          site.blockchainRecorded, site.transactionHash, site.metaverseSlotId,
-          JSON.stringify(site.metadata)
+          site.id,
+          site.url,
+          site.domain,
+          site.lastCrawled,
+          site.crawlFrequency,
+          site.priority,
+          site.seoScore,
+          site.optimizationPotential,
+          site.currentSize,
+          site.optimizedSize,
+          site.spaceReclaimed,
+          site.blockchainRecorded,
+          site.transactionHash || null,
+          site.metaverseSlotId || null,
+
+          // top-level SEO columns (fall back to metadata)
+          site.title ?? site.metadata?.title ?? null,
+          site.description ?? site.metadata?.description ?? null,
+          site.keywords ?? site.metadata?.keywords ?? [],
+          site.canonicalUrl ?? site.metadata?.seo?.canonicalUrl ?? site.metadata?.seo?.canonicalUrl ?? null,
+          site.robotsMeta ?? site.metadata?.seo?.robots ?? null,
+
+          site.ogTitle ?? site.metadata?.ogTags?.title ?? null,
+          site.ogDescription ?? site.metadata?.ogTags?.description ?? null,
+          site.ogImage ?? site.metadata?.ogTags?.image ?? null,
+          site.ogUrl ?? site.url,
+
+          site.twitterCard ?? site.metadata?.twitterCard ?? null,
+          site.twitterTitle ?? site.metadata?.twitterTitle ?? null,
+          site.twitterDescription ?? site.metadata?.twitterDescription ?? null,
+          site.twitterImage ?? site.metadata?.twitterImage ?? null,
+
+          // JSONB fields -> stringify
+          JSON.stringify(site.structuredData ?? site.metadata?.structuredData ?? []),
+          JSON.stringify(site.headings ?? { h1: (site.metadata?.seo?.h1Count || 0) }),
+          JSON.stringify(site.contentAnalysis ?? {}),
+          JSON.stringify(site.links ?? site.metadata?.links ?? {}),
+          JSON.stringify(site.images ?? site.metadata?.images ?? []),
+          JSON.stringify(site.scripts ?? site.metadata?.scripts ?? []),
+          JSON.stringify(site.stylesheets ?? site.metadata?.stylesheets ?? []),
+          JSON.stringify(site.inlineStyles ?? {}),
+          // full metadata JSONB (last param)
+          JSON.stringify(site.metadata ?? {})
         ]
       );
     } catch (error) {

@@ -1,5 +1,42 @@
 {
   "currentModel": "llama2:7b",
   "maxHistoryLength": 50,
-  "lastUsed": "2025-10-29T16:55:58.768Z"
+  "lastUsed": "2025-10-29T16:55:58.768Z",
+  "embeddingModel": "mxbai-embed-large",
+  "embeddingModels": {
+    "mxbai-embed-large": {
+      "description": "Highest quality embeddings, best for precise semantic search",
+      "dimensions": 1024,
+      "useCase": "high-quality",
+      "recommended": true
+    },
+    "nomic-embed-text": {
+      "description": "Fast, efficient embeddings for general use",
+      "dimensions": 768,
+      "useCase": "general"
+    },
+    "all-minilm": {
+      "description": "Lightweight embeddings for resource-constrained environments",
+      "dimensions": 384,
+      "useCase": "lightweight"
+    }
+  },
+  "modelProfiles": {
+    "chat": {
+      "default": "llama2:7b",
+      "alternatives": ["mistral:7b", "deepseek-r1:latest"]
+    },
+    "code": {
+      "default": "deepseek-coder:33b",
+      "alternatives": ["codellama:34b", "qwen2.5-coder:7b"]
+    },
+    "embedding": {
+      "default": "mxbai-embed-large",
+      "alternatives": ["nomic-embed-text", "all-minilm"]
+    },
+    "codebase-indexing": {
+      "default": "mxbai-embed-large",
+      "description": "Use highest quality embeddings for codebase indexing"
+    }
+  }
 }

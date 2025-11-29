@@ -6,10 +6,10 @@
  * Generates schema mappings and tracks metadata for AI understanding
  */
 
-import puppeteer from 'puppeteer';
-import pg from 'pg';
 import fs from 'fs/promises';
 import path from 'path';
+import pg from 'pg';
+import puppeteer from 'puppeteer';
 import { fileURLToPath } from 'url';
 
 const { Pool } = pg;
@@ -21,7 +21,7 @@ export class ComponentAnalyzerService {
     this.pool = new Pool(dbConfig || {
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 5434,
-      database: process.env.DB_NAME || 'lightdom',
+      database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'lightdom_user',
       password: process.env.DB_PASSWORD || 'lightdom_password',
     });
