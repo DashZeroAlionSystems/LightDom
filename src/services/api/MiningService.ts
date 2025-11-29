@@ -66,6 +66,20 @@ export class MiningService {
     return MiningService.instance;
   }
 
+  /**
+   * Get count of active mining sessions
+   */
+  getActiveSessionCount(): number {
+    return this.activeSessions.size;
+  }
+
+  /**
+   * Get all active sessions
+   */
+  getActiveSessions(): MiningSession[] {
+    return Array.from(this.activeSessions.values());
+  }
+
   async startMining(userId: string, config: MiningConfig): Promise<MiningSession> {
     const sessionId = `mining_${userId}_${Date.now()}`;
     
