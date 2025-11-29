@@ -268,6 +268,8 @@
     "storybook:training:models": "node scripts/storybook-training-cli.js models",
     "storybook:training:status": "node scripts/storybook-training-cli.js status",
     "storybook:training:stats": "node scripts/storybook-training-cli.js stats",
+    "commands:list": "curl -s http://localhost:3001/api/commands | jq .",
+    "commands:stats": "curl -s http://localhost:3001/api/commands/stats | jq .",
     "demo:verify": "node scripts/verify-demos.js",
     "demo:list": "ls -la demo-*.js demo-*.ts",
     "storybook:service": "node scripts/storybook-service.js",
