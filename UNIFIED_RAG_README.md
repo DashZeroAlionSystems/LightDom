@@ -450,26 +450,60 @@ const { streamPrompt, health, currentConfig } = useUnifiedRAG({
 
 ## Troubleshooting
 
-### LLM Provider Not Available
+### How the RAG System Works with DeepSeek
 
-The RAG system supports automatic fallback between providers:
-1. **Ollama (local)** - Primary provider when running locally
-2. **DeepSeek API (remote)** - Automatic fallback when Ollama is not available
+The RAG system runs **DeepSeek locally through Ollama** - no cloud API required:
 
-Check provider status:
+```
+┌────────────────────────────────────────────────────────────┐
+│  Your Local Machine                                         │
+│                                                             │
+│  ┌─────────────┐    ┌──────────────────┐    ┌───────────┐ │
+│  │ RAG Service │───▶│ Ollama :11434    │───▶│ DeepSeek  │ │
+│  │ (LightDom)  │    │ (Local Runtime)  │    │ R1 Model  │ │
+│  └─────────────┘    └──────────────────┘    └───────────┘ │
+│                                                             │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Key points:**
+- Ollama runs DeepSeek models locally on your machine
+- No internet or API key needed for local usage
+- The RAG system connects to Ollama at `http://localhost:11434`
+
+### Quick Setup
+```bash
+# 1. Install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+
+# 2. Pull DeepSeek model
+ollama pull deepseek-r1:latest
+
+# 3. Start Ollama
+ollama serve
+
+# 4. Verify
+curl http://localhost:11434/api/tags
+```
+
+### Check Provider Status
 ```bash
 # Check health endpoint for provider details
 curl http://localhost:3001/api/unified-rag/health | jq '.llm'
 
-# Response shows:
-# - activeProvider: current provider in use
-# - providers.ollama.available: true/false
-# - providers.deepseek.available: true/false
+# Expected response for local Ollama:
+# {
+#   "activeProvider": "ollama",
+#   "activeModel": "deepseek-r1:latest",
+#   "providers": {
+#     "ollama": { "available": true, "endpoint": "http://localhost:11434" }
+#   }
+# }
 ```
 
-### Using DeepSeek API (Without Ollama)
+### Alternative: DeepSeek Cloud API (Optional)
 
-If you don't have Ollama installed:
+If you can't run Ollama locally, you can use the DeepSeek cloud API as fallback:
 
 1. Get an API key from [DeepSeek Platform](https://platform.deepseek.com/)
 2. Configure in `.env`:
@@ -509,15 +543,16 @@ psql -d lightdom -c "CREATE EXTENSION IF NOT EXISTS vector"
 
 ### Environment Variables
 
-Ensure these are set correctly:
+Configure in your `.env` file:
 ```bash
-# Ollama (for local deployment)
+# Ollama (LOCAL DeepSeek - Primary)
 OLLAMA_ENDPOINT=http://localhost:11434
-OLLAMA_API_URL=http://localhost:11434  # Both are supported
+OLLAMA_API_URL=http://localhost:11434
 OLLAMA_MODEL=deepseek-r1:latest
+OLLAMA_TIMEOUT=60000
 
-# DeepSeek API (for cloud/fallback)
-DEEPSEEK_API_KEY=your-key-here
+# DeepSeek Cloud API (Optional - only needed for fallback)
+# DEEPSEEK_API_KEY=your-key-here
 DEEPSEEK_API_URL=https://api.deepseek.com/v1
 DEEPSEEK_MODEL=deepseek-chat
 ```
