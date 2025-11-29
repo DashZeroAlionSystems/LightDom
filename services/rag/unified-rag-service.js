@@ -1390,7 +1390,9 @@ class LLMClient {
     this.currentModel = config.llm.model;
     this._providerAvailability = null;
     this._lastAvailabilityCheck = 0;
+    this._fallbackAttempted = false; // Flag to prevent infinite fallback loops
     this.AVAILABILITY_CACHE_MS = 30000; // Cache availability for 30 seconds
+    this.OLLAMA_TIMEOUT_MS = 5000; // Timeout for Ollama availability check
   }
 
   /**
@@ -1415,13 +1417,23 @@ class LLMClient {
   }
 
   /**
+   * Switch to DeepSeek API provider
+   * Centralized method to avoid code duplication
+   */
+  switchToDeepSeekProvider() {
+    this.currentProvider = 'deepseek-api';
+    this.currentModel = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+    this._fallbackAttempted = true;
+  }
+
+  /**
    * Check if Ollama is available locally
    */
   async checkOllamaAvailability() {
     const ollamaUrl = this.config.endpoints.ollama;
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), this.OLLAMA_TIMEOUT_MS);
       const response = await fetch(`${ollamaUrl}/api/tags`, { 
         method: 'GET',
         signal: controller.signal,
@@ -1460,11 +1472,10 @@ class LLMClient {
     const ollamaAvailable = await this.checkOllamaAvailability();
     const deepseekAvailable = await this.checkDeepSeekAvailability();
     
-    // Update provider based on availability
-    if (this.currentProvider === 'ollama' && !ollamaAvailable && deepseekAvailable) {
+    // Update provider based on availability (only if not already switched)
+    if (this.currentProvider === 'ollama' && !ollamaAvailable && deepseekAvailable && !this._fallbackAttempted) {
       console.warn('[LLMClient] Ollama not available, falling back to DeepSeek API');
-      this.currentProvider = 'deepseek-api';
-      this.currentModel = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+      this.switchToDeepSeekProvider();
     }
     
     this._providerAvailability = {
@@ -1523,12 +1534,11 @@ class LLMClient {
         const data = await response.json();
         return data.message?.content || '';
       } catch (error) {
-        // If Ollama fails and we have DeepSeek API key, try fallback
-        if (this.hasDeepSeekApiKey()) {
+        // If Ollama fails and we have DeepSeek API key and haven't tried fallback yet
+        if (this.hasDeepSeekApiKey() && !this._fallbackAttempted) {
           console.warn(`[LLMClient] Ollama failed: ${error.message}. Falling back to DeepSeek API.`);
-          this.currentProvider = 'deepseek-api';
-          this.currentModel = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
-          return this.chat(messages, options); // Retry with DeepSeek
+          this.switchToDeepSeekProvider();
+          return this.chat(messages, options); // Retry with DeepSeek (only once due to flag)
         }
         throw error;
       }
@@ -1599,12 +1609,11 @@ class LLMClient {
           throw new Error(`Ollama streaming request failed: ${response.status}`);
         }
       } catch (error) {
-        // If Ollama fails and we have DeepSeek API key, try fallback
-        if (this.hasDeepSeekApiKey()) {
+        // If Ollama fails and we have DeepSeek API key and haven't tried fallback yet
+        if (this.hasDeepSeekApiKey() && !this._fallbackAttempted) {
           console.warn(`[LLMClient] Ollama stream failed: ${error.message}. Falling back to DeepSeek API.`);
-          this.currentProvider = 'deepseek-api';
-          this.currentModel = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
-          yield* this.streamChat(messages, options); // Retry with DeepSeek
+          this.switchToDeepSeekProvider();
+          yield* this.streamChat(messages, options); // Retry with DeepSeek (only once due to flag)
           return;
         }
         throw error;
