@@ -20,10 +20,19 @@
 
 import { StorybookModelTrainingService } from '../services/storybook-model-training-service.js';
 
+// Constants for table formatting and display limits
+const TABLE_WIDTH = 80;
+const COL_MODEL_ID = 35;
+const COL_TASK = 20;
+const COL_STATUS = 10;
+const COL_SESSION_ID = 37;
+const MAX_DISPLAYED_MODELS = 5;
+const MAX_USE_CASES = 2;
+
 const commands = {
   models: async (service, args) => {
     console.log('\n📚 Available Pretrained Models for Storybook Training\n');
-    console.log('=' .repeat(80));
+    console.log('='.repeat(TABLE_WIDTH));
     
     const models = service.getAvailableModels();
     const recommended = models.filter(m => m.storybookApplicable);
@@ -32,21 +41,21 @@ const commands = {
     console.log(`⭐ Recommended for Storybook: ${recommended.length}\n`);
     
     console.log('Model ID                              | Task                   | Performance | Accuracy');
-    console.log('-'.repeat(80));
+    console.log('-'.repeat(TABLE_WIDTH));
     
     for (const model of models) {
       const star = model.storybookApplicable ? '⭐' : '  ';
       console.log(
-        `${star} ${model.id.padEnd(35)} | ${model.task.padEnd(20)} | ${model.performance.padEnd(10)} | ${(model.accuracy * 100).toFixed(1)}%`
+        `${star} ${model.id.padEnd(COL_MODEL_ID)} | ${model.task.padEnd(COL_TASK)} | ${model.performance.padEnd(COL_STATUS)} | ${(model.accuracy * 100).toFixed(1)}%`
       );
     }
     
     console.log('\n⭐ = Recommended for storybook mining\n');
     
     console.log('Use Cases:');
-    for (const model of recommended.slice(0, 5)) {
+    for (const model of recommended.slice(0, MAX_DISPLAYED_MODELS)) {
       console.log(`  ${model.name}:`);
-      console.log(`    - ${model.seoApplications?.slice(0, 2).join('\n    - ') || model.description}`);
+      console.log(`    - ${model.seoApplications?.slice(0, MAX_USE_CASES).join('\n    - ') || model.description}`);
     }
     
     console.log('\n');
@@ -186,7 +195,7 @@ const commands = {
         
         for (const session of sessions) {
           console.log(
-            `${session.id.padEnd(37)} | ${(session.model_name || session.pretrained_model_id).substring(0, 20).padEnd(20)} | ${session.status.padEnd(10)} | ${session.epochs_completed || 0}`
+            `${session.id.padEnd(COL_SESSION_ID)} | ${(session.model_name || session.pretrained_model_id).substring(0, COL_TASK).padEnd(COL_TASK)} | ${session.status.padEnd(COL_STATUS)} | ${session.epochs_completed || 0}`
           );
         }
         console.log('');
@@ -334,7 +343,20 @@ async function main() {
     process.exit(1);
   }
   
-  // Initialize service
+  // Help command doesn't need database
+  if (command === 'help') {
+    await commands.help();
+    return;
+  }
+  
+  // Models command can work without full initialization
+  if (command === 'models') {
+    const service = new StorybookModelTrainingService();
+    await commands.models(service, commandArgs);
+    return;
+  }
+  
+  // Initialize service for other commands
   const service = new StorybookModelTrainingService();
   
   try {

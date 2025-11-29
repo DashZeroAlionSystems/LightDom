@@ -463,15 +463,29 @@ class StorybookModelTrainingService extends EventEmitter {
 
   /**
    * Load training data for a model
+   * 
+   * Filters training data by:
+   * 1. Status must be 'ready'
+   * 2. Quality score must meet minimum threshold
+   * 3. Either:
+   *    - No specific model types required (empty array), OR
+   *    - The model ID is in the target_model_types array
    */
   async loadTrainingData(modelId, options = {}) {
     const { minQuality = 50, limit = 10000 } = options;
     
+    // Use clear, separate conditions for readability
     const result = await this.db.query(`
       SELECT * FROM storybook_training_data
       WHERE status = 'ready'
         AND quality_score >= $1
-        AND ($2::text[] IS NULL OR target_model_types && $2::text[] OR cardinality(target_model_types) = 0)
+        AND (
+          -- Include if no specific model types are required
+          cardinality(target_model_types) = 0
+          OR
+          -- Include if this model is in the target list
+          target_model_types && $2::text[]
+        )
       ORDER BY quality_score DESC
       LIMIT $3
     `, [minQuality, [modelId], limit]);
@@ -562,14 +576,27 @@ class StorybookModelTrainingService extends EventEmitter {
    * Update session status
    */
   async updateSessionStatus(sessionId, status, errorMessage = null) {
-    await this.db.query(`
-      UPDATE storybook_training_sessions
-      SET status = $1,
-          error_message = $2,
-          updated_at = NOW()
-          ${status === 'completed' || status === 'failed' ? ', completed_at = NOW()' : ''}
-      WHERE id = $3
-    `, [status, errorMessage, sessionId]);
+    // Use explicit queries for different status updates
+    const isFinalStatus = status === 'completed' || status === 'failed';
+    
+    if (isFinalStatus) {
+      await this.db.query(`
+        UPDATE storybook_training_sessions
+        SET status = $1,
+            error_message = $2,
+            completed_at = NOW(),
+            updated_at = NOW()
+        WHERE id = $3
+      `, [status, errorMessage, sessionId]);
+    } else {
+      await this.db.query(`
+        UPDATE storybook_training_sessions
+        SET status = $1,
+            error_message = $2,
+            updated_at = NOW()
+        WHERE id = $3
+      `, [status, errorMessage, sessionId]);
+    }
     
     const session = this.trainingSessions.get(sessionId);
     if (session) {
