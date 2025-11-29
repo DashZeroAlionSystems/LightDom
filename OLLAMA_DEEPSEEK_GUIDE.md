@@ -587,6 +587,40 @@ ollamaDeepseek.on('chunk', ({ streamId, chunk }) => {
 });
 ```
 
+## 📝 Custom Modelfile Configuration
+
+LightDom includes custom Modelfiles for creating optimized DeepSeek models with platform-specific configurations.
+
+### Creating Custom Models
+
+```bash
+# Full-featured model (16GB+ RAM recommended)
+npm run ollama:create-model
+
+# Lite version (8GB RAM)
+npm run ollama:create-model-lite
+```
+
+### Testing Tool Calling
+
+```bash
+# Test tool-calling capabilities
+npm run ollama:test-tools
+```
+
+### Modelfile Documentation
+
+See the comprehensive documentation:
+- [Modelfile Configuration Guide](docs/OLLAMA_MODELFILE_CONFIGURATION.md) - Complete parameter reference
+- [LightDom Modelfiles](config/ollama/README.md) - Usage instructions and customization
+
+### Available Modelfiles
+
+| Modelfile | Base Model | Context | Use Case |
+|-----------|------------|---------|----------|
+| `Modelfile.lightdom-deepseek` | deepseek-r1:14b | 16K | Production, complex tasks |
+| `Modelfile.lightdom-deepseek-lite` | deepseek-coder:6.7b | 4K | Development, limited resources |
+
 ---
 
 **Ready to build amazing AI-powered workflows! 🚀**
