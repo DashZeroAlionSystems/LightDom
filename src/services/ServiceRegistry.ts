@@ -250,8 +250,8 @@ const blockchainServices: ServiceConfig[] = [
     factory: () => MiningService.getInstance(),
     healthCheck: async (mining: MiningService) => {
       try {
-        // Get active sessions count
-        const sessions = (mining as any).activeSessions?.size || 0;
+        // Get active sessions count using the public method
+        const sessions = mining.getActiveSessionCount();
         return {
           healthy: true,
           message: `Mining service ready (${sessions} active sessions)`,

@@ -169,7 +169,10 @@ export class ServiceManager extends EventEmitter {
 
       const service = this.services.get(name);
       if (!service) {
-        console.warn(`⚠️  Unknown service dependency: ${name}`);
+        const availableServices = Array.from(this.services.keys());
+        console.warn(
+          `⚠️  Unknown service dependency: ${name}. Available services: ${availableServices.join(', ')}`
+        );
         return;
       }
 
@@ -278,7 +281,9 @@ export class ServiceManager extends EventEmitter {
       console.error(`   ❌ ${name} failed:`, (error as Error).message);
       this.emit('service:error', name, error);
 
-      if (service.config.required !== false) {
+      // If the service is marked as required (default is true), throw the error
+      const isRequired = service.config.required !== false;
+      if (isRequired) {
         throw error;
       }
     }
