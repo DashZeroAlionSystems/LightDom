@@ -902,6 +902,22 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load pretrained model training routes:', err);
       });
 
+    // Import and register Linked Schema Workflow routes
+    // Provides: Neural relationship prediction, n8n workflow generation from schemas,
+    // DeepSeek integration, status indicators with animations
+    import('./api/linked-schema-workflow-routes.js')
+      .then(linkedSchemaModule => {
+        this.app.use('/api/linked-schema', linkedSchemaModule.default);
+        console.log('✅ Linked Schema Workflow routes registered at /api/linked-schema');
+        console.log('   - Relationship prediction via neural network');
+        console.log('   - n8n workflow generation from linked schemas');
+        console.log('   - DeepSeek AI integration for workflow configuration');
+        console.log('   - Status indicator components with anime.js animations');
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to load linked schema workflow routes:', err.message);
+      });
+
     // Import and register Data Stream routes
     import('./api/data-stream-routes.js')
       .then(streamModule => {
