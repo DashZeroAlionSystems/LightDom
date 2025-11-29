@@ -705,6 +705,16 @@ class DOMSpaceHarvesterAPI {
       }
     );
 
+    // Import and register Voice Streaming Service routes
+    void safeImport(
+      'Voice Streaming Service routes',
+      () => import('./api/voice-routes.js'),
+      voiceModule => {
+        this.app.use('/api/voice', voiceModule.default);
+        console.log('✅ Voice Streaming Service routes registered (Wake word, TTS, STT enabled)');
+      }
+    );
+
     // Import and register Conversation History routes (with CommonJS fallback)
     void safeImport(
       'Conversation History routes',
