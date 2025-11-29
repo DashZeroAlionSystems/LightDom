@@ -16,8 +16,6 @@
  *   2. Custom model created: ollama create lightdom-deepseek -f config/ollama/Modelfile.lightdom-deepseek
  */
 
-import { spawn } from 'child_process';
-
 // Configuration
 const config = {
   endpoint: process.env.OLLAMA_ENDPOINT || 'http://localhost:11434',
@@ -513,13 +511,13 @@ async function main() {
   } else if (passed > 0) {
     log(colors.yellow, '\n⚠️  Some tests passed. Tool calling is partially working.');
     log(colors.yellow, '   Note: DeepSeek R1 tool calling support may vary by model version.');
-    log(colors.yellow, '   Try using deepseek-r1:0528 or later for better tool support.');
+    log(colors.yellow, '   Try using a model with tool calling support (0528 release or later).');
   } else {
     log(colors.red, '\n❌ All tests failed. Tool calling may not be supported by this model.');
     log(colors.yellow, '\nSuggestions:');
     log(colors.yellow, '1. Ensure you are using a tool-enabled DeepSeek model (v0528 or later)');
-    log(colors.yellow, '2. Try: ollama pull deepseek-r1:14b');
-    log(colors.yellow, '3. Recreate the custom model with the updated Modelfile');
+    log(colors.yellow, '2. Pull the base model: ollama pull deepseek-r1:14b');
+    log(colors.yellow, '3. Recreate the LightDom model: npm run ollama:create-model');
     log(colors.yellow, '4. Check Ollama logs for errors');
   }
   
