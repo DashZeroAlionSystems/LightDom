@@ -1378,6 +1378,23 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load Storybook discovery routes:', err);
       });
 
+    // Import and register Storybook Model Training routes (11 pretrained models integration)
+    import('./api/storybook-training-routes.js')
+      .then(trainingModule => {
+        const createRoutes = trainingModule.default || trainingModule.createStorybookTrainingRoutes;
+        if (typeof createRoutes === 'function') {
+          this.app.use('/api/storybook-training', createRoutes({ db: this.db }));
+        } else {
+          this.app.use('/api/storybook-training', trainingModule.default);
+        }
+        console.log(
+          '✅ Storybook Training routes registered (11 pretrained models, training pipeline enabled)'
+        );
+      })
+      .catch(err => {
+        console.error('Failed to load Storybook training routes:', err);
+      });
+
     // Import and register MCP Server Management routes (Agent instances with schema linking)
     import('./api/mcp-server-routes.js')
       .then(mcpModule => {
