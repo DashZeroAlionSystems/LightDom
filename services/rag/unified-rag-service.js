@@ -136,10 +136,10 @@ const DEFAULT_CONFIG = {
     maxContextTokens: 32000, // Max tokens for context
   },
   
-  // Endpoints
+  // Endpoints - check multiple env var names for compatibility
   endpoints: {
-    ollama: process.env.OLLAMA_ENDPOINT || 'http://127.0.0.1:11434',
-    deepseek: process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1',
+    ollama: process.env.OLLAMA_ENDPOINT || process.env.OLLAMA_API_URL || 'http://127.0.0.1:11434',
+    deepseek: process.env.DEEPSEEK_API_URL || process.env.DEEPSEEK_API_BASE_URL || 'https://api.deepseek.com/v1',
   },
 };
 
@@ -1381,12 +1381,25 @@ class ContextBuilder {
 
 /**
  * LLM Client - Unified interface for multiple LLM providers
+ * Supports automatic fallback from Ollama to DeepSeek API
  */
 class LLMClient {
   constructor(config) {
     this.config = config;
     this.currentProvider = config.llm.provider;
     this.currentModel = config.llm.model;
+    this._providerAvailability = null;
+    this._lastAvailabilityCheck = 0;
+    this._fallbackAttempted = false; // Flag to prevent infinite fallback loops
+    this.AVAILABILITY_CACHE_MS = 30000; // Cache availability for 30 seconds
+    this.OLLAMA_TIMEOUT_MS = 5000; // Timeout for Ollama availability check
+  }
+
+  /**
+   * Check if DeepSeek API key is configured
+   */
+  hasDeepSeekApiKey() {
+    return Boolean(process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_KEY);
   }
 
   /**
@@ -1404,59 +1417,141 @@ class LLMClient {
   }
 
   /**
-   * Check if provider is available
+   * Switch to DeepSeek API provider
+   * Centralized method to avoid code duplication
    */
-  async checkAvailability() {
-    const baseUrl = this.getBaseUrl();
-    
+  switchToDeepSeekProvider() {
+    this.currentProvider = 'deepseek-api';
+    this.currentModel = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+    this._fallbackAttempted = true;
+  }
+
+  /**
+   * Check if Ollama is available locally
+   */
+  async checkOllamaAvailability() {
+    const ollamaUrl = this.config.endpoints.ollama;
     try {
-      if (this.currentProvider === 'ollama') {
-        const response = await fetch(`${baseUrl}/api/tags`, { method: 'GET' });
-        return response.ok;
-      } else {
-        // For API providers, we can't easily check without making a request
-        return true;
-      }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.OLLAMA_TIMEOUT_MS);
+      const response = await fetch(`${ollamaUrl}/api/tags`, { 
+        method: 'GET',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return response.ok;
     } catch {
       return false;
     }
   }
 
   /**
-   * Chat completion (non-streaming)
+   * Check if DeepSeek API is available
+   */
+  async checkDeepSeekAvailability() {
+    if (!this.hasDeepSeekApiKey()) {
+      return false;
+    }
+    // For API providers, assume available if key is configured
+    return true;
+  }
+
+  /**
+   * Check if provider is available with automatic fallback detection
+   * Returns detailed availability info
+   */
+  async checkAvailability() {
+    const now = Date.now();
+    
+    // Return cached result if still valid
+    if (this._providerAvailability !== null && 
+        (now - this._lastAvailabilityCheck) < this.AVAILABILITY_CACHE_MS) {
+      return this._providerAvailability.available;
+    }
+    
+    const ollamaAvailable = await this.checkOllamaAvailability();
+    const deepseekAvailable = await this.checkDeepSeekAvailability();
+    
+    // Update provider based on availability (only if not already switched)
+    if (this.currentProvider === 'ollama' && !ollamaAvailable && deepseekAvailable && !this._fallbackAttempted) {
+      console.warn('[LLMClient] Ollama not available, falling back to DeepSeek API');
+      this.switchToDeepSeekProvider();
+    }
+    
+    this._providerAvailability = {
+      available: ollamaAvailable || deepseekAvailable,
+      ollama: ollamaAvailable,
+      deepseek: deepseekAvailable,
+      activeProvider: this.currentProvider,
+      activeModel: this.currentModel,
+    };
+    this._lastAvailabilityCheck = now;
+    
+    return this._providerAvailability.available;
+  }
+
+  /**
+   * Get detailed availability information
+   */
+  async getAvailabilityDetails() {
+    await this.checkAvailability();
+    return this._providerAvailability;
+  }
+
+  /**
+   * Chat completion (non-streaming) with automatic fallback
    */
   async chat(messages, options = {}) {
+    // Check availability and potentially switch providers
+    await this.checkAvailability();
+    
     const baseUrl = this.getBaseUrl();
     const model = options.model || this.currentModel;
     const temperature = options.temperature ?? this.config.llm.temperature;
     const maxTokens = options.maxTokens ?? this.config.llm.maxTokens;
     
     if (this.currentProvider === 'ollama') {
-      const response = await fetch(`${baseUrl}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model,
-          messages,
-          stream: false,
-          options: {
-            temperature,
-            num_predict: maxTokens,
-          },
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Ollama request failed: ${response.status}`);
+      try {
+        const response = await fetch(`${baseUrl}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model,
+            messages,
+            stream: false,
+            options: {
+              temperature,
+              num_predict: maxTokens,
+            },
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => '');
+          throw new Error(`Ollama request failed: ${response.status} ${errorText}`);
+        }
+        
+        const data = await response.json();
+        return data.message?.content || '';
+      } catch (error) {
+        // If Ollama fails and we have DeepSeek API key and haven't tried fallback yet
+        if (this.hasDeepSeekApiKey() && !this._fallbackAttempted) {
+          console.warn(`[LLMClient] Ollama failed: ${error.message}. Falling back to DeepSeek API.`);
+          this.switchToDeepSeekProvider();
+          return this.chat(messages, options); // Retry with DeepSeek (only once due to flag)
+        }
+        throw error;
       }
-      
-      const data = await response.json();
-      return data.message?.content || '';
     } else {
       // DeepSeek API or OpenAI-compatible
       const apiKey = process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_KEY;
       
-      const response = await fetch(`${baseUrl}/chat/completions`, {
+      if (!apiKey) {
+        throw new Error('DeepSeek API key not configured. Set DEEPSEEK_API_KEY environment variable.');
+      }
+      
+      const deepseekUrl = this.config.endpoints.deepseek;
+      const response = await fetch(`${deepseekUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1471,7 +1566,8 @@ class LLMClient {
       });
       
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        const errorText = await response.text().catch(() => '');
+        throw new Error(`DeepSeek API request failed: ${response.status} ${errorText}`);
       }
       
       const data = await response.json();
@@ -1480,31 +1576,47 @@ class LLMClient {
   }
 
   /**
-   * Streaming chat completion
+   * Streaming chat completion with automatic fallback
    */
   async *streamChat(messages, options = {}) {
-    const baseUrl = this.getBaseUrl();
+    // Check availability and potentially switch providers
+    await this.checkAvailability();
+    
     const model = options.model || this.currentModel;
     const temperature = options.temperature ?? this.config.llm.temperature;
     const maxTokens = options.maxTokens ?? this.config.llm.maxTokens;
     
     if (this.currentProvider === 'ollama') {
-      const response = await fetch(`${baseUrl}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model,
-          messages,
-          stream: true,
-          options: {
-            temperature,
-            num_predict: maxTokens,
-          },
-        }),
-      });
+      const baseUrl = this.config.endpoints.ollama;
       
-      if (!response.ok) {
-        throw new Error(`Ollama streaming request failed: ${response.status}`);
+      let response;
+      try {
+        response = await fetch(`${baseUrl}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model,
+            messages,
+            stream: true,
+            options: {
+              temperature,
+              num_predict: maxTokens,
+            },
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Ollama streaming request failed: ${response.status}`);
+        }
+      } catch (error) {
+        // If Ollama fails and we have DeepSeek API key and haven't tried fallback yet
+        if (this.hasDeepSeekApiKey() && !this._fallbackAttempted) {
+          console.warn(`[LLMClient] Ollama stream failed: ${error.message}. Falling back to DeepSeek API.`);
+          this.switchToDeepSeekProvider();
+          yield* this.streamChat(messages, options); // Retry with DeepSeek (only once due to flag)
+          return;
+        }
+        throw error;
       }
       
       const reader = response.body.getReader();
@@ -1542,7 +1654,12 @@ class LLMClient {
       // DeepSeek/OpenAI streaming
       const apiKey = process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_KEY;
       
-      const response = await fetch(`${baseUrl}/chat/completions`, {
+      if (!apiKey) {
+        throw new Error('DeepSeek API key not configured. Set DEEPSEEK_API_KEY environment variable.');
+      }
+      
+      const deepseekUrl = this.config.endpoints.deepseek;
+      const response = await fetch(`${deepseekUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1558,7 +1675,8 @@ class LLMClient {
       });
       
       if (!response.ok) {
-        throw new Error(`API streaming request failed: ${response.status}`);
+        const errorText = await response.text().catch(() => '');
+        throw new Error(`DeepSeek API streaming request failed: ${response.status} ${errorText}`);
       }
       
       const reader = response.body.getReader();
@@ -2376,9 +2494,9 @@ Additional Codebase Expert Mode:
       status: 'healthy',
       llm: { status: 'unknown' },
       vectorStore: { status: 'unknown' },
-      ocr: { status: 'unknown' },       // NEW
-      agent: { status: 'unknown' },      // NEW
-      features: {                        // NEW
+      ocr: { status: 'unknown' },
+      agent: { status: 'unknown' },
+      features: {
         multimodal: this.config.multimodal?.enabled || false,
         hybridSearch: this.config.hybridSearch?.enabled || false,
         versioning: this.config.versioning?.enabled || false,
@@ -2387,16 +2505,41 @@ Additional Codebase Expert Mode:
       stats: this.stats,
     };
     
-    // Check LLM
+    // Check LLM with detailed provider information
     try {
-      const available = await this.llmClient.checkAvailability();
+      const availabilityDetails = await this.llmClient.getAvailabilityDetails();
+      const isAvailable = availabilityDetails?.available || false;
+      
       status.llm = {
-        status: available ? 'healthy' : 'unavailable',
-        provider: this.config.llm.provider,
-        model: this.config.llm.model,
+        status: isAvailable ? 'healthy' : 'unavailable',
+        activeProvider: availabilityDetails?.activeProvider || this.llmClient.currentProvider,
+        activeModel: availabilityDetails?.activeModel || this.llmClient.currentModel,
+        configuredProvider: this.config.llm.provider,
+        configuredModel: this.config.llm.model,
+        providers: {
+          ollama: {
+            available: availabilityDetails?.ollama || false,
+            endpoint: this.config.endpoints.ollama,
+          },
+          deepseek: {
+            available: availabilityDetails?.deepseek || false,
+            hasApiKey: this.llmClient.hasDeepSeekApiKey(),
+            endpoint: this.config.endpoints.deepseek,
+          },
+        },
       };
+      
+      if (!isAvailable) {
+        status.status = 'degraded';
+        status.llm.error = 'No LLM provider available. Start Ollama locally or configure DEEPSEEK_API_KEY.';
+      }
     } catch (error) {
-      status.llm = { status: 'error', error: error.message };
+      status.llm = { 
+        status: 'error', 
+        error: error.message,
+        configuredProvider: this.config.llm.provider,
+        configuredModel: this.config.llm.model,
+      };
       status.status = 'degraded';
     }
     
@@ -2413,7 +2556,7 @@ Additional Codebase Expert Mode:
       status.vectorStore = { status: 'not_configured' };
     }
     
-    // Check OCR service (NEW)
+    // Check OCR service
     if (this.config.multimodal?.enabled) {
       try {
         const ocrAvailable = await this.imageProcessor.checkOCRAvailability();
@@ -2428,7 +2571,7 @@ Additional Codebase Expert Mode:
       status.ocr = { status: 'disabled' };
     }
     
-    // Check agent tools (NEW)
+    // Check agent tools
     if (this.config.agent?.enabled) {
       status.agent = {
         status: 'healthy',

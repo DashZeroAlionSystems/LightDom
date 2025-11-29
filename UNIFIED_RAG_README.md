@@ -450,6 +450,70 @@ const { streamPrompt, health, currentConfig } = useUnifiedRAG({
 
 ## Troubleshooting
 
+### How the RAG System Works with DeepSeek
+
+The RAG system runs **DeepSeek locally through Ollama** - no cloud API required:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  Your Local Machine                                         │
+│                                                             │
+│  ┌─────────────┐    ┌──────────────────┐    ┌───────────┐ │
+│  │ RAG Service │───▶│ Ollama :11434    │───▶│ DeepSeek  │ │
+│  │ (LightDom)  │    │ (Local Runtime)  │    │ R1 Model  │ │
+│  └─────────────┘    └──────────────────┘    └───────────┘ │
+│                                                             │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Key points:**
+- Ollama runs DeepSeek models locally on your machine
+- No internet or API key needed for local usage
+- The RAG system connects to Ollama at `http://localhost:11434`
+
+### Quick Setup
+```bash
+# 1. Install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+
+# 2. Pull DeepSeek model
+ollama pull deepseek-r1:latest
+
+# 3. Start Ollama
+ollama serve
+
+# 4. Verify
+curl http://localhost:11434/api/tags
+```
+
+### Check Provider Status
+```bash
+# Check health endpoint for provider details
+curl http://localhost:3001/api/unified-rag/health | jq '.llm'
+
+# Expected response for local Ollama:
+# {
+#   "activeProvider": "ollama",
+#   "activeModel": "deepseek-r1:latest",
+#   "providers": {
+#     "ollama": { "available": true, "endpoint": "http://localhost:11434" }
+#   }
+# }
+```
+
+### Alternative: DeepSeek Cloud API (Optional)
+
+If you can't run Ollama locally, you can use the DeepSeek cloud API as fallback:
+
+1. Get an API key from [DeepSeek Platform](https://platform.deepseek.com/)
+2. Configure in `.env`:
+   ```bash
+   DEEPSEEK_API_KEY=your-api-key-here
+   DEEPSEEK_API_URL=https://api.deepseek.com/v1
+   DEEPSEEK_MODEL=deepseek-chat
+   ```
+3. The system automatically uses DeepSeek API when Ollama is unavailable
+
 ### Ollama Not Responding
 ```bash
 # Check if running
@@ -477,6 +541,22 @@ psql -d lightdom -c "SELECT 1"
 psql -d lightdom -c "CREATE EXTENSION IF NOT EXISTS vector"
 ```
 
+### Environment Variables
+
+Configure in your `.env` file:
+```bash
+# Ollama (LOCAL DeepSeek - Primary)
+OLLAMA_ENDPOINT=http://localhost:11434
+OLLAMA_API_URL=http://localhost:11434
+OLLAMA_MODEL=deepseek-r1:latest
+OLLAMA_TIMEOUT=60000
+
+# DeepSeek Cloud API (Optional - only needed for fallback)
+# DEEPSEEK_API_KEY=your-key-here
+DEEPSEEK_API_URL=https://api.deepseek.com/v1
+DEEPSEEK_MODEL=deepseek-chat
+```
+
 ## Files
 
 ```
@@ -486,13 +566,14 @@ frontend/src/hooks/useUnifiedRAG.ts    # React hook
 UNIFIED_RAG_README.md                  # This documentation
 ```
 
-## Future Enhancements
+## Features
 
-- [ ] Multimodal support (images via DeepSeek OCR)
-- [ ] Hybrid search (keyword + semantic)
-- [ ] Document versioning
-- [ ] Streaming tool execution
-- [ ] Agent mode with planning
+- [x] Multimodal support (images via DeepSeek OCR)
+- [x] Hybrid search (keyword + semantic)
+- [x] Document versioning
+- [x] Streaming tool execution
+- [x] Agent mode with planning
+- [x] Automatic provider fallback (Ollama → DeepSeek API)
 
 ---
 
