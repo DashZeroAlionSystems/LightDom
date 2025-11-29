@@ -194,6 +194,37 @@ This index connects all research documentation through semantic relationships, m
         "deepseek-bidi-datamining",
         "crawler-research"
       ]
+    },
+    {
+      "id": "deepseek-finetuning-guide",
+      "path": "docs/research/DEEPSEEK_FINETUNING_GUIDE.md",
+      "title": "DeepSeek Finetuning Guide: Local Customization & Training",
+      "topics": [
+        "LoRA Finetuning",
+        "QLoRA Approaches",
+        "Training Data Formats",
+        "Tool-Use Training",
+        "Domain-Specific Tuning",
+        "Model Customization",
+        "Parameter-Efficient Training"
+      ],
+      "relatedTo": [
+        "deepseek-bidi-datamining",
+        "deepseek-integration-guide",
+        "nodejs-llm-communication-2025"
+      ],
+      "schemas": [
+        "TrainingExample",
+        "LoRAConfig",
+        "ToolDefinition",
+        "TrainingDataset"
+      ],
+      "implements": [
+        "QLoRA training scripts",
+        "Tool-use data generation",
+        "Training data validation",
+        "LightDom integration patterns"
+      ]
     }
   ],
   "schemaDefinitions": {
@@ -346,6 +377,20 @@ This index connects all research documentation through semantic relationships, m
         "Continuous learning",
         "Performance optimization"
       ]
+    },
+    "Model Finetuning": {
+      "description": "Customizing DeepSeek models for domain-specific tasks",
+      "documents": [
+        "deepseek-finetuning-guide",
+        "deepseek-bidi-datamining"
+      ],
+      "keyPoints": [
+        "LoRA/QLoRA approaches",
+        "Training data formats",
+        "Tool-use training",
+        "Best practices for domain tuning",
+        "Hardware requirements"
+      ]
     }
   },
   "apiEndpoints": {
@@ -437,6 +482,36 @@ This index connects all research documentation through semantic relationships, m
           ]
         }
       ]
+    },
+    "loraQloraTraining": {
+      "question": "How to perform local finetuning with LoRA/QLoRA?",
+      "answers": [
+        {
+          "document": "deepseek-finetuning-guide",
+          "section": "LoRA/QLoRA Approaches",
+          "keyInsights": [
+            "Use QLoRA for memory-efficient training (4-bit)",
+            "Target attention and MLP layers",
+            "Rank 16-64 for most use cases",
+            "Learning rate 2e-4 recommended"
+          ]
+        }
+      ]
+    },
+    "toolUseTraining": {
+      "question": "How to train DeepSeek for tool usage?",
+      "answers": [
+        {
+          "document": "deepseek-finetuning-guide",
+          "section": "Tool-Use Training Examples",
+          "keyInsights": [
+            "Use chat format with tool_calls field",
+            "Include tool responses and final assistant message",
+            "Add error handling examples",
+            "Generate diverse scenarios"
+          ]
+        }
+      ]
     }
   },
   "usagePatterns": {
@@ -478,6 +553,7 @@ This index connects all research documentation through semantic relationships, m
 - **BiDi Protocol**: [WebDriver BiDi Research](WEBDRIVER_BIDI_PUPPETEER_RESEARCH.md) → [Deep Wiki](DEEPSEEK_BIDI_DATAMINING_DEEP_WIKI.md#two-way-communication-patterns)
 - **Attribute Mining**: [Workers README](../HEADLESS_WORKERS_README.md) → [Deep Wiki](DEEPSEEK_BIDI_DATAMINING_DEEP_WIKI.md#bidi-for-large-scale-data-mining)
 - **DeepSeek Integration**: [Deep Wiki](DEEPSEEK_BIDI_DATAMINING_DEEP_WIKI.md#deepseek-integration-patterns)
+- **DeepSeek Finetuning**: [Finetuning Guide](DEEPSEEK_FINETUNING_GUIDE.md) - LoRA/QLoRA, training data, tool-use
 - **Containers**: [Deep Wiki](DEEPSEEK_BIDI_DATAMINING_DEEP_WIKI.md#container-based-data-mining-architecture)
 - **ML/TensorFlow**: [Deep Wiki](DEEPSEEK_BIDI_DATAMINING_DEEP_WIKI.md#tensorflow-streaming-analytics)
 
@@ -486,6 +562,8 @@ This index connects all research documentation through semantic relationships, m
 - **Optimizing mining performance**: See [Deep Wiki - Learning Algorithms](DEEPSEEK_BIDI_DATAMINING_DEEP_WIKI.md#learning-algorithms-for-mining-optimization)
 - **Auto-generating UI**: See [Deep Wiki - Self-Generating Components](DEEPSEEK_BIDI_DATAMINING_DEEP_WIKI.md#self-generating-component-systems)
 - **Scaling operations**: See [Deep Wiki - Container Orchestration](DEEPSEEK_BIDI_DATAMINING_DEEP_WIKI.md#dynamic-container-orchestration)
+- **Finetuning DeepSeek**: See [Finetuning Guide](DEEPSEEK_FINETUNING_GUIDE.md) - Complete LoRA/QLoRA instructions
+- **Training for tool use**: See [Finetuning Guide - Tool-Use Training](DEEPSEEK_FINETUNING_GUIDE.md#6-tool-use-training-examples)
 
 ### By Role
 - **Product Managers**: [Automated SEO Campaign](../AUTOMATED_SEO_CAMPAIGN_SYSTEM.md)
