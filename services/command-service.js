@@ -70,8 +70,15 @@ class CommandService extends EventEmitter {
           supportedModels: [
             'universal-sentence-encoder',
             'bert-base-uncased',
+            'distilbert-sst2-sentiment',
+            'sentence-transformers-minilm',
             'mobilenet-v2',
-            'sentence-transformers-minilm'
+            'efficientnet-b0',
+            'toxicity-detection',
+            'question-answering-bert',
+            'named-entity-recognition',
+            'zero-shot-classification',
+            'text-summarization'
           ]
         },
         examples: [
@@ -288,7 +295,10 @@ class CommandService extends EventEmitter {
       await this.db.query(createTablesSQL);
       console.log('✅ Command tables ensured');
     } catch (error) {
-      console.warn('Warning: Could not create command tables:', error.message);
+      // Log warning but allow service to continue with in-memory commands only
+      // Database commands will be unavailable but built-in commands will work
+      console.warn('⚠️ Could not create command tables (database may be unavailable):', error.message);
+      console.warn('   Built-in commands will still work, but custom commands require database.');
     }
   }
 

@@ -179,6 +179,9 @@ export function createCommandRoutes(config = {}) {
   /**
    * POST /api/commands
    * Create a new command
+   * 
+   * Note: User authentication is optional. If req.user is available from auth middleware,
+   * it will be used to track command ownership. Without auth, commands are created anonymously.
    */
   router.post('/', async (req, res) => {
     try {
@@ -191,6 +194,7 @@ export function createCommandRoutes(config = {}) {
         });
       }
       
+      // Note: req.user comes from auth middleware if configured
       const command = await commandService.createCommand({
         id,
         name,

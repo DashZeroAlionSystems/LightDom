@@ -482,7 +482,7 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
           </span>
           <span>
             <kbd className="px-1.5 py-0.5 rounded bg-surface-container-high border border-outline text-xs">
-              {typeof navigator !== 'undefined' && navigator.platform?.includes('Mac') ? '⌘' : 'Ctrl'}+Enter
+              {typeof window !== 'undefined' && typeof navigator !== 'undefined' && navigator?.platform?.includes?.('Mac') ? '⌘' : 'Ctrl'}+Enter
             </kbd>{' '}
             to send
           </span>

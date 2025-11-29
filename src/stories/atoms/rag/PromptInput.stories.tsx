@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { PromptInput, ActionArea, ActionButton, SlashCommand } from '../components/ui/PromptInput';
+import { PromptInput, ActionArea, ActionButton, SlashCommand } from '../../../components/ui/PromptInput';
 import { Database, Brain, Sparkles, Play, Settings, Search, Download, Zap } from 'lucide-react';
 
 /**
