@@ -325,6 +325,25 @@ curl -X POST http://localhost:3001/api/enhanced-rag/chat/tools/stream \
 
 ## 🐛 Troubleshooting
 
+### Provider Configuration
+
+The RAG system supports two LLM providers:
+1. **Ollama (local)** - Requires Ollama running locally with DeepSeek model
+2. **DeepSeek API (remote)** - Uses cloud-based DeepSeek API
+
+The system will automatically fall back to DeepSeek API if Ollama is not available.
+
+### Check Available Providers
+```bash
+# Check unified-rag health (shows provider status)
+curl http://localhost:3001/api/unified-rag/health | jq
+
+# Expected response shows:
+# - llm.activeProvider: which provider is being used
+# - llm.providers.ollama.available: true/false
+# - llm.providers.deepseek.available: true/false (based on API key)
+```
+
 ### Ollama Not Running
 ```bash
 # Check if running
@@ -332,7 +351,21 @@ curl http://localhost:11434/api/tags
 
 # Start it
 ollama serve
+
+# Pull DeepSeek model
+ollama pull deepseek-r1:latest
 ```
+
+### Using DeepSeek API (when Ollama is not available)
+
+If you don't have Ollama installed, you can use the DeepSeek cloud API:
+
+1. Get an API key from [DeepSeek](https://platform.deepseek.com/)
+2. Set the environment variable:
+   ```bash
+   export DEEPSEEK_API_KEY=your-api-key-here
+   ```
+3. The system will automatically use DeepSeek API when Ollama is unavailable
 
 ### Model Not Found
 ```bash
@@ -350,6 +383,9 @@ curl http://localhost:3001/api/health
 
 # Start API
 npm run start:dev
+
+# Check RAG-specific health
+curl http://localhost:3001/api/unified-rag/health
 ```
 
 ### Tools Not Working
@@ -361,6 +397,22 @@ curl http://localhost:3001/api/enhanced-rag/tools
 curl -X POST http://localhost:3001/api/enhanced-rag/tool/execute \
   -H "Content-Type: application/json" \
   -d '{"tool": "system.getInfo"}'
+```
+
+### Environment Variables
+
+Make sure these are configured in your `.env` file:
+
+```bash
+# Ollama configuration (for local deployment)
+OLLAMA_ENDPOINT=http://localhost:11434
+OLLAMA_API_URL=http://localhost:11434
+OLLAMA_MODEL=deepseek-r1:latest
+
+# DeepSeek API configuration (for cloud fallback)
+DEEPSEEK_API_KEY=your-api-key-here
+DEEPSEEK_API_URL=https://api.deepseek.com/v1
+DEEPSEEK_MODEL=deepseek-chat
 ```
 
 ---

@@ -450,6 +450,36 @@ const { streamPrompt, health, currentConfig } = useUnifiedRAG({
 
 ## Troubleshooting
 
+### LLM Provider Not Available
+
+The RAG system supports automatic fallback between providers:
+1. **Ollama (local)** - Primary provider when running locally
+2. **DeepSeek API (remote)** - Automatic fallback when Ollama is not available
+
+Check provider status:
+```bash
+# Check health endpoint for provider details
+curl http://localhost:3001/api/unified-rag/health | jq '.llm'
+
+# Response shows:
+# - activeProvider: current provider in use
+# - providers.ollama.available: true/false
+# - providers.deepseek.available: true/false
+```
+
+### Using DeepSeek API (Without Ollama)
+
+If you don't have Ollama installed:
+
+1. Get an API key from [DeepSeek Platform](https://platform.deepseek.com/)
+2. Configure in `.env`:
+   ```bash
+   DEEPSEEK_API_KEY=your-api-key-here
+   DEEPSEEK_API_URL=https://api.deepseek.com/v1
+   DEEPSEEK_MODEL=deepseek-chat
+   ```
+3. The system automatically uses DeepSeek API when Ollama is unavailable
+
 ### Ollama Not Responding
 ```bash
 # Check if running
@@ -477,6 +507,21 @@ psql -d lightdom -c "SELECT 1"
 psql -d lightdom -c "CREATE EXTENSION IF NOT EXISTS vector"
 ```
 
+### Environment Variables
+
+Ensure these are set correctly:
+```bash
+# Ollama (for local deployment)
+OLLAMA_ENDPOINT=http://localhost:11434
+OLLAMA_API_URL=http://localhost:11434  # Both are supported
+OLLAMA_MODEL=deepseek-r1:latest
+
+# DeepSeek API (for cloud/fallback)
+DEEPSEEK_API_KEY=your-key-here
+DEEPSEEK_API_URL=https://api.deepseek.com/v1
+DEEPSEEK_MODEL=deepseek-chat
+```
+
 ## Files
 
 ```
@@ -486,13 +531,14 @@ frontend/src/hooks/useUnifiedRAG.ts    # React hook
 UNIFIED_RAG_README.md                  # This documentation
 ```
 
-## Future Enhancements
+## Features
 
-- [ ] Multimodal support (images via DeepSeek OCR)
-- [ ] Hybrid search (keyword + semantic)
-- [ ] Document versioning
-- [ ] Streaming tool execution
-- [ ] Agent mode with planning
+- [x] Multimodal support (images via DeepSeek OCR)
+- [x] Hybrid search (keyword + semantic)
+- [x] Document versioning
+- [x] Streaming tool execution
+- [x] Agent mode with planning
+- [x] Automatic provider fallback (Ollama → DeepSeek API)
 
 ---
 
