@@ -1,477 +1,213 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Button, Table, Tag, Space, Statistic, Row, Col, message, Modal } from 'antd';
+import { NeuralNetworkDetailView } from '@/components/neural/NeuralNetworkDetailView';
+import { NeuralNetworkInstanceForm } from '@/components/neural/NeuralNetworkInstanceForm';
 import {
+  ApiOutlined,
+  BranchesOutlined,
+  DatabaseOutlined,
   PlusOutlined,
   ReloadOutlined,
-  ExperimentOutlined,
-  ApiOutlined,
-  DatabaseOutlined,
-  BranchesOutlined,
   RobotOutlined,
-  ThunderboltOutlined
+  ThunderboltOutlined,
 } from '@ant-design/icons';
-import { NeuralNetworkInstanceForm } from '@/components/neural/NeuralNetworkInstanceForm';
-import { NeuralNetworkDetailView } from '@/components/neural/NeuralNetworkDetailView';
-
-export const NeuralNetworkManagementPage: React.FC = () => {
-  const [instances, setInstances] = useState<any[]>([]);
-  const [selectedInstance, setSelectedInstance] = useState<any>(null);
-  const [stats, setStats] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [detailVisible, setDetailVisible] = useState(false);
-
-  useEffect(() => {
-    loadInstances();
-    loadStats();
-/**
- * Neural Network Management Page
- * Comprehensive dashboard for managing neural network instances with:
- * - Dataset upload and management
- * - Training configuration
- * - Model selection and deployment
- * - Integration with crawler, seeding, and SEO campaigns
- * - Data stream and attribute management
- */
-
-import React, { useState, useEffect } from 'react';
 import {
-  Card,
-  Row,
-  Col,
-  Typography,
   Button,
+  Card,
+  Col,
+  Empty,
+  message,
+  Modal,
+  Row,
+  Space,
+  Spin,
+  Statistic,
   Table,
   Tag,
-  Space,
-  Modal,
-  Form,
-  Input,
-  Select,
-  InputNumber,
-  message,
-  Statistic,
-  Progress,
-  Tabs,
-  Tooltip,
-  Badge,
-  Descriptions,
-  Alert,
-  Upload,
-  Divider,
-  Switch,
-  Collapse,
-  Tree,
-  List,
-  Empty,
-  Spin,
 } from 'antd';
-import {
-  PlusOutlined,
-  PlayCircleOutlined,
-  DeleteOutlined,
-  EyeOutlined,
-  ReloadOutlined,
-  ThunderboltOutlined,
-  CheckCircleOutlined,
-  ExclamationCircleOutlined,
-  ClockCircleOutlined,
-  RocketOutlined,
-  DatabaseOutlined,
-  LineChartOutlined,
-  UploadOutlined,
-  DownloadOutlined,
-  ApiOutlined,
-  BranchesOutlined,
-  SettingOutlined,
-  FundOutlined,
-  SyncOutlined,
-  CloudUploadOutlined,
-} from '@ant-design/icons';
-
-const { Title, Text, Paragraph } = Typography;
-const { TabPane } = Tabs;
-const { Option } = Select;
-const { Panel } = Collapse;
+import React, { useEffect, useState } from 'react';
 
 interface NeuralNetworkInstance {
   id: string;
-  clientId: string;
-  modelType: string;
+  name: string;
+  model_type: string;
   status: string;
-  version: string;
-  trainingConfig: any;
-  dataConfig: any;
-  performance?: any;
-  metadata: any;
-  relationships?: {
-    crawler?: string[];
-    seeder?: string[];
-    attributes?: string[];
-    dataStreams?: string[];
-  };
+  created_at: string;
+  updated_at: string;
+  accuracy?: number;
+  description?: string;
+  metadata?: Record<string, unknown>;
 }
 
-interface DataStream {
-  id: string;
-  name: string;
-  attributes: string[];
-  status: string;
+interface NeuralNetworkStats {
+  total_instances?: number;
+  active_instances?: number;
+  training_instances?: number;
+  datasets?: number;
+  crawler_integrations?: number;
+  seeder_integrations?: number;
 }
 
-interface Attribute {
-  id: string;
-  name: string;
-  type: string;
-  config: {
-    algorithm?: string;
-    drillDown?: boolean;
-    dataMining?: boolean;
-    training?: boolean;
-  };
-  relatedItems?: string[];
-}
+const formatModelType = (value?: string) => (value ? value.replace(/_/g, ' ') : 'unknown');
+
+const statusColor = (status?: string) => {
+  const normalized = status?.toLowerCase();
+  switch (normalized) {
+    case 'ready':
+    case 'active':
+      return 'green';
+    case 'training':
+      return 'blue';
+    case 'initializing':
+      return 'orange';
+    case 'paused':
+      return 'gold';
+    case 'error':
+      return 'red';
+    default:
+      return 'default';
+  }
+};
 
 export const NeuralNetworkManagementPage: React.FC = () => {
   const [instances, setInstances] = useState<NeuralNetworkInstance[]>([]);
-  const [selectedInstance, setSelectedInstance] = useState<NeuralNetworkInstance | null>(null);
-  const [dataStreams, setDataStreams] = useState<DataStream[]>([]);
-  const [attributes, setAttributes] = useState<Attribute[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState<NeuralNetworkStats | null>(null);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [datasetModalVisible, setDatasetModalVisible] = useState(false);
-  const [attributeModalVisible, setAttributeModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState('instances');
-  const [form] = Form.useForm();
-  const [datasetForm] = Form.useForm();
-  const [attributeForm] = Form.useForm();
-
-  // Model types with descriptions
-  const modelTypes = [
-    { value: 'seo_optimization', label: 'SEO Optimization', description: 'Optimize content for search engines' },
-    { value: 'content_generation', label: 'Content Generation', description: 'Generate high-quality content' },
-    { value: 'crawler_optimization', label: 'Crawler Optimization', description: 'Improve web crawling efficiency' },
-    { value: 'data_mining', label: 'Data Mining', description: 'Extract valuable insights from data' },
-    { value: 'pattern_recognition', label: 'Pattern Recognition', description: 'Identify patterns in data' },
-    { value: 'sentiment_analysis', label: 'Sentiment Analysis', description: 'Analyze sentiment in text' },
-  ];
+  const [detailVisible, setDetailVisible] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [selectedInstance, setSelectedInstance] = useState<any | null>(null);
 
   useEffect(() => {
-    loadInstances();
-    loadDataStreams();
-    loadAttributes();
+    void refreshAll();
   }, []);
 
   const loadInstances = async () => {
-    setLoading(true);
+    setTableLoading(true);
+    let loaded = false;
+
     try {
       const response = await fetch('/api/neural-network-dashboard/instances');
-      const result = await response.json();
-      
-      if (result.success) {
-        setInstances(result.data);
-      } else {
-        message.error('Failed to load neural network instances');
-      }
-    } catch (error) {
-      console.error('Error loading instances:', error);
-      const response = await fetch('/api/neural-networks/instances');
       if (response.ok) {
-        const data = await response.json();
-        setInstances(Array.isArray(data) ? data : []);
+        const payload = await response.json();
+        if (payload?.success && Array.isArray(payload.data)) {
+          setInstances(payload.data);
+          loaded = true;
+        }
       }
     } catch (error) {
-      console.error('Failed to load neural network instances:', error);
-      message.error('Failed to load neural network instances');
-    } finally {
-      setLoading(false);
+      console.error('Failed to load neural network instances (dashboard endpoint):', error);
     }
+
+    if (!loaded) {
+      try {
+        const fallback = await fetch('/api/neural-networks/instances');
+        if (fallback.ok) {
+          const data = await fallback.json();
+          if (Array.isArray(data)) {
+            setInstances(data);
+            loaded = true;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load neural network instances (fallback endpoint):', error);
+      }
+    }
+
+    if (!loaded) {
+      message.error('Failed to load neural network instances');
+    }
+
+    setTableLoading(false);
   };
 
   const loadStats = async () => {
+    setStatsLoading(true);
     try {
       const response = await fetch('/api/neural-network-dashboard/stats');
-      const result = await response.json();
-      
-      if (result.success) {
-        setStats(result.data);
-      }
-    } catch (error) {
-      console.error('Error loading stats:', error);
-  const loadDataStreams = async () => {
-    try {
-      const response = await fetch('/api/data-streams');
       if (response.ok) {
-        const data = await response.json();
-        setDataStreams(Array.isArray(data) ? data : []);
+        const payload = await response.json();
+        if (payload?.success && payload.data) {
+          setStats(payload.data as NeuralNetworkStats);
+          setStatsLoading(false);
+          return;
+        }
       }
     } catch (error) {
-      console.error('Failed to load data streams:', error);
+      console.error('Failed to load neural network stats:', error);
     }
+
+    setStatsLoading(false);
   };
 
-  const loadAttributes = async () => {
+  const refreshAll = async () => {
+    await Promise.all([loadInstances(), loadStats()]);
+  };
+
+  const handleOpenDetail = async (instanceId: string) => {
+    setSelectedInstance(null);
+    setDetailVisible(true);
+    setDetailLoading(true);
+
     try {
-      const response = await fetch('/api/attributes');
+      const response = await fetch(`/api/neural-network-dashboard/instances/${instanceId}`);
       if (response.ok) {
-        const data = await response.json();
-        setAttributes(Array.isArray(data) ? data : []);
+        const payload = await response.json();
+        if (payload?.success) {
+          setSelectedInstance(payload.data);
+          setDetailLoading(false);
+          return;
+        }
       }
     } catch (error) {
-      console.error('Failed to load attributes:', error);
+      console.error('Failed to load neural network instance (dashboard endpoint):', error);
     }
+
+    try {
+      const fallback = await fetch(`/api/neural-networks/instances/${instanceId}`);
+      if (fallback.ok) {
+        const data = await fallback.json();
+        setSelectedInstance(data);
+        setDetailLoading(false);
+        return;
+      }
+    } catch (error) {
+      console.error('Failed to load neural network instance (fallback endpoint):', error);
+    }
+
+    message.error('Failed to load neural network instance details');
+    setDetailLoading(false);
   };
 
   const handleCreateInstance = async (values: any) => {
     try {
       const response = await fetch('/api/neural-network-dashboard/instances', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
 
-      const result = await response.json();
-
-      if (result.success) {
-        message.success('Neural network instance created successfully');
-        setCreateModalVisible(false);
-        loadInstances();
-        loadStats();
-      } else {
-        message.error(result.error || 'Failed to create instance');
-      }
-    } catch (error) {
-      console.error('Error creating instance:', error);
-      message.error('Failed to create instance');
-    }
-  };
-
-  const handleSelectInstance = async (instanceId: string) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/neural-network-dashboard/instances/${instanceId}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setSelectedInstance(result.data);
-        setDetailVisible(true);
-      } else {
-        message.error('Failed to load instance details');
-      }
-    } catch (error) {
-      console.error('Error loading instance:', error);
-      message.error('Failed to load instance details');
-    } finally {
-      setLoading(false);
-      // Add default configurations for scraping and data mining models
-      const instanceData = {
-        ...values,
-        metadata: {
-          name: values.name,
-          description: values.description,
-          defaultModels: ['scraping', 'data_mining'],
-        },
-        trainingConfig: {
-          epochs: values.epochs || 50,
-          batchSize: values.batchSize || 32,
-          learningRate: values.learningRate || 0.001,
-        },
-        relationships: {
-          crawler: values.crawlerIds || [],
-          seeder: values.seederIds || [],
-          attributes: values.attributeIds || [],
-        },
-      };
-
-      const response = await fetch('/api/neural-networks/instances', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(instanceData),
-      });
-
       if (response.ok) {
-        message.success('Neural network instance created successfully');
-        setCreateModalVisible(false);
-        form.resetFields();
-        loadInstances();
-      } else {
-        const error = await response.json();
-        message.error(error.message || 'Failed to create instance');
-      }
-    } catch (error) {
-      console.error('Error creating instance:', error);
-      message.error('Error creating instance');
-    }
-  };
-
-  const handleUploadDataset = async (values: any) => {
-    try {
-      if (!selectedInstance) return;
-
-      const formData = new FormData();
-      formData.append('instanceId', selectedInstance.id);
-      formData.append('datasetName', values.datasetName);
-      formData.append('datasetType', values.datasetType);
-      
-      if (values.file?.fileList?.[0]?.originFileObj) {
-        formData.append('file', values.file.fileList[0].originFileObj);
-      }
-
-      const response = await fetch('/api/neural-networks/datasets/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        message.success('Dataset uploaded successfully');
-        setDatasetModalVisible(false);
-        datasetForm.resetFields();
-        loadInstances();
-      } else {
-        message.error('Failed to upload dataset');
-      }
-    } catch (error) {
-      console.error('Error uploading dataset:', error);
-      message.error('Error uploading dataset');
-    }
-  };
-
-  const handleTrainInstance = async (instanceId: string) => {
-    try {
-      const response = await fetch(`/api/neural-networks/instances/${instanceId}/train`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        message.success('Training started');
-        loadInstances();
-      } else {
-        message.error('Failed to start training');
-      }
-    } catch (error) {
-      console.error('Error starting training:', error);
-      message.error('Error starting training');
-    }
-  };
-
-  const handleDeleteInstance = async (instanceId: string) => {
-    Modal.confirm({
-      title: 'Delete Neural Network Instance',      
-      content: 'Are you sure you want to delete this instance?',
-      okText: 'Delete',
-      okType: 'danger',
-      onOk: async () => {
-        try {
-          const response = await fetch(`/api/neural-network-dashboard/instances/${instanceId}`, {
-            method: 'DELETE',
-          });
-
-          const result = await response.json();
-
-          if (result.success) {
-            message.success('Instance deleted successfully');
-            loadInstances();
-            loadStats();
-            if (selectedInstance?.id === instanceId) {
-              setSelectedInstance(null);
-              setDetailVisible(false);
-            }
-          } else {
-            message.error(result.error || 'Failed to delete instance');
-          }
-        } catch (error) {
-          console.error('Error deleting instance:', error);
-          message.error('Failed to delete instance');
+        const payload = await response.json();
+        if (payload?.success) {
+          message.success('Neural network instance created successfully');
+          setCreateModalVisible(false);
+          await refreshAll();
+          return;
         }
-      },
-    });
-  };
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      ready: 'green',
-      training: 'blue',
-      initializing: 'orange',
-      paused: 'default',
-      error: 'red',
-    };
-    return colors[status] || 'default';
-  };
-
-  const getModelTypeIcon = (modelType: string) => {
-    const icons: Record<string, React.ReactNode> = {
-      scraping: <ApiOutlined />,
-      seo: <ThunderboltOutlined />,
-      data_mining: <DatabaseOutlined />,
-    };
-    return icons[modelType] || <ExperimentOutlined />;
-          await fetch(`/api/neural-networks/instances/${instanceId}`, { method: 'DELETE' });
-          message.success('Instance deleted');
-          loadInstances();
-        } catch (error) {
-          console.error('Error deleting instance:', error);
-          message.error('Error deleting instance');
-        }
-      },
-    });
-  };
-
-  const handleCreateAttribute = async (values: any) => {
-    try {
-      const response = await fetch('/api/attributes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...values,
-          config: {
-            algorithm: values.algorithm,
-            drillDown: values.drillDown,
-            dataMining: values.dataMining,
-            training: values.training,
-          },
-        }),
-      });
-
-      if (response.ok) {
-        message.success('Attribute created successfully');
-        setAttributeModalVisible(false);
-        attributeForm.resetFields();
-        loadAttributes();
-      } else {
-        message.error('Failed to create attribute');
+        message.error(payload?.error || 'Failed to create neural network instance');
+        return;
       }
     } catch (error) {
-      console.error('Error creating attribute:', error);
-      message.error('Error creating attribute');
+      console.error('Failed to create neural network instance:', error);
     }
+
+    message.error('Failed to create neural network instance');
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'ready':
-        return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
-      case 'training':
-        return <ThunderboltOutlined style={{ color: '#1890ff' }} />;
-      case 'error':
-        return <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />;
-      default:
-        return <ClockCircleOutlined style={{ color: '#faad14' }} />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ready':
-        return 'success';
-      case 'training':
-        return 'processing';
-      case 'error':
-        return 'error';
-      default:
-        return 'default';
-    }
+  const closeDetailModal = () => {
+    setDetailVisible(false);
+    setSelectedInstance(null);
   };
 
   const columns = [
@@ -479,558 +215,152 @@ export const NeuralNetworkManagementPage: React.FC = () => {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      render: (text: string, record: any) => (
-        <Space>
-          {getModelTypeIcon(record.model_type)}
-          <a onClick={() => handleSelectInstance(record.id)}>{text}</a>
-      dataIndex: ['metadata', 'name'],
-      key: 'name',
-      render: (text: string, record: NeuralNetworkInstance) => (
-        <Space>
-          {getStatusIcon(record.status)}
-          <Text strong>{text || record.id}</Text>
-        </Space>
+      render: (_: string, record: NeuralNetworkInstance) => (
+        <Button type='link' onClick={() => void handleOpenDetail(record.id)}>
+          {record.name}
+        </Button>
       ),
     },
     {
       title: 'Model Type',
       dataIndex: 'model_type',
       key: 'model_type',
-      render: (type: string) => <Tag>{type.replace('_', ' ').toUpperCase()}</Tag>,
-      dataIndex: 'modelType',
-      key: 'modelType',
-      render: (type: string) => {
-        const modelType = modelTypes.find((m) => m.value === type);
-        return (
-          <Tooltip title={modelType?.description}>
-            <Tag color="blue">{modelType?.label || type}</Tag>
-          </Tooltip>
-        );
-      },
-    },
-    {
-      title: 'Client',
-      dataIndex: 'clientId',
-      key: 'clientId',
+      render: (value: string) => <Tag>{formatModelType(value)}</Tag>,
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => (
-        <Tag color={getStatusColor(status)}>{status.toUpperCase()}</Tag>
+      render: (value: string) => (
+        <Tag color={statusColor(value)}>{value?.toUpperCase() || 'UNKNOWN'}</Tag>
       ),
-    },
-    {
-      title: 'Data Streams',
-      dataIndex: 'data_stream_count',
-      key: 'data_stream_count',
-      render: (count: number) => <Tag icon={<BranchesOutlined />}>{count}</Tag>,
-    },
-    {
-      title: 'Attributes',
-      dataIndex: 'active_attribute_count',
-      key: 'active_attribute_count',
-      render: (count: number) => <Tag>{count}</Tag>,
     },
     {
       title: 'Accuracy',
       dataIndex: 'accuracy',
       key: 'accuracy',
-      render: (accuracy: number) => 
-        accuracy ? `${(accuracy * 100).toFixed(2)}%` : 'N/A',
+      render: (value?: number) =>
+        typeof value === 'number' ? `${(value * 100).toFixed(1)}%` : '—',
     },
     {
-      title: 'Created',
-      dataIndex: 'created_at',
-      key: 'created_at',
-      render: (date: string) => new Date(date).toLocaleDateString(),
-      render: (status: string) => <Tag color={getStatusColor(status)}>{status.toUpperCase()}</Tag>,
+      title: 'Last Updated',
+      dataIndex: 'updated_at',
+      key: 'updated_at',
+      render: (value: string) => (value ? new Date(value).toLocaleString() : '—'),
     },
     {
-      title: 'Performance',
-      key: 'performance',
-      render: (_: any, record: NeuralNetworkInstance) => {
-        if (!record.performance) return <Text type="secondary">N/A</Text>;
-        return (
-          <Space direction="vertical" size="small">
-            <Text>Accuracy: {((record.performance.accuracy || 0) * 100).toFixed(1)}%</Text>
-            {record.performance.loss && <Text type="secondary">Loss: {record.performance.loss.toFixed(4)}</Text>}
-          </Space>
-        );
-      },
-    },
-    {
-      title: 'Version',
-      dataIndex: 'version',
-      key: 'version',
-      render: (version: string) => <Tag>{version}</Tag>,
-    },
-    {
-      title: 'Actions',
       key: 'actions',
-      render: (_: any, record: any) => (
-        <Space>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => handleSelectInstance(record.id)}
-          >
-            View
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            danger
-            onClick={() => handleDeleteInstance(record.id)}
-          >
-            Delete
-          </Button>
-      render: (_: any, record: NeuralNetworkInstance) => (
-        <Space>
-          <Tooltip title="View Details">
-            <Button
-              type="link"
-              icon={<EyeOutlined />}
-              onClick={() => {
-                setSelectedInstance(record);
-                setActiveTab('details');
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Train Model">
-            <Button
-              type="link"
-              icon={<PlayCircleOutlined />}
-              onClick={() => handleTrainInstance(record.id)}
-              disabled={record.status === 'training'}
-            />
-          </Tooltip>
-          <Tooltip title="Upload Dataset">
-            <Button
-              type="link"
-              icon={<UploadOutlined />}
-              onClick={() => {
-                setSelectedInstance(record);
-                setDatasetModalVisible(true);
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Delete">
-            <Button
-              type="link"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDeleteInstance(record.id)}
-            />
-          </Tooltip>
-        </Space>
+      render: (_: unknown, record: NeuralNetworkInstance) => (
+        <Button
+          size='small'
+          icon={<ReloadOutlined />}
+          onClick={() => void handleOpenDetail(record.id)}
+        >
+          Inspect
+        </Button>
       ),
     },
   ];
 
+  const statCards = [
+    {
+      title: 'Total Instances',
+      value: stats?.total_instances ?? instances.length,
+      icon: <RobotOutlined className='text-2xl text-primary' />,
+    },
+    {
+      title: 'Active',
+      value:
+        stats?.active_instances ??
+        instances.filter(item => item.status?.toLowerCase() === 'active').length,
+      icon: <ThunderboltOutlined className='text-2xl text-success' />,
+    },
+    {
+      title: 'Training',
+      value:
+        stats?.training_instances ??
+        instances.filter(item => item.status?.toLowerCase() === 'training').length,
+      icon: <ApiOutlined className='text-2xl text-warning' />,
+    },
+    {
+      title: 'Datasets',
+      value: stats?.datasets ?? 0,
+      icon: <DatabaseOutlined className='text-2xl text-info' />,
+    },
+    {
+      title: 'Crawler Integrations',
+      value: stats?.crawler_integrations ?? 0,
+      icon: <BranchesOutlined className='text-2xl text-secondary' />,
+    },
+    {
+      title: 'Seeder Integrations',
+      value: stats?.seeder_integrations ?? 0,
+      icon: <PlusOutlined className='text-2xl text-muted' />,
+    },
+  ];
+
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold">
-            <RobotOutlined className="mr-2" />
-            Neural Network Management
-          </h1>
+    <div className='space-y-6 p-6'>
+      <Row gutter={[16, 16]}>
+        {statCards.map(card => (
+          <Col xs={24} sm={12} md={8} lg={6} key={card.title}>
+            <Card>
+              <Space align='start' size='large'>
+                {card.icon}
+                <div>
+                  <Statistic
+                    title={card.title}
+                    value={statsLoading ? <Spin size='small' /> : card.value}
+                    valueRender={valueNode => (
+                      <span className='text-lg font-semibold'>{valueNode}</span>
+                    )}
+                  />
+                </div>
+              </Space>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
+      <Card
+        title='Neural Network Instances'
+        extra={
           <Space>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={() => {
-                loadInstances();
-                loadStats();
-              }}
-            >
+            <Button icon={<ReloadOutlined />} onClick={() => void refreshAll()}>
               Refresh
             </Button>
             <Button
-              type="primary"
+              type='primary'
               icon={<PlusOutlined />}
               onClick={() => setCreateModalVisible(true)}
             >
-              Create Neural Network
+              New Instance
             </Button>
           </Space>
-        </div>
-
-        {/* Statistics Cards */}
-        {stats && (
-          <Row gutter={16} className="mb-6">
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Total Instances"
-                  value={stats.total_instances}
-                  prefix={<ExperimentOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Ready Instances"
-                  value={stats.ready_instances}
-                  valueStyle={{ color: '#3f8600' }}
-                  prefix={<RobotOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Active Streams"
-                  value={stats.active_streams}
-                  prefix={<BranchesOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card>
-                <Statistic
-                  title="Avg Accuracy"
-                  value={stats.avg_accuracy ? (stats.avg_accuracy * 100).toFixed(2) : 'N/A'}
-                  suffix="%"
-                  prefix={<ThunderboltOutlined />}
-                />
-              </Card>
-            </Col>
-          </Row>
-        )}
-      </div>
-
-      <Card>
+        }
+      >
         <Table
           dataSource={instances}
           columns={columns}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Total ${total} instances`,
+          rowKey='id'
+          loading={tableLoading}
+          pagination={false}
+          locale={{
+            emptyText: tableLoading ? (
+              <Spin />
+            ) : (
+              <Empty description='No neural network instances found' />
+            ),
           }}
         />
-        <Title level={2}>
-          <RocketOutlined /> Neural Network Management
-        </Title>
-        <Paragraph>
-          Manage neural network instances, upload datasets, configure training, and integrate with crawler and SEO campaigns.
-        </Paragraph>
-      </div>
-
-      <Row gutter={[16, 16]} className="mb-4">
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Total Instances"
-              value={instances.length}
-              prefix={<DatabaseOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Active Training"
-              value={instances.filter((i) => i.status === 'training').length}
-              prefix={<ThunderboltOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Ready Models"
-              value={instances.filter((i) => i.status === 'ready').length}
-              prefix={<CheckCircleOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Data Streams"
-              value={dataStreams.length}
-              prefix={<BranchesOutlined />}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <Card>
-        <Tabs activeKey={activeTab} onChange={setActiveTab}>
-          <TabPane tab="Instances" key="instances">
-            <div className="mb-4">
-              <Space>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
-                  Create Instance
-                </Button>
-                <Button icon={<ReloadOutlined />} onClick={loadInstances}>
-                  Refresh
-                </Button>
-              </Space>
-            </div>
-
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '50px' }}>
-                <Spin size="large" />
-              </div>
-            ) : (
-              <Table
-                columns={columns}
-                dataSource={instances}
-                rowKey="id"
-                pagination={{ pageSize: 10 }}
-                locale={{
-                  emptyText: (
-                    <Empty
-                      description="No neural network instances yet. Create your first instance to get started."
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    />
-                  ),
-                }}
-              />
-            )}
-          </TabPane>
-
-          <TabPane tab="Data Streams" key="dataStreams">
-            <Alert
-              message="Data Stream Management"
-              description="Configure data streams to combine multiple attributes for neural network training."
-              type="info"
-              showIcon
-              className="mb-4"
-            />
-            <Button type="primary" icon={<PlusOutlined />} className="mb-4">
-              Create Data Stream
-            </Button>
-            <List
-              dataSource={dataStreams}
-              renderItem={(stream) => (
-                <List.Item
-                  actions={[
-                    <Button type="link" icon={<EyeOutlined />}>
-                      View
-                    </Button>,
-                    <Button type="link" icon={<SettingOutlined />}>
-                      Configure
-                    </Button>,
-                  ]}
-                >
-                  <List.Item.Meta
-                    avatar={<BranchesOutlined style={{ fontSize: 24 }} />}
-                    title={stream.name}
-                    description={`${stream.attributes.length} attributes | Status: ${stream.status}`}
-                  />
-                </List.Item>
-              )}
-              locale={{
-                emptyText: <Empty description="No data streams configured" />,
-              }}
-            />
-          </TabPane>
-
-          <TabPane tab="Attributes" key="attributes">
-            <Alert
-              message="Attribute Configuration"
-              description="Define attributes with algorithms, drill-down capabilities, and data mining settings for SEO and other use cases."
-              type="info"
-              showIcon
-              className="mb-4"
-            />
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setAttributeModalVisible(true)}
-              className="mb-4"
-            >
-              Create Attribute
-            </Button>
-            <List
-              grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 4 }}
-              dataSource={attributes}
-              renderItem={(attr) => (
-                <List.Item>
-                  <Card
-                    size="small"
-                    title={attr.name}
-                    extra={<Tag color="blue">{attr.type}</Tag>}
-                    actions={[
-                      <Tooltip title="Drill Down">
-                        <Button type="link" icon={<FundOutlined />} disabled={!attr.config.drillDown} />
-                      </Tooltip>,
-                      <Tooltip title="Configure">
-                        <Button type="link" icon={<SettingOutlined />} />
-                      </Tooltip>,
-                    ]}
-                  >
-                    <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        Algorithm: {attr.config.algorithm || 'N/A'}
-                      </Text>
-                      <Space>
-                        {attr.config.dataMining && <Tag color="green">Data Mining</Tag>}
-                        {attr.config.training && <Tag color="blue">Training</Tag>}
-                        {attr.config.drillDown && <Tag color="purple">Drill Down</Tag>}
-                      </Space>
-                    </Space>
-                  </Card>
-                </List.Item>
-              )}
-              locale={{
-                emptyText: <Empty description="No attributes configured" />,
-              }}
-            />
-          </TabPane>
-
-          <TabPane tab="Details" key="details" disabled={!selectedInstance}>
-            {selectedInstance && (
-              <div>
-                <Descriptions title="Instance Details" bordered>
-                  <Descriptions.Item label="ID">{selectedInstance.id}</Descriptions.Item>
-                  <Descriptions.Item label="Client ID">{selectedInstance.clientId}</Descriptions.Item>
-                  <Descriptions.Item label="Status">
-                    <Badge status={selectedInstance.status === 'ready' ? 'success' : 'processing'} text={selectedInstance.status} />
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Model Type">{selectedInstance.modelType}</Descriptions.Item>
-                  <Descriptions.Item label="Version">{selectedInstance.version}</Descriptions.Item>
-                  <Descriptions.Item label="Name">{selectedInstance.metadata.name}</Descriptions.Item>
-                </Descriptions>
-
-                <Divider />
-
-                <Collapse defaultActiveKey={['1', '2', '3']}>
-                  <Panel header="Training Configuration" key="1">
-                    <Descriptions bordered size="small">
-                      <Descriptions.Item label="Epochs">{selectedInstance.trainingConfig.epochs}</Descriptions.Item>
-                      <Descriptions.Item label="Batch Size">{selectedInstance.trainingConfig.batchSize}</Descriptions.Item>
-                      <Descriptions.Item label="Learning Rate">{selectedInstance.trainingConfig.learningRate}</Descriptions.Item>
-                    </Descriptions>
-                  </Panel>
-
-                  <Panel header="Performance Metrics" key="2">
-                    {selectedInstance.performance ? (
-                      <Row gutter={16}>
-                        <Col span={8}>
-                          <Card>
-                            <Statistic
-                              title="Accuracy"
-                              value={(selectedInstance.performance.accuracy * 100).toFixed(2)}
-                              suffix="%"
-                            />
-                          </Card>
-                        </Col>
-                        <Col span={8}>
-                          <Card>
-                            <Statistic
-                              title="Loss"
-                              value={selectedInstance.performance.loss?.toFixed(4)}
-                            />
-                          </Card>
-                        </Col>
-                        <Col span={8}>
-                          <Card>
-                            <Statistic
-                              title="Predictions"
-                              value={selectedInstance.performance.predictionCount || 0}
-                            />
-                          </Card>
-                        </Col>
-                      </Row>
-                    ) : (
-                      <Empty description="No performance metrics available yet" />
-                    )}
-                  </Panel>
-
-                  <Panel header="Relationships" key="3">
-                    <Descriptions bordered size="small">
-                      <Descriptions.Item label="Crawlers" span={3}>
-                        {selectedInstance.relationships?.crawler?.length ? (
-                          <Space>
-                            {selectedInstance.relationships.crawler.map((id) => (
-                              <Tag key={id}>{id}</Tag>
-                            ))}
-                          </Space>
-                        ) : (
-                          <Text type="secondary">No crawlers linked</Text>
-                        )}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="Seeders" span={3}>
-                        {selectedInstance.relationships?.seeder?.length ? (
-                          <Space>
-                            {selectedInstance.relationships.seeder.map((id) => (
-                              <Tag key={id}>{id}</Tag>
-                            ))}
-                          </Space>
-                        ) : (
-                          <Text type="secondary">No seeders linked</Text>
-                        )}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="Attributes" span={3}>
-                        {selectedInstance.relationships?.attributes?.length ? (
-                          <Space>
-                            {selectedInstance.relationships.attributes.map((id) => (
-                              <Tag key={id}>{id}</Tag>
-                            ))}
-                          </Space>
-                        ) : (
-                          <Text type="secondary">No attributes linked</Text>
-                        )}
-                      </Descriptions.Item>
-                    </Descriptions>
-                  </Panel>
-                </Collapse>
-              </div>
-            )}
-          </TabPane>
-
-          <TabPane tab="SEO Integration" key="seo">
-            <Alert
-              message="SEO Campaign Integration"
-              description="Configure neural network instances to work with SEO campaigns, optimizing crawling, content generation, and ranking."
-              type="info"
-              showIcon
-              className="mb-4"
-            />
-            <Card title="SEO Neural Network Configuration">
-              <Form layout="vertical">
-                <Form.Item label="SEO Campaign" name="campaignId">
-                  <Select placeholder="Select SEO campaign">
-                    <Option value="seo-1">Main SEO Campaign</Option>
-                    <Option value="seo-2">Content Optimization Campaign</Option>
-                  </Select>
-                </Form.Item>
-                <Form.Item label="SEO Attributes">
-                  <Select mode="tags" placeholder="Select SEO attributes">
-                    <Option value="meta-tags">Meta Tags</Option>
-                    <Option value="keywords">Keywords</Option>
-                    <Option value="backlinks">Backlinks</Option>
-                    <Option value="trust-score">Trust Score</Option>
-                    <Option value="ranking">Ranking</Option>
-                  </Select>
-                </Form.Item>
-                <Form.Item>
-                  <Button type="primary" icon={<SyncOutlined />}>
-                    Configure SEO Integration
-                  </Button>
-                </Form.Item>
-              </Form>
-            </Card>
-          </TabPane>
-        </Tabs>
       </Card>
 
-      {/* Create Instance Modal */}
       <Modal
-        title="Create Neural Network Instance"
+        title='Create Neural Network Instance'
         open={createModalVisible}
         onCancel={() => setCreateModalVisible(false)}
         footer={null}
-        width={800}
+        destroyOnClose
       >
         <NeuralNetworkInstanceForm
           onSubmit={handleCreateInstance}
@@ -1038,207 +368,27 @@ export const NeuralNetworkManagementPage: React.FC = () => {
         />
       </Modal>
 
-      {/* Detail Modal */}
       <Modal
-        title="Neural Network Instance Details"
+        title={selectedInstance?.name || 'Neural Network Instance'}
         open={detailVisible}
-        onCancel={() => setDetailVisible(false)}
+        onCancel={closeDetailModal}
         footer={null}
-        width={1200}
+        width={900}
+        destroyOnClose
       >
-        {selectedInstance && (
+        {detailLoading ? (
+          <div className='flex justify-center py-12'>
+            <Spin />
+          </div>
+        ) : selectedInstance ? (
           <NeuralNetworkDetailView
             instance={selectedInstance}
-            onRefresh={() => handleSelectInstance(selectedInstance.id)}
-            onClose={() => setDetailVisible(false)}
+            onRefresh={() => selectedInstance && void handleOpenDetail(selectedInstance.id)}
+            onClose={closeDetailModal}
           />
+        ) : (
+          <Empty description='No instance selected' />
         )}
-        width={700}
-      >
-        <Form form={form} layout="vertical" onFinish={handleCreateInstance}>
-          <Form.Item label="Instance Name" name="name" rules={[{ required: true }]}>
-            <Input placeholder="Enter instance name" />
-          </Form.Item>
-
-          <Form.Item label="Description" name="description">
-            <Input.TextArea rows={3} placeholder="Describe the purpose of this neural network" />
-          </Form.Item>
-
-          <Form.Item label="Client ID" name="clientId" rules={[{ required: true }]}>
-            <Input placeholder="Enter client identifier" />
-          </Form.Item>
-
-          <Form.Item label="Model Type" name="modelType" rules={[{ required: true }]}>
-            <Select placeholder="Select model type">
-              {modelTypes.map((type) => (
-                <Option key={type.value} value={type.value}>
-                  <div>
-                    <div>{type.label}</div>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {type.description}
-                    </Text>
-                  </div>
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item label="Epochs" name="epochs" initialValue={50}>
-                <InputNumber min={1} max={1000} style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item label="Batch Size" name="batchSize" initialValue={32}>
-                <InputNumber min={1} max={256} style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item label="Learning Rate" name="learningRate" initialValue={0.001}>
-                <InputNumber min={0.0001} max={0.1} step={0.001} style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider>Relationships</Divider>
-
-          <Form.Item label="Link to Crawlers" name="crawlerIds">
-            <Select mode="tags" placeholder="Select or enter crawler IDs" />
-          </Form.Item>
-
-          <Form.Item label="Link to Seeders" name="seederIds">
-            <Select mode="tags" placeholder="Select or enter seeder IDs" />
-          </Form.Item>
-
-          <Form.Item label="Link to Attributes" name="attributeIds">
-            <Select mode="tags" placeholder="Select or enter attribute IDs">
-              {attributes.map((attr) => (
-                <Option key={attr.id} value={attr.id}>
-                  {attr.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" icon={<PlusOutlined />}>
-                Create Instance
-              </Button>
-              <Button onClick={() => setCreateModalVisible(false)}>Cancel</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* Upload Dataset Modal */}
-      <Modal
-        title="Upload Training Dataset"
-        open={datasetModalVisible}
-        onCancel={() => setDatasetModalVisible(false)}
-        footer={null}
-      >
-        <Form form={datasetForm} layout="vertical" onFinish={handleUploadDataset}>
-          <Form.Item label="Dataset Name" name="datasetName" rules={[{ required: true }]}>
-            <Input placeholder="Enter dataset name" />
-          </Form.Item>
-
-          <Form.Item label="Dataset Type" name="datasetType" rules={[{ required: true }]}>
-            <Select placeholder="Select dataset type">
-              <Option value="training">Training Data</Option>
-              <Option value="validation">Validation Data</Option>
-              <Option value="testing">Testing Data</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            label="Dataset File"
-            name="file"
-            valuePropName="file"
-            rules={[{ required: true, message: 'Please upload a dataset file' }]}
-          >
-            <Upload
-              beforeUpload={() => false}
-              maxCount={1}
-              accept=".csv,.json,.txt"
-            >
-              <Button icon={<CloudUploadOutlined />}>Select File</Button>
-            </Upload>
-          </Form.Item>
-
-          <Alert
-            message="Supported Formats"
-            description="CSV, JSON, or TXT files. The file should contain labeled training data."
-            type="info"
-            showIcon
-            className="mb-4"
-          />
-
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" icon={<UploadOutlined />}>
-                Upload Dataset
-              </Button>
-              <Button onClick={() => setDatasetModalVisible(false)}>Cancel</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* Create Attribute Modal */}
-      <Modal
-        title="Create Attribute"
-        open={attributeModalVisible}
-        onCancel={() => setAttributeModalVisible(false)}
-        footer={null}
-      >
-        <Form form={attributeForm} layout="vertical" onFinish={handleCreateAttribute}>
-          <Form.Item label="Attribute Name" name="name" rules={[{ required: true }]}>
-            <Input placeholder="Enter attribute name (e.g., 'meta_description')" />
-          </Form.Item>
-
-          <Form.Item label="Attribute Type" name="type" rules={[{ required: true }]}>
-            <Select placeholder="Select attribute type">
-              <Option value="seo">SEO Attribute</Option>
-              <Option value="content">Content Attribute</Option>
-              <Option value="metadata">Metadata</Option>
-              <Option value="behavioral">Behavioral</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item label="Algorithm" name="algorithm">
-            <Select placeholder="Select algorithm">
-              <Option value="ranking">Ranking Algorithm</Option>
-              <Option value="classification">Classification</Option>
-              <Option value="clustering">Clustering</Option>
-              <Option value="regression">Regression</Option>
-            </Select>
-          </Form.Item>
-
-          <Divider>Configuration</Divider>
-
-          <Form.Item label="Enable Data Mining" name="dataMining" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-
-          <Form.Item label="Enable Training" name="training" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-
-          <Form.Item label="Enable Drill Down" name="drillDown" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" icon={<PlusOutlined />}>
-                Create Attribute
-              </Button>
-              <Button onClick={() => setAttributeModalVisible(false)}>Cancel</Button>
-            </Space>
-          </Form.Item>
-        </Form>
       </Modal>
     </div>
   );

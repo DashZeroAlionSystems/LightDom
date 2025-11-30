@@ -117,7 +117,7 @@ N8N_BASIC_AUTH_PASSWORD=lightdom_n8n_password
 # DeepSeek Configuration
 DEEPSEEK_API_URL=https://api.deepseek.com/v1
 DEEPSEEK_API_KEY=your_deepseek_api_key
-DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_MODEL=deepseek-reasoner
 
 # MCP Server Configuration
 MCP_PORT=8090
@@ -187,20 +187,23 @@ npm run dev
    - Create your first workflow
 
 2. **Generate Schemas**
+
    ```bash
    curl -X POST http://localhost:3001/api/n8n/schemas/generate
    ```
 
 3. **Refresh MCP Tools**
+
    ```bash
    curl -X POST http://localhost:3001/api/n8n/mcp/refresh
    ```
 
 4. **Verify Installation**
+
    ```bash
    # Check n8n health
    curl http://localhost:3001/api/n8n/health
-   
+
    # List MCP tools
    curl http://localhost:8090/mcp/tools
    ```
@@ -331,7 +334,7 @@ import { promptEngine } from './services/deepseek-prompt-templates.js';
 // Generate workflow prompt
 const prompt = promptEngine.createWorkflowPrompt('seoDataMining', {
   attributes_list: 'title, meta description, h1, h2, canonical URL',
-  target_urls: 'https://example.com'
+  target_urls: 'https://example.com',
 });
 
 // List available templates
@@ -346,7 +349,7 @@ const rendered = promptEngine.render('automation', 'processAutomation', {
   process_steps: ['Create account', 'Send welcome email', 'Setup trial'],
   trigger_conditions: 'New user signup',
   automated_actions: 'Account provisioning, email notification',
-  success_criteria: 'Account created and email sent'
+  success_criteria: 'Account created and email sent',
 });
 ```
 
@@ -380,15 +383,15 @@ await n8nMCPServer.start();
 
 #### MCP Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/mcp/health` | GET | Health check |
-| `/mcp/tools` | GET | List available tools |
-| `/mcp/tools/:toolName` | GET | Get tool definition |
-| `/mcp/tools/:toolName/execute` | POST | Execute tool |
-| `/mcp/executions/:executionId` | GET | Get execution status |
-| `/mcp/stream` | GET | SSE stream |
-| `/mcp/refresh` | POST | Refresh tools |
+| Endpoint                       | Method | Description          |
+| ------------------------------ | ------ | -------------------- |
+| `/mcp/health`                  | GET    | Health check         |
+| `/mcp/tools`                   | GET    | List available tools |
+| `/mcp/tools/:toolName`         | GET    | Get tool definition  |
+| `/mcp/tools/:toolName/execute` | POST   | Execute tool         |
+| `/mcp/executions/:executionId` | GET    | Get execution status |
+| `/mcp/stream`                  | GET    | SSE stream           |
+| `/mcp/refresh`                 | POST   | Refresh tools        |
 
 #### Usage Example
 
@@ -422,6 +425,7 @@ GET /api/n8n/workflows
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -500,6 +504,7 @@ POST /api/n8n/schemas/generate
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -611,12 +616,13 @@ const response = await fetch('/api/n8n/deepseek/create-workflow', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     type: 'apiIntegration',
-    description: 'Create a workflow that fetches user data from the GitHub API, transforms it, and stores in PostgreSQL',
+    description:
+      'Create a workflow that fetches user data from the GitHub API, transforms it, and stores in PostgreSQL',
     parameters: {
       inputs: {},
-      outputs: {}
-    }
-  })
+      outputs: {},
+    },
+  }),
 });
 
 const { workflow } = await response.json();
@@ -625,6 +631,7 @@ const { workflow } = await response.json();
 #### Generated Workflow Structure
 
 DeepSeek generates:
+
 - Appropriate node types
 - Node configurations
 - Connections between nodes
@@ -654,13 +661,13 @@ const result = await fetch('http://localhost:8090/mcp/tools/seo_data_mining/exec
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer your_mcp_auth_token'
+    Authorization: 'Bearer your_mcp_auth_token',
   },
   body: JSON.stringify({
     input: {
-      url: 'https://example.com'
-    }
-  })
+      url: 'https://example.com',
+    },
+  }),
 });
 
 const { executionId, result: data } = await result.json();
@@ -679,9 +686,10 @@ const workflowResponse = await fetch('/api/n8n/deepseek/create-workflow', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     type: 'seoDataMining',
-    description: 'Extract title, meta description, h1, h2, canonical URL, and word count from web pages',
-    parameters: {}
-  })
+    description:
+      'Extract title, meta description, h1, h2, canonical URL, and word count from web pages',
+    parameters: {},
+  }),
 });
 
 const { workflow } = await workflowResponse.json();
@@ -691,8 +699,8 @@ const executeResponse = await fetch(`/api/n8n/workflows/${workflow.id}/execute`,
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    data: { url: 'https://example.com' }
-  })
+    data: { url: 'https://example.com' },
+  }),
 });
 
 const { execution } = await executeResponse.json();

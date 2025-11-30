@@ -2,13 +2,13 @@
 
 /**
  * Agent Workflow Orchestrator Service
- * 
+ *
  * Orchestrates AI agents to perform complex workflows:
  * - Prompt → Config → Component generation
  * - Dashboard creation from descriptions
  * - Service scaffolding
  * - Workflow automation
- * 
+ *
  * Integrates with:
  * - DeepSeek for AI capabilities
  * - Atomic Component Generator
@@ -17,9 +17,9 @@
  */
 
 import { EventEmitter } from 'events';
-import pg from 'pg';
 import fs from 'fs/promises';
 import path from 'path';
+import pg from 'pg';
 
 const { Pool } = pg;
 
@@ -28,10 +28,10 @@ let DeepSeekAPIService, AtomicComponentGenerator, SchemaLinkingService;
 try {
   const deepseekModule = await import('./deepseek-api-service.js');
   DeepSeekAPIService = deepseekModule.DeepSeekAPIService;
-  
+
   const compModule = await import('./atomic-component-generator.js');
   AtomicComponentGenerator = compModule.AtomicComponentGenerator;
-  
+
   const schemaModule = await import('./schema-linking-service.js');
   SchemaLinkingService = schemaModule.SchemaLinkingService;
 } catch (error) {
@@ -41,13 +41,13 @@ try {
 export class AgentWorkflowOrchestrator extends EventEmitter {
   constructor(config = {}) {
     super();
-    
+
     this.config = {
-      deepseekModel: config.deepseekModel || 'deepseek-chat',
+      deepseekModel: config.deepseekModel || 'deepseek-reasoner',
       temperature: config.temperature || 0.7,
       workflowsDir: config.workflowsDir || './workflows/generated',
       componentsDir: config.componentsDir || './src/components/generated',
-      ...config
+      ...config,
     };
 
     // Initialize services
@@ -55,7 +55,7 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
       this.deepseek = new DeepSeekAPIService({
         model: this.config.deepseekModel,
         temperature: this.config.temperature,
-        ...config.deepseek
+        ...config.deepseek,
       });
     } else {
       console.warn('⚠️ DeepSeek service not available. AI features will be limited.');
@@ -65,7 +65,7 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
       this.componentGenerator = new AtomicComponentGenerator({
         outputDir: this.config.componentsDir,
         useAI: !!DeepSeekAPIService,
-        deepseek: config.deepseek
+        deepseek: config.deepseek,
       });
     } else {
       console.warn('⚠️ Component generator not available.');
@@ -85,12 +85,12 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
    */
   async initialize() {
     console.log('🚀 Initializing Agent Workflow Orchestrator...');
-    
+
     await Promise.all([
       fs.mkdir(this.config.workflowsDir, { recursive: true }),
-      this.componentGenerator ? this.componentGenerator.initialize() : Promise.resolve()
+      this.componentGenerator ? this.componentGenerator.initialize() : Promise.resolve(),
     ]);
-    
+
     console.log('✅ Agent Workflow Orchestrator initialized');
   }
 
@@ -99,7 +99,7 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
    */
   async executeFromPrompt(prompt, options = {}) {
     console.log(`\n🎯 Processing prompt: "${prompt}"`);
-    
+
     const workflowId = `workflow-${Date.now()}`;
     const workflow = {
       id: workflowId,
@@ -107,7 +107,7 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
       startedAt: new Date().toISOString(),
       status: 'processing',
       steps: [],
-      results: {}
+      results: {},
     };
 
     this.activeWorkflows.set(workflowId, workflow);
@@ -135,19 +135,19 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
         case 'component':
           result = await this.executeComponentWorkflow(config, options);
           break;
-        
+
         case 'dashboard':
           result = await this.executeDashboardWorkflow(config, options);
           break;
-        
+
         case 'service':
           result = await this.executeServiceWorkflow(config, options);
           break;
-        
+
         case 'workflow':
           result = await this.executeCustomWorkflow(config, options);
           break;
-        
+
         default:
           result = await this.executeGenericWorkflow(config, options);
       }
@@ -165,17 +165,16 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
         intent,
         config,
         result,
-        success: true
+        success: true,
       };
-
     } catch (error) {
       console.error(`\n❌ Workflow failed: ${error.message}`);
       workflow.status = 'failed';
       workflow.error = error.message;
       workflow.completedAt = new Date().toISOString();
-      
+
       this.emit('workflow:failed', { workflowId, error });
-      
+
       throw error;
     } finally {
       this.workflowHistory.push(workflow);
@@ -191,7 +190,7 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
       // Fallback to simple keyword-based intent detection
       const lower = prompt.toLowerCase();
       let type = 'generic';
-      
+
       if (lower.includes('component') || lower.includes('button') || lower.includes('input')) {
         type = 'component';
       } else if (lower.includes('dashboard') || lower.includes('chart')) {
@@ -201,12 +200,12 @@ export class AgentWorkflowOrchestrator extends EventEmitter {
       } else if (lower.includes('workflow')) {
         type = 'workflow';
       }
-      
+
       return {
         type,
         entities: { name: 'unknown', purpose: prompt },
         requirements: [],
-        confidence: 0.5
+        confidence: 0.5,
       };
     }
 
@@ -237,7 +236,7 @@ Return JSON with:
       const response = await this.deepseek.chat(userPrompt, {
         system: systemPrompt,
         temperature: 0.3,
-        max_tokens: 1000
+        max_tokens: 1000,
       });
 
       // Extract JSON from response
@@ -246,22 +245,21 @@ Return JSON with:
       if (jsonMatch) {
         return JSON.parse(jsonMatch[0]);
       }
-      
+
       // Fallback to simple parsing
       return {
         type: 'generic',
         entities: { name: 'unknown', purpose: prompt },
         requirements: [],
-        confidence: 0.5
+        confidence: 0.5,
       };
-
     } catch (error) {
       console.warn('Intent analysis failed, using fallback:', error.message);
       return {
         type: 'generic',
         entities: { name: 'unknown', purpose: prompt },
         requirements: [],
-        confidence: 0.3
+        confidence: 0.3,
       };
     }
   }
@@ -292,7 +290,7 @@ Return JSON only.`;
       const response = await this.deepseek.chat(userPrompt, {
         system: systemPrompt,
         temperature: 0.5,
-        max_tokens: 2000
+        max_tokens: 2000,
       });
 
       let content = response.content;
@@ -306,7 +304,6 @@ Return JSON only.`;
 
       // Fallback config
       return this.generateFallbackConfig(intent);
-
     } catch (error) {
       console.warn('Config generation failed, using fallback:', error.message);
       return this.generateFallbackConfig(intent);
@@ -318,23 +315,26 @@ Return JSON only.`;
    */
   async executeComponentWorkflow(config, options = {}) {
     console.log('   Creating component schema...');
-    
+
     const componentName = config.name || config.entities?.name || 'GeneratedComponent';
     const componentSchema = {
       '@context': 'https://schema.org',
       '@type': 'WebComponent',
       '@id': `lightdom:${componentName.toLowerCase()}`,
-      'name': componentName,
-      'description': config.description || config.entities?.purpose || 'AI-generated component',
+      name: componentName,
+      description: config.description || config.entities?.purpose || 'AI-generated component',
       'lightdom:componentType': config.componentType || 'molecule',
       'lightdom:reactComponent': componentName,
       'lightdom:category': config.category || 'generated',
       'lightdom:props': config.props || [],
-      'lightdom:semanticMeaning': config.entities?.purpose || config.description
+      'lightdom:semanticMeaning': config.entities?.purpose || config.description,
     };
 
     // Save schema
-    const schemaPath = path.join('./schemas/components/generated', `${componentName.toLowerCase()}.json`);
+    const schemaPath = path.join(
+      './schemas/components/generated',
+      `${componentName.toLowerCase()}.json`
+    );
     await fs.mkdir(path.dirname(schemaPath), { recursive: true });
     await fs.writeFile(schemaPath, JSON.stringify(componentSchema, null, 2));
 
@@ -342,7 +342,7 @@ Return JSON only.`;
     console.log('   Generating component files...');
     const result = await this.componentGenerator.generateComponent(componentName, {
       useAI: true,
-      ...options
+      ...options,
     });
 
     return {
@@ -350,7 +350,7 @@ Return JSON only.`;
       componentName,
       schemaPath,
       files: result.files,
-      success: true
+      success: true,
     };
   }
 
@@ -359,14 +359,14 @@ Return JSON only.`;
    */
   async executeDashboardWorkflow(config, options = {}) {
     console.log('   Creating dashboard configuration...');
-    
+
     const dashboardName = config.name || 'GeneratedDashboard';
     const dashboardConfig = {
       name: dashboardName,
       layout: config.layout || 'grid',
       sections: config.sections || [],
       widgets: config.widgets || [],
-      dataSources: config.dataSources || []
+      dataSources: config.dataSources || [],
     };
 
     // Generate dashboard component
@@ -374,15 +374,18 @@ Return JSON only.`;
       '@context': 'https://schema.org',
       '@type': 'WebPage',
       '@id': `lightdom:dashboard-${dashboardName.toLowerCase()}`,
-      'name': dashboardName,
-      'description': config.description || 'AI-generated dashboard',
+      name: dashboardName,
+      description: config.description || 'AI-generated dashboard',
       'lightdom:componentType': 'page',
       'lightdom:reactComponent': `${dashboardName}Dashboard`,
       'lightdom:category': 'dashboard',
-      'lightdom:config': dashboardConfig
+      'lightdom:config': dashboardConfig,
     };
 
-    const schemaPath = path.join('./schemas/components/generated', `${dashboardName.toLowerCase()}-dashboard.json`);
+    const schemaPath = path.join(
+      './schemas/components/generated',
+      `${dashboardName.toLowerCase()}-dashboard.json`
+    );
     await fs.writeFile(schemaPath, JSON.stringify(dashboardSchema, null, 2));
 
     return {
@@ -390,7 +393,7 @@ Return JSON only.`;
       dashboardName,
       config: dashboardConfig,
       schemaPath,
-      success: true
+      success: true,
     };
   }
 
@@ -399,7 +402,7 @@ Return JSON only.`;
    */
   async executeServiceWorkflow(config, options = {}) {
     console.log('   Creating service configuration...');
-    
+
     const serviceName = config.name || 'GeneratedService';
     const serviceConfig = {
       name: serviceName,
@@ -407,13 +410,16 @@ Return JSON only.`;
       endpoints: config.endpoints || [],
       handlers: config.handlers || [],
       database: config.database || null,
-      dependencies: config.dependencies || []
+      dependencies: config.dependencies || [],
     };
 
     // Generate service template
     const serviceTemplate = this.generateServiceTemplate(serviceConfig);
-    
-    const servicePath = path.join('./services/generated', `${serviceName.toLowerCase()}-service.js`);
+
+    const servicePath = path.join(
+      './services/generated',
+      `${serviceName.toLowerCase()}-service.js`
+    );
     await fs.mkdir(path.dirname(servicePath), { recursive: true });
     await fs.writeFile(servicePath, serviceTemplate);
 
@@ -422,7 +428,7 @@ Return JSON only.`;
       serviceName,
       config: serviceConfig,
       servicePath,
-      success: true
+      success: true,
     };
   }
 
@@ -431,7 +437,7 @@ Return JSON only.`;
    */
   async executeCustomWorkflow(config, options = {}) {
     console.log('   Executing custom workflow...');
-    
+
     const workflowName = config.name || 'GeneratedWorkflow';
     const workflowConfig = {
       id: `workflow-${workflowName.toLowerCase()}`,
@@ -439,7 +445,7 @@ Return JSON only.`;
       description: config.description,
       tasks: config.tasks || [],
       triggers: config.triggers || [],
-      config: config.workflowConfig || {}
+      config: config.workflowConfig || {},
     };
 
     const workflowPath = path.join(this.config.workflowsDir, `${workflowName.toLowerCase()}.json`);
@@ -450,7 +456,7 @@ Return JSON only.`;
       workflowName,
       config: workflowConfig,
       workflowPath,
-      success: true
+      success: true,
     };
   }
 
@@ -459,7 +465,7 @@ Return JSON only.`;
    */
   async executeGenericWorkflow(config, options = {}) {
     console.log('   Executing generic workflow...');
-    
+
     // Save configuration for manual review
     const configPath = path.join(this.config.workflowsDir, `generic-${Date.now()}.json`);
     await fs.writeFile(configPath, JSON.stringify(config, null, 2));
@@ -469,7 +475,7 @@ Return JSON only.`;
       config,
       configPath,
       message: 'Configuration saved for manual review',
-      success: true
+      success: true,
     };
   }
 
@@ -482,7 +488,7 @@ Return JSON only.`;
       name: intent.entities?.name || 'Unknown',
       description: intent.entities?.purpose || 'No description',
       generatedFrom: intent,
-      fallback: true
+      fallback: true,
     };
   }
 
@@ -535,8 +541,9 @@ if (import.meta.url === \`file://\${process.argv[1]}\`) {
    * Get workflow status
    */
   getWorkflowStatus(workflowId) {
-    return this.activeWorkflows.get(workflowId) || 
-           this.workflowHistory.find(w => w.id === workflowId);
+    return (
+      this.activeWorkflows.get(workflowId) || this.workflowHistory.find(w => w.id === workflowId)
+    );
   }
 
   /**
@@ -568,18 +575,22 @@ if (import.meta.url === \`file://\${process.argv[1]}\`) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const orchestrator = new AgentWorkflowOrchestrator();
   await orchestrator.initialize();
-  
+
   const prompt = process.argv.slice(2).join(' ');
-  
+
   if (!prompt) {
     console.log('Usage: node agent-workflow-orchestrator.js <prompt>');
     console.log('\nExamples:');
-    console.log('  node agent-workflow-orchestrator.js "Create a button component with primary and secondary variants"');
+    console.log(
+      '  node agent-workflow-orchestrator.js "Create a button component with primary and secondary variants"'
+    );
     console.log('  node agent-workflow-orchestrator.js "Generate a dashboard for user analytics"');
-    console.log('  node agent-workflow-orchestrator.js "Create a service for managing user authentication"');
+    console.log(
+      '  node agent-workflow-orchestrator.js "Create a service for managing user authentication"'
+    );
     process.exit(1);
   }
-  
+
   try {
     const result = await orchestrator.executeFromPrompt(prompt);
     console.log('\n📋 Result:', JSON.stringify(result, null, 2));
@@ -587,7 +598,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.error('\n❌ Error:', error.message);
     process.exit(1);
   }
-  
+
   await orchestrator.cleanup();
   process.exit(0);
 }

@@ -8,10 +8,10 @@ import { z } from 'zod';
 // User Type Enums
 // =====================================================
 export const UserTypeEnum = z.enum([
-  'deepseek_user',    // DeepSeek AI service users
-  'admin_user',       // System administrators
-  'paid_plan_user',   // Paid subscription users
-  'free_plan_user',   // Free tier users
+  'deepseek_user', // DeepSeek AI service users
+  'admin_user', // System administrators
+  'paid_plan_user', // Paid subscription users
+  'free_plan_user', // Free tier users
 ]);
 
 export const PlanTierEnum = z.enum([
@@ -22,13 +22,7 @@ export const PlanTierEnum = z.enum([
   'deepseek_premium',
 ]);
 
-export const UserRoleEnum = z.enum([
-  'super_admin',
-  'admin',
-  'moderator',
-  'user',
-  'viewer',
-]);
+export const UserRoleEnum = z.enum(['super_admin', 'admin', 'moderator', 'user', 'viewer']);
 
 // =====================================================
 // Service Configuration Schema
@@ -36,12 +30,14 @@ export const UserRoleEnum = z.enum([
 export const ServiceConfigSchema = z.object({
   serviceName: z.string(),
   enabled: z.boolean().default(true),
-  limits: z.object({
-    requestsPerDay: z.number().int().positive().optional(),
-    requestsPerMinute: z.number().int().positive().optional(),
-    maxConcurrentRequests: z.number().int().positive().optional(),
-    storageQuotaMB: z.number().int().positive().optional(),
-  }).optional(),
+  limits: z
+    .object({
+      requestsPerDay: z.number().int().positive().optional(),
+      requestsPerMinute: z.number().int().positive().optional(),
+      maxConcurrentRequests: z.number().int().positive().optional(),
+      storageQuotaMB: z.number().int().positive().optional(),
+    })
+    .optional(),
   features: z.array(z.string()).default([]),
   priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
   metadata: z.record(z.unknown()).optional(),
@@ -74,22 +70,24 @@ export const WorkflowConfigSchema = z.object({
 export const UserConfigSchema = z.object({
   // Service configurations
   services: z.array(ServiceConfigSchema).default([]),
-  
+
   // Workflow configurations
   workflows: z.array(WorkflowConfigSchema).default([]),
-  
+
   // AI/ML configurations
-  aiConfig: z.object({
-    enableAI: z.boolean().default(false),
-    models: z.array(z.string()).default([]),
-    maxTokensPerRequest: z.number().int().positive().optional(),
-    temperature: z.number().min(0).max(2).optional(),
-    contextWindowSize: z.number().int().positive().optional(),
-  }).optional(),
-  
+  aiConfig: z
+    .object({
+      enableAI: z.boolean().default(false),
+      models: z.array(z.string()).default([]),
+      maxTokensPerRequest: z.number().int().positive().optional(),
+      temperature: z.number().min(0).max(2).optional(),
+      contextWindowSize: z.number().int().positive().optional(),
+    })
+    .optional(),
+
   // Feature flags
   features: z.record(z.boolean()).default({}),
-  
+
   // Quota and limits
   quotas: z.object({
     storageGB: z.number().int().positive(),
@@ -97,7 +95,7 @@ export const UserConfigSchema = z.object({
     workflowExecutionsPerDay: z.number().int().positive(),
     maxConcurrentWorkflows: z.number().int().positive(),
   }),
-  
+
   // Billing configuration
   billing: z.object({
     subscriptionId: z.string().optional(),
@@ -106,20 +104,24 @@ export const UserConfigSchema = z.object({
     autoRenew: z.boolean().default(true),
     paymentMethod: z.string().optional(),
   }),
-  
+
   // Preferences
-  preferences: z.object({
-    theme: z.enum(['light', 'dark', 'auto']).default('auto'),
-    language: z.string().default('en'),
-    timezone: z.string().default('UTC'),
-    notifications: z.object({
-      email: z.boolean().default(true),
-      sms: z.boolean().default(false),
-      push: z.boolean().default(true),
-      workflow: z.boolean().default(true),
-    }).default({}),
-  }).default({}),
-  
+  preferences: z
+    .object({
+      theme: z.enum(['light', 'dark', 'auto']).default('auto'),
+      language: z.string().default('en'),
+      timezone: z.string().default('UTC'),
+      notifications: z
+        .object({
+          email: z.boolean().default(true),
+          sms: z.boolean().default(false),
+          push: z.boolean().default(true),
+          workflow: z.boolean().default(true),
+        })
+        .default({}),
+    })
+    .default({}),
+
   // Custom metadata
   metadata: z.record(z.unknown()).default({}),
 });
@@ -132,32 +134,32 @@ export const UserSchema = z.object({
   email: z.string().email(),
   username: z.string().min(3).max(50).optional(),
   name: z.string().min(2).max(100),
-  
+
   // User type and role
   userType: UserTypeEnum,
   role: UserRoleEnum.default('user'),
-  
+
   // Plan information
   planTier: PlanTierEnum,
-  
+
   // User configuration - defines available services and workflows
   config: UserConfigSchema,
-  
+
   // Authentication
   passwordHash: z.string().optional(), // Optional for OAuth users
   lastLogin: z.date().optional(),
   emailVerified: z.boolean().default(false),
   phoneVerified: z.boolean().default(false),
   twoFactorEnabled: z.boolean().default(false),
-  
+
   // Status
   status: z.enum(['active', 'inactive', 'suspended', 'pending']).default('active'),
-  
+
   // Audit fields
   createdAt: z.date(),
   updatedAt: z.date(),
   lastModifiedBy: z.string().uuid().optional(),
-  
+
   // Additional metadata
   avatar: z.string().url().optional(),
   metadata: z.record(z.unknown()).optional(),
@@ -177,7 +179,7 @@ export const DeepSeekUserSchema = UserSchema.extend({
       maxTokensPerRequest: z.number().int().positive(),
       temperature: z.number().min(0).max(2).default(0.7),
       contextWindowSize: z.number().int().positive().default(4096),
-      preferredModel: z.string().default('deepseek-chat'),
+      preferredModel: z.string().default('deepseek-reasoner'),
     }),
     services: z.array(ServiceConfigSchema).min(1), // Must have at least one service
   }),
@@ -188,15 +190,17 @@ export const AdminUserSchema = UserSchema.extend({
   userType: z.literal('admin_user'),
   role: z.enum(['super_admin', 'admin']),
   config: UserConfigSchema.extend({
-    workflows: z.array(WorkflowConfigSchema.extend({
-      permissions: z.object({
-        canCreate: z.literal(true),
-        canRead: z.literal(true),
-        canUpdate: z.literal(true),
-        canDelete: z.literal(true),
-        canExecute: z.literal(true),
-      }),
-    })),
+    workflows: z.array(
+      WorkflowConfigSchema.extend({
+        permissions: z.object({
+          canCreate: z.literal(true),
+          canRead: z.literal(true),
+          canUpdate: z.literal(true),
+          canDelete: z.literal(true),
+          canExecute: z.literal(true),
+        }),
+      })
+    ),
   }),
 });
 
@@ -316,7 +320,7 @@ export function getDefaultUserConfig(userType: UserType, planTier: PlanTier): Us
         ],
         aiConfig: {
           enableAI: true,
-          models: ['deepseek-chat', 'deepseek-coder'],
+          models: ['deepseek-reasoner', 'deepseek-chat', 'deepseek-coder'],
           maxTokensPerRequest: planTier === 'free' ? 1000 : 10000,
           temperature: 0.7,
           contextWindowSize: 4096,
@@ -349,8 +353,10 @@ export function getDefaultUserConfig(userType: UserType, planTier: PlanTier): Us
         ...baseConfig,
         quotas: {
           storageGB: planTier === 'basic' ? 10 : planTier === 'professional' ? 50 : 500,
-          apiCallsPerDay: planTier === 'basic' ? 1000 : planTier === 'professional' ? 10000 : 100000,
-          workflowExecutionsPerDay: planTier === 'basic' ? 100 : planTier === 'professional' ? 1000 : 10000,
+          apiCallsPerDay:
+            planTier === 'basic' ? 1000 : planTier === 'professional' ? 10000 : 100000,
+          workflowExecutionsPerDay:
+            planTier === 'basic' ? 100 : planTier === 'professional' ? 1000 : 10000,
           maxConcurrentWorkflows: planTier === 'basic' ? 5 : planTier === 'professional' ? 20 : 100,
         },
         features: {

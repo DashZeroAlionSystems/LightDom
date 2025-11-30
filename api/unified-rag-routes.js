@@ -1,13 +1,13 @@
 /**
  * Unified RAG API Router
- * 
+ *
  * Clean, unified API for the RAG system that integrates directly with
  * the PromptInput component and provides:
  * - Streaming chat with context
  * - Document indexing (Docling-style)
  * - Database and codebase access
  * - Health monitoring
- * 
+ *
  * @module api/unified-rag-routes
  */
 
@@ -21,20 +21,30 @@ import { createUnifiedRAGService } from '../services/rag/unified-rag-service.js'
 export function createUnifiedRAGRouter(options = {}) {
   const router = express.Router();
   const { db, logger = console } = options;
-  
+
   // Allowed file types for security
   const ALLOWED_FILE_TYPES = [
-    'text/plain', 'text/markdown', 'text/x-markdown',
-    'application/json', 'application/javascript',
-    'text/javascript', 'text/typescript',
-    'text/html', 'text/css',
+    'text/plain',
+    'text/markdown',
+    'text/x-markdown',
+    'application/json',
+    'application/javascript',
+    'text/javascript',
+    'text/typescript',
+    'text/html',
+    'text/css',
   ];
-  
+
   const ALLOWED_IMAGE_TYPES = [
-    'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif',
-    'image/tiff', 'image/bmp',
+    'image/png',
+    'image/jpeg',
+    'image/jpg',
+    'image/webp',
+    'image/gif',
+    'image/tiff',
+    'image/bmp',
   ];
-  
+
   // Docling-supported document types
   const ALLOWED_DOCUMENT_TYPES = [
     'application/pdf',
@@ -43,7 +53,7 @@ export function createUnifiedRAGRouter(options = {}) {
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
     'text/asciidoc',
   ];
-  
+
   // File filter for validation (includes Docling formats)
   const fileFilter = (req, file, cb) => {
     const allAllowed = [...ALLOWED_FILE_TYPES, ...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOCUMENT_TYPES];
@@ -54,7 +64,7 @@ export function createUnifiedRAGRouter(options = {}) {
       cb(new Error(`File type not allowed: ${file.mimetype}`), false);
     }
   };
-  
+
   // Configure multer for file uploads with security
   const upload = multer({
     storage: multer.memoryStorage(),
@@ -64,15 +74,15 @@ export function createUnifiedRAGRouter(options = {}) {
     },
     fileFilter,
   });
-  
+
   // Initialize RAG service
   let ragService = null;
   let initializationPromise = null;
-  
+
   const initializeService = async () => {
     if (ragService) return ragService;
     if (initializationPromise) return initializationPromise;
-    
+
     initializationPromise = (async () => {
       ragService = createUnifiedRAGService({
         db,
@@ -91,15 +101,15 @@ export function createUnifiedRAGRouter(options = {}) {
           },
         },
       });
-      
+
       await ragService.initialize();
       logger.info('✅ Unified RAG service initialized');
       return ragService;
     })();
-    
+
     return initializationPromise;
   };
-  
+
   // Middleware to ensure service is initialized
   const ensureInitialized = async (req, res, next) => {
     try {
@@ -113,14 +123,14 @@ export function createUnifiedRAGRouter(options = {}) {
       });
     }
   };
-  
+
   // Apply to all routes
   router.use(ensureInitialized);
 
   /**
    * POST /chat
    * Main chat endpoint - integrates with PromptInput
-   * 
+   *
    * Body: {
    *   prompt: string,           // User's prompt
    *   conversationId?: string,  // For conversation continuity
@@ -143,18 +153,18 @@ export function createUnifiedRAGRouter(options = {}) {
         maxTokens,
         topK,
       } = req.body;
-      
+
       if (!prompt || typeof prompt !== 'string') {
         return res.status(400).json({ error: 'prompt is required' });
       }
-      
+
       if (stream) {
         // Streaming response
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
         res.flushHeaders?.();
-        
+
         try {
           for await (const event of ragService.streamChat(prompt, {
             conversationId,
@@ -167,7 +177,7 @@ export function createUnifiedRAGRouter(options = {}) {
           })) {
             res.write(`data: ${JSON.stringify(event)}\n\n`);
           }
-          
+
           res.write('data: [DONE]\n\n');
           res.end();
         } catch (error) {
@@ -185,7 +195,7 @@ export function createUnifiedRAGRouter(options = {}) {
           maxTokens,
           topK,
         });
-        
+
         res.json({
           status: 'ok',
           ...result,
@@ -214,19 +224,19 @@ export function createUnifiedRAGRouter(options = {}) {
         maxTokens,
         topK,
       } = req.body;
-      
+
       // Support both prompt and messages format
       const userPrompt = prompt || messages?.find(m => m.role === 'user')?.content;
-      
+
       if (!userPrompt) {
         return res.status(400).json({ error: 'prompt or messages with user role required' });
       }
-      
+
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
       res.flushHeaders?.();
-      
+
       try {
         for await (const event of ragService.streamChat(userPrompt, {
           conversationId,
@@ -239,7 +249,7 @@ export function createUnifiedRAGRouter(options = {}) {
         })) {
           res.write(`data: ${JSON.stringify(event)}\n\n`);
         }
-        
+
         res.write('data: [DONE]\n\n');
         res.end();
       } catch (error) {
@@ -247,7 +257,7 @@ export function createUnifiedRAGRouter(options = {}) {
         res.write(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`);
         res.end();
       }
-      
+
       req.on('close', () => {
         try {
           res.end();
@@ -268,18 +278,18 @@ export function createUnifiedRAGRouter(options = {}) {
   router.post('/index', async (req, res) => {
     try {
       const { content, documentId, title, type, metadata } = req.body;
-      
+
       if (!content) {
         return res.status(400).json({ error: 'content is required' });
       }
-      
+
       const result = await ragService.indexDocument(content, {
         documentId,
         title,
         type,
         metadata,
       });
-      
+
       res.json({
         status: 'ok',
         ...result,
@@ -299,10 +309,10 @@ export function createUnifiedRAGRouter(options = {}) {
       if (!req.file) {
         return res.status(400).json({ error: 'file is required' });
       }
-      
+
       const content = req.file.buffer.toString('utf-8');
       const title = req.body.title || req.file.originalname;
-      
+
       const result = await ragService.indexDocument(content, {
         documentId: req.body.documentId,
         title,
@@ -313,7 +323,7 @@ export function createUnifiedRAGRouter(options = {}) {
           size: req.file.size,
         },
       });
-      
+
       res.json({
         status: 'ok',
         ...result,
@@ -336,12 +346,12 @@ export function createUnifiedRAGRouter(options = {}) {
         exclude = ['node_modules', 'dist', '.git', 'build', 'coverage'],
         maxFiles = 100,
       } = req.body || {};
-      
+
       const fs = await import('fs/promises');
       const path = await import('path');
-      
+
       // Extract file extensions from glob patterns
-      const getExtensions = (patternList) => {
+      const getExtensions = patternList => {
         return patternList
           .filter(p => p.includes('*.'))
           .map(p => {
@@ -350,30 +360,30 @@ export function createUnifiedRAGRouter(options = {}) {
           })
           .filter(Boolean);
       };
-      
+
       const validExtensions = getExtensions(patterns);
-      
+
       // Simple recursive file finder
-      const findFiles = async (dir) => {
+      const findFiles = async dir => {
         const files = [];
-        
-        const walkDir = async (currentDir) => {
+
+        const walkDir = async currentDir => {
           try {
             const entries = await fs.readdir(currentDir, { withFileTypes: true });
-            
+
             for (const entry of entries) {
               const fullPath = path.join(currentDir, entry.name);
               const relativePath = path.relative(rootDir, fullPath);
-              
+
               // Check exclusions
               if (exclude.some(ex => relativePath.includes(ex))) continue;
-              
+
               if (entry.isDirectory()) {
                 await walkDir(fullPath);
               } else if (entry.isFile()) {
                 // Check if file extension matches any pattern
                 const ext = path.extname(entry.name);
-                
+
                 if (validExtensions.includes(ext)) {
                   files.push(fullPath);
                   if (files.length >= maxFiles) return;
@@ -384,20 +394,20 @@ export function createUnifiedRAGRouter(options = {}) {
             logger.warn(`Failed to read directory ${currentDir}:`, error.message);
           }
         };
-        
+
         await walkDir(dir);
         return files;
       };
-      
+
       const files = await findFiles(rootDir);
       let indexed = 0;
       const errors = [];
-      
+
       for (const filePath of files.slice(0, maxFiles)) {
         try {
           const content = await fs.readFile(filePath, 'utf-8');
           const relativePath = path.relative(rootDir, filePath);
-          
+
           await ragService.indexDocument(content, {
             documentId: `codebase:${relativePath}`,
             title: relativePath,
@@ -407,13 +417,13 @@ export function createUnifiedRAGRouter(options = {}) {
               absolutePath: filePath,
             },
           });
-          
+
           indexed++;
         } catch (error) {
           errors.push({ path: filePath, error: error.message });
         }
       }
-      
+
       res.json({
         status: 'ok',
         filesFound: files.length,
@@ -433,13 +443,13 @@ export function createUnifiedRAGRouter(options = {}) {
   router.post('/search', async (req, res) => {
     try {
       const { query, limit = 5, minScore } = req.body;
-      
+
       if (!query) {
         return res.status(400).json({ error: 'query is required' });
       }
-      
+
       const results = await ragService.search(query, { limit, minScore });
-      
+
       res.json({
         status: 'ok',
         results,
@@ -456,11 +466,11 @@ export function createUnifiedRAGRouter(options = {}) {
    */
   router.get('/conversation/:id', (req, res) => {
     const conversation = ragService.getConversation(req.params.id);
-    
+
     if (!conversation) {
       return res.status(404).json({ error: 'Conversation not found' });
     }
-    
+
     res.json({
       status: 'ok',
       conversation,
@@ -473,7 +483,7 @@ export function createUnifiedRAGRouter(options = {}) {
    */
   router.delete('/conversation/:id', (req, res) => {
     ragService.clearConversation(req.params.id);
-    
+
     res.json({
       status: 'ok',
       message: 'Conversation cleared',
@@ -487,10 +497,10 @@ export function createUnifiedRAGRouter(options = {}) {
   router.get('/health', async (req, res) => {
     try {
       const health = await ragService.healthCheck();
-      
-      const statusCode = health.status === 'healthy' ? 200 :
-                         health.status === 'degraded' ? 206 : 503;
-      
+
+      const statusCode =
+        health.status === 'healthy' ? 200 : health.status === 'degraded' ? 206 : 503;
+
       res.status(statusCode).json(health);
     } catch (error) {
       res.status(503).json({
@@ -501,12 +511,35 @@ export function createUnifiedRAGRouter(options = {}) {
   });
 
   /**
+   * POST /reinitialize
+   * Force reinitialization of the unified RAG service
+   */
+  router.post('/reinitialize', async (req, res) => {
+    try {
+      await initializeService();
+      await ragService.initialize();
+
+      res.json({
+        status: 'ok',
+        message: 'Unified RAG service reinitialized',
+      });
+    } catch (error) {
+      logger.error('RAG reinitialization failed:', error);
+      res.status(500).json({
+        status: 'error',
+        error: 'Failed to reinitialize RAG service',
+        details: error.message,
+      });
+    }
+  });
+
+  /**
    * GET /config
    * Get current configuration
    */
   router.get('/config', (req, res) => {
     const config = ragService.getConfig();
-    
+
     // Don't expose sensitive data
     const safeConfig = {
       llm: {
@@ -521,7 +554,7 @@ export function createUnifiedRAGRouter(options = {}) {
         topK: config.vectorStore.topK,
       },
     };
-    
+
     res.json({
       status: 'ok',
       config: safeConfig,
@@ -535,19 +568,19 @@ export function createUnifiedRAGRouter(options = {}) {
   router.post('/config', (req, res) => {
     try {
       const updates = req.body;
-      
+
       // Validate updates
       const allowedKeys = ['llm', 'embedding', 'processing', 'vectorStore', 'context'];
       const filteredUpdates = {};
-      
+
       for (const key of Object.keys(updates)) {
         if (allowedKeys.includes(key)) {
           filteredUpdates[key] = updates[key];
         }
       }
-      
+
       ragService.updateConfig(filteredUpdates);
-      
+
       res.json({
         status: 'ok',
         message: 'Configuration updated',
@@ -565,18 +598,18 @@ export function createUnifiedRAGRouter(options = {}) {
     try {
       const config = ragService.getConfig();
       const ollamaEndpoint = config.endpoints.ollama;
-      
+
       const response = await fetch(`${ollamaEndpoint}/api/tags`);
-      
+
       if (!response.ok) {
         return res.status(502).json({
           error: 'Failed to fetch models from Ollama',
           status: response.status,
         });
       }
-      
+
       const data = await response.json();
-      
+
       res.json({
         status: 'ok',
         models: data.models || [],
@@ -603,7 +636,7 @@ export function createUnifiedRAGRouter(options = {}) {
       if (!req.file) {
         return res.status(400).json({ error: 'image file is required' });
       }
-      
+
       const result = await ragService.indexImage(req.file.buffer, {
         documentId: req.body.documentId,
         title: req.body.title || req.file.originalname,
@@ -614,14 +647,14 @@ export function createUnifiedRAGRouter(options = {}) {
           size: req.file.size,
         },
       });
-      
+
       if (!result.success && result.error) {
         return res.status(422).json({
           status: 'error',
           error: result.error,
         });
       }
-      
+
       res.json({
         status: 'ok',
         ...result,
@@ -639,11 +672,11 @@ export function createUnifiedRAGRouter(options = {}) {
   router.post('/search/hybrid', async (req, res) => {
     try {
       const { query, limit = 5, semanticWeight, keywordWeight, minScore } = req.body;
-      
+
       if (!query) {
         return res.status(400).json({ error: 'query is required' });
       }
-      
+
       const results = await ragService.search(query, {
         limit,
         hybrid: true,
@@ -651,7 +684,7 @@ export function createUnifiedRAGRouter(options = {}) {
         keywordWeight,
         minScore,
       });
-      
+
       res.json({
         status: 'ok',
         results,
@@ -670,7 +703,7 @@ export function createUnifiedRAGRouter(options = {}) {
   router.get('/document/:id/versions', async (req, res) => {
     try {
       const versions = await ragService.getDocumentVersions(req.params.id);
-      
+
       res.json({
         status: 'ok',
         documentId: req.params.id,
@@ -789,13 +822,13 @@ export function createUnifiedRAGRouter(options = {}) {
   router.post('/agent/execute', async (req, res) => {
     try {
       const { task, context } = req.body;
-      
+
       if (!task) {
         return res.status(400).json({ error: 'task is required' });
       }
-      
+
       const result = await ragService.executeAgentTask(task, { context });
-      
+
       res.json({
         status: result.success ? 'ok' : 'error',
         ...result,
@@ -813,28 +846,28 @@ export function createUnifiedRAGRouter(options = {}) {
   router.post('/agent/stream', async (req, res) => {
     try {
       const { task, context } = req.body;
-      
+
       if (!task) {
         return res.status(400).json({ error: 'task is required' });
       }
-      
+
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
       res.flushHeaders?.();
-      
+
       try {
         for await (const event of ragService.streamAgentTask(task, { context })) {
           res.write(`data: ${JSON.stringify(event)}\n\n`);
         }
-        
+
         res.write('data: [DONE]\n\n');
         res.end();
       } catch (error) {
         res.write(`data: ${JSON.stringify({ type: 'error', error: error.message })}\n\n`);
         res.end();
       }
-      
+
       req.on('close', () => {
         try {
           res.end();
@@ -855,7 +888,7 @@ export function createUnifiedRAGRouter(options = {}) {
   router.get('/features', async (req, res) => {
     try {
       const config = ragService.getConfig();
-      
+
       res.json({
         status: 'ok',
         features: {
@@ -894,15 +927,15 @@ export function createUnifiedRAGRouter(options = {}) {
  */
 function detectFileType(filename) {
   const ext = filename.split('.').pop()?.toLowerCase();
-  
+
   const codeExtensions = ['js', 'ts', 'tsx', 'jsx', 'py', 'java', 'go', 'rs', 'cpp', 'c', 'h'];
   const markdownExtensions = ['md', 'mdx'];
   const jsonExtensions = ['json', 'jsonc'];
-  
+
   if (codeExtensions.includes(ext)) return 'code';
   if (markdownExtensions.includes(ext)) return 'markdown';
   if (jsonExtensions.includes(ext)) return 'json';
-  
+
   return 'text';
 }
 

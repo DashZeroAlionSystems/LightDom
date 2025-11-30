@@ -2,7 +2,6 @@
   "name": "Advanced Data Mining Configuration",
   "version": "1.0.0",
   "description": "Comprehensive data mining configuration with headless browser support, URL seeding, and schema-driven workflows",
-  
   "browserPool": {
     "minBrowsers": 2,
     "maxBrowsers": 10,
@@ -14,7 +13,6 @@
     "enableGPU": false,
     "headless": true
   },
-
   "orchestrator": {
     "maxConcurrentInstances": 5,
     "enableURLSeeding": true,
@@ -29,7 +27,6 @@
       "followExternalLinks": false
     }
   },
-
   "urlSeeding": {
     "maxSeedsPerInstance": 1000,
     "seedRefreshInterval": 3600000,
@@ -39,7 +36,6 @@
     "enableRelatedURLDiscovery": true,
     "enableBacklinkGeneration": true
   },
-
   "services": {
     "default": [
       {
@@ -75,7 +71,6 @@
       }
     ]
   },
-
   "miningInstances": {
     "seo-content": {
       "name": "SEO Content Mining",
@@ -83,7 +78,11 @@
       "seedUrls": [],
       "enableAutoSeeding": true,
       "topic": "seo-optimization",
-      "customScrapers": ["seo-metadata", "performance-metrics", "accessibility"],
+      "customScrapers": [
+        "seo-metadata",
+        "performance-metrics",
+        "accessibility"
+      ],
       "enable3DLayer": false,
       "schedule": {
         "enabled": true,
@@ -97,7 +96,9 @@
       "seedUrls": [],
       "enableAutoSeeding": true,
       "topic": "e-commerce-products",
-      "customScrapers": ["seo-metadata"],
+      "customScrapers": [
+        "seo-metadata"
+      ],
       "enable3DLayer": false,
       "schedule": {
         "enabled": true,
@@ -111,22 +112,26 @@
       "seedUrls": [],
       "enableAutoSeeding": false,
       "topic": "ui-design-patterns",
-      "customScrapers": ["accessibility"],
+      "customScrapers": [
+        "accessibility"
+      ],
       "enable3DLayer": true,
       "schedule": {
         "enabled": false
       }
     }
   },
-
   "dataBundling": {
     "enableTopicBundling": true,
     "bundleByAttributes": true,
-    "exportFormats": ["json", "csv", "jsonl"],
+    "exportFormats": [
+      "json",
+      "csv",
+      "jsonl"
+    ],
     "compression": true,
     "includeMetadata": true
   },
-
   "chromeLayers": {
     "enableLayerAnalysis": true,
     "captureLayerTree": true,
@@ -134,7 +139,6 @@
     "extract3DTransforms": true,
     "captureZIndexHierarchy": true
   },
-
   "devTools": {
     "enablePerformanceMonitoring": true,
     "enableNetworkMonitoring": true,
@@ -143,7 +147,6 @@
     "captureConsoleErrors": true,
     "captureNetworkErrors": true
   },
-
   "seoDataMining": {
     "extractMetaTags": true,
     "extractStructuredData": true,
@@ -156,7 +159,6 @@
     "calculatePageSpeed": true,
     "analyzeMobileResponsiveness": true
   },
-
   "customScrapers": {
     "seo-metadata": {
       "enabled": true,
@@ -191,25 +193,22 @@
       "analyzeCompositing": true
     }
   },
-
   "knowledgeGraph": {
     "enableGeneration": true,
     "autoLinkSchemas": true,
     "generateRelationships": true,
     "exportFormat": "json-ld"
   },
-
   "deepSeek": {
     "enabled": false,
     "apiKey": "${DEEPSEEK_API_KEY}",
-    "model": "deepseek-chat",
+    "model": "deepseek-reasoner",
     "enableSchemaGeneration": true,
     "enableWorkflowSimulation": true,
     "enableDecisionMaking": true,
     "temperature": 0.7,
     "maxTokens": 4000
   },
-
   "simulation": {
     "enableWorkflowSimulation": true,
     "simulateBeforeExecution": false,
@@ -217,7 +216,6 @@
     "estimateDuration": true,
     "validateConfiguration": true
   },
-
   "export": {
     "defaultFormat": "json",
     "includeMetadata": true,
@@ -226,7 +224,6 @@
     "compression": "gzip",
     "outputDirectory": "./data-mining-output"
   },
-
   "logging": {
     "level": "info",
     "logToFile": true,
@@ -234,7 +231,6 @@
     "includeTimestamp": true,
     "includeStackTrace": true
   },
-
   "monitoring": {
     "enableMetrics": true,
     "metricsInterval": 60000,
@@ -244,7 +240,6 @@
     "trackDataBundles": true,
     "emitEvents": true
   },
-
   "errorHandling": {
     "maxRetries": 3,
     "retryDelay": 5000,

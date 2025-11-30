@@ -17,6 +17,7 @@ This document describes the enhanced user schema system that separates users by 
 **Purpose:** Users focused on AI/ML services with DeepSeek integration
 
 **Default Configuration:**
+
 ```typescript
 {
   userType: 'deepseek_user',
@@ -37,11 +38,11 @@ This document describes the enhanced user schema system that separates users by 
     ],
     aiConfig: {
       enableAI: true,
-      models: ['deepseek-chat', 'deepseek-coder'],
+      models: ['deepseek-reasoner', 'deepseek-chat', 'deepseek-coder'],
       maxTokensPerRequest: 10000,
       temperature: 0.7,
       contextWindowSize: 4096,
-      preferredModel: 'deepseek-chat'
+      preferredModel: 'deepseek-reasoner'
     },
     quotas: {
       storageGB: 100,
@@ -54,6 +55,7 @@ This document describes the enhanced user schema system that separates users by 
 ```
 
 **Services Available:**
+
 - `deepseek-ai` - AI chat and code generation
 - `workflow-automation` - Automated workflows
 - `analytics` - Usage analytics
@@ -64,6 +66,7 @@ This document describes the enhanced user schema system that separates users by 
 **Purpose:** System administrators with full access
 
 **Default Configuration:**
+
 ```typescript
 {
   userType: 'admin_user',
@@ -107,6 +110,7 @@ This document describes the enhanced user schema system that separates users by 
 **Purpose:** Users with paid subscription (Basic, Professional, Enterprise)
 
 **Default Configuration (Professional):**
+
 ```typescript
 {
   userType: 'paid_plan_user',
@@ -140,6 +144,7 @@ This document describes the enhanced user schema system that separates users by 
 **Purpose:** Users on free tier with limited features
 
 **Default Configuration:**
+
 ```typescript
 {
   userType: 'free_plan_user',
@@ -169,15 +174,15 @@ This document describes the enhanced user schema system that separates users by 
 
 ```typescript
 interface ServiceConfig {
-  serviceName: string;           // Unique service identifier
-  enabled: boolean;              // Is service enabled for user
+  serviceName: string; // Unique service identifier
+  enabled: boolean; // Is service enabled for user
   limits?: {
-    requestsPerDay?: number;     // Daily request limit
-    requestsPerMinute?: number;  // Rate limiting
+    requestsPerDay?: number; // Daily request limit
+    requestsPerMinute?: number; // Rate limiting
     maxConcurrentRequests?: number;
-    storageQuotaMB?: number;     // Service-specific storage
+    storageQuotaMB?: number; // Service-specific storage
   };
-  features: string[];            // Enabled features
+  features: string[]; // Enabled features
   priority: 'low' | 'medium' | 'high' | 'critical';
   metadata?: Record<string, any>;
 }
@@ -187,10 +192,10 @@ interface ServiceConfig {
 
 ```typescript
 interface WorkflowConfig {
-  workflowId: string;            // UUID of workflow template
-  workflowName: string;          // Human-readable name
-  enabled: boolean;              // Is workflow accessible
-  autoExecute: boolean;          // Auto-execute on triggers
+  workflowId: string; // UUID of workflow template
+  workflowName: string; // Human-readable name
+  enabled: boolean; // Is workflow accessible
+  autoExecute: boolean; // Auto-execute on triggers
   permissions: {
     canCreate: boolean;
     canRead: boolean;
@@ -198,8 +203,8 @@ interface WorkflowConfig {
     canDelete: boolean;
     canExecute: boolean;
   };
-  triggers?: string[];           // Event triggers
-  schedule?: string;             // Cron expression for scheduling
+  triggers?: string[]; // Event triggers
+  schedule?: string; // Cron expression for scheduling
   metadata?: Record<string, any>;
 }
 ```
@@ -208,8 +213,8 @@ interface WorkflowConfig {
 
 ```typescript
 interface UserConfig {
-  services: ServiceConfig[];     // Enabled services
-  workflows: WorkflowConfig[];   // Accessible workflows
+  services: ServiceConfig[]; // Enabled services
+  workflows: WorkflowConfig[]; // Accessible workflows
   aiConfig?: {
     enableAI: boolean;
     models: string[];
@@ -217,7 +222,7 @@ interface UserConfig {
     temperature?: number;
     contextWindowSize?: number;
   };
-  features: Record<string, boolean>;  // Feature flags
+  features: Record<string, boolean>; // Feature flags
   quotas: {
     storageGB: number;
     apiCallsPerDay: number;
@@ -255,21 +260,25 @@ interface UserConfig {
 When creating a new user, services are automatically assigned based on user type:
 
 **DeepSeek Users:**
+
 - Always get `deepseek-ai` service
 - AI config is mandatory and pre-populated
 - Higher API call limits
 
 **Admin Users:**
+
 - Get ALL services by default
 - Full workflow permissions
 - Unlimited quotas
 
 **Paid Plan Users:**
+
 - Services based on plan tier
 - Professional and above get advanced features
 - Quotas scale with plan
 
 **Free Plan Users:**
+
 - Minimal service set
 - Restricted quotas
 - Limited workflow access
@@ -278,13 +287,13 @@ When creating a new user, services are automatically assigned based on user type
 
 Quotas are automatically set based on plan tier:
 
-| Plan Tier | Storage | API Calls/Day | Workflows/Day | Concurrent |
-|-----------|---------|---------------|---------------|------------|
-| Free | 1 GB | 100 | 10 | 1 |
-| Basic | 10 GB | 1,000 | 100 | 5 |
-| Professional | 50 GB | 10,000 | 1,000 | 20 |
-| Enterprise | 500 GB | 100,000 | 10,000 | 100 |
-| DeepSeek Premium | 100 GB | 20,000 | 2,000 | 20 |
+| Plan Tier        | Storage | API Calls/Day | Workflows/Day | Concurrent |
+| ---------------- | ------- | ------------- | ------------- | ---------- |
+| Free             | 1 GB    | 100           | 10            | 1          |
+| Basic            | 10 GB   | 1,000         | 100           | 5          |
+| Professional     | 50 GB   | 10,000        | 1,000         | 20         |
+| Enterprise       | 500 GB  | 100,000       | 10,000        | 100        |
+| DeepSeek Premium | 100 GB  | 20,000        | 2,000         | 20         |
 
 ### Rule 3: Service Availability by Plan
 
@@ -305,7 +314,7 @@ Workflows are available based on user type (stored in `workflow_templates.availa
 ```sql
 -- Example: Content Approval workflow
 INSERT INTO workflow_templates (name, available_for_user_types, available_for_plans) VALUES
-  ('Content Approval Pipeline', 
+  ('Content Approval Pipeline',
    '["admin_user", "paid_plan_user", "deepseek_user"]',
    '["professional", "enterprise", "deepseek_premium"]');
 ```
@@ -318,6 +327,7 @@ INSERT INTO workflow_templates (name, available_for_user_types, available_for_pl
 2. **Relational Tables (`user_services`, `user_workflows`)** - Normalized, queryable
 
 **When to use which:**
+
 - Use JSONB config for: Quick checks, preferences, feature flags
 - Use relational tables for: Complex queries, reporting, admin management
 
@@ -330,18 +340,18 @@ function canUserExecuteWorkflow(user: User, workflowId: string): boolean {
   // 1. Check if workflow is in user config
   const workflow = user.config.workflows.find(w => w.workflowId === workflowId);
   if (!workflow) return false;
-  
+
   // 2. Check if enabled
   if (!workflow.enabled) return false;
-  
+
   // 3. Check permissions
   if (!workflow.permissions.canExecute) return false;
-  
+
   // 4. Check quota
   if (user.workflowExecutionsToday >= user.config.quotas.workflowExecutionsPerDay) {
     return false;
   }
-  
+
   return true;
 }
 ```
@@ -364,8 +374,8 @@ function canUserExecuteWorkflow(user: User, workflowId: string): boolean {
   "features": ["chat", "completion", "embeddings", "code-generation"],
   "priority": "high",
   "metadata": {
-    "models": ["deepseek-chat", "deepseek-coder"],
-    "defaultModel": "deepseek-chat",
+    "models": ["deepseek-reasoner", "deepseek-chat", "deepseek-coder"],
+    "defaultModel": "deepseek-reasoner",
     "maxTokens": 4096,
     "temperature": 0.7
   }
@@ -477,13 +487,13 @@ async function upgradeUserPlan(userId: string, newPlan: PlanTier) {
       config: getDefaultUserConfig(user.userType, newPlan),
     },
   });
-  
+
   // 2. Update quotas
   const planLimits = await db.planTiers.findUnique({
     where: { tier_name: newPlan },
     select: { limits: true },
   });
-  
+
   await db.userQuotas.update({
     where: { user_id: userId },
     data: {
@@ -492,14 +502,14 @@ async function upgradeUserPlan(userId: string, newPlan: PlanTier) {
       workflow_executions_per_day: planLimits.limits.workflowExecutionsPerDay,
     },
   });
-  
+
   // 3. Enable additional services
   const availableServices = await db.services.findMany({
     where: {
       available_for_plans: { contains: newPlan },
     },
   });
-  
+
   for (const service of availableServices) {
     await db.userServices.upsert({
       where: { user_id_service_id: { user_id: userId, service_id: service.id } },
@@ -548,11 +558,11 @@ This implementation is based on:
 
 -- 2. Migrate existing users
 INSERT INTO users_enhanced (id, email, name, user_type, role, plan_tier, config, created_at, updated_at)
-SELECT 
+SELECT
   id,
   email,
   name,
-  CASE 
+  CASE
     WHEN role = 'admin' THEN 'admin_user'::VARCHAR
     ELSE 'free_plan_user'::VARCHAR
   END,

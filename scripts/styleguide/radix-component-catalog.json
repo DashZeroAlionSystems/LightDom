@@ -1,0 +1,662 @@
+[
+    {
+        "name": "accordion",
+        "displayName": "Accordion",
+        "category": "Disclosure",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/accordion",
+        "radixPackage": "@radix-ui/react-accordion",
+        "tags": [
+            "collapsible",
+            "layout",
+            "content"
+        ]
+    },
+    {
+        "name": "alert-dialog",
+        "displayName": "AlertDialog",
+        "category": "Feedback",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/alert-dialog",
+        "radixPackage": "@radix-ui/react-alert-dialog",
+        "tags": [
+            "modal",
+            "confirmation",
+            "blocking"
+        ]
+    },
+    {
+        "name": "alert",
+        "displayName": "Alert",
+        "category": "Feedback",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/alert",
+        "radixPackage": "@radix-ui/react-alert",
+        "tags": [
+            "status",
+            "feedback",
+            "inline"
+        ]
+    },
+    {
+        "name": "aspect-ratio",
+        "displayName": "AspectRatio",
+        "category": "Layout",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/aspect-ratio",
+        "radixPackage": "@radix-ui/react-aspect-ratio",
+        "tags": [
+            "media",
+            "layout",
+            "responsive"
+        ]
+    },
+    {
+        "name": "avatar",
+        "displayName": "Avatar",
+        "category": "Media",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/avatar",
+        "radixPackage": "@radix-ui/react-avatar",
+        "tags": [
+            "identity",
+            "profile",
+            "media"
+        ]
+    },
+    {
+        "name": "badge",
+        "displayName": "Badge",
+        "category": "Data Display",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/badge",
+        "radixPackage": "@radix-ui/react-badge",
+        "tags": [
+            "status",
+            "pill",
+            "label"
+        ]
+    },
+    {
+        "name": "breadcrumb",
+        "displayName": "Breadcrumb",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/breadcrumb",
+        "radixPackage": "@radix-ui/react-breadcrumb",
+        "tags": [
+            "navigation",
+            "trail",
+            "hierarchy"
+        ]
+    },
+    {
+        "name": "button",
+        "displayName": "Button",
+        "category": "Actions",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/button",
+        "radixPackage": "@radix-ui/react-button",
+        "tags": [
+            "action",
+            "cta",
+            "clickable"
+        ]
+    },
+    {
+        "name": "calendar",
+        "displayName": "Calendar",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/calendar",
+        "radixPackage": "@radix-ui/react-calendar",
+        "tags": [
+            "date",
+            "picker",
+            "input"
+        ]
+    },
+    {
+        "name": "card",
+        "displayName": "Card",
+        "category": "Layout",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/card",
+        "radixPackage": "@radix-ui/react-card",
+        "tags": [
+            "container",
+            "layout",
+            "surface"
+        ]
+    },
+    {
+        "name": "carousel",
+        "displayName": "Carousel",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/carousel",
+        "radixPackage": "@radix-ui/react-carousel",
+        "tags": [
+            "slides",
+            "media",
+            "navigation"
+        ]
+    },
+    {
+        "name": "chart",
+        "displayName": "Chart",
+        "category": "Data Display",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/chart",
+        "radixPackage": "@radix-ui/react-chart",
+        "tags": [
+            "data",
+            "visualization",
+            "analytics"
+        ]
+    },
+    {
+        "name": "checkbox",
+        "displayName": "Checkbox",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/checkbox",
+        "radixPackage": "@radix-ui/react-checkbox",
+        "tags": [
+            "input",
+            "form",
+            "boolean"
+        ]
+    },
+    {
+        "name": "collapsible",
+        "displayName": "Collapsible",
+        "category": "Disclosure",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/collapsible",
+        "radixPackage": "@radix-ui/react-collapsible",
+        "tags": [
+            "toggle",
+            "layout",
+            "content"
+        ]
+    },
+    {
+        "name": "command",
+        "displayName": "Command",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/command",
+        "radixPackage": "@radix-ui/react-command",
+        "tags": [
+            "search",
+            "palette",
+            "navigation"
+        ]
+    },
+    {
+        "name": "context-menu",
+        "displayName": "ContextMenu",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/context-menu",
+        "radixPackage": "@radix-ui/react-context-menu",
+        "tags": [
+            "menu",
+            "context",
+            "actions"
+        ]
+    },
+    {
+        "name": "dialog",
+        "displayName": "Dialog",
+        "category": "Overlay",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/dialog",
+        "radixPackage": "@radix-ui/react-dialog",
+        "tags": [
+            "modal",
+            "overlay",
+            "focus"
+        ]
+    },
+    {
+        "name": "drawer",
+        "displayName": "Drawer",
+        "category": "Overlay",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/drawer",
+        "radixPackage": "@radix-ui/react-drawer",
+        "tags": [
+            "overlay",
+            "navigation",
+            "mobile"
+        ]
+    },
+    {
+        "name": "dropdown-menu",
+        "displayName": "DropdownMenu",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/dropdown-menu",
+        "radixPackage": "@radix-ui/react-dropdown-menu",
+        "tags": [
+            "menu",
+            "actions",
+            "list"
+        ]
+    },
+    {
+        "name": "form",
+        "displayName": "Form",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/forms/overview",
+        "radixPackage": "@radix-ui/react-form",
+        "tags": [
+            "form",
+            "validation",
+            "input"
+        ]
+    },
+    {
+        "name": "hover-card",
+        "displayName": "HoverCard",
+        "category": "Overlay",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/hover-card",
+        "radixPackage": "@radix-ui/react-hover-card",
+        "tags": [
+            "preview",
+            "overlay",
+            "card"
+        ]
+    },
+    {
+        "name": "input-otp",
+        "displayName": "InputOtp",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/otp-field",
+        "radixPackage": "@radix-ui/react-otp-field",
+        "tags": [
+            "input",
+            "code",
+            "verification"
+        ]
+    },
+    {
+        "name": "input",
+        "displayName": "Input",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/input",
+        "radixPackage": "@radix-ui/react-input",
+        "tags": [
+            "field",
+            "text",
+            "form"
+        ]
+    },
+    {
+        "name": "label",
+        "displayName": "Label",
+        "category": "Forms",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/label",
+        "radixPackage": "@radix-ui/react-label",
+        "tags": [
+            "form",
+            "accessibility",
+            "text"
+        ]
+    },
+    {
+        "name": "menubar",
+        "displayName": "Menubar",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/menubar",
+        "radixPackage": "@radix-ui/react-menubar",
+        "tags": [
+            "menu",
+            "navigation",
+            "desktop"
+        ]
+    },
+    {
+        "name": "navigation-menu",
+        "displayName": "NavigationMenu",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/navigation-menu",
+        "radixPackage": "@radix-ui/react-navigation-menu",
+        "tags": [
+            "navigation",
+            "global",
+            "menu"
+        ]
+    },
+    {
+        "name": "pagination",
+        "displayName": "Pagination",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/pagination",
+        "radixPackage": "@radix-ui/react-pagination",
+        "tags": [
+            "navigation",
+            "list",
+            "controls"
+        ]
+    },
+    {
+        "name": "popover",
+        "displayName": "Popover",
+        "category": "Overlay",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/popover",
+        "radixPackage": "@radix-ui/react-popover",
+        "tags": [
+            "overlay",
+            "floating",
+            "content"
+        ]
+    },
+    {
+        "name": "progress",
+        "displayName": "Progress",
+        "category": "Feedback",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/progress",
+        "radixPackage": "@radix-ui/react-progress",
+        "tags": [
+            "status",
+            "loading",
+            "feedback"
+        ]
+    },
+    {
+        "name": "radio-group",
+        "displayName": "RadioGroup",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/radio-group",
+        "radixPackage": "@radix-ui/react-radio-group",
+        "tags": [
+            "selection",
+            "input",
+            "form"
+        ]
+    },
+    {
+        "name": "resizable",
+        "displayName": "Resizable",
+        "category": "Layout",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/resizable",
+        "radixPackage": "@radix-ui/react-resizable",
+        "tags": [
+            "layout",
+            "split",
+            "panels"
+        ]
+    },
+    {
+        "name": "scroll-area",
+        "displayName": "ScrollArea",
+        "category": "Layout",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/scroll-area",
+        "radixPackage": "@radix-ui/react-scroll-area",
+        "tags": [
+            "scroll",
+            "viewport",
+            "layout"
+        ]
+    },
+    {
+        "name": "select",
+        "displayName": "Select",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/select",
+        "radixPackage": "@radix-ui/react-select",
+        "tags": [
+            "form",
+            "input",
+            "options"
+        ]
+    },
+    {
+        "name": "separator",
+        "displayName": "Separator",
+        "category": "Layout",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/separator",
+        "radixPackage": "@radix-ui/react-separator",
+        "tags": [
+            "divider",
+            "layout",
+            "grouping"
+        ]
+    },
+    {
+        "name": "sheet",
+        "displayName": "Sheet",
+        "category": "Overlay",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/sheet",
+        "radixPackage": "@radix-ui/react-sheet",
+        "tags": [
+            "drawer",
+            "overlay",
+            "mobile"
+        ]
+    },
+    {
+        "name": "sidebar",
+        "displayName": "Sidebar",
+        "category": "Layout",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/sidebar",
+        "radixPackage": "@radix-ui/react-sidebar",
+        "tags": [
+            "navigation",
+            "layout",
+            "container"
+        ]
+    },
+    {
+        "name": "skeleton",
+        "displayName": "Skeleton",
+        "category": "Feedback",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/skeleton",
+        "radixPackage": "@radix-ui/react-skeleton",
+        "tags": [
+            "loading",
+            "placeholder",
+            "feedback"
+        ]
+    },
+    {
+        "name": "slider",
+        "displayName": "Slider",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/slider",
+        "radixPackage": "@radix-ui/react-slider",
+        "tags": [
+            "input",
+            "range",
+            "form"
+        ]
+    },
+    {
+        "name": "sonner",
+        "displayName": "Sonner",
+        "category": "Feedback",
+        "docUrl": "https://sonner.emilkowal.ski/",
+        "radixPackage": "sonner",
+        "tags": [
+            "toast",
+            "notification",
+            "feedback"
+        ]
+    },
+    {
+        "name": "switch",
+        "displayName": "Switch",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/switch",
+        "radixPackage": "@radix-ui/react-switch",
+        "tags": [
+            "toggle",
+            "input",
+            "form"
+        ]
+    },
+    {
+        "name": "table",
+        "displayName": "Table",
+        "category": "Data Display",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/table",
+        "radixPackage": "@radix-ui/react-table",
+        "tags": [
+            "data",
+            "grid",
+            "layout"
+        ]
+    },
+    {
+        "name": "tabs",
+        "displayName": "Tabs",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/tabs",
+        "radixPackage": "@radix-ui/react-tabs",
+        "tags": [
+            "navigation",
+            "segmented",
+            "content"
+        ]
+    },
+    {
+        "name": "textarea",
+        "displayName": "Textarea",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/textarea",
+        "radixPackage": "@radix-ui/react-textarea",
+        "tags": [
+            "input",
+            "form",
+            "text"
+        ]
+    },
+    {
+        "name": "toggle-group",
+        "displayName": "ToggleGroup",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/toggle-group",
+        "radixPackage": "@radix-ui/react-toggle-group",
+        "tags": [
+            "input",
+            "selection",
+            "form"
+        ]
+    },
+    {
+        "name": "toggle",
+        "displayName": "Toggle",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/toggle",
+        "radixPackage": "@radix-ui/react-toggle",
+        "tags": [
+            "input",
+            "button",
+            "form"
+        ]
+    },
+    {
+        "name": "tooltip",
+        "displayName": "Tooltip",
+        "category": "Overlay",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/tooltip",
+        "radixPackage": "@radix-ui/react-tooltip",
+        "tags": [
+            "overlay",
+            "hint",
+            "info"
+        ]
+    },
+    {
+        "name": "progress-circle",
+        "displayName": "ProgressCircle",
+        "category": "Feedback",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/progress-circle",
+        "radixPackage": "@radix-ui/react-progress-circle",
+        "tags": [
+            "status",
+            "loading",
+            "circular"
+        ]
+    },
+    {
+        "name": "stepper",
+        "displayName": "Stepper",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/stepper",
+        "radixPackage": "@radix-ui/react-stepper",
+        "tags": [
+            "navigation",
+            "process",
+            "feedback"
+        ]
+    },
+    {
+        "name": "toast",
+        "displayName": "Toast",
+        "category": "Feedback",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/toast",
+        "radixPackage": "@radix-ui/react-toast",
+        "tags": [
+            "notification",
+            "feedback",
+            "overlay"
+        ]
+    },
+    {
+        "name": "toggle-tip",
+        "displayName": "ToggleTip",
+        "category": "Overlay",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/toggle",
+        "radixPackage": "@radix-ui/react-toggle",
+        "tags": [
+            "hint",
+            "info",
+            "control"
+        ]
+    },
+    {
+        "name": "input-otp-field",
+        "displayName": "InputOtpField",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/otp-field",
+        "radixPackage": "@radix-ui/react-otp-field",
+        "tags": [
+            "input",
+            "verification",
+            "code"
+        ]
+    },
+    {
+        "name": "toggle-card",
+        "displayName": "ToggleCard",
+        "category": "Cards",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/card",
+        "radixPackage": "@radix-ui/react-card",
+        "tags": [
+            "card",
+            "toggle",
+            "layout"
+        ]
+    },
+    {
+        "name": "combobox",
+        "displayName": "Combobox",
+        "category": "Input",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/combobox",
+        "radixPackage": "@radix-ui/react-combobox",
+        "tags": [
+            "search",
+            "input",
+            "select"
+        ]
+    },
+    {
+        "name": "breadcrumbs",
+        "displayName": "Breadcrumbs",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/themes/docs/components/breadcrumb",
+        "radixPackage": "@radix-ui/react-breadcrumb",
+        "tags": [
+            "navigation",
+            "hierarchy",
+            "path"
+        ]
+    },
+    {
+        "name": "toolbar",
+        "displayName": "Toolbar",
+        "category": "Navigation",
+        "docUrl": "https://www.radix-ui.com/primitives/docs/components/toolbar",
+        "radixPackage": "@radix-ui/react-toolbar",
+        "tags": [
+            "actions",
+            "group",
+            "layout"
+        ]
+    }
+]

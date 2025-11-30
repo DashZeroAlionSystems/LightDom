@@ -2,12 +2,7 @@
 // Generates default configurations for services and workflows based on user type and plan
 // Based on USER_SCHEMA_DOCUMENTATION.md
 
-import { 
-  UserType, 
-  PlanTier, 
-  ServiceConfig, 
-  WorkflowConfig 
-} from './enhanced-user.schema';
+import { PlanTier, ServiceConfig, UserType, WorkflowConfig } from './enhanced-user.schema';
 
 // =====================================================
 // Service Defaults
@@ -40,8 +35,8 @@ export const SERVICE_DEFINITIONS: ServiceDefinition[] = [
       features: ['chat', 'completion', 'embeddings', 'code-generation'],
       priority: 'high',
       metadata: {
-        models: ['deepseek-chat', 'deepseek-coder'],
-        defaultModel: 'deepseek-chat',
+        models: ['deepseek-reasoner', 'deepseek-chat', 'deepseek-coder'],
+        defaultModel: 'deepseek-reasoner',
         maxTokens: 4096,
         temperature: 0.7,
       },
@@ -175,7 +170,7 @@ export const WORKFLOW_TEMPLATE_DEFINITIONS: WorkflowTemplateDefinition[] = [
           type: 'ai',
           schema: { content: 'string' },
           aiAssistance: {
-            model: 'deepseek-chat',
+            model: 'deepseek-reasoner',
             promptTemplate: 'Review this content for grammar, tone, and accuracy',
             confidenceThreshold: 0.85,
           },
@@ -242,7 +237,7 @@ export const WORKFLOW_TEMPLATE_DEFINITIONS: WorkflowTemplateDefinition[] = [
           type: 'ai',
           schema: { data: 'object' },
           aiAssistance: {
-            model: 'deepseek-chat',
+            model: 'deepseek-reasoner',
             promptTemplate: 'Analyze and categorize this data',
             confidenceThreshold: 0.8,
           },
@@ -345,57 +340,52 @@ export const WORKFLOW_TEMPLATE_DEFINITIONS: WorkflowTemplateDefinition[] = [
  * Get services for a specific user type and plan
  */
 export function getServicesForUser(userType: UserType, planTier: PlanTier): ServiceConfig[] {
-  return SERVICE_DEFINITIONS
-    .filter(def => def.availableForPlans.includes(planTier))
-    .map(def => {
-      const config: ServiceConfig = {
-        serviceName: def.serviceName,
-        enabled: true,
-        limits: def.defaultConfig.limits,
-        features: def.defaultConfig.features || [],
-        priority: def.defaultConfig.priority || 'medium',
-        metadata: def.defaultConfig.metadata,
-      };
+  return SERVICE_DEFINITIONS.filter(def => def.availableForPlans.includes(planTier)).map(def => {
+    const config: ServiceConfig = {
+      serviceName: def.serviceName,
+      enabled: true,
+      limits: def.defaultConfig.limits,
+      features: def.defaultConfig.features || [],
+      priority: def.defaultConfig.priority || 'medium',
+      metadata: def.defaultConfig.metadata,
+    };
 
-      // Customize limits based on plan tier
-      if (config.limits) {
-        if (planTier === 'free') {
-          config.limits.requestsPerDay = Math.floor((config.limits.requestsPerDay || 100) * 0.1);
-          config.limits.requestsPerMinute = Math.floor((config.limits.requestsPerMinute || 10) * 0.1);
-        } else if (planTier === 'basic') {
-          config.limits.requestsPerDay = Math.floor((config.limits.requestsPerDay || 1000) * 0.5);
-        }
+    // Customize limits based on plan tier
+    if (config.limits) {
+      if (planTier === 'free') {
+        config.limits.requestsPerDay = Math.floor((config.limits.requestsPerDay || 100) * 0.1);
+        config.limits.requestsPerMinute = Math.floor((config.limits.requestsPerMinute || 10) * 0.1);
+      } else if (planTier === 'basic') {
+        config.limits.requestsPerDay = Math.floor((config.limits.requestsPerDay || 1000) * 0.5);
       }
+    }
 
-      return config;
-    });
+    return config;
+  });
 }
 
 /**
  * Get workflows for a specific user type and plan
  */
 export function getWorkflowsForUser(userType: UserType, planTier: PlanTier): WorkflowConfig[] {
-  return WORKFLOW_TEMPLATE_DEFINITIONS
-    .filter(def => 
-      def.availableForUserTypes.includes(userType) &&
-      def.availableForPlans.includes(planTier)
-    )
-    .map(def => ({
-      workflowId: def.workflowId,
-      workflowName: def.workflowName,
-      enabled: def.defaultConfig.enabled || true,
-      autoExecute: def.defaultConfig.autoExecute || false,
-      permissions: def.defaultConfig.permissions || {
-        canCreate: false,
-        canRead: true,
-        canUpdate: false,
-        canDelete: false,
-        canExecute: false,
-      },
-      triggers: def.defaultConfig.triggers || [],
-      schedule: def.defaultConfig.schedule,
-      metadata: def.defaultConfig.metadata,
-    }));
+  return WORKFLOW_TEMPLATE_DEFINITIONS.filter(
+    def => def.availableForUserTypes.includes(userType) && def.availableForPlans.includes(planTier)
+  ).map(def => ({
+    workflowId: def.workflowId,
+    workflowName: def.workflowName,
+    enabled: def.defaultConfig.enabled || true,
+    autoExecute: def.defaultConfig.autoExecute || false,
+    permissions: def.defaultConfig.permissions || {
+      canCreate: false,
+      canRead: true,
+      canUpdate: false,
+      canDelete: false,
+      canExecute: false,
+    },
+    triggers: def.defaultConfig.triggers || [],
+    schedule: def.defaultConfig.schedule,
+    metadata: def.defaultConfig.metadata,
+  }));
 }
 
 /**
@@ -435,13 +425,13 @@ export function isServiceAvailableForPlan(serviceName: string, planTier: PlanTie
  * Check if workflow is available for user type and plan
  */
 export function isWorkflowAvailable(
-  workflowId: string, 
-  userType: UserType, 
+  workflowId: string,
+  userType: UserType,
   planTier: PlanTier
 ): boolean {
   const workflow = getWorkflowTemplate(workflowId);
   if (!workflow) return false;
-  
+
   return (
     workflow.availableForUserTypes.includes(userType) &&
     workflow.availableForPlans.includes(planTier)

@@ -24,6 +24,7 @@ import { EventEmitter } from 'events';
 import fs from 'fs';
 import { createRequire } from 'module';
 import path from 'path';
+import { ensureDefaultCrawlerSetup } from './default-crawler-bootstrap.js';
 
 const require = createRequire(import.meta.url);
 
@@ -63,6 +64,16 @@ export class SystemStartupOrchestrator extends EventEmitter {
     this.logPoolInitPromise = null;
     this.ollamaModelEnsured = false;
     this.ensuringOllamaModel = null;
+
+    this.dbDisabled = process.env.DB_DISABLED === 'true';
+    this.runtimeLogging = {
+      service: null,
+      agentServiceIds: new Map(),
+      profileIds: new Map(),
+      sessions: new Map(),
+    };
+    this.runtimeLoggingDisabledReason = null;
+    this.ServiceRuntimeLoggingServiceClass = null;
 
     this.defineServices();
   }
@@ -393,6 +404,20 @@ export class SystemStartupOrchestrator extends EventEmitter {
       service.metadata = { ...service.metadata, attached: false };
     }
 
+    const buildRuntimeMetadata = (extra = {}) => ({
+      command: service.command,
+      args: service.args,
+      priority: service.priority ?? null,
+      pid: childProcess?.pid || null,
+      autoRestart: this.config.autoRestart,
+      dependsOn: service.dependsOn || [],
+      restarts: service.restarts || 0,
+      external: service.external || false,
+      ...extra,
+    });
+
+    await this.beginRuntimeSession(serviceId, service, childProcess);
+
     // Handle output
     childProcess.stdout.on('data', data => {
       const text = data.toString();
@@ -417,11 +442,30 @@ export class SystemStartupOrchestrator extends EventEmitter {
       if (service.metadata) {
         service.metadata = { ...service.metadata, attached: false };
       }
+      this.updateRuntimeSession(
+        serviceId,
+        {
+          status: 'error',
+          runtimeMetadata: buildRuntimeMetadata({ errorPhase: 'spawn-failure', healthy: false }),
+          healthSnapshot: { status: 'error', checkedAt: new Date().toISOString() },
+          errorSummary: message,
+        },
+        {
+          eventType: 'service.start.error',
+          severity: 'error',
+          eventPayload: { message, phase: 'spawn' },
+        }
+      ).catch(() => {});
     });
 
     // Handle exit
     childProcess.on('exit', code => {
-      this.handleServiceExit(serviceId, service, code);
+      this.handleServiceExit(serviceId, service, code).catch(exitError => {
+        console.error(
+          `handleServiceExit error for ${service.name}:`,
+          exitError?.message || exitError
+        );
+      });
     });
 
     // Wait for service to be healthy
@@ -431,11 +475,41 @@ export class SystemStartupOrchestrator extends EventEmitter {
       if (healthy) {
         console.log(`✅ ${service.name} started`);
         service.healthy = true;
+        await this.updateRuntimeSession(
+          serviceId,
+          {
+            status: 'running',
+            runtimeMetadata: buildRuntimeMetadata({ healthy: true }),
+            healthSnapshot: { status: 'healthy', checkedAt: new Date().toISOString() },
+          },
+          {
+            eventType: 'service.start.healthy',
+            severity: 'info',
+            eventPayload: {
+              message: `${service.name} passed health checks`,
+              pid: childProcess?.pid || null,
+            },
+          }
+        );
         if (serviceId === 'ollama') {
           await this.ensureDeepSeekModel(service.metadata);
         }
       } else {
         console.log(`⚠️  ${service.name} started but health check failed`);
+        await this.updateRuntimeSession(
+          serviceId,
+          {
+            status: 'degraded',
+            runtimeMetadata: buildRuntimeMetadata({ healthy: false, healthCheckPassed: false }),
+            healthSnapshot: { status: 'health-check-failed', checkedAt: new Date().toISOString() },
+            errorSummary: `${service.name} health check timed out`,
+          },
+          {
+            eventType: 'service.start.health-check-failed',
+            severity: 'warning',
+            eventPayload: { message: `${service.name} failed health check during startup` },
+          }
+        );
       }
     } else {
       console.log(`✅ ${service.name} started (one-time job)`);
@@ -469,6 +543,7 @@ export class SystemStartupOrchestrator extends EventEmitter {
    */
   async handleServiceExit(serviceId, service, code) {
     const wasStopping = service.stopping;
+    const pid = service?.process?.pid || null;
     service.stopping = false;
     service.process = null;
     service.healthy = false;
@@ -476,6 +551,38 @@ export class SystemStartupOrchestrator extends EventEmitter {
     if (service.metadata) {
       service.metadata = { ...service.metadata, attached: false };
     }
+
+    const runtimeMetadata = {
+      command: service.command,
+      args: service.args,
+      priority: service.priority ?? null,
+      pid,
+      autoRestart: this.config.autoRestart,
+      dependsOn: service.dependsOn || [],
+      restarts: service.restarts || 0,
+      exitCode: code,
+      wasStopping,
+    };
+
+    const status = code === 0 || wasStopping ? 'stopped' : 'error';
+
+    await this.finalizeRuntimeSession(serviceId, status, {
+      runtimeMetadata,
+      healthSnapshot: {
+        status: status === 'error' ? 'terminated' : 'stopped',
+        checkedAt: new Date().toISOString(),
+      },
+      errorSummary: status === 'error' ? `Exited with code ${code}` : undefined,
+      exitCode: code,
+      eventType: 'service.exit',
+      severity: status === 'error' ? 'error' : 'info',
+      eventPayload: {
+        message: `${service.name} exited`,
+        exitCode: code,
+        restarts: service.restarts || 0,
+        scheduledRestart: this.config.autoRestart && !wasStopping && service.enabled !== false,
+      },
+    });
 
     if (service.oneTime) {
       if (code === 0) {
@@ -956,6 +1063,327 @@ export class SystemStartupOrchestrator extends EventEmitter {
     return init;
   }
 
+  async ensureRuntimeLoggingService() {
+    if (this.dbDisabled || !process.env.DATABASE_URL) {
+      return null;
+    }
+
+    if (this.runtimeLogging.service) {
+      return this.runtimeLogging.service;
+    }
+
+    try {
+      const pool = await this.getLogPool();
+      if (!pool) {
+        return null;
+      }
+
+      if (!this.ServiceRuntimeLoggingServiceClass) {
+        const runtimeModule = await import('../src/services/service-runtime-logging.service.ts');
+        this.ServiceRuntimeLoggingServiceClass =
+          runtimeModule.ServiceRuntimeLoggingService || runtimeModule.default;
+      }
+
+      if (!this.ServiceRuntimeLoggingServiceClass) {
+        return null;
+      }
+
+      this.runtimeLogging.service = new this.ServiceRuntimeLoggingServiceClass(pool);
+      return this.runtimeLogging.service;
+    } catch (error) {
+      if (!this.runtimeLoggingDisabledReason) {
+        console.warn(
+          `⚠️  Service runtime logging unavailable: ${error?.message || 'unknown error'}`
+        );
+      }
+      this.runtimeLoggingDisabledReason = error?.message || 'unknown error';
+      return null;
+    }
+  }
+
+  async ensureAgentServiceRecord(serviceKey, service) {
+    if (this.runtimeLogging.agentServiceIds.has(serviceKey)) {
+      return this.runtimeLogging.agentServiceIds.get(serviceKey);
+    }
+
+    const runtimeService = await this.ensureRuntimeLoggingService();
+    if (!runtimeService) {
+      return null;
+    }
+
+    let pool;
+    try {
+      pool = await this.getLogPool();
+    } catch (error) {
+      return null;
+    }
+
+    if (!pool) {
+      return null;
+    }
+
+    const name = service?.runtimeName || `System Service: ${service?.name || serviceKey}`;
+    const description =
+      service?.runtimeDescription ||
+      service?.description ||
+      `Autogenerated service entry for ${service?.name || serviceKey}`;
+    const category = service?.runtimeCategory || service?.category || 'system';
+
+    try {
+      const existing = await pool.query(
+        'SELECT service_id FROM agent_services WHERE name = $1 LIMIT 1',
+        [name]
+      );
+
+      if (existing.rows[0]) {
+        const serviceId = existing.rows[0].service_id;
+        this.runtimeLogging.agentServiceIds.set(serviceKey, serviceId);
+        return serviceId;
+      }
+
+      const inserted = await pool.query(
+        'INSERT INTO agent_services (name, description, category, configuration) VALUES ($1, $2, $3, $4::jsonb) RETURNING service_id',
+        [
+          name,
+          description,
+          category,
+          JSON.stringify({
+            command: service?.command || null,
+            args: service?.args || null,
+            priority: service?.priority ?? null,
+            managedBy: 'system-startup-orchestrator',
+          }),
+        ]
+      );
+
+      const serviceId = inserted.rows[0]?.service_id;
+      if (serviceId) {
+        this.runtimeLogging.agentServiceIds.set(serviceKey, serviceId);
+      }
+      return serviceId || null;
+    } catch (error) {
+      if (!this.runtimeLoggingDisabledReason) {
+        console.warn(
+          `⚠️  Unable to ensure agent service record for ${service?.name || serviceKey}: ${error?.message || error}`
+        );
+      }
+      return null;
+    }
+  }
+
+  async ensureRuntimeProfile(serviceKey, agentServiceId, service) {
+    if (this.runtimeLogging.profileIds.has(serviceKey)) {
+      return this.runtimeLogging.profileIds.get(serviceKey);
+    }
+
+    const runtimeService = await this.ensureRuntimeLoggingService();
+    if (!runtimeService || !agentServiceId) {
+      return null;
+    }
+
+    let pool;
+    try {
+      pool = await this.getLogPool();
+    } catch (error) {
+      return null;
+    }
+
+    if (!pool) {
+      return null;
+    }
+
+    try {
+      const profileKey = 'default';
+      const existing = await pool.query(
+        'SELECT profile_id FROM service_runtime_profiles WHERE service_id = $1 AND profile_key = $2 LIMIT 1',
+        [agentServiceId, profileKey]
+      );
+
+      if (existing.rows[0]) {
+        const profileId = existing.rows[0].profile_id;
+        this.runtimeLogging.profileIds.set(serviceKey, profileId);
+        return profileId;
+      }
+
+      const profile = await runtimeService.createRuntimeProfile({
+        serviceId: agentServiceId,
+        profileKey,
+        name: `${service?.name || serviceKey} Default`,
+        description: `Autogenerated runtime profile for ${service?.name || serviceKey}`,
+        environment: process.env.NODE_ENV || 'development',
+        defaultModel: process.env.DEEPSEEK_MODEL || 'deepseek-reasoner',
+        configuration: {
+          command: service?.command || null,
+          args: service?.args || null,
+          priority: service?.priority ?? null,
+          spawnOptions: service?.spawnOptions || null,
+        },
+        limits: {
+          startupTimeout: this.config.startupTimeout,
+          maxRestarts: this.config.maxRestarts,
+        },
+        isDefault: true,
+      });
+
+      if (profile?.profileId) {
+        this.runtimeLogging.profileIds.set(serviceKey, profile.profileId);
+        return profile.profileId;
+      }
+      return null;
+    } catch (error) {
+      if (!this.runtimeLoggingDisabledReason) {
+        console.warn(
+          `⚠️  Unable to ensure runtime profile for ${service?.name || serviceKey}: ${error?.message || error}`
+        );
+      }
+      return null;
+    }
+  }
+
+  async beginRuntimeSession(serviceKey, service, childProcess) {
+    const runtimeService = await this.ensureRuntimeLoggingService();
+    if (!runtimeService) {
+      return null;
+    }
+
+    try {
+      const agentServiceId = await this.ensureAgentServiceRecord(serviceKey, service);
+      if (!agentServiceId) {
+        return null;
+      }
+
+      const profileId = await this.ensureRuntimeProfile(serviceKey, agentServiceId, service);
+      if (!profileId) {
+        return null;
+      }
+
+      const session = await runtimeService.createServiceSession({
+        serviceId: agentServiceId,
+        profileId,
+        sessionLabel: `${service?.name || serviceKey} runtime session`,
+        status: 'initializing',
+        runtimeMetadata: {
+          command: service?.command || null,
+          args: service?.args || null,
+          priority: service?.priority ?? null,
+          pid: childProcess?.pid || null,
+          autoRestart: this.config.autoRestart,
+          dependsOn: service?.dependsOn || [],
+          spawnedAt: new Date().toISOString(),
+        },
+        healthSnapshot: {
+          status: 'starting',
+          checkIntervalMs: this.config.healthCheckInterval,
+          external: Boolean(service?.external),
+        },
+      });
+
+      if (session?.sessionId) {
+        this.runtimeLogging.sessions.set(serviceKey, {
+          sessionId: session.sessionId,
+          agentServiceId,
+          profileId,
+          startedAt: session.startedAt || new Date().toISOString(),
+        });
+
+        await runtimeService.logServiceSessionEvent({
+          serviceSessionId: session.sessionId,
+          eventType: 'service.start.spawned',
+          eventSource: 'system-startup-orchestrator',
+          severity: 'info',
+          eventPayload: {
+            message: `Spawned ${service?.name || serviceKey}`,
+            command: service?.command || null,
+            args: service?.args || null,
+            pid: childProcess?.pid || null,
+          },
+          metadata: {
+            dependsOn: service?.dependsOn || [],
+            autoRestart: this.config.autoRestart,
+          },
+        });
+      }
+
+      return session || null;
+    } catch (error) {
+      console.warn(
+        `⚠️  Unable to initialize runtime session for ${service?.name || serviceKey}: ${error?.message || error}`
+      );
+      return null;
+    }
+  }
+
+  async updateRuntimeSession(serviceKey, patch = {}, event) {
+    const runtimeService = await this.ensureRuntimeLoggingService();
+    if (!runtimeService) {
+      return;
+    }
+
+    const sessionInfo = this.runtimeLogging.sessions.get(serviceKey);
+    if (!sessionInfo?.sessionId) {
+      return;
+    }
+
+    try {
+      await runtimeService.updateServiceSession(sessionInfo.sessionId, patch);
+
+      if (event) {
+        await runtimeService.logServiceSessionEvent({
+          serviceSessionId: sessionInfo.sessionId,
+          eventType: event.eventType,
+          eventSource: event.eventSource || 'system-startup-orchestrator',
+          severity: event.severity || 'info',
+          eventPayload: event.eventPayload || {},
+          metadata: event.metadata || {},
+        });
+      }
+    } catch (error) {
+      console.warn(
+        `⚠️  Failed to update runtime session for ${serviceKey}: ${error?.message || error}`
+      );
+    }
+  }
+
+  async finalizeRuntimeSession(serviceKey, status, options = {}) {
+    const runtimeService = await this.ensureRuntimeLoggingService();
+    if (!runtimeService) {
+      return;
+    }
+
+    const sessionInfo = this.runtimeLogging.sessions.get(serviceKey);
+    if (!sessionInfo?.sessionId) {
+      return;
+    }
+
+    try {
+      await runtimeService.updateServiceSession(sessionInfo.sessionId, {
+        status,
+        endedAt: options.endedAt || new Date().toISOString(),
+        runtimeMetadata: options.runtimeMetadata,
+        healthSnapshot: options.healthSnapshot,
+        errorSummary: options.errorSummary,
+      });
+
+      await runtimeService.logServiceSessionEvent({
+        serviceSessionId: sessionInfo.sessionId,
+        eventType: options.eventType || 'service.session.finalized',
+        eventSource: options.eventSource || 'system-startup-orchestrator',
+        severity: options.severity || (status === 'error' ? 'error' : 'info'),
+        eventPayload: options.eventPayload || {
+          status,
+          exitCode: options.exitCode ?? null,
+        },
+        metadata: options.metadata || {},
+      });
+    } catch (error) {
+      console.warn(
+        `⚠️  Failed to finalize runtime session for ${serviceKey}: ${error?.message || error}`
+      );
+    } finally {
+      this.runtimeLogging.sessions.delete(serviceKey);
+    }
+  }
+
   async ensureDatabaseExists() {
     if (this.databaseEnsured) {
       return true;
@@ -1235,6 +1663,12 @@ export class SystemStartupOrchestrator extends EventEmitter {
             ]
           );
         }
+      }
+
+      try {
+        await ensureDefaultCrawlerSetup(pool);
+      } catch (error) {
+        console.error('Failed to ensure default crawler setup:', error?.message || error);
       }
     } finally {
       await pool.end().catch(() => {});

@@ -5,10 +5,10 @@
  * Runs all SQL migrations in order with proper error handling
  */
 
-import pg from 'pg';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import fs from 'fs';
+import { dirname, join } from 'path';
+import pg from 'pg';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { promisify } from 'util';
 
 const { Pool } = pg;
@@ -64,7 +64,7 @@ async function createMigrationsTable(client) {
       error_message TEXT
     );
   `);
-  
+
   await client.query(`
     CREATE INDEX IF NOT EXISTS idx_schema_migrations_name 
     ON schema_migrations(migration_name);
@@ -86,9 +86,7 @@ async function getExecutedMigrations(client) {
  */
 async function getMigrationFiles() {
   const files = await readdir(migrationsDir);
-  return files
-    .filter(file => file.endsWith('.sql'))
-    .sort(); // Sort alphabetically to maintain order
+  return files.filter(file => file.endsWith('.sql')).sort(); // Sort alphabetically to maintain order
 }
 
 /**
@@ -97,19 +95,19 @@ async function getMigrationFiles() {
 async function executeMigration(client, filename) {
   const startTime = Date.now();
   const filePath = join(migrationsDir, filename);
-  
+
   log(`\n📄 Running migration: ${filename}`, 'cyan');
-  
+
   try {
     // Read migration file
     const sql = await readFile(filePath, 'utf8');
-    
+
     // Start transaction
     await client.query('BEGIN');
-    
+
     // Execute migration
     await client.query(sql);
-    
+
     // Record successful migration
     const executionTime = Date.now() - startTime;
     await client.query(
@@ -119,24 +117,23 @@ async function executeMigration(client, filename) {
        SET executed_at = CURRENT_TIMESTAMP, execution_time_ms = $2, success = TRUE`,
       [filename, executionTime]
     );
-    
+
     // Commit transaction
     await client.query('COMMIT');
-    
+
     log(`✅ ${filename} executed successfully (${executionTime}ms)`, 'green');
     return { success: true, executionTime };
-    
   } catch (error) {
     // Rollback transaction
     await client.query('ROLLBACK');
-    
+
     // Check if error is due to existing objects (which we can tolerate)
     const isTableExistsError = error.code === '42P07';
     const isIndexExistsError = error.code === '42P07' || error.message?.includes('already exists');
-    
+
     if (isTableExistsError || isIndexExistsError) {
       log(`ℹ️  ${filename} contains objects that already exist, marking as executed`, 'yellow');
-      
+
       // Record as executed despite the error
       const executionTime = Date.now() - startTime;
       await client.query(
@@ -146,15 +143,15 @@ async function executeMigration(client, filename) {
          SET executed_at = CURRENT_TIMESTAMP, execution_time_ms = $2, success = TRUE, error_message = $3`,
         [filename, executionTime, error.message]
       );
-      
+
       return { success: true, executionTime, warning: error.message };
     }
-    
+
     // Log error details
     log(`❌ Error in migration ${filename}:`, 'red');
     log(`   Code: ${error.code}`, 'gray');
     log(`   Message: ${error.message}`, 'gray');
-    
+
     // Record failed migration
     const executionTime = Date.now() - startTime;
     await client.query(
@@ -164,7 +161,7 @@ async function executeMigration(client, filename) {
        SET executed_at = CURRENT_TIMESTAMP, execution_time_ms = $2, success = FALSE, error_message = $3`,
       [filename, executionTime, error.message]
     );
-    
+
     return { success: false, executionTime, error: error.message };
   }
 }
@@ -174,45 +171,43 @@ async function executeMigration(client, filename) {
  */
 async function runMigrations() {
   const client = await pool.connect();
-  
+
   try {
     log('\n🚀 Starting migration process...', 'bright');
     log(`📁 Migrations directory: ${migrationsDir}`, 'gray');
     log(`🗄️  Database: ${process.env.DB_NAME || 'dom_space_harvester'}`, 'gray');
-    
+
     // Create migrations tracking table
     log('\n📋 Setting up migration tracking...', 'cyan');
     await createMigrationsTable(client);
-    
+
     // Get executed and pending migrations
     const executedMigrations = await getExecutedMigrations(client);
     const allMigrationFiles = await getMigrationFiles();
-    const pendingMigrations = allMigrationFiles.filter(
-      file => !executedMigrations.has(file)
-    );
-    
+    const pendingMigrations = allMigrationFiles.filter(file => !executedMigrations.has(file));
+
     log(`\n📊 Migration Status:`, 'bright');
     log(`   Total migrations: ${allMigrationFiles.length}`, 'gray');
     log(`   Already executed: ${executedMigrations.size}`, 'green');
     log(`   Pending: ${pendingMigrations.length}`, 'yellow');
-    
+
     if (pendingMigrations.length === 0) {
       log('\n✨ All migrations are up to date!', 'green');
       return;
     }
-    
+
     // Execute pending migrations
     log('\n🔄 Executing pending migrations...', 'bright');
-    
+
     const results = {
       successful: [],
       warnings: [],
       failed: [],
     };
-    
+
     for (const filename of pendingMigrations) {
       const result = await executeMigration(client, filename);
-      
+
       if (result.success) {
         if (result.warning) {
           results.warnings.push({ filename, ...result });
@@ -223,19 +218,19 @@ async function runMigrations() {
         results.failed.push({ filename, ...result });
       }
     }
-    
+
     // Summary
     log('\n' + '='.repeat(60), 'gray');
     log('📈 Migration Summary', 'bright');
     log('='.repeat(60), 'gray');
-    
+
     if (results.successful.length > 0) {
       log(`\n✅ Successfully executed: ${results.successful.length}`, 'green');
       results.successful.forEach(({ filename, executionTime }) => {
         log(`   • ${filename} (${executionTime}ms)`, 'gray');
       });
     }
-    
+
     if (results.warnings.length > 0) {
       log(`\n⚠️  Executed with warnings: ${results.warnings.length}`, 'yellow');
       results.warnings.forEach(({ filename, warning }) => {
@@ -243,7 +238,7 @@ async function runMigrations() {
         log(`     ${warning.substring(0, 80)}...`, 'gray');
       });
     }
-    
+
     if (results.failed.length > 0) {
       log(`\n❌ Failed: ${results.failed.length}`, 'red');
       results.failed.forEach(({ filename, error }) => {
@@ -251,20 +246,20 @@ async function runMigrations() {
         log(`     ${error.substring(0, 80)}...`, 'gray');
       });
     }
-    
+
     // Final status
-    const totalTime = results.successful.concat(results.warnings, results.failed)
+    const totalTime = results.successful
+      .concat(results.warnings, results.failed)
       .reduce((sum, r) => sum + r.executionTime, 0);
-    
+
     log(`\n⏱️  Total execution time: ${totalTime}ms`, 'cyan');
-    
+
     if (results.failed.length === 0) {
       log('\n🎉 All migrations completed successfully!', 'green');
     } else {
       log(`\n⚠️  Migration completed with ${results.failed.length} error(s)`, 'yellow');
       process.exit(1);
     }
-    
   } catch (error) {
     log('\n💥 Unexpected error during migration:', 'red');
     log(error.message, 'red');
@@ -273,7 +268,6 @@ async function runMigrations() {
       log(error.stack, 'gray');
     }
     process.exit(1);
-    
   } finally {
     client.release();
     await pool.end();
@@ -285,48 +279,47 @@ async function runMigrations() {
  */
 async function checkStatus() {
   const client = await pool.connect();
-  
+
   try {
     await createMigrationsTable(client);
-    
+
     const executedMigrations = await getExecutedMigrations(client);
     const allMigrationFiles = await getMigrationFiles();
-    const pendingMigrations = allMigrationFiles.filter(
-      file => !executedMigrations.has(file)
-    );
-    
+    const pendingMigrations = allMigrationFiles.filter(file => !executedMigrations.has(file));
+
     log('\n📊 Migration Status', 'bright');
     log('='.repeat(60), 'gray');
-    
+
     log(`\nTotal migrations: ${allMigrationFiles.length}`, 'cyan');
     log(`Executed: ${executedMigrations.size}`, 'green');
     log(`Pending: ${pendingMigrations.length}`, 'yellow');
-    
+
     if (pendingMigrations.length > 0) {
       log('\nPending migrations:', 'yellow');
       pendingMigrations.forEach(file => {
         log(`  • ${file}`, 'gray');
       });
     }
-    
+
     if (executedMigrations.size > 0) {
       log('\nExecuted migrations:', 'green');
       const result = await client.query(
         'SELECT migration_name, executed_at, execution_time_ms FROM schema_migrations ORDER BY executed_at DESC LIMIT 10'
       );
       result.rows.forEach(row => {
-        log(`  • ${row.migration_name} (${row.execution_time_ms}ms) - ${row.executed_at.toISOString()}`, 'gray');
+        log(
+          `  • ${row.migration_name} (${row.execution_time_ms}ms) - ${row.executed_at.toISOString()}`,
+          'gray'
+        );
       });
       if (executedMigrations.size > 10) {
         log(`  ... and ${executedMigrations.size - 10} more`, 'gray');
       }
     }
-    
   } catch (error) {
     log('\n💥 Error checking status:', 'red');
     log(error.message, 'red');
     process.exit(1);
-    
   } finally {
     client.release();
     await pool.end();
@@ -338,22 +331,20 @@ async function checkStatus() {
  */
 async function listMigrations() {
   const client = await pool.connect();
-  
+
   try {
     await createMigrationsTable(client);
-    
+
     const allMigrationFiles = await getMigrationFiles();
     const result = await client.query(
       'SELECT migration_name, executed_at, success FROM schema_migrations ORDER BY migration_name'
     );
-    
-    const executedMap = new Map(
-      result.rows.map(row => [row.migration_name, row])
-    );
-    
+
+    const executedMap = new Map(result.rows.map(row => [row.migration_name, row]));
+
     log('\n📋 All Migrations', 'bright');
     log('='.repeat(80), 'gray');
-    
+
     allMigrationFiles.forEach(file => {
       const executed = executedMap.get(file);
       if (executed) {
@@ -364,12 +355,10 @@ async function listMigrations() {
         log(`⏳ ${file} (pending)`, 'yellow');
       }
     });
-    
   } catch (error) {
     log('\n💥 Error listing migrations:', 'red');
     log(error.message, 'red');
     process.exit(1);
-    
   } finally {
     client.release();
     await pool.end();
@@ -411,7 +400,7 @@ Examples:
  */
 async function main() {
   const command = process.argv[2] || 'migrate';
-  
+
   switch (command) {
     case 'migrate':
       await runMigrations();
@@ -435,7 +424,19 @@ async function main() {
 }
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+const invokedUrl = (() => {
+  if (!process.argv[1]) {
+    return null;
+  }
+  try {
+    return pathToFileURL(process.argv[1]).href;
+  } catch (error) {
+    console.warn('\n⚠️  Unable to normalize invocation path for migration runner:', error.message);
+    return `file://${process.argv[1]}`;
+  }
+})();
+
+if (invokedUrl && import.meta.url === invokedUrl) {
   main().catch(error => {
     log('\n💥 Fatal error:', 'red');
     log(error.message, 'red');
@@ -443,4 +444,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { runMigrations, checkStatus, listMigrations };
+export { checkStatus, listMigrations, runMigrations };

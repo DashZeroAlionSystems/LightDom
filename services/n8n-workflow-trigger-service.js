@@ -1,9 +1,9 @@
 /**
  * N8N Workflow Trigger Service
- * 
+ *
  * Manages workflow triggers and execution based on campaign events
  * Provides template-based trigger definition using DeepSeek AI
- * 
+ *
  * Features:
  * - Event-based triggers (schema discovered, URL collected, data mined, etc.)
  * - Conditional execution logic
@@ -18,16 +18,17 @@ import EventEmitter from 'events';
 class N8NWorkflowTriggerService extends EventEmitter {
   constructor(options = {}) {
     super();
-    
+
     this.n8nBaseUrl = options.n8nBaseUrl || process.env.N8N_API_URL || 'http://localhost:5678';
     this.n8nApiKey = options.n8nApiKey || process.env.N8N_API_KEY || '';
-    this.deepseekApiUrl = options.deepseekApiUrl || process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1';
+    this.deepseekApiUrl =
+      options.deepseekApiUrl || process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1';
     this.deepseekApiKey = options.deepseekApiKey || process.env.DEEPSEEK_API_KEY || '';
-    
+
     this.triggers = new Map(); // workflowId -> trigger config
     this.activeListeners = new Map(); // triggerId -> cleanup function
     this.executionHistory = []; // Recent executions
-    
+
     // Pre-loaded templates from awesome-n8n and GitHub
     this.templates = this.loadTemplates();
   }
@@ -47,8 +48,8 @@ class N8NWorkflowTriggerService extends EventEmitter {
           'Send notification',
           'Update seeding configuration',
           'Start specialized crawler',
-          'Generate training data'
-        ]
+          'Generate training data',
+        ],
       },
       'url-collected': {
         name: 'URL Collection Trigger',
@@ -60,8 +61,8 @@ class N8NWorkflowTriggerService extends EventEmitter {
           'Validate URLs',
           'Filter by robots.txt',
           'Add to crawler queue',
-          'Update statistics'
-        ]
+          'Update statistics',
+        ],
       },
       'data-mined': {
         name: 'Data Mining Complete Trigger',
@@ -73,8 +74,8 @@ class N8NWorkflowTriggerService extends EventEmitter {
           'Store in database',
           'Extract schemas',
           'Run OCR if images',
-          'Update analytics'
-        ]
+          'Update analytics',
+        ],
       },
       'cluster-scaled': {
         name: 'Cluster Auto-Scale Trigger',
@@ -86,8 +87,8 @@ class N8NWorkflowTriggerService extends EventEmitter {
           'Spawn new crawler instance',
           'Rebalance load',
           'Update cluster config',
-          'Send alert'
-        ]
+          'Send alert',
+        ],
       },
       'error-threshold': {
         name: 'Error Threshold Trigger',
@@ -95,12 +96,7 @@ class N8NWorkflowTriggerService extends EventEmitter {
         event: 'campaign.error.threshold_exceeded',
         condition: '{{errors.rate}} > 0.1',
         workflow: null,
-        defaultActions: [
-          'Pause campaign',
-          'Send alert',
-          'Rotate proxies',
-          'Adjust rate limits'
-        ]
+        defaultActions: ['Pause campaign', 'Send alert', 'Rotate proxies', 'Adjust rate limits'],
       },
       'training-ready': {
         name: 'Training Data Ready Trigger',
@@ -112,9 +108,9 @@ class N8NWorkflowTriggerService extends EventEmitter {
           'Prepare training dataset',
           'Start neural network training',
           'Validate data quality',
-          'Generate report'
-        ]
-      }
+          'Generate report',
+        ],
+      },
     };
   }
 
@@ -129,22 +125,22 @@ class N8NWorkflowTriggerService extends EventEmitter {
       condition,
       description,
       enabled = true,
-      useTemplate = null
+      useTemplate = null,
     } = config;
 
     // Generate workflow if using template
     let finalWorkflowId = workflowId;
     if (useTemplate && this.templates[useTemplate]) {
       const template = this.templates[useTemplate];
-      const generatedWorkflow = await this.generateWorkflowFromTemplate(
-        template,
-        { campaignId, description }
-      );
+      const generatedWorkflow = await this.generateWorkflowFromTemplate(template, {
+        campaignId,
+        description,
+      });
       finalWorkflowId = generatedWorkflow.id;
     }
 
     const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const trigger = {
       id: triggerId,
       campaignId,
@@ -155,7 +151,7 @@ class N8NWorkflowTriggerService extends EventEmitter {
       enabled,
       createdAt: new Date(),
       executionCount: 0,
-      lastExecuted: null
+      lastExecuted: null,
     };
 
     this.triggers.set(triggerId, trigger);
@@ -195,45 +191,42 @@ Return ONLY valid n8n workflow JSON format.`;
       const response = await axios.post(
         `${this.deepseekApiUrl}/chat/completions`,
         {
-          model: 'deepseek-chat',
+          model: 'deepseek-reasoner',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.3,
-          max_tokens: 4000
+          max_tokens: 4000,
         },
         {
           headers: {
-            'Authorization': `Bearer ${this.deepseekApiKey}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${this.deepseekApiKey}`,
+            'Content-Type': 'application/json',
+          },
         }
       );
 
       const workflowJSON = response.data.choices[0].message.content;
-      
+
       // Parse JSON (handle markdown code blocks)
-      const jsonMatch = workflowJSON.match(/```json\n([\s\S]*?)\n```/) || 
-                        workflowJSON.match(/```\n([\s\S]*?)\n```/);
-      
+      const jsonMatch =
+        workflowJSON.match(/```json\n([\s\S]*?)\n```/) ||
+        workflowJSON.match(/```\n([\s\S]*?)\n```/);
+
       const workflowData = JSON.parse(jsonMatch ? jsonMatch[1] : workflowJSON);
-      
+
       // Add metadata
       workflowData.name = template.name;
       workflowData.tags = ['lightdom', 'campaign', params.campaignId];
 
       // Create workflow in n8n
-      const n8nResponse = await axios.post(
-        `${this.n8nBaseUrl}/api/v1/workflows`,
-        workflowData,
-        {
-          headers: {
-            'X-N8N-API-KEY': this.n8nApiKey,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      const n8nResponse = await axios.post(`${this.n8nBaseUrl}/api/v1/workflows`, workflowData, {
+        headers: {
+          'X-N8N-API-KEY': this.n8nApiKey,
+          'Content-Type': 'application/json',
+        },
+      });
 
       const workflow = n8nResponse.data.data || n8nResponse.data;
-      
+
       // Activate workflow
       await axios.patch(
         `${this.n8nBaseUrl}/api/v1/workflows/${workflow.id}`,
@@ -241,8 +234,8 @@ Return ONLY valid n8n workflow JSON format.`;
         {
           headers: {
             'X-N8N-API-KEY': this.n8nApiKey,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
 
@@ -263,13 +256,13 @@ Return ONLY valid n8n workflow JSON format.`;
     }
 
     // Create event listener
-    const listener = async (eventData) => {
+    const listener = async eventData => {
       await this.executeTrigger(triggerId, eventData);
     };
 
     // Listen for the event type
     this.on(trigger.eventType, listener);
-    
+
     // Store cleanup function
     this.activeListeners.set(triggerId, () => {
       this.off(trigger.eventType, listener);
@@ -308,7 +301,7 @@ Return ONLY valid n8n workflow JSON format.`;
     try {
       // Evaluate condition
       const shouldExecute = this.evaluateCondition(trigger.condition, eventData);
-      
+
       if (!shouldExecute) {
         console.log(`Trigger ${triggerId} condition not met, skipping execution`);
         return;
@@ -322,18 +315,18 @@ Return ONLY valid n8n workflow JSON format.`;
             trigger: {
               id: triggerId,
               campaignId: trigger.campaignId,
-              eventType: trigger.eventType
+              eventType: trigger.eventType,
             },
             event: eventData,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         },
         {
           headers: {
             'X-N8N-API-KEY': this.n8nApiKey,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          timeout: 60000
+          timeout: 60000,
         }
       );
 
@@ -348,7 +341,7 @@ Return ONLY valid n8n workflow JSON format.`;
         executionId: execution.data.id || execution.data.data?.id,
         eventData,
         timestamp: new Date(),
-        success: true
+        success: true,
       });
 
       // Keep only last 100 executions
@@ -357,11 +350,11 @@ Return ONLY valid n8n workflow JSON format.`;
       }
 
       console.log(`Trigger ${triggerId} executed successfully:`, execution.data.id);
-      
+
       return execution.data;
     } catch (error) {
       console.error(`Failed to execute trigger ${triggerId}:`, error);
-      
+
       // Store failed execution
       this.executionHistory.unshift({
         triggerId,
@@ -369,7 +362,7 @@ Return ONLY valid n8n workflow JSON format.`;
         eventData,
         timestamp: new Date(),
         success: false,
-        error: error.message
+        error: error.message,
       });
 
       throw error;
@@ -387,7 +380,7 @@ Return ONLY valid n8n workflow JSON format.`;
     try {
       // Simple template variable substitution
       let evalString = condition;
-      
+
       // Replace {{variable.path}} with actual values
       const matches = condition.match(/\{\{([^}]+)\}\}/g) || [];
       for (const match of matches) {
@@ -502,7 +495,7 @@ Return ONLY valid n8n workflow JSON format.`;
   getTemplates() {
     return Object.entries(this.templates).map(([key, template]) => ({
       key,
-      ...template
+      ...template,
     }));
   }
 
@@ -511,14 +504,14 @@ Return ONLY valid n8n workflow JSON format.`;
    */
   getStats() {
     const triggers = Array.from(this.triggers.values());
-    
+
     return {
       total: triggers.length,
       enabled: triggers.filter(t => t.enabled).length,
       disabled: triggers.filter(t => !t.enabled).length,
       totalExecutions: triggers.reduce((sum, t) => sum + t.executionCount, 0),
       recentExecutions: this.executionHistory.length,
-      successRate: this.calculateSuccessRate()
+      successRate: this.calculateSuccessRate(),
     };
   }
 

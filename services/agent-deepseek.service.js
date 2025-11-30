@@ -5,7 +5,7 @@
 
 import axios from 'axios';
 
-const DEFAULT_MODEL = 'deepseek-chat';
+const DEFAULT_MODEL = 'deepseek-reasoner';
 
 const jsonOrNull = value => (value === undefined ? null : value);
 
@@ -85,10 +85,12 @@ export class AgentDeepSeekService {
     if (updates.name !== undefined) setField('name', updates.name);
     if (updates.description !== undefined) setField('description', updates.description);
     if (updates.mode_type !== undefined) setField('mode_type', updates.mode_type);
-    if (updates.function_definition !== undefined) setField('function_definition', updates.function_definition);
+    if (updates.function_definition !== undefined)
+      setField('function_definition', updates.function_definition);
     if (updates.capabilities !== undefined) setField('capabilities', updates.capabilities);
     if (updates.knowledge_graph !== undefined) setField('knowledge_graph', updates.knowledge_graph);
-    if (updates.configuration_schema !== undefined) setField('configuration_schema', updates.configuration_schema);
+    if (updates.configuration_schema !== undefined)
+      setField('configuration_schema', updates.configuration_schema);
     if (updates.default_config !== undefined) setField('default_config', updates.default_config);
     if (updates.deepseek_prompt_template !== undefined)
       setField('deepseek_prompt_template', updates.deepseek_prompt_template);
@@ -148,7 +150,9 @@ export class AgentDeepSeekService {
   }
 
   async getAgentInstance(agentId) {
-    const result = await this.db.query('SELECT * FROM agent_instances WHERE agent_id = $1', [agentId]);
+    const result = await this.db.query('SELECT * FROM agent_instances WHERE agent_id = $1', [
+      agentId,
+    ]);
     return result.rows[0] || null;
   }
 
@@ -186,7 +190,8 @@ export class AgentDeepSeekService {
     if (updates.configuration !== undefined) setField('configuration', updates.configuration);
     if (updates.deepseek_config !== undefined) setField('deepseek_config', updates.deepseek_config);
     if (updates.tools_enabled !== undefined) setField('tools_enabled', updates.tools_enabled);
-    if (updates.services_enabled !== undefined) setField('services_enabled', updates.services_enabled);
+    if (updates.services_enabled !== undefined)
+      setField('services_enabled', updates.services_enabled);
     if (updates.model_name !== undefined) setField('model_name', updates.model_name);
     if (updates.temperature !== undefined) setField('temperature', updates.temperature);
     if (updates.max_tokens !== undefined) setField('max_tokens', updates.max_tokens);
@@ -212,7 +217,9 @@ export class AgentDeepSeekService {
   }
 
   async deleteAgentInstance(agentId) {
-    const result = await this.db.query('DELETE FROM agent_instances WHERE agent_id = $1', [agentId]);
+    const result = await this.db.query('DELETE FROM agent_instances WHERE agent_id = $1', [
+      agentId,
+    ]);
     return result.rowCount > 0;
   }
 
@@ -239,7 +246,9 @@ export class AgentDeepSeekService {
   }
 
   async getSession(sessionId) {
-    const result = await this.db.query('SELECT * FROM agent_sessions WHERE session_id = $1', [sessionId]);
+    const result = await this.db.query('SELECT * FROM agent_sessions WHERE session_id = $1', [
+      sessionId,
+    ]);
     return result.rows[0] || null;
   }
 
@@ -268,7 +277,8 @@ export class AgentDeepSeekService {
 
     if (updates.status !== undefined) setField('status', updates.status);
     if (updates.session_context !== undefined) setField('session_context', updates.session_context);
-    if (updates.knowledge_updates !== undefined) setField('knowledge_updates', updates.knowledge_updates);
+    if (updates.knowledge_updates !== undefined)
+      setField('knowledge_updates', updates.knowledge_updates);
     if (updates.summary !== undefined) setField('session_summary', updates.summary);
 
     if (fields.length === 0) {
@@ -408,7 +418,8 @@ export class AgentDeepSeekService {
     }
 
     const deepseekConfig = agent.deepseek_config || {};
-    const apiUrl = deepseekConfig.api_url || process.env.DEEPSEEK_API_URL || 'http://localhost:11434';
+    const apiUrl =
+      deepseekConfig.api_url || process.env.DEEPSEEK_API_URL || 'http://localhost:11434';
     const model = data.model || agent.model_name || DEFAULT_MODEL;
 
     try {
@@ -514,4 +525,3 @@ export class AgentDeepSeekService {
     await this.db.query(query, values);
   }
 }
-

@@ -22,7 +22,7 @@ class DeepSeekAPIService {
   constructor(config = {}) {
     this.apiKey = config.apiKey || process.env.DEEPSEEK_API_KEY;
     this.apiUrl = config.apiUrl || process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1';
-    this.model = config.model || process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+    this.model = config.model || process.env.DEEPSEEK_MODEL || 'deepseek-reasoner';
     this.timeout = config.timeout || 60000;
     this.maxRetries = config.maxRetries || 3;
 

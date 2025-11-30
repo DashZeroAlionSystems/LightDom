@@ -37,7 +37,7 @@ DB_PASSWORD=your_password
 # DeepSeek AI
 DEEPSEEK_API_KEY=your_api_key
 DEEPSEEK_API_URL=https://api.deepseek.com/v1
-DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_MODEL=deepseek-reasoner
 
 # n8n
 N8N_API_URL=http://localhost:5678/api/v1
@@ -116,6 +116,7 @@ curl http://localhost:3001/api/workflows/runs/{run_id}
 ## 🔌 API Endpoints
 
 ### Workflows
+
 - `POST /api/workflows` - Create workflow
 - `GET /api/workflows` - List workflows
 - `GET /api/workflows/:id` - Get workflow
@@ -123,17 +124,20 @@ curl http://localhost:3001/api/workflows/runs/{run_id}
 - `GET /api/workflows/runs/:runId` - Get execution status
 
 ### Templates
+
 - `GET /api/templates` - List templates
 - `GET /api/templates/:id` - Get template
 - `POST /api/templates/:id/instantiate` - Create from template
 - `GET /api/templates/search?q=seo` - Search templates
 
 ### Prompts
+
 - `POST /api/prompts/templates` - Create prompt template
 - `GET /api/prompts/templates` - List templates
 - `GET /api/prompts/templates/:id` - Get template
 
 ### Schemas
+
 - `POST /api/schemas` - Create schema
 - `GET /api/schemas` - List schemas
 - `POST /api/schemas/link` - Link schemas

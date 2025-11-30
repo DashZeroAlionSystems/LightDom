@@ -28,6 +28,7 @@ Results & Reports
 ## Task Types
 
 ### 1. API Call
+
 Execute HTTP requests to internal or external APIs.
 
 ```json
@@ -46,6 +47,7 @@ Execute HTTP requests to internal or external APIs.
 ```
 
 ### 2. Data Transformation
+
 Transform data using Lodash or Ramda functions.
 
 ```json
@@ -61,6 +63,7 @@ Transform data using Lodash or Ramda functions.
 ```
 
 ### 3. Enrichment
+
 Queue background enrichment jobs (AI, SEO, external APIs).
 
 ```json
@@ -71,7 +74,7 @@ Queue background enrichment jobs (AI, SEO, external APIs).
   "input": {
     "entityIds": "${previousResults.fetch_data.entities.*.id}",
     "config": {
-      "model": "deepseek-chat",
+      "model": "deepseek-reasoner",
       "temperature": 0.7
     }
   },
@@ -80,6 +83,7 @@ Queue background enrichment jobs (AI, SEO, external APIs).
 ```
 
 ### 4. Validation
+
 Validate data against JSON Schema.
 
 ```json
@@ -100,6 +104,7 @@ Validate data against JSON Schema.
 ```
 
 ### 5. Aggregation
+
 Calculate metrics and aggregate data.
 
 ```json
@@ -116,6 +121,7 @@ Calculate metrics and aggregate data.
 ```
 
 ### 6. Loop
+
 Iterate over items and execute subtasks.
 
 ```json
@@ -141,6 +147,7 @@ Iterate over items and execute subtasks.
 ```
 
 ### 7. Conditional
+
 Execute tasks based on conditions.
 
 ```json
@@ -174,6 +181,7 @@ Execute tasks based on conditions.
 ```
 
 ### 8. Parallel
+
 Execute tasks in parallel.
 
 ```json
@@ -198,6 +206,7 @@ Execute tasks in parallel.
 ```
 
 ### 9. Wait
+
 Pause execution for a specified time.
 
 ```json
@@ -220,9 +229,11 @@ Access previous task results and context using `${path.to.value}` syntax:
 ## Predefined Automations
 
 ### 1. SEO Campaign Complete
+
 **File**: `seo-campaign-complete.json`
 
 Complete SEO campaign automation (16 tasks):
+
 1. Conduct deep-dive research
 2. Discover mining attributes
 3. Create mining instance
@@ -241,6 +252,7 @@ Complete SEO campaign automation (16 tasks):
 16. Save campaign report
 
 **Usage**:
+
 ```bash
 curl -X POST http://localhost:3000/api/automations/run/seo-campaign-complete \
   -H "Content-Type: application/json" \
@@ -254,9 +266,11 @@ curl -X POST http://localhost:3000/api/automations/run/seo-campaign-complete \
 ```
 
 ### 2. Mass Enrichment
+
 **File**: `mass-enrichment.json`
 
 Enrich thousands of entities in parallel (7 tasks):
+
 1. Fetch entities to enrich
 2. Filter un-enriched entities
 3. Create enrichment batches (100 per batch)
@@ -266,6 +280,7 @@ Enrich thousands of entities in parallel (7 tasks):
 7. Save enrichment summary
 
 **Usage**:
+
 ```bash
 curl -X POST http://localhost:3000/api/automations/run/mass-enrichment \
   -H "Content-Type: application/json" \
@@ -279,9 +294,11 @@ curl -X POST http://localhost:3000/api/automations/run/mass-enrichment \
 ```
 
 ### 3. Competitor Analysis
+
 **File**: `competitor-analysis.json`
 
 Analyze competitor websites (8 tasks per competitor):
+
 1. Fetch competitor URLs
 2. Loop through each competitor:
    - Crawl competitor site
@@ -297,6 +314,7 @@ Analyze competitor websites (8 tasks per competitor):
 6. Save competitor report
 
 **Usage**:
+
 ```bash
 curl -X POST http://localhost:3000/api/automations/run/competitor-analysis \
   -H "Content-Type: application/json" \
@@ -308,9 +326,11 @@ curl -X POST http://localhost:3000/api/automations/run/competitor-analysis \
 ```
 
 ### 4. Content Optimization
+
 **File**: `content-optimization.json`
 
 Analyze and optimize content quality (7 tasks):
+
 1. Fetch all content
 2. Analyze quality (loop):
    - SEO analysis
@@ -322,6 +342,7 @@ Analyze and optimize content quality (7 tasks):
 6. Save optimization report
 
 **Usage**:
+
 ```bash
 curl -X POST http://localhost:3000/api/automations/run/content-optimization \
   -H "Content-Type: application/json" \
@@ -333,9 +354,11 @@ curl -X POST http://localhost:3000/api/automations/run/content-optimization \
 ```
 
 ### 5. Auto-Scaling Pipeline
+
 **File**: `auto-scaling.json`
 
 Automatically scale workers based on queue size (6 tasks):
+
 1. Check processing queue size
 2. Conditional: If queue > 1000:
    - Calculate workers needed
@@ -345,6 +368,7 @@ Automatically scale workers based on queue size (6 tasks):
 3. Save scaling event
 
 **Usage**:
+
 ```bash
 curl -X POST http://localhost:3000/api/automations/run/auto-scaling \
   -H "Content-Type: application/json" \
@@ -354,11 +378,13 @@ curl -X POST http://localhost:3000/api/automations/run/auto-scaling \
 ## API Endpoints
 
 ### Run Predefined Automation
+
 ```
 POST /api/automations/run/:configName
 ```
 
 **Body**:
+
 ```json
 {
   "context": {
@@ -368,6 +394,7 @@ POST /api/automations/run/:configName
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -378,11 +405,13 @@ POST /api/automations/run/:configName
 ```
 
 ### Run Custom Automation
+
 ```
 POST /api/automations/run-custom
 ```
 
 **Body**:
+
 ```json
 {
   "config": {
@@ -394,11 +423,13 @@ POST /api/automations/run-custom
 ```
 
 ### Get Automation Status
+
 ```
 GET /api/automations/status/:automationId
 ```
 
 **Response**:
+
 ```json
 {
   "automation": {
@@ -413,11 +444,13 @@ GET /api/automations/status/:automationId
 ```
 
 ### Get Metrics
+
 ```
 GET /api/automations/metrics
 ```
 
 **Response**:
+
 ```json
 {
   "metrics": {
@@ -433,16 +466,19 @@ GET /api/automations/metrics
 ```
 
 ### Get History
+
 ```
 GET /api/automations/history?limit=50
 ```
 
 ### List Available Configs
+
 ```
 GET /api/automations/configs
 ```
 
 ### Get Running Automations
+
 ```
 GET /api/automations/running
 ```
@@ -452,27 +488,27 @@ GET /api/automations/running
 The orchestrator emits events that you can listen to:
 
 ```javascript
-orchestrator.on('automation:started', (data) => {
+orchestrator.on('automation:started', data => {
   console.log(`Automation started: ${data.name}`);
 });
 
-orchestrator.on('task:started', (data) => {
+orchestrator.on('task:started', data => {
   console.log(`Task started: ${data.taskName}`);
 });
 
-orchestrator.on('task:completed', (data) => {
+orchestrator.on('task:completed', data => {
   console.log(`Task completed: ${data.taskId}`);
 });
 
-orchestrator.on('task:failed', (data) => {
+orchestrator.on('task:failed', data => {
   console.error(`Task failed: ${data.taskId}`);
 });
 
-orchestrator.on('automation:completed', (data) => {
+orchestrator.on('automation:completed', data => {
   console.log(`Automation completed in ${data.duration}ms`);
 });
 
-orchestrator.on('automation:failed', (data) => {
+orchestrator.on('automation:failed', data => {
   console.error(`Automation failed: ${data.error}`);
 });
 ```
@@ -516,6 +552,7 @@ Tasks can trigger actions on success:
 5. Deploy as predefined automation
 
 Example:
+
 ```json
 {
   "name": "My Custom Automation",
@@ -570,7 +607,7 @@ const { initializeOrchestrator } = require('./automations/automation-routes');
 const orchestrator = initializeOrchestrator({
   enrichmentService: enrichmentService,
   entityService: entityService,
-  relationshipService: relationshipService
+  relationshipService: relationshipService,
 });
 ```
 
@@ -584,6 +621,7 @@ const orchestrator = initializeOrchestrator({
 ## Examples
 
 See the `configs/` directory for complete examples:
+
 - `seo-campaign-complete.json` - Full SEO campaign (16 tasks)
 - `mass-enrichment.json` - Mass data enrichment (7 tasks)
 - `competitor-analysis.json` - Competitor analysis (8+ tasks)

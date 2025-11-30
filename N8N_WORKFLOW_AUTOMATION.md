@@ -31,6 +31,7 @@ Complete n8n workflow automation system for LightDom crawler campaigns with even
 ```
 
 This starts:
+
 - n8n (http://localhost:5678)
 - PostgreSQL (for n8n workflows)
 - Redis (for caching)
@@ -132,7 +133,7 @@ POST /api/n8n/triggers
 ```tsx
 import WorkflowTriggerManager from './components/WorkflowTriggerManager';
 
-<WorkflowTriggerManager campaignId="campaign_123" />
+<WorkflowTriggerManager campaignId='campaign_123' />;
 ```
 
 ### Emit Event (from Campaign)
@@ -146,9 +147,9 @@ triggerService.emitCampaignEvent('campaign.schema.discovered', {
   schema: {
     type: 'Product',
     url: 'https://example.com/product',
-    fields: ['name', 'price', 'sku']
+    fields: ['name', 'price', 'sku'],
   },
-  timestamp: new Date().toISOString()
+  timestamp: new Date().toISOString(),
 });
 ```
 
@@ -337,45 +338,45 @@ import { triggerService } from '../api/routes/n8n-trigger.routes.js';
 class CampaignInstanceOrchestrator {
   async createCampaignWithInstances(config) {
     // ... create campaign ...
-    
+
     // Setup default triggers
     await this.setupDefaultTriggers(campaign.id);
-    
+
     // ... rest of setup ...
   }
-  
+
   async setupDefaultTriggers(campaignId) {
     // Schema discovery trigger
     await triggerService.createTrigger({
       campaignId,
       useTemplate: 'schema-discovered',
       description: 'Auto-process schema discoveries',
-      enabled: true
+      enabled: true,
     });
-    
+
     // URL collection trigger
     await triggerService.createTrigger({
       campaignId,
       useTemplate: 'url-collected',
       description: 'Validate and queue collected URLs',
-      enabled: true
+      enabled: true,
     });
-    
+
     // Data mining complete trigger
     await triggerService.createTrigger({
       campaignId,
       useTemplate: 'data-mined',
       description: 'Process crawled data',
-      enabled: true
+      enabled: true,
     });
   }
-  
+
   // Emit events during campaign execution
   async onSchemaDiscovered(campaignId, schema) {
     triggerService.emitCampaignEvent('campaign.schema.discovered', {
       campaignId,
       schema,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 }
@@ -390,15 +391,15 @@ import { triggerService } from '../api/routes/n8n-trigger.routes.js';
 class EnhancedSeedingService {
   async collectUrls(seederId) {
     const urls = await this.scrapeUrls(seederId);
-    
+
     // Emit event
     triggerService.emitCampaignEvent('campaign.seeder.urls_collected', {
       seederId,
       urls,
       count: urls.length,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     return urls;
   }
 }
@@ -413,16 +414,16 @@ import { triggerService } from '../api/routes/n8n-trigger.routes.js';
 class CrawlerCampaignService {
   async crawlUrl(url, campaignId) {
     const data = await this.extractData(url);
-    
+
     // Emit event
     triggerService.emitCampaignEvent('campaign.crawler.data_mined', {
       campaignId,
       url,
       data,
       success: true,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     return data;
   }
 }
@@ -468,7 +469,7 @@ Start with templates and customize rather than building from scratch:
 await triggerService.createTrigger({
   campaignId,
   useTemplate: 'schema-discovered',
-  condition: '{{schema.type}} === "Product"' // Customize condition
+  condition: '{{schema.type}} === "Product"', // Customize condition
 });
 
 // Avoid - manually creating complex workflows
@@ -480,10 +481,10 @@ Use conditions to avoid unnecessary workflow executions:
 
 ```javascript
 // Efficient
-condition: '{{urls.length}} > 10 && {{urls.length}} < 1000'
+condition: '{{urls.length}} > 10 && {{urls.length}} < 1000';
 
 // Wasteful - no condition
-condition: 'true'
+condition: 'true';
 ```
 
 ### 3. Error Handling
@@ -494,7 +495,7 @@ Always include error threshold triggers:
 await triggerService.createTrigger({
   campaignId,
   useTemplate: 'error-threshold',
-  enabled: true
+  enabled: true,
 });
 ```
 
@@ -552,7 +553,7 @@ echo $DEEPSEEK_API_KEY
 curl https://api.deepseek.com/v1/chat/completions \
   -H "Authorization: Bearer $DEEPSEEK_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"test"}]}'
+  -d '{"model":"deepseek-reasoner","messages":[{"role":"user","content":"test"}]}'
 ```
 
 ### Memory Issues (4GB Systems)

@@ -3,7 +3,7 @@
  * REST API endpoints for AI-powered portfolio management
  */
 
-import express, { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import DeepSeekIntegration from '../ai/DeepSeekIntegration';
 import HeadlessCalculationEngine from '../services/HeadlessCalculationEngine';
 
@@ -20,16 +20,16 @@ export async function initializeAIServices() {
   deepseek = new DeepSeekIntegration({
     apiKey: process.env.DEEPSEEK_API_KEY || '',
     apiEndpoint: process.env.DEEPSEEK_API_ENDPOINT || 'https://api.deepseek.com/v1',
-    model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+    model: process.env.DEEPSEEK_MODEL || 'deepseek-reasoner',
     temperature: 0.7,
     maxTokens: 2000,
-    streamingEnabled: true
+    streamingEnabled: true,
   });
 
   calculationEngine = new HeadlessCalculationEngine({
     maxWorkers: parseInt(process.env.MAX_CALC_WORKERS || '4'),
     enableCaching: true,
-    cacheTTL: 300000
+    cacheTTL: 300000,
   });
 
   await deepseek.initialize();
@@ -49,7 +49,7 @@ router.get('/status', (req: Request, res: Response) => {
   res.json({
     success: true,
     deepseek: status,
-    calculationEngine: calcStatus
+    calculationEngine: calcStatus,
   });
 });
 
@@ -61,7 +61,7 @@ router.get('/streams', (req: Request, res: Response) => {
   const streams = deepseek.getDataStreams();
   res.json({
     success: true,
-    streams
+    streams,
   });
 });
 
@@ -75,7 +75,7 @@ router.post('/streams/register', (req: Request, res: Response) => {
   if (!id || !name || !type || !source) {
     return res.status(400).json({
       success: false,
-      error: 'Missing required fields: id, name, type, source'
+      error: 'Missing required fields: id, name, type, source',
     });
   }
 
@@ -86,12 +86,12 @@ router.post('/streams/register', (req: Request, res: Response) => {
     source,
     frequency: frequency || 60000,
     lastUpdate: new Date(),
-    status: 'paused'
+    status: 'paused',
   });
 
   res.json({
     success: true,
-    message: `Data stream ${name} registered successfully`
+    message: `Data stream ${name} registered successfully`,
   });
 });
 
@@ -103,19 +103,19 @@ router.post('/streams/:streamId/start', async (req: Request, res: Response) => {
   const { streamId } = req.params;
 
   try {
-    await deepseek.startStreamMonitoring(streamId, (feedback) => {
+    await deepseek.startStreamMonitoring(streamId, feedback => {
       // Emit feedback via WebSocket or store for polling
       console.log(`Feedback for ${streamId}:`, feedback);
     });
 
     res.json({
       success: true,
-      message: `Started monitoring stream ${streamId}`
+      message: `Started monitoring stream ${streamId}`,
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -126,12 +126,12 @@ router.post('/streams/:streamId/start', async (req: Request, res: Response) => {
  */
 router.post('/streams/:streamId/stop', (req: Request, res: Response) => {
   const { streamId } = req.params;
-  
+
   deepseek.stopStreamMonitoring(streamId);
 
   res.json({
     success: true,
-    message: `Stopped monitoring stream ${streamId}`
+    message: `Stopped monitoring stream ${streamId}`,
   });
 });
 
@@ -145,7 +145,7 @@ router.post('/analyze/portfolio', async (req: Request, res: Response) => {
   if (!dataStreams || !Array.isArray(dataStreams)) {
     return res.status(400).json({
       success: false,
-      error: 'dataStreams must be an array'
+      error: 'dataStreams must be an array',
     });
   }
 
@@ -156,17 +156,17 @@ router.post('/analyze/portfolio', async (req: Request, res: Response) => {
       dataStreams,
       context: context || {},
       priority: priority || 1,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
 
     res.json({
       success: true,
-      analysis: result
+      analysis: result,
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -181,7 +181,7 @@ router.post('/calculate', async (req: Request, res: Response) => {
   if (!type || !inputs) {
     return res.status(400).json({
       success: false,
-      error: 'type and inputs are required'
+      error: 'type and inputs are required',
     });
   }
 
@@ -191,17 +191,17 @@ router.post('/calculate', async (req: Request, res: Response) => {
       type,
       inputs,
       priority: priority || 1,
-      timeout: 60000
+      timeout: 60000,
     });
 
     res.json({
       success: true,
-      result
+      result,
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -216,7 +216,7 @@ router.post('/calculate/portfolio-value', async (req: Request, res: Response) =>
   if (!holdings || !prices) {
     return res.status(400).json({
       success: false,
-      error: 'holdings and prices are required'
+      error: 'holdings and prices are required',
     });
   }
 
@@ -226,19 +226,19 @@ router.post('/calculate/portfolio-value', async (req: Request, res: Response) =>
       type: 'portfolio_valuation',
       inputs: { holdings, prices },
       priority: 1,
-      timeout: 30000
+      timeout: 30000,
     });
 
     res.json({
       success: true,
       value: result.data.totalValue,
       breakdown: result.data.assetValues,
-      metrics: result.metrics
+      metrics: result.metrics,
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -253,7 +253,7 @@ router.post('/calculate/risk', async (req: Request, res: Response) => {
   if (!holdings || !historicalPrices) {
     return res.status(400).json({
       success: false,
-      error: 'holdings and historicalPrices are required'
+      error: 'holdings and historicalPrices are required',
     });
   }
 
@@ -263,18 +263,18 @@ router.post('/calculate/risk', async (req: Request, res: Response) => {
       type: 'risk_analysis',
       inputs: { holdings, historicalPrices, riskFreeRate },
       priority: 1,
-      timeout: 30000
+      timeout: 30000,
     });
 
     res.json({
       success: true,
       risk: result.data,
-      metrics: result.metrics
+      metrics: result.metrics,
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -289,7 +289,7 @@ router.post('/calculate/optimize', async (req: Request, res: Response) => {
   if (!assets || !expectedReturns) {
     return res.status(400).json({
       success: false,
-      error: 'assets and expectedReturns are required'
+      error: 'assets and expectedReturns are required',
     });
   }
 
@@ -299,18 +299,18 @@ router.post('/calculate/optimize', async (req: Request, res: Response) => {
       type: 'optimization',
       inputs: { assets, expectedReturns, covariance, riskTolerance },
       priority: 1,
-      timeout: 60000
+      timeout: 60000,
     });
 
     res.json({
       success: true,
       optimization: result.data,
-      metrics: result.metrics
+      metrics: result.metrics,
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -325,7 +325,7 @@ router.post('/predict', async (req: Request, res: Response) => {
   if (!historicalPrices || !Array.isArray(historicalPrices)) {
     return res.status(400).json({
       success: false,
-      error: 'historicalPrices array is required'
+      error: 'historicalPrices array is required',
     });
   }
 
@@ -335,18 +335,18 @@ router.post('/predict', async (req: Request, res: Response) => {
       type: 'prediction',
       inputs: { historicalPrices, features, horizon },
       priority: 1,
-      timeout: 30000
+      timeout: 30000,
     });
 
     res.json({
       success: true,
       prediction: result.data,
-      metrics: result.metrics
+      metrics: result.metrics,
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -365,15 +365,15 @@ router.get('/metrics', (req: Request, res: Response) => {
       ai: {
         totalStreams: aiStatus.totalStreams,
         activeStreams: aiStatus.activeStreams,
-        activeAnalyses: aiStatus.activeAnalyses
+        activeAnalyses: aiStatus.activeAnalyses,
       },
       calculation: {
         activeCalculations: calcStatus.activeCalculations,
         queuedTasks: calcStatus.queuedTasks,
         cacheSize: calcStatus.cacheSize,
-        cacheHitRate: calcStatus.cacheHitRate
-      }
-    }
+        cacheHitRate: calcStatus.cacheHitRate,
+      },
+    },
   });
 });
 

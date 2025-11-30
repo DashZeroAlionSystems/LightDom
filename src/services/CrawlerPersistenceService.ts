@@ -50,6 +50,13 @@ export interface CrawledSite {
   stylesheets?: any; // JSONB
   inlineStyles?: any; // JSONB
 
+  // Neural integration fields
+  domPaintMetrics?: any; // JSONB dom paint metrics
+  renderLayers?: any; // JSONB render layer info
+  neuralTopics?: any[]; // JSONB array of topics
+  neuralRecommendations?: any[]; // JSONB recommendations from neural analysis
+  neuralEmbeddings?: any; // JSONB embeddings payload
+
   metadata: SiteMetadata;
 }
 
@@ -253,7 +260,8 @@ export class CrawlerPersistenceService {
           og_title, og_description, og_image, og_url,
           twitter_card, twitter_title, twitter_description, twitter_image,
           structured_data, headings, content_analysis, links, images,
-          scripts, stylesheets, inline_styles, metadata
+          scripts, stylesheets, inline_styles, metadata,
+          dom_paint_metrics, render_layers, neural_topics, neural_recommendations, neural_embeddings
         ) VALUES (
           $1,$2,$3,$4,$5,$6,
           $7,$8,$9,$10,
@@ -262,7 +270,12 @@ export class CrawlerPersistenceService {
           $20,$21,$22,$23,
           $24,$25,$26,$27,
           $28,$29,$30,$31,$32,
-          $33,$34,$35,$36
+          $33,$34,$35,$36,
+          COALESCE($37::jsonb, '{}'::jsonb),
+          COALESCE($38::jsonb, '[]'::jsonb),
+          COALESCE($39::jsonb, '[]'::jsonb),
+          COALESCE($40::jsonb, '[]'::jsonb),
+          COALESCE($41::jsonb, '{}'::jsonb)
         )
         ON CONFLICT (id) DO UPDATE SET
           last_crawled = $4, crawl_frequency = $5, priority = $6,
@@ -274,7 +287,12 @@ export class CrawlerPersistenceService {
           og_title = $20, og_description = $21, og_image = $22, og_url = $23,
           twitter_card = $24, twitter_title = $25, twitter_description = $26, twitter_image = $27,
           structured_data = $28, headings = $29, content_analysis = $30, links = $31, images = $32,
-          scripts = $33, stylesheets = $34, inline_styles = $35, metadata = $36`,
+          scripts = $33, stylesheets = $34, inline_styles = $35, metadata = $36,
+          dom_paint_metrics = COALESCE($37::jsonb, dom_paint_metrics),
+          render_layers = COALESCE($38::jsonb, render_layers),
+          neural_topics = COALESCE($39::jsonb, neural_topics),
+          neural_recommendations = COALESCE($40::jsonb, neural_recommendations),
+          neural_embeddings = COALESCE($41::jsonb, neural_embeddings)`,
         [
           site.id,
           site.url,
@@ -318,7 +336,12 @@ export class CrawlerPersistenceService {
           JSON.stringify(site.stylesheets ?? site.metadata?.stylesheets ?? []),
           JSON.stringify(site.inlineStyles ?? {}),
           // full metadata JSONB (last param)
-          JSON.stringify(site.metadata ?? {})
+          JSON.stringify(site.metadata ?? {}),
+          site.domPaintMetrics !== undefined ? JSON.stringify(site.domPaintMetrics ?? {}) : null,
+          site.renderLayers !== undefined ? JSON.stringify(site.renderLayers ?? []) : null,
+          site.neuralTopics !== undefined ? JSON.stringify(site.neuralTopics ?? []) : null,
+          site.neuralRecommendations !== undefined ? JSON.stringify(site.neuralRecommendations ?? []) : null,
+          site.neuralEmbeddings !== undefined ? JSON.stringify(site.neuralEmbeddings ?? {}) : null
         ]
       );
     } catch (error) {

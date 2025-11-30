@@ -2,15 +2,15 @@
 
 /**
  * Neural Network UI/UX Training - Quick Start
- * 
+ *
  * This script demonstrates how to use the neural network system
  * to train models on UI/UX quality patterns
  */
 
-import { UIUXNeuralNetwork } from './src/ml/UIUXNeuralNetwork';
-import PretrainedModelsManager from './src/ml/PretrainedModels';
-import NeuralCrawlerConfigGenerator from './src/ml/NeuralCrawlerConfigGenerator';
 import DeepSeekNeuralIntegration from './src/ml/DeepSeekNeuralIntegration';
+import NeuralCrawlerConfigGenerator from './src/ml/NeuralCrawlerConfigGenerator';
+import PretrainedModelsManager from './src/ml/PretrainedModels';
+import { UIUXNeuralNetwork } from './src/ml/UIUXNeuralNetwork';
 
 async function quickStart() {
   console.log('🚀 Neural Network UI/UX Training System - Quick Start\n');
@@ -20,7 +20,7 @@ async function quickStart() {
   // ============================================================================
   console.log('📦 Step 1: Initializing Neural Network...');
   const network = new UIUXNeuralNetwork();
-  
+
   try {
     await network.loadModel('indexeddb://uiux-model');
     console.log('✅ Loaded existing model from IndexedDB\n');
@@ -34,7 +34,7 @@ async function quickStart() {
   // Step 2: Add Sample Training Data
   // ============================================================================
   console.log('📊 Step 2: Adding sample training data...');
-  
+
   const sampleComponents = [
     {
       name: 'Accessible Button',
@@ -78,7 +78,7 @@ async function quickStart() {
           score: 0.92,
         },
         aesthetics: {
-          colorHarmony: 0.90,
+          colorHarmony: 0.9,
           spacing: 0.95,
           typography: 0.88,
           visualHierarchy: 0.92,
@@ -87,7 +87,7 @@ async function quickStart() {
         usability: {
           clickTargetSize: 1.0,
           formValidation: 0.85,
-          errorHandling: 0.90,
+          errorHandling: 0.9,
           consistency: 0.95,
           score: 0.93,
         },
@@ -123,7 +123,7 @@ async function quickStart() {
       metrics: {
         accessibility: {
           contrastRatio: 4.5,
-          ariaCompliance: 0.60,
+          ariaCompliance: 0.6,
           keyboardNavigation: 1.0,
           semanticHTML: 0.85,
           score: 0.74,
@@ -137,15 +137,15 @@ async function quickStart() {
         },
         aesthetics: {
           colorHarmony: 0.75,
-          spacing: 0.80,
-          typography: 0.70,
+          spacing: 0.8,
+          typography: 0.7,
           visualHierarchy: 0.75,
           score: 0.75,
         },
         usability: {
-          clickTargetSize: 0.90,
-          formValidation: 0.50,
-          errorHandling: 0.60,
+          clickTargetSize: 0.9,
+          formValidation: 0.5,
+          errorHandling: 0.6,
           consistency: 0.85,
           score: 0.71,
         },
@@ -161,9 +161,11 @@ async function quickStart() {
       userRating: component.metrics.overallScore * 5,
       timestamp: Date.now(),
     });
-    console.log(`  ✅ Added: ${component.name} (score: ${(component.metrics.overallScore * 100).toFixed(1)}%)`);
+    console.log(
+      `  ✅ Added: ${component.name} (score: ${(component.metrics.overallScore * 100).toFixed(1)}%)`
+    );
   }
-  
+
   const status = network.getTrainingStatus();
   console.log(`\n📈 Training data count: ${status.dataCount}\n`);
 
@@ -176,11 +178,13 @@ async function quickStart() {
 
     network.on('training:progress', ({ epoch, totalEpochs, loss, valLoss }) => {
       const progress = ((epoch / totalEpochs) * 100).toFixed(1);
-      console.log(`  Epoch ${epoch}/${totalEpochs} (${progress}%) - Loss: ${loss?.toFixed(4)}, Val Loss: ${valLoss?.toFixed(4)}`);
+      console.log(
+        `  Epoch ${epoch}/${totalEpochs} (${progress}%) - Loss: ${loss?.toFixed(4)}, Val Loss: ${valLoss?.toFixed(4)}`
+      );
     });
 
     await network.train();
-    
+
     console.log('\n✅ Training completed!\n');
 
     // Save the model
@@ -195,7 +199,7 @@ async function quickStart() {
   // Step 4: Make Predictions
   // ============================================================================
   console.log('🔮 Step 4: Making predictions on new component...');
-  
+
   const newComponent = {
     colors: ['#4caf50', '#ffffff'],
     spacing: [16, 24],
@@ -223,7 +227,7 @@ async function quickStart() {
 
   try {
     const prediction = await network.predict(newComponent);
-    
+
     console.log('\n📊 Predicted Quality Metrics:');
     console.log(`  Accessibility: ${(prediction.accessibility.score * 100).toFixed(1)}%`);
     console.log(`  Performance:   ${(prediction.performance.score * 100).toFixed(1)}%`);
@@ -239,7 +243,7 @@ async function quickStart() {
   // ============================================================================
   console.log('🤖 Step 5: Initializing pre-trained models...');
   const pretrainedModels = new PretrainedModelsManager();
-  
+
   console.log('\n📚 Available pre-trained models:');
   const models = pretrainedModels.getAvailableModels();
   models.forEach(model => {
@@ -267,7 +271,7 @@ async function quickStart() {
   console.log(`  Confidence: ${(crawlerConfig.confidence * 100).toFixed(1)}%`);
   console.log(`  Primary Selectors: ${crawlerConfig.config.selectors.primary.length}`);
   console.log(`  Mining Targets: ${crawlerConfig.targets.length}`);
-  
+
   if (crawlerConfig.targets.length > 0) {
     console.log('\n🎯 Top Mining Targets:');
     crawlerConfig.targets.slice(0, 3).forEach((target, i) => {
@@ -284,7 +288,7 @@ async function quickStart() {
   console.log('🧠 Step 7: DeepSeek AI Integration (Demo Mode)...');
   const deepseekIntegration = new DeepSeekNeuralIntegration({
     provider: 'deepseek',
-    model: 'deepseek-chat',
+    model: 'deepseek-reasoner',
   });
 
   await deepseekIntegration.initialize();
@@ -306,8 +310,10 @@ async function quickStart() {
   console.log('\n🔍 AI-Powered Component Analysis:');
   console.log(`  Component Type: ${componentAnalysis.component.type}`);
   console.log(`  Confidence: ${(componentAnalysis.confidence * 100).toFixed(1)}%`);
-  console.log(`  Overall Score: ${(componentAnalysis.predictedMetrics.overallScore * 100).toFixed(1)}%`);
-  
+  console.log(
+    `  Overall Score: ${(componentAnalysis.predictedMetrics.overallScore * 100).toFixed(1)}%`
+  );
+
   console.log('\n  💪 Strengths:');
   componentAnalysis.aiInsights.strengths.slice(0, 3).forEach(s => {
     console.log(`    • ${s}`);

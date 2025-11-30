@@ -11,9 +11,9 @@ import {
 } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { PromptInput, type PromptAction, type PromptToken } from '@/components/ui/PromptInput';
 import RagConnectionStatus from '@/components/RagConnectionStatus';
 import RagErrorBoundary from '@/components/RagErrorBoundary';
+import { PromptInput, type PromptAction, type PromptToken } from '@/components/ui/PromptInput';
 import { useRagChat } from '@/hooks/useRagChat';
 
 type ChatRole = 'user' | 'assistant' | 'system';
@@ -55,7 +55,7 @@ const rawApiBase =
     (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_URL as
       | string
       | undefined
-  )?.trim() || '/api';
+  )?.trim() || 'http://localhost:3001/api';
 
 const API_BASE = rawApiBase.replace(/\/$/, '');
 
@@ -82,6 +82,7 @@ const PromptConsolePage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const streamingMessageIdRef = useRef<string | null>(null);
+  const conversationIdRef = useRef<string>(crypto.randomUUID());
 
   // Use RAG chat hook with automatic retry and error handling
   const {
@@ -406,6 +407,7 @@ const PromptConsolePage: React.FC = () => {
     setSchemaSuggestion(null);
     setComponentSuggestion(null);
     setRetrievedDocuments([]);
+    conversationIdRef.current = crypto.randomUUID();
   }, []);
 
   const ingestUpload = useCallback(async (file: File) => {
@@ -417,25 +419,40 @@ const PromptConsolePage: React.FC = () => {
       formData.append('file', file);
       formData.append('title', file.name);
 
-      const response = await fetch(`${API_BASE}/rag/ingest/upload`, {
+      const response = await fetch(`${API_BASE}/unified-rag/index/file`, {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || `Upload failed with status ${response.status}`);
+      const result = await response.json();
+      if (!response.ok || result?.status !== 'ok') {
+        const message =
+          (result &&
+            typeof result === 'object' &&
+            'error' in result &&
+            (result as { error?: string }).error) ||
+          `Upload failed with status ${response.status}`;
+        throw new Error(message || 'Document ingestion failed');
       }
 
-      const result = await response.json();
+      if ('success' in result && result.success === false) {
+        const message =
+          (result as { error?: string }).error || 'Document ingestion reported failure';
+        throw new Error(message);
+      }
+
+      const chunkCount =
+        result.chunksIndexed ?? result.metadata?.chunkCount ?? result.metadata?.chunksIndexed;
+      const version = result.version ?? result.metadata?.version;
+      const documentId = result.documentId ?? result.metadata?.documentId ?? 'unknown';
 
       setConversation((prev: ChatMessage[]) => [
         ...prev,
         createMessage(
           'system',
-          `Document "${file.name}" ingested. Document ID: ${result?.documentId ?? 'unknown'} (chunks: ${
-            result?.upsert?.chunks ?? 'n/a'
-          }).`
+          `Document "${file.name}" ingested. Document ID: ${documentId} (chunks: ${
+            typeof chunkCount === 'number' ? chunkCount : 'n/a'
+          }${version ? `, version ${version}` : ''}).`
         ),
       ]);
       setStatusMessage('Document ingested');
@@ -470,7 +487,9 @@ const PromptConsolePage: React.FC = () => {
         body.url = input;
       }
 
-      const response = await fetch(`${API_BASE}/rag/ingest/url`, {
+      body.title = input;
+
+      const response = await fetch(`${API_BASE}/unified-rag/convert/url`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -478,20 +497,34 @@ const PromptConsolePage: React.FC = () => {
         body: JSON.stringify(body),
       });
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || `Remote ingestion failed with status ${response.status}`);
+      const result = await response.json();
+      if (!response.ok || result?.status !== 'ok') {
+        const message =
+          (result &&
+            typeof result === 'object' &&
+            'error' in result &&
+            (result as { error?: string }).error) ||
+          `Remote ingestion failed with status ${response.status}`;
+        throw new Error(message || 'Remote ingestion failed');
       }
 
-      const result = await response.json();
+      if ('success' in result && result.success === false) {
+        const message = (result as { error?: string }).error || 'Remote ingestion reported failure';
+        throw new Error(message);
+      }
+
+      const chunkCount =
+        result.chunksIndexed ?? result.metadata?.chunkCount ?? result.metadata?.chunksIndexed;
+      const version = result.version ?? result.metadata?.version;
+      const documentId = result.documentId ?? result.metadata?.documentId ?? 'unknown';
 
       setConversation((prev: ChatMessage[]) => [
         ...prev,
         createMessage(
           'system',
-          `Remote source ingested from ${input}. Document ID: ${result?.documentId ?? 'unknown'} (chunks: ${
-            result?.upsert?.chunks ?? 'n/a'
-          }).`
+          `Remote source ingested from ${input}. Document ID: ${documentId} (chunks: ${
+            typeof chunkCount === 'number' ? chunkCount : 'n/a'
+          }${version ? `, version ${version}` : ''}).`
         ),
       ]);
       setStatusMessage('Remote document ingested');
@@ -927,15 +960,21 @@ const PromptConsolePage: React.FC = () => {
           const query = rest.join(' ');
           setStatusMessage('Searching RAG…');
           try {
-            const resp = await fetch(`${API_BASE}/rag/search`, {
+            const resp = await fetch(`${API_BASE}/unified-rag/search`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ query, topK: 5 }),
             });
-            if (!resp.ok) {
-              throw new Error(`Search failed (${resp.status})`);
-            }
             const payload = await resp.json();
+            if (!resp.ok || payload?.status !== 'ok') {
+              throw new Error(
+                (payload &&
+                  typeof payload === 'object' &&
+                  'error' in payload &&
+                  (payload as { error?: string }).error) ||
+                  `Search failed (${resp.status})`
+              );
+            }
             const results = payload.results ?? [];
             const resultText =
               results.length > 0
@@ -1040,19 +1079,19 @@ const PromptConsolePage: React.FC = () => {
       try {
         await streamChat(
           messages,
-          {},
+          {
+            conversationId: conversationIdRef.current,
+          },
           (chunk: string) => {
             setConversation((prev: ChatMessage[]) => {
               return prev.map(msg =>
-                msg.id === assistantMessage.id
-                  ? { ...msg, content: msg.content + chunk }
-                  : msg
+                msg.id === assistantMessage.id ? { ...msg, content: msg.content + chunk } : msg
               );
             });
             setStatusMessage('Streaming…');
           }
         );
-        
+
         // Mark message as complete
         markMessageComplete(assistantMessage.id);
         setStatusMessage('Complete');
@@ -1076,7 +1115,9 @@ const PromptConsolePage: React.FC = () => {
               <span className='text-xs font-semibold uppercase tracking-[0.2em] text-primary/80'>
                 DeepSeek Studio
               </span>
-              <h1 className='text-lg font-semibold leading-tight'>Streaming conversation console</h1>
+              <h1 className='text-lg font-semibold leading-tight'>
+                Streaming conversation console
+              </h1>
             </div>
           </div>
           <div className='flex items-center gap-4'>
@@ -1092,223 +1133,228 @@ const PromptConsolePage: React.FC = () => {
 
         <main className='flex-1 overflow-y-auto px-6 py-8'>
           <div className='mx-auto flex w-full max-w-4xl flex-col gap-6'>
-          <input
-            ref={fileInputRef}
-            type='file'
-            className='hidden'
-            onChange={handleFileInputChange}
-            accept='.pdf,.txt,.md,.markdown,.json,.csv,image/*,video/*'
-          />
-          {conversation.length === 0 && (
-            <div className='rounded-3xl border border-dashed border-border/60 bg-surface-container-low p-6 text-sm text-on-surface-variant'>
-              Start a conversation to receive live DeepSeek responses. The prompt input stays
-              anchored so you can review the full transcript as messages arrive.
-            </div>
-          )}
+            <input
+              ref={fileInputRef}
+              type='file'
+              className='hidden'
+              onChange={handleFileInputChange}
+              accept='.pdf,.txt,.md,.markdown,.json,.csv,image/*,video/*'
+            />
+            {conversation.length === 0 && (
+              <div className='rounded-3xl border border-dashed border-border/60 bg-surface-container-low p-6 text-sm text-on-surface-variant'>
+                Start a conversation to receive live DeepSeek responses. The prompt input stays
+                anchored so you can review the full transcript as messages arrive.
+              </div>
+            )}
 
-          {conversation.map((message: ChatMessage) => {
-            const isAssistant = message.role === 'assistant';
-            const isUser = message.role === 'user';
+            {conversation.map((message: ChatMessage) => {
+              const isAssistant = message.role === 'assistant';
+              const isUser = message.role === 'user';
 
-            const bubbleClasses = isAssistant
-              ? 'bg-surface-container-low/80 border border-border shadow-sm'
-              : isUser
-                ? 'bg-primary text-primary-foreground border border-primary/70 shadow-lg shadow-primary/20'
-                : 'bg-surface-container-low border border-dashed border-outline/60';
+              const bubbleClasses = isAssistant
+                ? 'bg-surface-container-low/80 border border-border shadow-sm'
+                : isUser
+                  ? 'bg-primary text-primary-foreground border border-primary/70 shadow-lg shadow-primary/20'
+                  : 'bg-surface-container-low border border-dashed border-outline/60';
 
-            const roleIcon = isAssistant ? (
-              <Sparkles className='h-3.5 w-3.5' />
-            ) : isUser ? (
-              <User className='h-3.5 w-3.5' />
-            ) : (
-              <Info className='h-3.5 w-3.5' />
-            );
+              const roleIcon = isAssistant ? (
+                <Sparkles className='h-3.5 w-3.5' />
+              ) : isUser ? (
+                <User className='h-3.5 w-3.5' />
+              ) : (
+                <Info className='h-3.5 w-3.5' />
+              );
 
-            const roleLabel = isAssistant ? 'DeepSeek' : isUser ? 'You' : 'System';
+              const roleLabel = isAssistant ? 'DeepSeek' : isUser ? 'You' : 'System';
 
-            return (
-              <article
-                key={message.id}
-                className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`max-w-3xl rounded-3xl px-5 py-4 transition-all ${bubbleClasses}`}>
-                  <div className='mb-2 flex items-center gap-2 text-xs uppercase tracking-wide text-on-surface-variant/70'>
-                    {roleIcon}
-                    <span>{roleLabel}</span>
-                    <span className='text-on-surface-variant/50'>
-                      • {formatTimestamp(message.timestamp)}
-                    </span>
-                    {message.streaming && (
-                      <Loader2 className='h-3.5 w-3.5 animate-spin text-primary' />
-                    )}
-                  </div>
-                  <div className='space-y-3 text-sm leading-relaxed'>
-                    {message.content.split('\n\n').map((paragraph: string, index: number) => (
-                      <p key={index} className='whitespace-pre-wrap text-on-surface'>
-                        {paragraph}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-
-          <div ref={messagesEndRef} />
-
-          {(retrievedDocuments.length > 0 ||
-            thinkingContent ||
-            schemaSuggestion ||
-            componentSuggestion) && (
-            <section className='space-y-4 rounded-3xl border border-border/60 bg-surface-container-low/80 p-6 shadow-sm shadow-primary/5'>
-              <header className='flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary/70'>
-                <Sparkles className='h-4 w-4' />
-                DeepSeek Insights
-              </header>
-
-              {retrievedDocuments.length > 0 && (
-                <article className='rounded-2xl border border-outline/30 bg-surface p-4'>
-                  <div className='mb-3 flex items-center justify-between gap-3'>
-                    <h3 className='text-sm font-semibold text-on-surface-variant/90'>
-                      Retrieved context
-                    </h3>
-                    <span className='text-xs text-on-surface-variant/70'>
-                      Top {retrievedDocuments.length} matches
-                    </span>
-                  </div>
-                  <div className='space-y-3 text-sm text-on-surface-variant'>
-                    {retrievedDocuments.map((doc: RetrievedDocument) => (
-                      <div
-                        key={doc.id}
-                        className='rounded-xl border border-outline/20 bg-surface-container-low px-4 py-3'
-                      >
-                        <div className='mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary/70'>
-                          <FileText className='h-3.5 w-3.5' />
-                          <span>{doc.documentId}</span>
-                          <span className='text-on-surface-variant/60'>
-                            Score {(doc.score ?? 0).toFixed(3)}
-                          </span>
-                        </div>
-                        <p className='text-sm text-on-surface line-clamp-3'>{doc.content}</p>
-                        {doc.metadata &&
-                          doc.metadata.url &&
-                          typeof doc.metadata.url === 'string' && (
-                            <a
-                              href={doc.metadata.url}
-                              target='_blank'
-                              rel='noreferrer'
-                              className='mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline'
-                            >
-                              <Link2 className='h-3 w-3' />
-                              Open source
-                            </a>
-                          )}
-                      </div>
-                    ))}
-                  </div>
-                </article>
-              )}
-
-              {thinkingContent && (
-                <article className='rounded-2xl border border-outline/30 bg-surface p-4'>
-                  <h3 className='mb-2 text-sm font-medium text-on-surface-variant/80'>
-                    Reasoning trace
-                  </h3>
-                  <p className='whitespace-pre-wrap text-sm leading-relaxed text-on-surface'>
-                    {thinkingContent}
-                  </p>
-                </article>
-              )}
-
-              {schemaSuggestion && (
-                <article className='rounded-2xl border border-outline/20 bg-surface p-4'>
-                  <div className='mb-3 flex items-center justify-between gap-3'>
-                    <div>
-                      <h3 className='text-base font-semibold text-on-surface'>
-                        {schemaSuggestion.name ?? 'Generated workflow schema'}
-                      </h3>
-                      {schemaSuggestion.description && (
-                        <p className='text-sm text-on-surface-variant'>
-                          {schemaSuggestion.description}
-                        </p>
+              return (
+                <article
+                  key={message.id}
+                  className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-3xl rounded-3xl px-5 py-4 transition-all ${bubbleClasses}`}
+                  >
+                    <div className='mb-2 flex items-center gap-2 text-xs uppercase tracking-wide text-on-surface-variant/70'>
+                      {roleIcon}
+                      <span>{roleLabel}</span>
+                      <span className='text-on-surface-variant/50'>
+                        • {formatTimestamp(message.timestamp)}
+                      </span>
+                      {message.streaming && (
+                        <Loader2 className='h-3.5 w-3.5 animate-spin text-primary' />
                       )}
                     </div>
-                    {schemaSuggestion.id && (
-                      <span className='rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'>
-                        #{schemaSuggestion.id}
-                      </span>
-                    )}
-                  </div>
-                  {schemaSuggestion.tasks && schemaSuggestion.tasks.length > 0 && (
-                    <div className='space-y-2'>
-                      <p className='text-xs font-semibold uppercase tracking-wide text-on-surface-variant/70'>
-                        Tasks
-                      </p>
-                      <ul className='space-y-1 text-sm text-on-surface-variant'>
-                        {schemaSuggestion.tasks.map(
-                          (task: NonNullable<SchemaSuggestion['tasks']>[number], index: number) => (
-                            <li
-                              key={`${task.name ?? 'task'}-${index}`}
-                              className='rounded-xl border border-outline/10 bg-surface-container-low px-3 py-2'
-                            >
-                              <span className='font-medium text-on-surface'>
-                                {task.name ?? `Step ${index + 1}`}
-                              </span>
-                              {task.description && (
-                                <p className='text-xs text-on-surface-variant/80'>
-                                  {task.description}
-                                </p>
-                              )}
-                            </li>
-                          )
-                        )}
-                      </ul>
+                    <div className='space-y-3 text-sm leading-relaxed'>
+                      {message.content.split('\n\n').map((paragraph: string, index: number) => (
+                        <p key={index} className='whitespace-pre-wrap text-on-surface'>
+                          {paragraph}
+                        </p>
+                      ))}
                     </div>
-                  )}
+                  </div>
                 </article>
-              )}
+              );
+            })}
 
-              {componentSuggestion && (
-                <article className='rounded-2xl border border-outline/20 bg-surface p-4'>
-                  <h3 className='text-base font-semibold text-on-surface'>
-                    {componentSuggestion.name ?? 'Suggested component'}
-                  </h3>
-                  {componentSuggestion.description && (
-                    <p className='mt-1 text-sm text-on-surface-variant'>
-                      {componentSuggestion.description}
-                    </p>
-                  )}
-                  {componentSuggestion.type && (
-                    <p className='mt-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'>
-                      {componentSuggestion.type}
-                    </p>
-                  )}
-                </article>
-              )}
-            </section>
-          )}
-        </div>
-      </main>
+            <div ref={messagesEndRef} />
 
-      <footer className='border-t border-border/70 bg-surface-container-high/80 px-6 py-4'>
-        <div className='mx-auto w-full max-w-4xl space-y-3'>
-          <PromptInput
-            onSend={handleSend}
-            loading={loading}
-            tokens={tokens}
-            actions={promptActions}
-            helperText='Shift + Enter for newline · Enter to send'
-            usage='Enter to send'
-            allowSendWhileLoading={false}
-            className='shadow-lg shadow-primary/10'
-            slashCommands={slashCommandList}
-          />
-          {error && <p className='text-xs text-destructive'>{error}</p>}
-        </div>
-      </footer>
-    </div>
-  </RagErrorBoundary>
-);
+            {(retrievedDocuments.length > 0 ||
+              thinkingContent ||
+              schemaSuggestion ||
+              componentSuggestion) && (
+              <section className='space-y-4 rounded-3xl border border-border/60 bg-surface-container-low/80 p-6 shadow-sm shadow-primary/5'>
+                <header className='flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary/70'>
+                  <Sparkles className='h-4 w-4' />
+                  DeepSeek Insights
+                </header>
+
+                {retrievedDocuments.length > 0 && (
+                  <article className='rounded-2xl border border-outline/30 bg-surface p-4'>
+                    <div className='mb-3 flex items-center justify-between gap-3'>
+                      <h3 className='text-sm font-semibold text-on-surface-variant/90'>
+                        Retrieved context
+                      </h3>
+                      <span className='text-xs text-on-surface-variant/70'>
+                        Top {retrievedDocuments.length} matches
+                      </span>
+                    </div>
+                    <div className='space-y-3 text-sm text-on-surface-variant'>
+                      {retrievedDocuments.map((doc: RetrievedDocument) => (
+                        <div
+                          key={doc.id}
+                          className='rounded-xl border border-outline/20 bg-surface-container-low px-4 py-3'
+                        >
+                          <div className='mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary/70'>
+                            <FileText className='h-3.5 w-3.5' />
+                            <span>{doc.documentId}</span>
+                            <span className='text-on-surface-variant/60'>
+                              Score {(doc.score ?? 0).toFixed(3)}
+                            </span>
+                          </div>
+                          <p className='text-sm text-on-surface line-clamp-3'>{doc.content}</p>
+                          {doc.metadata &&
+                            doc.metadata.url &&
+                            typeof doc.metadata.url === 'string' && (
+                              <a
+                                href={doc.metadata.url}
+                                target='_blank'
+                                rel='noreferrer'
+                                className='mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline'
+                              >
+                                <Link2 className='h-3 w-3' />
+                                Open source
+                              </a>
+                            )}
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                )}
+
+                {thinkingContent && (
+                  <article className='rounded-2xl border border-outline/30 bg-surface p-4'>
+                    <h3 className='mb-2 text-sm font-medium text-on-surface-variant/80'>
+                      Reasoning trace
+                    </h3>
+                    <p className='whitespace-pre-wrap text-sm leading-relaxed text-on-surface'>
+                      {thinkingContent}
+                    </p>
+                  </article>
+                )}
+
+                {schemaSuggestion && (
+                  <article className='rounded-2xl border border-outline/20 bg-surface p-4'>
+                    <div className='mb-3 flex items-center justify-between gap-3'>
+                      <div>
+                        <h3 className='text-base font-semibold text-on-surface'>
+                          {schemaSuggestion.name ?? 'Generated workflow schema'}
+                        </h3>
+                        {schemaSuggestion.description && (
+                          <p className='text-sm text-on-surface-variant'>
+                            {schemaSuggestion.description}
+                          </p>
+                        )}
+                      </div>
+                      {schemaSuggestion.id && (
+                        <span className='rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'>
+                          #{schemaSuggestion.id}
+                        </span>
+                      )}
+                    </div>
+                    {schemaSuggestion.tasks && schemaSuggestion.tasks.length > 0 && (
+                      <div className='space-y-2'>
+                        <p className='text-xs font-semibold uppercase tracking-wide text-on-surface-variant/70'>
+                          Tasks
+                        </p>
+                        <ul className='space-y-1 text-sm text-on-surface-variant'>
+                          {schemaSuggestion.tasks.map(
+                            (
+                              task: NonNullable<SchemaSuggestion['tasks']>[number],
+                              index: number
+                            ) => (
+                              <li
+                                key={`${task.name ?? 'task'}-${index}`}
+                                className='rounded-xl border border-outline/10 bg-surface-container-low px-3 py-2'
+                              >
+                                <span className='font-medium text-on-surface'>
+                                  {task.name ?? `Step ${index + 1}`}
+                                </span>
+                                {task.description && (
+                                  <p className='text-xs text-on-surface-variant/80'>
+                                    {task.description}
+                                  </p>
+                                )}
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </article>
+                )}
+
+                {componentSuggestion && (
+                  <article className='rounded-2xl border border-outline/20 bg-surface p-4'>
+                    <h3 className='text-base font-semibold text-on-surface'>
+                      {componentSuggestion.name ?? 'Suggested component'}
+                    </h3>
+                    {componentSuggestion.description && (
+                      <p className='mt-1 text-sm text-on-surface-variant'>
+                        {componentSuggestion.description}
+                      </p>
+                    )}
+                    {componentSuggestion.type && (
+                      <p className='mt-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary'>
+                        {componentSuggestion.type}
+                      </p>
+                    )}
+                  </article>
+                )}
+              </section>
+            )}
+          </div>
+        </main>
+
+        <footer className='border-t border-border/70 bg-surface-container-high/80 px-6 py-4'>
+          <div className='mx-auto w-full max-w-4xl space-y-3'>
+            <PromptInput
+              onSend={handleSend}
+              loading={loading}
+              tokens={tokens}
+              actions={promptActions}
+              helperText='Shift + Enter for newline · Enter to send'
+              usage='Enter to send'
+              allowSendWhileLoading={false}
+              className='shadow-lg shadow-primary/10'
+              slashCommands={slashCommandList}
+            />
+            {error && <p className='text-xs text-destructive'>{error}</p>}
+          </div>
+        </footer>
+      </div>
+    </RagErrorBoundary>
+  );
 };
 
 export { PromptConsolePage };

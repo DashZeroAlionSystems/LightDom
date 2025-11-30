@@ -40,7 +40,6 @@ import { RegisterPage } from '@/pages/RegisterPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
 import { WorkflowsPage } from '@/pages/WorkflowsPage';
-import NeuralNetworkManagementPage from '@/pages/NeuralNetworkManagementPage';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';

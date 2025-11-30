@@ -352,7 +352,7 @@ INSERT INTO services (
 ) VALUES
   ('deepseek-ai', 'DeepSeek AI', 'AI chat and code generation with DeepSeek models', 'ai',
    'src/services/deepseek-ai', 'index.ts', '["axios", "@deepseek/sdk"]',
-   '{"models": ["deepseek-chat", "deepseek-coder"], "maxTokens": 4096, "temperature": 0.7}',
+  '{"models": ["deepseek-reasoner", "deepseek-chat", "deepseek-coder"], "defaultModel": "deepseek-reasoner", "maxTokens": 4096, "temperature": 0.7}',
    '["deepseek_user", "admin_user", "paid_plan_user"]',
    '["basic", "professional", "enterprise", "deepseek_premium"]',
    true, true, 10),

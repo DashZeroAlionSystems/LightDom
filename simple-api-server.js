@@ -8,11 +8,10 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 dotenv.config();
 
-import DeepSeekAPIService from './services/deepseek-api-service.js';
+import deepSeekServiceInstance from './services/deepseek-api-service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const deepSeekService = new DeepSeekAPIService();
 
 // Import services and engines - COMMENTED OUT FOR TESTING
 /*
@@ -377,7 +376,104 @@ app.get('/api/db/health', async (req, res) => {
 });
 
 // RAG chat streaming endpoint
-app.post('/api/rag/chat/stream', async (req, res) => {
+const getOllamaEndpoint = () =>
+  process.env.OLLAMA_BASE_URL || process.env.OLLAMA_ENDPOINT || 'http://127.0.0.1:11500';
+
+const getPreferredModel = () =>
+  process.env.OLLAMA_MODEL || process.env.DEEPSEEK_MODEL || 'deepseek-coder';
+
+async function buildUnifiedRagHealth() {
+  const timestamp = new Date().toISOString();
+  const endpoint = getOllamaEndpoint();
+  const llmInfo = {
+    status: 'ready',
+    provider: 'ollama',
+    model: getPreferredModel(),
+    endpoint,
+  };
+
+  let overallStatus = 'healthy';
+  let providerAvailable = false;
+
+  try {
+    const response = await fetch(`${endpoint}/api/tags`, { method: 'GET' });
+    if (!response.ok) {
+      overallStatus = 'degraded';
+      llmInfo.status = `status-${response.status}`;
+      llmInfo.error = `Ollama responded with status ${response.status}`;
+    } else {
+      const tags = await response.json().catch(() => null);
+      if (tags && Array.isArray(tags.models)) {
+        llmInfo.availableModels = tags.models.map(model => model.name).filter(Boolean);
+        providerAvailable = llmInfo.availableModels.includes(llmInfo.model);
+        llmInfo.status = providerAvailable ? 'ready' : 'model-missing';
+      } else {
+        providerAvailable = true;
+      }
+    }
+  } catch (error) {
+    llmInfo.status = 'unreachable';
+    llmInfo.error = error instanceof Error ? error.message : String(error);
+  }
+
+  if (llmInfo.status !== 'ready' && llmInfo.status !== 'model-missing') {
+    overallStatus = 'degraded';
+  }
+
+  const hasDeepSeekKey = Boolean(process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_KEY);
+  if (!providerAvailable && !hasDeepSeekKey) {
+    overallStatus = 'unhealthy';
+  } else if (!providerAvailable && hasDeepSeekKey) {
+    overallStatus = 'degraded';
+  }
+
+  return {
+    status: overallStatus,
+    timestamp,
+    llm: llmInfo,
+    vectorStore: {
+      status: 'unavailable',
+      error: 'Vector store disabled in simple dev server',
+    },
+    docling: {
+      status: 'unavailable',
+      error: 'Document ingestion disabled in simple dev server',
+    },
+    features: {
+      hybridSearch: false,
+      multimodal: false,
+      versioning: false,
+      agentMode: false,
+      docling: false,
+    },
+    circuitBreaker: { state: 'closed', failures: 0 },
+  };
+}
+
+function convertUnifiedToLegacy(health) {
+  const statusMap = {
+    healthy: 'ok',
+    degraded: 'warn',
+    unhealthy: 'error',
+  };
+
+  return {
+    status: statusMap[health.status] || 'warn',
+    timestamp: health.timestamp,
+    components: {
+      llm: {
+        status: health.llm.status,
+        provider: health.llm.provider,
+        model: health.llm.model,
+        endpoint: health.llm.endpoint,
+        error: health.llm.error,
+      },
+    },
+    circuitBreaker: health.circuitBreaker,
+  };
+}
+
+async function handleRagChatStream(req, res) {
   try {
     const { messages } = req.body || {};
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -389,8 +485,7 @@ app.post('/api/rag/chat/stream', async (req, res) => {
       content: (m?.content || '').toString(),
     }));
 
-    const endpoint =
-      process.env.OLLAMA_BASE_URL || process.env.OLLAMA_ENDPOINT || 'http://127.0.0.1:11500';
+    const endpoint = getOllamaEndpoint();
     const prompt = normalizedMessages.map(m => `${m.role}: ${m.content}`).join('\n');
 
     let responseText = null;
@@ -402,7 +497,7 @@ app.post('/api/rag/chat/stream', async (req, res) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: process.env.OLLAMA_MODEL || process.env.DEEPSEEK_MODEL || 'deepseek-coder',
+          model: getPreferredModel(),
           prompt,
           stream: false,
           options: { temperature: 0.2 },
@@ -421,7 +516,7 @@ app.post('/api/rag/chat/stream', async (req, res) => {
       provider = 'deepseek';
 
       try {
-        responseText = await deepSeekService.chatCompletion(normalizedMessages, {
+        responseText = await deepSeekServiceInstance.chatCompletion(normalizedMessages, {
           temperature: 0.2,
           maxTokens: 1200,
         });
@@ -447,7 +542,7 @@ app.post('/api/rag/chat/stream', async (req, res) => {
     if (typeof res.flushHeaders === 'function') res.flushHeaders();
 
     const providerLabel =
-      provider === 'deepseek' && deepSeekService.mockMode ? 'deepseek-mock' : provider;
+      provider === 'deepseek' && deepSeekServiceInstance.mockMode ? 'deepseek-mock' : provider;
     if (providerLabel !== 'ollama') {
       const reason = lastError ? lastError.message || String(lastError) : 'Unknown';
       console.warn(`[simple-api-server] Falling back to ${providerLabel} for RAG chat: ${reason}`);
@@ -462,15 +557,39 @@ app.post('/api/rag/chat/stream', async (req, res) => {
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
-    console.error('[simple-api-server] RAG chat stream failed:', err.message);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[simple-api-server] RAG chat stream failed:', message);
     return res.status(503).json({
       success: false,
       error: 'Failed to process chat stream',
       hint: 'Start Ollama (`ollama serve`) or ensure DEEPSEEK_API_KEY/URL are configured',
-      details: err.message,
+      details: message,
     });
   }
+}
+
+app.get('/api/unified-rag/health', async (_req, res) => {
+  const health = await buildUnifiedRagHealth();
+  const statusCode = health.status === 'healthy' ? 200 : health.status === 'degraded' ? 206 : 503;
+  res.status(statusCode).json(health);
 });
+
+app.get('/api/rag/health', async (_req, res) => {
+  const health = await buildUnifiedRagHealth();
+  const legacy = convertUnifiedToLegacy(health);
+  const statusCode = legacy.status === 'ok' ? 200 : legacy.status === 'warn' ? 206 : 503;
+  res.status(statusCode).json(legacy);
+});
+
+app.post('/api/unified-rag/chat/stream', handleRagChatStream);
+app.post('/api/rag/chat/stream', handleRagChatStream);
+
+function handleRagReconnect(_req, res) {
+  res.json({ success: true, status: 'ok', message: 'RAG dev stub reinitialization complete.' });
+}
+
+app.post('/api/unified-rag/reinitialize', handleRagReconnect);
+app.post('/api/rag/reconnect', handleRagReconnect);
 
 // DeepSeek streaming chat proxy
 app.post('/api/deepseek/chat', async (req, res) => {
@@ -2375,7 +2494,7 @@ app.get('/downloads/extension', async (req, res) => {
 
 // Start server
 console.log('🚀 Starting LightDom API Server...');
-app.listen(PORT, async () => {
+const server = app.listen(PORT, async () => {
   console.log(`🚀 LightDom API Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
   console.log(`⛏️  Mining data: http://localhost:${PORT}/api/metaverse/mining-data`);
@@ -2427,6 +2546,17 @@ app.listen(PORT, async () => {
   console.log('⚠️  Skipping service initialization for testing...');
   console.log('✅ All services initialized and ready');
   console.log('🎉 Server startup complete - ready to accept connections');
+});
+
+server.on('error', error => {
+  if (error && error.code === 'EADDRINUSE') {
+    console.warn(
+      `⚠️  LightDom API Server already running on port ${PORT}; skipping duplicate startup.`
+    );
+    return;
+  }
+
+  console.error('❌ Failed to start LightDom API Server:', error);
 });
 
 // Handle uncaught exceptions and unhandled rejections

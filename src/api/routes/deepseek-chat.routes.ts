@@ -1,13 +1,13 @@
 /**
  * DeepSeek Chat Streaming API
- * 
+ *
  * Handles real-time streaming conversations with DeepSeek
  * Generates schemas and components on-the-fly
  */
 
-import { Router, Request, Response } from 'express';
-import { PromptToSchemaGenerator } from '../../services/ai/PromptToSchemaGenerator.js';
+import { Request, Response, Router } from 'express';
 import { Pool } from 'pg';
+import { PromptToSchemaGenerator } from '../../services/ai/PromptToSchemaGenerator.js';
 import { DeepSeekIntegrationService } from '../../services/deepseek-integration.service.js';
 
 export function createDeepSeekChatRoutes(db: Pool, deepseekConfig: any): Router {
@@ -52,13 +52,13 @@ When analyzing prompts:
 3. Create workflow tasks with dependencies
 4. Suggest UI components when applicable
 
-Always structure your responses with clear sections and use JSON where appropriate.`
+Always structure your responses with clear sections and use JSON where appropriate.`,
         },
         ...conversation,
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ];
 
       // Step 2: Call DeepSeek API directly
@@ -105,17 +105,17 @@ Always structure your responses with clear sections and use JSON where appropria
               name: workflow.name,
               description: workflow.description,
               tasks: workflow.tasks,
-              schemas: workflow.schemas
-            }
+              schemas: workflow.schemas,
+            },
           });
 
           // Check if we should generate components
           const needsComponent = /component|ui|interface|form|dashboard/i.test(fullResponse);
-          
+
           if (needsComponent && workflow.tasks.length > 0) {
             // Generate component suggestion
-            const componentTask = workflow.tasks.find(t => 
-              t.type === 'ui' || t.name.toLowerCase().includes('component')
+            const componentTask = workflow.tasks.find(
+              t => t.type === 'ui' || t.name.toLowerCase().includes('component')
             );
 
             if (componentTask) {
@@ -124,8 +124,8 @@ Always structure your responses with clear sections and use JSON where appropria
                   name: componentTask.name,
                   type: 'react',
                   description: componentTask.description,
-                  schema: componentTask.schema
-                }
+                  schema: componentTask.schema,
+                },
               });
             }
           }
@@ -136,18 +136,17 @@ Always structure your responses with clear sections and use JSON where appropria
       }
 
       // Step 5: Complete
-      sendEvent('complete', { 
+      sendEvent('complete', {
         message: 'Response complete',
-        totalLength: fullResponse.length
+        totalLength: fullResponse.length,
       });
 
       res.write('data: [DONE]\n\n');
       res.end();
-
     } catch (error) {
       console.error('Streaming error:', error);
-      sendEvent('error', { 
-        message: error instanceof Error ? error.message : 'Unknown error'
+      sendEvent('error', {
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
       res.end();
     }
@@ -168,25 +167,25 @@ Always structure your responses with clear sections and use JSON where appropria
       const messages = [
         {
           role: 'system',
-          content: 'You are an expert AI assistant for the LightDom platform.'
+          content: 'You are an expert AI assistant for the LightDom platform.',
         },
         ...conversation,
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ];
 
       const ollamaEndpoint = process.env.OLLAMA_ENDPOINT || 'http://localhost:11434';
-      
+
       const response = await fetch(`${ollamaEndpoint}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: model,
           messages: messages,
-          stream: false
-        })
+          stream: false,
+        }),
       });
 
       if (!response.ok) {
@@ -199,14 +198,13 @@ Always structure your responses with clear sections and use JSON where appropria
         success: true,
         response: result.message?.content || '',
         model: result.model,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-
     } catch (error) {
       console.error('Chat error:', error);
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -218,9 +216,9 @@ Always structure your responses with clear sections and use JSON where appropria
   router.get('/models', async (req: Request, res: Response) => {
     try {
       const ollamaEndpoint = process.env.OLLAMA_ENDPOINT || 'http://localhost:11434';
-      
+
       const response = await fetch(`${ollamaEndpoint}/api/tags`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch models');
       }
@@ -229,17 +227,17 @@ Always structure your responses with clear sections and use JSON where appropria
 
       res.json({
         success: true,
-        models: data.models || []
+        models: data.models || [],
       });
-
     } catch (error) {
       console.error('Models error:', error);
       res.json({
         success: true,
         models: [
+          { name: 'deepseek-reasoner', description: 'DeepSeek Reasoner - General reasoning model' },
           { name: 'deepseek-r1', description: 'DeepSeek R1 - Reasoning model' },
-          { name: 'deepseek-chat', description: 'DeepSeek Chat - Conversational model' }
-        ]
+          { name: 'deepseek-chat', description: 'DeepSeek Chat - Conversational model' },
+        ],
       });
     }
   });

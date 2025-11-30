@@ -159,7 +159,7 @@ async function createConfiguration() {
       api: {
         apiKey: process.env.DEEPSEEK_API_KEY || '',
         apiUrl: process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1',
-        model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+        model: process.env.DEEPSEEK_MODEL || 'deepseek-reasoner',
         defaultTemperature: 0.7,
         defaultMaxTokens: 4000,
         streamEnabled: false,

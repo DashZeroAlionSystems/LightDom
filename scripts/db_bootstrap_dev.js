@@ -39,6 +39,7 @@ async function run() {
         technical_score NUMERIC,
         content_score NUMERIC,
         ux_score NUMERIC,
+        user_behavior JSONB,
         optimization_applied JSONB,
         timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
@@ -48,7 +49,27 @@ async function run() {
       CREATE TABLE IF NOT EXISTS seo_training_data (
         id SERIAL PRIMARY KEY,
         url TEXT NOT NULL,
+        domain TEXT,
+        page_title TEXT,
+        meta_description TEXT,
+        seo_score NUMERIC,
+        performance_score NUMERIC,
+        technical_score NUMERIC,
+        content_score NUMERIC,
+        headings JSONB,
+        keywords TEXT,
+        word_count INTEGER,
+        paragraph_count INTEGER,
+        social_media JSONB,
+        structured_data JSONB,
+        dom_info JSONB,
+        crawled_at TIMESTAMP WITH TIME ZONE,
         features JSONB,
+        feature_vector DOUBLE PRECISION[] DEFAULT '{}'::double precision[],
+        feature_names TEXT[] DEFAULT '{}'::text[],
+        feature_version TEXT,
+        schema_types TEXT[] DEFAULT '{}'::text[],
+        rich_snippet_targets TEXT[] DEFAULT '{}'::text[],
         seo_score_before NUMERIC,
         seo_score_after NUMERIC,
         optimization_type TEXT,
@@ -57,6 +78,8 @@ async function run() {
         verified BOOLEAN DEFAULT false,
         quality_score NUMERIC,
         blockchain_proof_hash TEXT,
+        blockchain_tx_hash TEXT,
+        reward_amount NUMERIC,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
     `);
@@ -163,9 +186,11 @@ async function run() {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS seo_ml_recommendations (
         id SERIAL PRIMARY KEY,
+        client_id TEXT,
         url TEXT NOT NULL,
-        recommendations JSONB,
-        model_meta JSONB DEFAULT '{}',
+        model_type TEXT,
+        model_version TEXT,
+        recommendation JSONB,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);

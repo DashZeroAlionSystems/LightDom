@@ -13,6 +13,7 @@ Services and workflows are **standalone modules** that are **ONLY loaded/active 
 ## Core Principle
 
 > **A module (service or workflow) is loaded if and ONLY if:**
+>
 > 1. A mapping exists in `user_services` or `user_workflows` table
 > 2. The `enabled` column is `TRUE`
 > 3. The module's `is_active` is `TRUE`
@@ -33,7 +34,7 @@ Each service is a self-contained, standalone module:
   entry_point: 'index.ts',               // Main file
   dependencies: ['axios', '@deepseek/sdk'], // Required packages
   default_config: {                      // Default settings
-    models: ['deepseek-chat', 'deepseek-coder'],
+    models: ['deepseek-reasoner', 'deepseek-coder'],
     maxTokens: 4096,
     temperature: 0.7
   },
@@ -88,12 +89,12 @@ VALUES (
 
 ```sql
 -- Method 1: Delete the mapping (complete exclusion)
-DELETE FROM user_services 
+DELETE FROM user_services
 WHERE user_id = '123e4567-e89b-12d3-a456-426614174000'
   AND service_id = (SELECT id FROM services WHERE service_name = 'deepseek-ai');
 
 -- Method 2: Disable (keeps mapping but deactivates)
-UPDATE user_services 
+UPDATE user_services
 SET enabled = false
 WHERE user_id = '123e4567-e89b-12d3-a456-426614174000'
   AND service_id = (SELECT id FROM services WHERE service_name = 'deepseek-ai');
@@ -117,12 +118,12 @@ VALUES (
 
 ```sql
 -- Method 1: Delete the mapping
-DELETE FROM user_workflows 
+DELETE FROM user_workflows
 WHERE user_id = '123e4567-e89b-12d3-a456-426614174000'
   AND workflow_template_id = (SELECT id FROM workflow_templates WHERE name = 'Content Approval Pipeline');
 
 -- Method 2: Disable
-UPDATE user_workflows 
+UPDATE user_workflows
 SET enabled = false
 WHERE user_id = '123e4567-e89b-12d3-a456-426614174000'
   AND workflow_template_id = (SELECT id FROM workflow_templates WHERE name = 'Content Approval Pipeline');
@@ -138,7 +139,7 @@ Services and workflows define which user types and plans can access them:
 
 ```sql
 -- Service availability example
-UPDATE services 
+UPDATE services
 SET available_for_user_types = '["deepseek_user", "admin_user", "paid_plan_user"]',
     available_for_plans = '["basic", "professional", "enterprise", "deepseek_premium"]',
     excluded_for_user_types = '[]',  -- No exclusions
@@ -150,7 +151,7 @@ WHERE service_name = 'deepseek-ai';
 
 ```sql
 -- Check if user CAN have a service (not if they DO have it)
-SELECT 
+SELECT
   s.service_name,
   (u.user_type = ANY(string_to_array(s.available_for_user_types::text, ',')::varchar[])) as type_allowed,
   (u.plan_tier = ANY(string_to_array(s.available_for_plans::text, ',')::varchar[])) as plan_allowed,
@@ -196,39 +197,33 @@ SELECT * FROM get_active_workflows_for_user('user-id-here');
 class ModuleLoader {
   async loadUserModules(userId: string) {
     // Get active services
-    const services = await db.query(
-      'SELECT * FROM get_active_services_for_user($1)',
-      [userId]
-    );
-    
+    const services = await db.query('SELECT * FROM get_active_services_for_user($1)', [userId]);
+
     // Load each service module
     for (const service of services.rows) {
       if (service.load_on_startup) {
         const modulePath = path.join(process.cwd(), service.module_path, service.entry_point);
         const module = await import(modulePath);
-        
+
         // Initialize with user-specific config
         await module.initialize(service.config);
-        
+
         console.log(`Loaded service: ${service.service_name}`);
       }
     }
-    
+
     // Get active workflows
-    const workflows = await db.query(
-      'SELECT * FROM get_active_workflows_for_user($1)',
-      [userId]
-    );
-    
+    const workflows = await db.query('SELECT * FROM get_active_workflows_for_user($1)', [userId]);
+
     // Load each workflow module
     for (const workflow of workflows.rows) {
       if (workflow.load_on_startup) {
         const modulePath = path.join(process.cwd(), workflow.module_path, workflow.entry_point);
         const module = await import(modulePath);
-        
+
         // Initialize with user-specific config and permissions
         await module.initialize(workflow.config, workflow.permissions);
-        
+
         console.log(`Loaded workflow: ${workflow.workflow_name}`);
       }
     }
@@ -243,13 +238,14 @@ class ModuleLoader {
 ### DeepSeek User
 
 **Default Services:**
+
 - `deepseek-ai` (enabled, auto-load)
 - `workflow-automation` (enabled, auto-load)
 
 ```sql
 -- Auto-setup for new DeepSeek user
 INSERT INTO user_services (user_id, service_id, enabled, load_on_startup)
-SELECT 
+SELECT
   '123e4567-e89b-12d3-a456-426614174000',
   id,
   true,
@@ -265,7 +261,7 @@ WHERE service_name IN ('deepseek-ai', 'workflow-automation');
 ```sql
 -- Auto-setup for new Admin user
 INSERT INTO user_services (user_id, service_id, enabled, load_on_startup)
-SELECT 
+SELECT
   'admin-user-id',
   id,
   true,
@@ -283,6 +279,7 @@ Free plan users get no services by default. Services must be manually enabled.
 ### Paid Plan User (Professional)
 
 **Available Services:**
+
 - `deepseek-ai` (if plan includes AI)
 - `workflow-automation`
 - `data-mining`
@@ -291,7 +288,7 @@ Free plan users get no services by default. Services must be manually enabled.
 ```sql
 -- Setup for Professional plan user
 INSERT INTO user_services (user_id, service_id, enabled, load_on_startup)
-SELECT 
+SELECT
   'professional-user-id',
   id,
   true,
@@ -342,7 +339,7 @@ VALUES (
   (SELECT id FROM services WHERE service_name = 'deepseek-ai'),
   true,
   '{
-    "models": ["deepseek-chat"],
+    "models": ["deepseek-reasoner"],
     "maxTokensPerRequest": 8000,
     "temperature": 0.5
   }',
@@ -394,16 +391,16 @@ Services are loaded ONLY for users who have them enabled:
 // New approach - dynamic loading
 app.use('/api', async (req, res, next) => {
   const userId = req.user.id;
-  
+
   // Check if user has service enabled
   const hasDeepSeek = await shouldLoadService(userId, 'deepseek-ai');
-  
+
   if (hasDeepSeek && req.path.startsWith('/deepseek')) {
     // Load module dynamically
     const deepseekModule = await loadServiceModule('deepseek-ai', userId);
     return deepseekModule.handler(req, res, next);
   }
-  
+
   next();
 });
 ```
@@ -431,7 +428,7 @@ BEGIN;
 
 -- Enable multiple services atomically
 INSERT INTO user_services (user_id, service_id, enabled)
-VALUES 
+VALUES
   ('user-id', (SELECT id FROM services WHERE service_name = 'deepseek-ai'), true),
   ('user-id', (SELECT id FROM services WHERE service_name = 'workflow-automation'), true);
 
@@ -442,7 +439,7 @@ COMMIT;
 
 ```sql
 -- Workflow requires services - check before enabling
-SELECT 
+SELECT
   wt.name,
   wt.requires_services,
   (
@@ -461,11 +458,11 @@ WHERE wt.name = 'Content Approval Pipeline';
 
 ```sql
 -- Track module usage
-UPDATE user_services 
-SET last_used = NOW(), 
+UPDATE user_services
+SET last_used = NOW(),
     usage_count = usage_count + 1,
     total_api_calls = total_api_calls + 1
-WHERE user_id = 'user-id' 
+WHERE user_id = 'user-id'
   AND service_id = (SELECT id FROM services WHERE service_name = 'deepseek-ai');
 ```
 
@@ -477,13 +474,13 @@ WHERE user_id = 'user-id'
 
 ```sql
 -- Debug checklist
-SELECT 
+SELECT
   s.service_name,
   s.is_active as service_active,
   us.enabled as user_enabled,
   us.load_on_startup,
   s.module_path,
-  CASE 
+  CASE
     WHEN us.id IS NULL THEN 'No mapping exists'
     WHEN NOT us.enabled THEN 'Disabled in user_services'
     WHEN NOT s.is_active THEN 'Service globally inactive'
@@ -498,13 +495,13 @@ WHERE s.service_name = 'deepseek-ai';
 
 ```sql
 -- Debug checklist
-SELECT 
+SELECT
   wt.name,
   wt.is_active as workflow_active,
   uw.enabled as user_enabled,
   uw.permissions,
   wt.requires_services,
-  CASE 
+  CASE
     WHEN uw.id IS NULL THEN 'No mapping exists'
     WHEN NOT uw.enabled THEN 'Disabled in user_workflows'
     WHEN NOT wt.is_active THEN 'Workflow globally inactive'
@@ -524,7 +521,7 @@ WHERE wt.name = 'Content Approval Pipeline';
 ✅ **Modules are ONLY active when explicitly enabled in config**  
 ✅ **Complete inclusion/exclusion control by user type and plan**  
 ✅ **Dynamic loading based on user configuration**  
-✅ **No module runs without user_services/user_workflows mapping**  
+✅ **No module runs without user_services/user_workflows mapping**
 
 This provides **complete config-driven control** over what services and workflows run for each user.
 

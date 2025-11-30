@@ -63,6 +63,8 @@ export default defineConfig({
       '@/store': path.resolve(__dirname, './src/store'),
       '@/types': path.resolve(__dirname, './src/types'),
       '@/assets': path.resolve(__dirname, './src/assets'),
+      react: path.resolve(__dirname, './node_modules/react'),
+      'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
       // Root src folder for shared ML/AI components
       '@/ml': path.resolve(__dirname, '../src/ml'),
       '@/database': path.resolve(__dirname, '../src/database'),
@@ -78,6 +80,19 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/socket.io': {
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:3001',
+        changeOrigin: true,
+        ws: true,
+        secure: false,
+      },
+    },
   },
   build: {
     outDir: 'dist',

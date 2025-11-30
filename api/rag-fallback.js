@@ -14,7 +14,7 @@ const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_KE
 const DEEPSEEK_BASE_URL = (
   process.env.DEEPSEEK_API_BASE_URL || 'https://api.deepseek.com/v1'
 ).replace(/\/$/, '');
-const DEEPSEEK_REMOTE_MODEL = process.env.DEEPSEEK_REMOTE_MODEL || 'deepseek-chat';
+const DEEPSEEK_REMOTE_MODEL = process.env.DEEPSEEK_REMOTE_MODEL || 'deepseek-reasoner';
 
 const isConnectionError = error => {
   if (!error) return false;

@@ -292,10 +292,20 @@ CREATE INDEX idx_crawlee_stats_created ON crawlee_stats_snapshots(created_at);
 -- This allows campaigns to use Crawlee crawlers
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_name='campaign_seeds' AND column_name='crawler_id') THEN
-        ALTER TABLE campaign_seeds ADD COLUMN crawler_id VARCHAR(255) REFERENCES crawlee_crawlers(id) ON DELETE SET NULL;
-        CREATE INDEX idx_campaign_seeds_crawler ON campaign_seeds(crawler_id);
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name = 'campaign_seeds'
+    ) THEN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_schema = 'public' AND table_name = 'campaign_seeds' AND column_name = 'crawler_id'
+        ) THEN
+            ALTER TABLE campaign_seeds 
+                ADD COLUMN crawler_id VARCHAR(255) REFERENCES crawlee_crawlers(id) ON DELETE SET NULL;
+            CREATE INDEX idx_campaign_seeds_crawler ON campaign_seeds(crawler_id);
+        END IF;
+    ELSE
+        RAISE NOTICE 'campaign_seeds table not found, skipping crawler_id integration';
     END IF;
 END $$;
 

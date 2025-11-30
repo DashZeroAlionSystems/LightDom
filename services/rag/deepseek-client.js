@@ -23,7 +23,7 @@ export default function createDeepSeekClient(config = {}) {
   const timeout = config.timeout || Number.parseInt(process.env.DEEPSEEK_TIMEOUT || '60000', 10);
   const isOllama = isLocalhost(baseUrl);
   const remoteDefaultModel =
-    process.env.DEEPSEEK_MODEL || process.env.DEEPSEEK_DEFAULT_MODEL || 'deepseek-chat';
+    process.env.DEEPSEEK_MODEL || process.env.DEEPSEEK_DEFAULT_MODEL || 'deepseek-reasoner';
   const defaultModel = isOllama
     ? process.env.OLLAMA_MODEL || 'deepseek-r1:latest'
     : remoteDefaultModel;

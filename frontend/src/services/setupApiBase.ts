@@ -1,19 +1,14 @@
 /// <reference types='vite/client' />
 
-const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const DEFAULT_BASE = 'http://localhost:3001/api';
+const rawBase = (import.meta.env.VITE_API_URL ?? DEFAULT_BASE) || DEFAULT_BASE;
+const API_BASE = rawBase.replace(/\/$/, '');
 
 function shouldRewrite(path: string): boolean {
-  if (!API_BASE) {
-    return false;
-  }
   return path.startsWith('/api');
 }
 
 function rewritePath(path: string): string {
-  if (!API_BASE) {
-    return path;
-  }
-
   const normalizedBase = API_BASE.replace(/\/$/, '');
 
   if (path.startsWith('/api')) {

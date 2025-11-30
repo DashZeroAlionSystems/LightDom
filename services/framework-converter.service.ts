@@ -1,19 +1,19 @@
 /**
  * Framework Converter Service
- * 
+ *
  * Converts components between different JavaScript frameworks:
  * - React <-> Vue
  * - React <-> Angular
  * - React <-> Svelte
  * - And more combinations
- * 
+ *
  * Uses AST parsing and transformation to intelligently convert
  * component syntax, lifecycle methods, state management, and props.
  */
 
+import generate from '@babel/generator';
 import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
-import generate from '@babel/generator';
 import * as t from '@babel/types';
 
 interface ConversionConfig {
@@ -26,7 +26,7 @@ interface ConversionConfig {
   };
 }
 
-enum Framework {
+export enum Framework {
   React = 'react',
   Vue = 'vue',
   Angular = 'angular',
@@ -34,10 +34,10 @@ enum Framework {
   Preact = 'preact',
   SolidJS = 'solidjs',
   Lit = 'lit',
-  WebComponents = 'webcomponents'
+  WebComponents = 'webcomponents',
 }
 
-interface ConversionResult {
+export interface ConversionResult {
   code: string;
   warnings: string[];
   unsupportedFeatures: string[];
@@ -45,28 +45,24 @@ interface ConversionResult {
 }
 
 export class FrameworkConverterService {
-  
   /**
    * Main conversion method
    */
-  async convert(
-    sourceCode: string,
-    config: ConversionConfig
-  ): Promise<ConversionResult> {
+  async convert(sourceCode: string, config: ConversionConfig): Promise<ConversionResult> {
     const warnings: string[] = [];
     const unsupportedFeatures: string[] = [];
 
     try {
       // Parse source code
       const ast = this.parseCode(sourceCode, config.sourceFramework);
-      
+
       // Convert based on frameworks
       const converter = this.getConverter(config);
       const convertedAst = converter.convert(ast, warnings, unsupportedFeatures);
-      
+
       // Generate target code
       const { code } = generate(convertedAst, {
-        comments: config.options?.preserveComments ?? true
+        comments: config.options?.preserveComments ?? true,
       });
 
       // Calculate confidence
@@ -76,14 +72,14 @@ export class FrameworkConverterService {
         code,
         warnings,
         unsupportedFeatures,
-        confidence
+        confidence,
       };
     } catch (error) {
       return {
         code: '',
         warnings: [`Conversion failed: ${error.message}`],
         unsupportedFeatures: [],
-        confidence: 0
+        confidence: 0,
       };
     }
   }
@@ -96,17 +92,20 @@ export class FrameworkConverterService {
     if (code.includes('import React') || code.includes('useState') || code.includes('useEffect')) {
       return Framework.React;
     }
-    
+
     // Vue detection
-    if (code.includes('<template>') || code.includes('export default {') && code.includes('methods:')) {
+    if (
+      code.includes('<template>') ||
+      (code.includes('export default {') && code.includes('methods:'))
+    ) {
       return Framework.Vue;
     }
-    
+
     // Angular detection
     if (code.includes('@Component') || code.includes('@Injectable')) {
       return Framework.Angular;
     }
-    
+
     // Svelte detection
     if (code.includes('<script>') && !code.includes('<template>')) {
       return Framework.Svelte;
@@ -120,7 +119,7 @@ export class FrameworkConverterService {
    */
   private parseCode(code: string, framework: Framework): any {
     const plugins = ['jsx', 'typescript'];
-    
+
     if (framework === Framework.Vue) {
       // Extract script section from Vue SFC
       const scriptMatch = code.match(/<script[^>]*>([\s\S]*)<\/script>/);
@@ -131,7 +130,7 @@ export class FrameworkConverterService {
 
     return parse(code, {
       sourceType: 'module',
-      plugins: plugins as any
+      plugins: plugins as any,
     });
   }
 
@@ -183,7 +182,7 @@ class ReactToVueConverter extends ComponentConverter {
     const vueComponent = {
       template: '',
       script: '',
-      style: ''
+      style: '',
     };
 
     // Extract component info
@@ -197,22 +196,24 @@ class ReactToVueConverter extends ComponentConverter {
   }
 
   private extractReactComponent(ast: any): any {
+    const self = this;
+
     let componentInfo = {
       name: '',
       props: [],
       state: [],
       effects: [],
-      jsx: null
+      jsx: null,
     };
 
     traverse(ast, {
       FunctionDeclaration(path) {
         // Extract component name
         componentInfo.name = path.node.id.name;
-        
+
         // Extract props
         if (path.node.params.length > 0) {
-          componentInfo.props = this.extractProps(path.node.params[0]);
+          componentInfo.props = self.extractProps(path.node.params[0]);
         }
 
         // Extract hooks
@@ -226,43 +227,54 @@ class ReactToVueConverter extends ComponentConverter {
                 componentInfo.effects.push(innerPath.node);
               }
             }
-          }
+          },
         });
 
         // Extract JSX return
-        const returnStatement = path.node.body.body.find(
-          node => t.isReturnStatement(node)
-        );
+        const returnStatement = path.node.body.body.find(node => t.isReturnStatement(node));
         if (returnStatement) {
           componentInfo.jsx = returnStatement.argument;
         }
-      }
+      },
     });
 
     return componentInfo;
   }
 
   private extractProps(propsParam: any): string[] {
-    if (t.isObjectPattern(propsParam)) {
-      return propsParam.properties.map(prop => prop.key.name);
+    if (!t.isObjectPattern(propsParam)) {
+      return [];
     }
-    return [];
+
+    return propsParam.properties
+      .map(prop => {
+        if (t.isObjectProperty(prop) && t.isIdentifier(prop.key)) {
+          return prop.key.name;
+        }
+
+        if (t.isRestElement(prop) && t.isIdentifier(prop.argument)) {
+          return prop.argument.name;
+        }
+
+        return null;
+      })
+      .filter((name): name is string => Boolean(name));
   }
 
   private convertJSXToTemplate(jsx: any): string {
     // Simplified JSX to template conversion
     // In production, this would be much more sophisticated
-    
+
     if (!jsx) return '<div></div>';
 
     let template = '<div>';
-    
+
     // Convert JSX elements to Vue template syntax
     // This is a simplified version
     template += this.jsxToVueTemplate(jsx);
-    
+
     template += '</div>';
-    
+
     return template;
   }
 
@@ -323,20 +335,20 @@ ${component.style}
 class ReactToSvelteConverter extends ComponentConverter {
   convert(ast: any, warnings: string[], unsupportedFeatures: string[]): any {
     let svelteCode = '<script>\n';
-    
+
     // Extract and convert props
     svelteCode += '  export let props;\n\n';
-    
+
     // Convert useState to Svelte stores
     svelteCode += '  let state = {};\n';
-    
+
     svelteCode += '</script>\n\n';
-    
+
     // Template section
     svelteCode += '<div>\n';
     svelteCode += '  <!-- Component content -->\n';
     svelteCode += '</div>\n\n';
-    
+
     // Style section
     svelteCode += '<style>\n';
     svelteCode += '</style>\n';
@@ -420,8 +432,8 @@ async function main() {
     targetFramework: Framework.Vue,
     options: {
       typescript: true,
-      preserveComments: true
-    }
+      preserveComments: true,
+    },
   });
 
   console.log('Converted to Vue:');
@@ -434,4 +446,4 @@ if (require.main === module) {
   main().catch(console.error);
 }
 
-export { FrameworkConverterService, Framework, ConversionResult };
+export { FrameworkConverterService };

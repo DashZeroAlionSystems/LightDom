@@ -1,6 +1,6 @@
 /**
  * DeepSeek Workflow Management Service
- * 
+ *
  * Enables DeepSeek AI to:
  * - Create, edit, and run n8n workflows
  * - Use workflow templates
@@ -17,10 +17,11 @@ class DeepSeekWorkflowManager {
   constructor(config = {}) {
     this.config = {
       deepseekApiKey: config.deepseekApiKey || process.env.DEEPSEEK_API_KEY,
-      deepseekApiUrl: config.deepseekApiUrl || process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1',
+      deepseekApiUrl:
+        config.deepseekApiUrl || process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1',
       n8nApiUrl: config.n8nApiUrl || process.env.N8N_API_URL || 'http://localhost:5678/api/v1',
       n8nApiKey: config.n8nApiKey || process.env.N8N_API_KEY,
-      ...config
+      ...config,
     };
 
     // Database connection
@@ -36,9 +37,9 @@ class DeepSeekWorkflowManager {
       baseURL: this.config.n8nApiUrl,
       headers: {
         'X-N8N-API-KEY': this.config.n8nApiKey,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      timeout: 30000
+      timeout: 30000,
     });
 
     // DeepSeek client
@@ -47,14 +48,14 @@ class DeepSeekWorkflowManager {
       timeout: 60000,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.config.deepseekApiKey}`
-      }
+        Authorization: `Bearer ${this.config.deepseekApiKey}`,
+      },
     });
 
     // Available workflow templates
     this.templates = {
       ...headerScriptWorkflowTemplates,
-      ...seoWorkflowTemplates
+      ...seoWorkflowTemplates,
     };
 
     // DeepSeek tools for workflow management
@@ -77,11 +78,11 @@ class DeepSeekWorkflowManager {
               category: {
                 type: 'string',
                 enum: ['header-script', 'seo', 'monitoring', 'optimization', 'all'],
-                description: 'Filter templates by category'
-              }
-            }
-          }
-        }
+                description: 'Filter templates by category',
+              },
+            },
+          },
+        },
       },
       {
         type: 'function',
@@ -93,25 +94,25 @@ class DeepSeekWorkflowManager {
             properties: {
               templateName: {
                 type: 'string',
-                description: 'Name of the template to use'
+                description: 'Name of the template to use',
               },
               customName: {
                 type: 'string',
-                description: 'Custom name for the workflow'
+                description: 'Custom name for the workflow',
               },
               clientId: {
                 type: 'string',
-                description: 'Client ID to associate with the workflow'
+                description: 'Client ID to associate with the workflow',
               },
               activate: {
                 type: 'boolean',
                 description: 'Whether to activate the workflow immediately',
-                default: true
-              }
+                default: true,
+              },
             },
-            required: ['templateName']
-          }
-        }
+            required: ['templateName'],
+          },
+        },
       },
       {
         type: 'function',
@@ -123,11 +124,11 @@ class DeepSeekWorkflowManager {
             properties: {
               name: {
                 type: 'string',
-                description: 'Workflow name'
+                description: 'Workflow name',
               },
               description: {
                 type: 'string',
-                description: 'Workflow description'
+                description: 'Workflow description',
               },
               nodes: {
                 type: 'array',
@@ -138,23 +139,23 @@ class DeepSeekWorkflowManager {
                     name: { type: 'string' },
                     type: { type: 'string' },
                     parameters: { type: 'object' },
-                    position: { type: 'array', items: { type: 'number' } }
-                  }
-                }
+                    position: { type: 'array', items: { type: 'number' } },
+                  },
+                },
               },
               connections: {
                 type: 'object',
-                description: 'Node connections object'
+                description: 'Node connections object',
               },
               tags: {
                 type: 'array',
                 items: { type: 'string' },
-                description: 'Workflow tags'
-              }
+                description: 'Workflow tags',
+              },
             },
-            required: ['name', 'nodes', 'connections']
-          }
-        }
+            required: ['name', 'nodes', 'connections'],
+          },
+        },
       },
       {
         type: 'function',
@@ -166,7 +167,7 @@ class DeepSeekWorkflowManager {
             properties: {
               workflowId: {
                 type: 'string',
-                description: 'ID of the workflow to edit'
+                description: 'ID of the workflow to edit',
               },
               updates: {
                 type: 'object',
@@ -176,13 +177,13 @@ class DeepSeekWorkflowManager {
                   active: { type: 'boolean' },
                   nodes: { type: 'array' },
                   connections: { type: 'object' },
-                  settings: { type: 'object' }
-                }
-              }
+                  settings: { type: 'object' },
+                },
+              },
             },
-            required: ['workflowId', 'updates']
-          }
-        }
+            required: ['workflowId', 'updates'],
+          },
+        },
       },
       {
         type: 'function',
@@ -194,21 +195,21 @@ class DeepSeekWorkflowManager {
             properties: {
               workflowId: {
                 type: 'string',
-                description: 'ID of the workflow to execute'
+                description: 'ID of the workflow to execute',
               },
               inputData: {
                 type: 'object',
-                description: 'Input data for the workflow'
+                description: 'Input data for the workflow',
               },
               logExecution: {
                 type: 'boolean',
                 description: 'Whether to log execution to database',
-                default: true
-              }
+                default: true,
+              },
             },
-            required: ['workflowId']
-          }
-        }
+            required: ['workflowId'],
+          },
+        },
       },
       {
         type: 'function',
@@ -220,12 +221,12 @@ class DeepSeekWorkflowManager {
             properties: {
               workflowId: {
                 type: 'string',
-                description: 'ID of the workflow'
-              }
+                description: 'ID of the workflow',
+              },
             },
-            required: ['workflowId']
-          }
-        }
+            required: ['workflowId'],
+          },
+        },
       },
       {
         type: 'function',
@@ -237,12 +238,12 @@ class DeepSeekWorkflowManager {
             properties: {
               workflowId: {
                 type: 'string',
-                description: 'ID of the workflow to delete'
-              }
+                description: 'ID of the workflow to delete',
+              },
             },
-            required: ['workflowId']
-          }
-        }
+            required: ['workflowId'],
+          },
+        },
       },
       {
         type: 'function',
@@ -254,7 +255,7 @@ class DeepSeekWorkflowManager {
             properties: {
               workflowId: {
                 type: 'string',
-                description: 'ID of the workflow'
+                description: 'ID of the workflow',
               },
               node: {
                 type: 'object',
@@ -263,17 +264,17 @@ class DeepSeekWorkflowManager {
                   name: { type: 'string' },
                   type: { type: 'string' },
                   parameters: { type: 'object' },
-                  position: { type: 'array' }
-                }
+                  position: { type: 'array' },
+                },
               },
               connectTo: {
                 type: 'string',
-                description: 'Name of the node to connect to'
-              }
+                description: 'Name of the node to connect to',
+              },
             },
-            required: ['workflowId', 'node']
-          }
-        }
+            required: ['workflowId', 'node'],
+          },
+        },
       },
       {
         type: 'function',
@@ -285,22 +286,22 @@ class DeepSeekWorkflowManager {
             properties: {
               description: {
                 type: 'string',
-                description: 'Natural language description of what the workflow should do'
+                description: 'Natural language description of what the workflow should do',
               },
               requirements: {
                 type: 'array',
                 items: { type: 'string' },
-                description: 'Specific requirements or constraints'
+                description: 'Specific requirements or constraints',
               },
               context: {
                 type: 'object',
-                description: 'Additional context (client info, etc.)'
-              }
+                description: 'Additional context (client info, etc.)',
+              },
             },
-            required: ['description']
-          }
-        }
-      }
+            required: ['description'],
+          },
+        },
+      },
     ];
   }
 
@@ -330,31 +331,31 @@ Always follow n8n best practices:
 - Use connections correctly
 - Include tags for organization
 
-When generating workflows, ensure they follow the n8n JSON schema format.`
+When generating workflows, ensure they follow the n8n JSON schema format.`,
         },
         ...conversationHistory.map(msg => ({
           role: msg.role,
-          content: msg.content
+          content: msg.content,
         })),
         {
           role: 'user',
-          content: userMessage
-        }
+          content: userMessage,
+        },
       ];
 
       const response = await this.deepseekClient.post('/chat/completions', {
-        model: this.config.deepseekModel || 'deepseek-chat',
+        model: this.config.deepseekModel || 'deepseek-reasoner',
         messages,
         tools: this.workflowTools,
         tool_choice: 'auto',
         temperature: 0.3,
-        max_tokens: 4000
+        max_tokens: 4000,
       });
 
       const result = {
         message: response.data.choices[0].message.content,
         toolCalls: response.data.choices[0].message.tool_calls || [],
-        conversationId: response.data.id
+        conversationId: response.data.id,
       };
 
       // Execute tool calls
@@ -398,7 +399,11 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
             break;
 
           case 'execute_workflow':
-            results[functionName] = await this.executeWorkflow(args.workflowId, args.inputData, args.logExecution);
+            results[functionName] = await this.executeWorkflow(
+              args.workflowId,
+              args.inputData,
+              args.logExecution
+            );
             break;
 
           case 'get_workflow_status':
@@ -410,11 +415,19 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
             break;
 
           case 'add_workflow_node':
-            results[functionName] = await this.addWorkflowNode(args.workflowId, args.node, args.connectTo);
+            results[functionName] = await this.addWorkflowNode(
+              args.workflowId,
+              args.node,
+              args.connectTo
+            );
             break;
 
           case 'generate_workflow_from_description':
-            results[functionName] = await this.generateWorkflowFromDescription(args.description, args.requirements, args.context);
+            results[functionName] = await this.generateWorkflowFromDescription(
+              args.description,
+              args.requirements,
+              args.context
+            );
             break;
 
           default:
@@ -438,7 +451,7 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
       name: template.name,
       description: template.description,
       tags: template.tags || [],
-      nodeCount: template.nodes?.length || 0
+      nodeCount: template.nodes?.length || 0,
     }));
 
     if (category === 'all') {
@@ -453,7 +466,7 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
    */
   async createWorkflowFromTemplate({ templateName, customName, clientId, activate = true }) {
     const template = this.templates[templateName];
-    
+
     if (!template) {
       throw new Error(`Template '${templateName}' not found`);
     }
@@ -464,7 +477,7 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
       connections: template.connections,
       settings: template.settings,
       tags: template.tags || [],
-      active: activate
+      active: activate,
     };
 
     const response = await this.n8nClient.post('/workflows', workflowData);
@@ -472,13 +485,16 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
 
     // If clientId provided, associate with client
     if (clientId) {
-      await this.pool.query(`
+      await this.pool.query(
+        `
         UPDATE seo_clients
         SET 
           injection_workflow_id = COALESCE(injection_workflow_id, $1),
           updated_at = NOW()
         WHERE id = $2::uuid
-      `, [workflow.id, clientId]);
+      `,
+        [workflow.id, clientId]
+      );
     }
 
     return {
@@ -486,8 +502,8 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
       workflow: {
         id: workflow.id,
         name: workflow.name,
-        active: workflow.active
-      }
+        active: workflow.active,
+      },
     };
   }
 
@@ -503,7 +519,7 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
         type: node.type,
         typeVersion: 1,
         position: node.position || [250, 300 + index * 100],
-        parameters: node.parameters || {}
+        parameters: node.parameters || {},
       })),
       connections,
       settings: {
@@ -512,10 +528,10 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
         saveDataSuccessExecution: 'all',
         saveDataErrorExecution: 'all',
         executionTimeout: 3600,
-        timezone: 'America/New_York'
+        timezone: 'America/New_York',
       },
       tags,
-      active: true
+      active: true,
     };
 
     const response = await this.n8nClient.post('/workflows', workflowData);
@@ -527,8 +543,8 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
         id: workflow.id,
         name: workflow.name,
         active: workflow.active,
-        nodeCount: workflow.nodes?.length || 0
-      }
+        nodeCount: workflow.nodes?.length || 0,
+      },
     };
   }
 
@@ -544,8 +560,8 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
       workflow: {
         id: workflow.id,
         name: workflow.name,
-        active: workflow.active
-      }
+        active: workflow.active,
+      },
     };
   }
 
@@ -556,7 +572,7 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
     const startTime = Date.now();
 
     const response = await this.n8nClient.post(`/workflows/${workflowId}/execute`, {
-      data: inputData
+      data: inputData,
     });
 
     const execution = response.data.data || response.data;
@@ -564,20 +580,23 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
 
     // Log to database if requested
     if (logExecution) {
-      await this.pool.query(`
+      await this.pool.query(
+        `
         INSERT INTO workflow_execution_logs (
           workflow_id, execution_id, status, 
           input_data, output_data, execution_time_ms, completed_at
         )
         VALUES ($1, $2, $3, $4, $5, $6, NOW())
-      `, [
-        workflowId,
-        execution.id,
-        'completed',
-        JSON.stringify(inputData),
-        JSON.stringify(execution.data || {}),
-        executionTime
-      ]);
+      `,
+        [
+          workflowId,
+          execution.id,
+          'completed',
+          JSON.stringify(inputData),
+          JSON.stringify(execution.data || {}),
+          executionTime,
+        ]
+      );
     }
 
     return {
@@ -586,8 +605,8 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
         id: execution.id,
         workflowId,
         status: 'completed',
-        executionTime
-      }
+        executionTime,
+      },
     };
   }
 
@@ -604,7 +623,7 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
       active: workflow.active,
       nodeCount: workflow.nodes?.length || 0,
       tags: workflow.tags || [],
-      updatedAt: workflow.updatedAt
+      updatedAt: workflow.updatedAt,
     };
   }
 
@@ -616,7 +635,7 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
 
     return {
       success: true,
-      message: `Workflow ${workflowId} deleted successfully`
+      message: `Workflow ${workflowId} deleted successfully`,
     };
   }
 
@@ -635,7 +654,7 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
       type: node.type,
       typeVersion: 1,
       position: node.position || [250, 300 + workflow.nodes.length * 100],
-      parameters: node.parameters || {}
+      parameters: node.parameters || {},
     };
 
     workflow.nodes.push(newNode);
@@ -648,14 +667,14 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
       workflow.connections[connectTo].main[0].push({
         node: newNode.name,
         type: 'main',
-        index: 0
+        index: 0,
       });
     }
 
     // Update workflow
     const updateResponse = await this.n8nClient.patch(`/workflows/${workflowId}`, {
       nodes: workflow.nodes,
-      connections: workflow.connections
+      connections: workflow.connections,
     });
 
     return {
@@ -663,8 +682,8 @@ When generating workflows, ensure they follow the n8n JSON schema format.`
       node: newNode,
       workflow: {
         id: workflow.id,
-        nodeCount: workflow.nodes.length
-      }
+        nodeCount: workflow.nodes.length,
+      },
     };
   }
 
@@ -691,19 +710,20 @@ Generate a valid n8n workflow JSON with:
 Return ONLY the JSON workflow configuration, no explanations.`;
 
     const response = await this.deepseekClient.post('/chat/completions', {
-      model: this.config.deepseekModel || 'deepseek-chat',
+      model: this.config.deepseekModel || 'deepseek-reasoner',
       messages: [
         {
           role: 'system',
-          content: 'You are an n8n workflow expert. Generate valid n8n workflow JSON configurations.'
+          content:
+            'You are an n8n workflow expert. Generate valid n8n workflow JSON configurations.',
         },
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       temperature: 0.2,
-      max_tokens: 4000
+      max_tokens: 4000,
     });
 
     const workflowJSON = response.data.choices[0].message.content;
@@ -711,8 +731,9 @@ Return ONLY the JSON workflow configuration, no explanations.`;
     // Extract JSON from markdown if present
     let workflowData;
     try {
-      const jsonMatch = workflowJSON.match(/```json\n([\s\S]*?)\n```/) || 
-                       workflowJSON.match(/```\n([\s\S]*?)\n```/);
+      const jsonMatch =
+        workflowJSON.match(/```json\n([\s\S]*?)\n```/) ||
+        workflowJSON.match(/```\n([\s\S]*?)\n```/);
       workflowData = JSON.parse(jsonMatch ? jsonMatch[1] : workflowJSON);
     } catch (parseError) {
       throw new Error(`Failed to parse generated workflow JSON: ${parseError.message}`);
@@ -728,9 +749,9 @@ Return ONLY the JSON workflow configuration, no explanations.`;
         id: workflow.id,
         name: workflow.name,
         active: workflow.active,
-        nodeCount: workflow.nodes?.length || 0
+        nodeCount: workflow.nodes?.length || 0,
       },
-      generatedFrom: description
+      generatedFrom: description,
     };
   }
 }

@@ -5,11 +5,11 @@
  * Manages schema migrations with rollback support
  */
 
-import pkg from 'pg';
-const { Pool } = pkg;
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import pkg from 'pg';
+import { fileURLToPath, pathToFileURL } from 'url';
+const { Pool } = pkg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +17,8 @@ const __dirname = path.dirname(__filename);
 class MigrationRunner {
   constructor() {
     this.pool = new Pool({
-      connectionString: process.env.DATABASE_URL || 'postgres://lightdom:lightdom@localhost:5432/lightdom'
+      connectionString:
+        process.env.DATABASE_URL || 'postgres://lightdom:lightdom@localhost:5432/lightdom',
     });
 
     this.migrationsDir = path.join(__dirname, '..', 'migrations');
@@ -41,7 +42,9 @@ class MigrationRunner {
   }
 
   async getExecutedMigrations() {
-    const result = await this.pool.query(`SELECT version FROM ${this.migrationTable} ORDER BY version`);
+    const result = await this.pool.query(
+      `SELECT version FROM ${this.migrationTable} ORDER BY version`
+    );
     return result.rows.map(row => row.version);
   }
 
@@ -69,10 +72,10 @@ class MigrationRunner {
       await client.query(sql);
 
       // Record migration
-      await client.query(
-        `INSERT INTO ${this.migrationTable} (version, name) VALUES ($1, $2)`,
-        [version, filename]
-      );
+      await client.query(`INSERT INTO ${this.migrationTable} (version, name) VALUES ($1, $2)`, [
+        version,
+        filename,
+      ]);
 
       await client.query('COMMIT');
       console.log(`✅ Executed migration: ${filename}`);
@@ -196,7 +199,19 @@ async function main() {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+const invokedUrl = (() => {
+  if (!process.argv[1]) {
+    return null;
+  }
+  try {
+    return pathToFileURL(process.argv[1]).href;
+  } catch (error) {
+    console.warn('\n⚠️  Unable to normalize invocation path for migration runner:', error.message);
+    return `file://${process.argv[1]}`;
+  }
+})();
+
+if (invokedUrl && import.meta.url === invokedUrl) {
   main();
 }
 

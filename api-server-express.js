@@ -15,9 +15,9 @@ import { Pool } from 'pg';
 import { Server as socketIo } from 'socket.io';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { addMiningRoutes } from './api-mining-routes.js';
+import createCrawleeRoutes from './api/crawlee-routes.js';
 import createGitRoutes from './api/git-routes.js';
 import createUserRoutes from './api/routes/user-management.js';
-import createCrawleeRoutes from './api/crawlee-routes.js';
 import { RealWebCrawlerSystem } from './crawler/RealWebCrawlerSystem.js';
 import createAdminNavigationRoutes from './services/admin-navigation-routes.js';
 import { createRagRouter } from './services/rag/rag-router.js';
@@ -96,7 +96,8 @@ class DOMSpaceHarvesterAPI {
         .then(mod => {
           const fallback = mod.default || mod;
           this.app.use('/api/rag', fallback);
-          console.log('✅ RAG fallback mounted at /api/rag');
+          this.app.use('/api/unified-rag', fallback);
+          console.log('✅ RAG fallback mounted at /api/rag and /api/unified-rag');
         })
         .catch(err => {
           console.warn('⚠️ Failed to mount RAG fallback:', err?.message || err);
@@ -119,7 +120,7 @@ class DOMSpaceHarvesterAPI {
         const ragRouter = createRagRouter({ db: this.db, logger: console });
         this.app.use('/api/rag', ragRouter);
         console.log('✅ RAG routes registered at /api/rag');
-        
+
         // Mount enhanced RAG routes with DeepSeek tools
         import('./api/enhanced-rag-routes.js')
           .then(mod => {
@@ -131,7 +132,7 @@ class DOMSpaceHarvesterAPI {
           .catch(err => {
             console.warn('⚠️ Failed to mount enhanced RAG routes:', err?.message || err);
           });
-        
+
         // Mount NEW Unified RAG routes (clean redesign)
         import('./api/unified-rag-routes.js')
           .then(mod => {
@@ -766,7 +767,8 @@ class DOMSpaceHarvesterAPI {
     // Enhanced N8N Workflow Management Routes with Database Integration
     import('./api/n8n-workflow-management-routes.js')
       .then(n8nManagementModule => {
-        const initializeRoutes = n8nManagementModule.default || n8nManagementModule.initializeN8NWorkflowRoutes;
+        const initializeRoutes =
+          n8nManagementModule.default || n8nManagementModule.initializeN8NWorkflowRoutes;
         this.app.use('/api/n8n-workflows', initializeRoutes(this.db));
         console.log('✅ Enhanced N8N workflow management routes registered at /api/n8n-workflows');
       })
@@ -788,7 +790,9 @@ class DOMSpaceHarvesterAPI {
     import('./api/deepseek-workflow-routes.js')
       .then(deepseekModule => {
         this.app.use('/api/deepseek-workflows-legacy', deepseekModule.default);
-        console.log('✅ DeepSeek workflow management routes (legacy) registered at /api/deepseek-workflows-legacy');
+        console.log(
+          '✅ DeepSeek workflow management routes (legacy) registered at /api/deepseek-workflows-legacy'
+        );
       })
       .catch(err => {
         console.warn('⚠️ Failed to load DeepSeek workflow routes:', err.message);
@@ -797,7 +801,8 @@ class DOMSpaceHarvesterAPI {
     // Enhanced DeepSeek Workflow Management Routes with Lifecycle & Error Handling
     import('./api/deepseek-workflow-management-routes.js')
       .then(deepseekMgmtModule => {
-        const initializeRoutes = deepseekMgmtModule.default || deepseekMgmtModule.initializeDeepSeekWorkflowRoutes;
+        const initializeRoutes =
+          deepseekMgmtModule.default || deepseekMgmtModule.initializeDeepSeekWorkflowRoutes;
         // Try to get DeepSeek service if available
         let deepseekService = null;
         try {
@@ -808,7 +813,9 @@ class DOMSpaceHarvesterAPI {
           // DeepSeek service not available yet
         }
         this.app.use('/api/deepseek-workflows', initializeRoutes(this.db, deepseekService));
-        console.log('✅ Enhanced DeepSeek workflow management routes registered at /api/deepseek-workflows');
+        console.log(
+          '✅ Enhanced DeepSeek workflow management routes registered at /api/deepseek-workflows'
+        );
         console.log('   - Complete workflow lifecycle management');
         console.log('   - Error logging and DeepSeek analysis');
         console.log('   - Enhanced templates with all stages');
@@ -855,7 +862,8 @@ class DOMSpaceHarvesterAPI {
     // Import and register Neural Network Dashboard routes
     import('./api/neural-network-dashboard-routes.js')
       .then(dashboardModule => {
-        const dashboardRouter = dashboardModule.default || dashboardModule.createNeuralNetworkDashboardRoutes;
+        const dashboardRouter =
+          dashboardModule.default || dashboardModule.createNeuralNetworkDashboardRoutes;
         if (typeof dashboardRouter === 'function') {
           this.app.use('/api/neural-network-dashboard', dashboardRouter(this.pool));
         } else {
@@ -865,6 +873,7 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.error('Failed to load neural network dashboard routes:', err);
+      });
     // Import and register Data Stream routes
     import('./api/data-stream-routes.js')
       .then(streamModule => {
@@ -1135,7 +1144,9 @@ class DOMSpaceHarvesterAPI {
         } else {
           this.app.use('/api/leads', leadModule.default);
         }
-        console.log('✅ Lead generation routes registered (Crawler & campaign integration enabled)');
+        console.log(
+          '✅ Lead generation routes registered (Crawler & campaign integration enabled)'
+        );
       })
       .catch(err => {
         console.error('Failed to load lead routes:', err);
@@ -1288,6 +1299,21 @@ class DOMSpaceHarvesterAPI {
       .catch(err => {
         console.error('Failed to load agent management routes:', err);
       });
+
+    if (!this.dbDisabled) {
+      // Import and register Service Runtime logging routes
+      import('./src/api/routes/service-runtime.routes.ts')
+        .then(runtimeModule => {
+          const createRoutes = runtimeModule.createServiceRuntimeRoutes || runtimeModule.default;
+          if (typeof createRoutes === 'function') {
+            this.app.use('/api/service-runtime', createRoutes(this.db));
+            console.log('✅ Service Runtime routes registered (session logging, stream telemetry)');
+          }
+        })
+        .catch(err => {
+          console.error('Failed to load service runtime routes:', err);
+        });
+    }
 
     // Import and register Scraper Manager routes
     import('./api/scraper-manager-routes.js')
@@ -6080,11 +6106,16 @@ class DOMSpaceHarvesterAPI {
       // Initialize campaign-lead integration (if database is available)
       if (!this.dbDisabled) {
         try {
-          const { initializeCampaignLeadIntegration } = await import('./services/campaign-lead-integration.js');
+          const { initializeCampaignLeadIntegration } = await import(
+            './services/campaign-lead-integration.js'
+          );
           this.campaignLeadIntegration = initializeCampaignLeadIntegration(this.db, this.io);
           console.log('✅ Campaign-Lead integration initialized');
         } catch (integrationErr) {
-          console.warn('⚠️  Campaign-Lead integration failed to initialize:', integrationErr?.message || integrationErr);
+          console.warn(
+            '⚠️  Campaign-Lead integration failed to initialize:',
+            integrationErr?.message || integrationErr
+          );
         }
       }
 
@@ -10212,7 +10243,7 @@ class DOMSpaceHarvesterAPI {
       await initializeAgentServices({
         deepseek: {
           apiKey: process.env.DEEPSEEK_API_KEY,
-          model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+          model: process.env.DEEPSEEK_MODEL || 'deepseek-reasoner',
         },
         database: {
           host: process.env.DB_HOST || 'localhost',

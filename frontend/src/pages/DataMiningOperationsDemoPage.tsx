@@ -3,16 +3,17 @@ import toast from 'react-hot-toast';
 import {
   Badge,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
   Input,
+  KpiCard,
+  KpiGrid,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
   TextArea,
+  WorkflowPanel,
+  WorkflowPanelFooter,
+  WorkflowPanelSection,
 } from '@/components/ui';
 import {
   Activity,
@@ -56,11 +57,11 @@ type ModelSummary = {
   latencyMs: number;
 };
 
-const statusBadge: Record<OperationStatus, { label: string; variant: 'primary' | 'success' | 'warning' | 'destructive' }> = {
+const statusBadge: Record<OperationStatus, { label: string; variant: 'primary' | 'success' | 'warning' | 'error' }> = {
   running: { label: 'Running', variant: 'primary' },
   completed: { label: 'Completed', variant: 'success' },
   pending: { label: 'Pending', variant: 'warning' },
-  failed: { label: 'Failed', variant: 'destructive' },
+  failed: { label: 'Failed', variant: 'error' },
 };
 
 const tabs = [
@@ -71,6 +72,21 @@ const tabs = [
   { id: 'models', label: 'Models', icon: <Cpu className='h-4 w-4' /> },
   { id: 'analytics', label: 'Analytics', icon: <BarChart3 className='h-4 w-4' /> },
 ] as const;
+
+const pipelineHealthSnapshot = [
+  { label: 'Watcher throughput', value: '44.1k events/hour' },
+  { label: 'Crawler error budget', value: '2.3% burn', helper: 'Target 5%' },
+  { label: 'Bridge latency', value: 'Mean 68ms', helper: 'P95 112ms' },
+];
+
+const modelStatusVariant: Record<ModelSummary['status'], 'success' | 'warning' | 'outline'> = {
+  deployed: 'success',
+  training: 'warning',
+  archived: 'outline',
+};
+
+const formatDatasetSource = (source: DatasetSummary['sourceType']) =>
+  source.charAt(0).toUpperCase() + source.slice(1);
 
 const mockOperations: Operation[] = [
   {
@@ -185,25 +201,31 @@ const DataMiningOperationsDemoPage: React.FC = () => {
         label: 'Active operations',
         value: operations.filter((op) => op.status === 'running').length,
         description: 'Training & scraping in-flight',
+        icon: <Activity className='h-5 w-5 text-primary' />,
       },
       {
         label: 'Datasets',
         value: datasets.length,
-        description: 'Catalogued & ready for watchers',
+        description: 'Catalogued & watcher-ready',
+        icon: <Database className='h-5 w-5 text-primary' />,
       },
       {
         label: 'Models deployed',
         value: models.filter((model) => model.status === 'deployed').length,
         description: 'Serving inference traffic',
+        icon: <Cpu className='h-5 w-5 text-primary' />,
       },
       {
         label: 'Automation uptime',
         value: '99.2%',
         description: 'Past 24 hour window',
+        icon: <Sparkles className='h-5 w-5 text-primary' />,
       },
     ],
     [operations, datasets, models],
   );
+
+  const automationUptime = String(stats.find((stat) => stat.label === 'Automation uptime')?.value ?? '—');
 
   const triggerRefresh = () => {
     if (isRefreshing) return;
@@ -212,7 +234,11 @@ const DataMiningOperationsDemoPage: React.FC = () => {
       setOperations((current) =>
         current.map((op) =>
           op.status === 'running'
-            ? { ...op, progress: Math.min(op.progress + 6, 100), status: op.progress + 6 >= 100 ? 'completed' : 'running' }
+            ? {
+                ...op,
+                progress: Math.min(op.progress + 6, 100),
+                status: op.progress + 6 >= 100 ? 'completed' : 'running',
+              }
             : op,
         ),
       );
@@ -221,9 +247,13 @@ const DataMiningOperationsDemoPage: React.FC = () => {
     }, 1200);
   };
 
-  const handleConfigSubmit = () => {
+  const handleConfigSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     toast.success('Crawler configuration queued');
-    setNewConfig((current) => ({ ...current, name: `${current.name} ✓` }));
+    setNewConfig((current) => ({
+      ...current,
+      name: current.name.endsWith('✓') ? current.name : `${current.name} ✓`,
+    }));
   };
 
   const addSyntheticDataset = () => {
@@ -244,38 +274,35 @@ const DataMiningOperationsDemoPage: React.FC = () => {
 
   return (
     <div className='space-y-6 p-6'>
-      <header className='rounded-3xl border border-outline/10 bg-gradient-to-br from-primary/25 via-surface-container-high to-surface p-6 shadow-level-2 text-on-surface'>
-        <div className='flex flex-wrap items-start justify-between gap-6'>
-          <div className='space-y-3'>
-            <div className='inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary'>
-              <Sparkles className='h-4 w-4' />
-              Data mining observatory
-            </div>
-            <div>
-              <h1 className='text-3xl font-semibold md:text-4xl'>Monitor mining orchestration and analytics</h1>
-              <p className='mt-2 max-w-3xl text-sm text-on-surface-variant'>
-                Track crawler jobs, training pipelines, and watcher-sourced datasets with LightDom-aligned telemetry.
-              </p>
-            </div>
-          </div>
-          <div className='grid gap-3 sm:grid-cols-2'>
-            {stats.map((stat) => (
-              <Card key={stat.label} className='border-outline/20 bg-surface-container-low min-w-[160px]'>
-                <CardContent className='space-y-1 py-4'>
-                  <span className='text-xs uppercase tracking-wide text-on-surface-variant/70'>{stat.label}</span>
-                  <p className='text-2xl font-semibold text-on-surface'>{stat.value}</p>
-                  <p className='text-xs text-on-surface-variant/60'>{stat.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      <WorkflowPanel
+        status='info'
+        emphasis='elevated'
+        title='Monitor mining orchestration and analytics'
+        description='Track crawler jobs, training pipelines, and watcher-sourced datasets with LightDom-aligned telemetry.'
+        meta={`Automation uptime ${automationUptime}`}
+      >
+        <div className='inline-flex items-center gap-2 text-sm font-medium text-primary'>
+          <Sparkles className='h-4 w-4' /> Data mining observatory
         </div>
-      </header>
+        <WorkflowPanelSection className='border-none pt-2'>
+          <KpiGrid columns={4}>
+            {stats.map((stat) => (
+              <KpiCard
+                key={stat.label}
+                label={stat.label}
+                value={stat.value}
+                delta={stat.description}
+                icon={stat.icon}
+              />
+            ))}
+          </KpiGrid>
+        </WorkflowPanelSection>
+      </WorkflowPanel>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-4'>
-        <TabsList className='flex flex-wrap gap-2 rounded-full border border-outline/15 bg-surface-container-high p-1 shadow-level-1'>
+        <TabsList className='flex flex-wrap gap-2 rounded-full border border-outline/20 bg-surface-container-high p-1 shadow-level-1'>
           {tabs.map((tab) => (
-            <TabsTrigger key={tab.id} value={tab.id} className='gap-2'>
+            <TabsTrigger key={tab.id} value={tab.id} className='gap-2 rounded-full px-4 py-2 text-sm'>
               {tab.icon}
               {tab.label}
             </TabsTrigger>
@@ -283,70 +310,78 @@ const DataMiningOperationsDemoPage: React.FC = () => {
         </TabsList>
 
         <TabsContent value='overview' className='space-y-4'>
-          <Card className='border-outline/15 bg-surface'>
-            <CardHeader className='flex flex-wrap items-center justify-between gap-3'>
-              <CardTitle className='text-on-surface'>Automation control centre</CardTitle>
-              <Button onClick={triggerRefresh} leftIcon={<RefreshCw className={isRefreshing ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />} disabled={isRefreshing}>
+          <WorkflowPanel
+            title='Automation control centre'
+            description='Live view of orchestrated crawler and training workloads.'
+            actions={
+              <Button
+                onClick={triggerRefresh}
+                leftIcon={<RefreshCw className={isRefreshing ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />}
+                disabled={isRefreshing}
+              >
                 {isRefreshing ? 'Refreshing…' : 'Refresh graph'}
               </Button>
-            </CardHeader>
-            <CardContent className='grid gap-4 md:grid-cols-2'>
-              <Card className='border-outline/10 bg-surface-container-low'>
-                <CardHeader>
-                  <CardTitle className='flex items-center gap-2 text-on-surface'>
-                    <Activity className='h-5 w-5 text-primary' /> Active operations
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3 text-sm text-on-surface-variant'>
+            }
+          >
+            <WorkflowPanelSection className='grid gap-6 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)] border-none pt-0'>
+              <div className='space-y-3'>
+                <h4 className='md3-title-medium text-on-surface'>Active operations</h4>
+                <div className='space-y-3'>
                   {operations.map((operation) => (
-                    <div key={operation.id} className='rounded-2xl border border-outline/10 bg-surface px-4 py-3'>
+                    <article
+                      key={operation.id}
+                      className='rounded-3xl border border-outline/20 bg-surface p-4 shadow-level-1'
+                    >
                       <div className='flex flex-wrap items-center justify-between gap-2'>
-                        <p className='font-semibold text-on-surface'>{operation.name}</p>
+                        <div>
+                          <p className='md3-title-small text-on-surface'>{operation.name}</p>
+                          <p className='md3-body-small text-on-surface-variant/80'>Owner · {operation.owner}</p>
+                        </div>
                         {formatStatusBadge(operation.status)}
                       </div>
-                      <p className='text-xs text-on-surface-variant/70'>Owner · {operation.owner}</p>
-                      <div className='mt-2 h-2 overflow-hidden rounded-full bg-outline/10'>
+                      <div className='mt-3 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant/70'>
+                        <span>{operation.startedAt}</span>
+                        <span className='hidden sm:inline'>•</span>
+                        <span>{operation.progress}% completion</span>
+                      </div>
+                      <div className='mt-3 h-2 rounded-full bg-outline/10'>
                         <div
                           className='h-full rounded-full bg-primary transition-all'
                           style={{ width: `${operation.progress}%` }}
-                        ></div>
+                        />
                       </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+              <div className='space-y-3'>
+                <h4 className='md3-title-medium text-on-surface'>Pipeline health</h4>
+                <div className='space-y-3'>
+                  {pipelineHealthSnapshot.map((metric) => (
+                    <div
+                      key={metric.label}
+                      className='rounded-3xl border border-outline/20 bg-surface-container-low p-4'
+                    >
+                      <p className='md3-title-small text-on-surface'>{metric.label}</p>
+                      <p className='md3-body-small text-on-surface-variant/80'>{metric.value}</p>
+                      {metric.helper && (
+                        <p className='md3-label-small text-on-surface-variant/70'>{metric.helper}</p>
+                      )}
                     </div>
                   ))}
-                </CardContent>
-              </Card>
-              <Card className='border-outline/10 bg-surface-container-low'>
-                <CardHeader>
-                  <CardTitle className='flex items-center gap-2 text-on-surface'>
-                    <Settings className='h-5 w-5 text-primary' /> Pipeline health
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3 text-sm text-on-surface-variant'>
-                  <div className='rounded-2xl border border-outline/10 bg-surface px-4 py-3'>
-                    <p className='font-semibold text-on-surface'>Watcher throughput</p>
-                    <p className='text-xs text-on-surface-variant/70'>44.1k events / hour</p>
-                  </div>
-                  <div className='rounded-2xl border border-outline/10 bg-surface px-4 py-3'>
-                    <p className='font-semibold text-on-surface'>Crawler error budget</p>
-                    <p className='text-xs text-on-surface-variant/70'>2.3% burn (target 5%)</p>
-                  </div>
-                  <div className='rounded-2xl border border-outline/10 bg-surface px-4 py-3'>
-                    <p className='font-semibold text-on-surface'>Bridge latency</p>
-                    <p className='text-xs text-on-surface-variant/70'>Mean 68ms • P95 112ms</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </CardContent>
-          </Card>
+                </div>
+              </div>
+            </WorkflowPanelSection>
+          </WorkflowPanel>
         </TabsContent>
 
         <TabsContent value='operations' className='space-y-4'>
-          <Card className='border-outline/15 bg-surface'>
-            <CardHeader>
-              <CardTitle className='text-on-surface'>Operations detail</CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-3'>
-              <div className='overflow-x-auto rounded-2xl border border-outline/10'>
+          <WorkflowPanel
+            title='Operations detail'
+            description='Full workload history across scraping, training, and analytics pipelines.'
+          >
+            <WorkflowPanelSection className='border-none pt-0'>
+              <div className='overflow-x-auto rounded-3xl border border-outline/20 bg-surface shadow-level-1'>
                 <table className='w-full min-w-[640px] border-collapse text-sm text-on-surface'>
                   <thead className='bg-surface-container-low text-xs uppercase tracking-wide text-on-surface-variant/70'>
                     <tr>
@@ -372,25 +407,24 @@ const DataMiningOperationsDemoPage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            </WorkflowPanelSection>
+            <WorkflowPanelFooter>
               <div className='flex flex-wrap gap-2'>
-                <Button variant='outlined' leftIcon={<Download className='h-4 w-4' />}>
-                  Export operations CSV
-                </Button>
-                <Button variant='text' leftIcon={<ShieldAlert className='h-4 w-4' />}>
-                  View incident reports
-                </Button>
+                <Button variant='outlined' leftIcon={<Download className='h-4 w-4' />}>Export operations CSV</Button>
+                <Button variant='text' leftIcon={<ShieldAlert className='h-4 w-4' />}>View incident reports</Button>
               </div>
-            </CardContent>
-          </Card>
+              <span className='md3-label-small text-on-surface-variant/70'>Exports include timestamps, owners, and throughput deltas.</span>
+            </WorkflowPanelFooter>
+          </WorkflowPanel>
         </TabsContent>
 
         <TabsContent value='scraping' className='space-y-4'>
-          <Card className='border-outline/15 bg-surface'>
-            <CardHeader>
-              <CardTitle className='text-on-surface'>Crawler configuration</CardTitle>
-            </CardHeader>
-            <CardContent className='grid gap-4 md:grid-cols-2'>
-              <div className='space-y-4'>
+          <WorkflowPanel
+            title='Crawler configuration'
+            description='Compose and queue watcher-aligned crawler workloads.'
+          >
+            <WorkflowPanelSection className='grid gap-6 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)] border-none pt-0'>
+              <form className='space-y-4' onSubmit={handleConfigSubmit}>
                 <Input
                   label='Configuration name'
                   value={newConfig.name}
@@ -421,111 +455,109 @@ const DataMiningOperationsDemoPage: React.FC = () => {
                     onChange={(event) => setNewConfig((current) => ({ ...current, maxDepth: Number(event.target.value) }))}
                   />
                 </div>
-                <label className='text-xs uppercase tracking-wide text-on-surface-variant/70'>Source type</label>
-                <select
-                  className='rounded-2xl border border-outline/20 bg-surface-container-low p-3 text-sm text-on-surface'
-                  value={newConfig.sourceType}
-                  onChange={(event) => setNewConfig((current) => ({ ...current, sourceType: event.target.value }))}
-                >
-                  <option value='website'>Website</option>
-                  <option value='api'>API</option>
-                  <option value='sitemap'>Sitemap</option>
-                  <option value='dataset'>Dataset</option>
-                </select>
-                <Button leftIcon={<Sparkles className='h-4 w-4' />} onClick={handleConfigSubmit}>
-                  Queue configuration
-                </Button>
-              </div>
-              <Card className='border-outline/10 bg-surface-container-low'>
-                <CardHeader>
-                  <CardTitle className='text-on-surface'>Watcher preview</CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-2 text-sm text-on-surface-variant'>
-                  <p>Queued configs stream into the crawler orchestrator. Watcher agents validate robots.txt, throttle respect, and patch the slot registry.</p>
-                  <p>Use rate limit and max depth to tune load profiles before production rollout. Attachments show up under the datasets tab.</p>
-                  <Button variant='text' leftIcon={<Settings className='h-4 w-4' />}>
-                    View orchestrator YAML
-                  </Button>
-                </CardContent>
-              </Card>
-            </CardContent>
-          </Card>
+                <div className='space-y-2'>
+                  <label className='text-xs uppercase tracking-wide text-on-surface-variant/70'>Source type</label>
+                  <select
+                    className='rounded-3xl border border-outline/20 bg-surface-container-low p-3 text-sm text-on-surface'
+                    value={newConfig.sourceType}
+                    onChange={(event) => setNewConfig((current) => ({ ...current, sourceType: event.target.value }))}
+                  >
+                    <option value='website'>Website</option>
+                    <option value='api'>API</option>
+                    <option value='sitemap'>Sitemap</option>
+                    <option value='dataset'>Dataset</option>
+                  </select>
+                </div>
+                <Button type='submit' leftIcon={<Sparkles className='h-4 w-4' />}>Queue configuration</Button>
+              </form>
+
+              <aside className='flex flex-col gap-3 rounded-3xl border border-outline/20 bg-surface-container-low p-4 text-sm text-on-surface-variant'>
+                <h4 className='md3-title-small text-on-surface'>Watcher preview</h4>
+                <p>
+                  Queued configs stream into the crawler orchestrator. Watcher agents validate robots.txt, respect throttling, and patch the slot registry.
+                </p>
+                <p>
+                  Tune rate limits and depth before production rollout. Attachments appear in the datasets catalogue automatically.
+                </p>
+                <Button variant='text' leftIcon={<Settings className='h-4 w-4' />}>View orchestrator YAML</Button>
+              </aside>
+            </WorkflowPanelSection>
+          </WorkflowPanel>
         </TabsContent>
 
         <TabsContent value='datasets' className='space-y-4'>
-          <Card className='border-outline/15 bg-surface'>
-            <CardHeader className='flex flex-wrap items-center justify-between gap-3'>
-              <CardTitle className='text-on-surface'>Datasets catalogue</CardTitle>
+          <WorkflowPanel
+            title='Datasets catalogue'
+            description='Watcher-ready datasets aggregated from crawlers and synthetic replays.'
+            actions={
               <Button variant='outlined' leftIcon={<Database className='h-4 w-4' />} onClick={addSyntheticDataset}>
                 Add synthetic replay
               </Button>
-            </CardHeader>
-            <CardContent className='space-y-3'>
+            }
+          >
+            <WorkflowPanelSection className='space-y-3 border-none pt-0'>
               {datasets.map((dataset) => (
-                <Card key={dataset.id} className='border-outline/10 bg-surface-container-low'>
-                  <CardContent className='flex flex-wrap items-center justify-between gap-3 py-4'>
-                    <div>
-                      <p className='text-sm font-semibold text-on-surface'>{dataset.name}</p>
-                      <p className='text-xs text-on-surface-variant/70'>Records · {dataset.records.toLocaleString()} • Updated {dataset.lastUpdated}</p>
-                    </div>
-                    <div className='flex items-center gap-2'>
-                      <Badge variant='outline'>Source · {dataset.sourceType}</Badge>
-                      <Button variant='text' size='sm' leftIcon={<Download className='h-4 w-4' />}>
-                        Export
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <article
+                  key={dataset.id}
+                  className='flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-outline/20 bg-surface-container-low px-4 py-4'
+                >
+                  <div>
+                    <p className='md3-title-small text-on-surface'>{dataset.name}</p>
+                    <p className='md3-body-small text-on-surface-variant/70'>
+                      {dataset.records.toLocaleString()} records · Updated {dataset.lastUpdated}
+                    </p>
+                  </div>
+                  <div className='flex flex-wrap items-center gap-2'>
+                    <Badge variant='outline'>Source · {formatDatasetSource(dataset.sourceType)}</Badge>
+                    <Button variant='text' size='sm' leftIcon={<Download className='h-4 w-4' />}>Export</Button>
+                  </div>
+                </article>
               ))}
-            </CardContent>
-          </Card>
+            </WorkflowPanelSection>
+          </WorkflowPanel>
         </TabsContent>
 
         <TabsContent value='models' className='space-y-4'>
-          <Card className='border-outline/15 bg-surface'>
-            <CardHeader>
-              <CardTitle className='text-on-surface'>Model registry</CardTitle>
-            </CardHeader>
-            <CardContent className='grid gap-4 md:grid-cols-3'>
+          <WorkflowPanel
+            title='Model registry'
+            description='Training progress and deployment health for LightDom mining models.'
+          >
+            <WorkflowPanelSection className='grid gap-4 md:grid-cols-2 xl:grid-cols-3 border-none pt-0'>
               {models.map((model) => (
-                <Card key={model.id} className='border-outline/10 bg-surface-container-low'>
-                  <CardContent className='space-y-3 py-5'>
-                    <div className='flex items-center justify-between gap-2'>
-                      <p className='text-sm font-semibold text-on-surface'>{model.name}</p>
-                      <Badge variant='outline'>{model.status}</Badge>
-                    </div>
-                    <div className='text-sm text-on-surface-variant space-y-1'>
-                      <p>Accuracy · {(model.accuracy * 100).toFixed(1)}%</p>
-                      <p>Latency · {model.latencyMs ? `${model.latencyMs}ms` : 'Pending'}</p>
-                    </div>
-                    <div className='flex gap-2'>
-                      <Button variant='outlined' size='sm'>Promote</Button>
-                      <Button variant='text' size='sm'>View logs</Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <article
+                  key={model.id}
+                  className='flex flex-col gap-3 rounded-3xl border border-outline/20 bg-surface-container-low p-4'
+                >
+                  <div className='flex items-center justify-between gap-2'>
+                    <p className='md3-title-small text-on-surface'>{model.name}</p>
+                    <Badge variant={modelStatusVariant[model.status]}>{model.status}</Badge>
+                  </div>
+                  <div className='space-y-1 text-sm text-on-surface-variant'>
+                    <p>Accuracy · {(model.accuracy * 100).toFixed(1)}%</p>
+                    <p>Latency · {model.latencyMs ? `${model.latencyMs}ms` : 'Pending'}</p>
+                  </div>
+                  <div className='flex gap-2'>
+                    <Button variant='outlined' size='sm'>Promote</Button>
+                    <Button variant='text' size='sm'>View logs</Button>
+                  </div>
+                </article>
               ))}
-            </CardContent>
-          </Card>
+            </WorkflowPanelSection>
+          </WorkflowPanel>
         </TabsContent>
 
         <TabsContent value='analytics' className='space-y-4'>
-          <Card className='border-outline/15 bg-surface'>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2 text-on-surface'>
-                <BarChart3 className='h-5 w-5 text-primary' /> Watcher telemetry
-              </CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-3 text-sm text-on-surface-variant'>
-              <div className='h-64 rounded-3xl border border-outline/10 bg-surface-container-low p-4 text-center text-on-surface-variant/60'>
-                Chart placeholder – wire to Chart.js instance when backend metrics endpoint is ready.
+          <WorkflowPanel
+            title='Watcher telemetry'
+            description='Wire this panel to the analytics API for live throughput and latency charts.'
+          >
+            <WorkflowPanelSection className='space-y-3 border-none pt-0 text-sm text-on-surface-variant'>
+              <div className='flex h-64 items-center justify-center rounded-3xl border border-outline/20 bg-surface-container-low text-on-surface-variant/60'>
+                Chart placeholder — connect to Chart.js when backend metrics land.
               </div>
-              <p>Hook this panel up to the analytics API for live throughput and latency charts. The original HTML demo used Chart.js; this MD3 variant keeps the placeholder ready for hydration.</p>
-              <Button variant='text' leftIcon={<RefreshCw className='h-4 w-4' />}>
-                Configure chart bindings
-              </Button>
-            </CardContent>
-          </Card>
+              <Button variant='text' leftIcon={<RefreshCw className='h-4 w-4' />}>Configure chart bindings</Button>
+            </WorkflowPanelSection>
+          </WorkflowPanel>
         </TabsContent>
       </Tabs>
     </div>

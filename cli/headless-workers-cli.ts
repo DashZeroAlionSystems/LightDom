@@ -40,9 +40,13 @@ workerPoolCmd
       spinner.succeed(chalk.green(`Worker pool started with ${options.workers} workers`));
       const status = pool.getStatus();
       console.log(chalk.blue('\\nPool Status:'));
-      console.log(`  Workers: ${status.activeWorkers}/${status.totalWorkers}`);
+      const totalWorkers = status.workers.length;
+      const activeWorkers = status.workers.filter(
+        worker => worker.status === 'idle' || worker.status === 'busy'
+      ).length;
+      console.log(`  Workers: ${activeWorkers}/${totalWorkers}`);
       console.log(`  Strategy: ${options.strategy}`);
-      console.log(`  Queued tasks: ${status.queuedTasks}`);
+      console.log(`  Queued tasks: ${status.queueSize}`);
     } catch (error) {
       spinner.fail(chalk.red('Failed to start worker pool'));
       console.error(error);
@@ -92,9 +96,11 @@ serviceCmd
       spinner.succeed(chalk.green(`Found ${services.length} services`));
       services.forEach(service => {
         const statusColor = service.status === 'running' ? chalk.green : chalk.gray;
-        console.log(statusColor(`\n${service.name} [${service.status}]`));
+        const schemaName = service.schema?.name || service.id;
+        const schemaType = service.schema?.['lightdom:serviceType'] || 'unknown';
+        console.log(statusColor(`\n${schemaName} [${service.status}]`));
         console.log(`  ID: ${service.id}`);
-        console.log(`  Type: ${service.type}`);
+        console.log(`  Type: ${schemaType}`);
       });
     } catch (error) {
       spinner.fail(chalk.red('Failed to list services'));
@@ -124,12 +130,13 @@ componentCmd
         context: { typescript: true },
       });
 
-      spinner.succeed(chalk.green(`Component generated: ${result.componentName}`));
+      const componentName = result.schema['lightdom:reactComponent'];
+      spinner.succeed(chalk.green(`Component generated: ${componentName}`));
 
       if (options.output) {
         const outputDir = path.resolve(options.output);
         await fs.mkdir(outputDir, { recursive: true });
-        await fs.writeFile(path.join(outputDir, `${result.componentName}.tsx`), result.code);
+        await fs.writeFile(path.join(outputDir, `${componentName}.tsx`), result.code);
         console.log(chalk.blue(`\nFiles saved to: ${outputDir}`));
       } else {
         console.log(chalk.blue('\\nGenerated Code:'));

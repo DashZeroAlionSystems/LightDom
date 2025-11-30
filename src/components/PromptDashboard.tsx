@@ -1,6 +1,6 @@
 /**
  * PromptDashboard Component
- * 
+ *
  * Comprehensive prompt dashboard with:
  * - DeepSeek integration for real-time conversation
  * - Schema generation from prompts
@@ -8,11 +8,11 @@
  * - Conversation history and review
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Brain, Sparkles, Layers, Database, MessageSquare, History, Download, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Brain, Database, Download, Layers, MessageSquare, Sparkles, Trash2 } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import FeedbackCard, { FeedbackStatus } from './ui/FeedbackCard';
 import PromptInput from './ui/PromptInput';
-import FeedbackCard, { FeedbackCardProps, FeedbackStatus } from './ui/FeedbackCard';
 
 interface ConversationMessage {
   id: string;
@@ -49,7 +49,7 @@ export const PromptDashboard: React.FC = () => {
   const [artifacts, setArtifacts] = useState<GeneratedArtifact[]>([]);
   const [selectedModel, setSelectedModel] = useState('deepseek-r1');
   const [activeTab, setActiveTab] = useState<'conversation' | 'feedback' | 'artifacts'>('feedback');
-  
+
   const feedbackEndRef = useRef<HTMLDivElement>(null);
   const conversationEndRef = useRef<HTMLDivElement>(null);
 
@@ -76,7 +76,7 @@ export const PromptDashboard: React.FC = () => {
       id: `msg-${Date.now()}`,
       role: 'user',
       content: promptText,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
     setConversation(prev => [...prev, userMessage]);
 
@@ -87,7 +87,7 @@ export const PromptDashboard: React.FC = () => {
       title: 'Analyzing prompt',
       content: 'DeepSeek is analyzing your request...',
       status: 'processing',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
     setFeedbackSteps(prev => [...prev, initialFeedback]);
 
@@ -96,7 +96,7 @@ export const PromptDashboard: React.FC = () => {
       await processPromptWithStreaming(promptText);
     } catch (error) {
       console.error('Error processing prompt:', error);
-      
+
       // Add error feedback
       const errorFeedback: FeedbackStep = {
         id: `step-${Date.now()}-error`,
@@ -104,7 +104,7 @@ export const PromptDashboard: React.FC = () => {
         title: 'Error processing request',
         content: error instanceof Error ? error.message : 'An unknown error occurred',
         status: 'error',
-        timestamp: new Date()
+        timestamp: new Date(),
       };
       setFeedbackSteps(prev => [...prev, errorFeedback]);
     } finally {
@@ -119,16 +119,16 @@ export const PromptDashboard: React.FC = () => {
     const response = await fetch('/api/deepseek/chat/stream', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         prompt: promptText,
         model: selectedModel,
         conversation: conversation.map(msg => ({
           role: msg.role,
-          content: msg.content
-        }))
-      })
+          content: msg.content,
+        })),
+      }),
     });
 
     if (!response.ok) {
@@ -147,11 +147,13 @@ export const PromptDashboard: React.FC = () => {
     let stepNumber = feedbackSteps.length + 2;
 
     // Update initial processing feedback to success
-    setFeedbackSteps(prev => prev.map(step => 
-      step.status === 'processing' 
-        ? { ...step, status: 'success', content: 'Prompt analyzed successfully' }
-        : step
-    ));
+    setFeedbackSteps(prev =>
+      prev.map(step =>
+        step.status === 'processing'
+          ? { ...step, status: 'success', content: 'Prompt analyzed successfully' }
+          : step
+      )
+    );
 
     // Add streaming response feedback
     const streamingFeedback: FeedbackStep = {
@@ -160,14 +162,14 @@ export const PromptDashboard: React.FC = () => {
       title: 'DeepSeek is thinking...',
       content: '',
       status: 'processing',
-      timestamp: new Date()
+      timestamp: new Date(),
     };
     setFeedbackSteps(prev => [...prev, streamingFeedback]);
 
     try {
       while (true) {
         const { done, value } = await reader.read();
-        
+
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
@@ -176,23 +178,23 @@ export const PromptDashboard: React.FC = () => {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
-            
+
             if (data === '[DONE]') {
               continue;
             }
 
             try {
               const parsed = JSON.parse(data);
-              
+
               if (parsed.type === 'content') {
                 fullResponse += parsed.content;
-                
+
                 // Update streaming feedback with new content
-                setFeedbackSteps(prev => prev.map(step =>
-                  step.id === currentStepId
-                    ? { ...step, content: fullResponse }
-                    : step
-                ));
+                setFeedbackSteps(prev =>
+                  prev.map(step =>
+                    step.id === currentStepId ? { ...step, content: fullResponse } : step
+                  )
+                );
               } else if (parsed.type === 'schema') {
                 // Schema generated
                 const schemaFeedback: FeedbackStep = {
@@ -202,7 +204,7 @@ export const PromptDashboard: React.FC = () => {
                   content: 'DeepSeek has generated a schema based on your prompt',
                   status: 'success',
                   timestamp: new Date(),
-                  schema: parsed.schema
+                  schema: parsed.schema,
                 };
                 setFeedbackSteps(prev => [...prev, schemaFeedback]);
 
@@ -212,7 +214,7 @@ export const PromptDashboard: React.FC = () => {
                   type: 'schema',
                   name: parsed.schema.name || 'Generated Schema',
                   content: parsed.schema,
-                  timestamp: new Date()
+                  timestamp: new Date(),
                 };
                 setArtifacts(prev => [...prev, artifact]);
               } else if (parsed.type === 'component') {
@@ -226,8 +228,8 @@ export const PromptDashboard: React.FC = () => {
                   timestamp: new Date(),
                   metadata: {
                     componentName: parsed.component.name,
-                    type: parsed.component.type
-                  }
+                    type: parsed.component.type,
+                  },
                 };
                 setFeedbackSteps(prev => [...prev, componentFeedback]);
 
@@ -237,7 +239,7 @@ export const PromptDashboard: React.FC = () => {
                   type: 'component',
                   name: parsed.component.name,
                   content: parsed.component,
-                  timestamp: new Date()
+                  timestamp: new Date(),
                 };
                 setArtifacts(prev => [...prev, artifact]);
               }
@@ -250,28 +252,31 @@ export const PromptDashboard: React.FC = () => {
       }
 
       // Mark streaming as complete
-      setFeedbackSteps(prev => prev.map(step =>
-        step.id === currentStepId
-          ? { ...step, status: 'success', title: 'DeepSeek response' }
-          : step
-      ));
+      setFeedbackSteps(prev =>
+        prev.map(step =>
+          step.id === currentStepId
+            ? { ...step, status: 'success', title: 'DeepSeek response' }
+            : step
+        )
+      );
 
       // Add assistant message to conversation
       const assistantMessage: ConversationMessage = {
         id: `msg-${Date.now()}`,
         role: 'assistant',
         content: fullResponse,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
       setConversation(prev => [...prev, assistantMessage]);
-
     } catch (error) {
       console.error('Streaming error:', error);
-      setFeedbackSteps(prev => prev.map(step =>
-        step.id === currentStepId
-          ? { ...step, status: 'error', content: 'Error during streaming' }
-          : step
-      ));
+      setFeedbackSteps(prev =>
+        prev.map(step =>
+          step.id === currentStepId
+            ? { ...step, status: 'error', content: 'Error during streaming' }
+            : step
+        )
+      );
     }
   };
 
@@ -302,7 +307,7 @@ export const PromptDashboard: React.FC = () => {
       conversation,
       feedbackSteps,
       artifacts,
-      exportDate: new Date().toISOString()
+      exportDate: new Date().toISOString(),
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -317,89 +322,89 @@ export const PromptDashboard: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className='h-screen flex flex-col bg-gray-50'>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Brain className="h-6 w-6 text-purple-600" />
+      <div className='bg-white border-b border-gray-200 px-6 py-4'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-3'>
+            <div className='p-2 bg-purple-100 rounded-lg'>
+              <Brain className='h-6 w-6 text-purple-600' />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Prompt Dashboard</h1>
-              <p className="text-sm text-gray-500">AI-powered workflow generation with DeepSeek</p>
+              <h1 className='text-2xl font-bold text-gray-900'>Prompt Dashboard</h1>
+              <p className='text-sm text-gray-500'>AI-powered workflow generation with DeepSeek</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
-              <Sparkles className="h-4 w-4 text-yellow-600" />
-              <span className="text-sm font-medium">{selectedModel}</span>
+          <div className='flex items-center gap-3'>
+            <div className='flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg'>
+              <Sparkles className='h-4 w-4 text-yellow-600' />
+              <span className='text-sm font-medium'>{selectedModel}</span>
             </div>
-            
+
             <button
               onClick={handleExport}
               disabled={artifacts.length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+              className='flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg transition-colors'
             >
-              <Download className="h-4 w-4" />
+              <Download className='h-4 w-4' />
               Export
             </button>
 
             <button
               onClick={handleClear}
               disabled={conversation.length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+              className='flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white rounded-lg transition-colors'
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className='h-4 w-4' />
               Clear
             </button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="mt-4 flex gap-4">
-          <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg">
-            <MessageSquare className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium">{conversation.length} messages</span>
+        <div className='mt-4 flex gap-4'>
+          <div className='flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg'>
+            <MessageSquare className='h-4 w-4 text-blue-600' />
+            <span className='text-sm font-medium'>{conversation.length} messages</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg">
-            <Layers className="h-4 w-4 text-green-600" />
-            <span className="text-sm font-medium">{feedbackSteps.length} steps</span>
+          <div className='flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg'>
+            <Layers className='h-4 w-4 text-green-600' />
+            <span className='text-sm font-medium'>{feedbackSteps.length} steps</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 rounded-lg">
-            <Database className="h-4 w-4 text-purple-600" />
-            <span className="text-sm font-medium">{artifacts.length} artifacts</span>
+          <div className='flex items-center gap-2 px-3 py-2 bg-purple-50 rounded-lg'>
+            <Database className='h-4 w-4 text-purple-600' />
+            <span className='text-sm font-medium'>{artifacts.length} artifacts</span>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className='flex-1 flex overflow-hidden'>
         {/* Left Panel - Prompt Input */}
-        <div className="w-96 border-r border-gray-200 bg-white flex flex-col">
-          <div className="p-6 flex-1 overflow-y-auto">
-            <h2 className="text-lg font-semibold mb-4">Enter Your Prompt</h2>
+        <div className='w-96 border-r border-gray-200 bg-white flex flex-col'>
+          <div className='p-6 flex-1 overflow-y-auto'>
+            <h2 className='text-lg font-semibold mb-4'>Enter Your Prompt</h2>
             <PromptInput
               onSend={handleSendPrompt}
               loading={isProcessing}
               aiModel={selectedModel}
               onModelChange={setSelectedModel}
-              supportedModels={['deepseek-r1', 'deepseek-chat', 'gpt-4']}
+              supportedModels={['deepseek-reasoner', 'deepseek-chat', 'deepseek-r1', 'gpt-4']}
               showExamples={conversation.length === 0}
             />
           </div>
         </div>
 
         {/* Right Panel - Tabs */}
-        <div className="flex-1 flex flex-col">
+        <div className='flex-1 flex flex-col'>
           {/* Tab Navigation */}
-          <div className="bg-white border-b border-gray-200 px-6">
-            <div className="flex gap-1">
+          <div className='bg-white border-b border-gray-200 px-6'>
+            <div className='flex gap-1'>
               {[
                 { id: 'feedback', label: 'Step-by-Step Feedback', icon: Layers },
                 { id: 'conversation', label: 'Conversation', icon: MessageSquare },
-                { id: 'artifacts', label: 'Generated Artifacts', icon: Database }
+                { id: 'artifacts', label: 'Generated Artifacts', icon: Database },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -411,31 +416,34 @@ export const PromptDashboard: React.FC = () => {
                       : 'border-transparent text-gray-600 hover:text-gray-900'
                   )}
                 >
-                  <tab.icon className="h-4 w-4" />
-                  <span className="font-medium">{tab.label}</span>
+                  <tab.icon className='h-4 w-4' />
+                  <span className='font-medium'>{tab.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className='flex-1 overflow-y-auto p-6'>
             {activeTab === 'feedback' && (
-              <div className="space-y-4">
+              <div className='space-y-4'>
                 {feedbackSteps.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                    <Layers className="h-12 w-12 mb-3" />
-                    <p className="text-lg font-medium">No feedback yet</p>
-                    <p className="text-sm">Enter a prompt to see step-by-step feedback</p>
+                  <div className='flex flex-col items-center justify-center h-64 text-gray-400'>
+                    <Layers className='h-12 w-12 mb-3' />
+                    <p className='text-lg font-medium'>No feedback yet</p>
+                    <p className='text-sm'>Enter a prompt to see step-by-step feedback</p>
                   </div>
                 ) : (
                   <>
-                    {feedbackSteps.map((step) => (
+                    {feedbackSteps.map(step => (
                       <FeedbackCard
                         key={step.id}
                         {...step}
                         onReview={handleReview}
-                        defaultExpanded={step.status === 'processing' || feedbackSteps.indexOf(step) === feedbackSteps.length - 1}
+                        defaultExpanded={
+                          step.status === 'processing' ||
+                          feedbackSteps.indexOf(step) === feedbackSteps.length - 1
+                        }
                       />
                     ))}
                     <div ref={feedbackEndRef} />
@@ -445,16 +453,16 @@ export const PromptDashboard: React.FC = () => {
             )}
 
             {activeTab === 'conversation' && (
-              <div className="space-y-4">
+              <div className='space-y-4'>
                 {conversation.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                    <MessageSquare className="h-12 w-12 mb-3" />
-                    <p className="text-lg font-medium">No messages yet</p>
-                    <p className="text-sm">Start a conversation with DeepSeek</p>
+                  <div className='flex flex-col items-center justify-center h-64 text-gray-400'>
+                    <MessageSquare className='h-12 w-12 mb-3' />
+                    <p className='text-lg font-medium'>No messages yet</p>
+                    <p className='text-sm'>Start a conversation with DeepSeek</p>
                   </div>
                 ) : (
                   <>
-                    {conversation.map((msg) => (
+                    {conversation.map(msg => (
                       <div
                         key={msg.id}
                         className={cn(
@@ -464,15 +472,15 @@ export const PromptDashboard: React.FC = () => {
                             : 'bg-gray-50 border border-gray-200 mr-12'
                         )}
                       >
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-semibold text-sm">
+                        <div className='flex items-center gap-2 mb-2'>
+                          <span className='font-semibold text-sm'>
                             {msg.role === 'user' ? 'You' : 'DeepSeek'}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className='text-xs text-gray-500'>
                             {msg.timestamp.toLocaleTimeString()}
                           </span>
                         </div>
-                        <div className="whitespace-pre-wrap text-gray-700">{msg.content}</div>
+                        <div className='whitespace-pre-wrap text-gray-700'>{msg.content}</div>
                       </div>
                     ))}
                     <div ref={conversationEndRef} />
@@ -482,29 +490,32 @@ export const PromptDashboard: React.FC = () => {
             )}
 
             {activeTab === 'artifacts' && (
-              <div className="space-y-4">
+              <div className='space-y-4'>
                 {artifacts.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                    <Database className="h-12 w-12 mb-3" />
-                    <p className="text-lg font-medium">No artifacts generated</p>
-                    <p className="text-sm">Schemas and components will appear here</p>
+                  <div className='flex flex-col items-center justify-center h-64 text-gray-400'>
+                    <Database className='h-12 w-12 mb-3' />
+                    <p className='text-lg font-medium'>No artifacts generated</p>
+                    <p className='text-sm'>Schemas and components will appear here</p>
                   </div>
                 ) : (
                   <>
-                    {artifacts.map((artifact) => (
-                      <div key={artifact.id} className="bg-white border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
+                    {artifacts.map(artifact => (
+                      <div
+                        key={artifact.id}
+                        className='bg-white border border-gray-200 rounded-lg p-4'
+                      >
+                        <div className='flex items-center justify-between mb-3'>
                           <div>
-                            <h3 className="font-semibold text-gray-900">{artifact.name}</h3>
-                            <p className="text-sm text-gray-500">
+                            <h3 className='font-semibold text-gray-900'>{artifact.name}</h3>
+                            <p className='text-sm text-gray-500'>
                               Type: {artifact.type} • {artifact.timestamp.toLocaleString()}
                             </p>
                           </div>
-                          <button className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors">
+                          <button className='px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors'>
                             View
                           </button>
                         </div>
-                        <pre className="text-xs bg-gray-50 p-3 rounded overflow-x-auto max-h-64">
+                        <pre className='text-xs bg-gray-50 p-3 rounded overflow-x-auto max-h-64'>
                           {JSON.stringify(artifact.content, null, 2)}
                         </pre>
                       </div>

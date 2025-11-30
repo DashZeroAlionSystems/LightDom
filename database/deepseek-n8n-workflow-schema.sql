@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS prompt_executions (
     input_variables JSONB DEFAULT '{}',
     generated_prompt TEXT NOT NULL,
     response TEXT,
-    model VARCHAR(100) DEFAULT 'deepseek-chat',
+    model VARCHAR(100) DEFAULT 'deepseek-reasoner',
     tokens_used INTEGER,
     execution_time_ms INTEGER,
     status VARCHAR(50) DEFAULT 'pending', -- pending, success, failed

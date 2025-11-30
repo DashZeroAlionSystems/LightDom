@@ -41,7 +41,7 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/dom_space_harvester
 # DeepSeek AI (optional, for AI suggestions)
 DEEPSEEK_API_KEY=your-api-key-here
 DEEPSEEK_API_URL=https://api.deepseek.com/v1
-DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_MODEL=deepseek-reasoner
 ```
 
 ### 3. Run the Pipeline
@@ -90,6 +90,7 @@ npm run research:help
 ### Advanced Usage
 
 **Mine specific priority level:**
+
 ```bash
 npm run research:mine -- --priority high --limit 20
 npm run research:mine -- --priority medium --limit 50
@@ -97,11 +98,13 @@ npm run research:mine -- --priority low --limit 100
 ```
 
 **Reprocess articles:**
+
 ```bash
 npm run research:mine -- --reprocess --priority high
 ```
 
 **Database-only operations:**
+
 ```bash
 # Setup database schema
 npm run research:setup
@@ -277,7 +280,7 @@ await pipeline.initialize();
 const stats = await pipeline.startMining({
   priority: 'high',
   limit: 50,
-  skipExtracted: true
+  skipExtracted: true,
 });
 
 // Process DeepSeek queue
@@ -322,12 +325,12 @@ const suggestions = await db.query(`
 
 ### Environment Variables
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:postgres@localhost:5432/dom_space_harvester` | Yes |
-| `DEEPSEEK_API_KEY` | DeepSeek API key | - | No |
-| `DEEPSEEK_API_URL` | DeepSeek API endpoint | `https://api.deepseek.com/v1` | No |
-| `DEEPSEEK_MODEL` | Model to use | `deepseek-chat` | No |
+| Variable           | Description                  | Default                                                             | Required |
+| ------------------ | ---------------------------- | ------------------------------------------------------------------- | -------- |
+| `DATABASE_URL`     | PostgreSQL connection string | `postgresql://postgres:postgres@localhost:5432/dom_space_harvester` | Yes      |
+| `DEEPSEEK_API_KEY` | DeepSeek API key             | -                                                                   | No       |
+| `DEEPSEEK_API_URL` | DeepSeek API endpoint        | `https://api.deepseek.com/v1`                                       | No       |
+| `DEEPSEEK_MODEL`   | Model to use                 | `deepseek-reasoner`                                                 | No       |
 
 ### Mining Configuration
 
@@ -336,16 +339,16 @@ Adjust in `services/research-pipeline-service.js`:
 ```javascript
 const CONFIG = {
   mining: {
-    batchSize: 10,           // Articles per batch
-    maxConcurrent: 5,        // Concurrent extractions
-    retryAttempts: 3,        // Retry failed extractions
-    retryDelay: 2000,        // Delay between retries (ms)
+    batchSize: 10, // Articles per batch
+    maxConcurrent: 5, // Concurrent extractions
+    retryAttempts: 3, // Retry failed extractions
+    retryDelay: 2000, // Delay between retries (ms)
   },
   crawling: {
-    maxDepth: 2,             // Max crawl depth
-    rateLimit: 1000,         // Min time between requests (ms)
-    timeout: 30000,          // Request timeout (ms)
-  }
+    maxDepth: 2, // Max crawl depth
+    rateLimit: 1000, // Min time between requests (ms)
+    timeout: 30000, // Request timeout (ms)
+  },
 };
 ```
 
@@ -396,7 +399,7 @@ echo $DEEPSEEK_API_KEY
 curl -X POST https://api.deepseek.com/v1/chat/completions \
   -H "Authorization: Bearer $DEEPSEEK_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"Hello"}]}'
+  -d '{"model":"deepseek-reasoner","messages":[{"role":"user","content":"Hello"}]}'
 
 # Skip DeepSeek if not needed
 npm run research:start -- --no-deepseek
@@ -435,12 +438,13 @@ MIT
 ## Support
 
 For issues or questions:
+
 - Check the [main documentation](../ai-series-352/README.md)
 - Review [troubleshooting](#troubleshooting) section
 - Open an issue on GitHub
 
 ---
 
-*Research Pipeline v1.0*
-*Part of LightDom Research Suite*
-*Last Updated: November 2024*
+_Research Pipeline v1.0_
+_Part of LightDom Research Suite_
+_Last Updated: November 2024_

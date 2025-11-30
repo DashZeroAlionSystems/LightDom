@@ -30,7 +30,9 @@
           "type": "enrichment",
           "enrichmentType": "seo-analysis",
           "input": {
-            "entityIds": ["${loopItem.id}"],
+            "entityIds": [
+              "${loopItem.id}"
+            ],
             "config": {
               "analyze_keywords": true,
               "analyze_readability": true,
@@ -45,9 +47,11 @@
           "type": "enrichment",
           "enrichmentType": "ai-summary",
           "input": {
-            "entityIds": ["${loopItem.id}"],
+            "entityIds": [
+              "${loopItem.id}"
+            ],
             "config": {
-              "model": "deepseek-chat",
+              "model": "deepseek-reasoner",
               "prompt": "Review this content for SEO quality, readability, and engagement. Provide specific improvement suggestions.",
               "temperature": 0.5
             }
@@ -76,7 +80,11 @@
       "name": "Prioritize Content for Improvement",
       "type": "data_transformation",
       "transformation": "filter",
-      "predicate": { "quality_score": { "$lt": 70 } },
+      "predicate": {
+        "quality_score": {
+          "$lt": 70
+        }
+      },
       "input": {
         "data": "${previousResults.analyze_quality.*.calculate_score}"
       },
@@ -88,9 +96,11 @@
       "type": "enrichment",
       "enrichmentType": "ai-summary",
       "input": {
-        "entityIds": ["${context.siteId}"],
+        "entityIds": [
+          "${context.siteId}"
+        ],
         "config": {
-          "model": "deepseek-chat",
+          "model": "deepseek-reasoner",
           "prompt": "Based on this content quality analysis, create a prioritized action plan for content optimization. Low quality items: ${previousResults.prioritize_improvements}",
           "temperature": 0.7
         }

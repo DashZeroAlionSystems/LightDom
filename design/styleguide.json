@@ -27,18 +27,37 @@
     "font": {
       "primary": {
         "family": "Space Grotesk",
-        "fallback": ["Segoe UI", "sans-serif"],
-        "weights": [400, 500, 600]
+        "fallback": [
+          "Segoe UI",
+          "sans-serif"
+        ],
+        "weights": [
+          400,
+          500,
+          600
+        ]
       },
       "secondary": {
         "family": "IBM Plex Mono",
-        "fallback": ["SFMono-Regular", "monospace"],
-        "weights": [400, 500]
+        "fallback": [
+          "SFMono-Regular",
+          "monospace"
+        ],
+        "weights": [
+          400,
+          500
+        ]
       },
       "body": {
         "family": "Inter",
-        "fallback": ["Roboto", "sans-serif"],
-        "weights": [400, 500]
+        "fallback": [
+          "Roboto",
+          "sans-serif"
+        ],
+        "weights": [
+          400,
+          500
+        ]
       }
     }
   },
@@ -139,7 +158,20 @@
         "naming": "PascalCase"
       }
     ],
-    "screenshotPathTemplate": "storyMining/data/processed/screenshots/{batchId}/{category}/{component}/{variant}.png"
+    "screenshotPathTemplate": "storyMining/data/processed/screenshots/{batchId}/{category}/{component}/{variant}.png",
+    "sources": [
+      {
+        "name": "Radix UI",
+        "slug": "radix-ui",
+        "topic": "styleguide-component-mining",
+        "campaignId": "styleguide-radix-ui",
+        "docIndexUrl": "https://www.radix-ui.com/primitives/docs/components/overview",
+        "seedCount": 55,
+        "componentCount": 55,
+        "version": "2025.11.29",
+        "lastSeededAt": "2025-11-29T00:00:00.000Z"
+      }
+    ]
   },
   "automation": {
     "events": [
@@ -166,6 +198,10 @@
       {
         "date": "2025-11-25",
         "summary": "Initial schema established"
+      },
+      {
+        "date": "2025-11-29",
+        "summary": "Seeded Radix UI atoms via styleguide crawler automation"
       }
     ]
   }

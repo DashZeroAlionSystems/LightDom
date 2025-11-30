@@ -2,7 +2,7 @@
 
 /**
  * DeepSeek Workflow Integration Example
- * 
+ *
  * Demonstrates how to use the complete DeepSeek n8n workflow system
  */
 
@@ -27,7 +27,7 @@ const db = new Pool({
 const deepseekConfig = {
   apiUrl: process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1',
   apiKey: process.env.DEEPSEEK_API_KEY || '',
-  model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+  model: process.env.DEEPSEEK_MODEL || 'deepseek-reasoner',
 };
 
 // n8n configuration
@@ -271,7 +271,7 @@ async function main() {
     const schemaId = await generateSchema();
     const workflowId = await createSimpleWorkflow();
     const templateWorkflowId = await useTemplate();
-    
+
     // Execute workflow (uncomment to actually run)
     // if (workflowId) {
     //   await executeWorkflow(workflowId);
@@ -287,7 +287,6 @@ async function main() {
     console.log('2. Test the API: curl http://localhost:3001/api/workflows');
     console.log('3. Explore templates: curl http://localhost:3001/api/templates');
     console.log('4. View the guide: cat DEEPSEEK_N8N_COMPLETE_GUIDE.md\n');
-
   } catch (error) {
     console.error('\n❌ Error:', error.message);
     console.error(error);
@@ -303,7 +302,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export {
-    createPromptTemplate, createSimpleWorkflow, crudService, executeWorkflow, generateSchema, monitorHealth, orchestrator,
-    templateService, useTemplate
+  createPromptTemplate,
+  createSimpleWorkflow,
+  crudService,
+  executeWorkflow,
+  generateSchema,
+  monitorHealth,
+  orchestrator,
+  templateService,
+  useTemplate,
 };
-

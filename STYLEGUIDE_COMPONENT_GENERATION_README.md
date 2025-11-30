@@ -51,6 +51,7 @@ This comprehensive system provides end-to-end automation for extracting design s
 ## 📦 Core Services
 
 ### 1. Style Guide Data Mining Service
+
 **File**: `services/styleguide-data-mining-service.js`
 
 Extracts comprehensive design information from websites:
@@ -75,6 +76,7 @@ Extracts comprehensive design information from websites:
   - Confidence scoring
 
 **Usage**:
+
 ```javascript
 import { StyleGuideDataMiningService } from './services/styleguide-data-mining-service.js';
 
@@ -85,6 +87,7 @@ const styleGuide = await service.mineStyleGuideFromUrl('https://material.io');
 ```
 
 ### 2. DeepSeek Component Fine-tuning Service
+
 **File**: `services/deepseek-component-finetuning-service.js`
 
 Generates components using AI with fine-tuning capabilities:
@@ -107,6 +110,7 @@ Generates components using AI with fine-tuning capabilities:
   - Tracks fine-tuning progress
 
 **Usage**:
+
 ```javascript
 import { DeepSeekComponentFinetuningService } from './services/deepseek-component-finetuning-service.js';
 
@@ -126,6 +130,7 @@ await service.saveTrainingData('my-training-data.jsonl');
 ```
 
 ### 3. Storybook Component Generator Service
+
 **File**: `services/storybook-component-generator-service.js`
 
 Creates complete Storybook documentation:
@@ -144,19 +149,18 @@ Creates complete Storybook documentation:
   - Accessibility guidelines
 
 **Usage**:
+
 ```javascript
 import { StorybookComponentGeneratorService } from './services/storybook-component-generator-service.js';
 
 const service = new StorybookComponentGeneratorService();
 await service.initialize();
 
-const storybook = await service.generateStorybookFromStyleGuide(
-  styleGuide,
-  componentLibrary
-);
+const storybook = await service.generateStorybookFromStyleGuide(styleGuide, componentLibrary);
 ```
 
 ### 4. Style Guide to Storybook Orchestrator
+
 **File**: `services/styleguide-to-storybook-orchestrator.js`
 
 Coordinates the entire workflow:
@@ -167,6 +171,7 @@ Coordinates the entire workflow:
 - **Progress Tracking**: Real-time progress updates
 
 **Usage**:
+
 ```javascript
 import { StyleGuideToStorybookOrchestrator } from './services/styleguide-to-storybook-orchestrator.js';
 
@@ -177,14 +182,14 @@ await orchestrator.initialize();
 const workflow = await orchestrator.processUrl('https://material.io', {
   libraryName: 'MaterialComponents',
   framework: 'react',
-  generateTrainingData: true
+  generateTrainingData: true,
 });
 
 // Mine multiple URLs
 const mergedStyleGuide = await orchestrator.mineMultipleUrls([
   'https://material.io',
   'https://ant.design',
-  'https://chakra-ui.com'
+  'https://chakra-ui.com',
 ]);
 ```
 
@@ -223,6 +228,7 @@ node demo-styleguide-generator.js https://your-target-url.com
 ```
 
 This will:
+
 - Extract design tokens
 - Detect components
 - Generate training data
@@ -302,6 +308,7 @@ The system includes a comprehensive Material Design 3 schema template:
 **File**: `schemas/material-design-3-styleguide-schema.js`
 
 Includes:
+
 - Complete color system (13 tonal palettes)
 - Typography scale (15 semantic roles)
 - Spacing system (8px grid)
@@ -317,6 +324,7 @@ Includes:
 ### Configuration
 
 The Storybook is configured with:
+
 - **Addons**:
   - `@storybook/addon-docs` - Auto-generated documentation
   - `@storybook/addon-essentials` - Essential Storybook features
@@ -330,6 +338,7 @@ The Storybook is configured with:
 ### Generated Stories
 
 Each component gets:
+
 1. **Default story** - Basic component render
 2. **Variant stories** - One for each variant
 3. **Size stories** - sm, md, lg sizes
@@ -339,6 +348,7 @@ Each component gets:
 ### Documentation
 
 Each component gets MDX documentation with:
+
 - Overview and description
 - Props documentation
 - Variants and states
@@ -368,6 +378,7 @@ Training data is in JSONL format (one JSON per line):
    - From Storybook stories
 
 2. **Prepare Data**:
+
    ```javascript
    await finetuningService.saveTrainingData('training.jsonl');
    ```
@@ -377,17 +388,16 @@ Training data is in JSONL format (one JSON per line):
    - Wait for processing
 
 4. **Fine-tune Model**:
+
    ```javascript
    const model = await finetuningService.fineTuneModel(trainingDataPath);
    ```
 
 5. **Use Fine-tuned Model**:
    ```javascript
-   const component = await finetuningService.generateComponent(
-     prompt,
-     styleGuide,
-     { model: model.id }
-   );
+   const component = await finetuningService.generateComponent(prompt, styleGuide, {
+     model: model.id,
+   });
    ```
 
 ## 🔧 Advanced Features
@@ -397,13 +407,12 @@ Training data is in JSONL format (one JSON per line):
 Mine multiple design systems and merge them:
 
 ```javascript
-const mergedStyleGuide = await orchestrator.mineMultipleUrls([
-  'https://material.io',
-  'https://ant.design',
-  'https://chakra-ui.com'
-], {
-  name: 'Unified Design System'
-});
+const mergedStyleGuide = await orchestrator.mineMultipleUrls(
+  ['https://material.io', 'https://ant.design', 'https://chakra-ui.com'],
+  {
+    name: 'Unified Design System',
+  }
+);
 ```
 
 ### Custom Component Templates
@@ -415,14 +424,12 @@ const customTemplate = {
   component: 'CustomButton',
   variants: ['primary', 'secondary', 'ghost'],
   states: ['default', 'hover', 'active', 'disabled'],
-  framework: 'react'
+  framework: 'react',
 };
 
-const component = await finetuningService.generateComponent(
-  'Generate custom button',
-  styleGuide,
-  { template: customTemplate }
-);
+const component = await finetuningService.generateComponent('Generate custom button', styleGuide, {
+  template: customTemplate,
+});
 ```
 
 ### Framework-Specific Generation
@@ -432,17 +439,17 @@ Generate components for different frameworks:
 ```javascript
 // React
 const reactComponent = await service.generateComponent(prompt, styleGuide, {
-  framework: 'react'
+  framework: 'react',
 });
 
 // Vue
 const vueComponent = await service.generateComponent(prompt, styleGuide, {
-  framework: 'vue'
+  framework: 'vue',
 });
 
 // Angular
 const angularComponent = await service.generateComponent(prompt, styleGuide, {
-  framework: 'angular'
+  framework: 'angular',
 });
 ```
 
@@ -459,7 +466,7 @@ await layersService.initialize();
 const layerData = await layersService.analyzeLayersForUrl(url, {
   extractColors: true,
   extractTypography: true,
-  extractSpacing: true
+  extractSpacing: true,
 });
 ```
 
@@ -481,13 +488,10 @@ export const Button: React.FC<ButtonProps> = ({
   variant = 'filled',
   size = 'md',
   disabled = false,
-  children
+  children,
 }) => {
   return (
-    <button 
-      className={`button button--${variant} button--${size}`}
-      disabled={disabled}
-    >
+    <button className={`button button--${variant} button--${size}`} disabled={disabled}>
       {children}
     </button>
   );
@@ -507,9 +511,9 @@ const meta: Meta<typeof Button> = {
   argTypes: {
     variant: {
       control: { type: 'select' },
-      options: ['elevated', 'filled', 'tonal', 'outlined', 'text']
-    }
-  }
+      options: ['elevated', 'filled', 'tonal', 'outlined', 'text'],
+    },
+  },
 };
 
 export default meta;
@@ -518,15 +522,15 @@ type Story = StoryObj<typeof Button>;
 export const Default: Story = {
   args: {
     variant: 'filled',
-    children: 'Button'
-  }
+    children: 'Button',
+  },
 };
 
 export const Elevated: Story = {
   args: {
     variant: 'elevated',
-    children: 'Elevated Button'
-  }
+    children: 'Elevated Button',
+  },
 };
 ```
 
@@ -536,17 +540,17 @@ export const Elevated: Story = {
 :root {
   /* Primary Colors */
   --color-primary-0: #000000;
-  --color-primary-10: #21005E;
-  --color-primary-40: #6750A4;
-  --color-primary-90: #EADDFF;
-  --color-primary-100: #FFFFFF;
-  
+  --color-primary-10: #21005e;
+  --color-primary-40: #6750a4;
+  --color-primary-90: #eaddff;
+  --color-primary-100: #ffffff;
+
   /* Spacing */
   --spacing-1: 4px;
   --spacing-2: 8px;
   --spacing-4: 16px;
   --spacing-8: 32px;
-  
+
   /* Typography */
   --font-family-primary: 'Roboto', sans-serif;
   --font-size-display-large: 57px;
@@ -580,7 +584,7 @@ npm run storybook
 # DeepSeek API
 DEEPSEEK_API_KEY=your_api_key_here
 DEEPSEEK_API_URL=https://api.deepseek.com/v1
-DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_MODEL=deepseek-reasoner
 
 # Chrome DevTools Protocol
 CHROME_REMOTE_DEBUG_PORT=9222

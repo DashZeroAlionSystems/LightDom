@@ -3,41 +3,32 @@
  * Similar to GitHub Copilot's chat interface with session management
  */
 
-import React, { useState, useEffect, useRef } from 'react';
 import {
-  Drawer,
+  CopyOutlined,
+  LoadingOutlined,
+  PlusOutlined,
+  RobotOutlined,
+  SendOutlined,
+} from '@ant-design/icons';
+import {
+  Avatar,
+  Badge,
   Button,
+  Card,
+  Divider,
+  Drawer,
+  Form,
   Input,
   List,
-  Card,
-  Avatar,
-  Space,
-  Typography,
-  Tag,
-  Tooltip,
-  Dropdown,
-  Menu,
   Modal,
-  Form,
   Select,
+  Space,
+  Tag,
+  Typography,
   message,
-  Badge,
-  Divider
 } from 'antd';
-import {
-  PlusOutlined,
-  SendOutlined,
-  RobotOutlined,
-  SettingOutlined,
-  DeleteOutlined,
-  MoreOutlined,
-  CopyOutlined,
-  CheckCircleOutlined,
-  LoadingOutlined,
-  CloseOutlined,
-  MenuOutlined
-} from '@ant-design/icons';
 import axios from 'axios';
+import React, { useEffect, useRef, useState } from 'react';
 
 const { TextArea } = Input;
 const { Text, Title } = Typography;
@@ -105,7 +96,7 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
     try {
       const response = await axios.get('/api/agent/sessions');
       setSessions(response.data);
-      
+
       const activeSession = response.data.find((s: AgentSession) => s.status === 'active');
       if (activeSession && !currentSession) {
         setCurrentSession(activeSession);
@@ -118,7 +109,7 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
 
   const loadMessages = async () => {
     if (!currentSession) return;
-    
+
     try {
       const response = await axios.get(`/api/agent/messages/${currentSession.session_id}`);
       setMessages(response.data);
@@ -129,11 +120,13 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
 
   const loadInstances = async () => {
     if (!currentSession) return;
-    
+
     try {
-      const response = await axios.get(`/api/agent/instances?session_id=${currentSession.session_id}`);
+      const response = await axios.get(
+        `/api/agent/instances?session_id=${currentSession.session_id}`
+      );
       setInstances(response.data);
-      
+
       const readyInstance = response.data.find((i: AgentInstance) => i.status === 'ready');
       if (readyInstance && !currentInstance) {
         setCurrentInstance(readyInstance);
@@ -148,9 +141,9 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
       const response = await axios.post('/api/agent/sessions', {
         name: values.name,
         description: values.description,
-        agent_type: values.agent_type || 'deepseek'
+        agent_type: values.agent_type || 'deepseek',
       });
-      
+
       message.success('Session created successfully');
       setShowNewSessionModal(false);
       form.resetFields();
@@ -164,7 +157,7 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
 
   const handleCreateInstance = async (values: any) => {
     if (!currentSession) return;
-    
+
     try {
       const response = await axios.post('/api/agent/instances', {
         session_id: currentSession.session_id,
@@ -173,9 +166,9 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
         temperature: parseFloat(values.temperature) || 0.7,
         max_tokens: parseInt(values.max_tokens) || 4096,
         tools_enabled: values.tools_enabled || [],
-        services_enabled: values.services_enabled || []
+        services_enabled: values.services_enabled || [],
       });
-      
+
       message.success('Agent instance created successfully');
       setShowInstanceModal(false);
       instanceForm.resetFields();
@@ -201,7 +194,7 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
       await axios.post('/api/agent/messages', {
         session_id: currentSession.session_id,
         instance_id: currentInstance.instance_id,
-        content: userMessage
+        content: userMessage,
       });
 
       await loadMessages();
@@ -210,21 +203,21 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
       let attempts = 0;
       const maxAttempts = 10;
       const pollInterval = 1000;
-      
+
       const pollForResponse = async () => {
         if (attempts >= maxAttempts) {
           setIsLoading(false);
           return;
         }
-        
+
         await loadMessages();
         attempts++;
-        
+
         // TODO: Implement WebSocket or SSE for real-time updates
         // For now, use simple polling
         setTimeout(pollForResponse, pollInterval * Math.min(attempts, 3));
       };
-      
+
       // Start polling after initial delay
       setTimeout(() => {
         setIsLoading(false);
@@ -260,7 +253,7 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
   return (
     <>
       <Button
-        type="primary"
+        type='primary'
         icon={<RobotOutlined />}
         onClick={() => setSidebarOpen(!sidebarOpen)}
         style={{
@@ -270,7 +263,7 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
           borderRadius: '50%',
           width: 56,
           height: 56,
-          zIndex: 999
+          zIndex: 999,
         }}
       >
         {sidebarOpen && <Badge count={sessions.length} />}
@@ -284,16 +277,16 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
               <Text strong>AI Agent Sessions</Text>
             </Space>
             <Button
-              type="primary"
+              type='primary'
               icon={<PlusOutlined />}
-              size="small"
+              size='small'
               onClick={() => setShowNewSessionModal(true)}
             >
               New Task
             </Button>
           </Space>
         }
-        placement="right"
+        placement='right'
         width={450}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -302,19 +295,19 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
         <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0' }}>
           <Select
             style={{ width: '100%' }}
-            placeholder="Select a session"
+            placeholder='Select a session'
             value={currentSession?.session_id}
-            onChange={(value) => {
+            onChange={value => {
               const session = sessions.find(s => s.session_id === value);
               setCurrentSession(session || null);
             }}
-            dropdownRender={(menu) => (
+            dropdownRender={menu => (
               <>
                 {menu}
                 <Divider style={{ margin: '8px 0' }} />
                 <div style={{ padding: '8px' }}>
                   <Button
-                    type="link"
+                    type='link'
                     icon={<PlusOutlined />}
                     onClick={() => setShowNewSessionModal(true)}
                     block
@@ -340,23 +333,25 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
 
         {currentSession && (
           <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0' }}>
-            <Space style={{ width: '100%' }} direction="vertical" size="small">
-              <Text type="secondary" style={{ fontSize: 12 }}>Agent Instance:</Text>
+            <Space style={{ width: '100%' }} direction='vertical' size='small'>
+              <Text type='secondary' style={{ fontSize: 12 }}>
+                Agent Instance:
+              </Text>
               <Select
                 style={{ width: '100%' }}
-                placeholder="Select an agent instance"
+                placeholder='Select an agent instance'
                 value={currentInstance?.instance_id}
-                onChange={(value) => {
+                onChange={value => {
                   const instance = instances.find(i => i.instance_id === value);
                   setCurrentInstance(instance || null);
                 }}
-                dropdownRender={(menu) => (
+                dropdownRender={menu => (
                   <>
                     {menu}
                     <Divider style={{ margin: '8px 0' }} />
                     <div style={{ padding: '8px' }}>
                       <Button
-                        type="link"
+                        type='link'
                         icon={<PlusOutlined />}
                         onClick={() => setShowInstanceModal(true)}
                         block
@@ -385,31 +380,31 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
             messages.length > 0 ? (
               <List
                 dataSource={messages}
-                renderItem={(msg) => (
+                renderItem={msg => (
                   <List.Item style={{ border: 'none', padding: '8px 0' }}>
                     <Card
-                      size="small"
+                      size='small'
                       style={{
                         width: '100%',
-                        backgroundColor: msg.role === 'user' ? '#e6f7ff' : '#f5f5f5'
+                        backgroundColor: msg.role === 'user' ? '#e6f7ff' : '#f5f5f5',
                       }}
                       bodyStyle={{ padding: '12px' }}
                     >
-                      <Space direction="vertical" style={{ width: '100%' }} size="small">
+                      <Space direction='vertical' style={{ width: '100%' }} size='small'>
                         <Space style={{ width: '100%', justifyContent: 'space-between' }}>
                           <Space>
                             <Avatar
-                              size="small"
+                              size='small'
                               icon={msg.role === 'user' ? '👤' : <RobotOutlined />}
                               style={{
-                                backgroundColor: msg.role === 'user' ? '#1890ff' : '#52c41a'
+                                backgroundColor: msg.role === 'user' ? '#1890ff' : '#52c41a',
                               }}
                             />
                             <Text strong>{msg.role === 'user' ? 'You' : 'AI'}</Text>
                           </Space>
                           <Button
-                            type="text"
-                            size="small"
+                            type='text'
+                            size='small'
                             icon={<CopyOutlined />}
                             onClick={() => handleCopyMessage(msg.content)}
                           />
@@ -423,12 +418,12 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
             ) : (
               <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999' }}>
                 <RobotOutlined style={{ fontSize: 48, marginBottom: 16 }} />
-                <Text type="secondary">Start a conversation with your AI agent</Text>
+                <Text type='secondary'>Start a conversation with your AI agent</Text>
               </div>
             )
           ) : (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999' }}>
-              <Text type="secondary">Select or create a session to begin</Text>
+              <Text type='secondary'>Select or create a session to begin</Text>
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -439,10 +434,10 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
             <Space.Compact style={{ width: '100%' }}>
               <TextArea
                 value={promptInput}
-                onChange={(e) => setPromptInput(e.target.value)}
-                placeholder="Ask your AI agent anything..."
+                onChange={e => setPromptInput(e.target.value)}
+                placeholder='Ask your AI agent anything...'
                 autoSize={{ minRows: 2, maxRows: 6 }}
-                onPressEnter={(e) => {
+                onPressEnter={e => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     handleSendMessage();
@@ -451,14 +446,14 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
                 disabled={isLoading}
               />
               <Button
-                type="primary"
+                type='primary'
                 icon={isLoading ? <LoadingOutlined /> : <SendOutlined />}
                 onClick={handleSendMessage}
                 disabled={isLoading || !promptInput.trim()}
                 style={{ height: 'auto' }}
               />
             </Space.Compact>
-            <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 8 }}>
+            <Text type='secondary' style={{ fontSize: 11, display: 'block', marginTop: 8 }}>
               Press Enter to send, Shift+Enter for new line
             </Text>
           </div>
@@ -466,7 +461,7 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
       </Drawer>
 
       <Modal
-        title="Create New Agent Session"
+        title='Create New Agent Session'
         open={showNewSessionModal}
         onCancel={() => {
           setShowNewSessionModal(false);
@@ -474,30 +469,30 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
         }}
         onOk={() => form.submit()}
       >
-        <Form form={form} layout="vertical" onFinish={handleCreateSession}>
+        <Form form={form} layout='vertical' onFinish={handleCreateSession}>
           <Form.Item
-            name="name"
-            label="Session Name"
+            name='name'
+            label='Session Name'
             rules={[{ required: true, message: 'Please enter a session name' }]}
           >
-            <Input placeholder="e.g., Feature Development, Bug Fix, Code Review" />
+            <Input placeholder='e.g., Feature Development, Bug Fix, Code Review' />
           </Form.Item>
-          <Form.Item name="description" label="Description">
+          <Form.Item name='description' label='Description'>
             <TextArea rows={3} placeholder="Optional description of what you're working on" />
           </Form.Item>
-          <Form.Item name="agent_type" label="Agent Type" initialValue="deepseek">
+          <Form.Item name='agent_type' label='Agent Type' initialValue='deepseek'>
             <Select>
-              <Select.Option value="deepseek">DeepSeek Coder</Select.Option>
-              <Select.Option value="gpt4">GPT-4</Select.Option>
-              <Select.Option value="claude">Claude</Select.Option>
-              <Select.Option value="custom">Custom</Select.Option>
+              <Select.Option value='deepseek'>DeepSeek Coder</Select.Option>
+              <Select.Option value='gpt4'>GPT-4</Select.Option>
+              <Select.Option value='claude'>Claude</Select.Option>
+              <Select.Option value='custom'>Custom</Select.Option>
             </Select>
           </Form.Item>
         </Form>
       </Modal>
 
       <Modal
-        title="Create Agent Instance"
+        title='Create Agent Instance'
         open={showInstanceModal}
         onCancel={() => {
           setShowInstanceModal(false);
@@ -506,25 +501,26 @@ export const AgentSessionSidebar: React.FC<{ visible?: boolean }> = ({ visible =
         onOk={() => instanceForm.submit()}
         width={600}
       >
-        <Form form={instanceForm} layout="vertical" onFinish={handleCreateInstance}>
+        <Form form={instanceForm} layout='vertical' onFinish={handleCreateInstance}>
           <Form.Item
-            name="name"
-            label="Instance Name"
+            name='name'
+            label='Instance Name'
             rules={[{ required: true, message: 'Please enter an instance name' }]}
           >
-            <Input placeholder="e.g., Frontend Developer, API Specialist" />
+            <Input placeholder='e.g., Frontend Developer, API Specialist' />
           </Form.Item>
-          <Form.Item name="model_name" label="Model" initialValue="deepseek-coder">
+          <Form.Item name='model_name' label='Model' initialValue='deepseek-reasoner'>
             <Select>
-              <Select.Option value="deepseek-coder">DeepSeek Coder</Select.Option>
-              <Select.Option value="deepseek-chat">DeepSeek Chat</Select.Option>
+              <Select.Option value='deepseek-reasoner'>DeepSeek Reasoner</Select.Option>
+              <Select.Option value='deepseek-coder'>DeepSeek Coder</Select.Option>
+              <Select.Option value='deepseek-chat'>DeepSeek Chat</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item name="temperature" label="Temperature" initialValue={0.7}>
-            <Input type="number" min={0} max={1} step={0.1} />
+          <Form.Item name='temperature' label='Temperature' initialValue={0.7}>
+            <Input type='number' min={0} max={1} step={0.1} />
           </Form.Item>
-          <Form.Item name="max_tokens" label="Max Tokens" initialValue={4096}>
-            <Input type="number" min={256} max={8192} step={256} />
+          <Form.Item name='max_tokens' label='Max Tokens' initialValue={4096}>
+            <Input type='number' min={256} max={8192} step={256} />
           </Form.Item>
         </Form>
       </Modal>

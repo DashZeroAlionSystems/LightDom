@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS agent_instances (
     session_context JSONB DEFAULT '{}', -- Current session context
     tools_enabled TEXT[] DEFAULT '{}', -- Array of enabled tool IDs
     services_enabled TEXT[] DEFAULT '{}', -- Array of enabled service IDs
-    model_name VARCHAR(255) DEFAULT 'deepseek-chat',
+    model_name VARCHAR(255) DEFAULT 'deepseek-reasoner',
     model_version VARCHAR(100),
     temperature DECIMAL(3,2) DEFAULT 0.7,
     max_tokens INTEGER DEFAULT 4000,

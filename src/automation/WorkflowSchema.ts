@@ -67,7 +67,7 @@ export interface WorkflowStep {
   retryable: boolean;
 }
 
-export type StepType = 
+export type StepType =
   | 'data-fetch'
   | 'transform'
   | 'calculate'
@@ -199,7 +199,7 @@ export class WorkflowSchemaValidator {
     schema.steps.forEach((step, index) => {
       if (!step.id) errors.push(`Step ${index} is missing ID`);
       if (!step.type) errors.push(`Step ${step.id} is missing type`);
-      
+
       // Validate dependencies
       step.dependencies.forEach(dep => {
         if (!schema.steps.find(s => s.id === dep)) {
@@ -226,27 +226,31 @@ export class WorkflowSchemaValidator {
     return {
       valid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
   /**
    * Check for circular dependencies
    */
-  private hasCircularDependency(steps: WorkflowStep[], stepId: string, visited: Set<string> = new Set()): boolean {
+  private hasCircularDependency(
+    steps: WorkflowStep[],
+    stepId: string,
+    visited: Set<string> = new Set()
+  ): boolean {
     if (visited.has(stepId)) return true;
-    
+
     visited.add(stepId);
     const step = steps.find(s => s.id === stepId);
-    
+
     if (!step) return false;
-    
+
     for (const dep of step.dependencies) {
       if (this.hasCircularDependency(steps, dep, new Set(visited))) {
         return true;
       }
     }
-    
+
     return false;
   }
 }
@@ -272,7 +276,7 @@ export const ExampleWorkflows = {
       updated: new Date(),
       tags: ['portfolio', 'optimization', 'ai'],
       category: 'finance',
-      priority: 1
+      priority: 1,
     },
     config: {
       environment: 'production' as const,
@@ -282,17 +286,17 @@ export const ExampleWorkflows = {
         maxAttempts: 3,
         backoffStrategy: 'exponential' as const,
         initialDelay: 1000,
-        maxDelay: 10000
+        maxDelay: 10000,
       },
       errorHandling: {
         strategy: 'rollback' as const,
-        notifications: ['admin@lightdom.com']
+        notifications: ['admin@lightdom.com'],
       },
       logging: {
         level: 'info' as const,
         destinations: ['console', 'file'],
-        includeContext: true
-      }
+        includeContext: true,
+      },
     },
     steps: [
       {
@@ -303,9 +307,9 @@ export const ExampleWorkflows = {
           handler: 'marketDataFetcher',
           parameters: {
             sources: ['coingecko', 'binance'],
-            symbols: ['BTC', 'ETH', 'SOL']
+            symbols: ['BTC', 'ETH', 'SOL'],
           },
-          validation: []
+          validation: [],
         },
         inputs: [],
         outputs: [
@@ -313,13 +317,13 @@ export const ExampleWorkflows = {
             name: 'marketData',
             type: 'object',
             path: '$.data',
-            persist: true
-          }
+            persist: true,
+          },
         ],
         dependencies: [],
         conditions: [],
         timeout: 30000,
-        retryable: true
+        retryable: true,
       },
       {
         id: 'analyze-with-ai',
@@ -328,10 +332,10 @@ export const ExampleWorkflows = {
         config: {
           handler: 'deepseekAnalyzer',
           parameters: {
-            model: 'deepseek-chat',
-            analysisType: 'portfolio_optimization'
+            model: 'deepseek-reasoner',
+            analysisType: 'portfolio_optimization',
           },
-          validation: []
+          validation: [],
         },
         inputs: [
           {
@@ -339,21 +343,21 @@ export const ExampleWorkflows = {
             type: 'object',
             source: 'previous-step',
             sourceId: 'fetch-market-data',
-            required: true
-          }
+            required: true,
+          },
         ],
         outputs: [
           {
             name: 'recommendations',
             type: 'array',
             path: '$.recommendations',
-            persist: true
-          }
+            persist: true,
+          },
         ],
         dependencies: ['fetch-market-data'],
         conditions: [],
         timeout: 60000,
-        retryable: true
+        retryable: true,
       },
       {
         id: 'execute-rebalance',
@@ -363,9 +367,9 @@ export const ExampleWorkflows = {
           handler: 'blockchainExecutor',
           parameters: {
             network: 'ethereum',
-            gasStrategy: 'medium'
+            gasStrategy: 'medium',
           },
-          validation: []
+          validation: [],
         },
         inputs: [
           {
@@ -373,28 +377,28 @@ export const ExampleWorkflows = {
             type: 'array',
             source: 'previous-step',
             sourceId: 'analyze-with-ai',
-            required: true
-          }
+            required: true,
+          },
         ],
         outputs: [
           {
             name: 'transactions',
             type: 'array',
             path: '$.txHashes',
-            persist: true
-          }
+            persist: true,
+          },
         ],
         dependencies: ['analyze-with-ai'],
         conditions: [
           {
             type: 'if',
             expression: 'recommendations.length > 0',
-            actions: []
-          }
+            actions: [],
+          },
         ],
         timeout: 120000,
-        retryable: false
-      }
+        retryable: false,
+      },
     ],
     rules: [
       {
@@ -406,8 +410,8 @@ export const ExampleWorkflows = {
           {
             field: 'recommendation.risks.level',
             operator: 'gt',
-            value: 'medium'
-          }
+            value: 'medium',
+          },
         ],
         actions: [
           {
@@ -415,22 +419,22 @@ export const ExampleWorkflows = {
             config: {
               channel: 'email',
               recipients: ['risk@lightdom.com'],
-              message: 'High-risk recommendation detected'
-            }
-          }
+              message: 'High-risk recommendation detected',
+            },
+          },
         ],
         priority: 1,
-        enabled: true
-      }
+        enabled: true,
+      },
     ],
     triggers: [
       {
         type: 'schedule',
         config: {
-          schedule: '0 */4 * * *' // Every 4 hours
+          schedule: '0 */4 * * *', // Every 4 hours
         },
-        enabled: true
-      }
+        enabled: true,
+      },
     ],
     outputs: [
       {
@@ -438,10 +442,10 @@ export const ExampleWorkflows = {
         type: 'file',
         config: {
           destination: './reports/optimization',
-          format: 'json'
-        }
-      }
-    ]
+          format: 'json',
+        },
+      },
+    ],
   } as WorkflowSchema,
 
   realtimeMarketMonitor: {
@@ -455,7 +459,7 @@ export const ExampleWorkflows = {
       updated: new Date(),
       tags: ['monitoring', 'realtime', 'alerts'],
       category: 'market-analysis',
-      priority: 2
+      priority: 2,
     },
     config: {
       environment: 'production' as const,
@@ -465,17 +469,17 @@ export const ExampleWorkflows = {
         maxAttempts: 5,
         backoffStrategy: 'constant' as const,
         initialDelay: 5000,
-        maxDelay: 5000
+        maxDelay: 5000,
       },
       errorHandling: {
         strategy: 'continue' as const,
-        notifications: []
+        notifications: [],
       },
       logging: {
         level: 'info' as const,
         destinations: ['console'],
-        includeContext: false
-      }
+        includeContext: false,
+      },
     },
     steps: [
       {
@@ -486,9 +490,9 @@ export const ExampleWorkflows = {
           handler: 'marketDataStreamer',
           parameters: {
             mode: 'websocket',
-            frequency: 1000
+            frequency: 1000,
           },
-          validation: []
+          validation: [],
         },
         inputs: [],
         outputs: [
@@ -496,13 +500,13 @@ export const ExampleWorkflows = {
             name: 'priceUpdate',
             type: 'object',
             path: '$.prices',
-            persist: false
-          }
+            persist: false,
+          },
         ],
         dependencies: [],
         conditions: [],
         timeout: 5000,
-        retryable: true
+        retryable: true,
       },
       {
         id: 'ai-sentiment-analysis',
@@ -511,10 +515,10 @@ export const ExampleWorkflows = {
         config: {
           handler: 'deepseekSentiment',
           parameters: {
-            model: 'deepseek-chat',
-            realtime: true
+            model: 'deepseek-reasoner',
+            realtime: true,
           },
-          validation: []
+          validation: [],
         },
         inputs: [
           {
@@ -522,22 +526,22 @@ export const ExampleWorkflows = {
             type: 'object',
             source: 'previous-step',
             sourceId: 'stream-market-data',
-            required: true
-          }
+            required: true,
+          },
         ],
         outputs: [
           {
             name: 'sentiment',
             type: 'object',
             path: '$.sentiment',
-            persist: false
-          }
+            persist: false,
+          },
         ],
         dependencies: ['stream-market-data'],
         conditions: [],
         timeout: 10000,
-        retryable: true
-      }
+        retryable: true,
+      },
     ],
     rules: [
       {
@@ -549,28 +553,28 @@ export const ExampleWorkflows = {
           {
             field: 'priceUpdate.change',
             operator: 'gt',
-            value: 5
-          }
+            value: 5,
+          },
         ],
         actions: [
           {
             type: 'send-notification',
             config: {
               channel: 'push',
-              message: 'Significant price movement detected'
-            }
-          }
+              message: 'Significant price movement detected',
+            },
+          },
         ],
         priority: 1,
-        enabled: true
-      }
+        enabled: true,
+      },
     ],
     triggers: [
       {
         type: 'manual',
         config: {},
-        enabled: true
-      }
+        enabled: true,
+      },
     ],
     outputs: [
       {
@@ -578,11 +582,11 @@ export const ExampleWorkflows = {
         type: 'database',
         config: {
           destination: 'postgresql://localhost/lightdom',
-          format: 'json'
-        }
-      }
-    ]
-  } as WorkflowSchema
+          format: 'json',
+        },
+      },
+    ],
+  } as WorkflowSchema,
 };
 
 export default WorkflowSchema;

@@ -1,7 +1,16 @@
 import { AdminSidebar } from '@/components/admin/sidebar/AdminSidebar';
 import { adminSidebarDefaults } from '@/config/adminSidebarConfig';
+import {
+  SidebarCategory,
+  SidebarContainer,
+  SidebarDivider,
+  SidebarHeader,
+  SidebarNavItem,
+  SidebarProfile,
+} from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthService } from '@/services/auth';
+import * as LucideIcons from 'lucide-react';
 import React from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +24,9 @@ export const NavigationSidebar: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const role = (user?.role ?? 'admin').toLowerCase();
+  const isAdmin = role === 'admin';
+
   const handleLogout = async () => {
     try {
       await AuthService.logout();
@@ -24,6 +36,39 @@ export const NavigationSidebar: React.FC = () => {
       toast.error('Logout failed');
     }
   };
+
+  const handleSettings = () => {
+    navigate('/settings');
+  };
+
+  const handleNotifications = () => {
+    toast.success('Notifications feature coming soon!');
+  };
+
+  if (isAdmin) {
+    return (
+      <AdminSidebar
+        featureToggles={adminSidebarDefaults.featureToggles}
+        user={{
+          name: user?.name || user?.email,
+          email: user?.email,
+          role: 'Administrator',
+        }}
+        notificationCount={0}
+        onSettingsClick={handleSettings}
+        onNotificationsClick={handleNotifications}
+        onLogoutClick={handleLogout}
+        onCreatePage={() => {
+          toast.success('Launching page creation wizard');
+          navigate('/workflow-wizard');
+        }}
+        onCreateDashboard={() => {
+          toast.success('Opening dashboard assembly surface');
+          navigate('/unified-dashboard');
+        }}
+      />
+    );
+  }
 
   return (
     <SidebarContainer defaultCollapsed={false}>
@@ -180,25 +225,5 @@ export const NavigationSidebar: React.FC = () => {
         notificationCount={0}
       />
     </SidebarContainer>
-    <AdminSidebar
-      featureToggles={adminSidebarDefaults.featureToggles}
-      user={{
-        name: user?.name || user?.email,
-        email: user?.email,
-        role: 'Administrator',
-      }}
-      notificationCount={0}
-      onSettingsClick={() => navigate('/settings')}
-      onNotificationsClick={() => toast.success('Notifications feature coming soon!')}
-      onLogoutClick={handleLogout}
-      onCreatePage={() => {
-        toast.success('Launching page creation wizard');
-        navigate('/workflow-wizard');
-      }}
-      onCreateDashboard={() => {
-        toast.success('Opening dashboard assembly surface');
-        navigate('/unified-dashboard');
-      }}
-    />
   );
 };

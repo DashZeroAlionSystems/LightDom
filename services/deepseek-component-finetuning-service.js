@@ -1,10 +1,10 @@
 /**
  * DeepSeek Component Fine-tuning Service
- * 
+ *
  * Service for fine-tuning DeepSeek models on component generation tasks.
  * Creates training datasets from style guides and existing components,
  * then uses them to generate new components based on design specifications.
- * 
+ *
  * Features:
  * - Generate training data from style guides
  * - Fine-tune DeepSeek for component generation
@@ -15,25 +15,25 @@
  */
 
 import { EventEmitter } from 'events';
-import { DeepSeekAPIService } from './deepseek-api-service.js';
 import fs from 'fs/promises';
 import path from 'path';
+import { DeepSeekAPIService } from './deepseek-api-service.js';
 
 export class DeepSeekComponentFinetuningService extends EventEmitter {
   constructor(config = {}) {
     super();
-    
+
     this.config = {
       trainingDataDir: config.trainingDataDir || './training-data/components',
       outputDir: config.outputDir || './generated-components',
-      modelName: config.modelName || 'deepseek-chat',
+      modelName: config.modelName || 'deepseek-reasoner',
       fineTuneModel: config.fineTuneModel || 'deepseek-coder',
-      ...config
+      ...config,
     };
 
     this.deepseekService = new DeepSeekAPIService({
       model: this.config.modelName,
-      ...config.deepseek
+      ...config.deepseek,
     });
 
     this.trainingData = [];
@@ -47,7 +47,7 @@ export class DeepSeekComponentFinetuningService extends EventEmitter {
     // Ensure directories exist
     await fs.mkdir(this.config.trainingDataDir, { recursive: true });
     await fs.mkdir(this.config.outputDir, { recursive: true });
-    
+
     console.log('✅ DeepSeek Component Fine-tuning Service initialized');
   }
 
@@ -70,10 +70,12 @@ export class DeepSeekComponentFinetuningService extends EventEmitter {
             styleGuide: {
               tokens: styleGuide.tokens,
               variants: component.variants,
-              states: component.states
-            }
+              states: component.states,
+            },
           }),
-          output: styleGuide.code?.react?.[componentName] || this.generatePlaceholderComponent(componentName, component)
+          output:
+            styleGuide.code?.react?.[componentName] ||
+            this.generatePlaceholderComponent(componentName, component),
         });
 
         // Example 2: Storybook story generation
@@ -83,9 +85,9 @@ export class DeepSeekComponentFinetuningService extends EventEmitter {
             input: JSON.stringify({
               component: componentName,
               variants: component.variants,
-              states: component.states
+              states: component.states,
             }),
-            output: styleGuide.code.storybook[componentName]
+            output: styleGuide.code.storybook[componentName],
           });
         }
 
@@ -97,9 +99,14 @@ export class DeepSeekComponentFinetuningService extends EventEmitter {
               input: JSON.stringify({
                 component: componentName,
                 variant,
-                styleGuide: styleGuide.tokens
+                styleGuide: styleGuide.tokens,
               }),
-              output: this.generateVariantCode(componentName, variant, component, styleGuide.tokens)
+              output: this.generateVariantCode(
+                componentName,
+                variant,
+                component,
+                styleGuide.tokens
+              ),
             });
           });
         }
@@ -112,9 +119,9 @@ export class DeepSeekComponentFinetuningService extends EventEmitter {
               input: JSON.stringify({
                 component: componentName,
                 state,
-                baseComponent: this.generatePlaceholderComponent(componentName, component)
+                baseComponent: this.generatePlaceholderComponent(componentName, component),
               }),
-              output: this.generateStateCode(componentName, state, component)
+              output: this.generateStateCode(componentName, state, component),
             });
           });
         }
@@ -126,20 +133,20 @@ export class DeepSeekComponentFinetuningService extends EventEmitter {
       trainingExamples.push({
         instruction: 'Generate CSS custom properties from design tokens',
         input: JSON.stringify({ tokens: styleGuide.tokens }),
-        output: styleGuide.code?.css || this.generateCSSFromTokens(styleGuide.tokens)
+        output: styleGuide.code?.css || this.generateCSSFromTokens(styleGuide.tokens),
       });
 
       trainingExamples.push({
         instruction: 'Generate Tailwind config from design tokens',
         input: JSON.stringify({ tokens: styleGuide.tokens }),
-        output: styleGuide.code?.tailwind || this.generateTailwindFromTokens(styleGuide.tokens)
+        output: styleGuide.code?.tailwind || this.generateTailwindFromTokens(styleGuide.tokens),
       });
     }
 
     this.trainingData = this.trainingData.concat(trainingExamples);
 
     console.log(`✅ Generated ${trainingExamples.length} training examples`);
-    
+
     return trainingExamples;
   }
 
@@ -153,42 +160,42 @@ export class DeepSeekComponentFinetuningService extends EventEmitter {
 
     try {
       const files = await fs.readdir(componentsDir);
-      
+
       for (const file of files) {
         if (file.endsWith('.tsx') || file.endsWith('.jsx')) {
           const filePath = path.join(componentsDir, file);
           const content = await fs.readFile(filePath, 'utf-8');
-          
+
           // Extract component name
           const componentName = file.replace(/\.(tsx|jsx)$/, '');
-          
+
           // Parse component structure
           const componentInfo = this.parseComponent(content);
-          
+
           if (componentInfo) {
             trainingExamples.push({
               instruction: `Generate a ${componentName} component`,
               input: JSON.stringify({
                 name: componentName,
                 props: componentInfo.props,
-                description: componentInfo.description
+                description: componentInfo.description,
               }),
-              output: content
+              output: content,
             });
 
             // Find corresponding story file
             const storyFile = file.replace(/\.(tsx|jsx)$/, '.stories.tsx');
             const storyPath = path.join(componentsDir, storyFile);
-            
+
             try {
               const storyContent = await fs.readFile(storyPath, 'utf-8');
               trainingExamples.push({
                 instruction: `Generate Storybook story for ${componentName}`,
                 input: JSON.stringify({
                   component: componentName,
-                  componentCode: content
+                  componentCode: content,
                 }),
-                output: storyContent
+                output: storyContent,
               });
             } catch (err) {
               // Story file doesn't exist, skip
@@ -203,7 +210,7 @@ export class DeepSeekComponentFinetuningService extends EventEmitter {
     this.trainingData = this.trainingData.concat(trainingExamples);
 
     console.log(`✅ Generated ${trainingExamples.length} examples from existing components`);
-    
+
     return trainingExamples;
   }
 
@@ -212,16 +219,14 @@ export class DeepSeekComponentFinetuningService extends EventEmitter {
    */
   async saveTrainingData(filename = 'component-training-data.jsonl') {
     const filepath = path.join(this.config.trainingDataDir, filename);
-    
+
     // Convert to JSONL format (one JSON object per line)
-    const jsonl = this.trainingData
-      .map(example => JSON.stringify(example))
-      .join('\n');
-    
+    const jsonl = this.trainingData.map(example => JSON.stringify(example)).join('\n');
+
     await fs.writeFile(filepath, jsonl, 'utf-8');
-    
+
     console.log(`✅ Saved ${this.trainingData.length} training examples to ${filepath}`);
-    
+
     return filepath;
   }
 
@@ -230,16 +235,16 @@ export class DeepSeekComponentFinetuningService extends EventEmitter {
    */
   async loadTrainingData(filename = 'component-training-data.jsonl') {
     const filepath = path.join(this.config.trainingDataDir, filename);
-    
+
     try {
       const content = await fs.readFile(filepath, 'utf-8');
       this.trainingData = content
         .split('\n')
         .filter(line => line.trim())
         .map(line => JSON.parse(line));
-      
+
       console.log(`✅ Loaded ${this.trainingData.length} training examples from ${filepath}`);
-      
+
       return this.trainingData;
     } catch (error) {
       console.error('Error loading training data:', error.message);
@@ -265,12 +270,12 @@ export class DeepSeekComponentFinetuningService extends EventEmitter {
       baseModel: this.config.fineTuneModel,
       status: 'completed',
       trainingDataSize: this.trainingData.length,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
 
     console.log(`✅ Fine-tuning completed (simulated)`);
     console.log(`   Model ID: ${this.fineTunedModel.id}`);
-    
+
     return this.fineTunedModel;
   }
 
@@ -308,7 +313,7 @@ ${options.includeStorybook ? 'Also generate Storybook story' : ''}
         systemPrompt,
         model: this.fineTunedModel?.id || this.config.modelName,
         temperature: options.temperature || 0.7,
-        maxTokens: options.maxTokens || 2000
+        maxTokens: options.maxTokens || 2000,
       });
 
       // Parse response to extract code
@@ -345,8 +350,8 @@ ${options.includeStorybook ? 'Also generate Storybook story' : ''}
       metadata: {
         generatedAt: new Date().toISOString(),
         totalComponents: 0,
-        styleGuideId: styleGuide.id
-      }
+        styleGuideId: styleGuide.id,
+      },
     };
 
     // Generate each component from style guide
@@ -362,7 +367,7 @@ ${options.includeStorybook ? 'Also generate Storybook story' : ''}
               framework: options.framework || 'react',
               save: true,
               filename: `${componentName}.tsx`,
-              includeStorybook: true
+              includeStorybook: true,
             }
           );
 
@@ -408,15 +413,19 @@ ${options.includeStorybook ? 'Also generate Storybook story' : ''}
 
     for (const variant of variants) {
       const prompt = `Generate a ${variant} variant of the ${componentName} component`;
-      
-      const generated = await this.generateComponent(prompt, {
-        components: {
-          [componentName]: baseComponent
+
+      const generated = await this.generateComponent(
+        prompt,
+        {
+          components: {
+            [componentName]: baseComponent,
+          },
+        },
+        {
+          variant,
+          save: false,
         }
-      }, {
-        variant,
-        save: false
-      });
+      );
 
       variations[variant] = generated;
     }
@@ -442,7 +451,7 @@ ${JSON.stringify(styleGuide.tokens, null, 2)}
     try {
       const response = await this.deepseekService.generateWorkflowFromPrompt(prompt, {
         systemPrompt,
-        maxTokens: 1500
+        maxTokens: 1500,
       });
 
       return this.parseGeneratedStory(response);
@@ -492,7 +501,7 @@ const handle${state.charAt(0).toUpperCase() + state.slice(1)} = () => {
 
   generateCSSFromTokens(tokens) {
     let css = ':root {\n';
-    
+
     if (tokens.colors) {
       Object.entries(tokens.colors).forEach(([category, colors]) => {
         Object.entries(colors).forEach(([key, value]) => {
@@ -511,9 +520,9 @@ const handle${state.charAt(0).toUpperCase() + state.slice(1)} = () => {
         extend: {
           colors: tokens.colors || {},
           spacing: tokens.spacing?.scale || {},
-          borderRadius: tokens.borderRadius?.scale || {}
-        }
-      }
+          borderRadius: tokens.borderRadius?.scale || {},
+        },
+      },
     };
 
     return `module.exports = ${JSON.stringify(config, null, 2)}`;
@@ -533,14 +542,14 @@ const handle${state.charAt(0).toUpperCase() + state.slice(1)} = () => {
   parseGeneratedComponent(response) {
     // Extract code from response
     // This would parse the API response to extract the component code
-    
+
     return {
       name: 'GeneratedComponent',
       code: response.code || response.toString(),
       story: response.story || null,
       metadata: {
-        generatedAt: new Date().toISOString()
-      }
+        generatedAt: new Date().toISOString(),
+      },
     };
   }
 

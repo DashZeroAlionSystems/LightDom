@@ -1,9 +1,9 @@
 /**
  * N8N Visual Workflow Builder Service
- * 
+ *
  * Integrates DeepSeek AI with n8n for intelligent workflow generation.
  * Generates complete n8n workflows from natural language descriptions.
- * 
+ *
  * Features:
  * - Natural language to n8n workflow conversion
  * - Template-based workflow creation
@@ -19,9 +19,10 @@ export class N8NVisualWorkflowBuilder {
   constructor(options = {}) {
     this.n8nBaseUrl = options.n8nBaseUrl || process.env.N8N_API_URL || 'http://localhost:5678';
     this.n8nApiKey = options.n8nApiKey || process.env.N8N_API_KEY || '';
-    this.deepseekApiUrl = options.deepseekApiUrl || process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1';
+    this.deepseekApiUrl =
+      options.deepseekApiUrl || process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1';
     this.deepseekApiKey = options.deepseekApiKey || process.env.DEEPSEEK_API_KEY || '';
-    
+
     // Template library
     this.workflowTemplates = this.loadWorkflowTemplates();
   }
@@ -38,7 +39,7 @@ export class N8NVisualWorkflowBuilder {
           {
             type: 'n8n-nodes-base.webhook',
             name: 'Webhook Trigger',
-            parameters: { path: 'schema-discovered' }
+            parameters: { path: 'schema-discovered' },
           },
           {
             type: 'n8n-nodes-base.function',
@@ -50,8 +51,8 @@ export class N8NVisualWorkflowBuilder {
                   throw new Error('Invalid schema structure');
                 }
                 return items;
-              `
-            }
+              `,
+            },
           },
           {
             type: 'n8n-nodes-base.postgres',
@@ -59,23 +60,23 @@ export class N8NVisualWorkflowBuilder {
             parameters: {
               operation: 'insert',
               table: 'discovered_schemas',
-              columns: ['schema_type', 'fields', 'url', 'campaign_id']
-            }
+              columns: ['schema_type', 'fields', 'url', 'campaign_id'],
+            },
           },
           {
             type: 'n8n-nodes-base.sendEmail',
             name: 'Send Notification',
             parameters: {
               subject: 'New Schema Discovered',
-              text: 'Schema type: {{$json["schema"]["type"]}}'
-            }
-          }
+              text: 'Schema type: {{$json["schema"]["type"]}}',
+            },
+          },
         ],
         connections: {
           'Webhook Trigger': { main: [[{ node: 'Validate Schema', type: 'main', index: 0 }]] },
           'Validate Schema': { main: [[{ node: 'Save to Database', type: 'main', index: 0 }]] },
-          'Save to Database': { main: [[{ node: 'Send Notification', type: 'main', index: 0 }]] }
-        }
+          'Save to Database': { main: [[{ node: 'Send Notification', type: 'main', index: 0 }]] },
+        },
       },
       'url-validation': {
         name: 'URL Validation Workflow',
@@ -84,7 +85,7 @@ export class N8NVisualWorkflowBuilder {
           {
             type: 'n8n-nodes-base.webhook',
             name: 'URL Collected',
-            parameters: { path: 'urls-collected' }
+            parameters: { path: 'urls-collected' },
           },
           {
             type: 'n8n-nodes-base.function',
@@ -96,26 +97,26 @@ export class N8NVisualWorkflowBuilder {
                   // Robots.txt validation logic
                   return true;
                 });
-              `
-            }
+              `,
+            },
           },
           {
             type: 'n8n-nodes-base.httpRequest',
             name: 'Enrich URL',
             parameters: {
               method: 'GET',
-              url: '={{$json["url"]}}'
-            }
+              url: '={{$json["url"]}}',
+            },
           },
           {
             type: 'n8n-nodes-base.postgres',
             name: 'Add to Queue',
             parameters: {
               operation: 'insert',
-              table: 'crawler_queue'
-            }
-          }
-        ]
+              table: 'crawler_queue',
+            },
+          },
+        ],
       },
       'data-processing': {
         name: 'Data Processing Workflow',
@@ -124,7 +125,7 @@ export class N8NVisualWorkflowBuilder {
           {
             type: 'n8n-nodes-base.webhook',
             name: 'Data Mined',
-            parameters: { path: 'data-mined' }
+            parameters: { path: 'data-mined' },
           },
           {
             type: 'n8n-nodes-base.function',
@@ -134,27 +135,27 @@ export class N8NVisualWorkflowBuilder {
                 const data = items[0].json;
                 const schemas = this.helpers.extractSchemas(data.html);
                 return [{ json: { ...data, schemas } }];
-              `
-            }
+              `,
+            },
           },
           {
             type: 'n8n-nodes-base.httpRequest',
             name: 'Run OCR',
             parameters: {
               method: 'POST',
-              url: 'http://localhost:3001/api/ocr/process'
-            }
+              url: 'http://localhost:3001/api/ocr/process',
+            },
           },
           {
             type: 'n8n-nodes-base.postgres',
             name: 'Store Results',
             parameters: {
               operation: 'insert',
-              table: 'mined_data_comprehensive'
-            }
-          }
-        ]
-      }
+              table: 'mined_data_comprehensive',
+            },
+          },
+        ],
+      },
     };
   }
 
@@ -163,15 +164,15 @@ export class N8NVisualWorkflowBuilder {
    */
   async generateFromPrompt(options) {
     const { prompt, campaignId, useTemplate, variables = {} } = options;
-    
+
     // Use template if provided
     if (useTemplate && this.workflowTemplates[useTemplate]) {
       return this.instantiateTemplate(useTemplate, variables);
     }
-    
+
     // Generate using DeepSeek AI
     const workflow = await this.generateWithDeepSeek(prompt, campaignId, variables);
-    
+
     return workflow;
   }
 
@@ -221,40 +222,39 @@ export class N8NVisualWorkflowBuilder {
       const response = await axios.post(
         `${this.deepseekApiUrl}/chat/completions`,
         {
-          model: 'deepseek-chat',
+          model: 'deepseek-reasoner',
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Create n8n workflow for: ${prompt}\n\nCampaign ID: ${campaignId}\nVariables: ${JSON.stringify(variables)}` }
+            {
+              role: 'user',
+              content: `Create n8n workflow for: ${prompt}\n\nCampaign ID: ${campaignId}\nVariables: ${JSON.stringify(variables)}`,
+            },
           ],
           temperature: 0.7,
-          max_tokens: 2000
+          max_tokens: 2000,
         },
         {
           headers: {
-            'Authorization': `Bearer ${this.deepseekApiKey}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${this.deepseekApiKey}`,
+            'Content-Type': 'application/json',
+          },
         }
       );
 
       const workflowJson = JSON.parse(response.data.choices[0].message.content);
-      
+
       // Enhance workflow with metadata
       workflowJson.settings = {
         timezone: 'UTC',
         saveDataErrorExecution: 'all',
         saveDataSuccessExecution: 'all',
         saveManualExecutions: true,
-        executionTimeout: 3600
+        executionTimeout: 3600,
       };
-      
-      workflowJson.tags = [
-        { name: 'auto-generated' },
-        { name: `campaign-${campaignId}` }
-      ];
-      
+
+      workflowJson.tags = [{ name: 'auto-generated' }, { name: `campaign-${campaignId}` }];
+
       return workflowJson;
-      
     } catch (error) {
       console.error('DeepSeek workflow generation error:', error);
       throw new Error(`Failed to generate workflow: ${error.message}`);
@@ -269,22 +269,22 @@ export class N8NVisualWorkflowBuilder {
     if (!template) {
       throw new Error(`Template not found: ${templateName}`);
     }
-    
+
     // Deep clone template
     const workflow = JSON.parse(JSON.stringify(template));
-    
+
     // Replace variables in nodes
     workflow.nodes = workflow.nodes.map(node => {
       const nodeStr = JSON.stringify(node);
       let replacedStr = nodeStr;
-      
+
       Object.entries(variables).forEach(([key, value]) => {
         replacedStr = replacedStr.replace(new RegExp(`{{${key}}}`, 'g'), value);
       });
-      
+
       return JSON.parse(replacedStr);
     });
-    
+
     return workflow;
   }
 
@@ -293,23 +293,18 @@ export class N8NVisualWorkflowBuilder {
    */
   async deployToN8N(workflow) {
     try {
-      const response = await axios.post(
-        `${this.n8nBaseUrl}/api/v1/workflows`,
-        workflow,
-        {
-          headers: {
-            'X-N8N-API-KEY': this.n8nApiKey,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
+      const response = await axios.post(`${this.n8nBaseUrl}/api/v1/workflows`, workflow, {
+        headers: {
+          'X-N8N-API-KEY': this.n8nApiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
       return {
         success: true,
         workflowId: response.data.id,
-        url: `${this.n8nBaseUrl}/workflow/${response.data.id}`
+        url: `${this.n8nBaseUrl}/workflow/${response.data.id}`,
       };
-      
     } catch (error) {
       console.error('n8n deployment error:', error.response?.data || error.message);
       throw new Error(`Failed to deploy workflow: ${error.message}`);
@@ -327,16 +322,15 @@ export class N8NVisualWorkflowBuilder {
         {
           headers: {
             'X-N8N-API-KEY': this.n8nApiKey,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
-      
+
       return {
         success: true,
-        workflowId: response.data.id
+        workflowId: response.data.id,
       };
-      
     } catch (error) {
       throw new Error(`Failed to update workflow: ${error.message}`);
     }
@@ -347,17 +341,13 @@ export class N8NVisualWorkflowBuilder {
    */
   async deleteWorkflow(workflowId) {
     try {
-      await axios.delete(
-        `${this.n8nBaseUrl}/api/v1/workflows/${workflowId}`,
-        {
-          headers: {
-            'X-N8N-API-KEY': this.n8nApiKey
-          }
-        }
-      );
-      
+      await axios.delete(`${this.n8nBaseUrl}/api/v1/workflows/${workflowId}`, {
+        headers: {
+          'X-N8N-API-KEY': this.n8nApiKey,
+        },
+      });
+
       return { success: true };
-      
     } catch (error) {
       throw new Error(`Failed to delete workflow: ${error.message}`);
     }
@@ -374,13 +364,12 @@ export class N8NVisualWorkflowBuilder {
         {
           headers: {
             'X-N8N-API-KEY': this.n8nApiKey,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
-      
+
       return { success: true, active: true };
-      
     } catch (error) {
       throw new Error(`Failed to activate workflow: ${error.message}`);
     }
@@ -397,13 +386,12 @@ export class N8NVisualWorkflowBuilder {
         {
           headers: {
             'X-N8N-API-KEY': this.n8nApiKey,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
-      
+
       return { success: true, active: false };
-      
     } catch (error) {
       throw new Error(`Failed to deactivate workflow: ${error.message}`);
     }
@@ -414,17 +402,13 @@ export class N8NVisualWorkflowBuilder {
    */
   async getWorkflow(workflowId) {
     try {
-      const response = await axios.get(
-        `${this.n8nBaseUrl}/api/v1/workflows/${workflowId}`,
-        {
-          headers: {
-            'X-N8N-API-KEY': this.n8nApiKey
-          }
-        }
-      );
-      
+      const response = await axios.get(`${this.n8nBaseUrl}/api/v1/workflows/${workflowId}`, {
+        headers: {
+          'X-N8N-API-KEY': this.n8nApiKey,
+        },
+      });
+
       return response.data;
-      
     } catch (error) {
       throw new Error(`Failed to get workflow: ${error.message}`);
     }
@@ -435,17 +419,13 @@ export class N8NVisualWorkflowBuilder {
    */
   async listWorkflows() {
     try {
-      const response = await axios.get(
-        `${this.n8nBaseUrl}/api/v1/workflows`,
-        {
-          headers: {
-            'X-N8N-API-KEY': this.n8nApiKey
-          }
-        }
-      );
-      
+      const response = await axios.get(`${this.n8nBaseUrl}/api/v1/workflows`, {
+        headers: {
+          'X-N8N-API-KEY': this.n8nApiKey,
+        },
+      });
+
       return response.data;
-      
     } catch (error) {
       throw new Error(`Failed to list workflows: ${error.message}`);
     }
@@ -462,16 +442,15 @@ export class N8NVisualWorkflowBuilder {
         {
           headers: {
             'X-N8N-API-KEY': this.n8nApiKey,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
-      
+
       return {
         success: true,
-        executionId: response.data.executionId
+        executionId: response.data.executionId,
       };
-      
     } catch (error) {
       throw new Error(`Failed to execute workflow: ${error.message}`);
     }
@@ -485,7 +464,7 @@ export class N8NVisualWorkflowBuilder {
       id: key,
       name: value.name,
       description: value.description,
-      nodeCount: value.nodes.length
+      nodeCount: value.nodes.length,
     }));
   }
 
@@ -494,22 +473,22 @@ export class N8NVisualWorkflowBuilder {
    */
   validateWorkflow(workflow) {
     const errors = [];
-    
+
     if (!workflow.name) {
       errors.push('Workflow name is required');
     }
-    
+
     if (!workflow.nodes || workflow.nodes.length === 0) {
       errors.push('Workflow must have at least one node');
     }
-    
+
     // Validate node types
     workflow.nodes?.forEach(node => {
       if (!node.type || !node.name) {
         errors.push(`Invalid node: ${JSON.stringify(node)}`);
       }
     });
-    
+
     // Validate connections
     if (workflow.connections) {
       Object.entries(workflow.connections).forEach(([nodeName, connections]) => {
@@ -519,10 +498,10 @@ export class N8NVisualWorkflowBuilder {
         }
       });
     }
-    
+
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -533,19 +512,19 @@ export class N8NVisualWorkflowBuilder {
     // Remove duplicate nodes
     const uniqueNodes = [];
     const seenNames = new Set();
-    
+
     workflow.nodes.forEach(node => {
       if (!seenNames.has(node.name)) {
         uniqueNodes.push(node);
         seenNames.add(node.name);
       }
     });
-    
+
     workflow.nodes = uniqueNodes;
-    
+
     // Optimize connections (remove circular references)
     // TODO: Implement cycle detection and removal
-    
+
     return workflow;
   }
 }
