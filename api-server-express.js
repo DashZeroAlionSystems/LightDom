@@ -706,6 +706,16 @@ class DOMSpaceHarvesterAPI {
       }
     );
 
+    // Import and register Voice Streaming Service routes
+    void safeImport(
+      'Voice Streaming Service routes',
+      () => import('./api/voice-routes.js'),
+      voiceModule => {
+        this.app.use('/api/voice', voiceModule.default);
+        console.log('✅ Voice Streaming Service routes registered (Wake word, TTS, STT enabled)');
+      }
+    );
+
     // Import and register Conversation History routes (with CommonJS fallback)
     void safeImport(
       'Conversation History routes',
@@ -834,6 +844,16 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load embeddings routes:', err);
       });
 
+    // Import and register Codebase Embedding Indexer routes (mxbai-embed-large)
+    import('./api/codebase-embedding-routes.js')
+      .then(codebaseModule => {
+        this.app.use('/api/codebase-index', codebaseModule.default);
+        console.log('✅ Codebase embedding index routes registered (mxbai-embed-large)');
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to load codebase embedding routes:', err.message);
+      });
+
     // Import and register Workflow Wizard routes
     import('./api/workflow-wizard-routes.js')
       .then(wizardModule => {
@@ -874,6 +894,39 @@ class DOMSpaceHarvesterAPI {
       .catch(err => {
         console.error('Failed to load neural network dashboard routes:', err);
       });
+
+    // Import and register Pretrained Model Training routes
+    import('./api/pretrained-model-training-routes.js')
+      .then(pretrainedModule => {
+        const pretrainedRouter =
+          pretrainedModule.default || pretrainedModule.createPretrainedModelRoutes;
+        if (typeof pretrainedRouter === 'function') {
+          this.app.use('/api', pretrainedRouter(this.pool));
+        } else {
+          this.app.use('/api', pretrainedRouter);
+        }
+        console.log('✅ Pretrained Model Training routes registered');
+      })
+      .catch(err => {
+        console.error('Failed to load pretrained model training routes:', err);
+      });
+
+    // Import and register Linked Schema Workflow routes
+    // Provides: Neural relationship prediction, n8n workflow generation from schemas,
+    // DeepSeek integration, status indicators with animations
+    import('./api/linked-schema-workflow-routes.js')
+      .then(linkedSchemaModule => {
+        this.app.use('/api/linked-schema', linkedSchemaModule.default);
+        console.log('✅ Linked Schema Workflow routes registered at /api/linked-schema');
+        console.log('   - Relationship prediction via neural network');
+        console.log('   - n8n workflow generation from linked schemas');
+        console.log('   - DeepSeek AI integration for workflow configuration');
+        console.log('   - Status indicator components with anime.js animations');
+      })
+      .catch(err => {
+        console.warn('⚠️ Failed to load linked schema workflow routes:', err.message);
+      });
+
     // Import and register Data Stream routes
     import('./api/data-stream-routes.js')
       .then(streamModule => {
@@ -1375,6 +1428,40 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.error('Failed to load Storybook discovery routes:', err);
+      });
+
+    // Import and register Storybook Model Training routes (11 pretrained models integration)
+    import('./api/storybook-training-routes.js')
+      .then(trainingModule => {
+        const createRoutes = trainingModule.default || trainingModule.createStorybookTrainingRoutes;
+        if (typeof createRoutes === 'function') {
+          this.app.use('/api/storybook-training', createRoutes({ db: this.db }));
+        } else {
+          this.app.use('/api/storybook-training', trainingModule.default);
+        }
+        console.log(
+          '✅ Storybook Training routes registered (11 pretrained models, training pipeline enabled)'
+        );
+      })
+      .catch(err => {
+        console.error('Failed to load Storybook training routes:', err);
+      });
+
+    // Import and register Command Service routes (CRUD for /commands)
+    import('./api/command-routes.js')
+      .then(commandModule => {
+        const createRoutes = commandModule.default || commandModule.createCommandRoutes;
+        if (typeof createRoutes === 'function') {
+          this.app.use('/api/commands', createRoutes({ db: this.db }));
+        } else {
+          this.app.use('/api/commands', commandModule.default);
+        }
+        console.log(
+          '✅ Command Service routes registered (CRUD for /commands, slash command execution)'
+        );
+      })
+      .catch(err => {
+        console.error('Failed to load Command Service routes:', err);
       });
 
     // Import and register MCP Server Management routes (Agent instances with schema linking)

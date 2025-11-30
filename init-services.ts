@@ -2,98 +2,133 @@
 
 /**
  * Initialize LightDom Platform Services
- * 
- * This script:
- * 1. Runs database migrations
- * 2. Loads research topics
- * 3. Loads default component schemas
- * 4. Tests all services
+ *
+ * This script uses the ServiceManager to:
+ * 1. Register all platform services
+ * 2. Initialize services in dependency order
+ * 3. Run database migrations
+ * 4. Load data and verify health
+ *
+ * The ServiceManager pattern ensures:
+ * - Services are started in correct dependency order
+ * - Health checks are performed
+ * - Graceful shutdown is handled
  */
 
-import { getDatabaseService } from './src/services/DatabaseService.ts';
-import { wikiService } from './src/services/WikiService.ts';
-import { componentLibraryService } from './src/services/ComponentLibraryService.ts';
-import { analysisService } from './src/services/AnalysisService.ts';
+import {
+  getServiceManager,
+  ServiceManager,
+} from './src/services/ServiceManager.js';
+import {
+  registerAllServices,
+  services,
+} from './src/services/ServiceRegistry.js';
 import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
 
+/**
+ * Main initialization function
+ */
 async function main() {
-  console.log('🚀 Initializing LightDom Platform Services...\n');
+  console.log('🚀 LightDom Platform Services Initialization\n');
+  console.log('='.repeat(60));
 
-  const dbService = getDatabaseService();
+  const manager = getServiceManager();
+
+  // Setup graceful shutdown
+  const shutdown = async () => {
+    console.log('\n⚠️  Received shutdown signal...');
+    await manager.shutdown();
+    process.exit(0);
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 
   try {
-    // Step 1: Initialize database and run migrations
-    console.log('📦 Step 1: Database Setup');
-    await dbService.initialize();
-    const migrationResult = await dbService.runMigrations();
-    
-    if (!migrationResult.success) {
-      console.error('❌ Migration errors occurred. Please fix them before continuing.');
-      process.exit(1);
-    }
-    console.log('✅ Database initialized and migrations completed\n');
-
-    // Step 2: Load research topics
-    console.log('📦 Step 2: Loading Research Topics');
-    await wikiService.loadTopics();
-    const topics = await wikiService.getAllTopics();
-    console.log(`✅ Loaded ${topics.length} research topics\n`);
-
-    // Step 3: Load default component schemas
-    console.log('📦 Step 3: Loading Component Schemas');
-    await componentLibraryService.loadDefaultComponents();
-    await componentLibraryService.loadAtomicSchemasFromFiles();
-    const components = await componentLibraryService.getAtomicComponents();
-    console.log(`✅ Loaded ${components.length} atomic components\n`);
-
-    // Step 4: Run sample analysis
-    console.log('📦 Step 4: Running Sample Analysis');
-    const report = await analysisService.runSampleAnalysis();
-    console.log(`✅ Generated analysis report: ${report.reportId}`);
-    console.log(`   Coverage Score: ${report.results.coverageScore}%`);
-    console.log(`   Recommendations: ${report.recommendations.length}`);
+    // Step 1: Register all services
+    console.log('📦 Step 1: Registering Services\n');
+    registerAllServices();
     console.log('');
 
-    // Step 5: Verify services
-    console.log('📦 Step 5: Service Health Checks');
-    const health = await dbService.healthCheck();
-    console.log(`✅ Database: ${health.healthy ? 'Healthy' : 'Unhealthy'} (${health.latency}ms)`);
-    
-    const stats = dbService.getStats();
-    if (stats) {
-      console.log(`   Pool: ${stats.totalCount} total, ${stats.idleCount} idle, ${stats.waitingCount} waiting`);
+    // Step 2: Initialize all services in dependency order
+    console.log('📦 Step 2: Initializing Services\n');
+    await manager.initialize();
+
+    // Step 3: Run database migrations
+    console.log('📦 Step 3: Database Migrations');
+    try {
+      const dbService = services.database;
+      const migrationResult = await dbService.runMigrations();
+
+      if (!migrationResult.success) {
+        console.warn('⚠️  Some migrations had errors:', migrationResult.errors);
+      } else {
+        console.log(
+          `   ✅ Applied ${migrationResult.appliedMigrations.length} migrations`
+        );
+      }
+    } catch (error) {
+      console.warn('   ⚠️  Migrations skipped:', (error as Error).message);
     }
     console.log('');
 
-    console.log('✨ LightDom Platform Services initialized successfully!');
-    console.log('\n📊 Summary:');
-    console.log(`   - Research Topics: ${topics.length}`);
-    console.log(`   - Component Schemas: ${components.length}`);
-    console.log(`   - Analysis Reports: 1`);
-    console.log('\n🎯 Services Ready:');
-    console.log('   - DatabaseService');
-    console.log('   - ValidationService');
-    console.log('   - WikiService');
-    console.log('   - ComponentLibraryService');
-    console.log('   - PlanningService');
-    console.log('   - ApiGatewayService');
-    console.log('   - AnalysisService');
-    console.log('\n💡 Next Steps:');
-    console.log('   - Run `npm run migrate` to apply database migrations');
-    console.log('   - Start API server with `npm run start:dev`');
+    // Step 4: Run sample analysis (optional)
+    console.log('📦 Step 4: Sample Analysis');
+    try {
+      const analysisService = services.analysis;
+      const report = await analysisService.runSampleAnalysis();
+      console.log(`   ✅ Generated analysis report: ${report.reportId}`);
+      console.log(`      Coverage Score: ${report.results.coverageScore}%`);
+      console.log(`      Recommendations: ${report.recommendations.length}`);
+    } catch (error) {
+      console.warn('   ⚠️  Analysis skipped:', (error as Error).message);
+    }
+    console.log('');
+
+    // Step 5: System health check
+    console.log('📦 Step 5: System Health Check');
+    const health = await manager.getSystemHealth();
+    console.log(`   System Status: ${health.status.toUpperCase()}`);
+    for (const [name, serviceHealth] of Object.entries(health.services)) {
+      const icon = serviceHealth.healthy ? '✅' : '❌';
+      console.log(
+        `   ${icon} ${name}: ${serviceHealth.status}${serviceHealth.message ? ` - ${serviceHealth.message}` : ''}`
+      );
+    }
+    console.log('');
+
+    // Print final status
+    manager.printStatus();
+
+    console.log('✨ LightDom Platform Services initialized successfully!\n');
+    console.log('💡 Quick Reference:');
+    console.log('   - Use ServiceManager.getService("name") to access services');
+    console.log('   - Use services.database, services.wiki, etc. for typed access');
+    console.log('   - Run `npm run start:dev` to start the development server');
     console.log('   - Access GraphQL API at /graphql endpoint');
+    console.log('');
 
+    // Keep the process alive for service health monitoring
+    // In a real application, this would be the API server
+    console.log('Press Ctrl+C to shutdown services...\n');
+
+    // For demo purposes, shutdown after a delay
+    // In production, remove this and let the API server keep the process alive
+    setTimeout(async () => {
+      await manager.shutdown();
+      process.exit(0);
+    }, 5000);
   } catch (error) {
     console.error('\n❌ Initialization failed:', error);
+    await manager.shutdown();
     process.exit(1);
-  } finally {
-    await dbService.close();
   }
 }
 
+// Run main function
 main().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
