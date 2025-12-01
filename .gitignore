@@ -526,3 +526,7 @@ workflows/n8n/credentials/*.json
 *storybook.log
 .npm-cache/
 demo-*-results.json
+
+# Finetuning pipeline demo output
+demo_output/
+finetuning_output/
