@@ -1,13 +1,20 @@
 import type { Preview } from '@storybook/react-vite'
 import { createElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
+// Import both the main src and frontend CSS for unified styling
 import '../src/index.css'
+import '../frontend/src/index.css'
 
 /**
  * Storybook Preview Configuration
  * 
  * Enhanced with Material Design 3 theming and animation support
  * Supports component generation from user stories
+ * 
+ * This preview configuration ensures:
+ * 1. Design system tokens are available across all stories
+ * 2. Frontend and main src stories share the same styling context
+ * 3. UX/UI rules from the styleguide are enforced consistently
  */
 
 const preview: Preview = {

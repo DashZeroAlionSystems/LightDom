@@ -11,6 +11,9 @@ import { ErrorFallback } from '@/components/ErrorFallback';
 import { Layout } from '@/components/Layout';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
+// Design System Provider - ensures consistent styling across all pages
+import { DesignSystemProvider } from '@/design-system';
+
 // Theme configuration
 import { applyCommandPaletteTheme, loadCommandPaletteTheme } from '@/config/command-palette-theme';
 
@@ -103,13 +106,14 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallbackComponent}>
       <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <Router>
-            <div className='min-h-screen bg-background text-foreground'>
-              <Routes>
-                {/* Public Routes */}
-                <Route path='/' element={<Navigate to='/admin-dashboard' replace />} />
-                <Route
+        <DesignSystemProvider defaultTheme="dark" defaultMotionPreference="full">
+          <QueryClientProvider client={queryClient}>
+            <Router>
+              <div className='min-h-screen bg-background text-foreground'>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path='/' element={<Navigate to='/admin-dashboard' replace />} />
+                  <Route
                   path='/login'
                   element={
                     <PublicRoute>
@@ -373,6 +377,7 @@ const App: React.FC = () => {
             </div>
           </Router>
         </QueryClientProvider>
+      </DesignSystemProvider>
       </HelmetProvider>
     </ErrorBoundary>
   );
