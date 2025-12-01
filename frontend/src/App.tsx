@@ -43,6 +43,7 @@ import { RegisterPage } from '@/pages/RegisterPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
 import { WorkflowsPage } from '@/pages/WorkflowsPage';
+import { DesignSystemShowcasePage } from '@/pages/DesignSystemShowcasePage';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -340,6 +341,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <NeuralNetworkManagementPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/design-system'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DesignSystemShowcasePage />
                       </Layout>
                     </ProtectedRoute>
                   }
