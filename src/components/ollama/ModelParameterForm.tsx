@@ -38,8 +38,23 @@ import {
 const { Title, Text, Paragraph } = Typography;
 const { Panel } = Collapse;
 
+// Type definition for parameter definitions
+interface ParameterDefinition {
+  name: string;
+  description: string;
+  type: 'float' | 'int' | 'select' | 'tags';
+  default: number | string[] | number[];
+  min?: number;
+  max?: number;
+  step?: number;
+  category: string;
+  marks?: Record<number, string>;
+  options?: Array<{ value: number; label: string }>;
+  dependsOn?: Record<string, number[]>;
+}
+
 // Parameter definitions with metadata
-const PARAMETER_DEFINITIONS = {
+const PARAMETER_DEFINITIONS: Record<string, ParameterDefinition> = {
   // Sampling Parameters
   temperature: {
     name: 'Temperature',
@@ -433,7 +448,7 @@ const ModelParameterForm: React.FC<ModelParameterFormProps> = ({
     const label = (
       <Space>
         <span>{def.name}</span>
-        {isModified && <Tag color="blue" size="small">Modified</Tag>}
+        {isModified && <Tag color="blue">Modified</Tag>}
         <Tooltip title={def.description}>
           <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
         </Tooltip>

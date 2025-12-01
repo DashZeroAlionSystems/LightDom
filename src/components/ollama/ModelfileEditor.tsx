@@ -37,8 +37,16 @@ import {
 const { TextArea } = Input;
 const { Title, Text, Paragraph } = Typography;
 
+// Type for instruction definitions
+interface InstructionDefinition {
+  syntax: string;
+  description: string;
+  example: string;
+  required?: boolean;
+}
+
 // Modelfile instruction definitions
-const MODELFILE_INSTRUCTIONS = {
+const MODELFILE_INSTRUCTIONS: Record<string, InstructionDefinition> = {
   FROM: {
     syntax: 'FROM <model>',
     description: 'Defines the base model to use',

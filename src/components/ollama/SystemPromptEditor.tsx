@@ -739,9 +739,9 @@ When asked about [topic], you should [behavior]."
                     </Text>
                   }
                   description={
-                    <Text ellipsis={{ rows: 2 }}>
+                    <Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: 0 }}>
                       {entry.prompt}
-                    </Text>
+                    </Paragraph>
                   }
                 />
               </List.Item>
