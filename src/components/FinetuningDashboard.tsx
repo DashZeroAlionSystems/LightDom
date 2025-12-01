@@ -8,7 +8,7 @@
  * - Phase 4: Production Deployment
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Database,
   Brain,
@@ -39,14 +39,12 @@ import {
   ExternalLink,
   Code,
   Wrench,
-  TestTube,
   Box
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
 import { Progress } from './ui/Progress';
 import { Badge } from './ui/Badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/Input';
 import { Label } from './ui/label';
 import { Alert, AlertDescription } from './ui/alert';
@@ -159,26 +157,27 @@ export const FinetuningDashboard: React.FC<FinetuningDashboardProps> = ({
     trainingHistory: []
   });
 
-  // Fetch initial status
-  useEffect(() => {
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchStatus = async () => {
+  // Fetch status with useCallback for stable reference
+  const fetchStatus = useCallback(async () => {
     try {
       const response = await fetch(`${apiBaseUrl}/status`);
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
-          setContinuousTraining(data.data.continuousTraining || continuousTraining);
+          setContinuousTraining(prev => data.data.continuousTraining || prev);
         }
       }
     } catch (err) {
       console.warn('Failed to fetch finetuning status:', err);
     }
-  };
+  }, [apiBaseUrl]);
+
+  // Fetch initial status
+  useEffect(() => {
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 30000);
+    return () => clearInterval(interval);
+  }, [fetchStatus]);
 
   // Phase 1 Actions
   const generateToolExamples = async () => {
