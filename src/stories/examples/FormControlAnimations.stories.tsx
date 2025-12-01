@@ -8,7 +8,6 @@ import {
   StarFilled,
   ThunderboltOutlined,
 } from '@ant-design/icons';
-import anime from 'animejs';
 import {
   buttonPressAnimation,
   buttonHoverEnterAnimation,

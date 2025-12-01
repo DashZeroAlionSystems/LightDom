@@ -1,13 +1,14 @@
 /**
  * Form Control Animation Utilities
  * 
- * Reusable anime.js animation patterns for form controls, buttons, and transitions.
+ * Reusable anime.js v4 animation patterns for form controls, buttons, and transitions.
  * Inspired by animejs.com interactive demos and controls.
  * 
  * @see https://animejs.com/documentation/
  */
 
-import anime from 'animejs';
+import { animate, createTimeline, utils } from 'animejs';
+import type { JSAnimation, Timeline } from 'animejs';
 
 // =============================================================================
 // Types & Interfaces
@@ -37,21 +38,20 @@ export interface FormFieldState {
 export function buttonPressAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): Timeline {
   const { duration = 150, easing = 'easeOutQuad' } = options;
   
-  return anime.timeline({
-    targets: target,
+  return createTimeline({
+    defaults: { easing }
   })
-  .add({
+  .add(target, {
     scale: 0.95,
     duration: duration * 0.4,
-    easing: 'easeInQuad',
+    ease: 'easeInQuad',
   })
-  .add({
+  .add(target, {
     scale: 1,
     duration: duration * 0.6,
-    easing,
   });
 }
 
@@ -63,7 +63,7 @@ export function buttonRippleAnimation(
   x: number,
   y: number,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 600, easing = 'easeOutExpo' } = options;
   
   const ripple = document.createElement('span');
@@ -82,14 +82,15 @@ export function buttonRippleAnimation(
   
   container.appendChild(ripple);
   
-  return anime({
-    targets: ripple,
+  const anim = animate(ripple, {
     scale: [0, 4],
     opacity: [1, 0],
     duration,
-    easing,
-    complete: () => ripple.remove(),
+    ease: easing,
+    onComplete: () => ripple.remove(),
   });
+  
+  return anim;
 }
 
 /**
@@ -98,15 +99,14 @@ export function buttonRippleAnimation(
 export function buttonHoverEnterAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     scale: 1.05,
     boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -116,15 +116,14 @@ export function buttonHoverEnterAnimation(
 export function buttonHoverLeaveAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     scale: 1,
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -134,14 +133,13 @@ export function buttonHoverLeaveAnimation(
 export function buttonLoadingAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 1200, easing = 'easeInOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     opacity: [1, 0.6, 1],
     duration,
-    easing,
+    ease: easing,
     loop: true,
   });
 }
@@ -152,15 +150,14 @@ export function buttonLoadingAnimation(
 export function buttonSuccessAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 400, easing = 'easeOutElastic(1, .5)' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     scale: [0.9, 1.1, 1],
     backgroundColor: '#52c41a',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -174,15 +171,14 @@ export function buttonSuccessAnimation(
 export function inputFocusAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     borderColor: '#667eea',
     boxShadow: '0 0 0 3px rgba(102, 126, 234, 0.2)',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -192,15 +188,14 @@ export function inputFocusAnimation(
 export function inputBlurAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     borderColor: '#d9d9d9',
     boxShadow: '0 0 0 0px rgba(102, 126, 234, 0)',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -210,16 +205,15 @@ export function inputBlurAnimation(
 export function labelFloatAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     translateY: [-8, -24],
     scale: [1, 0.85],
     color: '#667eea',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -229,16 +223,15 @@ export function labelFloatAnimation(
 export function labelUnfloatAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     translateY: [-24, -8],
     scale: [0.85, 1],
     color: '#999',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -248,15 +241,14 @@ export function labelUnfloatAnimation(
 export function inputErrorShakeAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 500, easing = 'easeInOutSine' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     translateX: [0, -10, 10, -10, 10, -5, 5, 0],
     borderColor: '#f5222d',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -266,15 +258,14 @@ export function inputErrorShakeAnimation(
 export function inputValidAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 300, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     borderColor: '#52c41a',
     boxShadow: '0 0 0 3px rgba(82, 196, 26, 0.2)',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -290,18 +281,16 @@ export function switchToggleAnimation(
   track: string | HTMLElement,
   isChecked: boolean,
   options: AnimationOptions = {}
-) {
+): Timeline {
   const { duration = 200, easing = 'easeOutQuad' } = options;
   
-  const timeline = anime.timeline({ easing, duration });
+  const timeline = createTimeline({ defaults: { duration, ease: easing } });
   
-  timeline.add({
-    targets: knob,
+  timeline.add(knob, {
     translateX: isChecked ? [0, 20] : [20, 0],
   }, 0);
   
-  timeline.add({
-    targets: track,
+  timeline.add(track, {
     backgroundColor: isChecked ? '#667eea' : '#d9d9d9',
   }, 0);
   
@@ -318,16 +307,15 @@ export function switchToggleAnimation(
 export function dropdownOpenAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutExpo' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     opacity: [0, 1],
     translateY: [-10, 0],
     scale: [0.95, 1],
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -337,16 +325,15 @@ export function dropdownOpenAnimation(
 export function dropdownCloseAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 150, easing = 'easeInQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     opacity: [1, 0],
     translateY: [0, -10],
     scale: [1, 0.95],
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -356,15 +343,14 @@ export function dropdownCloseAnimation(
 export function dropdownItemHoverAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 150, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     backgroundColor: 'rgba(102, 126, 234, 0.1)',
     paddingLeft: [16, 20],
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -378,15 +364,14 @@ export function dropdownItemHoverAnimation(
 export function checkboxCheckAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutBack' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     scale: [0, 1],
     rotate: [45, 0],
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -396,14 +381,13 @@ export function checkboxCheckAnimation(
 export function radioSelectAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutElastic(1, .6)' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     scale: [0, 1],
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -417,15 +401,14 @@ export function radioSelectAnimation(
 export function sliderThumbDragAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 100, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     scale: 1.2,
     boxShadow: '0 0 10px rgba(102, 126, 234, 0.5)',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -435,15 +418,14 @@ export function sliderThumbDragAnimation(
 export function sliderThumbReleaseAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutElastic(1, .5)' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     scale: 1,
     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -457,21 +439,20 @@ export function sliderThumbReleaseAnimation(
 export function sectionExpandAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation | null {
   const { duration = 300, easing = 'easeOutExpo' } = options;
   
   const element = typeof target === 'string' ? document.querySelector(target) : target;
   if (!element) return null;
   
   // Get target height
-  const targetHeight = element.scrollHeight;
+  const targetHeight = (element as HTMLElement).scrollHeight;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     height: [0, targetHeight],
     opacity: [0, 1],
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -481,15 +462,14 @@ export function sectionExpandAnimation(
 export function sectionCollapseAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeInQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     height: 0,
     opacity: [1, 0],
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -497,18 +477,17 @@ export function sectionCollapseAnimation(
  * Staggered form field entrance
  */
 export function formFieldsEntranceAnimation(
-  target: string | HTMLElement,
+  target: string | HTMLElement | NodeListOf<Element>,
   options: AnimationOptions & { stagger?: number } = {}
-) {
+): JSAnimation {
   const { duration = 400, easing = 'easeOutExpo', stagger = 80 } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     opacity: [0, 1],
     translateY: [20, 0],
-    delay: anime.stagger(stagger),
+    delay: utils.stagger(stagger),
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -522,17 +501,16 @@ export function formFieldsEntranceAnimation(
 export function modelCardSelectAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): Timeline {
   const { duration = 300, easing = 'easeOutElastic(1, .6)' } = options;
   
-  return anime({
-    targets: target,
-    scale: [1, 1.02, 1],
-    borderColor: '#667eea',
-    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
-    duration,
-    easing,
-  });
+  return createTimeline({ defaults: { ease: easing } })
+    .add(target, {
+      scale: [1, 1.02, 1],
+      borderColor: '#667eea',
+      boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+      duration,
+    });
 }
 
 /**
@@ -542,14 +520,13 @@ export function modelDownloadProgressAnimation(
   progressBar: string | HTMLElement,
   progress: number,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 400, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: progressBar,
+  return animate(progressBar, {
     width: `${progress}%`,
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -559,23 +536,21 @@ export function modelDownloadProgressAnimation(
 export function modelDownloadCompleteAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): Timeline {
   const { duration = 500, easing = 'easeOutElastic(1, .5)' } = options;
   
-  return anime.timeline()
-    .add({
-      targets: target,
+  return createTimeline()
+    .add(target, {
       scale: [1, 1.05],
       duration: duration * 0.4,
-      easing: 'easeOutQuad',
+      ease: 'easeOutQuad',
     })
-    .add({
-      targets: target,
+    .add(target, {
       scale: [1.05, 1],
       backgroundColor: 'rgba(82, 196, 26, 0.1)',
       borderColor: '#52c41a',
       duration: duration * 0.6,
-      easing,
+      ease: easing,
     });
 }
 
@@ -585,15 +560,14 @@ export function modelDownloadCompleteAnimation(
 export function modelCardHoverAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     translateY: -4,
     boxShadow: '0 12px 30px rgba(0, 0, 0, 0.12)',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -603,15 +577,14 @@ export function modelCardHoverAnimation(
 export function modelCardHoverLeaveAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeOutQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     translateY: 0,
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -627,23 +600,21 @@ export function tabPanelSwitchAnimation(
   incoming: string | HTMLElement,
   direction: 'left' | 'right' = 'right',
   options: AnimationOptions = {}
-) {
+): Timeline {
   const { duration = 300, easing = 'easeOutExpo' } = options;
   const translateX = direction === 'right' ? [50, 0] : [-50, 0];
   
-  const timeline = anime.timeline({ easing, duration });
+  const timeline = createTimeline({ defaults: { ease: easing, duration } });
   
   if (outgoing) {
-    timeline.add({
-      targets: outgoing,
+    timeline.add(outgoing, {
       opacity: [1, 0],
       translateX: direction === 'right' ? [0, -50] : [0, 50],
       duration: duration * 0.5,
     }, 0);
   }
   
-  timeline.add({
-    targets: incoming,
+  timeline.add(incoming, {
     opacity: [0, 1],
     translateX,
   }, outgoing ? duration * 0.3 : 0);
@@ -659,15 +630,14 @@ export function tabIndicatorSlideAnimation(
   targetPosition: number,
   targetWidth: number,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 250, easing = 'easeOutExpo' } = options;
   
-  return anime({
-    targets: indicator,
+  return animate(indicator, {
     left: targetPosition,
     width: targetWidth,
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -682,19 +652,17 @@ export function modalOpenAnimation(
   modal: string | HTMLElement,
   overlay: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): Timeline {
   const { duration = 300, easing = 'easeOutExpo' } = options;
   
-  const timeline = anime.timeline({ easing, duration });
+  const timeline = createTimeline({ defaults: { ease: easing, duration } });
   
-  timeline.add({
-    targets: overlay,
+  timeline.add(overlay, {
     opacity: [0, 1],
     duration: duration * 0.5,
   }, 0);
   
-  timeline.add({
-    targets: modal,
+  timeline.add(modal, {
     opacity: [0, 1],
     scale: [0.9, 1],
     translateY: [20, 0],
@@ -710,20 +678,18 @@ export function modalCloseAnimation(
   modal: string | HTMLElement,
   overlay: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): Timeline {
   const { duration = 200, easing = 'easeInQuad' } = options;
   
-  const timeline = anime.timeline({ easing, duration });
+  const timeline = createTimeline({ defaults: { ease: easing, duration } });
   
-  timeline.add({
-    targets: modal,
+  timeline.add(modal, {
     opacity: [1, 0],
     scale: [1, 0.95],
     duration: duration * 0.6,
   }, 0);
   
-  timeline.add({
-    targets: overlay,
+  timeline.add(overlay, {
     opacity: [1, 0],
     duration: duration * 0.4,
   }, duration * 0.4);
@@ -741,16 +707,15 @@ export function modalCloseAnimation(
 export function toastEnterAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 300, easing = 'easeOutExpo' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     opacity: [0, 1],
     translateY: [50, 0],
     scale: [0.9, 1],
     duration,
-    easing,
+    ease: easing,
   });
 }
 
@@ -760,16 +725,15 @@ export function toastEnterAnimation(
 export function toastExitAnimation(
   target: string | HTMLElement,
   options: AnimationOptions = {}
-) {
+): JSAnimation {
   const { duration = 200, easing = 'easeInQuad' } = options;
   
-  return anime({
-    targets: target,
+  return animate(target, {
     opacity: [1, 0],
     translateY: [0, -20],
     scale: [1, 0.95],
     duration,
-    easing,
+    ease: easing,
   });
 }
 

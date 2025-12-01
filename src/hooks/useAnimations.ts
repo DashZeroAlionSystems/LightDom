@@ -5,8 +5,8 @@
  * These hooks handle lifecycle management and provide clean APIs for common animations.
  */
 
-import { useRef, useEffect, useCallback } from 'react';
-import anime from 'animejs';
+import { useRef, useEffect, useCallback, useState } from 'react';
+import type { JSAnimation, Timeline } from 'animejs';
 import {
   buttonPressAnimation,
   buttonHoverEnterAnimation,
@@ -20,7 +20,7 @@ import {
   formFieldsEntranceAnimation,
   toastEnterAnimation,
   toastExitAnimation,
-} from './formControlAnimations';
+} from '../utils/formControlAnimations';
 
 // =============================================================================
 // Types
@@ -45,6 +45,8 @@ export interface UseAnimatedListOptions {
   animateOnMount?: boolean;
 }
 
+type AnimationInstance = JSAnimation | Timeline | null;
+
 // =============================================================================
 // useAnimatedButton Hook
 // =============================================================================
@@ -66,7 +68,7 @@ export function useAnimatedButton(options: UseAnimatedButtonOptions = {}) {
   } = options;
   
   const ref = useRef<HTMLButtonElement>(null);
-  const animationRef = useRef<anime.AnimeInstance | null>(null);
+  const animationRef = useRef<AnimationInstance>(null);
   
   const handleMouseEnter = useCallback(() => {
     if (!enableHover || !ref.current) return;
@@ -126,7 +128,7 @@ export function useAnimatedInput(options: UseAnimatedInputOptions = {}) {
   } = options;
   
   const ref = useRef<HTMLInputElement>(null);
-  const animationRef = useRef<anime.AnimeInstance | null>(null);
+  const animationRef = useRef<AnimationInstance>(null);
   
   const handleFocus = useCallback(() => {
     if (!animateFocus || !ref.current) return;
@@ -183,7 +185,7 @@ export function useAnimatedCard(options: { duration?: number } = {}) {
   const { duration = 200 } = options;
   
   const ref = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<anime.AnimeInstance | anime.AnimeTimelineInstance | null>(null);
+  const animationRef = useRef<AnimationInstance>(null);
   
   const handleMouseEnter = useCallback(() => {
     if (!ref.current) return;
@@ -209,11 +211,7 @@ export function useAnimatedCard(options: { duration?: number } = {}) {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (animationRef.current) {
-        if ('pause' in animationRef.current) {
-          animationRef.current.pause();
-        }
-      }
+      animationRef.current?.pause();
     };
   }, []);
   
@@ -257,7 +255,7 @@ export function useAnimatedList(options: UseAnimatedListOptions = {}) {
   } = options;
   
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<anime.AnimeInstance | null>(null);
+  const animationRef = useRef<AnimationInstance>(null);
   
   const triggerEntrance = useCallback((selector = '.list-item') => {
     if (!containerRef.current) return;
@@ -266,7 +264,7 @@ export function useAnimatedList(options: UseAnimatedListOptions = {}) {
     if (items.length === 0) return;
     
     animationRef.current?.pause();
-    animationRef.current = formFieldsEntranceAnimation(items as any, {
+    animationRef.current = formFieldsEntranceAnimation(items, {
       stagger,
       duration,
     });
@@ -306,10 +304,10 @@ export function useAnimatedList(options: UseAnimatedListOptions = {}) {
  * 
  * @example
  * ```tsx
- * const { ref, isVisible, show, hide } = useAnimatedMount();
+ * const { ref, show, hide } = useAnimatedMount();
  * 
  * return (
- *   isVisible && <div ref={ref}>Animated content</div>
+ *   <div ref={ref}>Animated content</div>
  * );
  * ```
  */
@@ -325,7 +323,8 @@ export function useAnimatedMount(options: { duration?: number } = {}) {
     isAnimatingRef.current = true;
     
     return new Promise<void>((resolve) => {
-      toastEnterAnimation(ref.current!, { duration }).finished.then(() => {
+      const anim = toastEnterAnimation(ref.current!, { duration });
+      anim.then(() => {
         isAnimatingRef.current = false;
         resolve();
       });
@@ -338,21 +337,13 @@ export function useAnimatedMount(options: { duration?: number } = {}) {
     isAnimatingRef.current = true;
     
     return new Promise<void>((resolve) => {
-      toastExitAnimation(ref.current!, { duration }).finished.then(() => {
+      const anim = toastExitAnimation(ref.current!, { duration });
+      anim.then(() => {
         isAnimatingRef.current = false;
         resolve();
       });
     });
   }, [duration]);
-  
-  // Auto-animate on mount
-  useEffect(() => {
-    if (ref.current) {
-      // Set initial state
-      anime.set(ref.current, { opacity: 0, translateY: 50 });
-      show();
-    }
-  }, [show]);
   
   return {
     ref,
@@ -378,21 +369,21 @@ export function useAnimatedMount(options: { duration?: number } = {}) {
  * ```
  */
 export function useReducedMotion(): boolean {
-  const ref = useRef<boolean>(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    ref.current = mediaQuery.matches;
+    setPrefersReducedMotion(mediaQuery.matches);
     
     const listener = (event: MediaQueryListEvent) => {
-      ref.current = event.matches;
+      setPrefersReducedMotion(event.matches);
     };
     
     mediaQuery.addEventListener('change', listener);
     return () => mediaQuery.removeEventListener('change', listener);
   }, []);
   
-  return ref.current;
+  return prefersReducedMotion;
 }
 
 // =============================================================================
