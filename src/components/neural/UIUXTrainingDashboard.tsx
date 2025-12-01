@@ -55,7 +55,7 @@ export const UIUXTrainingDashboard: React.FC<Props> = ({
       })),
       // Hidden layers
       ...Array.from({ length: 10 }, (_, i) => ({
-        id: 'input-' + i,
+        id: `hidden0-${i}`,
         layer: 1,
         index: i,
         type: 'hidden' as const,
