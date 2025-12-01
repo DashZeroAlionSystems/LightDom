@@ -6,9 +6,9 @@
  */
 
 import { spawn } from 'child_process';
-import { fileURLToPath } from 'url';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +17,7 @@ class DevStarter {
   constructor() {
     this.processes = new Map();
     this.isShuttingDown = false;
-    
+
     // Setup graceful shutdown
     process.on('SIGINT', () => this.shutdown());
     process.on('SIGTERM', () => this.shutdown());
@@ -25,27 +25,30 @@ class DevStarter {
 
   async start() {
     console.log('🚀 Starting LightDom Development Environment...\n');
-    
+
     try {
       // Start API server
       await this.startAPIServer();
       await this.sleep(2000);
-      
+
+      // Start crawler orchestration service
+      await this.startCrawler();
+      await this.sleep(2000);
+
       // Start frontend
       await this.startFrontend();
       await this.sleep(3000);
-      
+
       // Start Electron
       await this.startElectron();
-      
+
       console.log('\n✅ Development environment ready!');
       console.log('🌐 Frontend: http://localhost:3000');
       console.log('🔌 API: http://localhost:3001');
       console.log('🖥️  Desktop App: Launched');
       console.log('\nPress Ctrl+C to stop');
-      
+
       await this.keepAlive();
-      
     } catch (error) {
       console.error('❌ Failed to start:', error.message);
       await this.shutdown();
@@ -55,15 +58,32 @@ class DevStarter {
 
   async startAPIServer() {
     console.log('🔌 Starting API Server...');
-    
+
     const apiProcess = spawn('node', ['simple-api-server.js'], {
       cwd: __dirname,
       stdio: 'inherit',
-      env: { ...process.env, PORT: '3001' }
+      env: { ...process.env, PORT: '3001' },
     });
 
     this.processes.set('api', apiProcess);
     console.log('✅ API Server started');
+  }
+
+  async startCrawler() {
+    console.log('🕷️  Starting Crawler Service...');
+
+    const crawlerProcess = spawn('node', ['scripts/start-crawler-service.js'], {
+      cwd: __dirname,
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        CRAWLER_AUTOSTART: process.env.CRAWLER_AUTOSTART || 'true',
+        CRAWLER_ATTRIBUTE_AUTOSTART: process.env.CRAWLER_ATTRIBUTE_AUTOSTART || 'true',
+      },
+    });
+
+    this.processes.set('crawler', crawlerProcess);
+    console.log('✅ Crawler service started');
   }
 
   async startFrontend() {
@@ -78,7 +98,7 @@ class DevStarter {
       cwd,
       stdio: 'inherit',
       shell: true,
-      env: { ...process.env, VITE_PORT: '3000' }
+      env: { ...process.env, VITE_PORT: '3000' },
     });
 
     this.processes.set('frontend', frontendProcess);
@@ -87,11 +107,11 @@ class DevStarter {
 
   async startElectron() {
     console.log('🖥️  Starting Electron...');
-    
+
     const electronProcess = spawn('npm', ['run', 'electron:dev'], {
       cwd: __dirname,
       stdio: 'inherit',
-      shell: true
+      shell: true,
     });
 
     this.processes.set('electron', electronProcess);
@@ -107,9 +127,9 @@ class DevStarter {
   async shutdown() {
     if (this.isShuttingDown) return;
     this.isShuttingDown = true;
-    
+
     console.log('\n🛑 Shutting down...');
-    
+
     for (const [name, process] of this.processes) {
       try {
         process.kill('SIGTERM');
@@ -117,7 +137,7 @@ class DevStarter {
         // Ignore errors
       }
     }
-    
+
     process.exit(0);
   }
 

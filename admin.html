@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +13,7 @@
             background: #0f172a;
             color: #ffffff;
         }
+
         .login-container {
             display: flex;
             justify-content: center;
@@ -20,6 +21,7 @@
             min-height: 100vh;
             background: linear-gradient(135deg, #1e293b, #334155);
         }
+
         .login-form {
             background: #1e293b;
             padding: 40px;
@@ -27,19 +29,23 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             width: 400px;
         }
+
         .login-form h2 {
             text-align: center;
             margin-bottom: 30px;
             color: #60a5fa;
         }
+
         .form-group {
             margin-bottom: 20px;
         }
+
         .form-group label {
             display: block;
             margin-bottom: 8px;
             color: #e2e8f0;
         }
+
         .form-group input {
             width: 100%;
             padding: 12px;
@@ -49,10 +55,12 @@
             color: #ffffff;
             font-size: 16px;
         }
+
         .form-group input:focus {
             outline: none;
             border-color: #60a5fa;
         }
+
         .btn {
             width: 100%;
             padding: 12px;
@@ -64,17 +72,21 @@
             cursor: pointer;
             transition: background 0.2s;
         }
+
         .btn:hover {
             background: #2563eb;
         }
+
         .error {
             color: #ef4444;
             margin-top: 10px;
             text-align: center;
         }
+
         .dashboard {
             display: none;
         }
+
         .header {
             background: #1e293b;
             padding: 20px;
@@ -83,15 +95,18 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .header h1 {
             margin: 0;
             color: #60a5fa;
         }
+
         .user-info {
             display: flex;
             align-items: center;
             gap: 20px;
         }
+
         .logout-btn {
             background: #ef4444;
             color: white;
@@ -100,27 +115,32 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
+
         .card {
             background: #1e293b;
             border-radius: 8px;
             padding: 20px;
             border: 1px solid #334155;
         }
+
         .card h3 {
             margin-top: 0;
             color: #60a5fa;
         }
+
         .status {
             display: inline-block;
             padding: 4px 8px;
@@ -128,14 +148,17 @@
             font-size: 12px;
             font-weight: bold;
         }
+
         .status.healthy {
             background: #10b981;
             color: white;
         }
+
         .status.unhealthy {
             background: #ef4444;
             color: white;
         }
+
         .btn {
             background: #3b82f6;
             color: white;
@@ -145,21 +168,27 @@
             cursor: pointer;
             margin: 4px;
         }
+
         .btn:hover {
             background: #2563eb;
         }
+
         .btn-danger {
             background: #ef4444;
         }
+
         .btn-danger:hover {
             background: #dc2626;
         }
+
         .btn-success {
             background: #10b981;
         }
+
         .btn-success:hover {
             background: #059669;
         }
+
         .metric {
             display: flex;
             justify-content: space-between;
@@ -168,21 +197,25 @@
             background: #334155;
             border-radius: 4px;
         }
+
         .table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
+
         .table th,
         .table td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #334155;
         }
+
         .table th {
             background: #334155;
             color: #e2e8f0;
         }
+
         .modal {
             display: none;
             position: fixed;
@@ -193,6 +226,7 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
         }
+
         .modal-content {
             background: #1e293b;
             margin: 5% auto;
@@ -201,6 +235,7 @@
             width: 80%;
             max-width: 600px;
         }
+
         .close {
             color: #aaa;
             float: right;
@@ -208,15 +243,18 @@
             font-weight: bold;
             cursor: pointer;
         }
+
         .close:hover {
             color: #fff;
         }
+
         .dashboard-nav {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
             margin-bottom: 24px;
         }
+
         .dashboard-nav a {
             color: #e2e8f0;
             text-decoration: none;
@@ -225,26 +263,32 @@
             border-radius: 999px;
             background: #1e293b;
         }
+
         .dashboard-nav a:hover {
             background: #334155;
         }
+
         .section {
             margin: 32px 0;
         }
+
         .section h2 {
             margin-bottom: 16px;
             color: #f8fafc;
         }
+
         .control-group {
             display: flex;
             flex-direction: column;
             gap: 6px;
             margin-bottom: 12px;
         }
+
         .control-group label {
             font-size: 14px;
             color: #cbd5f5;
         }
+
         .control-group select,
         .control-group textarea,
         .control-group input {
@@ -255,16 +299,19 @@
             padding: 10px;
             font-size: 14px;
         }
+
         .control-group textarea {
             min-height: 120px;
             resize: vertical;
         }
+
         .button-row {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-top: 8px;
         }
+
         .preview-panel {
             background: #0f172a;
             border: 1px solid #334155;
@@ -273,10 +320,12 @@
             max-height: 260px;
             overflow-y: auto;
         }
+
         .preview-panel h4 {
             margin: 0 0 8px 0;
             color: #60a5fa;
         }
+
         .preview-panel pre {
             background: #1e293b;
             padding: 8px;
@@ -284,35 +333,139 @@
             overflow-x: auto;
             color: #cbd5f5;
         }
+
         .status.status-active {
             background: #3b82f6;
             color: #ffffff;
         }
+
         .status.status-pending {
             background: #475569;
             color: #e2e8f0;
         }
+
         .status.status-completed {
             background: #10b981;
             color: #0f172a;
         }
+
         .status.status-failed {
             background: #ef4444;
             color: #ffffff;
         }
+
         .chart-container {
             background: #0f172a;
             border: 1px solid #334155;
             border-radius: 12px;
             padding: 16px;
         }
+
         .mermaid-diagram svg {
             width: 100%;
             height: auto;
         }
+
+        .automation-status-message {
+            font-size: 13px;
+            margin: 8px 0;
+            color: #94a3b8;
+        }
+
+        .automation-status-message.error {
+            color: #f87171;
+        }
+
+        .automation-script-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .automation-script {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .automation-script-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .automation-script-header h4 {
+            margin: 0;
+            color: #f1f5f9;
+        }
+
+        .automation-category {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #38bdf8;
+        }
+
+        .automation-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0;
+        }
+
+        .tag {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 999px;
+            padding: 2px 10px;
+            font-size: 12px;
+            color: #cbd5f5;
+        }
+
+        .automation-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .automation-actions input[type="text"],
+        .automation-actions input[type="number"] {
+            width: 200px;
+        }
+
+        .automation-output {
+            background: #0f172a;
+            border: 1px dashed #475569;
+            border-radius: 6px;
+            padding: 8px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            color: #e2e8f0;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .automation-output.automation-output-error {
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .automation-empty-state {
+            padding: 12px;
+            border: 1px dashed #334155;
+            border-radius: 6px;
+            color: #94a3b8;
+            text-align: center;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 </head>
+
 <body>
     <div id="login-container" class="login-container">
         <div class="login-form">
@@ -347,6 +500,7 @@
                 <a href="#user-management">Users</a>
                 <a href="#security-status">Security</a>
                 <a href="#performance-metrics">Performance</a>
+                <a href="#automation-section">Automation</a>
                 <a href="#crawler-section">Crawler Mining</a>
                 <a href="#neural-section">Neural Instances</a>
                 <a href="#workflow-overview-section">Workflow Overview</a>
@@ -358,43 +512,48 @@
                     <h3>System Overview</h3>
                     <div id="system-overview">Loading...</div>
                 </div>
-                
+
                 <div class="card">
                     <h3>User Management</h3>
                     <div id="user-management">Loading...</div>
                 </div>
-                
+
                 <div class="card">
                     <h3>Security Status</h3>
                     <div id="security-status">Loading...</div>
                 </div>
-                
+
                 <div class="card">
                     <h3>Performance Metrics</h3>
                     <div id="performance-metrics">Loading...</div>
                 </div>
-                
+
                 <div class="card">
                     <h3>Database Management</h3>
                     <div id="database-management">Loading...</div>
                 </div>
-                
+
                 <div class="card">
                     <h3>Monitoring & Alerts</h3>
                     <div id="monitoring-alerts">Loading...</div>
                 </div>
-                
+
                 <div class="card">
                     <h3>Backup Management</h3>
                     <div id="backup-management">Loading...</div>
                 </div>
-                
+
                 <div class="card">
                     <h3>System Maintenance</h3>
                     <div id="system-maintenance">Loading...</div>
                 </div>
+
+                <div class="card" id="automation-section">
+                    <h3>Automation Orchestration</h3>
+                    <div id="automation-container">Loading...</div>
+                </div>
             </div>
-            
+
             <div class="card">
                 <h3>Audit Logs</h3>
                 <div id="audit-logs">Loading...</div>
@@ -430,7 +589,8 @@
                     </div>
                     <div class="control-group">
                         <label for="crawler-prompt">Mining prompt</label>
-                        <textarea id="crawler-prompt" placeholder="Describe the experience you want the crawler to mine"></textarea>
+                        <textarea id="crawler-prompt"
+                            placeholder="Describe the experience you want the crawler to mine"></textarea>
                     </div>
                     <div class="button-row">
                         <button class="btn" onclick="previewCrawlerPrompt()">Preview mined schema</button>
@@ -506,23 +666,24 @@
         let authToken = null;
         let currentUser = null;
         let workflows = [];
+        let automationScripts = [];
 
         // Authentication
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            
+
             try {
                 const response = await fetch('/api/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     authToken = data.token;
                     currentUser = data.user;
@@ -566,7 +727,7 @@
             document.getElementById('login-container').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('user-info').textContent = `Welcome, ${currentUser.username}`;
-            
+
             loadDashboardData();
         }
 
@@ -593,7 +754,7 @@
                     ...options.headers
                 }
             });
-            
+
             return await response.json();
         }
 
@@ -608,6 +769,7 @@
                 loadMonitoringAlerts(),
                 loadBackupManagement(),
                 loadSystemMaintenance(),
+                loadAutomationOrchestration(),
                 loadAuditLogs(),
                 loadWorkflowCollections()
             ]);
@@ -656,7 +818,7 @@
                         </thead>
                         <tbody>
                 `;
-                
+
                 users.forEach(user => {
                     html += `
                         <tr>
@@ -671,7 +833,7 @@
                         </tr>
                     `;
                 });
-                
+
                 html += '</tbody></table>';
                 document.getElementById('user-management').innerHTML = html;
             }
@@ -761,7 +923,7 @@
             if (data.success) {
                 const alerts = data.data;
                 let html = '';
-                
+
                 alerts.forEach(alert => {
                     html += `
                         <div class="metric">
@@ -782,7 +944,7 @@
                         </div>
                     `;
                 });
-                
+
                 document.getElementById('monitoring-alerts').innerHTML = html;
             }
         }
@@ -805,7 +967,7 @@
                         </thead>
                         <tbody>
                 `;
-                
+
                 backups.forEach(backup => {
                     html += `
                         <tr>
@@ -819,7 +981,7 @@
                         </tr>
                     `;
                 });
-                
+
                 html += '</tbody></table>';
                 document.getElementById('backup-management').innerHTML = html;
             }
@@ -830,6 +992,255 @@
                 <button class="btn btn-danger" onclick="startMaintenance()">Start Maintenance</button>
                 <button class="btn btn-success" onclick="stopMaintenance()">Stop Maintenance</button>
             `;
+        }
+
+        async function loadAutomationOrchestration() {
+            const container = document.getElementById('automation-container');
+            if (!container) {
+                return;
+            }
+
+            initializeAutomationPanel(container);
+            setAutomationStatus('Refreshing automation scripts...');
+
+            try {
+                const response = await apiCall('/api/admin/automation/scripts');
+                if (!response.success) {
+                    throw new Error(response.error || 'Failed to load automation scripts.');
+                }
+
+                const inventory = response.data || {};
+                automationScripts = Array.isArray(inventory.scripts) ? inventory.scripts : [];
+
+                const count = automationScripts.length;
+                setAutomationStatus(count ? `Loaded ${count} automation script${count === 1 ? '' : 's'}.` : 'No automation scripts available at the moment.');
+                applyAutomationFilters();
+            } catch (error) {
+                console.error('Failed to load automation scripts', error);
+                setAutomationStatus(`Failed to load automation scripts: ${error.message}`, true);
+                automationScripts = [];
+                renderAutomationScripts([]);
+            }
+        }
+
+        function initializeAutomationPanel(container) {
+            if (container.dataset.initialized === 'true') {
+                return;
+            }
+
+            container.dataset.initialized = 'true';
+            container.innerHTML = `
+                <div class="control-group">
+                    <label for="automation-search">Search automations</label>
+                    <input type="text" id="automation-search" placeholder="Filter by name, description, or command">
+                </div>
+                <div class="control-group">
+                    <label for="automation-tag-filter">Tag filter</label>
+                    <input type="text" id="automation-tag-filter" placeholder="Filter by tag or category">
+                </div>
+                <div class="button-row">
+                    <button class="btn" id="automation-refresh-btn">Refresh</button>
+                </div>
+                <div id="automation-status" class="automation-status-message"></div>
+                <div id="automation-script-list" class="automation-script-list"></div>
+            `;
+
+            document.getElementById('automation-search').addEventListener('input', () => {
+                applyAutomationFilters();
+            });
+
+            document.getElementById('automation-tag-filter').addEventListener('input', () => {
+                applyAutomationFilters();
+            });
+
+            document.getElementById('automation-refresh-btn').addEventListener('click', () => {
+                loadAutomationOrchestration();
+            });
+        }
+
+        function setAutomationStatus(message, isError = false) {
+            const statusEl = document.getElementById('automation-status');
+            if (!statusEl) {
+                return;
+            }
+            statusEl.textContent = message;
+            statusEl.classList.toggle('error', Boolean(isError));
+        }
+
+        function applyAutomationFilters() {
+            const filterValue = document.getElementById('automation-search')?.value?.toLowerCase().trim() || '';
+            const tagValue = document.getElementById('automation-tag-filter')?.value?.toLowerCase().trim() || '';
+
+            if (!automationScripts.length) {
+                renderAutomationScripts([]);
+                return;
+            }
+
+            const filtered = automationScripts.filter(script => {
+                const nameMatches = script.name.toLowerCase().includes(filterValue);
+                const displayMatches = script.displayName.toLowerCase().includes(filterValue);
+                const descriptionMatches = script.description.toLowerCase().includes(filterValue);
+                const commandMatches = script.command.toLowerCase().includes(filterValue);
+                const tagMatches = script.tags.some(tag => tag.toLowerCase().includes(filterValue));
+
+                const matchesFilter = filterValue ? (nameMatches || displayMatches || descriptionMatches || commandMatches || tagMatches) : true;
+                const matchesTag = tagValue ? (script.tags.some(tag => tag.toLowerCase().includes(tagValue)) || (script.category && script.category.toLowerCase().includes(tagValue))) : true;
+                return matchesFilter && matchesTag;
+            });
+
+            renderAutomationScripts(filtered);
+        }
+
+        function escapeHtml(value) {
+            if (typeof value !== 'string') {
+                return '';
+            }
+            return value
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderAutomationScripts(scripts) {
+            const listEl = document.getElementById('automation-script-list');
+            if (!listEl) {
+                return;
+            }
+
+            if (!scripts.length) {
+                listEl.innerHTML = '<div class="automation-empty-state">No automation scripts match the current filters.</div>';
+                return;
+            }
+
+            const html = scripts
+                .map(script => {
+                    const scriptNameLiteral = JSON.stringify(script.name);
+                    const tagsHtml = script.tags
+                        .map(tag => `<span class="tag">${escapeHtml(tag)}</span>`)
+                        .join('');
+
+                    return `
+                        <div class="automation-script" data-script-name="${escapeHtml(script.name)}">
+                            <div class="automation-script-header">
+                                <h4>${escapeHtml(script.displayName)}</h4>
+                                <span class="automation-category">${escapeHtml(script.category || 'automation')}</span>
+                            </div>
+                            <p style="margin: 8px 0; color: #cbd5f5;">${escapeHtml(script.description)}</p>
+                            <div class="automation-tags">${tagsHtml}</div>
+                            <div class="automation-actions">
+                                <input type="text" class="automation-args-input" placeholder="Args (space separated)">
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <input type="checkbox" class="automation-dry-run" id="dry-run-${escapeHtml(script.name)}">
+                                    <label for="dry-run-${escapeHtml(script.name)}" style="margin:0;">Dry run</label>
+                                </div>
+                                <input type="number" min="1000" step="1000" class="automation-timeout-input" placeholder="Timeout (ms)">
+                                <button class="btn btn-success" onclick="runAutomationScript(${scriptNameLiteral}, this)">Run</button>
+                            </div>
+                            <div class="automation-output" style="display:none;"></div>
+                        </div>
+                    `;
+                })
+                .join('');
+
+            listEl.innerHTML = html;
+        }
+
+        function formatAutomationResult(result) {
+            if (!result) {
+                return 'No result payload received from the automation runner.';
+            }
+
+            const parts = [];
+            if (result.command) {
+                parts.push(`Command: ${result.command}`);
+            }
+            if (result.exitCode !== undefined && result.exitCode !== null) {
+                parts.push(`Exit Code: ${result.exitCode}`);
+            }
+            if (typeof result.durationMs === 'number') {
+                parts.push(`Duration: ${result.durationMs} ms`);
+            }
+            if (result.note) {
+                parts.push(`Note: ${result.note}`);
+            }
+            if (result.stdout) {
+                parts.push(`--- stdout ---\n${result.stdout}`);
+            }
+            if (result.stderr) {
+                parts.push(`--- stderr ---\n${result.stderr}`);
+            }
+
+            return parts.join('\n\n');
+        }
+
+        async function runAutomationScript(scriptName, button) {
+            const scriptCard = button.closest('.automation-script');
+            if (!scriptCard) {
+                return;
+            }
+
+            const argsInput = scriptCard.querySelector('.automation-args-input');
+            const dryRunCheckbox = scriptCard.querySelector('.automation-dry-run');
+            const timeoutInput = scriptCard.querySelector('.automation-timeout-input');
+            const outputEl = scriptCard.querySelector('.automation-output');
+
+            const argsRaw = argsInput?.value?.trim() || '';
+            const args = argsRaw ? argsRaw.split(/\s+/).filter(Boolean) : [];
+            const dryRun = Boolean(dryRunCheckbox?.checked);
+            const timeoutRaw = timeoutInput?.value ? Number(timeoutInput.value) : undefined;
+            const timeoutMs = Number.isFinite(timeoutRaw) && timeoutRaw > 0 ? timeoutRaw : undefined;
+
+            const payload = { args, dryRun };
+            if (timeoutMs !== undefined) {
+                payload.timeoutMs = timeoutMs;
+            }
+
+            let originalLabel = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Running...';
+
+            if (outputEl) {
+                outputEl.style.display = 'block';
+                outputEl.classList.remove('automation-output-error');
+                outputEl.textContent = 'Running automation script...';
+            }
+
+            try {
+                const response = await apiCall(`/api/admin/automation/scripts/${encodeURIComponent(scriptName)}/run`, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.success) {
+                    throw new Error(response.error || 'Automation run failed.');
+                }
+
+                const result = response.data;
+                const exitCode = result?.exitCode;
+                const isError = exitCode !== undefined && exitCode !== null && exitCode !== 0;
+
+                if (outputEl) {
+                    outputEl.textContent = formatAutomationResult(result);
+                    outputEl.classList.toggle('automation-output-error', isError);
+                }
+
+                const statusMessage = exitCode === undefined || exitCode === null
+                    ? `Automation script "${scriptName}" completed with unknown exit code.`
+                    : `Automation script "${scriptName}" finished with exit code ${exitCode}.`;
+                setAutomationStatus(statusMessage, isError);
+            } catch (error) {
+                console.error('Automation run failed', error);
+                if (outputEl) {
+                    outputEl.textContent = `Automation run failed: ${error.message}`;
+                    outputEl.classList.add('automation-output-error');
+                }
+                setAutomationStatus(`Automation run failed: ${error.message}`, true);
+            } finally {
+                button.disabled = false;
+                button.textContent = originalLabel;
+            }
         }
 
         async function loadAuditLogs() {
@@ -848,7 +1259,7 @@
                         </thead>
                         <tbody>
                 `;
-                
+
                 logs.forEach(log => {
                     html += `
                         <tr>
@@ -859,7 +1270,7 @@
                         </tr>
                     `;
                 });
-                
+
                 html += '</tbody></table>';
                 document.getElementById('audit-logs').innerHTML = html;
             }
@@ -1083,16 +1494,16 @@
         // User management functions
         document.getElementById('create-user-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const formData = new FormData(e.target);
             const userData = Object.fromEntries(formData);
-            
+
             try {
                 const response = await apiCall('/api/admin/users', {
                     method: 'POST',
                     body: JSON.stringify(userData)
                 });
-                
+
                 if (response.success) {
                     closeModal('user-modal');
                     loadUserManagement();
@@ -1115,7 +1526,7 @@
                     const response = await apiCall(`/api/admin/users/${userId}`, {
                         method: 'DELETE'
                     });
-                    
+
                     if (response.success) {
                         loadUserManagement();
                     } else {
@@ -1263,5 +1674,5 @@
         setInterval(loadDashboardData, 30000);
     </script>
 </body>
+
 </html>
-    

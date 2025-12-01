@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LightDom Space Mining Dashboard</title>
+    <title>LightDom Space Mining Dashboard - Enhanced v2.0</title>
+    <meta name="description" content="Real-time blockchain-powered DOM space mining with metaverse integration" />
     <style>
       body {
         margin: 0;
@@ -218,6 +219,116 @@
       .emoji {
         margin-right: 0.5rem;
       }
+      .blockchain-panel {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #3b82f6;
+      }
+      .blockchain-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #60a5fa;
+      }
+      .mining-progress {
+        background-color: #1e293b;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 0.75rem 0;
+      }
+      .progress-bar-container {
+        background-color: #334155;
+        border-radius: 0.5rem;
+        height: 1.5rem;
+        overflow: hidden;
+        margin: 0.5rem 0;
+      }
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+        transition: width 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      .pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      .realtime-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #10b981;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      .hash-display {
+        font-family: 'Courier New', monospace;
+        background-color: #1e293b;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        color: #60a5fa;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      .rewards-display {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+      .reward-item {
+        background-color: #1e293b;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        text-align: center;
+      }
+      .reward-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fbbf24;
+      }
+      .reward-label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 0.25rem;
+      }
+      .notification {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background-color: #1e293b;
+        border: 2px solid #2563eb;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        max-width: 300px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+      .notification.show {
+        transform: translateX(0);
+      }
+      .notification-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
     </style>
   </head>
   <body>
@@ -225,28 +336,79 @@
       <div class="container">
         <!-- Header -->
         <div class="header">
-          <h1 class="title">🚀 Space Mining Dashboard</h1>
+          <h1 class="title">🚀 Space Mining Dashboard <span style="font-size: 0.5em; color: #60a5fa;">v2.0</span></h1>
           <p class="subtitle">
-            Mine spatial DOM structures, isolate Light DOM components, and create metaverse bridges
+            <span class="realtime-indicator"></span>
+            Real-time blockchain-powered DOM space mining with metaverse integration
           </p>
+        </div>
+
+        <!-- Blockchain Panel -->
+        <div class="blockchain-panel">
+          <div class="blockchain-title">⛓️ Blockchain Mining Status</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+            <div>
+              <div style="color: #94a3b8; font-size: 0.875rem;">Hash Rate</div>
+              <div style="font-size: 1.25rem; font-weight: 700;" id="hashRate">0 H/s</div>
+            </div>
+            <div>
+              <div style="color: #94a3b8; font-size: 0.875rem;">Blocks Mined</div>
+              <div style="font-size: 1.25rem; font-weight: 700;" id="blocksMined">0</div>
+            </div>
+            <div>
+              <div style="color: #94a3b8; font-size: 0.875rem;">Difficulty</div>
+              <div style="font-size: 1.25rem; font-weight: 700;" id="difficulty">Easy</div>
+            </div>
+            <div>
+              <div style="color: #94a3b8; font-size: 0.875rem;">Network Status</div>
+              <div style="font-size: 1.25rem; font-weight: 700; color: #10b981;" id="networkStatus">Connected</div>
+            </div>
+          </div>
+          
+          <div class="mining-progress">
+            <div style="font-size: 0.875rem; margin-bottom: 0.5rem;">
+              Current Block: <span id="currentBlock">Waiting...</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" id="miningProgress" style="width: 0%">0%</div>
+            </div>
+            <div class="hash-display" id="currentHash">
+              Waiting for mining operation...
+            </div>
+          </div>
+
+          <div class="rewards-display">
+            <div class="reward-item">
+              <div class="reward-value" id="tokensEarned">0</div>
+              <div class="reward-label">LIGHTDOM Tokens</div>
+            </div>
+            <div class="reward-item">
+              <div class="reward-value" id="spacesOptimized">0</div>
+              <div class="reward-label">Spaces Optimized</div>
+            </div>
+            <div class="reward-item">
+              <div class="reward-value" id="efficiency">0%</div>
+              <div class="reward-label">Efficiency Score</div>
+            </div>
+          </div>
         </div>
 
         <!-- Mining Stats -->
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-value blue">12</div>
+            <div class="stat-value blue" id="spatialStructures">12</div>
             <div class="stat-label">Spatial Structures</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value green">8</div>
+            <div class="stat-value green" id="isolatedDOMs">8</div>
             <div class="stat-label">Isolated DOMs</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value purple">5</div>
+            <div class="stat-value purple" id="activeBridges">5</div>
             <div class="stat-label">Active Bridges</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value orange">3</div>
+            <div class="stat-value orange" id="queueLength">3</div>
             <div class="stat-label">Queue Length</div>
           </div>
         </div>
@@ -458,7 +620,136 @@
       </div>
     </div>
 
+    <!-- Notification Container -->
+    <div id="notification" class="notification">
+      <div class="notification-title" id="notificationTitle">Notification</div>
+      <div id="notificationMessage">Message</div>
+    </div>
+
     <script>
+      // Blockchain mining simulation state
+      const blockchainState = {
+        hashRate: 0,
+        blocksMined: 0,
+        difficulty: 'Easy',
+        tokensEarned: 0,
+        spacesOptimized: 0,
+        efficiency: 0,
+        currentProgress: 0,
+        isMining: false,
+        structures: 12,
+        isolated: 8,
+        bridges: 5,
+        queue: 3
+      };
+
+      // Real-time updates
+      function updateBlockchainUI() {
+        document.getElementById('hashRate').textContent = `${blockchainState.hashRate.toFixed(2)} H/s`;
+        document.getElementById('blocksMined').textContent = blockchainState.blocksMined;
+        document.getElementById('difficulty').textContent = blockchainState.difficulty;
+        document.getElementById('tokensEarned').textContent = blockchainState.tokensEarned.toFixed(2);
+        document.getElementById('spacesOptimized').textContent = blockchainState.spacesOptimized;
+        document.getElementById('efficiency').textContent = `${blockchainState.efficiency}%`;
+        
+        // Update stats
+        document.getElementById('spatialStructures').textContent = blockchainState.structures;
+        document.getElementById('isolatedDOMs').textContent = blockchainState.isolated;
+        document.getElementById('activeBridges').textContent = blockchainState.bridges;
+        document.getElementById('queueLength').textContent = blockchainState.queue;
+      }
+
+      // Simulate blockchain mining
+      function simulateBlockchainMining() {
+        if (!blockchainState.isMining) return;
+
+        // Update hash rate (fluctuates realistically)
+        blockchainState.hashRate = 150 + Math.random() * 50;
+        
+        // Update progress
+        blockchainState.currentProgress += Math.random() * 10;
+        if (blockchainState.currentProgress >= 100) {
+          blockchainState.currentProgress = 0;
+          blockchainState.blocksMined++;
+          blockchainState.tokensEarned += 5 + Math.random() * 5;
+          blockchainState.spacesOptimized++;
+          blockchainState.efficiency = Math.min(100, blockchainState.efficiency + 2);
+          
+          // Update difficulty
+          if (blockchainState.blocksMined > 5) {
+            blockchainState.difficulty = 'Medium';
+          }
+          if (blockchainState.blocksMined > 15) {
+            blockchainState.difficulty = 'Hard';
+          }
+          
+          // Generate block hash
+          const hash = generateBlockHash();
+          document.getElementById('currentHash').textContent = hash;
+          document.getElementById('currentBlock').textContent = `Block #${blockchainState.blocksMined}`;
+          
+          // Show notification
+          showNotification('Block Mined!', `Block #${blockchainState.blocksMined} mined successfully! +${(5 + Math.random() * 5).toFixed(2)} LIGHTDOM`);
+        }
+        
+        // Update progress bar
+        const progressBar = document.getElementById('miningProgress');
+        progressBar.style.width = `${blockchainState.currentProgress}%`;
+        progressBar.textContent = `${Math.floor(blockchainState.currentProgress)}%`;
+        
+        updateBlockchainUI();
+      }
+
+      // Generate realistic block hash
+      function generateBlockHash() {
+        const chars = '0123456789abcdef';
+        let hash = '0x';
+        for (let i = 0; i < 64; i++) {
+          hash += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return hash;
+      }
+
+      // Show notification
+      function showNotification(title, message) {
+        const notification = document.getElementById('notification');
+        document.getElementById('notificationTitle').textContent = title;
+        document.getElementById('notificationMessage').textContent = message;
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+          notification.classList.remove('show');
+        }, 4000);
+      }
+
+      // Update stats periodically
+      function updateStats() {
+        if (blockchainState.isMining) {
+          // Simulate network activity
+          if (Math.random() > 0.7) {
+            blockchainState.structures += Math.floor(Math.random() * 2);
+            blockchainState.isolated += Math.floor(Math.random() * 2);
+          }
+          if (Math.random() > 0.8) {
+            blockchainState.bridges += Math.floor(Math.random() * 2);
+          }
+          if (Math.random() > 0.6) {
+            blockchainState.queue = Math.max(0, blockchainState.queue + Math.floor(Math.random() * 3) - 1);
+          }
+        }
+      }
+
+      // Initialize blockchain simulation
+      function initializeBlockchain() {
+        blockchainState.isMining = true;
+        
+        setInterval(simulateBlockchainMining, 100);
+        setInterval(updateStats, 2000);
+        
+        showNotification('System Ready', 'Blockchain mining system initialized and ready!');
+      }
+
+      // Tab functionality
       function showTab(tabName) {
         // Hide all tab contents
         const contents = document.querySelectorAll('.tab-content');
@@ -478,6 +769,7 @@
         event.target.classList.add('active');
       }
 
+      // Enhanced mining function
       function startMining() {
         const url = document.getElementById('mining-url').value;
         if (!url) {
@@ -490,12 +782,40 @@
         button.textContent = '⛏️ Mining...';
         button.disabled = true;
 
-        // Simulate API call
-        setTimeout(() => {
-          button.textContent = '🚀 Start Mining';
-          button.disabled = false;
-          alert(`Space mining completed for ${url}!\n\nFound 4 spatial structures, isolated 3 DOM components, created 2 bridges.`);
-        }, 3000);
+        showNotification('Mining Started', `Analyzing ${url}...`);
+
+        // Simulate progressive updates
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+          progress += 25;
+          if (progress >= 100) {
+            clearInterval(progressInterval);
+            
+            // Update stats
+            const newStructures = Math.floor(Math.random() * 3) + 2;
+            const newIsolated = Math.floor(Math.random() * 2) + 1;
+            const newBridges = Math.floor(Math.random() * 2);
+            
+            blockchainState.structures += newStructures;
+            blockchainState.isolated += newIsolated;
+            blockchainState.bridges += newBridges;
+            blockchainState.spacesOptimized += newStructures;
+            blockchainState.tokensEarned += newStructures * 2.5;
+            
+            updateBlockchainUI();
+            
+            button.textContent = '🚀 Start Mining';
+            button.disabled = false;
+            
+            showNotification(
+              'Mining Complete!',
+              `Found ${newStructures} spatial structures, isolated ${newIsolated} DOM components, created ${newBridges} bridges. Earned ${(newStructures * 2.5).toFixed(2)} LIGHTDOM!`
+            );
+            
+            // Clear URL input
+            document.getElementById('mining-url').value = '';
+          }
+        }, 750);
       }
 
       function openBridge(bridgeURL) {
@@ -507,7 +827,7 @@
         // Copy full URL to clipboard
         const fullURL = window.location.origin + url;
         navigator.clipboard.writeText(fullURL).then(() => {
-          alert('Bridge URL copied to clipboard!');
+          showNotification('Copied!', 'Bridge URL copied to clipboard');
         }).catch(() => {
           // Fallback for older browsers
           const textArea = document.createElement('textarea');
@@ -516,9 +836,23 @@
           textArea.select();
           document.execCommand('copy');
           document.body.removeChild(textArea);
-          alert('Bridge URL copied to clipboard!');
+          showNotification('Copied!', 'Bridge URL copied to clipboard');
         });
       }
+
+      // Initialize on page load
+      window.addEventListener('DOMContentLoaded', () => {
+        initializeBlockchain();
+        updateBlockchainUI();
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+          if (e.ctrlKey && e.key === 'm') {
+            e.preventDefault();
+            document.getElementById('mining-url').focus();
+          }
+        });
+      });
     </script>
   </body>
 </html>

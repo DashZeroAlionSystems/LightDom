@@ -1,0 +1,53 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit quality checks..."
+
+# Validate search-first rule for new files
+echo "🔍 Validating search-first rule..."
+STAGED_NEW_FILES=$(git diff --cached --name-only --diff-filter=A | grep -E '\.(ts|tsx|js|jsx)$' || true)
+
+if [ -n "$STAGED_NEW_FILES" ]; then
+  echo "📋 New files detected - running search-first validation..."
+  node scripts/validate-search-first-rule.js || {
+    echo "❌ Search-first rule validation failed!"
+    echo "   Before committing new code, you must search for existing functionality."
+    echo "   See .github/CODE_REVIEW_RULES.md for details."
+    echo "   To bypass (not recommended): git commit --no-verify"
+    exit 1
+  }
+  echo "✅ Search-first rule validation passed"
+else
+  echo "✅ No new files to validate"
+fi
+echo ""
+
+# Run linting
+echo "📝 Checking code formatting..."
+npm run format:check || {
+  echo "❌ Code formatting issues found. Run 'npm run format' to fix."
+  exit 1
+}
+
+# Run linting
+echo "🔍 Running ESLint..."
+npm run lint || {
+  echo "❌ Linting issues found. Run 'npm run lint:fix' to fix automatically."
+  exit 1
+}
+
+# Run type checking
+echo "🔧 Running TypeScript type checking..."
+npm run type-check || {
+  echo "❌ TypeScript errors found."
+  exit 1
+}
+
+# Run unit tests
+echo "🧪 Running unit tests..."
+npm run test:unit || {
+  echo "❌ Unit tests failed."
+  exit 1
+}
+
+echo "✅ Pre-commit checks passed!"

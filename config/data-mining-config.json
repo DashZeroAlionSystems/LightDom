@@ -1,0 +1,250 @@
+{
+  "name": "Advanced Data Mining Configuration",
+  "version": "1.0.0",
+  "description": "Comprehensive data mining configuration with headless browser support, URL seeding, and schema-driven workflows",
+  "browserPool": {
+    "minBrowsers": 2,
+    "maxBrowsers": 10,
+    "maxPagesPerBrowser": 5,
+    "browserType": "puppeteer",
+    "idleTimeout": 300000,
+    "healthCheckInterval": 30000,
+    "autoScale": true,
+    "enableGPU": false,
+    "headless": true
+  },
+  "orchestrator": {
+    "maxConcurrentInstances": 5,
+    "enableURLSeeding": true,
+    "enable3DLayerScraping": true,
+    "enableCustomScrapers": true,
+    "defaultMiningConfig": {
+      "maxDepth": 3,
+      "maxUrls": 1000,
+      "timeout": 30000,
+      "rateLimitMs": 2000,
+      "respectRobotsTxt": true,
+      "followExternalLinks": false
+    }
+  },
+  "urlSeeding": {
+    "maxSeedsPerInstance": 1000,
+    "seedRefreshInterval": 3600000,
+    "searchDepth": 3,
+    "minBacklinkQuality": 0.5,
+    "enableSearchAlgorithms": true,
+    "enableRelatedURLDiscovery": true,
+    "enableBacklinkGeneration": true
+  },
+  "services": {
+    "default": [
+      {
+        "name": "HeadlessBrowserPool",
+        "enabled": true,
+        "config": {
+          "minBrowsers": 2,
+          "maxBrowsers": 10
+        }
+      },
+      {
+        "name": "URLSeedingService",
+        "enabled": true,
+        "config": {
+          "enableSearchAlgorithms": true,
+          "enableRelatedURLDiscovery": true
+        }
+      },
+      {
+        "name": "DOM3DDataMiningService",
+        "enabled": true,
+        "config": {
+          "headless": true,
+          "enableGPU": false
+        }
+      },
+      {
+        "name": "DataMiningOrchestrator",
+        "enabled": true,
+        "config": {
+          "maxConcurrentInstances": 5
+        }
+      }
+    ]
+  },
+  "miningInstances": {
+    "seo-content": {
+      "name": "SEO Content Mining",
+      "template": "seo-content-mining",
+      "seedUrls": [],
+      "enableAutoSeeding": true,
+      "topic": "seo-optimization",
+      "customScrapers": [
+        "seo-metadata",
+        "performance-metrics",
+        "accessibility"
+      ],
+      "enable3DLayer": false,
+      "schedule": {
+        "enabled": true,
+        "frequency": "daily",
+        "time": "02:00"
+      }
+    },
+    "ecommerce-products": {
+      "name": "E-Commerce Product Mining",
+      "template": "e-commerce-product-mining",
+      "seedUrls": [],
+      "enableAutoSeeding": true,
+      "topic": "e-commerce-products",
+      "customScrapers": [
+        "seo-metadata"
+      ],
+      "enable3DLayer": false,
+      "schedule": {
+        "enabled": true,
+        "frequency": "weekly",
+        "time": "03:00"
+      }
+    },
+    "ui-patterns": {
+      "name": "UI Pattern Mining",
+      "template": "ui-pattern-mining",
+      "seedUrls": [],
+      "enableAutoSeeding": false,
+      "topic": "ui-design-patterns",
+      "customScrapers": [
+        "accessibility"
+      ],
+      "enable3DLayer": true,
+      "schedule": {
+        "enabled": false
+      }
+    }
+  },
+  "dataBundling": {
+    "enableTopicBundling": true,
+    "bundleByAttributes": true,
+    "exportFormats": [
+      "json",
+      "csv",
+      "jsonl"
+    ],
+    "compression": true,
+    "includeMetadata": true
+  },
+  "chromeLayers": {
+    "enableLayerAnalysis": true,
+    "captureLayerTree": true,
+    "analyzeCompositingReasons": true,
+    "extract3DTransforms": true,
+    "captureZIndexHierarchy": true
+  },
+  "devTools": {
+    "enablePerformanceMonitoring": true,
+    "enableNetworkMonitoring": true,
+    "enableCoverageAnalysis": true,
+    "enableAccessibilityAnalysis": true,
+    "captureConsoleErrors": true,
+    "captureNetworkErrors": true
+  },
+  "seoDataMining": {
+    "extractMetaTags": true,
+    "extractStructuredData": true,
+    "extractOpenGraph": true,
+    "extractTwitterCards": true,
+    "analyzeHeadingStructure": true,
+    "analyzeInternalLinks": true,
+    "analyzeExternalLinks": true,
+    "analyzeImageAlt": true,
+    "calculatePageSpeed": true,
+    "analyzeMobileResponsiveness": true
+  },
+  "customScrapers": {
+    "seo-metadata": {
+      "enabled": true,
+      "priority": 10,
+      "extractTitle": true,
+      "extractMetaTags": true,
+      "extractCanonical": true,
+      "extractSchemas": true
+    },
+    "performance-metrics": {
+      "enabled": true,
+      "priority": 8,
+      "measureLoadTime": true,
+      "measureDOMContentLoaded": true,
+      "measureTTFB": true,
+      "countResources": true
+    },
+    "accessibility": {
+      "enabled": true,
+      "priority": 7,
+      "analyzeHeadings": true,
+      "analyzeImages": true,
+      "analyzeLinks": true,
+      "analyzeForms": true
+    },
+    "3d-layer-scraper": {
+      "enabled": true,
+      "priority": 9,
+      "captureLayerTree": true,
+      "analyze3DTransforms": true,
+      "extractZIndexes": true,
+      "analyzeCompositing": true
+    }
+  },
+  "knowledgeGraph": {
+    "enableGeneration": true,
+    "autoLinkSchemas": true,
+    "generateRelationships": true,
+    "exportFormat": "json-ld"
+  },
+  "deepSeek": {
+    "enabled": false,
+    "apiKey": "${DEEPSEEK_API_KEY}",
+    "model": "deepseek-reasoner",
+    "enableSchemaGeneration": true,
+    "enableWorkflowSimulation": true,
+    "enableDecisionMaking": true,
+    "temperature": 0.7,
+    "maxTokens": 4000
+  },
+  "simulation": {
+    "enableWorkflowSimulation": true,
+    "simulateBeforeExecution": false,
+    "estimateResources": true,
+    "estimateDuration": true,
+    "validateConfiguration": true
+  },
+  "export": {
+    "defaultFormat": "json",
+    "includeMetadata": true,
+    "includeKnowledgeGraph": true,
+    "includeSchemas": true,
+    "compression": "gzip",
+    "outputDirectory": "./data-mining-output"
+  },
+  "logging": {
+    "level": "info",
+    "logToFile": true,
+    "logDirectory": "./logs/data-mining",
+    "includeTimestamp": true,
+    "includeStackTrace": true
+  },
+  "monitoring": {
+    "enableMetrics": true,
+    "metricsInterval": 60000,
+    "trackBrowserPoolUsage": true,
+    "trackMiningProgress": true,
+    "trackURLDiscovery": true,
+    "trackDataBundles": true,
+    "emitEvents": true
+  },
+  "errorHandling": {
+    "maxRetries": 3,
+    "retryDelay": 5000,
+    "continueOnError": true,
+    "logErrors": true,
+    "notifyOnCriticalError": false
+  }
+}

@@ -14,10 +14,29 @@
  * - Continuous learning from feedback
  */
 
-import * as tf from '@tensorflow/tfjs-node';
-import { Pool } from 'pg';
+import * as tf from '@tensorflow/tfjs';
 import * as cheerio from 'cheerio';
+import { createRequire } from 'module';
 import fetch from 'node-fetch';
+import { Pool } from 'pg';
+
+const requireTF = createRequire(import.meta.url);
+
+const TENSORFLOW_BACKEND = (() => {
+    try {
+        requireTF('@tensorflow/tfjs-node');
+        if (typeof tf.setBackend === 'function' && typeof tf.findBackend === 'function' && tf.findBackend('tensorflow')) {
+            tf.setBackend('tensorflow').catch(() => {});
+        }
+        console.log('AIContentGenerationService: native TensorFlow backend enabled');
+        return 'tensorflow';
+    } catch (err) {
+        console.warn('AIContentGenerationService: native TensorFlow bindings unavailable, using @tensorflow/tfjs fallback');
+        return 'tfjs';
+    }
+})();
+
+const TF_NODE_AVAILABLE = TENSORFLOW_BACKEND === 'tensorflow';
 
 interface GenerationConfig {
     url: string;
@@ -705,6 +724,10 @@ export class AIContentGenerationService {
             for (const row of result.rows) {
                 if (row.model_path) {
                     try {
+                        if (!TF_NODE_AVAILABLE) {
+                            console.warn(`Skipping load for ${row.model_name}: native TensorFlow bindings are required to read models from disk.`);
+                            continue;
+                        }
                         const model = await tf.loadLayersModel(`file://${row.model_path}`);
                         this.models.set(row.model_name, model);
                         console.log(`Loaded model: ${row.model_name}`);

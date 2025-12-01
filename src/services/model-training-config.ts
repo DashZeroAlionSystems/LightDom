@@ -3,9 +3,6 @@
  * Configures DeepSeek training on database, codebase, and project patterns
  */
 
-import { DeepSeekSystemConfig } from '../config/deepseek-config.js';
-import { GitHubPatternMiningService } from './github-pattern-mining.js';
-
 export interface TrainingDataSource {
   type: 'database' | 'codebase' | 'api-routes' | 'workflow-history' | 'git-commits';
   config: Record<string, any>;
@@ -289,12 +286,7 @@ export class ModelTrainingConfigService {
         'Identify patterns',
         'Enrich existing data',
       ],
-      metrics: [
-        'records_extracted',
-        'data_quality_score',
-        'pattern_confidence',
-        'enrichment_rate',
-      ],
+      metrics: ['records_extracted', 'data_quality_score', 'pattern_confidence', 'enrichment_rate'],
       workflows: ['source-discovery', 'data-extraction', 'cleaning', 'enrichment'],
       dataSources: ['web', 'database', 'api', 'files'],
       enrichmentRules: [
@@ -309,15 +301,10 @@ export class ModelTrainingConfigService {
    */
   getTrainingConfig(): ModelFineTuningConfig {
     return {
-      baseModel: 'deepseek-chat',
+      baseModel: 'deepseek-reasoner',
       trainingData: {
         sources: Array.from(this.dataSources.values()),
-        preprocessingSteps: [
-          'tokenize',
-          'normalize',
-          'deduplicate',
-          'augment',
-        ],
+        preprocessingSteps: ['tokenize', 'normalize', 'deduplicate', 'augment'],
         augmentationEnabled: true,
       },
       hyperparameters: {
@@ -359,7 +346,7 @@ export class ModelTrainingConfigService {
       metrics: {
         codeQuality: 0.85,
         testCoverage: 0.75,
-        patternConsistency: 0.90,
+        patternConsistency: 0.9,
       },
     };
 
@@ -381,7 +368,7 @@ export class ModelTrainingConfigService {
    */
   private calculateProjectHealth(metrics: any): 'healthy' | 'warning' | 'critical' {
     const avgScore = (metrics.codeQuality + metrics.testCoverage + metrics.patternConsistency) / 3;
-    
+
     if (avgScore >= 0.8) return 'healthy';
     if (avgScore >= 0.6) return 'warning';
     return 'critical';
@@ -435,19 +422,8 @@ export class ModelTrainingConfigService {
     defaults: Record<string, any>;
   } {
     return {
-      required: [
-        'name',
-        'type',
-        'objective',
-        'dataSources',
-        'workflows',
-      ],
-      optional: [
-        'schedule',
-        'notifications',
-        'retryPolicy',
-        'monitoring',
-      ],
+      required: ['name', 'type', 'objective', 'dataSources', 'workflows'],
+      optional: ['schedule', 'notifications', 'retryPolicy', 'monitoring'],
       defaults: {
         schedule: { type: 'manual', enabled: false },
         notifications: { enabled: true, channels: ['email'] },

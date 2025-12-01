@@ -17,12 +17,14 @@ const __dirname = path.dirname(__filename);
 class OllamaCLI {
     constructor() {
         this.currentModel = 'llama2:7b';
+        this.embeddingModel = 'mxbai-embed-large';
         this.conversationHistory = [];
         this.isOllamaRunning = false;
         this.rl = null;
         this.ollamaProcess = null;
         this.maxHistoryLength = 50;
         this.configPath = path.join(__dirname, 'ollama-cli-config.json');
+        this.modelProfiles = {};
         this.loadConfig();
     }
 
@@ -31,8 +33,10 @@ class OllamaCLI {
             const config = await fs.readFile(this.configPath, 'utf8');
             const data = JSON.parse(config);
             this.currentModel = data.currentModel || 'llama2:7b';
+            this.embeddingModel = data.embeddingModel || 'mxbai-embed-large';
             this.maxHistoryLength = data.maxHistoryLength || 50;
-            console.log(`📚 Loaded config: model=${this.currentModel}, maxHistory=${this.maxHistoryLength}`);
+            this.modelProfiles = data.modelProfiles || {};
+            console.log(`📚 Loaded config: model=${this.currentModel}, embedding=${this.embeddingModel}, maxHistory=${this.maxHistoryLength}`);
         } catch (error) {
             // Config doesn't exist, use defaults
             this.saveConfig();
@@ -42,8 +46,10 @@ class OllamaCLI {
     async saveConfig() {
         const config = {
             currentModel: this.currentModel,
+            embeddingModel: this.embeddingModel,
             maxHistoryLength: this.maxHistoryLength,
-            lastUsed: new Date().toISOString()
+            lastUsed: new Date().toISOString(),
+            modelProfiles: this.modelProfiles
         };
 
         try {
@@ -51,6 +57,33 @@ class OllamaCLI {
         } catch (error) {
             console.warn('⚠️  Could not save config:', error.message);
         }
+    }
+
+    async switchModelProfile(profile) {
+        const profiles = {
+            chat: { model: 'llama2:7b', description: 'General chat' },
+            code: { model: 'deepseek-coder:33b', description: 'Code generation and analysis' },
+            embedding: { model: 'mxbai-embed-large', description: 'High-quality embeddings' },
+            fast: { model: 'mistral:7b', description: 'Fast responses' },
+        };
+
+        if (!profiles[profile]) {
+            console.log(`Unknown profile: ${profile}`);
+            console.log('Available profiles:', Object.keys(profiles).join(', '));
+            return;
+        }
+
+        const { model, description } = profiles[profile];
+        
+        if (profile === 'embedding') {
+            this.embeddingModel = model;
+            console.log(`🔄 Switched embedding model to: ${model} (${description})`);
+        } else {
+            await this.switchModel(model);
+            console.log(`🔄 Switched to profile: ${profile} - ${description}`);
+        }
+        
+        await this.saveConfig();
     }
 
     async checkOllamaStatus() {
@@ -256,6 +289,9 @@ COMMANDS:
   /history, /hist    Show conversation history
   /model <name>      Switch to a different model
   /models            List available models
+  /profile <name>    Switch to a model profile (chat, code, embedding, fast)
+  /profiles          List available profiles
+  /embedding <name>  Switch embedding model
   /status            Show current status
   /config            Show current configuration
   /save              Save current conversation to file
@@ -271,11 +307,18 @@ EXAMPLES:
   ollama-cli --model codellama:7b "Write a function to sort an array"
   ollama-cli /model mistral:7b
   ollama-cli /history
+  ollama-cli /profile code
 
-MODEL SWITCHING:
-  ollama-cli /model llama2:13b    # Switch to larger model
-  ollama-cli /model codellama:7b  # Switch to coding model
-  ollama-cli /model mistral:7b    # Switch to Mistral model
+MODEL PROFILES:
+  chat      - General conversation (llama2:7b)
+  code      - Code generation (deepseek-coder:33b)
+  embedding - High-quality embeddings (mxbai-embed-large)
+  fast      - Quick responses (mistral:7b)
+
+EMBEDDING MODELS:
+  mxbai-embed-large  - Highest quality (1024 dimensions) - RECOMMENDED
+  nomic-embed-text   - Fast, general purpose (768 dimensions)
+  all-minilm         - Lightweight (384 dimensions)
 
 CONFIGURATION:
   Models are automatically downloaded if not available
@@ -502,13 +545,44 @@ Available Models:
                 }
                 break;
 
+            case '/profile':
+            case '/p':
+                if (args[0]) {
+                    await this.switchModelProfile(args[0]);
+                } else {
+                    console.log('Available profiles: chat, code, embedding, fast');
+                    console.log('Usage: /profile <profile_name>');
+                }
+                break;
+
+            case '/profiles':
+                console.log('Available model profiles:');
+                console.log('  chat      - General conversation (llama2:7b)');
+                console.log('  code      - Code generation (deepseek-coder:33b)');
+                console.log('  embedding - High-quality embeddings (mxbai-embed-large)');
+                console.log('  fast      - Quick responses (mistral:7b)');
+                break;
+
+            case '/embedding':
+            case '/embed':
+                if (args[0]) {
+                    this.embeddingModel = args[0];
+                    console.log(`🔄 Switched embedding model to: ${args[0]}`);
+                    await this.saveConfig();
+                } else {
+                    console.log(`Current embedding model: ${this.embeddingModel}`);
+                    console.log('Available: mxbai-embed-large, nomic-embed-text, all-minilm');
+                }
+                break;
+
             case '/status':
             case '/s':
                 await this.showStatus();
                 break;
 
             case '/config':
-                console.log(`Model: ${this.currentModel}`);
+                console.log(`Chat Model: ${this.currentModel}`);
+                console.log(`Embedding Model: ${this.embeddingModel}`);
                 console.log(`Max History: ${this.maxHistoryLength}`);
                 console.log(`Conversation Length: ${this.conversationHistory.length}`);
                 break;

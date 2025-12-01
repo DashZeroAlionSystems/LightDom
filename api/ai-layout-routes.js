@@ -24,7 +24,7 @@ router.post('/generate-layout', async (req, res) => {
 
     if (!prompt || !selectedComponents || selectedComponents.length === 0) {
       return res.status(400).json({
-        error: 'Missing required fields: prompt and selectedComponents'
+        error: 'Missing required fields: prompt and selectedComponents',
       });
     }
 
@@ -42,14 +42,13 @@ router.post('/generate-layout', async (req, res) => {
     res.json({
       success: true,
       layout,
-      provider: provider === 'deepseek' && DEEPSEEK_API_KEY ? 'deepseek' : 'ollama'
+      provider: provider === 'deepseek' && DEEPSEEK_API_KEY ? 'deepseek' : 'ollama',
     });
-
   } catch (error) {
     console.error('AI layout generation error:', error);
     res.status(500).json({
       error: 'Failed to generate layout',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -61,7 +60,7 @@ router.post('/generate-layout', async (req, res) => {
 router.get('/status', async (req, res) => {
   const status = {
     ollama: { available: false, models: [] },
-    deepseek: { available: false, configured: !!DEEPSEEK_API_KEY }
+    deepseek: { available: false, configured: !!DEEPSEEK_API_KEY },
   };
 
   // Check Ollama
@@ -77,8 +76,8 @@ router.get('/status', async (req, res) => {
   if (DEEPSEEK_API_KEY) {
     try {
       const response = await axios.get(`${DEEPSEEK_API_URL}/v1/models`, {
-        headers: { 'Authorization': `Bearer ${DEEPSEEK_API_KEY}` },
-        timeout: 3000
+        headers: { Authorization: `Bearer ${DEEPSEEK_API_KEY}` },
+        timeout: 3000,
       });
       status.deepseek.available = true;
       status.deepseek.models = response.data.data?.map(m => m.id) || [];
@@ -114,14 +113,13 @@ router.post('/generate-workflow', async (req, res) => {
     res.json({
       success: true,
       workflow,
-      provider: provider === 'deepseek' && DEEPSEEK_API_KEY ? 'deepseek' : 'ollama'
+      provider: provider === 'deepseek' && DEEPSEEK_API_KEY ? 'deepseek' : 'ollama',
     });
-
   } catch (error) {
     console.error('Workflow generation error:', error);
     res.status(500).json({
       error: 'Failed to generate workflow',
-      message: error.message
+      message: error.message,
     });
   }
 });
@@ -129,10 +127,12 @@ router.post('/generate-workflow', async (req, res) => {
 // Helper functions
 
 function buildLayoutPrompt(userPrompt, components, currentLayout, schema) {
-  const componentsList = components.map(id => {
-    // Find component details from your component library
-    return id; // Simplified for now
-  }).join(', ');
+  const componentsList = components
+    .map(id => {
+      // Find component details from your component library
+      return id; // Simplified for now
+    })
+    .join(', ');
 
   const schemaInfo = schema ? `\nDatabase Schema Context:\n${JSON.stringify(schema, null, 2)}` : '';
 
@@ -189,19 +189,22 @@ Return valid JSON workflow definition.`;
 
 async function generateWithOllama(prompt, context) {
   try {
-    const response = await axios.post(`${OLLAMA_API_URL}/api/generate`, {
-      model: 'llama2',
-      prompt: prompt,
-      stream: false,
-      format: 'json'
-    }, {
-      timeout: 60000 // 60 second timeout
-    });
+    const response = await axios.post(
+      `${OLLAMA_API_URL}/api/generate`,
+      {
+        model: 'llama2',
+        prompt: prompt,
+        stream: false,
+        format: 'json',
+      },
+      {
+        timeout: 60000, // 60 second timeout
+      }
+    );
 
     // Parse the JSON response
     const layout = JSON.parse(response.data.response);
     return layout;
-
   } catch (error) {
     console.error('Ollama generation error:', error);
     throw new Error(`Ollama API error: ${error.message}`);
@@ -210,31 +213,34 @@ async function generateWithOllama(prompt, context) {
 
 async function generateWithDeepSeek(prompt, context) {
   try {
-    const response = await axios.post(`${DEEPSEEK_API_URL}/v1/chat/completions`, {
-      model: 'deepseek-chat',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a UI/UX expert that generates layout configurations in JSON format.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.7
-    }, {
-      headers: {
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
-        'Content-Type': 'application/json'
+    const response = await axios.post(
+      `${DEEPSEEK_API_URL}/v1/chat/completions`,
+      {
+        model: 'deepseek-reasoner',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a UI/UX expert that generates layout configurations in JSON format.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.7,
       },
-      timeout: 60000
-    });
+      {
+        headers: {
+          Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 60000,
+      }
+    );
 
     const layout = JSON.parse(response.data.choices[0].message.content);
     return layout;
-
   } catch (error) {
     console.error('DeepSeek generation error:', error);
     throw new Error(`DeepSeek API error: ${error.message}`);
@@ -243,17 +249,20 @@ async function generateWithDeepSeek(prompt, context) {
 
 async function generateWorkflowWithOllama(prompt, schema) {
   try {
-    const response = await axios.post(`${OLLAMA_API_URL}/api/generate`, {
-      model: 'llama2',
-      prompt: prompt,
-      stream: false,
-      format: 'json'
-    }, {
-      timeout: 90000 // 90 seconds for workflow generation
-    });
+    const response = await axios.post(
+      `${OLLAMA_API_URL}/api/generate`,
+      {
+        model: 'llama2',
+        prompt: prompt,
+        stream: false,
+        format: 'json',
+      },
+      {
+        timeout: 90000, // 90 seconds for workflow generation
+      }
+    );
 
     return JSON.parse(response.data.response);
-
   } catch (error) {
     console.error('Ollama workflow generation error:', error);
     throw new Error(`Ollama API error: ${error.message}`);
@@ -262,30 +271,34 @@ async function generateWorkflowWithOllama(prompt, schema) {
 
 async function generateWorkflowWithDeepSeek(prompt, schema) {
   try {
-    const response = await axios.post(`${DEEPSEEK_API_URL}/v1/chat/completions`, {
-      model: 'deepseek-chat',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a workflow automation expert that generates n8n workflow configurations in JSON format.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.7
-    }, {
-      headers: {
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
-        'Content-Type': 'application/json'
+    const response = await axios.post(
+      `${DEEPSEEK_API_URL}/v1/chat/completions`,
+      {
+        model: 'deepseek-reasoner',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a workflow automation expert that generates n8n workflow configurations in JSON format.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.7,
       },
-      timeout: 90000
-    });
+      {
+        headers: {
+          Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 90000,
+      }
+    );
 
     return JSON.parse(response.data.choices[0].message.content);
-
   } catch (error) {
     console.error('DeepSeek workflow generation error:', error);
     throw new Error(`DeepSeek API error: ${error.message}`);
@@ -298,16 +311,22 @@ async function generateWorkflowWithDeepSeek(prompt, schema) {
  */
 router.post('/generate-config', async (req, res) => {
   try {
-    const { prompt, context, schemas, provider = 'deepseek', model = 'deepseek-chat' } = req.body;
+    const {
+      prompt,
+      context,
+      schemas,
+      provider = 'deepseek',
+      model = 'deepseek-reasoner',
+    } = req.body;
 
     if (!prompt) {
       return res.status(400).json({
-        error: 'Missing required field: prompt'
+        error: 'Missing required field: prompt',
       });
     }
 
     // Sanitize context values to prevent prompt injection
-    const sanitizeString = (str) => {
+    const sanitizeString = str => {
       if (typeof str !== 'string') return 'N/A';
       return str.replace(/[<>{}]/g, '').substring(0, 500); // Remove dangerous chars and limit length
     };
@@ -362,45 +381,48 @@ Consider the model type and use case to determine appropriate architecture, trai
       success: true,
       config: result.config,
       analysis: result.analysis,
-      provider: provider === 'deepseek' && DEEPSEEK_API_KEY ? 'deepseek' : 'ollama'
+      provider: provider === 'deepseek' && DEEPSEEK_API_KEY ? 'deepseek' : 'ollama',
     });
-
   } catch (error) {
     console.error('AI config generation error:', error);
     res.status(500).json({
       error: 'Failed to generate configuration',
-      message: error.message
+      message: error.message,
     });
   }
 });
 
 async function generateConfigWithDeepSeek(systemPrompt, userPrompt) {
   try {
-    const response = await axios.post(`${DEEPSEEK_API_URL}/v1/chat/completions`, {
-      model: 'deepseek-chat',
-      messages: [
-        {
-          role: 'system',
-          content: systemPrompt
-        },
-        {
-          role: 'user',
-          content: userPrompt
-        }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.7,
-      max_tokens: 2000
-    }, {
-      headers: {
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
-        'Content-Type': 'application/json'
+    const response = await axios.post(
+      `${DEEPSEEK_API_URL}/v1/chat/completions`,
+      {
+        model: 'deepseek-reasoner',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt,
+          },
+          {
+            role: 'user',
+            content: userPrompt,
+          },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.7,
+        max_tokens: 2000,
       },
-      timeout: 90000
-    });
+      {
+        headers: {
+          Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 90000,
+      }
+    );
 
     const content = response.data.choices[0].message.content;
-    
+
     // Validate JSON response
     let parsedConfig;
     try {
@@ -416,7 +438,6 @@ async function generateConfigWithDeepSeek(systemPrompt, userPrompt) {
     }
 
     return parsedConfig;
-
   } catch (error) {
     console.error('DeepSeek config generation error:', error);
     throw new Error(`DeepSeek API error: ${error.message}`);
@@ -426,18 +447,22 @@ async function generateConfigWithDeepSeek(systemPrompt, userPrompt) {
 async function generateConfigWithOllama(systemPrompt, userPrompt) {
   try {
     const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
-    
-    const response = await axios.post(`${OLLAMA_API_URL}/api/generate`, {
-      model: 'llama2',
-      prompt: fullPrompt,
-      stream: false,
-      format: 'json'
-    }, {
-      timeout: 90000
-    });
+
+    const response = await axios.post(
+      `${OLLAMA_API_URL}/api/generate`,
+      {
+        model: 'llama2',
+        prompt: fullPrompt,
+        stream: false,
+        format: 'json',
+      },
+      {
+        timeout: 90000,
+      }
+    );
 
     const content = response.data.response;
-    
+
     // Validate JSON response
     let parsedConfig;
     try {
@@ -453,7 +478,6 @@ async function generateConfigWithOllama(systemPrompt, userPrompt) {
     }
 
     return parsedConfig;
-
   } catch (error) {
     console.error('Ollama config generation error:', error);
     throw new Error(`Ollama API error: ${error.message}`);

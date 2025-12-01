@@ -24,6 +24,7 @@ import AdvancedNodeDashboard from './components/ui/AdvancedNodeDashboard';
 import BlockchainModelStorageDashboard from './components/ui/BlockchainModelStorageDashboard';
 import SpaceOptimizationDashboard from './components/ui/SpaceOptimizationDashboard';
 import { SEOOptimizationDashboard } from './components/SEOOptimizationDashboard';
+import ComprehensiveSEODashboard from './components/dashboard/ComprehensiveSEODashboard';
 import { SEOModelMarketplace } from './components/SEOModelMarketplace';
 import { SEODataMiningDashboard } from './components/SEODataMiningDashboard';
 import ClientZone from './components/ui/ClientZone';
@@ -47,6 +48,7 @@ import BillingManagement from './components/ui/admin/BillingManagement';
 import CrawlerDashboard from './components/ui/admin/CrawlerDashboard';
 import CrawlerWorkloadDashboard from './components/ui/admin/CrawlerWorkloadDashboard';
 import CrawlerCampaignDashboard from './components/CrawlerCampaignDashboard';
+import LeadManagementDashboard from './components/LeadManagementDashboard';
 import TrainingControlPanel from './components/ui/admin/TrainingControlPanel';
 import UserManagementWorkflow from './components/ui/admin/UserManagementWorkflow';
 import SEOCrawlerWorkflow from './components/ui/admin/SEOCrawlerWorkflow';
@@ -63,9 +65,47 @@ import ChromeLayers3DDashboard from './components/ChromeLayers3DDashboard';
 import NeuralNetworkDashboard from './components/ui/dashboard/NeuralNetworkDashboard';
 import TensorFlowNeuralNetworkDashboard from './components/dashboards/TensorFlowNeuralNetworkDashboard';
 import CampaignTrainingAdminDashboard from './components/dashboards/CampaignTrainingAdminDashboard';
+
+// Category Dashboards
+import { 
+  NeuralNetworkDashboard as CategoryNeuralNetworkDashboard,
+  DataStreamsDashboard,
+  DataMiningDashboard,
+  CrawlingDashboard,
+  SeedingDashboard,
+  AttributesDashboard,
+  DataTrainingDashboard,
+  ServicesDashboard,
+} from './components/ui/dashboard/categories';
 import PaintTimelineViewer from './components/visualizations/PaintTimelineViewer';
 import InteractiveSEOWorkflowDashboard from './components/InteractiveSEOWorkflowDashboard';
 import SEOCampaignManagementDashboard from './components/SEOCampaignManagementDashboard';
+import MCPServerDashboard from './components/MCPServerDashboard';
+import { AgentSessionsPanel } from './components/agent/AgentSessionsPanel';
+import StyleguideConfigManager from './components/admin/StyleguideConfigManager';
+import AdminMenuBuilder from './components/admin/AdminMenuBuilder';
+import VisualComponentBuilder from './components/admin/VisualComponentBuilder';
+import MD3DashboardDemo from './components/admin/MD3DashboardDemo';
+import MaterialTailwindDemo from './components/admin/MaterialTailwindDemo';
+import UserManagementPage from './pages/admin/UserManagementPage';
+import DeepSeekWorkflowDashboard from './pages/admin/DeepSeekWorkflowDashboard';
+import ClientReportDashboard from './pages/admin/ClientReportDashboard';
+import DeepSeekSkillsDashboard from './pages/admin/DeepSeekSkillsDashboard';
+import ScraperManagerDashboard from './components/ScraperManagerDashboard';
+import DeepSeekChatPanel from './components/DeepSeekChatPanel';
+import CategoryManagement from './components/ui/admin/CategoryManagement';
+import DataStreamsManagement from './components/DataStreamsManagement';
+import DemoShowcase from './pages/DemoShowcase';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
+import OnboardingVisualization from './pages/OnboardingVisualization';
+import LightDOMSlotsDemo from './pages/LightDOMSlotsDemo';
+import BlockchainBenchmarkDemo from './pages/BlockchainBenchmarkDemo';
+import WorkflowExecutionDemo from './pages/WorkflowExecutionDemo';
+import WorkflowBuilderDemo from './pages/WorkflowBuilderDemo';
+import MetaverseNFTMarketplace from './pages/MetaverseNFTMarketplace';
+import BridgeUseCasesShowcase from './pages/BridgeUseCasesShowcase';
+import DOM3DMiningVisualization from './pages/DOM3DMiningVisualization';
+import Advanced3DLayerMiner from './pages/Advanced3DLayerMiner';
 import './App.css';
 import './styles/design-system.css';
 import './styles/modern-frontpage.css';
@@ -111,6 +151,7 @@ const AppContent: React.FC = () => {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/onboarding" element={<OnboardingFlow />} />
         
         {/* Admin Routes - Separate Admin Layout */}
         <Route
@@ -124,11 +165,13 @@ const AppContent: React.FC = () => {
           <Route index element={<EnhancedAdminOverview />} />
           <Route path="overview" element={<EnhancedAdminOverview />} />
           <Route path="copilot-ui" element={<CopilotUIDemo />} />
-          <Route path="users" element={<EnhancedUserManagement />} />
+          <Route path="users" element={<UserManagementPage />} />
+          <Route path="users-legacy" element={<EnhancedUserManagement />} />
           <Route path="billing" element={<BillingManagement />} />
           <Route path="crawler" element={<CrawlerDashboard />} />
           <Route path="crawler-workload" element={<CrawlerWorkloadDashboard />} />
           <Route path="crawler-campaigns" element={<CrawlerCampaignDashboard />} />
+          <Route path="leads" element={<LeadManagementDashboard />} />
           <Route path="training" element={<TrainingControlPanel />} />
           <Route path="monitoring" element={<SystemMonitoring />} />
           <Route path="logs" element={<SystemLogs />} />
@@ -143,6 +186,16 @@ const AppContent: React.FC = () => {
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
           <Route path="chrome-layers" element={<ChromeLayers3DDashboard />} />
+          <Route path="styleguide-config" element={<StyleguideConfigManager />} />
+          <Route path="menu-builder" element={<AdminMenuBuilder />} />
+          <Route path="component-builder" element={<VisualComponentBuilder />} />
+          <Route path="deepseek-workflows" element={<DeepSeekWorkflowDashboard />} />
+          <Route path="client-reports" element={<ClientReportDashboard />} />
+          <Route path="deepseek-skills" element={<DeepSeekSkillsDashboard />} />
+          <Route path="category-management" element={<CategoryManagement />} />
+          <Route path="data-streams" element={<DataStreamsManagement />} />
+          <Route path="md3-dashboard" element={<MD3DashboardDemo />} />
+          <Route path="material-tailwind" element={<MaterialTailwindDemo />} />
         </Route>
         
         {/* Protected Routes */}
@@ -155,6 +208,7 @@ const AppContent: React.FC = () => {
           }
         >
           <Route index element={<DashboardOverview />} />
+          <Route path="seo" element={<ComprehensiveSEODashboard />} />
           <Route path="optimization" element={<OptimizationDashboard />} />
           <Route path="wallet" element={<WalletDashboard />} />
           <Route path="blockchain" element={<BlockchainDashboard />} />
@@ -176,6 +230,8 @@ const AppContent: React.FC = () => {
           <Route path="seo-marketplace" element={<SEOModelMarketplace />} />
           <Route path="seo-workflow" element={<InteractiveSEOWorkflowDashboard />} />
           <Route path="seo-campaigns" element={<SEOCampaignManagementDashboard />} />
+          <Route path="mcp-servers" element={<MCPServerDashboard />} />
+          <Route path="agent-sessions" element={<div style={{ padding: '24px' }}><AgentSessionsPanel adminMode={false} /></div>} />
           <Route path="analytics" element={<AnalyticsDashboard />} />
           <Route path="websites" element={<WebsitesManagementPage />} />
           <Route path="history" element={<HistoryPage />} />
@@ -189,6 +245,25 @@ const AppContent: React.FC = () => {
           <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
           <Route path="component-schema" element={<ComponentSchemaToolDashboard />} />
+          <Route path="demos" element={<DemoShowcase />} />
+          <Route path="demos/onboarding" element={<OnboardingVisualization />} />
+          <Route path="demos/lightdom-slots" element={<LightDOMSlotsDemo />} />
+          <Route path="demos/blockchain-benchmark" element={<BlockchainBenchmarkDemo />} />
+          <Route path="demos/workflow-execution" element={<WorkflowExecutionDemo />} />
+          <Route path="demos/workflow-builder" element={<WorkflowBuilderDemo />} />
+          <Route path="demos/nft-marketplace" element={<MetaverseNFTMarketplace />} />
+          <Route path="demos/bridge-usecases" element={<BridgeUseCasesShowcase />} />
+          <Route path="demos/3d-mining" element={<DOM3DMiningVisualization />} />
+          
+          {/* Category Dashboards */}
+          <Route path="categories/neural-network" element={<CategoryNeuralNetworkDashboard />} />
+          <Route path="categories/data-streams" element={<DataStreamsDashboard />} />
+          <Route path="categories/data-mining" element={<DataMiningDashboard />} />
+          <Route path="categories/crawling" element={<CrawlingDashboard />} />
+          <Route path="categories/seeding" element={<SeedingDashboard />} />
+          <Route path="categories/attributes" element={<AttributesDashboard />} />
+          <Route path="categories/data-training" element={<DataTrainingDashboard />} />
+          <Route path="categories/services" element={<ServicesDashboard />} />
           
           {/* Admin Routes within Dashboard */}
           <Route path="admin" element={<AdminDashboard />} />
@@ -199,11 +274,21 @@ const AppContent: React.FC = () => {
           <Route path="admin/crawler" element={<CrawlerDashboard />} />
           <Route path="admin/crawler-workload" element={<CrawlerWorkloadDashboard />} />
           <Route path="admin/crawler-campaigns" element={<CrawlerCampaignDashboard />} />
+          <Route path="admin/leads" element={<LeadManagementDashboard />} />
           <Route path="admin/training" element={<TrainingControlPanel />} />
           <Route path="admin/analytics" element={<AdminAnalyticsDashboard />} />
           <Route path="admin/user-workflows" element={<UserManagementWorkflow />} />
           <Route path="admin/seo-workflows" element={<SEOCrawlerWorkflow />} />
           <Route path="admin/ai-automation" element={<AIAutomationPage />} />
+          <Route path="admin/styleguide-config" element={<StyleguideConfigManager />} />
+          <Route path="admin/data-streams" element={<DataStreamsManagement />} />
+          <Route path="data-streams" element={<DataStreamsManagement />} />
+          <Route path="admin/menu-builder" element={<AdminMenuBuilder />} />
+          <Route path="admin/component-builder" element={<VisualComponentBuilder />} />
+          <Route path="admin/scraper-manager" element={<ScraperManagerDashboard />} />
+          <Route path="admin/category-management" element={<CategoryManagement />} />
+          <Route path="chat" element={<DeepSeekChatPanel />} />
+          <Route path="scraper-manager" element={<ScraperManagerDashboard />} />
         </Route>
         
         {/* Public Landing Page */}

@@ -1,0 +1,295 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Service Dependencies Configuration",
+  "description": "Defines services, their dependencies, sub-services, and health check requirements",
+  "version": "1.0.0",
+  "services": {
+    "app": {
+      "name": "Main Application",
+      "container": "lightdom-app",
+      "required": true,
+      "port": 3001,
+      "healthCheck": {
+        "endpoint": "/api/health",
+        "method": "GET",
+        "interval": 30000,
+        "timeout": 5000,
+        "retries": 3,
+        "expectedStatus": 200
+      },
+      "dependencies": ["postgres", "redis"],
+      "subServices": [
+        "api-server",
+        "websocket-server",
+        "background-worker"
+      ]
+    },
+    "postgres": {
+      "name": "PostgreSQL Database",
+      "container": "lightdom-postgres",
+      "required": true,
+      "port": 5432,
+      "healthCheck": {
+        "command": "pg_isready -U lightdom_user -d lightdom",
+        "interval": 10000,
+        "timeout": 5000,
+        "retries": 5
+      },
+      "dependencies": [],
+      "subServices": []
+    },
+    "redis": {
+      "name": "Redis Cache",
+      "container": "lightdom-redis",
+      "required": true,
+      "port": 6379,
+      "healthCheck": {
+        "command": "redis-cli --raw incr ping",
+        "interval": 10000,
+        "timeout": 5000,
+        "retries": 5
+      },
+      "dependencies": [],
+      "subServices": []
+    },
+    "n8n": {
+      "name": "N8N Workflow Engine",
+      "container": "lightdom-n8n",
+      "required": false,
+      "port": 5678,
+      "healthCheck": {
+        "endpoint": "/healthz",
+        "method": "GET",
+        "interval": 30000,
+        "timeout": 10000,
+        "retries": 3,
+        "expectedStatus": 200,
+        "defaults": {
+          "checkBeforeConsume": true,
+          "waitForHealthy": true,
+          "maxWaitTime": 60000
+        }
+      },
+      "dependencies": ["postgres"],
+      "subServices": [
+        "workflow-executor",
+        "webhook-server",
+        "workflow-api"
+      ]
+    },
+    "ollama": {
+      "name": "Ollama LLM Service",
+      "container": "ollama",
+      "required": false,
+      "port": 11434,
+      "healthCheck": {
+        "endpoint": "/api/tags",
+        "method": "GET",
+        "interval": 30000,
+        "timeout": 10000,
+        "retries": 3,
+        "expectedStatus": 200,
+        "defaults": {
+          "checkBeforeConsume": true,
+          "waitForHealthy": true,
+          "maxWaitTime": 120000
+        }
+      },
+      "dependencies": [],
+      "subServices": [
+        "model-loader",
+        "inference-engine"
+      ]
+    },
+    "deepseek-agent": {
+      "name": "DeepSeek Agent Service",
+      "container": "lightdom-app",
+      "required": false,
+      "port": 3001,
+      "healthCheck": {
+        "endpoint": "/api/deepseek/health",
+        "method": "GET",
+        "interval": 30000,
+        "timeout": 5000,
+        "retries": 3,
+        "expectedStatus": 200
+      },
+      "dependencies": ["app", "ollama", "postgres"],
+      "subServices": [
+        "agent-spawner",
+        "task-queue",
+        "error-analyzer",
+        "code-generator",
+        "github-integrator"
+      ]
+    },
+    "knowledge-graph": {
+      "name": "Knowledge Graph MCP",
+      "container": "lightdom-app",
+      "required": false,
+      "port": 3001,
+      "healthCheck": {
+        "endpoint": "/api/knowledge-graph/health",
+        "method": "GET",
+        "interval": 60000,
+        "timeout": 5000,
+        "retries": 3,
+        "expectedStatus": 200
+      },
+      "dependencies": ["postgres"],
+      "subServices": [
+        "codebase-indexer",
+        "relationship-mapper",
+        "query-engine"
+      ]
+    },
+    "error-orchestration": {
+      "name": "Error Orchestration System",
+      "container": "lightdom-app",
+      "required": false,
+      "port": 3001,
+      "healthCheck": {
+        "endpoint": "/api/error-orchestration/health",
+        "method": "GET",
+        "interval": 30000,
+        "timeout": 5000,
+        "retries": 3,
+        "expectedStatus": 200
+      },
+      "dependencies": ["app", "postgres", "deepseek-agent"],
+      "subServices": [
+        "error-reporter",
+        "error-analyzer",
+        "action-executor",
+        "github-ticket-creator",
+        "pr-generator"
+      ]
+    },
+    "git-workflow": {
+      "name": "Git Workflow Automation",
+      "container": "lightdom-app",
+      "required": false,
+      "port": 3001,
+      "healthCheck": {
+        "endpoint": "/api/git-workflow/health",
+        "method": "GET",
+        "interval": 30000,
+        "timeout": 5000,
+        "retries": 3,
+        "expectedStatus": 200
+      },
+      "dependencies": ["app"],
+      "subServices": [
+        "branch-manager",
+        "pr-manager",
+        "merge-manager",
+        "sync-orchestrator"
+      ]
+    }
+  },
+  "serviceRelationships": {
+    "app": {
+      "requiresHealthy": ["postgres", "redis"],
+      "optionalHealthy": ["n8n", "ollama"]
+    },
+    "n8n": {
+      "requiresHealthy": ["postgres"],
+      "subServiceConditions": {
+        "workflow-executor": {
+          "requires": ["postgres"],
+          "enabled": true
+        },
+        "webhook-server": {
+          "requires": [],
+          "enabled": true
+        },
+        "workflow-api": {
+          "requires": ["postgres"],
+          "enabled": true
+        }
+      }
+    },
+    "deepseek-agent": {
+      "requiresHealthy": ["app", "postgres"],
+      "optionalHealthy": ["ollama", "n8n"],
+      "subServiceConditions": {
+        "agent-spawner": {
+          "requires": ["app", "ollama"],
+          "enabled": true
+        },
+        "task-queue": {
+          "requires": ["redis"],
+          "enabled": true
+        },
+        "error-analyzer": {
+          "requires": ["postgres", "knowledge-graph"],
+          "enabled": true
+        },
+        "code-generator": {
+          "requires": ["ollama"],
+          "enabled": true
+        },
+        "github-integrator": {
+          "requires": ["git-workflow"],
+          "enabled": true
+        }
+      }
+    },
+    "error-orchestration": {
+      "requiresHealthy": ["app", "postgres"],
+      "optionalHealthy": ["deepseek-agent", "git-workflow"],
+      "subServiceConditions": {
+        "error-reporter": {
+          "requires": [],
+          "enabled": true
+        },
+        "error-analyzer": {
+          "requires": ["deepseek-agent"],
+          "enabled": true
+        },
+        "action-executor": {
+          "requires": ["postgres"],
+          "enabled": true
+        },
+        "github-ticket-creator": {
+          "requires": ["git-workflow"],
+          "enabled": false
+        },
+        "pr-generator": {
+          "requires": ["git-workflow", "deepseek-agent"],
+          "enabled": false
+        }
+      }
+    }
+  },
+  "healthCheckDefaults": {
+    "api": {
+      "method": "GET",
+      "interval": 30000,
+      "timeout": 5000,
+      "retries": 3,
+      "expectedStatus": 200,
+      "checkBeforeConsume": true,
+      "waitForHealthy": true,
+      "maxWaitTime": 60000
+    },
+    "command": {
+      "interval": 10000,
+      "timeout": 5000,
+      "retries": 5
+    }
+  },
+  "monitoring": {
+    "bidirectionalStream": {
+      "enabled": true,
+      "port": 3002,
+      "protocol": "websocket",
+      "channels": {
+        "health": "/health-stream",
+        "metrics": "/metrics-stream",
+        "events": "/events-stream"
+      },
+      "updateInterval": 5000
+    }
+  }
+}

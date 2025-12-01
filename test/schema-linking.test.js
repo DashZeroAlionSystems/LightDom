@@ -5,11 +5,11 @@
  * Tests for schema analysis, linking, and generation functionality
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import SchemaLinkingService from '../services/schema-linking-service.js';
-import { SchemaLinkingRunner } from '../services/schema-linking-runner.js';
 import fs from 'fs';
 import path from 'path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { SchemaLinkingRunner } from '../services/schema-linking-runner.js';
+import SchemaLinkingService from '../services/schema-linking-service.js';
 
 describe('Schema Linking Service', () => {
   let service;
@@ -18,7 +18,7 @@ describe('Schema Linking Service', () => {
     service = new SchemaLinkingService({
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 5434,
-      database: process.env.DB_NAME || 'lightdom',
+      database: process.env.DB_NAME || 'dom_space_harvester',
       user: process.env.DB_USER || 'lightdom_user',
       password: process.env.DB_PASSWORD || 'lightdom_password'
     });

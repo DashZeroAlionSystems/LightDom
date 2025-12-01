@@ -1,6 +1,6 @@
 /**
  * Enhanced DeepSeek Service with N8N Tool Chain Integration
- * 
+ *
  * Provides:
  * - Tool chain creation for N8N workflows
  * - Algorithm search and generation for SEO attributes
@@ -15,16 +15,17 @@ import { EventEmitter } from 'events';
 class EnhancedDeepSeekN8NService extends EventEmitter {
   constructor(config = {}) {
     super();
-    
+
     this.config = {
       deepseekApiKey: config.deepseekApiKey || process.env.DEEPSEEK_API_KEY,
-      deepseekApiUrl: config.deepseekApiUrl || process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1',
-      deepseekModel: config.deepseekModel || process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+      deepseekApiUrl:
+        config.deepseekApiUrl || process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1',
+      deepseekModel: config.deepseekModel || process.env.DEEPSEEK_MODEL || 'deepseek-reasoner',
       n8nApiUrl: config.n8nApiUrl || process.env.N8N_API_URL || 'http://localhost:5678/api/v1',
       n8nApiKey: config.n8nApiKey || process.env.N8N_API_KEY,
       n8nWebhookUrl: config.n8nWebhookUrl || process.env.N8N_WEBHOOK_URL,
       timeout: config.timeout || 60000,
-      ...config
+      ...config,
     };
 
     // DeepSeek client
@@ -33,8 +34,8 @@ class EnhancedDeepSeekN8NService extends EventEmitter {
       timeout: this.config.timeout,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.config.deepseekApiKey}`
-      }
+        Authorization: `Bearer ${this.config.deepseekApiKey}`,
+      },
     });
 
     // N8N client
@@ -42,13 +43,13 @@ class EnhancedDeepSeekN8NService extends EventEmitter {
       baseURL: this.config.n8nApiUrl,
       headers: {
         'X-N8N-API-KEY': this.config.n8nApiKey,
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
 
     // N8N tools available for DeepSeek to call
     this.n8nTools = this.initializeN8NTools();
-    
+
     // Cache for generated algorithms
     this.algorithmCache = new Map();
   }
@@ -77,18 +78,18 @@ class EnhancedDeepSeekN8NService extends EventEmitter {
                     name: { type: 'string' },
                     type: { type: 'string' },
                     parameters: { type: 'object' },
-                    position: { type: 'array', items: { type: 'number' } }
-                  }
-                }
+                    position: { type: 'array', items: { type: 'number' } },
+                  },
+                },
               },
               connections: {
                 type: 'object',
-                description: 'Node connections'
-              }
+                description: 'Node connections',
+              },
             },
-            required: ['name', 'nodes', 'connections']
-          }
-        }
+            required: ['name', 'nodes', 'connections'],
+          },
+        },
       },
       {
         type: 'function',
@@ -99,14 +100,17 @@ class EnhancedDeepSeekN8NService extends EventEmitter {
             type: 'object',
             properties: {
               workflowId: { type: 'string', description: 'Workflow ID' },
-              nodeType: { type: 'string', description: 'Node type (e.g., httpRequest, function, set)' },
+              nodeType: {
+                type: 'string',
+                description: 'Node type (e.g., httpRequest, function, set)',
+              },
               nodeName: { type: 'string', description: 'Node name' },
               parameters: { type: 'object', description: 'Node parameters' },
-              connectTo: { type: 'string', description: 'Node to connect to' }
+              connectTo: { type: 'string', description: 'Node to connect to' },
             },
-            required: ['workflowId', 'nodeType', 'nodeName']
-          }
-        }
+            required: ['workflowId', 'nodeType', 'nodeName'],
+          },
+        },
       },
       {
         type: 'function',
@@ -117,11 +121,11 @@ class EnhancedDeepSeekN8NService extends EventEmitter {
             type: 'object',
             properties: {
               workflowId: { type: 'string', description: 'Workflow ID to execute' },
-              inputData: { type: 'object', description: 'Input data for workflow' }
+              inputData: { type: 'object', description: 'Input data for workflow' },
             },
-            required: ['workflowId']
-          }
-        }
+            required: ['workflowId'],
+          },
+        },
       },
       {
         type: 'function',
@@ -133,11 +137,15 @@ class EnhancedDeepSeekN8NService extends EventEmitter {
             properties: {
               workflowId: { type: 'string', description: 'Workflow ID' },
               path: { type: 'string', description: 'Webhook path' },
-              method: { type: 'string', enum: ['GET', 'POST', 'PUT', 'DELETE'], description: 'HTTP method' }
+              method: {
+                type: 'string',
+                enum: ['GET', 'POST', 'PUT', 'DELETE'],
+                description: 'HTTP method',
+              },
             },
-            required: ['workflowId', 'path']
-          }
-        }
+            required: ['workflowId', 'path'],
+          },
+        },
       },
       {
         type: 'function',
@@ -148,12 +156,18 @@ class EnhancedDeepSeekN8NService extends EventEmitter {
             type: 'object',
             properties: {
               attributeName: { type: 'string', description: 'SEO attribute name' },
-              attributeType: { type: 'string', description: 'Data type (string, number, boolean, array, object)' },
-              extractionContext: { type: 'string', description: 'Context for extraction (e.g., DOM, API, computed)' }
+              attributeType: {
+                type: 'string',
+                description: 'Data type (string, number, boolean, array, object)',
+              },
+              extractionContext: {
+                type: 'string',
+                description: 'Context for extraction (e.g., DOM, API, computed)',
+              },
             },
-            required: ['attributeName', 'attributeType']
-          }
-        }
+            required: ['attributeName', 'attributeType'],
+          },
+        },
       },
       {
         type: 'function',
@@ -164,17 +178,17 @@ class EnhancedDeepSeekN8NService extends EventEmitter {
             type: 'object',
             properties: {
               attributeName: { type: 'string', description: 'SEO attribute name' },
-              visualizationType: { 
-                type: 'string', 
+              visualizationType: {
+                type: 'string',
                 enum: ['chart', 'table', 'card', 'badge', 'progress', 'list'],
-                description: 'Type of visualization' 
+                description: 'Type of visualization',
               },
-              dataStructure: { type: 'object', description: 'Data structure of the attribute' }
+              dataStructure: { type: 'object', description: 'Data structure of the attribute' },
             },
-            required: ['attributeName', 'visualizationType']
-          }
-        }
-      }
+            required: ['attributeName', 'visualizationType'],
+          },
+        },
+      },
     ];
   }
 
@@ -223,17 +237,17 @@ Options: ${JSON.stringify(options, null, 2)}`;
             content: `You are an expert N8N workflow architect specializing in SEO data mining.
 You have access to tools for creating N8N workflows, adding nodes, and generating algorithms.
 Use the tools to build a complete, production-ready workflow following N8N best practices.
-Always include error handling, retries, and monitoring.`
+Always include error handling, retries, and monitoring.`,
           },
           {
             role: 'user',
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         tools: this.n8nTools,
         tool_choice: 'auto',
         temperature: 0.3,
-        max_tokens: 4000
+        max_tokens: 4000,
       });
 
       // Process tool calls
@@ -245,7 +259,7 @@ Always include error handling, retries, and monitoring.`
         workflow: results.workflow,
         algorithms: results.algorithms,
         components: results.components,
-        conversationId: response.data.id
+        conversationId: response.data.id,
       };
     } catch (error) {
       console.error('Error generating SEO workflow:', error);
@@ -258,7 +272,7 @@ Always include error handling, retries, and monitoring.`
    */
   async searchOrGenerateAlgorithm(attributeName, attributeType, extractionContext = 'DOM') {
     const cacheKey = `${attributeName}_${attributeType}_${extractionContext}`;
-    
+
     // Check cache first
     if (this.algorithmCache.has(cacheKey)) {
       return this.algorithmCache.get(cacheKey);
@@ -283,19 +297,20 @@ Return only the JavaScript function code.`;
         messages: [
           {
             role: 'system',
-            content: 'You are an expert JavaScript developer specializing in web scraping and SEO analysis. Generate clean, efficient, production-ready code.'
+            content:
+              'You are an expert JavaScript developer specializing in web scraping and SEO analysis. Generate clean, efficient, production-ready code.',
           },
           {
             role: 'user',
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         temperature: 0.2,
-        max_tokens: 1000
+        max_tokens: 1000,
       });
 
       const algorithm = response.data.choices[0].message.content;
-      
+
       // Cache the result
       this.algorithmCache.set(cacheKey, algorithm);
 
@@ -331,16 +346,17 @@ Return as a JSON schema that can be used to auto-generate the component.`;
         messages: [
           {
             role: 'system',
-            content: 'You are an expert React developer. Generate component schemas following best practices and Ant Design patterns.'
+            content:
+              'You are an expert React developer. Generate component schemas following best practices and Ant Design patterns.',
           },
           {
             role: 'user',
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         temperature: 0.3,
         max_tokens: 1500,
-        response_format: { type: 'json_object' }
+        response_format: { type: 'json_object' },
       });
 
       return JSON.parse(response.data.choices[0].message.content);
@@ -357,7 +373,7 @@ Return as a JSON schema that can be used to auto-generate the component.`;
     const results = {
       workflow: null,
       algorithms: [],
-      components: []
+      components: [],
     };
 
     for (const toolCall of toolCalls) {
@@ -390,7 +406,7 @@ Return as a JSON schema that can be used to auto-generate the component.`;
             );
             results.algorithms.push({
               attributeName: args.attributeName,
-              algorithm
+              algorithm,
             });
             break;
 
@@ -429,7 +445,7 @@ Return as a JSON schema that can be used to auto-generate the component.`;
           type: node.type,
           typeVersion: 1,
           position: node.position || [250, 300 + index * 100],
-          parameters: node.parameters || {}
+          parameters: node.parameters || {},
         })),
         connections: workflowData.connections || {},
         settings: {
@@ -438,17 +454,17 @@ Return as a JSON schema that can be used to auto-generate the component.`;
           saveDataSuccessExecution: 'all',
           saveDataErrorExecution: 'all',
           executionTimeout: 3600,
-          timezone: 'America/New_York'
+          timezone: 'America/New_York',
         },
         staticData: null,
         tags: ['seo', 'data-mining', 'automated'],
-        active: true
+        active: true,
       };
 
       const response = await this.n8nClient.post('/workflows', n8nWorkflow);
-      
+
       this.emit('workflow_created', response.data);
-      
+
       return response.data;
     } catch (error) {
       console.error('Error creating N8N workflow:', error);
@@ -463,7 +479,7 @@ Return as a JSON schema that can be used to auto-generate the component.`;
     try {
       // Get existing workflow
       const workflow = await this.n8nClient.get(`/workflows/${nodeData.workflowId}`);
-      
+
       // Add new node
       const newNode = {
         id: `node_${workflow.data.nodes.length}`,
@@ -471,7 +487,7 @@ Return as a JSON schema that can be used to auto-generate the component.`;
         type: nodeData.nodeType,
         typeVersion: 1,
         position: [250, 300 + workflow.data.nodes.length * 100],
-        parameters: nodeData.parameters || {}
+        parameters: nodeData.parameters || {},
       };
 
       workflow.data.nodes.push(newNode);
@@ -484,13 +500,13 @@ Return as a JSON schema that can be used to auto-generate the component.`;
         workflow.data.connections[nodeData.connectTo].main[0].push({
           node: newNode.name,
           type: 'main',
-          index: 0
+          index: 0,
         });
       }
 
       // Update workflow
       await this.n8nClient.patch(`/workflows/${nodeData.workflowId}`, workflow.data);
-      
+
       return newNode;
     } catch (error) {
       console.error('Error adding workflow node:', error);
@@ -504,11 +520,11 @@ Return as a JSON schema that can be used to auto-generate the component.`;
   async executeN8NWorkflow(workflowId, inputData = {}) {
     try {
       const response = await this.n8nClient.post(`/workflows/${workflowId}/execute`, {
-        data: inputData
+        data: inputData,
       });
-      
+
       this.emit('workflow_executed', { workflowId, executionId: response.data.id });
-      
+
       return response.data;
     } catch (error) {
       console.error('Error executing N8N workflow:', error);
@@ -526,7 +542,7 @@ Return as a JSON schema that can be used to auto-generate the component.`;
         path: webhookData.path,
         method: webhookData.method || 'POST',
         responseMode: 'onReceived',
-        responseData: 'firstEntryJson'
+        responseData: 'firstEntryJson',
       };
 
       // Add webhook node to workflow
@@ -534,13 +550,13 @@ Return as a JSON schema that can be used to auto-generate the component.`;
         workflowId: webhookData.workflowId,
         nodeType: 'n8n-nodes-base.webhook',
         nodeName: 'Webhook Trigger',
-        parameters: webhook
+        parameters: webhook,
       });
 
       const webhookUrl = `${this.config.n8nWebhookUrl}/${webhookData.path}`;
-      
+
       this.emit('webhook_created', { webhookUrl, workflowId: webhookData.workflowId });
-      
+
       return { webhookUrl, ...webhook };
     } catch (error) {
       console.error('Error creating webhook trigger:', error);
@@ -567,12 +583,12 @@ Ask clarifying questions about:
 - Budget/resource constraints
 
 Once you have enough information, use the available tools to generate the workflow.
-Session context: ${JSON.stringify(sessionContext)}`
+Session context: ${JSON.stringify(sessionContext)}`,
         },
         ...userMessages.map(msg => ({
           role: msg.role || 'user',
-          content: msg.content
-        }))
+          content: msg.content,
+        })),
       ];
 
       const response = await this.deepseekClient.post('/chat/completions', {
@@ -581,14 +597,14 @@ Session context: ${JSON.stringify(sessionContext)}`
         tools: this.n8nTools,
         tool_choice: 'auto',
         temperature: 0.7,
-        max_tokens: 2000
+        max_tokens: 2000,
       });
 
       const result = {
         message: response.data.choices[0].message.content,
         toolCalls: response.data.choices[0].message.tool_calls || [],
         conversationId: response.data.id,
-        needsMoreInfo: !response.data.choices[0].message.tool_calls
+        needsMoreInfo: !response.data.choices[0].message.tool_calls,
       };
 
       // Execute any tool calls

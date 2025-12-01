@@ -25,16 +25,99 @@ interface LightDomConfig {
   debug: boolean;
   enableAnalytics: boolean;
   enableCoreWebVitals: boolean;
+  enableCrawler: boolean;
+  applyStyleGuide: boolean;
+  enableRealtimeInsights: boolean;
+  allowBacklinkOverlay: boolean;
   analyticsInterval: number;
   version: string;
   environment: 'development' | 'production';
+  crawlerEndpoint: string;
+  realtimeEndpoint: string;
+  campaignPlan?: string;
+}
+
+interface StyleGuideDefaults {
+  palette: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    surface: string;
+    success: string;
+    warning: string;
+    danger: string;
+  };
+  typography: {
+    fontFamily: string;
+    headlineWeight: string;
+    bodyWeight: string;
+    lineHeight: number;
+    scale: Record<string, string>;
+  };
+  layout: {
+    borderRadius: string;
+    spacingUnit: string;
+    containerWidth: string;
+    shadow: string;
+  };
+  components: {
+    card: { padding: string; border: string; backdrop: string };
+    button: { padding: string; radius: string; fontWeight: string };
+    badge: { radius: string; fontSize: string };
+  };
+}
+
+interface BacklinkStorefrontLink {
+  label: string;
+  url: string;
+  payoutUrl: string;
+  anchorText?: string;
+  category?: string;
+}
+
+interface BacklinkCampaignPlan {
+  tier: 'core' | 'growth' | 'elite';
+  focusKeywords: string[];
+  flagshipOffers: string[];
+  storefrontLinks: BacklinkStorefrontLink[];
+  automation: {
+    refreshCadence: string;
+    indexMonitoring: boolean;
+    webhooksEnabled: boolean;
+  };
+  reporting: {
+    frequency: string;
+    lastGenerated?: string;
+    nextGeneration?: string;
+  };
+}
+
+interface RealtimeInsightSnapshot {
+  seoScore: number;
+  seoScoreChange: number;
+  coreWebVitals: CoreWebVitals;
+  lastUpdated: number;
+  monthlyOverview?: {
+    improvements: number;
+    regressions: number;
+    highlights: string[];
+  };
+}
+
+interface CampaignCustomizations {
+  campaignRules?: string[];
+  styleGuideDefaults?: StyleGuideDefaults;
+  backlinkCampaign?: BacklinkCampaignPlan;
+  realtimeInsights?: RealtimeInsightSnapshot;
+  [key: string]: any;
 }
 
 interface SEOOptimizationConfig {
   schemas: SchemaConfig[];
   metaTags: MetaTagConfig;
   abTestVariant?: 'A' | 'B';
-  customizations: Record<string, any>;
+  customizations: CampaignCustomizations;
 }
 
 interface SchemaConfig {
@@ -79,6 +162,12 @@ interface AnalyticsData {
     domContentLoaded: number;
     firstPaint: number;
   };
+  campaign?: {
+    plan?: string;
+    rules?: string[];
+    seoScore?: number;
+    lastUpdated?: number;
+  };
 }
 
 class LightDomSDK {
@@ -91,6 +180,8 @@ class LightDomSDK {
   private observers: Map<string, PerformanceObserver> = new Map();
   private userInteractions = 0;
   private maxScrollDepth = 0;
+  private campaignDetails?: CampaignCustomizations;
+  private styleGuideApplied = false;
 
   constructor() {
     this.sessionId = this.generateSessionId();
@@ -110,16 +201,26 @@ class LightDomSDK {
    */
   private parseConfig(): LightDomConfig {
     const script = document.currentScript as HTMLScriptElement;
+    const apiEndpoint = script?.getAttribute('data-api-endpoint') || 'https://api.lightdom.io';
+    const envAttr = script?.getAttribute('data-env');
+    const environment: 'development' | 'production' = envAttr === 'development' ? 'development' : 'production';
     
     return {
       apiKey: script?.getAttribute('data-api-key') || '',
-      apiEndpoint: script?.getAttribute('data-api-endpoint') || 'https://api.lightdom.io',
+      apiEndpoint,
       debug: script?.getAttribute('data-debug') === 'true',
       enableAnalytics: script?.getAttribute('data-analytics') !== 'false',
       enableCoreWebVitals: script?.getAttribute('data-core-web-vitals') !== 'false',
+      enableCrawler: script?.getAttribute('data-enable-crawler') !== 'false',
+      applyStyleGuide: script?.getAttribute('data-apply-style-guide') !== 'false',
+      enableRealtimeInsights: script?.getAttribute('data-realtime-insights') !== 'false',
+      allowBacklinkOverlay: script?.getAttribute('data-backlink-overlay') === 'true',
       analyticsInterval: parseInt(script?.getAttribute('data-interval') || '30000'),
       version: '1.0.0',
-      environment: (script?.getAttribute('data-env') as any) || 'production'
+      environment,
+      crawlerEndpoint: script?.getAttribute('data-crawler-endpoint') || `${apiEndpoint}/api/v1/seo/crawl`,
+      realtimeEndpoint: script?.getAttribute('data-realtime-endpoint') || `${apiEndpoint}/api/v1/seo/runtime/insights`,
+      campaignPlan: script?.getAttribute('data-plan') || undefined
     };
   }
 
@@ -132,10 +233,31 @@ class LightDomSDK {
 
       // Fetch optimization configuration
       this.optimizationConfig = await this.fetchConfig();
+      this.campaignDetails = this.optimizationConfig.customizations || {};
       
       // Apply optimizations
       this.injectSchemas(this.optimizationConfig.schemas);
       this.optimizeMetaTags(this.optimizationConfig.metaTags);
+
+      if (this.config.applyStyleGuide) {
+        this.applyStyleGuideDefaults(this.campaignDetails?.styleGuideDefaults);
+      }
+
+      if (this.config.enableCrawler) {
+        this.ensureSiteCrawl().catch((err) => this.logError('Crawl orchestration failed', err));
+      }
+
+      if (this.campaignDetails?.campaignRules) {
+        this.registerCampaignRules(this.campaignDetails.campaignRules);
+      }
+
+      if (this.config.allowBacklinkOverlay) {
+        this.attachBacklinkStorefront(this.campaignDetails?.backlinkCampaign);
+      }
+
+      if (this.config.enableRealtimeInsights) {
+        this.publishRealtimeInsights(this.campaignDetails?.realtimeInsights);
+      }
       
       // Start monitoring
       if (this.config.enableCoreWebVitals) {
@@ -156,14 +278,21 @@ class LightDomSDK {
    * Fetch optimization configuration from API
    */
   private async fetchConfig(): Promise<SEOOptimizationConfig> {
-    const url = `${this.config.apiEndpoint}/api/v1/seo/config/${this.config.apiKey}`;
+    const requestUrl = new URL(`${this.config.apiEndpoint}/api/v1/seo/config/${this.config.apiKey}`);
+    requestUrl.searchParams.set('url', window.location.href);
+    requestUrl.searchParams.set('path', window.location.pathname || '/');
+    if (this.config.campaignPlan) {
+      requestUrl.searchParams.set('plan', this.config.campaignPlan);
+    }
     
     try {
-      const response = await fetch(url, {
+      const response = await fetch(requestUrl.toString(), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'X-SDK-Version': this.config.version
+          'X-SDK-Version': this.config.version,
+          'X-LightDom-SDK-Mode': this.config.environment,
+          'X-LightDom-SDK-Plan': this.config.campaignPlan || 'unspecified'
         }
       });
 
@@ -171,7 +300,8 @@ class LightDomSDK {
         throw new Error(`API returned ${response.status}`);
       }
 
-      const config = await response.json();
+      const config = await response.json() as SEOOptimizationConfig;
+      config.customizations = (config.customizations || {}) as CampaignCustomizations;
       this.log('Configuration fetched successfully');
       return config;
       
@@ -182,7 +312,7 @@ class LightDomSDK {
       return {
         schemas: [],
         metaTags: {},
-        customizations: {}
+        customizations: {} as CampaignCustomizations
       };
     }
   }
@@ -257,6 +387,171 @@ class LightDomSDK {
     }
 
     this.log('Meta tags optimized');
+  }
+
+  private applyStyleGuideDefaults(styleGuide?: StyleGuideDefaults): void {
+    if (!styleGuide || this.styleGuideApplied) {
+      return;
+    }
+
+    try {
+      const root = document.documentElement;
+      const palette = styleGuide.palette;
+      Object.entries({
+        '--lightdom-color-primary': palette.primary,
+        '--lightdom-color-secondary': palette.secondary,
+        '--lightdom-color-accent': palette.accent,
+        '--lightdom-color-background': palette.background,
+        '--lightdom-color-surface': palette.surface,
+        '--lightdom-color-success': palette.success,
+        '--lightdom-color-warning': palette.warning,
+        '--lightdom-color-danger': palette.danger,
+        '--lightdom-radius-base': styleGuide.layout.borderRadius,
+        '--lightdom-spacing-unit': styleGuide.layout.spacingUnit,
+        '--lightdom-container-width': styleGuide.layout.containerWidth,
+        '--lightdom-shadow-elevated': styleGuide.layout.shadow,
+        '--lightdom-font-family': styleGuide.typography.fontFamily,
+        '--lightdom-font-weight-headline': styleGuide.typography.headlineWeight,
+        '--lightdom-font-weight-body': styleGuide.typography.bodyWeight,
+        '--lightdom-line-height': styleGuide.typography.lineHeight.toString()
+      }).forEach(([variable, value]) => {
+        if (value) {
+          root.style.setProperty(variable, value);
+        }
+      });
+
+      this.styleGuideApplied = true;
+      this.log('Style guide defaults applied');
+    } catch (error) {
+      this.logError('Failed to apply style guide defaults', error);
+    }
+  }
+
+  private registerCampaignRules(rules?: string[]): void {
+    if (!rules || rules.length === 0) {
+      return;
+    }
+
+    try {
+      document.body.dataset.lightdomCampaignRules = rules.join('|');
+      this.updateMetaTag('name', 'lightdom:campaign-rules', rules.join(', '));
+
+      if (this.config.campaignPlan) {
+        document.body.dataset.lightdomCampaignPlan = this.config.campaignPlan;
+        this.updateMetaTag('name', 'lightdom:campaign-plan', this.config.campaignPlan);
+      }
+    } catch (error) {
+      this.logError('Failed to register campaign rules', error);
+    }
+  }
+
+  private publishRealtimeInsights(insights?: RealtimeInsightSnapshot): void {
+    if (!insights) {
+      return;
+    }
+
+    try {
+      (window as any).LightDomRealtimeInsights = insights;
+      document.body.dataset.lightdomSeoScore = insights.seoScore.toString();
+      this.updateMetaTag('name', 'lightdom:seo-score', insights.seoScore.toString());
+      this.updateMetaTag('name', 'lightdom:seo-score-change', insights.seoScoreChange.toString());
+
+      if (insights.monthlyOverview) {
+        this.updateMetaTag(
+          'name',
+          'lightdom:monthly-highlights',
+          insights.monthlyOverview.highlights.join(' | ')
+        );
+      }
+    } catch (error) {
+      this.logError('Failed to publish realtime insights', error);
+    }
+  }
+
+  private attachBacklinkStorefront(plan?: BacklinkCampaignPlan): void {
+    if (!plan || !plan.storefrontLinks || plan.storefrontLinks.length === 0) {
+      return;
+    }
+
+    try {
+      if (document.querySelector('script[data-lightdom="backlink-storefront"]')) {
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.setAttribute('data-lightdom', 'backlink-storefront');
+
+      const offerCatalog = {
+        '@context': 'https://schema.org',
+        '@type': 'OfferCatalog',
+        name: `LightDom Backlink Storefront - ${plan.tier.toUpperCase()} Tier`,
+        description: 'Curated backlink placements with automated payout tracking.',
+        itemListElement: plan.storefrontLinks.map((link, index) => ({
+          '@type': 'Offer',
+          position: index + 1,
+          url: link.payoutUrl,
+          itemOffered: {
+            '@type': 'Service',
+            name: link.label,
+            description: link.category ? `${link.category} backlink placement` : 'Backlink placement',
+            url: link.url,
+            potentialAction: {
+              '@type': 'BuyAction',
+              target: link.payoutUrl
+            }
+          }
+        }))
+      };
+
+      script.text = JSON.stringify(offerCatalog);
+      document.head.appendChild(script);
+      document.body.dataset.lightdomBacklinkTier = plan.tier;
+      this.log('Backlink storefront schema injected');
+    } catch (error) {
+      this.logError('Failed to inject backlink storefront schema', error);
+    }
+  }
+
+  private async ensureSiteCrawl(): Promise<void> {
+    if (!this.config.enableCrawler || !this.config.apiKey) {
+      return;
+    }
+
+    try {
+      const storageKey = `lightdom:crawl:${this.config.apiKey}:${window.location.pathname}`;
+      const lastRunRaw = window.localStorage?.getItem(storageKey);
+      const lastRun = lastRunRaw ? parseInt(lastRunRaw, 10) : 0;
+      const oneDay = 24 * 60 * 60 * 1000;
+
+      if (Date.now() - lastRun < oneDay) {
+        return;
+      }
+
+      const response = await fetch(this.config.crawlerEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-SDK-Version': this.config.version
+        },
+        body: JSON.stringify({
+          apiKey: this.config.apiKey,
+          url: window.location.href,
+          pathname: window.location.pathname,
+          plan: this.config.campaignPlan,
+          sessionId: this.sessionId
+        })
+      });
+
+      if (response.ok) {
+        window.localStorage?.setItem(storageKey, Date.now().toString());
+        this.log('SEO crawl queued successfully');
+      } else {
+        this.logError('Failed to queue crawl', await response.text());
+      }
+    } catch (error) {
+      this.logError('Crawl orchestration failed', error);
+    }
   }
 
   /**
@@ -420,6 +715,12 @@ class LightDomSDK {
         loadTime: performance.timing ? performance.timing.loadEventEnd - performance.timing.navigationStart : 0,
         domContentLoaded: performance.timing ? performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart : 0,
         firstPaint: this.coreWebVitals.fcp || 0
+      },
+      campaign: {
+        plan: this.config.campaignPlan,
+        rules: this.campaignDetails?.campaignRules,
+        seoScore: this.campaignDetails?.realtimeInsights?.seoScore,
+        lastUpdated: this.campaignDetails?.realtimeInsights?.lastUpdated
       }
     };
 

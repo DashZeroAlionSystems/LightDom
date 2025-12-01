@@ -4,22 +4,33 @@
  * and configuring schema-linked function calls with preview/code/diff views.
  */
 
-import React, { useMemo, useState } from 'react';
 import {
+  Badge,
+  Button,
+  Card,
+  Checkbox,
+  Input,
+  Tooltip,
   WorkspaceLayout,
   WorkspaceRailSection,
+  WorkspaceSection,
   WorkspaceTabs,
   WorkspaceToggleGroup,
-  WorkspaceSection,
-  Button,
-  Input,
-  Card,
-  Badge,
-  Checkbox,
-  Tooltip,
 } from '@/components/ui';
+import { RadixComponentGallery } from '@/components/ui/radix/RadixComponentGallery';
+import type { RadixComponentDescriptor } from '@/components/ui/radix/types';
+import { RADIX_COMPONENTS } from '@/data/radix-components.generated';
 import { cn } from '@/lib/utils';
-import { Code2, Eye, GitPullRequest, Link as LinkIcon, Search, Sparkles, Wand2 } from 'lucide-react';
+import {
+  Code2,
+  Eye,
+  GitPullRequest,
+  Link as LinkIcon,
+  Search,
+  Sparkles,
+  Wand2,
+} from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 
 interface SchemaLink {
   id: string;
@@ -75,13 +86,15 @@ const COMPONENT_CATALOG: ComponentArtifact[] = [
         label: 'TrafficTimeseries',
         description: 'Organic traffic timeseries aggregated by day.',
         required: true,
-        functionSignature: 'fetchTrafficTimeseries(siteId: string, range: DateRange): Promise<TrafficPoint[]>',
+        functionSignature:
+          'fetchTrafficTimeseries(siteId: string, range: DateRange): Promise<TrafficPoint[]>',
       },
       {
         id: 'schema-keywords',
         label: 'KeywordCoverageSnapshot',
         description: 'Keyword ranking snapshot with trend deltas.',
-        functionSignature: 'generateKeywordCoverage(siteId: string, segment?: string): Promise<KeywordCoverage[]>',
+        functionSignature:
+          'generateKeywordCoverage(siteId: string, segment?: string): Promise<KeywordCoverage[]>',
       },
     ],
   },
@@ -174,62 +187,71 @@ const statusVariantMap: Record<ComponentArtifact['status'], 'success' | 'warning
 
 const previewRenderers: Record<ComponentArtifact['previewType'], React.FC> = {
   metrics: () => (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Card variant="filled" className="space-y-2">
-        <p className="md3-label-medium text-on-surface-variant">Organic traffic</p>
-        <p className="md3-display-small text-primary">124k</p>
-        <p className="md3-body-small text-success">↑ 8.2% wow</p>
+    <div className='grid gap-4 md:grid-cols-3'>
+      <Card variant='filled' className='space-y-2'>
+        <p className='md3-label-medium text-on-surface-variant'>Organic traffic</p>
+        <p className='md3-display-small text-primary'>124k</p>
+        <p className='md3-body-small text-success'>↑ 8.2% wow</p>
       </Card>
-      <Card variant="filled" className="space-y-2">
-        <p className="md3-label-medium text-on-surface-variant">Keyword coverage</p>
-        <p className="md3-display-small text-primary">312</p>
-        <p className="md3-body-small text-success">↑ 12 tracked</p>
+      <Card variant='filled' className='space-y-2'>
+        <p className='md3-label-medium text-on-surface-variant'>Keyword coverage</p>
+        <p className='md3-display-small text-primary'>312</p>
+        <p className='md3-body-small text-success'>↑ 12 tracked</p>
       </Card>
-      <Card variant="filled" className="space-y-2">
-        <p className="md3-label-medium text-on-surface-variant">Backlink health</p>
-        <p className="md3-display-small text-warning">92%</p>
-        <p className="md3-body-small text-warning">↓ 3% vs last sprint</p>
+      <Card variant='filled' className='space-y-2'>
+        <p className='md3-label-medium text-on-surface-variant'>Backlink health</p>
+        <p className='md3-display-small text-warning'>92%</p>
+        <p className='md3-body-small text-warning'>↓ 3% vs last sprint</p>
       </Card>
     </div>
   ),
   workflow: () => (
-    <Card variant="filled" className="space-y-4">
-      <div className="flex items-center justify-between">
+    <Card variant='filled' className='space-y-4'>
+      <div className='flex items-center justify-between'>
         <div>
-          <p className="md3-label-medium text-on-surface-variant uppercase tracking-wide">Queue</p>
-          <h3 className="md3-title-medium text-on-surface">Automation workflows</h3>
+          <p className='md3-label-medium text-on-surface-variant uppercase tracking-wide'>Queue</p>
+          <h3 className='md3-title-medium text-on-surface'>Automation workflows</h3>
         </div>
-        <Badge variant="primary">Active</Badge>
+        <Badge variant='primary'>Active</Badge>
       </div>
-      <div className="space-y-2">
-        {['Memo enrichment', 'Schema sync', 'Backlink audit'].map((item) => (
-          <div key={item} className="flex items-center justify-between rounded-2xl border border-outline/20 bg-surface-container-low px-4 py-3">
+      <div className='space-y-2'>
+        {['Memo enrichment', 'Schema sync', 'Backlink audit'].map(item => (
+          <div
+            key={item}
+            className='flex items-center justify-between rounded-2xl border border-outline/20 bg-surface-container-low px-4 py-3'
+          >
             <div>
-              <p className="md3-title-small text-on-surface">{item}</p>
-              <p className="md3-body-small text-on-surface-variant">Awaiting crawler availability</p>
+              <p className='md3-title-small text-on-surface'>{item}</p>
+              <p className='md3-body-small text-on-surface-variant'>
+                Awaiting crawler availability
+              </p>
             </div>
-            <Button size="sm" variant="text">Prioritize</Button>
+            <Button size='sm' variant='text'>
+              Prioritize
+            </Button>
           </div>
         ))}
       </div>
-      <div className="flex justify-end">
-        <Button leftIcon={<Sparkles />} variant="filled">Enrich with AI</Button>
+      <div className='flex justify-end'>
+        <Button leftIcon={<Sparkles />} variant='filled'>
+          Enrich with AI
+        </Button>
       </div>
     </Card>
   ),
   list: () => (
-    <Card variant="filled" className="space-y-4">
+    <Card variant='filled' className='space-y-4'>
       {[
         { version: '3.0.2', summary: 'Added schema diff panel', type: 'major' },
-        { version: '3.0.1', summary: 'Improved function call hints', type: 'minor' }
-      ].map((entry) => (
+        { version: '3.0.1', summary: 'Improved function call hints', type: 'minor' },
+      ].map(entry => (
         <div
           key={entry.version}
-          className="flex items-center justify-between rounded-2xl border border-outline/15 bg-surface px-4 py-3"
+          className='flex items-center justify-between rounded-2xl border border-outline/15 bg-surface px-4 py-3'
         >
           <div>
-            <p className="md3-title-small text-on-surface">v{entry.version}</p>
-            <p className="md3-body-small text-on-surface-variant mt-1">{entry.summary}</p>
+            <p className='md3-title-small text-on-surface'>v{entry.version}</p>
+            <p className='md3-body-small text-on-surface-variant mt-1'>{entry.summary}</p>
           </div>
           <Badge variant={entry.type === 'major' ? 'error' : 'primary'}>{entry.type}</Badge>
         </div>
@@ -244,35 +266,48 @@ const ComponentWorkspacePage: React.FC = () => {
   const [openComponentIds, setOpenComponentIds] = useState<string[]>(['seo-kpi-grid']);
   const [activeComponentId, setActiveComponentId] = useState<string>('seo-kpi-grid');
   const [viewMode, setViewMode] = useState<'preview' | 'code' | 'diff'>('preview');
-  const [functionCallingMap, setFunctionCallingMap] = useState<Record<string, Record<string, boolean>>>(() => ({
+  const [functionCallingMap, setFunctionCallingMap] = useState<
+    Record<string, Record<string, boolean>>
+  >(() => ({
     'seo-kpi-grid': { 'schema-traffic': true },
   }));
-  const [schemaEntryMap, setSchemaEntryMap] = useState<Record<string, Record<string, string>>>(() => ({
-    'seo-kpi-grid': { 'schema-traffic': 'fetchTrafficTimeseries' },
-  }));
+  const [schemaEntryMap, setSchemaEntryMap] = useState<Record<string, Record<string, string>>>(
+    () => ({
+      'seo-kpi-grid': { 'schema-traffic': 'fetchTrafficTimeseries' },
+    })
+  );
   const [promptOverrides, setPromptOverrides] = useState<Record<string, string>>({});
+
+  const handleRadixComponentSelect = (descriptor: RadixComponentDescriptor) => {
+    setSearchTerm(descriptor.name);
+  };
 
   const filteredComponents = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return COMPONENT_CATALOG;
-    return COMPONENT_CATALOG.filter((component) =>
-      [component.name, component.category, component.description].some((field) => field.toLowerCase().includes(term))
+    return COMPONENT_CATALOG.filter(component =>
+      [component.name, component.category, component.description].some(field =>
+        field.toLowerCase().includes(term)
+      )
     );
   }, [searchTerm]);
 
-  const activeComponent = COMPONENT_CATALOG.find((component) => component.id === activeComponentId) ?? COMPONENT_CATALOG[0];
-  const ActivePreview = activeComponent ? previewRenderers[activeComponent.previewType] : () => null;
+  const activeComponent =
+    COMPONENT_CATALOG.find(component => component.id === activeComponentId) ?? COMPONENT_CATALOG[0];
+  const ActivePreview = activeComponent
+    ? previewRenderers[activeComponent.previewType]
+    : () => null;
 
   const toggleComponentSelection = (componentId: string) => {
-    setSelectedComponentIds((prev) => {
+    setSelectedComponentIds(prev => {
       const exists = prev.includes(componentId);
       if (exists) {
-        return prev.filter((id) => id !== componentId);
+        return prev.filter(id => id !== componentId);
       }
       return [...prev, componentId];
     });
 
-    setOpenComponentIds((prev) => {
+    setOpenComponentIds(prev => {
       if (prev.includes(componentId)) {
         return prev;
       }
@@ -282,11 +317,11 @@ const ComponentWorkspacePage: React.FC = () => {
   };
 
   const closeTab = (componentId: string) => {
-    setOpenComponentIds((prev) => prev.filter((id) => id !== componentId));
-    setSelectedComponentIds((prev) => prev.filter((id) => id !== componentId));
+    setOpenComponentIds(prev => prev.filter(id => id !== componentId));
+    setSelectedComponentIds(prev => prev.filter(id => id !== componentId));
 
     if (activeComponentId === componentId) {
-      const next = openComponentIds.find((id) => id !== componentId);
+      const next = openComponentIds.find(id => id !== componentId);
       if (next) {
         setActiveComponentId(next);
       } else if (openComponentIds.length > 1) {
@@ -296,7 +331,7 @@ const ComponentWorkspacePage: React.FC = () => {
   };
 
   const ensureFunctionState = (componentId: string, schemaId: string) => {
-    setFunctionCallingMap((prev) => ({
+    setFunctionCallingMap(prev => ({
       ...prev,
       [componentId]: {
         ...(prev[componentId] || {}),
@@ -307,7 +342,7 @@ const ComponentWorkspacePage: React.FC = () => {
 
   const toggleFunctionCalling = (componentId: string, schemaId: string) => {
     ensureFunctionState(componentId, schemaId);
-    setFunctionCallingMap((prev) => ({
+    setFunctionCallingMap(prev => ({
       ...prev,
       [componentId]: {
         ...(prev[componentId] || {}),
@@ -317,7 +352,7 @@ const ComponentWorkspacePage: React.FC = () => {
   };
 
   const updateSchemaEntry = (componentId: string, schemaId: string, value: string) => {
-    setSchemaEntryMap((prev) => ({
+    setSchemaEntryMap(prev => ({
       ...prev,
       [componentId]: {
         ...(prev[componentId] || {}),
@@ -329,9 +364,9 @@ const ComponentWorkspacePage: React.FC = () => {
   const openTabs = useMemo(
     () =>
       openComponentIds
-        .map((id) => COMPONENT_CATALOG.find((component) => component.id === id))
+        .map(id => COMPONENT_CATALOG.find(component => component.id === id))
         .filter((component): component is ComponentArtifact => Boolean(component))
-        .map((component) => ({
+        .map(component => ({
           id: component.id,
           label: component.name,
           subtitle: component.category,
@@ -343,28 +378,30 @@ const ComponentWorkspacePage: React.FC = () => {
 
   return (
     <WorkspaceLayout
-      className="min-h-screen"
+      className='min-h-screen'
       sidebar={
         <>
           <WorkspaceRailSection
-            title="Component filters"
-            description="Search and narrow the component catalog"
+            title='Component filters'
+            description='Search and narrow the component catalog'
           >
-            <div className="relative">
+            <div className='relative'>
               <Input
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search components..."
-                leftIcon={<Search className="h-4 w-4" />}
+                onChange={event => setSearchTerm(event.target.value)}
+                placeholder='Search components...'
+                leftIcon={<Search className='h-4 w-4' />}
               />
             </div>
-            <div className="flex items-center justify-between rounded-2xl border border-outline/20 bg-surface px-4 py-3">
-              <span className="md3-body-medium text-on-surface-variant">Catalog size</span>
-              <Badge variant="primary">{COMPONENT_CATALOG.length}</Badge>
+            <div className='flex items-center justify-between rounded-2xl border border-outline/20 bg-surface px-4 py-3'>
+              <span className='md3-body-medium text-on-surface-variant'>Catalog size</span>
+              <Badge variant='primary'>{COMPONENT_CATALOG.length}</Badge>
             </div>
-            <div className="space-y-2 text-on-surface-variant md3-body-small">
-              <p className="uppercase tracking-wide md3-label-medium text-on-surface-variant/80">Guides</p>
-              <ul className="space-y-1">
+            <div className='space-y-2 text-on-surface-variant md3-body-small'>
+              <p className='uppercase tracking-wide md3-label-medium text-on-surface-variant/80'>
+                Guides
+              </p>
+              <ul className='space-y-1'>
                 <li>• Double-click a component to open it</li>
                 <li>• Tabs mirror IDE slot behaviour</li>
                 <li>• Function calling toggles live per schema</li>
@@ -373,14 +410,16 @@ const ComponentWorkspacePage: React.FC = () => {
           </WorkspaceRailSection>
 
           <WorkspaceRailSection
-            title="Active session"
-            description="Keep track of what’s open in the workspace"
+            title='Active session'
+            description='Keep track of what’s open in the workspace'
           >
-            <div className="space-y-2">
+            <div className='space-y-2'>
               {openTabs.length === 0 && (
-                <p className="text-on-surface-variant md3-body-small">Open components will appear here.</p>
+                <p className='text-on-surface-variant md3-body-small'>
+                  Open components will appear here.
+                </p>
               )}
-              {openTabs.map((tab) => (
+              {openTabs.map(tab => (
                 <div
                   key={tab.id}
                   className={cn(
@@ -389,10 +428,10 @@ const ComponentWorkspacePage: React.FC = () => {
                   )}
                 >
                   <div>
-                    <p className="md3-title-small text-on-surface">{tab.label}</p>
-                    <p className="md3-body-small text-on-surface-variant">v{tab.version}</p>
+                    <p className='md3-title-small text-on-surface'>{tab.label}</p>
+                    <p className='md3-body-small text-on-surface-variant'>v{tab.version}</p>
                   </div>
-                  <Button size="sm" variant="text" onClick={() => setActiveComponentId(tab.id)}>
+                  <Button size='sm' variant='text' onClick={() => setActiveComponentId(tab.id)}>
                     Focus
                   </Button>
                 </div>
@@ -404,11 +443,11 @@ const ComponentWorkspacePage: React.FC = () => {
       inspector={
         <>
           <WorkspaceRailSection
-            title="Completed components"
-            description="Select components to configure schema bindings"
+            title='Completed components'
+            description='Select components to configure schema bindings'
           >
-            <div className="space-y-2">
-              {filteredComponents.map((component) => (
+            <div className='space-y-2'>
+              {filteredComponents.map(component => (
                 <div
                   key={component.id}
                   className={cn(
@@ -419,22 +458,30 @@ const ComponentWorkspacePage: React.FC = () => {
                   )}
                   onDoubleClick={() => toggleComponentSelection(component.id)}
                 >
-                  <div className="flex flex-1 items-start gap-3">
+                  <div className='flex flex-1 items-start gap-3'>
                     <Checkbox
                       checked={selectedComponentIds.includes(component.id)}
                       onChange={() => toggleComponentSelection(component.id)}
                     />
-                    <div className="min-w-0">
-                      <p className="md3-title-small text-on-surface truncate">{component.name}</p>
-                      <p className="md3-body-small text-on-surface-variant truncate">{component.description}</p>
-                      <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <Badge variant={statusVariantMap[component.status]}>{component.status}</Badge>
-                        <Badge variant="outline">v{component.version}</Badge>
+                    <div className='min-w-0'>
+                      <p className='md3-title-small text-on-surface truncate'>{component.name}</p>
+                      <p className='md3-body-small text-on-surface-variant truncate'>
+                        {component.description}
+                      </p>
+                      <div className='mt-1 flex flex-wrap items-center gap-2'>
+                        <Badge variant={statusVariantMap[component.status]}>
+                          {component.status}
+                        </Badge>
+                        <Badge variant='outline'>v{component.version}</Badge>
                       </div>
                     </div>
                   </div>
-                  <Tooltip content="Open in workspace">
-                    <Button size="sm" variant="text" onClick={() => toggleComponentSelection(component.id)}>
+                  <Tooltip content='Open in workspace'>
+                    <Button
+                      size='sm'
+                      variant='text'
+                      onClick={() => toggleComponentSelection(component.id)}
+                    >
                       Open
                     </Button>
                   </Tooltip>
@@ -444,58 +491,81 @@ const ComponentWorkspacePage: React.FC = () => {
           </WorkspaceRailSection>
 
           <WorkspaceRailSection
-            title="Linked schemas"
-            description="Enable function calling for selected components"
+            title='Linked schemas'
+            description='Enable function calling for selected components'
           >
-            <div className="space-y-4">
+            <div className='space-y-4'>
               {selectedComponentIds.length === 0 && (
-                <p className="md3-body-small text-on-surface-variant">Select a component to configure schema bindings.</p>
+                <p className='md3-body-small text-on-surface-variant'>
+                  Select a component to configure schema bindings.
+                </p>
               )}
-              {selectedComponentIds.map((componentId) => {
-                const component = COMPONENT_CATALOG.find((entry) => entry.id === componentId);
+              {selectedComponentIds.map(componentId => {
+                const component = COMPONENT_CATALOG.find(entry => entry.id === componentId);
                 if (!component) return null;
                 return (
-                  <div key={component.id} className="space-y-3 rounded-2xl border border-outline/20 bg-surface-container p-4">
-                    <div className="flex items-center justify-between">
+                  <div
+                    key={component.id}
+                    className='space-y-3 rounded-2xl border border-outline/20 bg-surface-container p-4'
+                  >
+                    <div className='flex items-center justify-between'>
                       <div>
-                        <p className="md3-title-small text-on-surface">{component.name}</p>
-                        <p className="md3-body-small text-on-surface-variant">{component.schemaLinks.length} schema links</p>
+                        <p className='md3-title-small text-on-surface'>{component.name}</p>
+                        <p className='md3-body-small text-on-surface-variant'>
+                          {component.schemaLinks.length} schema links
+                        </p>
                       </div>
-                      <Badge variant="primary">v{component.version}</Badge>
+                      <Badge variant='primary'>v{component.version}</Badge>
                     </div>
-                    <div className="space-y-3">
-                      {component.schemaLinks.map((schema) => {
+                    <div className='space-y-3'>
+                      {component.schemaLinks.map(schema => {
                         const enabled = Boolean(functionCallingMap[component.id]?.[schema.id]);
                         return (
-                          <div key={schema.id} className="rounded-2xl border border-outline/15 bg-surface p-4">
-                            <div className="flex items-start justify-between gap-3">
+                          <div
+                            key={schema.id}
+                            className='rounded-2xl border border-outline/15 bg-surface p-4'
+                          >
+                            <div className='flex items-start justify-between gap-3'>
                               <div>
-                                <p className="md3-title-small text-on-surface flex items-center gap-2">
-                                  <LinkIcon className="h-4 w-4 text-primary" />
+                                <p className='md3-title-small text-on-surface flex items-center gap-2'>
+                                  <LinkIcon className='h-4 w-4 text-primary' />
                                   {schema.label}
                                 </p>
-                                <p className="md3-body-small text-on-surface-variant mt-1">{schema.description}</p>
-                                <p className="md3-body-small text-on-surface-variant/80 mt-1">
-                                  Signature: <code className="font-mono text-xs">{schema.functionSignature}</code>
+                                <p className='md3-body-small text-on-surface-variant mt-1'>
+                                  {schema.description}
+                                </p>
+                                <p className='md3-body-small text-on-surface-variant/80 mt-1'>
+                                  Signature:{' '}
+                                  <code className='font-mono text-xs'>
+                                    {schema.functionSignature}
+                                  </code>
                                 </p>
                               </div>
                               <Button
                                 variant={enabled ? 'filled' : 'outlined'}
-                                size="sm"
+                                size='sm'
                                 onClick={() => toggleFunctionCalling(component.id, schema.id)}
                               >
                                 {enabled ? 'Function calling enabled' : 'Enable function call'}
                               </Button>
                             </div>
                             {enabled && (
-                              <div className="mt-3 space-y-2">
-                                <label className="md3-label-medium text-on-surface" htmlFor={`${component.id}-${schema.id}-entry`}>
+                              <div className='mt-3 space-y-2'>
+                                <label
+                                  className='md3-label-medium text-on-surface'
+                                  htmlFor={`${component.id}-${schema.id}-entry`}
+                                >
                                   Entry point override
                                 </label>
                                 <Input
                                   id={`${component.id}-${schema.id}-entry`}
-                                  value={schemaEntryMap[component.id]?.[schema.id] ?? schema.functionSignature.split('(')[0]}
-                                  onChange={(event) => updateSchemaEntry(component.id, schema.id, event.target.value)}
+                                  value={
+                                    schemaEntryMap[component.id]?.[schema.id] ??
+                                    schema.functionSignature.split('(')[0]
+                                  }
+                                  onChange={event =>
+                                    updateSchemaEntry(component.id, schema.id, event.target.value)
+                                  }
                                 />
                               </div>
                             )}
@@ -511,34 +581,46 @@ const ComponentWorkspacePage: React.FC = () => {
         </>
       }
       header={
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className='flex flex-col gap-4'>
+          <div className='flex flex-wrap items-center justify-between gap-3'>
             <div>
-              <p className="md3-label-medium text-primary uppercase tracking-wide">Component workspace</p>
-              <h1 className="md3-headline-medium text-on-surface">Review and configure shipped components</h1>
+              <p className='md3-label-medium text-primary uppercase tracking-wide'>
+                Component workspace
+              </p>
+              <h1 className='md3-headline-medium text-on-surface'>
+                Review and configure shipped components
+              </h1>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outlined" leftIcon={<GitPullRequest className="h-4 w-4" />}>Create review request</Button>
-              <Button variant="filled" leftIcon={<Wand2 className="h-4 w-4" />}>Generate changelog</Button>
+            <div className='flex items-center gap-2'>
+              <Button variant='outlined' leftIcon={<GitPullRequest className='h-4 w-4' />}>
+                Create review request
+              </Button>
+              <Button variant='filled' leftIcon={<Wand2 className='h-4 w-4' />}>
+                Generate changelog
+              </Button>
             </div>
           </div>
           <WorkspaceTabs
             tabs={openTabs}
-            onSelect={(tabId) => setActiveComponentId(tabId)}
+            onSelect={tabId => setActiveComponentId(tabId)}
             onClose={closeTab}
           />
         </div>
       }
     >
       {activeComponent ? (
-        <div className="flex h-full flex-col gap-6">
+        <div className='flex h-full flex-col gap-6'>
           <WorkspaceSection
             title={activeComponent.name}
-            meta={<span className="text-on-surface-variant">Owned by {activeComponent.owner} • Updated {activeComponent.lastUpdated}</span>}
+            meta={
+              <span className='text-on-surface-variant'>
+                Owned by {activeComponent.owner} • Updated {activeComponent.lastUpdated}
+              </span>
+            }
             actions={
               <WorkspaceToggleGroup
                 value={viewMode}
-                onChange={(value) => setViewMode(value as typeof viewMode)}
+                onChange={value => setViewMode(value as typeof viewMode)}
                 options={[
                   { value: 'preview', label: 'Preview', badge: 'UI' },
                   { value: 'code', label: 'Code', badge: 'TSX' },
@@ -549,68 +631,95 @@ const ComponentWorkspacePage: React.FC = () => {
           >
             {viewMode === 'preview' && <ActivePreview />}
             {viewMode === 'code' && (
-              <div className="relative">
-                <pre className="max-h-[420px] overflow-auto rounded-2xl bg-surface-container-high p-6 text-sm text-on-surface-variant">
+              <div className='relative'>
+                <pre className='max-h-[420px] overflow-auto rounded-2xl bg-surface-container-high p-6 text-sm text-on-surface-variant'>
                   <code>{activeComponent.code}</code>
                 </pre>
-                <div className="absolute right-6 top-4 flex items-center gap-2 text-on-surface-variant/80">
-                  <Eye className="h-4 w-4" /> <span>Generated preview snippet</span>
+                <div className='absolute right-6 top-4 flex items-center gap-2 text-on-surface-variant/80'>
+                  <Eye className='h-4 w-4' /> <span>Generated preview snippet</span>
                 </div>
               </div>
             )}
             {viewMode === 'diff' && (
-              <div className="relative">
-                <pre className="max-h-[420px] overflow-auto rounded-2xl bg-surface-container-high p-6 text-sm text-on-surface-variant">
+              <div className='relative'>
+                <pre className='max-h-[420px] overflow-auto rounded-2xl bg-surface-container-high p-6 text-sm text-on-surface-variant'>
                   <code>{activeComponent.diff}</code>
                 </pre>
-                <div className="absolute right-6 top-4 flex items-center gap-2 text-on-surface-variant/80">
-                  <Code2 className="h-4 w-4" /> <span>Latest git diff</span>
+                <div className='absolute right-6 top-4 flex items-center gap-2 text-on-surface-variant/80'>
+                  <Code2 className='h-4 w-4' /> <span>Latest git diff</span>
                 </div>
               </div>
             )}
           </WorkspaceSection>
 
           <WorkspaceSection
-            title="Prompt & configuration overrides"
-            meta={<span className="text-on-surface-variant">Define AI prompt refinements for schema-driven generation</span>}
+            title='Prompt & configuration overrides'
+            meta={
+              <span className='text-on-surface-variant'>
+                Define AI prompt refinements for schema-driven generation
+              </span>
+            }
           >
-            <div className="grid gap-4 lg:grid-cols-2">
-              {selectedComponentIds.map((componentId) => {
-                const component = COMPONENT_CATALOG.find((entry) => entry.id === componentId);
+            <div className='grid gap-4 lg:grid-cols-2'>
+              {selectedComponentIds.map(componentId => {
+                const component = COMPONENT_CATALOG.find(entry => entry.id === componentId);
                 if (!component) return null;
                 return (
-                  <div key={component.id} className="space-y-3 rounded-2xl border border-outline/20 bg-surface-container p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="md3-title-small text-on-surface">{component.name}</p>
-                      <Badge tone="outline">v{component.version}</Badge>
+                  <div
+                    key={component.id}
+                    className='space-y-3 rounded-2xl border border-outline/20 bg-surface-container p-4'
+                  >
+                    <div className='flex items-center justify-between'>
+                      <p className='md3-title-small text-on-surface'>{component.name}</p>
+                      <Badge tone='outline'>v{component.version}</Badge>
                     </div>
-                    <label className="md3-label-medium text-on-surface" htmlFor={`${component.id}-prompt`}>
+                    <label
+                      className='md3-label-medium text-on-surface'
+                      htmlFor={`${component.id}-prompt`}
+                    >
                       Prompt override
                     </label>
                     <textarea
                       id={`${component.id}-prompt`}
-                      className="h-32 w-full rounded-2xl border border-outline/20 bg-surface p-3 font-mono text-sm text-on-surface"
-                      placeholder="Describe layout or behaviour adjustments"
+                      className='h-32 w-full rounded-2xl border border-outline/20 bg-surface p-3 font-mono text-sm text-on-surface'
+                      placeholder='Describe layout or behaviour adjustments'
                       value={promptOverrides[component.id] ?? ''}
-                      onChange={(event) =>
-                        setPromptOverrides((prev) => ({
+                      onChange={event =>
+                        setPromptOverrides(prev => ({
                           ...prev,
                           [component.id]: event.target.value,
                         }))
                       }
                     />
-                    <div className="flex items-center justify-between text-on-surface-variant md3-body-small">
+                    <div className='flex items-center justify-between text-on-surface-variant md3-body-small'>
                       <span>{component.schemaLinks.length} linked functions</span>
-                      <Button size="sm" variant="text">Sync with wizard</Button>
+                      <Button size='sm' variant='text'>
+                        Sync with wizard
+                      </Button>
                     </div>
                   </div>
                 );
               })}
             </div>
           </WorkspaceSection>
+
+          <WorkspaceSection
+            title='Radix UI atomic registry'
+            meta={
+              <span className='text-on-surface-variant'>
+                {RADIX_COMPONENTS.length} external atoms mined via the Radix UI styleguide campaign
+              </span>
+            }
+          >
+            <RadixComponentGallery
+              components={RADIX_COMPONENTS}
+              highlightTags={['navigation', 'overlay', 'input']}
+              onComponentSelect={handleRadixComponentSelect}
+            />
+          </WorkspaceSection>
         </div>
       ) : (
-        <div className="flex h-full items-center justify-center text-on-surface-variant">
+        <div className='flex h-full items-center justify-center text-on-surface-variant'>
           Select a component to begin.
         </div>
       )}

@@ -24,9 +24,9 @@
  */
 
 import express from 'express';
-import { URLSeedingService } from '../../services/url-seeding-service.js';
-import { BacklinkService } from '../../services/backlink-service.js';
-import SeedingConfigManager from '../../services/seeding-config-manager.js';
+import { URLSeedingService } from '../../../services/url-seeding-service.js';
+import { BacklinkService } from '../../../services/backlink-service.js';
+import SeedingConfigManager from '../../../services/seeding-config-manager.js';
 
 const router = express.Router();
 

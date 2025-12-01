@@ -320,7 +320,7 @@ Backend:
   • N8N REST API
 
 AI & Automation:
-  • DeepSeek (deepseek-chat model)
+      • DeepSeek (deepseek-reasoner model)
   • N8N Workflow Engine
   • Function Calling (Tool Use)
 

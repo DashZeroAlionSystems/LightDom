@@ -1,0 +1,324 @@
+{
+  "name": "Complete SEO Campaign Automation",
+  "description": "Automates the entire SEO campaign lifecycle from research to optimization",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "id": "research_topic",
+      "name": "Conduct Deep-Dive Research",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3001/api/campaigns/research/kickoff",
+      "input": {
+        "prompt": "${context.topic}",
+        "depth": "comprehensive"
+      },
+      "onSuccess": [
+        {
+          "type": "notify",
+          "message": "Research completed for topic: ${context.topic}"
+        }
+      ],
+      "onFailure": "retry",
+      "timeout": 60000
+    },
+    {
+      "id": "discover_attributes",
+      "name": "Discover Mining Attributes",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3001/api/campaigns/attributes/discover/${previousResults.research_topic.research_id}",
+      "input": {},
+      "onFailure": "retry",
+      "timeout": 30000
+    },
+    {
+      "id": "create_mining_instance",
+      "name": "Create Data Mining Instance",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3001/api/campaigns/mining/create-with-attributes",
+      "input": {
+        "researchId": "${previousResults.research_topic.research_id}",
+        "attributeIds": "${previousResults.discover_attributes.attribute_ids}",
+        "name": "Mining: ${context.topic}"
+      },
+      "onFailure": "abort",
+      "timeout": 30000
+    },
+    {
+      "id": "create_campaign",
+      "name": "Create Campaign Container",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3001/api/campaigns/from-prompt",
+      "input": {
+        "prompt": "${context.topic}",
+        "mining_instance_id": "${previousResults.create_mining_instance.mining_id}"
+      },
+      "onFailure": "abort",
+      "timeout": 60000
+    },
+    {
+      "id": "create_worker_container",
+      "name": "Create Web Crawler Container",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3001/api/workers/containers/create",
+      "input": {
+        "campaignId": "${previousResults.create_campaign.campaign_id}"
+      },
+      "onFailure": "retry",
+      "timeout": 30000
+    },
+    {
+      "id": "spawn_workers",
+      "name": "Spawn Crawler Workers",
+      "type": "loop",
+      "input": {
+        "items": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "maxIterations": 5,
+      "subtasks": [
+        {
+          "id": "spawn_worker",
+          "name": "Spawn Worker ${loopIndex}",
+          "type": "api_call",
+          "method": "POST",
+          "endpoint": "http://localhost:3001/api/workers/containers/${previousResults.create_worker_container.container_id}/spawn",
+          "input": {
+            "workerId": "worker-${loopIndex}"
+          },
+          "timeout": 15000
+        }
+      ],
+      "onFailure": "continue"
+    },
+    {
+      "id": "seed_urls",
+      "name": "Seed Initial URLs",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/entities",
+      "input": {
+        "entityType": "URLSeed",
+        "data": {
+          "urls": "${context.seedUrls}",
+          "campaign_id": "${previousResults.create_campaign.campaign_id}"
+        }
+      },
+      "onFailure": "retry",
+      "timeout": 15000
+    },
+    {
+      "id": "start_mining",
+      "name": "Start Mining Campaign",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3001/api/workers/containers/${previousResults.create_worker_container.container_id}/start",
+      "input": {},
+      "onSuccess": [
+        {
+          "type": "webhook",
+          "url": "${context.webhookUrl}",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      ],
+      "onFailure": "abort",
+      "timeout": 30000
+    },
+    {
+      "id": "monitor_progress",
+      "name": "Monitor Campaign Progress",
+      "type": "loop",
+      "input": {
+        "items": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
+      },
+      "maxIterations": 10,
+      "subtasks": [
+        {
+          "id": "check_status",
+          "name": "Check Status",
+          "type": "api_call",
+          "method": "GET",
+          "endpoint": "http://localhost:3001/api/campaigns/${previousResults.create_campaign.campaign_id}",
+          "input": {},
+          "timeout": 10000
+        },
+        {
+          "id": "wait_interval",
+          "name": "Wait 30 seconds",
+          "type": "wait",
+          "delay": 30000
+        },
+        {
+          "id": "check_completion",
+          "name": "Check if Complete",
+          "type": "conditional",
+          "condition": {
+            "type": "equals",
+            "field": "check_status.campaign.status",
+            "value": "completed"
+          },
+          "then": [
+            {
+              "id": "break_loop",
+              "name": "Stop Monitoring",
+              "type": "api_call",
+              "method": "GET",
+              "endpoint": "http://localhost:3000/health",
+              "input": {}
+            }
+          ],
+          "else": []
+        }
+      ],
+      "onFailure": "continue"
+    },
+    {
+      "id": "extract_results",
+      "name": "Extract Campaign Results",
+      "type": "api_call",
+      "method": "GET",
+      "endpoint": "http://localhost:3000/api/entities",
+      "input": {
+        "entityType": "MinedData",
+        "filters": {
+          "campaign_id": "${previousResults.create_campaign.campaign_id}"
+        }
+      },
+      "onFailure": "retry",
+      "timeout": 30000
+    },
+    {
+      "id": "enrich_data",
+      "name": "Enrich Mined Data",
+      "type": "enrichment",
+      "enrichmentType": "ai-summary",
+      "input": {
+        "entityIds": "${previousResults.extract_results.entities.*.id}",
+        "config": {
+          "model": "deepseek-reasoner",
+          "extractInsights": true
+        }
+      },
+      "timeout": 300000,
+      "onFailure": "continue"
+    },
+    {
+      "id": "analyze_relationships",
+      "name": "Analyze Data Relationships",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/relationships",
+      "input": {
+        "sourceId": "${previousResults.create_campaign.campaign_id}",
+        "targetIds": "${previousResults.extract_results.entities.*.id}",
+        "relationshipType": "generated_by",
+        "strength": 1.0
+      },
+      "onFailure": "continue",
+      "timeout": 20000
+    },
+    {
+      "id": "aggregate_metrics",
+      "name": "Aggregate Campaign Metrics",
+      "type": "aggregation",
+      "input": {
+        "data": "${previousResults.extract_results.entities}"
+      },
+      "aggregations": [
+        "count",
+        "avg",
+        "groupBy"
+      ],
+      "avgField": "quality_score",
+      "groupByField": "attribute_type",
+      "onFailure": "continue"
+    },
+    {
+      "id": "validate_quality",
+      "name": "Validate Data Quality",
+      "type": "validation",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "quality_score": {
+            "type": "number",
+            "minimum": 70
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "url",
+              "extracted_at"
+            ]
+          }
+        },
+        "required": [
+          "quality_score",
+          "data"
+        ]
+      },
+      "input": {
+        "data": "${previousResults.extract_results.entities}"
+      },
+      "onInvalid": "filter",
+      "onFailure": "continue"
+    },
+    {
+      "id": "generate_report",
+      "name": "Generate Campaign Report",
+      "type": "data_transformation",
+      "transformation": "custom",
+      "function": "(data) => ({ campaign_id: data.campaign_id, total_entities: data.count, avg_quality: data.avg_quality, insights: data.enriched_insights, generated_at: new Date().toISOString() })",
+      "input": {
+        "data": {
+          "campaign_id": "${previousResults.create_campaign.campaign_id}",
+          "count": "${previousResults.aggregate_metrics.count}",
+          "avg_quality": "${previousResults.aggregate_metrics.avg}",
+          "enriched_insights": "${previousResults.enrich_data}"
+        }
+      },
+      "onFailure": "continue"
+    },
+    {
+      "id": "save_report",
+      "name": "Save Campaign Report",
+      "type": "api_call",
+      "method": "POST",
+      "endpoint": "http://localhost:3000/api/entities",
+      "input": {
+        "entityType": "CampaignReport",
+        "data": "${previousResults.generate_report}"
+      },
+      "onSuccess": [
+        {
+          "type": "notify",
+          "message": "Campaign automation completed successfully for: ${context.topic}"
+        }
+      ],
+      "onFailure": "retry",
+      "timeout": 15000
+    }
+  ]
+}

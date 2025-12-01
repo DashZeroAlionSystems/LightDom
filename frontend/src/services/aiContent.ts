@@ -3,7 +3,7 @@
  * Frontend service for interacting with the AI content generation API
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4100/api';
 
 export interface GenerateContentRequest {
   url: string;
@@ -182,17 +182,18 @@ class AIContentService {
       body: JSON.stringify(request),
     });
 
-    return this.handleResponse<GeneratedContent>(
-      response,
-      'Failed to generate content',
-      (payload) => this.extractData<GeneratedContent>(payload, 'API returned an invalid content response')
+    return this.handleResponse<GeneratedContent>(response, 'Failed to generate content', payload =>
+      this.extractData<GeneratedContent>(payload, 'API returned an invalid content response')
     );
   }
 
   /**
    * Queue batch content generation
    */
-  async queueGeneration(urls: string[], config: Partial<GenerateContentRequest> = {}): Promise<QueuedGeneration> {
+  async queueGeneration(
+    urls: string[],
+    config: Partial<GenerateContentRequest> = {}
+  ): Promise<QueuedGeneration> {
     const response = await fetch(`${API_BASE_URL}/ai/content/queue`, {
       method: 'POST',
       headers: {
@@ -201,10 +202,8 @@ class AIContentService {
       body: JSON.stringify({ urls, config }),
     });
 
-    return this.handleResponse<QueuedGeneration>(
-      response,
-      'Failed to queue generation',
-      (payload) => this.extractData<QueuedGeneration>(payload, 'API returned an invalid queue response')
+    return this.handleResponse<QueuedGeneration>(response, 'Failed to queue generation', payload =>
+      this.extractData<QueuedGeneration>(payload, 'API returned an invalid queue response')
     );
   }
 
@@ -229,24 +228,32 @@ class AIContentService {
   async getContent(id: string): Promise<GeneratedContent> {
     const response = await fetch(`${API_BASE_URL}/ai/content/${id}`);
 
-    return this.handleResponse<GeneratedContent>(
-      response,
-      'Failed to get content',
-      (payload) => this.extractData<GeneratedContent>(payload, 'API returned an invalid content response')
+    return this.handleResponse<GeneratedContent>(response, 'Failed to get content', payload =>
+      this.extractData<GeneratedContent>(payload, 'API returned an invalid content response')
     );
   }
 
   /**
    * Get content generation history for a URL
    */
-  async getContentHistory(url: string, limit: number = 10, offset: number = 0): Promise<GeneratedContent[]> {
+  async getContentHistory(
+    url: string,
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<GeneratedContent[]> {
     const encodedUrl = encodeURIComponent(url);
-    const response = await fetch(`${API_BASE_URL}/ai/content/history/${encodedUrl}?limit=${limit}&offset=${offset}`);
+    const response = await fetch(
+      `${API_BASE_URL}/ai/content/history/${encodedUrl}?limit=${limit}&offset=${offset}`
+    );
 
     return this.handleResponse<GeneratedContent[]>(
       response,
       'Failed to get content history',
-      (payload) => this.extractData<GeneratedContent[]>(payload, 'API returned an invalid content history response')
+      payload =>
+        this.extractData<GeneratedContent[]>(
+          payload,
+          'API returned an invalid content history response'
+        )
     );
   }
 
@@ -259,7 +266,11 @@ class AIContentService {
     return this.handleResponse<ContentPerformance[]>(
       response,
       'Failed to get performance data',
-      (payload) => this.extractData<ContentPerformance[]>(payload, 'API returned an invalid performance response')
+      payload =>
+        this.extractData<ContentPerformance[]>(
+          payload,
+          'API returned an invalid performance response'
+        )
     );
   }
 
@@ -288,7 +299,11 @@ class AIContentService {
     return this.handleResponse<{ feedbackId: string }>(
       response,
       'Failed to submit feedback',
-      (payload) => this.extractData<{ feedbackId: string }>(payload, 'API returned an invalid feedback response')
+      payload =>
+        this.extractData<{ feedbackId: string }>(
+          payload,
+          'API returned an invalid feedback response'
+        )
     );
   }
 
@@ -298,17 +313,17 @@ class AIContentService {
   async getActiveContentSummary(): Promise<any[]> {
     const response = await fetch(`${API_BASE_URL}/ai/content/summary/active`);
 
-    return this.handleResponse<any[]>(
-      response,
-      'Failed to get content summary',
-      (payload) => this.extractData<any[]>(payload, 'API returned an invalid content summary response')
+    return this.handleResponse<any[]>(response, 'Failed to get content summary', payload =>
+      this.extractData<any[]>(payload, 'API returned an invalid content summary response')
     );
   }
 
   /**
    * Train new content generation model
    */
-  async trainModel(config: ModelTrainingRequest): Promise<{ message: string; config: ModelTrainingRequest }> {
+  async trainModel(
+    config: ModelTrainingRequest
+  ): Promise<{ message: string; config: ModelTrainingRequest }> {
     const response = await fetch(`${API_BASE_URL}/ai/model/train`, {
       method: 'POST',
       headers: {
@@ -320,13 +335,11 @@ class AIContentService {
     return this.handleResponse<{ message: string; config: ModelTrainingRequest }>(
       response,
       'Failed to start model training',
-      (payload) => {
+      payload => {
         if (payload && typeof payload === 'object') {
           return {
             message:
-              typeof payload.message === 'string'
-                ? payload.message
-                : 'Model training started',
+              typeof payload.message === 'string' ? payload.message : 'Model training started',
             config: (payload.config as ModelTrainingRequest) ?? config,
           };
         }
@@ -348,7 +361,11 @@ class AIContentService {
     return this.handleResponse<ModelPerformance[]>(
       response,
       'Failed to get model performance',
-      (payload) => this.extractData<ModelPerformance[]>(payload, 'API returned an invalid model performance response')
+      payload =>
+        this.extractData<ModelPerformance[]>(
+          payload,
+          'API returned an invalid model performance response'
+        )
     );
   }
 
@@ -363,7 +380,7 @@ class AIContentService {
     return this.handleResponse<{ message: string }>(
       response,
       'Failed to start model retraining',
-      (payload) => {
+      payload => {
         if (payload && typeof payload === 'object' && typeof payload.message === 'string') {
           return { message: payload.message };
         }
@@ -386,10 +403,8 @@ class AIContentService {
 
     const response = await fetch(url);
 
-    return this.handleResponse<ContentTemplate[]>(
-      response,
-      'Failed to get templates',
-      (payload) => this.extractData<ContentTemplate[]>(payload, 'API returned an invalid templates response')
+    return this.handleResponse<ContentTemplate[]>(response, 'Failed to get templates', payload =>
+      this.extractData<ContentTemplate[]>(payload, 'API returned an invalid templates response')
     );
   }
 }

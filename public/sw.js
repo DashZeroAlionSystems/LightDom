@@ -1,11 +1,20 @@
 /**
- * LightDOM Service Worker
- * Enables offline functionality and PWA features
+ * LightDOM Advanced Service Worker
+ * Enables offline functionality, PWA features, and data mining capabilities
+ * 
+ * Features:
+ * - Multi-tier caching strategy (static, dynamic, API)
+ * - IndexedDB for structured data storage
+ * - Offline mining capabilities
+ * - Network activity monitoring
+ * - Cache inspection for training data
  */
 
-const CACHE_NAME = 'lightdom-v2';
-const API_CACHE_NAME = 'lightdom-api-v2';
-const STATIC_CACHE_NAME = 'lightdom-static-v2';
+const CACHE_NAME = 'lightdom-v3';
+const API_CACHE_NAME = 'lightdom-api-v3';
+const STATIC_CACHE_NAME = 'lightdom-static-v3';
+const DYNAMIC_CACHE_NAME = 'lightdom-dynamic-v3';
+const MINING_CACHE_NAME = 'lightdom-mining-v3';
 
 const isDev = (() => {
   try {
@@ -35,15 +44,76 @@ const apiEndpointsToCache = [
   '/api/metaverse/stats',
   '/api/blockchain/stats',
   '/api/crawler/stats',
-  '/api/optimization/stats'
+  '/api/optimization/stats',
+  '/api/cache/stats',
+  '/api/mining/status'
 ];
 
-// Install event - cache essential files
+// IndexedDB configuration for structured data
+const DB_NAME = 'LightDomCache';
+const DB_VERSION = 1;
+const STORES = {
+  CRAWL_DATA: 'crawlData',
+  SCREENSHOTS: 'screenshots',
+  OCR_RESULTS: 'ocrResults',
+  NETWORK_LOGS: 'networkLogs',
+  TRAINING_DATA: 'trainingData'
+};
+
+// Initialize IndexedDB
+async function initDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      
+      // Create object stores if they don't exist
+      if (!db.objectStoreNames.contains(STORES.CRAWL_DATA)) {
+        const crawlStore = db.createObjectStore(STORES.CRAWL_DATA, { keyPath: 'url' });
+        crawlStore.createIndex('timestamp', 'timestamp', { unique: false });
+        crawlStore.createIndex('hash', 'hash', { unique: false });
+      }
+      
+      if (!db.objectStoreNames.contains(STORES.SCREENSHOTS)) {
+        const screenshotStore = db.createObjectStore(STORES.SCREENSHOTS, { keyPath: 'hash' });
+        screenshotStore.createIndex('url', 'url', { unique: false });
+        screenshotStore.createIndex('timestamp', 'timestamp', { unique: false });
+      }
+      
+      if (!db.objectStoreNames.contains(STORES.OCR_RESULTS)) {
+        const ocrStore = db.createObjectStore(STORES.OCR_RESULTS, { keyPath: 'screenshotHash' });
+        ocrStore.createIndex('confidence', 'confidence', { unique: false });
+      }
+      
+      if (!db.objectStoreNames.contains(STORES.NETWORK_LOGS)) {
+        const networkStore = db.createObjectStore(STORES.NETWORK_LOGS, { autoIncrement: true });
+        networkStore.createIndex('url', 'url', { unique: false });
+        networkStore.createIndex('timestamp', 'timestamp', { unique: false });
+      }
+      
+      if (!db.objectStoreNames.contains(STORES.TRAINING_DATA)) {
+        const trainingStore = db.createObjectStore(STORES.TRAINING_DATA, { keyPath: 'hash' });
+        trainingStore.createIndex('type', 'type', { unique: false });
+        trainingStore.createIndex('timestamp', 'timestamp', { unique: false });
+      }
+    };
+  });
+}
+
+// Install event - cache essential files and initialize IndexedDB
 self.addEventListener('install', event => {
   console.log('[ServiceWorker] Install');
   if (!isDev) {
     event.waitUntil(
       Promise.all([
+        // Initialize IndexedDB
+        initDB().then(() => {
+          console.log('[ServiceWorker] IndexedDB initialized');
+        }),
         // Cache static assets
         caches.open(STATIC_CACHE_NAME).then(cache => {
           console.log('[ServiceWorker] Caching static assets');
@@ -61,6 +131,10 @@ self.addEventListener('install', event => {
               // Ignore errors for optional API caching
             })
           ));
+        }),
+        // Create mining cache
+        caches.open(MINING_CACHE_NAME).then(() => {
+          console.log('[ServiceWorker] Mining cache created');
         })
       ]).catch(err => {
         console.error('[ServiceWorker] Failed to cache:', err);
@@ -74,12 +148,14 @@ self.addEventListener('install', event => {
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
   console.log('[ServiceWorker] Activate');
+  const validCaches = [STATIC_CACHE_NAME, API_CACHE_NAME, DYNAMIC_CACHE_NAME, MINING_CACHE_NAME];
+  
   if (!isDev) {
     event.waitUntil(
       caches.keys().then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
-            if (![STATIC_CACHE_NAME, API_CACHE_NAME].includes(cacheName)) {
+            if (!validCaches.includes(cacheName)) {
               console.log('[ServiceWorker] Removing old cache:', cacheName);
               return caches.delete(cacheName);
             }
@@ -413,5 +489,166 @@ self.addEventListener('message', event => {
     self.registration.sync.register('crawler-sync');
   }
 });
+
+// Helper functions for IndexedDB operations
+async function saveToIndexedDB(storeName, data) {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([storeName], 'readwrite');
+    const store = transaction.objectStore(storeName);
+    const request = store.put(data);
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function getFromIndexedDB(storeName, key) {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([storeName], 'readonly');
+    const store = transaction.objectStore(storeName);
+    const request = store.get(key);
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function getAllFromIndexedDB(storeName, limit = 100) {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([storeName], 'readonly');
+    const store = transaction.objectStore(storeName);
+    const request = store.getAll(null, limit);
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Log network activity to IndexedDB
+async function logNetworkActivity(url, request, response) {
+  try {
+    const log = {
+      url,
+      requestUrl: request.url,
+      method: request.method,
+      timestamp: Date.now(),
+      status: response ? response.status : null,
+      fromCache: response ? response.headers.get('x-from-cache') === 'true' : false,
+      type: request.destination || 'unknown'
+    };
+    
+    await saveToIndexedDB(STORES.NETWORK_LOGS, log);
+  } catch (error) {
+    console.error('[ServiceWorker] Failed to log network activity:', error);
+  }
+}
+
+// Save crawl data to IndexedDB
+async function saveCrawlData(url, data) {
+  try {
+    const crawlData = {
+      url,
+      hash: await hashContent(JSON.stringify(data)),
+      timestamp: Date.now(),
+      data
+    };
+    
+    await saveToIndexedDB(STORES.CRAWL_DATA, crawlData);
+    console.log('[ServiceWorker] Crawl data saved for:', url);
+  } catch (error) {
+    console.error('[ServiceWorker] Failed to save crawl data:', error);
+  }
+}
+
+// Hash content for deduplication
+async function hashContent(content) {
+  const msgBuffer = new TextEncoder().encode(content);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Enhanced fetch handler with network monitoring
+async function handleFetch(event) {
+  const { request } = event;
+  const url = new URL(request.url);
+  
+  // Log network activity
+  const startTime = Date.now();
+  
+  try {
+    // Try cache first for static assets
+    if (request.method === 'GET' && isStaticAsset(url)) {
+      const cachedResponse = await caches.match(request);
+      if (cachedResponse) {
+        console.log('[ServiceWorker] Serving from cache:', request.url);
+        await logNetworkActivity(url.href, request, cachedResponse);
+        return cachedResponse;
+      }
+    }
+    
+    // Network first for API requests with cache fallback
+    if (url.pathname.startsWith('/api/')) {
+      try {
+        const response = await fetch(request);
+        
+        if (response.ok) {
+          // Cache successful API responses
+          const cache = await caches.open(API_CACHE_NAME);
+          cache.put(request, response.clone());
+        }
+        
+        await logNetworkActivity(url.href, request, response);
+        return response;
+      } catch (error) {
+        // Fallback to cache if network fails
+        const cachedResponse = await caches.match(request);
+        if (cachedResponse) {
+          console.log('[ServiceWorker] Network failed, serving from cache:', request.url);
+          return cachedResponse;
+        }
+        throw error;
+      }
+    }
+    
+    // Stale-while-revalidate for dynamic content
+    const cachedResponse = await caches.match(request);
+    const fetchPromise = fetch(request).then(response => {
+      if (response.ok) {
+        const cache = caches.open(DYNAMIC_CACHE_NAME);
+        cache.then(c => c.put(request, response.clone()));
+      }
+      return response;
+    });
+    
+    return cachedResponse || fetchPromise;
+    
+  } catch (error) {
+    console.error('[ServiceWorker] Fetch failed:', error);
+    
+    // Return cached response or offline page
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    if (request.destination === 'document') {
+      return caches.match('/offline.html');
+    }
+    
+    return new Response('Network error', { status: 503 });
+  } finally {
+    const duration = Date.now() - startTime;
+    console.log(`[ServiceWorker] Request took ${duration}ms:`, request.url);
+  }
+}
+
+function isStaticAsset(url) {
+  const extensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.woff', '.woff2', '.ttf'];
+  return extensions.some(ext => url.pathname.endsWith(ext));
+}
 
 console.log('[ServiceWorker] Enhanced version loaded');
