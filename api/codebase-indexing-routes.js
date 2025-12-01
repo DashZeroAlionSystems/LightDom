@@ -65,8 +65,8 @@ export function createCodebaseIndexingRoutes(db) {
             stats.status = session.status;
           }
         } catch (dbError) {
-          // Tables might not exist yet
-          console.warn('Database tables not yet created:', dbError.message);
+          // Database query failed - tables may not exist or there could be other issues
+          console.warn('Database query failed for indexing status:', dbError.message);
         }
       }
 
@@ -94,12 +94,16 @@ export function createCodebaseIndexingRoutes(db) {
         targetFiles,
       });
 
+      // Generate unique session ID
+      const crypto = await import('crypto');
+      const sessionId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      
       // Return immediately with session info
       res.json({
         success: true,
         message: 'Indexing started',
         session: {
-          id: Date.now().toString(),
+          id: sessionId,
           status: 'running',
           startTime: new Date().toISOString(),
           incremental,
@@ -380,7 +384,9 @@ export function createCodebaseIndexingRoutes(db) {
             await buildGraph(rel.target_entity_id, currentDepth + 1);
           }
         } catch (err) {
-          // Ignore errors in graph building
+          // Gracefully handle errors in recursive graph building to prevent partial graph failures
+          // The graph will be returned with whatever data was successfully collected
+          console.debug('Graph building encountered an issue for entity:', entityId, err.message);
         }
       }
 
