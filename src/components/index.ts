@@ -29,6 +29,9 @@ export { default as SEOComponents } from './specialized/SEOComponents';
 // Design System Components
 export { default as DesignSystemComponents } from './DesignSystemComponents';
 
+// AI/Finetuning Components
+export { default as FinetuningDashboard } from './FinetuningDashboard';
+
 // Dashboard Components
 export { default as AdvancedDashboardIntegrated } from './AdvancedDashboardIntegrated';
 export { default as StyleguideIntegratedDashboard } from './StyleguideIntegratedDashboard';
