@@ -323,11 +323,14 @@ export function useAnimatedMount(options: { duration?: number } = {}) {
     isAnimatingRef.current = true;
     
     return new Promise<void>((resolve) => {
-      const anim = toastEnterAnimation(ref.current!, { duration });
-      anim.then(() => {
+      toastEnterAnimation(ref.current!, { 
+        duration,
+      });
+      // Use timeout as fallback since anime.js v4 doesn't expose promises consistently
+      setTimeout(() => {
         isAnimatingRef.current = false;
         resolve();
-      });
+      }, duration);
     });
   }, [duration]);
   
@@ -337,11 +340,14 @@ export function useAnimatedMount(options: { duration?: number } = {}) {
     isAnimatingRef.current = true;
     
     return new Promise<void>((resolve) => {
-      const anim = toastExitAnimation(ref.current!, { duration });
-      anim.then(() => {
+      toastExitAnimation(ref.current!, { 
+        duration,
+      });
+      // Use timeout as fallback since anime.js v4 doesn't expose promises consistently
+      setTimeout(() => {
         isAnimatingRef.current = false;
         resolve();
-      });
+      }, duration);
     });
   }, [duration]);
   

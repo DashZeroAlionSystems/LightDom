@@ -42,7 +42,7 @@ export function buttonPressAnimation(
   const { duration = 150, easing = 'easeOutQuad' } = options;
   
   return createTimeline({
-    defaults: { easing }
+    defaults: { ease: easing }
   })
   .add(target, {
     scale: 0.95,
