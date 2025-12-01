@@ -29,6 +29,8 @@ const config: StorybookConfig = {
   staticDirs: ['../public'],
   viteFinal: async (config) => {
     // Add frontend path aliases so stories can resolve @/ imports
+    // Note: @/design-system points to frontend's local design system
+    // @/root-design-system points to the root src design system (for shared tokens)
     config.resolve = config.resolve || {};
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -40,7 +42,8 @@ const config: StorybookConfig = {
       '@/services': path.resolve(__dirname, '../frontend/src/services'),
       '@/config': path.resolve(__dirname, '../frontend/src/config'),
       '@/lib': path.resolve(__dirname, '../frontend/src/lib'),
-      '@/design-system': path.resolve(__dirname, '../src/design-system'),
+      '@/design-system': path.resolve(__dirname, '../frontend/src/design-system'),
+      '@/root-design-system': path.resolve(__dirname, '../src/design-system'),
       '@/stories': path.resolve(__dirname, '../src/stories'),
     };
     return config;

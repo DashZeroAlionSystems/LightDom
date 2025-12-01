@@ -86,14 +86,27 @@ const DesignTokenShowcase: React.FC<{ category: string }> = ({ category }) => {
 
       {category === 'spacing' && (
         <div className="space-y-4">
-          {[1, 2, 3, 4, 6, 8, 10, 12].map(space => (
-            <div key={space} className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground w-16">spacing-{space}</span>
+          {/* Spacing values based on design tokens: 
+              spacing-1: 0.25rem (4px), spacing-2: 0.5rem (8px), spacing-3: 0.75rem (12px),
+              spacing-4: 1rem (16px), spacing-6: 1.5rem (24px), spacing-8: 2rem (32px),
+              spacing-10: 2.5rem (40px), spacing-12: 3rem (48px) */}
+          {[
+            { key: 1, value: '4px' },
+            { key: 2, value: '8px' },
+            { key: 3, value: '12px' },
+            { key: 4, value: '16px' },
+            { key: 6, value: '24px' },
+            { key: 8, value: '32px' },
+            { key: 10, value: '40px' },
+            { key: 12, value: '48px' },
+          ].map(({ key, value }) => (
+            <div key={key} className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground w-16">spacing-{key}</span>
               <div 
                 className="h-4 bg-primary rounded" 
-                style={{ width: `${space * 4}px` }}
+                style={{ width: value }}
               />
-              <span className="text-sm text-muted-foreground">{space * 4}px</span>
+              <span className="text-sm text-muted-foreground">{value}</span>
             </div>
           ))}
         </div>
@@ -101,12 +114,20 @@ const DesignTokenShowcase: React.FC<{ category: string }> = ({ category }) => {
 
       {category === 'radius' && (
         <div className="grid grid-cols-6 gap-4">
-          {['none', 'sm', 'md', 'lg', 'xl', 'full'].map(radius => (
-            <div key={radius} className="space-y-2 text-center">
+          {/* Using explicit class names since Tailwind purges dynamic classes */}
+          {[
+            { name: 'none', className: 'rounded-none' },
+            { name: 'sm', className: 'rounded-sm' },
+            { name: 'md', className: 'rounded-md' },
+            { name: 'lg', className: 'rounded-lg' },
+            { name: 'xl', className: 'rounded-xl' },
+            { name: 'full', className: 'rounded-full' },
+          ].map(({ name, className }) => (
+            <div key={name} className="space-y-2 text-center">
               <div 
-                className={`h-16 w-16 mx-auto bg-primary rounded-${radius}`}
+                className={`h-16 w-16 mx-auto bg-primary ${className}`}
               />
-              <span className="text-sm text-muted-foreground">radius-{radius}</span>
+              <span className="text-sm text-muted-foreground">radius-{name}</span>
             </div>
           ))}
         </div>
@@ -114,12 +135,17 @@ const DesignTokenShowcase: React.FC<{ category: string }> = ({ category }) => {
 
       {category === 'shadows' && (
         <div className="grid grid-cols-3 gap-6">
-          {['sm', 'md', 'lg'].map(shadow => (
-            <div key={shadow} className="space-y-2 text-center">
+          {/* Using explicit class names for shadow styles */}
+          {[
+            { name: 'sm', className: 'shadow-sm' },
+            { name: 'md', className: 'shadow-md' },
+            { name: 'lg', className: 'shadow-lg' },
+          ].map(({ name, className }) => (
+            <div key={name} className="space-y-2 text-center">
               <div 
-                className={`h-20 w-full bg-card rounded-lg shadow-${shadow}`}
+                className={`h-20 w-full bg-card rounded-lg ${className}`}
               />
-              <span className="text-sm text-muted-foreground">shadow-{shadow}</span>
+              <span className="text-sm text-muted-foreground">shadow-{name}</span>
             </div>
           ))}
         </div>
