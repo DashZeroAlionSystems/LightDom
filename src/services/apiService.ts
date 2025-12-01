@@ -1018,6 +1018,235 @@ export const codebaseIndexingAPI = {
   },
 };
 
+// Data Mining API - For advanced data mining workflows and campaigns
+export interface DataMiningTool {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  configSchema?: any;
+}
+
+export interface DataMiningWorkflow {
+  id: string;
+  name: string;
+  description?: string;
+  status: 'idle' | 'running' | 'completed' | 'failed' | 'cancelled';
+  steps: {
+    name: string;
+    tool: string;
+    config: any;
+    status?: string;
+  }[];
+  createdAt: string;
+  lastRun?: string;
+  results?: any;
+}
+
+export interface DataMiningCampaign {
+  id: string;
+  name: string;
+  description?: string;
+  status: 'idle' | 'running' | 'completed' | 'failed';
+  workflows: DataMiningWorkflow[];
+  createdAt: string;
+  lastRun?: string;
+}
+
+export const dataMiningAPI = {
+  // Get available tools
+  getTools: async (): Promise<DataMiningTool[]> => {
+    try {
+      const response = await apiClient.get('/datamining/tools');
+      return response.data.tools || [];
+    } catch (error) {
+      console.error('Failed to fetch data mining tools:', error);
+      return [];
+    }
+  },
+
+  // Get single tool
+  getTool: async (toolId: string): Promise<DataMiningTool | null> => {
+    try {
+      const response = await apiClient.get(`/datamining/tools/${toolId}`);
+      return response.data.tool;
+    } catch (error) {
+      console.error('Failed to fetch tool:', error);
+      return null;
+    }
+  },
+
+  // Create workflow
+  createWorkflow: async (workflow: {
+    name: string;
+    description?: string;
+    steps: { name: string; tool: string; config: any }[];
+  }): Promise<DataMiningWorkflow> => {
+    try {
+      const response = await apiClient.post('/datamining/workflows', workflow);
+      return response.data.workflow;
+    } catch (error) {
+      console.error('Failed to create workflow:', error);
+      throw error;
+    }
+  },
+
+  // Get all workflows
+  getWorkflows: async (): Promise<DataMiningWorkflow[]> => {
+    try {
+      const response = await apiClient.get('/datamining/workflows');
+      return response.data.workflows || [];
+    } catch (error) {
+      console.error('Failed to fetch workflows:', error);
+      return [];
+    }
+  },
+
+  // Get single workflow
+  getWorkflow: async (workflowId: string): Promise<DataMiningWorkflow | null> => {
+    try {
+      const response = await apiClient.get(`/datamining/workflows/${workflowId}`);
+      return response.data.workflow;
+    } catch (error) {
+      console.error('Failed to fetch workflow:', error);
+      return null;
+    }
+  },
+
+  // Update workflow
+  updateWorkflow: async (workflowId: string, updates: Partial<DataMiningWorkflow>): Promise<DataMiningWorkflow> => {
+    try {
+      const response = await apiClient.put(`/datamining/workflows/${workflowId}`, updates);
+      return response.data.workflow;
+    } catch (error) {
+      console.error('Failed to update workflow:', error);
+      throw error;
+    }
+  },
+
+  // Delete workflow
+  deleteWorkflow: async (workflowId: string): Promise<void> => {
+    try {
+      await apiClient.delete(`/datamining/workflows/${workflowId}`);
+    } catch (error) {
+      console.error('Failed to delete workflow:', error);
+      throw error;
+    }
+  },
+
+  // Execute workflow
+  executeWorkflow: async (workflowId: string, options: any = {}): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/datamining/workflows/${workflowId}/execute`, { options });
+      return response.data.result;
+    } catch (error) {
+      console.error('Failed to execute workflow:', error);
+      throw error;
+    }
+  },
+
+  // Create campaign
+  createCampaign: async (campaign: {
+    name: string;
+    description?: string;
+    workflows: { name: string; steps: any[] }[];
+  }): Promise<DataMiningCampaign> => {
+    try {
+      const response = await apiClient.post('/datamining/campaigns', campaign);
+      return response.data.campaign;
+    } catch (error) {
+      console.error('Failed to create campaign:', error);
+      throw error;
+    }
+  },
+
+  // Get all campaigns
+  getCampaigns: async (): Promise<DataMiningCampaign[]> => {
+    try {
+      const response = await apiClient.get('/datamining/campaigns');
+      return response.data.campaigns || [];
+    } catch (error) {
+      console.error('Failed to fetch campaigns:', error);
+      return [];
+    }
+  },
+
+  // Get single campaign
+  getCampaign: async (campaignId: string): Promise<DataMiningCampaign | null> => {
+    try {
+      const response = await apiClient.get(`/datamining/campaigns/${campaignId}`);
+      return response.data.campaign;
+    } catch (error) {
+      console.error('Failed to fetch campaign:', error);
+      return null;
+    }
+  },
+
+  // Update campaign
+  updateCampaign: async (campaignId: string, updates: Partial<DataMiningCampaign>): Promise<DataMiningCampaign> => {
+    try {
+      const response = await apiClient.put(`/datamining/campaigns/${campaignId}`, updates);
+      return response.data.campaign;
+    } catch (error) {
+      console.error('Failed to update campaign:', error);
+      throw error;
+    }
+  },
+
+  // Delete campaign
+  deleteCampaign: async (campaignId: string): Promise<void> => {
+    try {
+      await apiClient.delete(`/datamining/campaigns/${campaignId}`);
+    } catch (error) {
+      console.error('Failed to delete campaign:', error);
+      throw error;
+    }
+  },
+
+  // Execute campaign
+  executeCampaign: async (campaignId: string, options: any = {}): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/datamining/campaigns/${campaignId}/execute`, { options });
+      return response.data.result;
+    } catch (error) {
+      console.error('Failed to execute campaign:', error);
+      throw error;
+    }
+  },
+
+  // Get orchestrator status
+  getStatus: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/datamining/status');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch data mining status:', error);
+      return {
+        status: 'unknown',
+        activeWorkflows: 0,
+        activeCampaigns: 0,
+        completedTasks: 0,
+      };
+    }
+  },
+
+  // Get statistics
+  getStats: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/datamining/stats');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch data mining stats:', error);
+      return {
+        totalWorkflows: 0,
+        totalCampaigns: 0,
+        totalDataMined: 0,
+        successRate: 0,
+      };
+    }
+  },
+};
+
 // Export all APIs
 export const api = {
   dashboard: dashboardAPI,
@@ -1032,6 +1261,7 @@ export const api = {
   settings: settingsAPI,
   research: researchAPI,
   codebaseIndexing: codebaseIndexingAPI,
+  dataMining: dataMiningAPI,
 };
 
 export default api;
