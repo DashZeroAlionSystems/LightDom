@@ -362,7 +362,7 @@ export class ToolUseTrainingGenerator {
         role: 'assistant',
         content: null,
         tool_calls: scenario.toolCalls.map((call, i) => ({
-          id: `call_${crypto.randomUUID().slice(0, 8)}`,
+          id: `call_${crypto.randomUUID()}`,
           type: 'function',
           function: {
             name: call.name,
