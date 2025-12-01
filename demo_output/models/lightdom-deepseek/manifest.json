@@ -1,0 +1,32 @@
+{
+  "modelName": "lightdom-deepseek",
+  "versions": [
+    {
+      "id": "lightdom-deepseek@v1.1.0",
+      "modelName": "lightdom-deepseek",
+      "version": "v1.1.0",
+      "metadata": {
+        "trainedOn": "2024-11-30",
+        "trainingExamples": 7500,
+        "baseModel": "deepseek-coder-7b"
+      },
+      "status": "registered",
+      "createdAt": "2025-12-01T13:59:58.584Z",
+      "path": "demo_output/models/lightdom-deepseek/v1.1.0"
+    },
+    {
+      "id": "lightdom-deepseek@v1.0.0",
+      "modelName": "lightdom-deepseek",
+      "version": "v1.0.0",
+      "metadata": {
+        "trainedOn": "2024-11-29",
+        "trainingExamples": 5000,
+        "baseModel": "deepseek-coder-7b"
+      },
+      "status": "registered",
+      "createdAt": "2025-12-01T13:59:58.582Z",
+      "path": "demo_output/models/lightdom-deepseek/v1.0.0"
+    }
+  ],
+  "updatedAt": "2025-12-01T13:59:58.584Z"
+}
