@@ -65,6 +65,8 @@ import ChromeLayers3DDashboard from './components/ChromeLayers3DDashboard';
 import NeuralNetworkDashboard from './components/ui/dashboard/NeuralNetworkDashboard';
 import TensorFlowNeuralNetworkDashboard from './components/dashboards/TensorFlowNeuralNetworkDashboard';
 import CampaignTrainingAdminDashboard from './components/dashboards/CampaignTrainingAdminDashboard';
+import AIResearchDashboard from './components/dashboards/AIResearchDashboard';
+import CodebaseIndexingDashboard from './components/dashboards/CodebaseIndexingDashboard';
 
 // Category Dashboards
 import { 
@@ -222,6 +224,8 @@ const AppContent: React.FC = () => {
           <Route path="neural-network" element={<NeuralNetworkDashboard />} />
           <Route path="tensorflow-workflow" element={<TensorFlowNeuralNetworkDashboard />} />
           <Route path="campaign-training-admin" element={<CampaignTrainingAdminDashboard />} />
+          <Route path="ai-research" element={<AIResearchDashboard />} />
+          <Route path="codebase-indexing" element={<CodebaseIndexingDashboard />} />
           <Route path="paint-timeline-viewer" element={<PaintTimelineViewer />} />
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />

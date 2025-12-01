@@ -1075,6 +1075,22 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load AI research pipeline routes:', err);
       });
 
+    // Import and register Codebase Indexing API routes (critical for RAG)
+    import('./api/codebase-indexing-routes.js')
+      .then(indexingModule => {
+        const createCodebaseIndexingRoutes =
+          indexingModule.default || indexingModule.createCodebaseIndexingRoutes;
+        if (typeof createCodebaseIndexingRoutes === 'function') {
+          this.app.use('/api/codebase-indexing', createCodebaseIndexingRoutes(this.db));
+        } else {
+          this.app.use('/api/codebase-indexing', createCodebaseIndexingRoutes);
+        }
+        console.log('✅ Codebase Indexing API routes registered at /api/codebase-indexing');
+      })
+      .catch(err => {
+        console.error('Failed to load codebase indexing routes:', err);
+      });
+
     // Import and register Advanced Data Mining Orchestration routes
     import('./api/advanced-datamining-routes.js')
       .then(dataminingModule => {

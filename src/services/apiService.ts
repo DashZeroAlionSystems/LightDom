@@ -673,6 +673,351 @@ export const settingsAPI = {
   },
 };
 
+// Research Pipeline API - For AI/ML research scraping and analysis
+export interface ResearchArticle {
+  id: string;
+  title: string;
+  url: string;
+  author: string;
+  tags: string[];
+  content?: string;
+  scrapedAt: string;
+  status: 'pending' | 'analyzed' | 'archived';
+}
+
+export interface ResearchFeature {
+  id: string;
+  name: string;
+  description: string;
+  impactLevel: 'critical' | 'high' | 'medium' | 'low';
+  revenuePotential: 'high' | 'medium' | 'low';
+  status: 'proposed' | 'approved' | 'implemented' | 'rejected';
+  articleId?: string;
+}
+
+export interface ResearchCampaign {
+  id: string;
+  name: string;
+  topics: string[];
+  isActive: boolean;
+  createdAt: string;
+  lastRun?: string;
+}
+
+export interface ResearchDashboardData {
+  stats: {
+    total_articles: number;
+    articles_today: number;
+    total_features: number;
+    pending_features: number;
+    active_campaigns: number;
+    total_papers: number;
+    total_code_examples: number;
+  };
+  topTopics?: any[];
+  topFeatures?: any[];
+  recentArticles?: any[];
+}
+
+export const researchAPI = {
+  // Get dashboard data
+  getDashboard: async (): Promise<ResearchDashboardData> => {
+    try {
+      const response = await apiClient.get('/research/dashboard');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch research dashboard:', error);
+      return {
+        stats: {
+          total_articles: 0,
+          articles_today: 0,
+          total_features: 0,
+          pending_features: 0,
+          active_campaigns: 0,
+          total_papers: 0,
+          total_code_examples: 0,
+        },
+      };
+    }
+  },
+
+  // Get pipeline status
+  getStatus: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/research/status');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch research status:', error);
+      return { status: 'unknown', stats: {} };
+    }
+  },
+
+  // Trigger article scraping
+  scrapeArticles: async (topics: string[] = ['ai', 'ml', 'llm'], limit: number = 50): Promise<any> => {
+    try {
+      const response = await apiClient.post('/research/scrape', { topics, limit });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to scrape articles:', error);
+      throw error;
+    }
+  },
+
+  // Get articles
+  getArticles: async (params: {
+    status?: string;
+    topic?: string;
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<{ articles: ResearchArticle[]; total: number }> => {
+    try {
+      const response = await apiClient.get('/research/articles', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch articles:', error);
+      return { articles: [], total: 0 };
+    }
+  },
+
+  // Get single article
+  getArticle: async (id: string): Promise<ResearchArticle | null> => {
+    try {
+      const response = await apiClient.get(`/research/articles/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch article:', error);
+      return null;
+    }
+  },
+
+  // Analyze article for features
+  analyzeArticle: async (id: string): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/research/articles/${id}/analyze`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to analyze article:', error);
+      throw error;
+    }
+  },
+
+  // Get feature recommendations
+  getFeatures: async (params: {
+    status?: string;
+    impact?: string;
+    revenue?: string;
+    limit?: number;
+  } = {}): Promise<{ features: ResearchFeature[]; total: number }> => {
+    try {
+      const response = await apiClient.get('/research/features', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch features:', error);
+      return { features: [], total: 0 };
+    }
+  },
+
+  // Get campaigns
+  getCampaigns: async (active?: boolean): Promise<ResearchCampaign[]> => {
+    try {
+      const params = active !== undefined ? { active: active.toString() } : {};
+      const response = await apiClient.get('/research/campaigns', { params });
+      return response.data.campaigns || response.data;
+    } catch (error) {
+      console.error('Failed to fetch campaigns:', error);
+      return [];
+    }
+  },
+
+  // Create campaign
+  createCampaign: async (config: Partial<ResearchCampaign>): Promise<ResearchCampaign> => {
+    try {
+      const response = await apiClient.post('/research/campaigns', config);
+      return response.data.campaign;
+    } catch (error) {
+      console.error('Failed to create campaign:', error);
+      throw error;
+    }
+  },
+
+  // Generate research paper
+  generatePaper: async (focusArea: string, limit: number = 50): Promise<any> => {
+    try {
+      const response = await apiClient.post('/research/papers/generate', { focusArea, limit });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to generate paper:', error);
+      throw error;
+    }
+  },
+};
+
+// Codebase Indexing API - For semantic code search and analysis
+export interface CodeEntity {
+  id: string;
+  name: string;
+  type: 'function' | 'class' | 'variable' | 'interface' | 'type';
+  filePath: string;
+  lineStart: number;
+  lineEnd: number;
+  description?: string;
+  signature?: string;
+}
+
+export interface CodeRelationship {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  type: 'calls' | 'imports' | 'extends' | 'implements' | 'uses';
+}
+
+export interface IndexingSession {
+  id: string;
+  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  startTime: string;
+  endTime?: string;
+  stats: {
+    filesProcessed: number;
+    entitiesFound: number;
+    relationshipsFound: number;
+    issuesDetected: number;
+  };
+}
+
+export const codebaseIndexingAPI = {
+  // Get indexing status
+  getStatus: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/status');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch codebase indexing status:', error);
+      return {
+        status: 'idle',
+        lastIndexed: null,
+        totalEntities: 0,
+        totalRelationships: 0,
+      };
+    }
+  },
+
+  // Start full indexing
+  startIndexing: async (options: { incremental?: boolean; targetFiles?: string[] } = {}): Promise<IndexingSession> => {
+    try {
+      const response = await apiClient.post('/codebase-indexing/start', options);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to start indexing:', error);
+      throw error;
+    }
+  },
+
+  // Stop indexing
+  stopIndexing: async (sessionId: string): Promise<void> => {
+    try {
+      await apiClient.post(`/codebase-indexing/stop/${sessionId}`);
+    } catch (error) {
+      console.error('Failed to stop indexing:', error);
+      throw error;
+    }
+  },
+
+  // Get indexing sessions
+  getSessions: async (limit: number = 10): Promise<IndexingSession[]> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/sessions', { params: { limit } });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch indexing sessions:', error);
+      return [];
+    }
+  },
+
+  // Search code entities
+  searchEntities: async (query: string, options: {
+    type?: string;
+    limit?: number;
+  } = {}): Promise<CodeEntity[]> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/search', {
+        params: { query, ...options },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to search entities:', error);
+      return [];
+    }
+  },
+
+  // Get entity details
+  getEntity: async (id: string): Promise<CodeEntity | null> => {
+    try {
+      const response = await apiClient.get(`/codebase-indexing/entities/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch entity:', error);
+      return null;
+    }
+  },
+
+  // Get entity relationships
+  getRelationships: async (entityId: string): Promise<CodeRelationship[]> => {
+    try {
+      const response = await apiClient.get(`/codebase-indexing/entities/${entityId}/relationships`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch relationships:', error);
+      return [];
+    }
+  },
+
+  // Get call graph for entity
+  getCallGraph: async (entityId: string, depth: number = 3): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/codebase-indexing/entities/${entityId}/call-graph`, {
+        params: { depth },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch call graph:', error);
+      return { nodes: [], edges: [] };
+    }
+  },
+
+  // Get dead code analysis
+  getDeadCode: async (): Promise<any[]> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/analysis/dead-code');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch dead code analysis:', error);
+      return [];
+    }
+  },
+
+  // Get dependency analysis
+  getDependencies: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/analysis/dependencies');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch dependency analysis:', error);
+      return { internal: [], external: [] };
+    }
+  },
+
+  // Get AI-powered insights
+  getInsights: async (): Promise<any[]> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/insights');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch AI insights:', error);
+      return [];
+    }
+  },
+};
+
 // Export all APIs
 export const api = {
   dashboard: dashboardAPI,
@@ -685,6 +1030,8 @@ export const api = {
   metaverse: metaverseAPI,
   admin: adminAPI,
   settings: settingsAPI,
+  research: researchAPI,
+  codebaseIndexing: codebaseIndexingAPI,
 };
 
 export default api;
