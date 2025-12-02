@@ -20,12 +20,12 @@ export {
   WorkspaceToggleGroup,
 } from './WorkspaceLayout';
 
-// Re-exports from main src (for backward compatibility)
+// Local copies of essential components (no longer needs src/ references)
 export {
   WorkflowPanel,
   WorkflowPanelFooter,
   WorkflowPanelSection,
-} from '../../../../src/components/ui/WorkflowPanel';
+} from './WorkflowPanel';
 
 export {
   KpiCard, KpiGrid
@@ -35,9 +35,9 @@ export {
   AsyncStateEmpty,
   AsyncStateError,
   AsyncStateLoading,
-} from '../../../../src/components/ui/DashboardAsyncState';
+} from './DashboardAsyncState';
 
-export { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../src/components/ui/tabs';
+export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 
 export { LoadingBar } from './LoadingBar';
 
@@ -67,9 +67,9 @@ export {
   WizardContent,
   WizardFooter,
   useWizard,
-} from '../../../../src/components/ui/Wizard';
+} from './Wizard';
 
-export { default as Fab } from '../../../../src/components/ui/design-system/Fab';
+export { default as Fab } from './design-system/Fab';
 
 export {
   Accordion,
@@ -82,7 +82,24 @@ export {
   MetricsChart,
   ModelCard,
   NeuralNetworkVisualizer,
-} from '../../../../src/components/ui/NeuralNetwork';
+} from './NeuralNetwork';
 
 // Codebase Search - Semantic codebase search with AI context
 export { CodebaseSearch } from './CodebaseSearch';
+
+// Tooltip component
+export { Tooltip } from './Tooltip';
+
+// Additional UI components
+export { Toast, ToastAction, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport, Toaster, useToast } from './Toast';
+export { Switch } from './Switch';
+export { Skeleton } from './Skeleton';
+export { Slider } from './Slider';
+export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from './select';
+export { Alert, AlertDescription, AlertTitle } from './alert';
+export { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from './dialog';
+export { Label } from './label';
+export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from './table';
+
+// Design System Components (Material Design 3 inspired)
+export * from './design-system';
