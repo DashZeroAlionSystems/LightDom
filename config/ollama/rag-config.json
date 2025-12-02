@@ -1,0 +1,239 @@
+{
+  "$schema": "./rag-config.schema.json",
+  "version": "1.0.0",
+  "description": "Ollama RAG Configuration for LightDom Platform",
+  
+  "llm": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "lightdom-deepseek",
+    "fallbackModels": ["deepseek-r1:14b", "qwen2.5:14b", "llama3.3:70b"],
+    "temperature": 0.7,
+    "maxTokens": 4096,
+    "contextWindow": 128000,
+    "streaming": true,
+    "timeout": 60000
+  },
+
+  "embedding": {
+    "provider": "ollama",
+    "endpoint": "http://localhost:11434",
+    "model": "nomic-embed-text",
+    "dimension": 768,
+    "batchSize": 32,
+    "normalize": true,
+    "timeout": 30000,
+    "alternatives": [
+      {
+        "name": "mxbai-embed-large",
+        "dimension": 1024,
+        "description": "Higher accuracy, larger vectors"
+      },
+      {
+        "name": "all-minilm",
+        "dimension": 384,
+        "description": "Fastest, smaller vectors"
+      }
+    ]
+  },
+
+  "vectorStore": {
+    "type": "pgvector",
+    "tableName": "rag_documents",
+    "indexType": "ivfflat",
+    "distanceMetric": "l2",
+    "lists": 128,
+    "connection": {
+      "host": "${DB_HOST:-localhost}",
+      "port": "${DB_PORT:-5432}",
+      "database": "${DB_NAME:-dom_space_harvester}",
+      "user": "${DB_USER:-postgres}",
+      "ssl": false
+    }
+  },
+
+  "chunking": {
+    "strategy": "semantic",
+    "chunkSize": 1000,
+    "chunkOverlap": 200,
+    "minChunkSize": 100,
+    "maxChunkSize": 2000,
+    "preserveStructure": true,
+    "respectBoundaries": ["paragraph", "sentence", "code_block"],
+    "separators": ["\n\n", "\n", ". ", "! ", "? "],
+    "metadata": {
+      "includeSource": true,
+      "includeTimestamp": true,
+      "includeChunkIndex": true,
+      "customFields": []
+    }
+  },
+
+  "retrieval": {
+    "topK": 5,
+    "minScore": 0.6,
+    "maxDistance": 0.8,
+    "reranking": {
+      "enabled": true,
+      "model": "cross-encoder",
+      "topN": 3
+    },
+    "hybridSearch": {
+      "enabled": true,
+      "semanticWeight": 0.7,
+      "keywordWeight": 0.3,
+      "fusionMethod": "reciprocal_rank"
+    },
+    "filters": {
+      "namespace": null,
+      "metadata": {},
+      "dateRange": null
+    }
+  },
+
+  "prompts": {
+    "contextTemplate": "[CONTEXT START]\n{context}\n[CONTEXT END]\n\nBased on the context above, answer the following question:\n{question}",
+    "systemPrompt": "You are a helpful AI assistant. Use the provided context to answer questions accurately. If you cannot find the answer in the context, say so honestly.",
+    "noContextResponse": "I don't have enough information in my knowledge base to answer that question accurately.",
+    "citationFormat": "[Source: {title}]",
+    "maxContextChunks": 5,
+    "includeMetadata": true
+  },
+
+  "processing": {
+    "supportedFormats": [
+      "text/plain",
+      "text/markdown",
+      "text/html",
+      "application/json",
+      "application/pdf",
+      "application/javascript",
+      "text/typescript"
+    ],
+    "preprocessing": {
+      "removeExtraWhitespace": true,
+      "normalizeUnicode": true,
+      "expandAbbreviations": false,
+      "removeStopwords": false
+    },
+    "postprocessing": {
+      "trimResponse": true,
+      "formatMarkdown": true,
+      "addCitations": true
+    }
+  },
+
+  "caching": {
+    "enabled": true,
+    "embeddingCache": {
+      "enabled": true,
+      "ttl": 86400,
+      "maxSize": 10000
+    },
+    "queryCache": {
+      "enabled": true,
+      "ttl": 3600,
+      "maxSize": 1000
+    },
+    "responseCache": {
+      "enabled": false,
+      "ttl": 1800,
+      "maxSize": 500
+    }
+  },
+
+  "monitoring": {
+    "enabled": true,
+    "logQueries": true,
+    "logRetrievals": true,
+    "logResponses": false,
+    "metrics": {
+      "trackLatency": true,
+      "trackTokenUsage": true,
+      "trackRetrievalQuality": true
+    },
+    "alertThresholds": {
+      "latencyMs": 5000,
+      "errorRate": 0.1,
+      "lowRelevanceRate": 0.3
+    }
+  },
+
+  "security": {
+    "sanitizeInput": true,
+    "maxInputLength": 10000,
+    "maxContextLength": 50000,
+    "rateLimiting": {
+      "enabled": true,
+      "requestsPerMinute": 60,
+      "tokensPerMinute": 100000
+    },
+    "contentFiltering": {
+      "enabled": false,
+      "blockedPatterns": []
+    }
+  },
+
+  "namespaces": {
+    "default": {
+      "description": "Default namespace for general documents",
+      "embeddingModel": "nomic-embed-text",
+      "chunkSize": 1000
+    },
+    "codebase": {
+      "description": "Source code and technical documentation",
+      "embeddingModel": "nomic-embed-text",
+      "chunkSize": 1500,
+      "preserveStructure": true
+    },
+    "documentation": {
+      "description": "User-facing documentation and guides",
+      "embeddingModel": "nomic-embed-text",
+      "chunkSize": 800
+    },
+    "api": {
+      "description": "API documentation and endpoints",
+      "embeddingModel": "nomic-embed-text",
+      "chunkSize": 600,
+      "metadata": {
+        "type": "api"
+      }
+    }
+  },
+
+  "presets": {
+    "fast": {
+      "description": "Optimized for speed",
+      "embedding": {
+        "model": "all-minilm",
+        "dimension": 384
+      },
+      "retrieval": {
+        "topK": 3,
+        "reranking": { "enabled": false }
+      }
+    },
+    "accurate": {
+      "description": "Optimized for accuracy",
+      "embedding": {
+        "model": "mxbai-embed-large",
+        "dimension": 1024
+      },
+      "retrieval": {
+        "topK": 10,
+        "reranking": { "enabled": true, "topN": 5 }
+      }
+    },
+    "balanced": {
+      "description": "Balance of speed and accuracy (default)",
+      "embedding": {
+        "model": "nomic-embed-text",
+        "dimension": 768
+      },
+      "retrieval": {
+        "topK": 5,
+        "reranking": { "enabled": true, "topN": 3 }
+      }
+    }
+  }
+}

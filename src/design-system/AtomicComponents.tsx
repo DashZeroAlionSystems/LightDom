@@ -460,6 +460,10 @@ export const ComponentMetadata = {
   },
 };
 
+// Re-export OllamaModelConfig from atoms
+export { OllamaModelConfig } from '../components/atoms/OllamaModelConfig';
+export type { OllamaModelConfigProps, OllamaModelSettings } from '../components/atoms/OllamaModelConfig';
+
 export default {
   Button,
   Input,

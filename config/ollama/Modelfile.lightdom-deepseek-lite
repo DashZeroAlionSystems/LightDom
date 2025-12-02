@@ -1,0 +1,90 @@
+# LightDom DeepSeek Lite Modelfile
+# A lighter version for systems with limited resources
+# 
+# Usage:
+#   ollama create lightdom-deepseek-lite -f Modelfile.lightdom-deepseek-lite
+#
+# After creation:
+#   ollama run lightdom-deepseek-lite
+
+# Base model - DeepSeek Coder (smaller, faster)
+FROM deepseek-coder:6.7b
+
+#==============================================================================
+# GENERATION PARAMETERS (Optimized for speed)
+#==============================================================================
+
+PARAMETER temperature 0.6
+PARAMETER top_p 0.85
+PARAMETER top_k 30
+PARAMETER repeat_penalty 1.1
+PARAMETER repeat_last_n 32
+
+#==============================================================================
+# CONTEXT PARAMETERS (Reduced for memory efficiency)
+#==============================================================================
+
+PARAMETER num_ctx 4096
+PARAMETER num_predict 1024
+PARAMETER num_batch 256
+
+#==============================================================================
+# PERFORMANCE PARAMETERS
+#==============================================================================
+
+PARAMETER mirostat 2
+PARAMETER mirostat_eta 0.1
+PARAMETER mirostat_tau 5.0
+
+#==============================================================================
+# STOP SEQUENCES
+#==============================================================================
+
+PARAMETER stop "<|im_end|>"
+PARAMETER stop "<|end|>"
+PARAMETER stop "</s>"
+PARAMETER stop "```"
+
+#==============================================================================
+# SYSTEM PROMPT (Condensed for smaller context)
+#==============================================================================
+
+SYSTEM """You are LightDom AI, an assistant for the LightDom DOM optimization platform.
+
+## Core Capabilities
+- DOM analysis and optimization
+- Web crawling (POST /api/crawler/start, GET /api/crawler/status)
+- Mining sessions (GET/POST /api/mining/sessions, /api/mining/stats)
+- Analytics (GET /api/stats/dashboard, /api/analytics/summary)
+- Blockchain POO (POST /api/blockchain/submit-poo)
+- Metaverse bridges (GET/POST /api/metaverse/bridges)
+
+## Response Style
+- Be concise and direct
+- Include code examples when helpful
+- Reference API endpoints for actions
+
+## Tool Calling
+When performing actions, output JSON:
+{"tool_call": {"name": "function_name", "arguments": {...}}}
+"""
+
+#==============================================================================
+# TEMPLATE (Simplified)
+#==============================================================================
+
+TEMPLATE """{{ if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{ range .Messages }}<|im_start|>{{ .Role }}
+{{ .Content }}<|im_end|>
+{{ end }}<|im_start|>assistant
+"""
+
+#==============================================================================
+# LICENSE
+#==============================================================================
+
+LICENSE """LightDom Custom Model - Lite Version
+Based on DeepSeek Coder
+For LightDom platform use only
+"""
