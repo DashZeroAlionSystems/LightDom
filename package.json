@@ -334,6 +334,8 @@
     "ollama:test-tools": "node test-ollama-tool-calling.js",
     "ollama:create-model": "ollama create lightdom-deepseek -f config/ollama/Modelfile.lightdom-deepseek",
     "ollama:create-model-lite": "ollama create lightdom-deepseek-lite -f config/ollama/Modelfile.lightdom-deepseek-lite",
+    "rag:test": "node scripts/test-simple-rag.js",
+    "rag:health": "curl -s http://localhost:3001/api/rag/health | jq .",
     "ollama:prompt:list": "node scripts/automation/ollama-prompt-engine.js --list",
     "ollama:prompt:interactive": "node scripts/automation/ollama-prompt-engine.js --interactive",
     "ollama:prompt:execute": "node scripts/automation/ollama-prompt-engine.js --execute",

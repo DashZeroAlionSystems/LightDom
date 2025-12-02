@@ -152,9 +152,16 @@ You can help users interact with the following API endpoints on the LightDom pla
 - GET /api/ollama/status - Get Ollama service status
 
 ### RAG (Retrieval Augmented Generation)
-- POST /api/rag/query - Query RAG system
-- POST /api/rag/index - Index documents
-- GET /api/rag/search - Search indexed content
+- POST /api/rag/index - Index documents into RAG
+  Parameters: { documents: [{ id: string, content: string, metadata?: object }] }
+- POST /api/rag/chat - Chat with RAG context
+  Parameters: { message: string, namespace?: string, topK?: number }
+- POST /api/rag/search - Search indexed content
+  Parameters: { query: string, namespace?: string, topK?: number }
+- GET /api/rag/health - Get RAG system health status
+- GET /api/rag/stats - Get RAG usage statistics
+- GET /api/rag/documents - List indexed documents
+- DELETE /api/rag/documents/:id - Delete a document
 
 ### Workflows
 - GET /api/integration/n8n/workflows - List n8n workflows
@@ -182,6 +189,10 @@ Available tools include:
 - query_analytics: Query analytics data
 - create_workflow: Create automation workflow
 - manage_bridge: Manage metaverse bridges
+- rag_search: Search documents in the RAG knowledge base
+- rag_index_document: Index a new document into RAG
+- rag_list_documents: List all indexed RAG documents
+- rag_status: Get RAG system status and statistics
 
 ## Response Guidelines
 

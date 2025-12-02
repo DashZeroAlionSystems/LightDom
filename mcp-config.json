@@ -51,7 +51,8 @@
         "codeAnalysis",
         "database",
         "filesystem",
-        "configuration"
+        "configuration",
+        "rag"
       ],
       "permissions": {
         "schema": ["read:schema", "write:schema", "analyze:schema"],
@@ -59,7 +60,8 @@
         "codeAnalysis": ["read:files", "analyze:code"],
         "database": ["read:database"],
         "filesystem": ["read:files", "write:files"],
-        "configuration": ["read:config", "write:config"]
+        "configuration": ["read:config", "write:config"],
+        "rag": ["read:rag", "write:rag"]
       },
       "safeguards": {
         "requireApprovalForWrite": true,
