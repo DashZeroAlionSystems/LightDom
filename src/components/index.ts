@@ -32,6 +32,9 @@ export { default as DesignSystemComponents } from './DesignSystemComponents';
 // AI/Finetuning Components
 export { default as FinetuningDashboard } from './FinetuningDashboard';
 
+// Workflow Orchestration Components
+export { default as WorkflowOrchestrationDashboard } from './WorkflowOrchestrationDashboard';
+
 // Dashboard Components
 export { default as AdvancedDashboardIntegrated } from './AdvancedDashboardIntegrated';
 export { default as StyleguideIntegratedDashboard } from './StyleguideIntegratedDashboard';
