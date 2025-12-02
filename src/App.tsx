@@ -71,6 +71,7 @@ import DataMiningDashboard from './components/dashboards/DataMiningDashboard';
 import LeadGenerationDashboard from './components/dashboards/LeadGenerationDashboard';
 import WorkflowGeneratorDashboard from './components/dashboards/WorkflowGeneratorDashboard';
 import EnhancedSchemaLinkingDashboard from './components/dashboards/SchemaLinkingDashboard';
+import TrainingDataDashboard from './components/dashboards/TrainingDataDashboard';
 
 // Category Dashboards
 import { 
@@ -234,6 +235,7 @@ const AppContent: React.FC = () => {
           <Route path="lead-generation" element={<LeadGenerationDashboard />} />
           <Route path="workflow-generator" element={<WorkflowGeneratorDashboard />} />
           <Route path="schema-linking" element={<EnhancedSchemaLinkingDashboard />} />
+          <Route path="training-data-mining" element={<TrainingDataDashboard />} />
           <Route path="paint-timeline-viewer" element={<PaintTimelineViewer />} />
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />

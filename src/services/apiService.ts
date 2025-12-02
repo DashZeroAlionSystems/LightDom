@@ -1827,6 +1827,154 @@ export const schemaLinkingAPI = {
   },
 };
 
+// Training Data API - For training data mining, bundling, and schema linking
+export interface ModelType {
+  id: string;
+  name: string;
+  description: string;
+  attributes: string[];
+}
+
+export interface TrainingBundle {
+  id: string;
+  functionality: string;
+  urls: string[];
+  data: any[];
+  qualityScore: number;
+  createdAt: string;
+}
+
+export interface MiningResult {
+  url: string;
+  success: boolean;
+  attributes?: any;
+  qualityScore?: number;
+  error?: string;
+}
+
+export interface FunctionalityConfig {
+  functionality: string;
+  description: string;
+  requiredAttributes: string[];
+  modelTypes: string[];
+  minQualityScore: number;
+  includeLayersData: boolean;
+  linkSchemas: boolean;
+}
+
+export interface LinkedSchema {
+  id: string;
+  sourceAttribute: string;
+  targetAttribute: string;
+  confidence: number;
+  schemaType: string;
+}
+
+export const trainingDataAPI = {
+  // Get supported model types
+  getModelTypes: async (): Promise<ModelType[]> => {
+    try {
+      const response = await apiClient.get('/training-data/model-types');
+      return response.data.data?.modelTypes || [];
+    } catch (error) {
+      console.error('Failed to fetch model types:', error);
+      return [];
+    }
+  },
+
+  // Mine data for a specific model type from a URL
+  mineData: async (url: string, modelType: string): Promise<MiningResult> => {
+    try {
+      const response = await apiClient.post('/training-data/mine', { url, modelType });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to mine data:', error);
+      throw error;
+    }
+  },
+
+  // Mine data from multiple URLs
+  mineBatch: async (urls: string[], modelType: string): Promise<{
+    results: MiningResult[];
+    total: number;
+    successful: number;
+    failed: number;
+  }> => {
+    try {
+      const response = await apiClient.post('/training-data/mine-batch', { urls, modelType });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to mine batch:', error);
+      throw error;
+    }
+  },
+
+  // Get supported functionalities
+  getFunctionalities: async (): Promise<FunctionalityConfig[]> => {
+    try {
+      const response = await apiClient.get('/training-data/functionalities');
+      return response.data.data?.functionalities || [];
+    } catch (error) {
+      console.error('Failed to fetch functionalities:', error);
+      return [];
+    }
+  },
+
+  // Create a training data bundle
+  createBundle: async (functionality: string, urls: string[]): Promise<TrainingBundle> => {
+    try {
+      const response = await apiClient.post('/training-data/create-bundle', { functionality, urls });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to create bundle:', error);
+      throw error;
+    }
+  },
+
+  // Discover attributes for a functionality
+  discoverAttributes: async (functionality: string, sampleUrls?: string[]): Promise<{
+    functionality: string;
+    description: string;
+    requiredAttributes: string[];
+    modelTypes: string[];
+    sampleData?: any;
+    attributeDetails: any[];
+  }> => {
+    try {
+      const response = await apiClient.post('/training-data/discover-attributes', {
+        functionality,
+        sampleUrls: sampleUrls || [],
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to discover attributes:', error);
+      throw error;
+    }
+  },
+
+  // Link schemas in training data
+  linkSchemas: async (datasets: any[], schemaContext?: any): Promise<{
+    linkedSchemas: LinkedSchema[];
+    total: number;
+    byConfidence: {
+      high: number;
+      medium: number;
+      low: number;
+    };
+  }> => {
+    try {
+      const response = await apiClient.post('/training-data/link-schemas', {
+        datasets,
+        schemaContext: schemaContext || {},
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to link schemas:', error);
+      throw error;
+    }
+  },
+};
+
 // Export all APIs
 export const api = {
   dashboard: dashboardAPI,
@@ -1845,6 +1993,7 @@ export const api = {
   leadGeneration: leadGenerationAPI,
   workflowGenerator: workflowGeneratorAPI,
   schemaLinking: schemaLinkingAPI,
+  trainingData: trainingDataAPI,
 };
 
 export default api;
