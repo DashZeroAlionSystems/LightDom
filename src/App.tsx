@@ -68,6 +68,7 @@ import CampaignTrainingAdminDashboard from './components/dashboards/CampaignTrai
 import AIResearchDashboard from './components/dashboards/AIResearchDashboard';
 import CodebaseIndexingDashboard from './components/dashboards/CodebaseIndexingDashboard';
 import DataMiningDashboard from './components/dashboards/DataMiningDashboard';
+import LeadGenerationDashboard from './components/dashboards/LeadGenerationDashboard';
 
 // Category Dashboards
 import { 
@@ -228,6 +229,7 @@ const AppContent: React.FC = () => {
           <Route path="ai-research" element={<AIResearchDashboard />} />
           <Route path="codebase-indexing" element={<CodebaseIndexingDashboard />} />
           <Route path="data-mining" element={<DataMiningDashboard />} />
+          <Route path="lead-generation" element={<LeadGenerationDashboard />} />
           <Route path="paint-timeline-viewer" element={<PaintTimelineViewer />} />
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />

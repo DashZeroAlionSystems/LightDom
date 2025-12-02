@@ -1247,6 +1247,204 @@ export const dataMiningAPI = {
   },
 };
 
+// Lead Generation API - For managing leads from campaigns and data sources
+export interface Lead {
+  id: number;
+  email: string;
+  name?: string;
+  company?: string;
+  phone?: string;
+  website?: string;
+  jobTitle?: string;
+  sourceType: string;
+  sourceId?: string;
+  sourceUrl?: string;
+  sourceMetadata?: any;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: string;
+  score: number;
+  quality: 'high' | 'medium' | 'low';
+  status: 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
+  assignedTo?: string;
+  tags?: string[];
+  customFields?: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LeadActivity {
+  id: number;
+  leadId: number;
+  activityType: string;
+  description?: string;
+  data?: any;
+  createdAt: string;
+}
+
+export interface LeadStatistics {
+  total: number;
+  byStatus: Record<string, number>;
+  byQuality: Record<string, number>;
+  bySource: Record<string, number>;
+  recentLeads: number;
+  conversionRate: number;
+}
+
+export const leadGenerationAPI = {
+  // Get all leads with filtering and pagination
+  getLeads: async (params: {
+    status?: string;
+    quality?: string;
+    sourceType?: string;
+    sourceId?: string;
+    assignedTo?: string;
+    minScore?: number;
+    search?: string;
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  } = {}): Promise<{ leads: Lead[]; total: number; page: number; pages: number }> => {
+    try {
+      const response = await apiClient.get('/leads', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch leads:', error);
+      return { leads: [], total: 0, page: 1, pages: 0 };
+    }
+  },
+
+  // Get a specific lead by ID
+  getLead: async (id: number): Promise<Lead | null> => {
+    try {
+      const response = await apiClient.get(`/leads/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch lead:', error);
+      return null;
+    }
+  },
+
+  // Create a new lead
+  createLead: async (leadData: Partial<Lead>): Promise<Lead> => {
+    try {
+      const response = await apiClient.post('/leads', leadData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create lead:', error);
+      throw error;
+    }
+  },
+
+  // Update a lead
+  updateLead: async (id: number, updates: Partial<Lead>): Promise<Lead> => {
+    try {
+      const response = await apiClient.patch(`/leads/${id}`, updates);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update lead:', error);
+      throw error;
+    }
+  },
+
+  // Update lead status
+  updateStatus: async (id: number, status: string): Promise<Lead> => {
+    try {
+      const response = await apiClient.patch(`/leads/${id}/status`, { status });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update lead status:', error);
+      throw error;
+    }
+  },
+
+  // Assign lead to a user
+  assignLead: async (id: number, userId: string): Promise<Lead> => {
+    try {
+      const response = await apiClient.post(`/leads/${id}/assign`, { userId });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to assign lead:', error);
+      throw error;
+    }
+  },
+
+  // Add tags to a lead
+  addTags: async (id: number, tags: string[]): Promise<void> => {
+    try {
+      await apiClient.post(`/leads/${id}/tags`, { tags });
+    } catch (error) {
+      console.error('Failed to add tags:', error);
+      throw error;
+    }
+  },
+
+  // Log an activity for a lead
+  logActivity: async (id: number, activityType: string, description?: string, data?: any): Promise<LeadActivity> => {
+    try {
+      const response = await apiClient.post(`/leads/${id}/activity`, { activityType, description, data });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to log activity:', error);
+      throw error;
+    }
+  },
+
+  // Bulk import leads
+  bulkImport: async (leads: Partial<Lead>[], sourceType: string, sourceId?: string): Promise<{ success: number; failed: number; errors: any[] }> => {
+    try {
+      const response = await apiClient.post('/leads/bulk-import', { leads, sourceType, sourceId });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to bulk import leads:', error);
+      throw error;
+    }
+  },
+
+  // Capture leads from crawler campaign
+  captureFromCrawler: async (campaignId: string, results: any[]): Promise<{ success: boolean; captured: number; leads: Lead[] }> => {
+    try {
+      const response = await apiClient.post('/leads/capture-from-crawler', { campaignId, results });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to capture leads from crawler:', error);
+      throw error;
+    }
+  },
+
+  // Get lead statistics
+  getStatistics: async (): Promise<LeadStatistics> => {
+    try {
+      const response = await apiClient.get('/leads/statistics');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch lead statistics:', error);
+      return {
+        total: 0,
+        byStatus: {},
+        byQuality: {},
+        bySource: {},
+        recentLeads: 0,
+        conversionRate: 0,
+      };
+    }
+  },
+
+  // Get source performance
+  getSourcePerformance: async (): Promise<any[]> => {
+    try {
+      const response = await apiClient.get('/leads/source-performance');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch source performance:', error);
+      return [];
+    }
+  },
+};
+
 // Export all APIs
 export const api = {
   dashboard: dashboardAPI,
@@ -1262,6 +1460,7 @@ export const api = {
   research: researchAPI,
   codebaseIndexing: codebaseIndexingAPI,
   dataMining: dataMiningAPI,
+  leadGeneration: leadGenerationAPI,
 };
 
 export default api;
