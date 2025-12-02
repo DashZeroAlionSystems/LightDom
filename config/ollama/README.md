@@ -265,9 +265,50 @@ ollama create lightdom-deepseek -f config/ollama/Modelfile.lightdom-deepseek
 ## Related Documentation
 
 - [Full Modelfile Configuration Guide](../../docs/OLLAMA_MODELFILE_CONFIGURATION.md)
+- [Ollama RAG Configuration Guide](../../docs/OLLAMA_RAG_CONFIGURATION.md)
 - [Ollama Integration Guide](../../docs/OLLAMA_INTEGRATION_GUIDE.md)
 - [Ollama MCP Setup](../../docs/OLLAMA_MCP_SETUP.md)
 - [DeepSeek MCP Tools Guide](../../DEEPSEEK_MCP_TOOLS_GUIDE.md)
+
+## RAG Configuration
+
+The LightDom platform includes a comprehensive RAG (Retrieval-Augmented Generation) system with database-stored configurations.
+
+### Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `rag-config.json` | Main RAG configuration with embedding, retrieval, and chunking settings |
+| `Modelfile.lightdom-deepseek` | LLM model configuration |
+| `Modelfile.lightdom-deepseek-lite` | Lite LLM model configuration |
+
+### Database Tables
+
+RAG configurations are stored in the database for runtime modification:
+
+- `ollama_model_configs` - LLM model settings
+- `ollama_rag_configs` - RAG-specific settings  
+- `ollama_embedding_configs` - Embedding model settings
+- `rag_documents` - Document store with embeddings
+- `rag_query_history` - Query analytics
+
+### Quick RAG Setup
+
+```bash
+# 1. Run database migration
+npm run db:migrate
+
+# 2. Pull embedding model
+ollama pull nomic-embed-text
+
+# 3. View active configurations
+SELECT * FROM v_active_ollama_configs;
+
+# 4. Update configuration
+UPDATE ollama_rag_configs SET chunk_size = 1500 WHERE name = 'default-rag';
+```
+
+See [OLLAMA_RAG_CONFIGURATION.md](../../docs/OLLAMA_RAG_CONFIGURATION.md) for complete RAG documentation.
 
 ## Environment Variables
 
