@@ -219,7 +219,7 @@ export const AnimationController: React.FC<AnimationControllerProps> = ({
   const handlePlaybackRateChange = (rate: number) => {
     setPlaybackRate(rate);
     if (animationRef.current) {
-      (animationRef.current as any).playbackRate = rate;
+      (animationRef.current as any).speed = rate;
     }
   };
   
