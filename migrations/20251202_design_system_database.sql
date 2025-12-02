@@ -30,25 +30,6 @@ CREATE TABLE IF NOT EXISTS styleguide_rules (
   UNIQUE(design_system_id, category, rule_name)
 );
 
--- Storybook Entries Table
-CREATE TABLE IF NOT EXISTS storybook_entries (
-  id SERIAL PRIMARY KEY,
-  design_system_id INTEGER REFERENCES design_system_config(id) ON DELETE SET NULL,
-  component_id INTEGER REFERENCES design_system_components(id) ON DELETE CASCADE,
-  story_name VARCHAR(255) NOT NULL,
-  story_path VARCHAR(500) NOT NULL, -- e.g., 'Design System/Components/Button'
-  story_kind VARCHAR(100) NOT NULL, -- e.g., 'story', 'docs', 'autodocs'
-  story_config JSONB NOT NULL DEFAULT '{}',
-  args_config JSONB DEFAULT '{}',
-  decorators JSONB DEFAULT '[]',
-  parameters JSONB DEFAULT '{}',
-  tags TEXT[] DEFAULT ARRAY['autodocs'],
-  active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(story_path, story_name)
-);
-
 -- Design System Components Table (stores React component code)
 CREATE TABLE IF NOT EXISTS design_system_components (
   id SERIAL PRIMARY KEY,
@@ -74,6 +55,25 @@ CREATE TABLE IF NOT EXISTS design_system_components (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(design_system_id, name, version)
+);
+
+-- Storybook Entries Table (must come after design_system_components)
+CREATE TABLE IF NOT EXISTS storybook_entries (
+  id SERIAL PRIMARY KEY,
+  design_system_id INTEGER REFERENCES design_system_config(id) ON DELETE SET NULL,
+  component_id INTEGER REFERENCES design_system_components(id) ON DELETE CASCADE,
+  story_name VARCHAR(255) NOT NULL,
+  story_path VARCHAR(500) NOT NULL, -- e.g., 'Design System/Components/Button'
+  story_kind VARCHAR(100) NOT NULL, -- e.g., 'story', 'docs', 'autodocs'
+  story_config JSONB NOT NULL DEFAULT '{}',
+  args_config JSONB DEFAULT '{}',
+  decorators JSONB DEFAULT '[]',
+  parameters JSONB DEFAULT '{}',
+  tags TEXT[] DEFAULT ARRAY['autodocs'],
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(story_path, story_name)
 );
 
 -- Component Usage Analytics

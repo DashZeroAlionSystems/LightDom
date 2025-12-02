@@ -24,9 +24,87 @@ import {
   getDesignSystemDatabaseService,
 } from './DesignSystemDatabaseService';
 
-// Import design tokens from frontend
-// Note: In production, these would be dynamically imported
-import { designTokens, styleguideRules } from '../../frontend/src/design-system/DesignSystemProvider';
+// Default design tokens - can be overridden via constructor
+const defaultDesignTokens = {
+  colors: {
+    primary: { 500: '#5865f2' },
+    secondary: { 500: '#7c5cff' },
+    semantic: {
+      success: '#4caf50',
+      warning: '#ff9800',
+      error: '#f44336',
+      info: '#2196f3',
+    },
+  },
+  typography: {
+    fontFamily: {
+      primary: "'Inter', sans-serif",
+      mono: "'Fira Code', monospace",
+    },
+    fontSize: {
+      xs: '0.75rem',
+      sm: '0.875rem',
+      base: '1rem',
+      lg: '1.125rem',
+      xl: '1.25rem',
+    },
+  },
+  spacing: {
+    1: '0.25rem',
+    2: '0.5rem',
+    3: '0.75rem',
+    4: '1rem',
+  },
+  elevation: {
+    sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+    md: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+    lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+  },
+};
+
+// Default styleguide rules - can be overridden via constructor
+const defaultStyleguideRules = {
+  buttons: {
+    minTouchTarget: 44,
+    defaultHeight: 40,
+    smallHeight: 32,
+    largeHeight: 48,
+    borderRadius: 8,
+    loadingStateRequired: true,
+  },
+  cards: {
+    padding: { small: 16, medium: 24, large: 32 },
+    borderRadius: 12,
+    gap: 16,
+  },
+  inputs: {
+    height: { small: 32, medium: 40, large: 48 },
+    borderRadius: 8,
+    minLabelWidth: 80,
+  },
+  navigation: {
+    sidebarWidthExpanded: 280,
+    sidebarWidthCollapsed: 64,
+    iconSize: 20,
+    maxLabelLength: 20,
+  },
+  dashboards: {
+    kpiGridColumns: 4,
+    maxHierarchyLevels: 4,
+    sectionGap: 24,
+  },
+  accessibility: {
+    minContrastRatio: 4.5,
+    focusOutlineWidth: 2,
+    focusOutlineOffset: 2,
+    minFontSize: 12,
+  },
+  motion: {
+    respectReducedMotion: true,
+    maxAnimationDuration: 500,
+    defaultTransition: 'all 250ms ease-in-out',
+  },
+};
 
 export interface SyncResult {
   success: boolean;
@@ -41,15 +119,38 @@ export interface ComponentGeneratorOptions {
   includeVariants?: boolean;
 }
 
+export interface DesignSystemSyncConfig {
+  tokens?: Record<string, any>;
+  rules?: Record<string, any>;
+}
+
 /**
  * Design System Sync Service
  */
 export class DesignSystemSyncService {
   private dbService: DesignSystemDatabaseService;
   private designSystemId: number | null = null;
+  private designTokens: Record<string, any>;
+  private styleguideRules: Record<string, any>;
 
-  constructor(dbService?: DesignSystemDatabaseService) {
+  constructor(dbService?: DesignSystemDatabaseService, config?: DesignSystemSyncConfig) {
     this.dbService = dbService || getDesignSystemDatabaseService();
+    this.designTokens = config?.tokens || defaultDesignTokens;
+    this.styleguideRules = config?.rules || defaultStyleguideRules;
+  }
+
+  /**
+   * Set custom design tokens
+   */
+  setDesignTokens(tokens: Record<string, any>): void {
+    this.designTokens = tokens;
+  }
+
+  /**
+   * Set custom styleguide rules
+   */
+  setStyleguideRules(rules: Record<string, any>): void {
+    this.styleguideRules = rules;
   }
 
   /**
@@ -70,7 +171,7 @@ export class DesignSystemSyncService {
       if (config) {
         // Update existing
         await this.dbService.updateDesignSystemConfig(config.id!, {
-          tokens: designTokens,
+          tokens: this.designTokens,
           theme_config: {
             defaultTheme: 'dark',
             supportedThemes: ['light', 'dark'],
@@ -88,7 +189,7 @@ export class DesignSystemSyncService {
       config = await this.dbService.createDesignSystemConfig({
         name,
         version: '1.0.0',
-        tokens: designTokens,
+        tokens: this.designTokens,
         theme_config: {
           defaultTheme: 'dark',
           supportedThemes: ['light', 'dark'],
@@ -127,7 +228,7 @@ export class DesignSystemSyncService {
       const rules: StyleguideRule[] = [];
 
       // Convert styleguideRules object to database format
-      for (const [category, categoryRules] of Object.entries(styleguideRules)) {
+      for (const [category, categoryRules] of Object.entries(this.styleguideRules)) {
         for (const [ruleName, ruleValue] of Object.entries(categoryRules as Record<string, any>)) {
           try {
             const rule = await this.dbService.createStyleguideRule({
@@ -140,8 +241,12 @@ export class DesignSystemSyncService {
             });
             rules.push(rule);
           } catch (err: any) {
-            // If rule already exists, try to update it
-            if (err.message.includes('duplicate')) {
+            // Check for duplicate key error using PostgreSQL error code
+            // Error code 23505 = unique_violation
+            const isDuplicateError = err.code === '23505' || 
+              (err.message && err.message.toLowerCase().includes('duplicate'));
+            
+            if (isDuplicateError) {
               errors.push(`Rule ${category}.${ruleName} already exists - skipped`);
             } else {
               errors.push(`Failed to create rule ${category}.${ruleName}: ${err.message}`);
@@ -318,14 +423,23 @@ export class DesignSystemSyncService {
     const results: DesignSystemComponent[] = [];
     const errors: string[] = [];
 
+    // Define valid categories
+    type ComponentCategory = 'atoms' | 'molecules' | 'organisms' | 'templates' | 'pages';
+    const validCategories: ComponentCategory[] = ['atoms', 'molecules', 'organisms', 'templates', 'pages'];
+
     for (const comp of components) {
       try {
+        // Validate category or default to 'atoms'
+        const category: ComponentCategory = validCategories.includes(comp.category as ComponentCategory)
+          ? (comp.category as ComponentCategory)
+          : 'atoms';
+
         const stored = await this.dbService.createComponent({
           design_system_id: this.designSystemId!,
           name: comp.name,
           display_name: comp.displayName || comp.name,
           description: comp.description,
-          category: (comp.category as any) || 'atoms',
+          category,
           component_code: comp.code,
           props_schema: comp.props || {},
           css_styles: comp.css,
@@ -379,9 +493,9 @@ export class DesignSystemSyncService {
           border: 'hsl(217.2 32.6% 17.5%)',
           ring: 'hsl(237 92% 64%)',
         },
-        typography_tokens: designTokens.typography,
-        spacing_tokens: designTokens.spacing,
-        elevation_tokens: designTokens.elevation,
+        typography_tokens: this.designTokens.typography,
+        spacing_tokens: this.designTokens.spacing,
+        elevation_tokens: this.designTokens.elevation,
       });
 
       // Light theme
@@ -406,9 +520,9 @@ export class DesignSystemSyncService {
           border: 'hsl(214.3 31.8% 91.4%)',
           ring: 'hsl(237 92% 64%)',
         },
-        typography_tokens: designTokens.typography,
-        spacing_tokens: designTokens.spacing,
-        elevation_tokens: designTokens.elevation,
+        typography_tokens: this.designTokens.typography,
+        spacing_tokens: this.designTokens.spacing,
+        elevation_tokens: this.designTokens.elevation,
       });
 
       return {
