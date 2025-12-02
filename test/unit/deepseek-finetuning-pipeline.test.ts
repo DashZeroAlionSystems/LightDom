@@ -5,25 +5,31 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
+// Mock constants
+const mockUUID = '12345678-1234-1234-1234-123456789012';
+const mockReadFile = vi.fn();
+const mockWriteFile = vi.fn();
+const mockMkdir = vi.fn();
+const mockAccess = vi.fn();
+const mockRandomUUID = vi.fn(() => mockUUID);
+
 // Mock the file system and crypto modules
 vi.mock('fs/promises', () => ({
   default: {
-    readFile: vi.fn(),
-    writeFile: vi.fn(),
-    mkdir: vi.fn(),
-    access: vi.fn(),
+    readFile: mockReadFile,
+    writeFile: mockWriteFile,
+    mkdir: mockMkdir,
+    access: mockAccess,
   },
-  readFile: vi.fn(),
-  writeFile: vi.fn(),
-  mkdir: vi.fn(),
-  access: vi.fn(),
+  readFile: mockReadFile,
+  writeFile: mockWriteFile,
+  mkdir: mockMkdir,
+  access: mockAccess,
 }));
 
 vi.mock('crypto', () => ({
-  default: {
-    randomUUID: vi.fn(() => '12345678-1234-1234-1234-123456789012'),
-  },
-  randomUUID: vi.fn(() => '12345678-1234-1234-1234-123456789012'),
+  default: { randomUUID: mockRandomUUID },
+  randomUUID: mockRandomUUID,
 }));
 
 // Import after mocks
