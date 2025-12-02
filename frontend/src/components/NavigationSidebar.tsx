@@ -190,6 +190,12 @@ export const NavigationSidebar: React.FC = () => {
         {/* System */}
         <SidebarCategory title='System' defaultOpen={false}>
           <SidebarNavItem
+            to='/design-system'
+            icon={<LucideIcons.Palette className='w-5 h-5' />}
+            label='Design System'
+            description='UX/UI styleguide'
+          />
+          <SidebarNavItem
             to='/security-audit-report'
             icon={<LucideIcons.ShieldCheck className='w-5 h-5' />}
             label='Security Audit'

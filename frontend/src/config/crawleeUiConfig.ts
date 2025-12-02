@@ -300,4 +300,3 @@ export const crawleeStatusBackgrounds: Record<CrawleeStatus, string> = {
   critical: 'bg-rose-500/10',
   paused: 'bg-slate-500/10',
 };
-```}

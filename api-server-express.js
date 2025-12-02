@@ -764,6 +764,16 @@ class DOMSpaceHarvesterAPI {
     // Admin navigation routes (DB-driven sidebar metadata)
     this.app.use('/api/admin', createAdminNavigationRoutes(this.db));
 
+    // Design System Database Routes (store/load components, styleguide, storybook entries)
+    void safeImport(
+      'Design System routes',
+      () => import('./api/design-system-routes.js'),
+      designSystemModule => {
+        this.app.use('/api/design-system', designSystemModule.default);
+        console.log('✅ Design System routes registered at /api/design-system');
+      }
+    );
+
     // N8N Workflow Management Routes (Legacy)
     import('./api/n8n-workflow-routes.js')
       .then(n8nModule => {
