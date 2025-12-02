@@ -1645,6 +1645,188 @@ export const workflowGeneratorAPI = {
   },
 };
 
+// Schema Linking API - For database schema analysis, relationship discovery, and feature mapping
+export interface TableMetadata {
+  name: string;
+  schema: string;
+  columns: {
+    name: string;
+    dataType: string;
+    isNullable: boolean;
+    defaultValue?: any;
+  }[];
+  primaryKey?: string[];
+  foreignKeys?: {
+    column: string;
+    referenceTable: string;
+    referenceColumn: string;
+  }[];
+}
+
+export interface SchemaRelationship {
+  id: string;
+  sourceTable: string;
+  targetTable: string;
+  type: 'foreign_key' | 'semantic' | 'naming_pattern';
+  confidence: number;
+  columns: string[];
+}
+
+export interface FeatureGrouping {
+  name: string;
+  tables: string[];
+  relationships: string[];
+  description?: string;
+}
+
+export interface LinkedSchemaMap {
+  feature: string;
+  tables: TableMetadata[];
+  relationships: SchemaRelationship[];
+  dashboardConfig?: any;
+}
+
+export interface RunnerStatus {
+  isRunning: boolean;
+  lastRun?: string;
+  nextRun?: string;
+  cyclesCompleted: number;
+  errors: number;
+}
+
+export const schemaLinkingAPI = {
+  // Analyze database schema
+  analyzeSchema: async (): Promise<{
+    tables: number;
+    relationships: number;
+    features: number;
+    metadata: any[];
+  }> => {
+    try {
+      const response = await apiClient.get('/schema-linking/analyze');
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to analyze schema:', error);
+      return { tables: 0, relationships: 0, features: 0, metadata: [] };
+    }
+  },
+
+  // Get all tables
+  getTables: async (): Promise<TableMetadata[]> => {
+    try {
+      const response = await apiClient.get('/schema-linking/tables');
+      return response.data.data?.tables || [];
+    } catch (error) {
+      console.error('Failed to fetch tables:', error);
+      return [];
+    }
+  },
+
+  // Get relationships
+  getRelationships: async (type?: string): Promise<SchemaRelationship[]> => {
+    try {
+      const params = type ? { type } : {};
+      const response = await apiClient.get('/schema-linking/relationships', { params });
+      return response.data.data?.relationships || [];
+    } catch (error) {
+      console.error('Failed to fetch relationships:', error);
+      return [];
+    }
+  },
+
+  // Get feature groupings
+  getFeatures: async (): Promise<FeatureGrouping[]> => {
+    try {
+      const response = await apiClient.get('/schema-linking/features');
+      return response.data.data?.features || [];
+    } catch (error) {
+      console.error('Failed to fetch features:', error);
+      return [];
+    }
+  },
+
+  // Get linked schema map for a feature
+  getFeatureSchema: async (featureName: string): Promise<LinkedSchemaMap | null> => {
+    try {
+      const response = await apiClient.get(`/schema-linking/features/${featureName}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch feature schema:', error);
+      return null;
+    }
+  },
+
+  // Export linked schemas
+  exportSchemas: async (outputPath?: string): Promise<{ outputPath: string; metadata: any }> => {
+    try {
+      const response = await apiClient.post('/schema-linking/export', { outputPath });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to export schemas:', error);
+      throw error;
+    }
+  },
+
+  // Get runner status
+  getRunnerStatus: async (): Promise<RunnerStatus> => {
+    try {
+      const response = await apiClient.get('/schema-linking/runner/status');
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch runner status:', error);
+      return {
+        isRunning: false,
+        cyclesCompleted: 0,
+        errors: 0,
+      };
+    }
+  },
+
+  // Start the runner
+  startRunner: async (): Promise<RunnerStatus> => {
+    try {
+      const response = await apiClient.post('/schema-linking/runner/start');
+      return response.data.status;
+    } catch (error) {
+      console.error('Failed to start runner:', error);
+      throw error;
+    }
+  },
+
+  // Stop the runner
+  stopRunner: async (): Promise<RunnerStatus> => {
+    try {
+      const response = await apiClient.post('/schema-linking/runner/stop');
+      return response.data.status;
+    } catch (error) {
+      console.error('Failed to stop runner:', error);
+      throw error;
+    }
+  },
+
+  // Run a single linking cycle
+  runCycle: async (): Promise<any> => {
+    try {
+      const response = await apiClient.post('/schema-linking/runner/run');
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to run linking cycle:', error);
+      throw error;
+    }
+  },
+
+  // Get dashboard configurations for a feature
+  getFeatureDashboard: async (featureName: string): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/schema-linking/dashboards/${featureName}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch feature dashboard:', error);
+      return null;
+    }
+  },
+};
+
 // Export all APIs
 export const api = {
   dashboard: dashboardAPI,
@@ -1662,6 +1844,7 @@ export const api = {
   dataMining: dataMiningAPI,
   leadGeneration: leadGenerationAPI,
   workflowGenerator: workflowGeneratorAPI,
+  schemaLinking: schemaLinkingAPI,
 };
 
 export default api;
