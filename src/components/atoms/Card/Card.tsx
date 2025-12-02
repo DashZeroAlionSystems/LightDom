@@ -74,7 +74,14 @@ export const Card: React.FC<CardProps> = ({
       {header && (
         <div className="px-4 py-3 border-b border-border">{header}</div>
       )}
-      <div className={cn(padding && (header || footer) && `p-${padding === 'sm' ? '3' : padding === 'md' ? '4' : padding === 'lg' ? '6' : padding === 'xl' ? '8' : '0'}`)}>
+      <div className={cn(
+        (header || footer) && {
+          'p-3': padding === 'sm',
+          'p-4': padding === 'md',
+          'p-6': padding === 'lg',
+          'p-8': padding === 'xl',
+        }
+      )}>
         {children}
       </div>
       {footer && (

@@ -807,8 +807,8 @@ export const AllAtoms: StoryObj = {
       {/* Quick Overview Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         <Card variant="outlined" className="text-center">
-          <Typography variant="h4">13</Typography>
-          <Typography variant="caption">Components</Typography>
+          <Typography variant="h4">12</Typography>
+          <Typography variant="caption">Atom Components</Typography>
         </Card>
         <Card variant="outlined" className="text-center">
           <Typography variant="h4">50+</Typography>

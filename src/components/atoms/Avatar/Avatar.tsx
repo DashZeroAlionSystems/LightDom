@@ -87,6 +87,11 @@ export const Avatar: React.FC<AvatarProps> = ({
 }) => {
   const [imageError, setImageError] = React.useState(false);
 
+  // Reset imageError when src changes
+  React.useEffect(() => {
+    setImageError(false);
+  }, [src]);
+
   const renderContent = () => {
     if (src && !imageError) {
       return (

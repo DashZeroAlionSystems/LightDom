@@ -85,7 +85,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
     },
     ref
   ) => {
-    const inputId = id || `toggle-${Math.random().toString(36).substr(2, 9)}`;
+    const inputId = id || React.useId();
     const [isChecked, setIsChecked] = React.useState(checked ?? false);
 
     React.useEffect(() => {

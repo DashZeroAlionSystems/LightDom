@@ -101,10 +101,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
         break;
     }
 
-    // Ensure tooltip stays in viewport
-    const padding = 8;
-    left = Math.max(padding, Math.min(left, window.innerWidth - tooltipRect.width - padding));
-    top = Math.max(padding, Math.min(top, window.innerHeight - tooltipRect.height - padding));
+    // Ensure tooltip stays in viewport (SSR-safe check)
+    if (typeof window !== 'undefined') {
+      const padding = 8;
+      left = Math.max(padding, Math.min(left, window.innerWidth - tooltipRect.width - padding));
+      top = Math.max(padding, Math.min(top, window.innerHeight - tooltipRect.height - padding));
+    }
 
     setPosition({ top, left });
   };
