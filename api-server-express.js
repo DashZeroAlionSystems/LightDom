@@ -21,6 +21,7 @@ import createCrawleeRoutes from './api/crawlee-routes.js';
 import { RealWebCrawlerSystem } from './crawler/RealWebCrawlerSystem.js';
 import createAdminNavigationRoutes from './services/admin-navigation-routes.js';
 import { createRagRouter } from './services/rag/rag-router.js';
+import { createSimpleRagRouter } from './api/simple-rag-routes.js';
 import TemplateWatcherService from './services/template-watcher-service.js';
 import BlockchainMetricsCollector from './utils/BlockchainMetricsCollector.js';
 import CrawlerSupervisor from './utils/CrawlerSupervisor.js';
@@ -143,6 +144,15 @@ class DOMSpaceHarvesterAPI {
           .catch(err => {
             console.warn('⚠️ Failed to mount unified RAG routes:', err?.message || err);
           });
+        
+        // Mount Simple RAG routes (clean, minimal implementation with pgvector)
+        try {
+          const simpleRagRouter = createSimpleRagRouter(this.db);
+          this.app.use('/api/simple-rag', simpleRagRouter);
+          console.log('✅ Simple RAG routes mounted at /api/simple-rag (pgvector + Ollama)');
+        } catch (err) {
+          console.warn('⚠️ Failed to mount simple RAG routes:', err?.message || err);
+        }
       } catch (error) {
         console.error('Failed to initialize RAG routes:', error.message);
         // Attempt to mount the minimal fallback proxy so the frontend remains functional
