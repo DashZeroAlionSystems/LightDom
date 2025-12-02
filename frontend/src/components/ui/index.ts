@@ -91,15 +91,16 @@ export { CodebaseSearch } from './CodebaseSearch';
 export { Tooltip } from './Tooltip';
 
 // Additional UI components
-export { Toast, ToastAction, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport, Toaster, useToast } from './Toast';
+export { Toast, ToastProvider, toastVariants, useToast } from './Toast';
 export { Switch } from './Switch';
 export { Skeleton } from './Skeleton';
 export { Slider } from './Slider';
-export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from './select';
+export { Select, selectVariants } from './select';
+export type { SelectProps, SelectOption } from './select';
 export { Alert, AlertDescription, AlertTitle } from './alert';
-export { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from './dialog';
+export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from './dialog';
 export { Label } from './label';
-export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from './table';
+export { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table';
 
 // Design System Components (Material Design 3 inspired)
 export * from './design-system';
