@@ -691,12 +691,16 @@ Now suggest attributes for topic: "${topic}"`;
         // Extract JSON from response
         const jsonMatch = content.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
-          const attributes = JSON.parse(jsonMatch[0]);
-          return attributes.map(attr => ({
-            ...attr,
-            generatedByDeepSeek: true,
-            metadata: { topic, originalPrompt: prompt }
-          }));
+          try {
+            const attributes = JSON.parse(jsonMatch[0]);
+            return attributes.map(attr => ({
+              ...attr,
+              generatedByDeepSeek: true,
+              metadata: { topic, originalPrompt: prompt }
+            }));
+          } catch (parseError) {
+            console.error('Failed to parse DeepSeek JSON response:', parseError);
+          }
         }
       } catch (error) {
         console.error('DeepSeek suggestion error:', error);
