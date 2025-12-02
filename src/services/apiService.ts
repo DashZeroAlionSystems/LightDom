@@ -1445,6 +1445,206 @@ export const leadGenerationAPI = {
   },
 };
 
+// Workflow Generator API - For automated workflow generation and configuration management
+export interface WorkflowSetting {
+  name: string;
+  config: any;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface WorkflowSetup {
+  name: string;
+  atoms?: any[];
+  components?: any[];
+  dashboards?: any[];
+  settings?: any[];
+  tables?: any[];
+  createdAt?: string;
+}
+
+export interface GeneratedWorkflow {
+  id: string;
+  name: string;
+  prompt: string;
+  atoms: any[];
+  components: any[];
+  dashboards: any[];
+  settings: any[];
+  tables: any[];
+  generatedAt: string;
+}
+
+export interface ConfigSummary {
+  totalAtoms: number;
+  totalComponents: number;
+  totalDashboards: number;
+  totalSettings: number;
+  totalSetups: number;
+}
+
+export const workflowGeneratorAPI = {
+  // Get configuration summary
+  getConfigSummary: async (): Promise<ConfigSummary> => {
+    try {
+      const response = await apiClient.get('/workflow-generator/config/summary');
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch config summary:', error);
+      return {
+        totalAtoms: 0,
+        totalComponents: 0,
+        totalDashboards: 0,
+        totalSettings: 0,
+        totalSetups: 0,
+      };
+    }
+  },
+
+  // List all settings
+  getSettings: async (): Promise<WorkflowSetting[]> => {
+    try {
+      const response = await apiClient.get('/workflow-generator/settings');
+      return response.data.data?.settings || [];
+    } catch (error) {
+      console.error('Failed to fetch settings:', error);
+      return [];
+    }
+  },
+
+  // Get a specific setting
+  getSetting: async (name: string): Promise<WorkflowSetting | null> => {
+    try {
+      const response = await apiClient.get(`/workflow-generator/settings/${name}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch setting:', error);
+      return null;
+    }
+  },
+
+  // Save a setting
+  saveSetting: async (name: string, config: any): Promise<WorkflowSetting> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/settings', { name, ...config });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to save setting:', error);
+      throw error;
+    }
+  },
+
+  // List all setups
+  getSetups: async (): Promise<WorkflowSetup[]> => {
+    try {
+      const response = await apiClient.get('/workflow-generator/setups');
+      return response.data.data?.setups || [];
+    } catch (error) {
+      console.error('Failed to fetch setups:', error);
+      return [];
+    }
+  },
+
+  // Get a specific setup
+  getSetup: async (name: string): Promise<WorkflowSetup | null> => {
+    try {
+      const response = await apiClient.get(`/workflow-generator/setups/${name}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch setup:', error);
+      return null;
+    }
+  },
+
+  // Save a setup
+  saveSetup: async (name: string, config: any): Promise<WorkflowSetup> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/setups', { name, ...config });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to save setup:', error);
+      throw error;
+    }
+  },
+
+  // Generate workflow from prompt
+  generateWorkflow: async (prompt: string): Promise<GeneratedWorkflow> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/generate', { prompt });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to generate workflow:', error);
+      throw error;
+    }
+  },
+
+  // Execute a generated workflow
+  executeWorkflow: async (name: string, userInputs?: any): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/workflow-generator/execute/${name}`, userInputs || {});
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to execute workflow:', error);
+      throw error;
+    }
+  },
+
+  // Get workflow configuration
+  getWorkflowConfig: async (name: string): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/workflow-generator/config/${name}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch workflow config:', error);
+      return null;
+    }
+  },
+
+  // Create a self-generating workflow
+  createSelfGeneratingWorkflow: async (prompt: string | { name: string }, options?: any): Promise<any> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/self-generating', { prompt, options });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to create self-generating workflow:', error);
+      throw error;
+    }
+  },
+
+  // Bundle atoms into a component
+  bundleComponent: async (name: string, atoms: string[], config?: any): Promise<any> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/bundle/component', { name, atoms, ...config });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to bundle component:', error);
+      throw error;
+    }
+  },
+
+  // Bundle components into a dashboard
+  bundleDashboard: async (name: string, components: string[], layout?: any): Promise<any> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/bundle/dashboard', { name, components, layout });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to bundle dashboard:', error);
+      throw error;
+    }
+  },
+
+  // Bundle dashboards into a workflow
+  bundleWorkflow: async (name: string, dashboards: string[], triggers?: any, automation?: any): Promise<any> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/bundle/workflow', { name, dashboards, triggers, automation });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to bundle workflow:', error);
+      throw error;
+    }
+  },
+};
+
 // Export all APIs
 export const api = {
   dashboard: dashboardAPI,
@@ -1461,6 +1661,7 @@ export const api = {
   codebaseIndexing: codebaseIndexingAPI,
   dataMining: dataMiningAPI,
   leadGeneration: leadGenerationAPI,
+  workflowGenerator: workflowGeneratorAPI,
 };
 
 export default api;
