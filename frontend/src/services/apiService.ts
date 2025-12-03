@@ -2900,4 +2900,47 @@ export const workflowWizardAPI = {
     apiClient.get(`/workflow-wizard/workflows/${workflowId}/components`).then(res => res.data),
 };
 
+/**
+ * Blockchain Optimization API
+ * Blockchain algorithm benchmarking and DOM optimization
+ */
+export const blockchainOptimizationAPI = {
+  // Benchmarking
+  runBenchmark: (data: { seoDataset: any[]; options?: any }) =>
+    apiClient.post('/blockchain-optimization/benchmark', data).then(res => res.data),
+  
+  benchmarkAlgorithm: (algorithm: string, data: { seoDataset: any[]; options?: any }) =>
+    apiClient.post(`/blockchain-optimization/benchmark/algorithm/${algorithm}`, data).then(res => res.data),
+  
+  getResults: () =>
+    apiClient.get('/blockchain-optimization/results').then(res => res.data),
+  
+  getBestAlgorithm: (criteria: 'speed' | 'throughput' | 'energy' | 'accuracy') =>
+    apiClient.get(`/blockchain-optimization/best/${criteria}`).then(res => res.data),
+  
+  // DOM Optimization
+  analyzeDom: (domAnalysis: any) =>
+    apiClient.post('/blockchain-optimization/dom/analyze', { domAnalysis }).then(res => res.data),
+  
+  optimizeDom: (data: { domTree: any; config?: any }) =>
+    apiClient.post('/blockchain-optimization/dom/optimize', data).then(res => res.data),
+  
+  getPatterns: (params?: { size?: number; complexity?: number; depth?: number }) =>
+    apiClient.get('/blockchain-optimization/dom/patterns', { params }).then(res => res.data),
+  
+  // Simulation
+  simulate: (data: { simulationParams: any }) =>
+    apiClient.post('/blockchain-optimization/simulate', data).then(res => res.data),
+  
+  getSimulationResults: () =>
+    apiClient.get('/blockchain-optimization/simulate/results').then(res => res.data),
+  
+  // Status
+  getStatus: () =>
+    apiClient.get('/blockchain-optimization/status').then(res => res.data),
+  
+  getAlgorithms: () =>
+    apiClient.get('/blockchain-optimization/algorithms').then(res => res.data),
+};
+
 export default api;

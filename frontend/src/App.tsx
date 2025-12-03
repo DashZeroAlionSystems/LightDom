@@ -56,6 +56,7 @@ import UnifiedRAGDashboard from '@/components/dashboards/UnifiedRAGDashboard';
 import AgentOrchestrationDashboard from '@/components/dashboards/AgentOrchestrationDashboard';
 import DeepSeekAutomationDashboard from '@/components/dashboards/DeepSeekAutomationDashboard';
 import WorkflowWizardDashboard from '@/components/dashboards/WorkflowWizardDashboard';
+import BlockchainOptimizationDashboard from '@/components/dashboards/BlockchainOptimizationDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -504,6 +505,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <WorkflowWizardDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/blockchain-optimization'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <BlockchainOptimizationDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
