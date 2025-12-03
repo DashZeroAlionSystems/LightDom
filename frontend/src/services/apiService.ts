@@ -2943,4 +2943,52 @@ export const blockchainOptimizationAPI = {
     apiClient.get('/blockchain-optimization/algorithms').then(res => res.data),
 };
 
+/**
+ * Crawlee Service API
+ * Web crawler management with Crawlee framework
+ */
+export const crawleeAPI = {
+  // Crawler CRUD
+  createCrawler: (data: any) =>
+    apiClient.post('/crawlee/crawlers', data).then(res => res.data),
+  
+  getCrawlers: (filters?: { status?: string; campaign_id?: string; type?: string; limit?: number }) =>
+    apiClient.get('/crawlee/crawlers', { params: filters }).then(res => res.data),
+  
+  getCrawler: (id: string) =>
+    apiClient.get(`/crawlee/crawlers/${id}`).then(res => res.data),
+  
+  updateCrawler: (id: string, data: any) =>
+    apiClient.put(`/crawlee/crawlers/${id}`, data).then(res => res.data),
+  
+  deleteCrawler: (id: string) =>
+    apiClient.delete(`/crawlee/crawlers/${id}`).then(res => res.data),
+  
+  // Crawler Control
+  startCrawler: (id: string, seedUrls?: string[]) =>
+    apiClient.post(`/crawlee/crawlers/${id}/start`, { seedUrls }).then(res => res.data),
+  
+  pauseCrawler: (id: string) =>
+    apiClient.post(`/crawlee/crawlers/${id}/pause`).then(res => res.data),
+  
+  resumeCrawler: (id: string) =>
+    apiClient.post(`/crawlee/crawlers/${id}/resume`).then(res => res.data),
+  
+  stopCrawler: (id: string) =>
+    apiClient.post(`/crawlee/crawlers/${id}/stop`).then(res => res.data),
+  
+  // Crawler Data
+  getCrawlerStats: (id: string) =>
+    apiClient.get(`/crawlee/crawlers/${id}/stats`).then(res => res.data),
+  
+  addSeeds: (id: string, seeds: string[]) =>
+    apiClient.post(`/crawlee/crawlers/${id}/seeds`, { seeds }).then(res => res.data),
+  
+  getCrawlerResults: (id: string, options?: { limit?: number; offset?: number }) =>
+    apiClient.get(`/crawlee/crawlers/${id}/results`, { params: options }).then(res => res.data),
+  
+  getCrawlerLogs: (id: string, options?: { limit?: number; level?: string }) =>
+    apiClient.get(`/crawlee/crawlers/${id}/logs`, { params: options }).then(res => res.data),
+};
+
 export default api;

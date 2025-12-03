@@ -57,6 +57,7 @@ import AgentOrchestrationDashboard from '@/components/dashboards/AgentOrchestrat
 import DeepSeekAutomationDashboard from '@/components/dashboards/DeepSeekAutomationDashboard';
 import WorkflowWizardDashboard from '@/components/dashboards/WorkflowWizardDashboard';
 import BlockchainOptimizationDashboard from '@/components/dashboards/BlockchainOptimizationDashboard';
+import CrawleeDashboard from '@/components/dashboards/CrawleeDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -515,6 +516,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <BlockchainOptimizationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/crawlee'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CrawleeDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
