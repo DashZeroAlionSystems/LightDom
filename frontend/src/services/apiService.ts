@@ -2645,4 +2645,100 @@ export const api = {
   neuralNetwork: neuralNetworkAPI,
 };
 
+// ============================================================================
+// UNIFIED RAG API
+// ============================================================================
+
+export const unifiedRAGAPI = {
+  // Chat endpoints
+  chat: (message: string, options: any = {}) =>
+    apiClient.post('/unified-rag/chat', { message, ...options }).then(res => res.data),
+  
+  chatStream: (message: string, options: any = {}) =>
+    apiClient.post('/unified-rag/chat/stream', { message, ...options }).then(res => res.data),
+  
+  // Index endpoints
+  indexText: (content: string, metadata: any = {}) =>
+    apiClient.post('/unified-rag/index', { content, metadata }).then(res => res.data),
+  
+  indexFile: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post('/unified-rag/index/file', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(res => res.data);
+  },
+  
+  indexCodebase: (options: { path?: string; patterns?: string[] }) =>
+    apiClient.post('/unified-rag/index/codebase', options).then(res => res.data),
+  
+  indexImage: (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return apiClient.post('/unified-rag/index/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(res => res.data);
+  },
+  
+  // Search endpoints
+  search: (query: string, options: any = {}) =>
+    apiClient.post('/unified-rag/search', { query, ...options }).then(res => res.data),
+  
+  hybridSearch: (query: string, options: any = {}) =>
+    apiClient.post('/unified-rag/search/hybrid', { query, ...options }).then(res => res.data),
+  
+  // Conversation endpoints
+  getConversation: (id: string) =>
+    apiClient.get(`/unified-rag/conversation/${id}`).then(res => res.data),
+  
+  deleteConversation: (id: string) =>
+    apiClient.delete(`/unified-rag/conversation/${id}`).then(res => res.data),
+  
+  // Health & Config
+  getHealth: () =>
+    apiClient.get('/unified-rag/health').then(res => res.data),
+  
+  reinitialize: () =>
+    apiClient.post('/unified-rag/reinitialize').then(res => res.data),
+  
+  getConfig: () =>
+    apiClient.get('/unified-rag/config').then(res => res.data),
+  
+  updateConfig: (config: any) =>
+    apiClient.post('/unified-rag/config', config).then(res => res.data),
+  
+  getModels: () =>
+    apiClient.get('/unified-rag/models').then(res => res.data),
+  
+  // Document versions
+  getDocumentVersions: (id: string) =>
+    apiClient.get(`/unified-rag/document/${id}/versions`).then(res => res.data),
+  
+  // Document conversion
+  convertDocument: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post('/unified-rag/convert', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(res => res.data);
+  },
+  
+  convertUrl: (url: string) =>
+    apiClient.post('/unified-rag/convert/url', { url }).then(res => res.data),
+  
+  getConvertFormats: () =>
+    apiClient.get('/unified-rag/convert/formats').then(res => res.data),
+  
+  // Agent execution
+  executeAgent: (task: string, options: any = {}) =>
+    apiClient.post('/unified-rag/agent/execute', { task, ...options }).then(res => res.data),
+  
+  streamAgent: (task: string, options: any = {}) =>
+    apiClient.post('/unified-rag/agent/stream', { task, ...options }).then(res => res.data),
+  
+  // Features
+  getFeatures: () =>
+    apiClient.get('/unified-rag/features').then(res => res.data),
+};
+
 export default api;

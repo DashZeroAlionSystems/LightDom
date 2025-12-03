@@ -52,6 +52,7 @@ import TrainingDataDashboard from '@/components/dashboards/TrainingDataDashboard
 import EmbeddingsDashboard from '@/components/dashboards/EmbeddingsDashboard';
 import FeedbackLoopDashboard from '@/components/dashboards/FeedbackLoopDashboard';
 import NeuralNetworkDashboard from '@/components/dashboards/NeuralNetworkDashboard';
+import UnifiedRAGDashboard from '@/components/dashboards/UnifiedRAGDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -460,6 +461,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <NeuralNetworkDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/unified-rag'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <UnifiedRAGDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
