@@ -320,6 +320,7 @@ class DOMSpaceHarvesterAPI {
 
     // Setup blockchain optimization API routes
     this.setupBlockchainOptimizationRoutes();
+    this.setupFeedbackLoopRoutes();
 
     // Setup real-time client API
     this.setupRealtimeClientAPI();
@@ -10418,6 +10419,16 @@ class DOMSpaceHarvesterAPI {
       console.log('✅ Blockchain Algorithm Optimization API routes configured');
     } catch (error) {
       console.error('⚠️ Failed to setup Blockchain Optimization routes:', error.message);
+    }
+  }
+
+  async setupFeedbackLoopRoutes() {
+    try {
+      const { createFeedbackRouter } = await import('./api/feedback-loop-routes.js');
+      this.app.use('/api/feedback-loop', createFeedbackRouter(this.db));
+      console.log('✅ Feedback Loop Service API routes configured');
+    } catch (error) {
+      console.error('⚠️ Failed to setup Feedback Loop routes:', error.message);
     }
   }
 

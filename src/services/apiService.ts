@@ -2225,6 +2225,305 @@ export const embeddingsAPI = {
   },
 };
 
+// =====================================================
+// Feedback Loop Service API
+// =====================================================
+
+export const feedbackLoopAPI = {
+  // Submit feedback
+  submitFeedback: async (feedback: {
+    sessionId: string;
+    userId?: number;
+    conversationId: string;
+    messageId: string;
+    feedbackType: 'positive' | 'negative' | 'neutral';
+    feedbackStrength?: number;
+    feedbackReason?: string;
+    prompt: string;
+    response: string;
+    modelUsed?: string;
+    templateStyle?: string;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/feedback', feedback);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+      throw error;
+    }
+  },
+
+  // Get feedback summary
+  getFeedbackSummary: async (filters?: {
+    modelUsed?: string;
+    templateStyle?: string;
+    feedbackType?: string;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.get('/feedback-loop/feedback/summary', { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get feedback summary:', error);
+      throw error;
+    }
+  },
+
+  // Get preferences
+  getPreferences: async (sessionId: string, userId?: number, category?: string): Promise<any> => {
+    try {
+      const response = await apiClient.get('/feedback-loop/preferences', {
+        params: { sessionId, userId, category }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get preferences:', error);
+      throw error;
+    }
+  },
+
+  // Set preference
+  setPreference: async (preference: {
+    userId?: number;
+    sessionId: string;
+    category: string;
+    key: string;
+    value: any;
+    source?: string;
+    priority?: number;
+    confidenceScore?: number;
+    expiresAt?: string;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/preferences', preference);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to set preference:', error);
+      throw error;
+    }
+  },
+
+  // Create A/B test campaign
+  createABTestCampaign: async (campaign: {
+    name: string;
+    description: string;
+    variants: any[];
+    targetMetric: string;
+    sampleSize?: number;
+    durationDays?: number;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/ab-test/campaigns', campaign);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create A/B test campaign:', error);
+      throw error;
+    }
+  },
+
+  // Start A/B test campaign
+  startABTestCampaign: async (campaignId: number): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/feedback-loop/ab-test/campaigns/${campaignId}/start`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to start A/B test campaign:', error);
+      throw error;
+    }
+  },
+
+  // Assign variant
+  assignVariant: async (data: {
+    campaignId: number;
+    sessionId: string;
+    userId?: number;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/ab-test/assign', data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to assign variant:', error);
+      throw error;
+    }
+  },
+
+  // Record interaction
+  recordInteraction: async (interaction: {
+    campaignId: number;
+    sessionId: string;
+    variantId: string;
+    interactionType: string;
+    value?: number;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/ab-test/interaction', interaction);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to record interaction:', error);
+      throw error;
+    }
+  },
+
+  // Create test question
+  createTestQuestion: async (question: {
+    campaignId: number;
+    questionText: string;
+    questionType: string;
+    options?: any[];
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/ab-test/questions', question);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create test question:', error);
+      throw error;
+    }
+  },
+
+  // Get campaign questions
+  getCampaignQuestions: async (campaignId: number): Promise<any> => {
+    try {
+      const response = await apiClient.get('/feedback-loop/ab-test/questions', {
+        params: { campaignId }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get campaign questions:', error);
+      throw error;
+    }
+  },
+
+  // Submit question response
+  submitQuestionResponse: async (questionResponse: {
+    questionId: number;
+    sessionId: string;
+    userId?: number;
+    variantId: string;
+    answer: any;
+    responseTime?: number;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/ab-test/responses', questionResponse);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to submit question response:', error);
+      throw error;
+    }
+  },
+
+  // Get campaign performance
+  getCampaignPerformance: async (campaignId: number): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/feedback-loop/ab-test/performance/${campaignId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get campaign performance:', error);
+      throw error;
+    }
+  },
+
+  // Complete campaign
+  completeCampaign: async (campaignId: number, winningVariant?: string): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/feedback-loop/ab-test/campaigns/${campaignId}/complete`, {
+        winningVariant
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to complete campaign:', error);
+      throw error;
+    }
+  },
+
+  // Log communication
+  logCommunication: async (log: {
+    logType: string;
+    serviceName: string;
+    direction: 'inbound' | 'outbound';
+    content: string;
+    sessionId?: string;
+    conversationId?: string;
+    userId?: number;
+    status?: string;
+    workflowStage?: string;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/logs/communication', log);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to log communication:', error);
+      throw error;
+    }
+  },
+
+  // Get communication logs
+  getCommunicationLogs: async (filters?: {
+    sessionId?: string;
+    conversationId?: string;
+    userId?: number;
+    logType?: string;
+    serviceName?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.get('/feedback-loop/logs/communication', { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get communication logs:', error);
+      throw error;
+    }
+  },
+
+  // Update workflow state
+  updateWorkflowState: async (state: {
+    workflowType: string;
+    entityId: string;
+    currentStage: string;
+    status: string;
+    sessionId?: string;
+    userId?: number;
+    stageData?: Record<string, any>;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/workflow/state', state);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update workflow state:', error);
+      throw error;
+    }
+  },
+
+  // Get workflow state
+  getWorkflowState: async (workflowType: string, entityId: string): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/feedback-loop/workflow/state/${workflowType}/${entityId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get workflow state:', error);
+      throw error;
+    }
+  },
+
+  // Generate session ID
+  generateSessionId: async (): Promise<{ sessionId: string }> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/session/generate');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to generate session ID:', error);
+      throw error;
+    }
+  },
+};
+
 // Export all APIs
 export const api = {
   dashboard: dashboardAPI,
@@ -2245,6 +2544,7 @@ export const api = {
   schemaLinking: schemaLinkingAPI,
   trainingData: trainingDataAPI,
   embeddings: embeddingsAPI,
+  feedbackLoop: feedbackLoopAPI,
 };
 
 export default api;

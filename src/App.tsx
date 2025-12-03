@@ -73,6 +73,7 @@ import WorkflowGeneratorDashboard from './components/dashboards/WorkflowGenerato
 import EnhancedSchemaLinkingDashboard from './components/dashboards/SchemaLinkingDashboard';
 import TrainingDataDashboard from './components/dashboards/TrainingDataDashboard';
 import EmbeddingsDashboard from './components/dashboards/EmbeddingsDashboard';
+import FeedbackLoopDashboard from './components/dashboards/FeedbackLoopDashboard';
 
 // Category Dashboards
 import { 
@@ -238,6 +239,7 @@ const AppContent: React.FC = () => {
           <Route path="schema-linking" element={<EnhancedSchemaLinkingDashboard />} />
           <Route path="training-data-mining" element={<TrainingDataDashboard />} />
           <Route path="embeddings" element={<EmbeddingsDashboard />} />
+          <Route path="feedback-loop" element={<FeedbackLoopDashboard />} />
           <Route path="paint-timeline-viewer" element={<PaintTimelineViewer />} />
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />
