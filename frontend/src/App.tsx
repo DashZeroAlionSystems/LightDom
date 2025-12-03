@@ -53,6 +53,7 @@ import EmbeddingsDashboard from '@/components/dashboards/EmbeddingsDashboard';
 import FeedbackLoopDashboard from '@/components/dashboards/FeedbackLoopDashboard';
 import NeuralNetworkDashboard from '@/components/dashboards/NeuralNetworkDashboard';
 import UnifiedRAGDashboard from '@/components/dashboards/UnifiedRAGDashboard';
+import AgentOrchestrationDashboard from '@/components/dashboards/AgentOrchestrationDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -471,6 +472,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <UnifiedRAGDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/agent-orchestration'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AgentOrchestrationDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }

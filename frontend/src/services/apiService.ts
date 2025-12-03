@@ -2741,4 +2741,47 @@ export const unifiedRAGAPI = {
     apiClient.get('/unified-rag/features').then(res => res.data),
 };
 
+// ============================================================================
+// AGENT ORCHESTRATION API
+// ============================================================================
+
+export const agentOrchestrationAPI = {
+  // Status & Health
+  getStatus: () =>
+    apiClient.get('/agent-orchestration/status').then(res => res.data),
+  
+  getHealth: () =>
+    apiClient.get('/agent-orchestration/health').then(res => res.data),
+  
+  getServiceStatus: (serviceId: string) =>
+    apiClient.get(`/agent-orchestration/health/${serviceId}`).then(res => res.data),
+  
+  // Investigation
+  investigateError: (errorReportId: string) =>
+    apiClient.post(`/agent-orchestration/investigate/error/${errorReportId}`).then(res => res.data),
+  
+  investigateFeature: (description: string, components: string[] = []) =>
+    apiClient.post('/agent-orchestration/investigate/feature', { description, components }).then(res => res.data),
+  
+  // Agent Task Management
+  queueTask: (type: string, context: any, priority: number = 5) =>
+    apiClient.post('/agent-orchestration/agent/task', { type, context, priority }).then(res => res.data),
+  
+  getTask: (taskId: string) =>
+    apiClient.get(`/agent-orchestration/agent/task/${taskId}`).then(res => res.data),
+  
+  getAgent: (agentId: string) =>
+    apiClient.get(`/agent-orchestration/agent/${agentId}`).then(res => res.data),
+  
+  getActiveAgents: () =>
+    apiClient.get('/agent-orchestration/agents/active').then(res => res.data),
+  
+  getQueueStatus: () =>
+    apiClient.get('/agent-orchestration/queue/status').then(res => res.data),
+  
+  // GitHub Integration
+  createIssueFromError: (errorReportId: string, assignee?: string) =>
+    apiClient.post(`/agent-orchestration/github/issue/error/${errorReportId}`, { assignee }).then(res => res.data),
+};
+
 export default api;
