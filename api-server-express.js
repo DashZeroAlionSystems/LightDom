@@ -1251,6 +1251,49 @@ class DOMSpaceHarvesterAPI {
         console.error('Failed to load data streams routes:', err);
       });
 
+    // Import and register Service Management routes (Service bundling with endpoints)
+    import('./api/service-management-routes.js')
+      .then(serviceModule => {
+        const createServiceManagementRouter =
+          serviceModule.default || serviceModule.createServiceManagementRouter;
+        if (typeof createServiceManagementRouter === 'function') {
+          this.app.use('/api/services', createServiceManagementRouter(this.db));
+          console.log('✅ Service Management routes registered (Service bundling with API endpoints)');
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load service management routes:', err);
+      });
+
+    // Import and register Endpoint Registry service
+    import('./services/endpoint-registry-service.js')
+      .then(registryModule => {
+        const EndpointRegistryService = registryModule.default;
+        if (EndpointRegistryService) {
+          this.endpointRegistry = new EndpointRegistryService(this.db);
+          // Register endpoints on startup
+          this.endpointRegistry.registerEndpoints()
+            .then(() => console.log('✅ API endpoints registered in database'))
+            .catch(err => console.error('Failed to register endpoints:', err));
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load endpoint registry service:', err);
+      });
+
+    // Import and register Dynamic Service Router (service-based endpoint access)
+    import('./api/dynamic-service-router.js')
+      .then(routerModule => {
+        const createDynamicServiceRouter = routerModule.default || routerModule.createDynamicServiceRouter;
+        if (typeof createDynamicServiceRouter === 'function') {
+          this.app.use('/api/service', createDynamicServiceRouter(this.db));
+          console.log('✅ Dynamic Service Router registered (pattern: /api/service/:name/data-stream/:endpoint)');
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load dynamic service router:', err);
+      });
+
     // Import and register Automated SEO Campaign routes
     import('./src/api/routes/automated-seo.routes.js')
       .then(seoModule => {
