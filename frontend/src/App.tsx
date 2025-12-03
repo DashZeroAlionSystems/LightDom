@@ -59,6 +59,7 @@ import WorkflowWizardDashboard from '@/components/dashboards/WorkflowWizardDashb
 import BlockchainOptimizationDashboard from '@/components/dashboards/BlockchainOptimizationDashboard';
 import CrawleeDashboard from '@/components/dashboards/CrawleeDashboard';
 import SEOCampaignDashboard from '@/components/dashboards/SEOCampaignDashboard';
+import ClientSiteDashboard from '@/components/dashboards/ClientSiteDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -537,6 +538,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <SEOCampaignDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/client-sites'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ClientSiteDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }

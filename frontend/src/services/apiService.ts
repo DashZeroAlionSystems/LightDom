@@ -3051,4 +3051,41 @@ export const seoCampaignAPI = {
     apiClient.get(`/seo/campaigns/${campaignId}/stats`).then(res => res.data),
 };
 
+/**
+ * Client Site Management API
+ * Manages client sites, script injection, and workflow generation
+ */
+export const clientSiteAPI = {
+  // Sites CRUD
+  getSites: () =>
+    apiClient.get('/client-sites').then(res => res.data),
+  
+  getSite: (id: number) =>
+    apiClient.get(`/client-sites/${id}`).then(res => res.data),
+  
+  createSite: (data: { domain: string; userId: string; subscriptionTier: string; config?: any }) =>
+    apiClient.post('/client-sites', data).then(res => res.data),
+  
+  updateSite: (id: number, data: { domain?: string; userId?: string; subscriptionTier?: string; config?: any }) =>
+    apiClient.put(`/client-sites/${id}`, data).then(res => res.data),
+  
+  deleteSite: (id: number) =>
+    apiClient.delete(`/client-sites/${id}`).then(res => res.data),
+  
+  // Script Management
+  generateScript: (id: number) =>
+    apiClient.post(`/client-sites/${id}/generate-script`).then(res => res.data),
+  
+  // Workflow Management
+  createWorkflows: (id: number) =>
+    apiClient.post(`/client-sites/${id}/create-workflows`).then(res => res.data),
+  
+  createWorkflowsDeepseek: (id: number) =>
+    apiClient.post(`/client-sites/${id}/create-workflows/deepseek`).then(res => res.data),
+  
+  // Injection Status
+  getInjectionStatus: (id: number) =>
+    apiClient.get(`/client-sites/${id}/injection-status`).then(res => res.data),
+};
+
 export default api;
