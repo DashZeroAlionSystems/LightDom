@@ -67,9 +67,21 @@ export class SeoHeaderScriptService {
    * Generate SEO optimization script
    */
   async generateScript(strategy) {
+    // Sanitize client ID and strategy ID to prevent path traversal
+    const safeClientId = strategy.clientId.replace(/[^a-zA-Z0-9-_]/g, '');
+    const safeStrategyId = strategy.id.replace(/[^a-zA-Z0-9-_]/g, '');
+    
     const scriptContent = this.buildScriptContent(strategy);
-    const scriptFilename = `${strategy.clientId}-${strategy.id}.js`;
+    const scriptFilename = `${safeClientId}-${safeStrategyId}.js`;
     const scriptPath = path.join(this.scriptsDir, scriptFilename);
+    
+    // Verify the resolved path is within scriptsDir (prevent path traversal)
+    const resolvedPath = path.resolve(scriptPath);
+    const resolvedScriptsDir = path.resolve(this.scriptsDir);
+    
+    if (!resolvedPath.startsWith(resolvedScriptsDir)) {
+      throw new Error('Invalid path: Attempted path traversal detected');
+    }
 
     // Write script to file
     await fs.writeFile(scriptPath, scriptContent, 'utf8');
@@ -85,6 +97,13 @@ export class SeoHeaderScriptService {
    * Build script content with SEO optimizations
    */
   buildScriptContent(strategy) {
+    // Note: Analytics endpoint is currently hardcoded. In production, this should be:
+    // 1. Configurable per client
+    // 2. Only included if analytics service is enabled for the client
+    // 3. Support different analytics backends (Google Analytics, Mixpanel, etc.)
+    const analyticsEnabled = true; // TODO: Check client config for analytics service
+    const analyticsEndpoint = `${this.baseUrl}/api/analytics/track`;
+    
     return `
 (function(window, document) {
   'use strict';
@@ -221,9 +240,9 @@ export class SeoHeaderScriptService {
      * Track analytics event
      */
     trackEvent: function(eventName, params) {
-      // Send to LightDom analytics
-      if (typeof fetch !== 'undefined') {
-        fetch('${this.baseUrl}/api/analytics/track', {
+      // Send to LightDom analytics (conditionally if enabled)
+      if (${analyticsEnabled} && typeof fetch !== 'undefined') {
+        fetch('${analyticsEndpoint}', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

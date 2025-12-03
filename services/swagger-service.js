@@ -28,6 +28,8 @@ export class SwaggerService {
     this.baseSpec = null;
     this.clientSpecs = new Map();
     this.dynamicEndpoints = new Map();
+    this.cacheExpiry = options.cacheExpiry || 3600000; // Default 1 hour TTL
+    this.clientSpecTimestamps = new Map();
   }
 
   /**
@@ -251,7 +253,7 @@ export class SwaggerService {
     });
 
     // Get SEO Strategy endpoint
-    this.addEndpointDocs('/api/seo/strategy/{clientId}', {
+    this.addEndpointDocs('/api/seo/header-script/strategy/{clientId}', {
       get: {
         tags: ['SEO'],
         summary: 'Get SEO strategy for client',
@@ -369,13 +371,24 @@ export class SwaggerService {
           });
         }
 
-        // Generate or retrieve cached client spec
+        // Check cache and expiry
+        const now = Date.now();
+        const timestamp = this.clientSpecTimestamps.get(clientId);
         let clientSpec = this.clientSpecs.get(clientId);
         
+        // Invalidate cache if expired
+        if (timestamp && (now - timestamp) > this.cacheExpiry) {
+          this.clientSpecs.delete(clientId);
+          this.clientSpecTimestamps.delete(clientId);
+          clientSpec = null;
+        }
+        
+        // Generate or retrieve cached client spec
         if (!clientSpec) {
           const swaggerConfig = new ClientSwaggerConfig(clientId, clientConfig);
           clientSpec = swaggerConfig.generateSpec(this.baseSpec);
           this.clientSpecs.set(clientId, clientSpec);
+          this.clientSpecTimestamps.set(clientId, now);
         }
 
         // Serve client-specific Swagger UI
@@ -403,12 +416,23 @@ export class SwaggerService {
           });
         }
 
+        // Check cache and expiry
+        const now = Date.now();
+        const timestamp = this.clientSpecTimestamps.get(clientId);
         let clientSpec = this.clientSpecs.get(clientId);
+        
+        // Invalidate cache if expired
+        if (timestamp && (now - timestamp) > this.cacheExpiry) {
+          this.clientSpecs.delete(clientId);
+          this.clientSpecTimestamps.delete(clientId);
+          clientSpec = null;
+        }
         
         if (!clientSpec) {
           const swaggerConfig = new ClientSwaggerConfig(clientId, clientConfig);
           clientSpec = swaggerConfig.generateSpec(this.baseSpec);
           this.clientSpecs.set(clientId, clientSpec);
+          this.clientSpecTimestamps.set(clientId, now);
         }
 
         res.json(clientSpec);
@@ -489,7 +513,26 @@ export class SwaggerService {
     this.baseSpec = swaggerJsdoc(baseSwaggerConfig);
     this.addDynamicEndpoints();
     this.clientSpecs.clear();
+    this.clientSpecTimestamps.clear(); // Clear timestamps too
     console.log('✅ Swagger documentation refreshed');
+  }
+
+  /**
+   * Invalidate cache for a specific client
+   */
+  invalidateClientCache(clientId) {
+    this.clientSpecs.delete(clientId);
+    this.clientSpecTimestamps.delete(clientId);
+    console.log(`🔄 Cache invalidated for client: ${clientId}`);
+  }
+
+  /**
+   * Invalidate all client caches
+   */
+  invalidateAllClientCaches() {
+    this.clientSpecs.clear();
+    this.clientSpecTimestamps.clear();
+    console.log('🔄 All client caches invalidated');
   }
 
   /**

@@ -11,6 +11,43 @@ const router = express.Router();
 const seoService = new SeoHeaderScriptService();
 
 /**
+ * Authentication middleware - validates client API key
+ */
+function authenticateClient(req, res, next) {
+  const clientId = req.headers['x-client-id'] || req.query.clientId || req.params.clientId;
+  const apiKey = req.headers['x-api-key'];
+  
+  if (!clientId) {
+    return res.status(400).json({
+      error: 'Client ID is required',
+      code: 'MISSING_CLIENT_ID'
+    });
+  }
+  
+  if (!apiKey) {
+    return res.status(401).json({
+      error: 'API key is required',
+      code: 'MISSING_API_KEY'
+    });
+  }
+  
+  // In production, validate API key against database
+  // For now, just check that it exists and matches pattern
+  if (!apiKey.startsWith('premium-') && !apiKey.startsWith('standard-') && 
+      !apiKey.startsWith('basic-') && !apiKey.startsWith('enterprise-') && 
+      !apiKey.startsWith('dev-')) {
+    return res.status(401).json({
+      error: 'Invalid API key',
+      code: 'INVALID_API_KEY'
+    });
+  }
+  
+  // Store validated client ID for use in routes
+  req.clientId = clientId;
+  next();
+}
+
+/**
  * @swagger
  * /api/seo/header-script/inject:
  *   post:
@@ -57,9 +94,9 @@ const seoService = new SeoHeaderScriptService();
  *                     type: string
  *                     enum: [head, body-start, body-end]
  */
-router.post('/inject', async (req, res) => {
+router.post('/inject', authenticateClient, async (req, res) => {
   try {
-    const clientId = req.headers['x-client-id'] || req.query.clientId;
+    const clientId = req.clientId; // From authentication middleware
     
     if (!clientId) {
       return res.status(400).json({
@@ -118,9 +155,19 @@ router.post('/inject', async (req, res) => {
  *           type: string
  *         description: Client identifier
  */
-router.get('/strategy/:clientId', async (req, res) => {
+router.get('/strategy/:clientId', authenticateClient, async (req, res) => {
   try {
     const { clientId } = req.params;
+    
+    // Verify the authenticated client can access this strategy
+    if (req.clientId !== clientId) {
+      return res.status(403).json({
+        error: 'Access denied: Cannot access another client\'s strategy',
+        code: 'ACCESS_DENIED',
+        requestedClient: clientId,
+        authenticatedClient: req.clientId
+      });
+    }
 
     const strategy = seoService.getStrategy(clientId);
 
@@ -164,7 +211,7 @@ router.get('/strategy/:clientId', async (req, res) => {
  *           type: string
  *         description: Strategy identifier
  */
-router.put('/strategy/:strategyId', async (req, res) => {
+router.put('/strategy/:strategyId', authenticateClient, async (req, res) => {
   try {
     const { strategyId } = req.params;
     const updates = req.body;

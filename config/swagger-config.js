@@ -468,17 +468,8 @@ export const serviceConfigurations = {
  * Get client configuration by ID
  */
 export function getClientConfig(clientId) {
-  // Import client configurations
-  import('./client-configurations.js')
-    .then(mod => {
-      return mod.getClientConfiguration(clientId);
-    })
-    .catch(err => {
-      console.warn('Failed to load client configurations:', err.message);
-      return getDefaultClientConfig(clientId);
-    });
-  
-  // Return default while loading
+  // For now, return default configuration synchronously
+  // In production, this would fetch from database
   return getDefaultClientConfig(clientId);
 }
 
