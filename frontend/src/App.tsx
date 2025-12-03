@@ -54,6 +54,7 @@ import FeedbackLoopDashboard from '@/components/dashboards/FeedbackLoopDashboard
 import NeuralNetworkDashboard from '@/components/dashboards/NeuralNetworkDashboard';
 import UnifiedRAGDashboard from '@/components/dashboards/UnifiedRAGDashboard';
 import AgentOrchestrationDashboard from '@/components/dashboards/AgentOrchestrationDashboard';
+import DeepSeekAutomationDashboard from '@/components/dashboards/DeepSeekAutomationDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -482,6 +483,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <AgentOrchestrationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/deepseek-automation'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DeepSeekAutomationDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }

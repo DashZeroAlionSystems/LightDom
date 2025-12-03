@@ -2784,4 +2784,70 @@ export const agentOrchestrationAPI = {
     apiClient.post(`/agent-orchestration/github/issue/error/${errorReportId}`, { assignee }).then(res => res.data),
 };
 
+// ============================================================================
+// DEEPSEEK AUTOMATION API
+// ============================================================================
+
+export const deepseekAutomationAPI = {
+  // System Status & Health
+  getStatus: () =>
+    apiClient.get('/deepseek-automation/status').then(res => res.data),
+  
+  getHealth: () =>
+    apiClient.get('/deepseek-automation/health').then(res => res.data),
+  
+  // Service Management
+  getServices: () =>
+    apiClient.get('/deepseek-automation/services').then(res => res.data),
+  
+  getServiceStatus: (name: string) =>
+    apiClient.get(`/deepseek-automation/services/${name}/status`).then(res => res.data),
+  
+  restartService: (name: string) =>
+    apiClient.post(`/deepseek-automation/services/${name}/restart`).then(res => res.data),
+  
+  // Memory System
+  getMemoryTasks: (pattern?: string, limit: number = 10) =>
+    apiClient.get('/deepseek-automation/memory/tasks', { params: { pattern, limit } }).then(res => res.data),
+  
+  getMemorySolutions: (pattern?: string) =>
+    apiClient.get('/deepseek-automation/memory/solutions', { params: { pattern } }).then(res => res.data),
+  
+  learnFromFeedback: (taskId: string, feedback: any) =>
+    apiClient.post('/deepseek-automation/memory/learn', { taskId, feedback }).then(res => res.data),
+  
+  // Workflow Execution
+  executeWorkflow: (workflow: string, params: any = {}) =>
+    apiClient.post('/deepseek-automation/workflows/execute', { workflow, params }).then(res => res.data),
+  
+  getActiveWorkflows: () =>
+    apiClient.get('/deepseek-automation/workflows/active').then(res => res.data),
+  
+  getWorkflowStatus: (id: string) =>
+    apiClient.get(`/deepseek-automation/workflows/${id}/status`).then(res => res.data),
+  
+  // Error Analysis
+  analyzeError: (error: string) =>
+    apiClient.post('/deepseek-automation/errors/analyze', { error }).then(res => res.data),
+  
+  getRecentErrors: (limit: number = 10) =>
+    apiClient.get('/deepseek-automation/errors/recent', { params: { limit } }).then(res => res.data),
+  
+  // CI/CD Operations
+  deployToDev: (branchName: string) =>
+    apiClient.post('/deepseek-automation/deploy/dev', { branchName }).then(res => res.data),
+  
+  deployToStaging: (branchName: string) =>
+    apiClient.post('/deepseek-automation/deploy/staging', { branchName }).then(res => res.data),
+  
+  deployToProduction: (branchName: string, options: { strategy?: string; rollbackOnError?: boolean } = {}) =>
+    apiClient.post('/deepseek-automation/deploy/production', { branchName, ...options }).then(res => res.data),
+  
+  rollbackDeployment: (deploymentId: string) =>
+    apiClient.post('/deepseek-automation/deploy/rollback', { deploymentId }).then(res => res.data),
+  
+  getDeploymentStatus: () =>
+    apiClient.get('/deepseek-automation/deploy/status').then(res => res.data),
+};
+
 export default api;
