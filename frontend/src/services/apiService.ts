@@ -2850,4 +2850,54 @@ export const deepseekAutomationAPI = {
     apiClient.get('/deepseek-automation/deploy/status').then(res => res.data),
 };
 
+/**
+ * Workflow Wizard API
+ * Interactive workflow template creation and instance management
+ */
+export const workflowWizardAPI = {
+  // Schema Verification
+  verifySchemas: () =>
+    apiClient.get('/workflow-wizard/verify-schemas').then(res => res.data),
+  
+  // Workflow Templates
+  getTemplates: () =>
+    apiClient.get('/workflow-wizard/templates').then(res => res.data),
+  
+  getTemplate: (id: string) =>
+    apiClient.get(`/workflow-wizard/templates/${id}`).then(res => res.data),
+  
+  createTemplate: (template: any) =>
+    apiClient.post('/workflow-wizard/templates', template).then(res => res.data),
+  
+  updateTemplate: (id: string, template: any) =>
+    apiClient.put(`/workflow-wizard/templates/${id}`, template).then(res => res.data),
+  
+  deleteTemplate: (id: string) =>
+    apiClient.delete(`/workflow-wizard/templates/${id}`).then(res => res.data),
+  
+  // Workflow Instances
+  createInstance: (data: { name: string; description?: string; templateId?: string; prompt?: string }) =>
+    apiClient.post('/workflow-wizard/instances', data).then(res => res.data),
+  
+  getInstances: () =>
+    apiClient.get('/workflow-wizard/instances').then(res => res.data),
+  
+  getInstance: (id: string) =>
+    apiClient.get(`/workflow-wizard/instances/${id}`).then(res => res.data),
+  
+  executeInstance: (id: string) =>
+    apiClient.post(`/workflow-wizard/instances/${id}/execute`).then(res => res.data),
+  
+  // AI Generation
+  generateFromPrompt: (prompt: string) =>
+    apiClient.post('/workflow-wizard/generate', { prompt }).then(res => res.data),
+  
+  // Schema Linking
+  linkComponents: () =>
+    apiClient.get('/workflow-wizard/schema-links').then(res => res.data),
+  
+  getWorkflowComponents: (workflowId: string) =>
+    apiClient.get(`/workflow-wizard/workflows/${workflowId}/components`).then(res => res.data),
+};
+
 export default api;

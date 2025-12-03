@@ -55,6 +55,7 @@ import NeuralNetworkDashboard from '@/components/dashboards/NeuralNetworkDashboa
 import UnifiedRAGDashboard from '@/components/dashboards/UnifiedRAGDashboard';
 import AgentOrchestrationDashboard from '@/components/dashboards/AgentOrchestrationDashboard';
 import DeepSeekAutomationDashboard from '@/components/dashboards/DeepSeekAutomationDashboard';
+import WorkflowWizardDashboard from '@/components/dashboards/WorkflowWizardDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -493,6 +494,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <DeepSeekAutomationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/workflow-wizard'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <WorkflowWizardDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
