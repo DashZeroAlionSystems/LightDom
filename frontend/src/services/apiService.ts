@@ -2991,4 +2991,64 @@ export const crawleeAPI = {
     apiClient.get(`/crawlee/crawlers/${id}/logs`, { params: options }).then(res => res.data),
 };
 
+// =============================================================================
+// SEO Campaign Management API
+// =============================================================================
+
+export const seoCampaignAPI = {
+  // Campaign CRUD
+  getCampaigns: (params?: { status?: string; client_id?: number; active_mining?: boolean; page?: number; limit?: number }) =>
+    apiClient.get('/seo/campaigns', { params }).then(res => res.data),
+  
+  getCampaign: (campaignId: string) =>
+    apiClient.get(`/seo/campaigns/${campaignId}`).then(res => res.data),
+  
+  createCampaign: (data: {
+    name: string;
+    description?: string;
+    client_id?: number;
+    target_keywords?: string[];
+    target_urls?: string[];
+    industry?: string;
+    status?: string;
+    priority?: string;
+    start_date?: string;
+    end_date?: string;
+    schedule_cron?: string;
+    neural_network_enabled?: boolean;
+    neural_network_config?: any;
+    active_mining?: boolean;
+    mining_rules?: any;
+    created_by?: string;
+  }) =>
+    apiClient.post('/seo/campaigns', data).then(res => res.data),
+  
+  updateCampaign: (campaignId: string, data: any) =>
+    apiClient.put(`/seo/campaigns/${campaignId}`, data).then(res => res.data),
+  
+  deleteCampaign: (campaignId: string) =>
+    apiClient.delete(`/seo/campaigns/${campaignId}`).then(res => res.data),
+  
+  // Campaign Attributes
+  getCampaignAttributes: (campaignId: string) =>
+    apiClient.get(`/seo/campaigns/${campaignId}/attributes`).then(res => res.data),
+  
+  addCampaignAttributes: (campaignId: string, attributes: any[]) =>
+    apiClient.post(`/seo/campaigns/${campaignId}/attributes`, { attributes }).then(res => res.data),
+  
+  deleteCampaignAttribute: (campaignId: string, attributeKey: string) =>
+    apiClient.delete(`/seo/campaigns/${campaignId}/attributes/${attributeKey}`).then(res => res.data),
+  
+  // Seed URLs
+  getCampaignSeedUrls: (campaignId: string) =>
+    apiClient.get(`/seo/campaigns/${campaignId}/seed-urls`).then(res => res.data),
+  
+  addCampaignSeedUrls: (campaignId: string, urls: string[]) =>
+    apiClient.post(`/seo/campaigns/${campaignId}/seed-urls`, { urls }).then(res => res.data),
+  
+  // Campaign Stats
+  getCampaignStats: (campaignId: string) =>
+    apiClient.get(`/seo/campaigns/${campaignId}/stats`).then(res => res.data),
+};
+
 export default api;

@@ -58,6 +58,7 @@ import DeepSeekAutomationDashboard from '@/components/dashboards/DeepSeekAutomat
 import WorkflowWizardDashboard from '@/components/dashboards/WorkflowWizardDashboard';
 import BlockchainOptimizationDashboard from '@/components/dashboards/BlockchainOptimizationDashboard';
 import CrawleeDashboard from '@/components/dashboards/CrawleeDashboard';
+import SEOCampaignDashboard from '@/components/dashboards/SEOCampaignDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -526,6 +527,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <CrawleeDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/seo-campaigns'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SEOCampaignDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
