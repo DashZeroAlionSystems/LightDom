@@ -530,3 +530,14 @@ demo-*-results.json
 # Finetuning pipeline demo output
 demo_output/
 finetuning_output/
+
+# Test output directories
+test_output/
+training_data/collected.jsonl
+training_data/train.jsonl
+training_data/validation.jsonl
+
+# DeepSeek models (large files)
+models/lightdom-deepseek*/
+models/test-model*/
+!models/**/manifest.json
