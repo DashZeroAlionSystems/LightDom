@@ -1,0 +1,19 @@
+{
+  "modelName": "lightdom-deepseek-v1.0.0",
+  "versions": [
+    {
+      "id": "lightdom-deepseek-v1.0.0@./models/lightdom-deepseek",
+      "modelName": "lightdom-deepseek-v1.0.0",
+      "version": "./models/lightdom-deepseek",
+      "metadata": {
+        "trainedOn": "tool-use",
+        "accuracy": 0.95,
+        "toolAccuracy": 0.92
+      },
+      "status": "registered",
+      "createdAt": "2025-12-03T13:20:19.216Z",
+      "path": "models/lightdom-deepseek-v1.0.0/models/lightdom-deepseek"
+    }
+  ],
+  "updatedAt": "2025-12-03T13:20:19.217Z"
+}

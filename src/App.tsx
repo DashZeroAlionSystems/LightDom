@@ -93,6 +93,8 @@ import ClientReportDashboard from './pages/admin/ClientReportDashboard';
 import DeepSeekSkillsDashboard from './pages/admin/DeepSeekSkillsDashboard';
 import ScraperManagerDashboard from './components/ScraperManagerDashboard';
 import DeepSeekChatPanel from './components/DeepSeekChatPanel';
+import FinetuningDashboard from './components/FinetuningDashboard';
+import WorkflowOrchestrationDashboard from './components/WorkflowOrchestrationDashboard';
 import CategoryManagement from './components/ui/admin/CategoryManagement';
 import DataStreamsManagement from './components/DataStreamsManagement';
 import DemoShowcase from './pages/DemoShowcase';
@@ -192,6 +194,8 @@ const AppContent: React.FC = () => {
           <Route path="deepseek-workflows" element={<DeepSeekWorkflowDashboard />} />
           <Route path="client-reports" element={<ClientReportDashboard />} />
           <Route path="deepseek-skills" element={<DeepSeekSkillsDashboard />} />
+          <Route path="deepseek-finetuning" element={<FinetuningDashboard />} />
+          <Route path="workflow-orchestration" element={<WorkflowOrchestrationDashboard />} />
           <Route path="category-management" element={<CategoryManagement />} />
           <Route path="data-streams" element={<DataStreamsManagement />} />
           <Route path="md3-dashboard" element={<MD3DashboardDemo />} />
@@ -239,6 +243,8 @@ const AppContent: React.FC = () => {
           <Route path="settings" element={<FileUploadSettings />} />
           <Route path="workflow-demo" element={<WorkflowDemo />} />
           <Route path="training-data" element={<TrainingDataPipeline />} />
+          <Route path="deepseek-finetuning" element={<FinetuningDashboard />} />
+          <Route path="workflow-orchestration" element={<WorkflowOrchestrationDashboard />} />
           <Route path="design-system" element={<DesignSystemGuide />} />
           <Route path="motion-showcase" element={<MotionDesignShowcase />} />
           <Route path="design-tools" element={<DesignToolsNavigation />} />
