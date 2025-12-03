@@ -1975,6 +1975,256 @@ export const trainingDataAPI = {
   },
 };
 
+// Embeddings/Codebase Index API - For semantic code search with embeddings
+export interface EmbeddingHealth {
+  status: string;
+  model: string;
+  modelInfo: any;
+  dimensions: number;
+  indexStats: any;
+}
+
+export interface SearchResult {
+  query: string;
+  results: Array<{
+    file: string;
+    score: number;
+    content: string;
+    line?: number;
+    context?: string;
+  }>;
+  count: number;
+  avgScore: number;
+}
+
+export interface IndexStats {
+  totalFiles: number;
+  totalChunks: number;
+  totalTokens: number;
+  avgChunksPerFile: number;
+  modelName: string;
+  lastIndexed: string;
+}
+
+export interface EmbeddingModel {
+  name: string;
+  displayName: string;
+  dimensions: number;
+  description: string;
+  size: string;
+  tasks: string[];
+}
+
+export const embeddingsAPI = {
+  // Health check
+  getHealth: async (): Promise<EmbeddingHealth> => {
+    try {
+      const response = await apiClient.get('/codebase-index/health');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch embeddings health:', error);
+      throw error;
+    }
+  },
+
+  // Build or update index
+  buildIndex: async (options?: {
+    incremental?: boolean;
+    patterns?: string[];
+    rootPath?: string;
+  }): Promise<{ success: boolean; stats: IndexStats }> => {
+    try {
+      const response = await apiClient.post('/codebase-index/build', options || {});
+      return response.data;
+    } catch (error) {
+      console.error('Failed to build index:', error);
+      throw error;
+    }
+  },
+
+  // Search codebase
+  search: async (
+    query: string,
+    options?: {
+      topK?: number;
+      threshold?: number;
+      fileTypes?: string[];
+      files?: string[];
+    }
+  ): Promise<SearchResult> => {
+    try {
+      const response = await apiClient.post('/codebase-index/search', {
+        query,
+        ...options,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to search codebase:', error);
+      throw error;
+    }
+  },
+
+  // Get context for AI models
+  getContext: async (
+    query: string,
+    options?: {
+      maxTokens?: number;
+      topK?: number;
+      fileTypes?: string[];
+      files?: string[];
+    }
+  ): Promise<{
+    query: string;
+    context: string;
+    sources: Array<{ file: string; score: number }>;
+    tokenCount: number;
+  }> => {
+    try {
+      const response = await apiClient.post('/codebase-index/context', {
+        query,
+        ...options,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get context:', error);
+      throw error;
+    }
+  },
+
+  // Find similar files
+  getSimilarFiles: async (
+    file: string,
+    options?: {
+      topK?: number;
+      threshold?: number;
+    }
+  ): Promise<SearchResult> => {
+    try {
+      const response = await apiClient.get('/codebase-index/similar', {
+        params: { file, ...options },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to find similar files:', error);
+      throw error;
+    }
+  },
+
+  // Find related code
+  getRelatedCode: async (
+    code: string,
+    options?: {
+      topK?: number;
+      threshold?: number;
+      excludeFile?: string;
+    }
+  ): Promise<SearchResult> => {
+    try {
+      const response = await apiClient.post('/codebase-index/related', {
+        code,
+        ...options,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to find related code:', error);
+      throw error;
+    }
+  },
+
+  // Get statistics
+  getStats: async (): Promise<{
+    index: IndexStats;
+    embedding: any;
+  }> => {
+    try {
+      const response = await apiClient.get('/codebase-index/stats');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+      throw error;
+    }
+  },
+
+  // Get indexed files
+  getIndexedFiles: async (): Promise<string[]> => {
+    try {
+      const response = await apiClient.get('/codebase-index/files');
+      return response.data.files || [];
+    } catch (error) {
+      console.error('Failed to fetch indexed files:', error);
+      return [];
+    }
+  },
+
+  // List available models
+  listModels: async (): Promise<{
+    currentModel: string;
+    models: EmbeddingModel[];
+    defaultModels: Record<string, string>;
+  }> => {
+    try {
+      const response = await apiClient.get('/codebase-index/models');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to list models:', error);
+      throw error;
+    }
+  },
+
+  // Switch embedding model
+  switchModel: async (
+    model: string,
+    options?: {
+      reindex?: boolean;
+      pullIfMissing?: boolean;
+    }
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await apiClient.post('/codebase-index/model', {
+        model,
+        ...options,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to switch model:', error);
+      throw error;
+    }
+  },
+
+  // Export index
+  exportIndex: async (outputPath: string): Promise<{ success: boolean; path: string }> => {
+    try {
+      const response = await apiClient.post('/codebase-index/export', { outputPath });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to export index:', error);
+      throw error;
+    }
+  },
+
+  // Import index
+  importIndex: async (inputPath: string): Promise<{ success: boolean; stats: IndexStats }> => {
+    try {
+      const response = await apiClient.post('/codebase-index/import', { inputPath });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to import index:', error);
+      throw error;
+    }
+  },
+
+  // Clear index
+  clearIndex: async (): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await apiClient.delete('/codebase-index');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to clear index:', error);
+      throw error;
+    }
+  },
+};
+
 // Export all APIs
 export const api = {
   dashboard: dashboardAPI,
@@ -1994,6 +2244,7 @@ export const api = {
   workflowGenerator: workflowGeneratorAPI,
   schemaLinking: schemaLinkingAPI,
   trainingData: trainingDataAPI,
+  embeddings: embeddingsAPI,
 };
 
 export default api;
