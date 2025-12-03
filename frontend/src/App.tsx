@@ -41,6 +41,18 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
 import { WorkflowsPage } from '@/pages/WorkflowsPage';
 
+// Service Dashboards
+import CodebaseIndexingDashboard from '@/components/dashboards/CodebaseIndexingDashboard';
+import AIResearchDashboard from '@/components/dashboards/AIResearchDashboard';
+import DataMiningDashboard from '@/components/dashboards/DataMiningDashboard';
+import LeadGenerationDashboard from '@/components/dashboards/LeadGenerationDashboard';
+import WorkflowGeneratorDashboard from '@/components/dashboards/WorkflowGeneratorDashboard';
+import SchemaLinkingDashboard from '@/components/dashboards/SchemaLinkingDashboard';
+import TrainingDataDashboard from '@/components/dashboards/TrainingDataDashboard';
+import EmbeddingsDashboard from '@/components/dashboards/EmbeddingsDashboard';
+import FeedbackLoopDashboard from '@/components/dashboards/FeedbackLoopDashboard';
+import NeuralNetworkDashboard from '@/components/dashboards/NeuralNetworkDashboard';
+
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
 
@@ -346,6 +358,108 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <SettingsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Service Dashboards */}
+                <Route
+                  path='/dashboard/codebase-indexing'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CodebaseIndexingDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/ai-research'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AIResearchDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/data-mining'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DataMiningDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/lead-generation'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <LeadGenerationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/workflow-generator'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <WorkflowGeneratorDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/schema-linking'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SchemaLinkingDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/training-data-mining'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <TrainingDataDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/embeddings'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <EmbeddingsDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/feedback-loop'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <FeedbackLoopDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/neural-network'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NeuralNetworkDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
