@@ -345,6 +345,9 @@ class DOMSpaceHarvesterAPI {
       // Initialize template watcher after core services
       this.initializeTemplateWatcher();
 
+      // Initialize Swagger documentation after routes are set up
+      this.initializeSwagger();
+
       this.serverInitialized = true;
     }
 
@@ -427,6 +430,31 @@ class DOMSpaceHarvesterAPI {
       console.log('✅ Template watcher started');
     } catch (error) {
       console.error('⚠️  Failed to start template watcher:', error.message || error);
+    }
+  }
+
+  async initializeSwagger() {
+    try {
+      console.log('🔧 Setting up Swagger documentation...');
+      // Initialize our comprehensive Swagger service
+      this.swaggerService = await setupSwagger(this.app, {
+        db: this.db,
+        categoryCrudGenerator: this.categoryCrudGenerator
+      });
+      console.log('✅ Swagger documentation initialized with dynamic API support');
+      console.log('📚 Main docs: http://localhost:3001/api-docs');
+      console.log('📚 Client docs: http://localhost:3001/api-docs/client/:clientId');
+    } catch (error) {
+      console.error('⚠️  Failed to setup Swagger documentation:', error.message);
+      console.error('   Stack:', error.stack);
+      // Fallback to old swagger setup if exists
+      try {
+        const setupOldSwagger = (await import('./src/config/swagger.js')).default;
+        setupOldSwagger(this.app, this.categoryCrudGenerator);
+        console.log('✅ Fallback Swagger documentation initialized');
+      } catch (fallbackError) {
+        console.warn('⚠️  Swagger documentation unavailable:', fallbackError.message);
+      }
     }
   }
 
@@ -10971,28 +10999,6 @@ class DOMSpaceHarvesterAPI {
     // Initialize blockchain if enabled
     if (this.blockchainEnabled) {
       await this.initializeBlockchain();
-    }
-
-    // Setup Swagger documentation with category API integration
-    try {
-      // Initialize our comprehensive Swagger service
-      this.swaggerService = await setupSwagger(this.app, {
-        db: this.db,
-        categoryCrudGenerator: this.categoryCrudGenerator
-      });
-      console.log('✅ Swagger documentation initialized with dynamic API support');
-      console.log('📚 Main docs: http://localhost:3001/api-docs');
-      console.log('📚 Client docs: http://localhost:3001/api-docs/client/:clientId');
-    } catch (error) {
-      console.error('⚠️  Failed to setup Swagger documentation:', error.message);
-      // Fallback to old swagger setup if exists
-      try {
-        const setupOldSwagger = (await import('./src/config/swagger.js')).default;
-        setupOldSwagger(this.app, this.categoryCrudGenerator);
-        console.log('✅ Fallback Swagger documentation initialized');
-      } catch (fallbackError) {
-        console.warn('⚠️  Swagger documentation unavailable:', fallbackError.message);
-      }
     }
 
     console.log('✅ Server initialization complete');
