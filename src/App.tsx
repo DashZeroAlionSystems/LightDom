@@ -74,6 +74,7 @@ import EnhancedSchemaLinkingDashboard from './components/dashboards/SchemaLinkin
 import TrainingDataDashboard from './components/dashboards/TrainingDataDashboard';
 import EmbeddingsDashboard from './components/dashboards/EmbeddingsDashboard';
 import FeedbackLoopDashboard from './components/dashboards/FeedbackLoopDashboard';
+import NeuralNetworkManagementDashboard from './components/dashboards/NeuralNetworkDashboard';
 
 // Category Dashboards
 import { 
@@ -240,6 +241,7 @@ const AppContent: React.FC = () => {
           <Route path="training-data-mining" element={<TrainingDataDashboard />} />
           <Route path="embeddings" element={<EmbeddingsDashboard />} />
           <Route path="feedback-loop" element={<FeedbackLoopDashboard />} />
+          <Route path="neural-network" element={<NeuralNetworkManagementDashboard />} />
           <Route path="paint-timeline-viewer" element={<PaintTimelineViewer />} />
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />

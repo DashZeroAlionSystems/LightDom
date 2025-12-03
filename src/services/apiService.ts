@@ -2524,6 +2524,103 @@ export const feedbackLoopAPI = {
   },
 };
 
+/**
+ * Neural Network API
+ * Per-client neural network instance management for training and predictions
+ */
+export const neuralNetworkAPI = {
+  // Get all instances with optional filters
+  getInstances: async (filters?: {
+    clientId?: string;
+    modelType?: string;
+    status?: string;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.get('/neural-networks/instances', { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get neural network instances:', error);
+      throw error;
+    }
+  },
+
+  // Get a specific instance by ID
+  getInstance: async (id: string): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/neural-networks/instances/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get neural network instance:', error);
+      throw error;
+    }
+  },
+
+  // Create a new neural network instance
+  createInstance: async (instance: {
+    clientId: string;
+    modelType: string;
+    configuration?: Record<string, any>;
+    trainingData?: any[];
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/neural-networks/instances', instance);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create neural network instance:', error);
+      throw error;
+    }
+  },
+
+  // Train a neural network instance
+  trainInstance: async (id: string): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/neural-networks/instances/${id}/train`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to train neural network instance:', error);
+      throw error;
+    }
+  },
+
+  // Make predictions using a neural network instance
+  predict: async (id: string, input: any): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/neural-networks/instances/${id}/predict`, { input });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to make prediction:', error);
+      throw error;
+    }
+  },
+
+  // Upload training dataset
+  uploadDataset: async (formData: FormData): Promise<any> => {
+    try {
+      const response = await apiClient.post('/neural-networks/datasets/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to upload dataset:', error);
+      throw error;
+    }
+  },
+
+  // Get available model types
+  getModelTypes: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/neural-networks/model-types');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get model types:', error);
+      throw error;
+    }
+  },
+};
+
 // Export all APIs
 export const api = {
   dashboard: dashboardAPI,
@@ -2545,6 +2642,7 @@ export const api = {
   trainingData: trainingDataAPI,
   embeddings: embeddingsAPI,
   feedbackLoop: feedbackLoopAPI,
+  neuralNetwork: neuralNetworkAPI,
 };
 
 export default api;
