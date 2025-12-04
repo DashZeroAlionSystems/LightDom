@@ -420,6 +420,8 @@ class LightDomCompleteStarter {
     console.log(`   • Main Dashboard: http://localhost:${this.ports.frontend}`);
     console.log(`   • Design System: http://localhost:${this.ports.storybook || 6006}`);
     console.log(`   • API Health: http://localhost:${this.ports.api}/api/health`);
+    console.log(`   • API Documentation (Swagger): http://localhost:${this.ports.api}/api-docs`);
+    console.log(`   • OpenAPI Spec: http://localhost:${this.ports.api}/api/openapi.json`);
     console.log(`   • Crawler Stats: http://localhost:${this.ports.api}/api/crawler/stats`);
     console.log(`   • Mining Data: http://localhost:${this.ports.api}/api/metaverse/mining-data`);
     console.log('='.repeat(80));
