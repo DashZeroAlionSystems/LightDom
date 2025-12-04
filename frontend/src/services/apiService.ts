@@ -3144,4 +3144,26 @@ export const n8nWorkflowAPI = {
     apiClient.post('/n8n-workflows/from-template', { templateId, config }).then(res => res.data),
 };
 
+/**
+ * DeepSeek Database Integration API
+ * Safe database access with query whitelisting and AI-powered suggestions
+ */
+export const deepseekDatabaseAPI = {
+  // Get database schema
+  getSchema: () =>
+    apiClient.get('/deepseek-db/schema').then(res => res.data),
+  
+  // Execute safe read-only query
+  executeQuery: (query: string, params?: any[]) =>
+    apiClient.post('/deepseek-db/query', { query, params }).then(res => res.data),
+  
+  // Get AI-powered query suggestions
+  suggestQuery: (intent: string, context?: any) =>
+    apiClient.post('/deepseek-db/suggest', { intent, context }).then(res => res.data),
+  
+  // Get example queries
+  getExamples: () =>
+    apiClient.get('/deepseek-db/examples').then(res => res.data),
+};
+
 export default api;

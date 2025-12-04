@@ -61,6 +61,7 @@ import CrawleeDashboard from '@/components/dashboards/CrawleeDashboard';
 import SEOCampaignDashboard from '@/components/dashboards/SEOCampaignDashboard';
 import ClientSiteDashboard from '@/components/dashboards/ClientSiteDashboard';
 import N8NWorkflowDashboard from '@/components/dashboards/N8NWorkflowDashboard';
+import DeepSeekDatabaseDashboard from '@/components/dashboards/DeepSeekDatabaseDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -559,6 +560,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <N8NWorkflowDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/deepseek-database'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DeepSeekDatabaseDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
