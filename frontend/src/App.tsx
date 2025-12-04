@@ -68,6 +68,7 @@ import ConversationHistoryDashboard from '@/components/dashboards/ConversationHi
 import EnhancedRAGDashboard from '@/components/dashboards/EnhancedRAGDashboard';
 import OnboardingDashboard from '@/components/dashboards/OnboardingDashboard';
 import StripePaymentDashboard from '@/components/dashboards/StripePaymentDashboard';
+import RealtimeClientDashboard from '@/components/dashboards/RealtimeClientDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -636,6 +637,18 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <StripePaymentDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Realtime Client Dashboard */}
+                <Route
+                  path="/dashboard/realtime-client"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <RealtimeClientDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }

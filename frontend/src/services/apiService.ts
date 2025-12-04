@@ -3494,4 +3494,41 @@ export const stripePaymentAPI = {
     }).then(res => res.data),
 };
 
+// =======================
+// Real-Time Client API
+// =======================
+export const realtimeClientAPI = {
+  // Get service status
+  getStatus: () =>
+    apiClient.get('/realtime/status').then(res => res.data),
+  
+  // Get all connected clients
+  getClients: (siteId?: string) =>
+    apiClient.get(`/realtime/clients${siteId ? `?siteId=${siteId}` : ''}`).then(res => res.data),
+  
+  // Get all monitored sites
+  getSites: () =>
+    apiClient.get('/realtime/sites').then(res => res.data),
+  
+  // Get specific site monitor
+  getSite: (siteId: string) =>
+    apiClient.get(`/realtime/sites/${siteId}`).then(res => res.data),
+  
+  // Send command to client
+  sendCommand: (clientId: string, command: string, data: any) =>
+    apiClient.post('/realtime/command', {
+      clientId,
+      command,
+      data
+    }).then(res => res.data),
+  
+  // Broadcast to all clients of a site
+  broadcast: (siteId: string, event: string, data: any) =>
+    apiClient.post('/realtime/broadcast', {
+      siteId,
+      event,
+      data
+    }).then(res => res.data),
+};
+
 export default api;
