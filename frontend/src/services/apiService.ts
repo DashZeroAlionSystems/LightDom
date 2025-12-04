@@ -3294,4 +3294,65 @@ export const conversationHistoryAPI = {
     apiClient.get('/conversations/stats').then(res => res.data),
 };
 
+/**
+ * Enhanced RAG API - Advanced RAG with DeepSeek Tools and ORC Integration
+ */
+export const enhancedRAGAPI = {
+  // Health check
+  getHealth: () =>
+    apiClient.get('/enhanced-rag/health').then(res => res.data),
+  
+  // Chat with tools (streaming)
+  chatWithTools: (data: { messages: any[], conversationId?: string, mode?: string, enableTools?: boolean, temperature?: number, maxTokens?: number }) =>
+    apiClient.post('/enhanced-rag/chat/tools/stream', data).then(res => res.data),
+  
+  // Execute tool
+  executeTool: (toolName: string, params: any) =>
+    apiClient.post('/enhanced-rag/tool/execute', { toolName, params }).then(res => res.data),
+  
+  // Execute command
+  executeCommand: (command: string) =>
+    apiClient.post('/enhanced-rag/command/execute', { command }).then(res => res.data),
+  
+  // Git operations
+  gitOperation: (operation: string, params: any) =>
+    apiClient.post(`/enhanced-rag/git/${operation}`, params).then(res => res.data),
+  
+  // File operations
+  fileOperation: (operation: string, params: any) =>
+    apiClient.post(`/enhanced-rag/file/${operation}`, params).then(res => res.data),
+  
+  // Project operations
+  projectOperation: (operation: string, params: any) =>
+    apiClient.post(`/enhanced-rag/project/${operation}`, params).then(res => res.data),
+  
+  // Get conversation
+  getConversation: (id: string) =>
+    apiClient.get(`/enhanced-rag/conversation/${id}`).then(res => res.data),
+  
+  // Delete conversation
+  deleteConversation: (id: string) =>
+    apiClient.delete(`/enhanced-rag/conversation/${id}`).then(res => res.data),
+  
+  // Get conversations
+  getConversations: () =>
+    apiClient.get('/enhanced-rag/conversations').then(res => res.data),
+  
+  // Index codebase
+  indexCodebase: (params: any) =>
+    apiClient.post('/enhanced-rag/codebase/index', params).then(res => res.data),
+  
+  // Get available tools
+  getTools: () =>
+    apiClient.get('/enhanced-rag/tools').then(res => res.data),
+  
+  // Get system info
+  getSystemInfo: () =>
+    apiClient.get('/enhanced-rag/system/info').then(res => res.data),
+  
+  // Get project info
+  getProjectInfo: () =>
+    apiClient.get('/enhanced-rag/project/info').then(res => res.data),
+};
+
 export default api;
