@@ -3649,4 +3649,53 @@ export const analyticsAPI = {
     apiClient.get('/analytics/user-engagement').then(res => res.data),
 };
 
+// ===============================================
+// Command API
+// ===============================================
+export const commandAPI = {
+  // Get all commands
+  getCommands: () =>
+    apiClient.get('/commands').then(res => res.data),
+  
+  // Get command by ID
+  getCommand: (id: string) =>
+    apiClient.get(`/commands/${id}`).then(res => res.data),
+  
+  // Create command
+  createCommand: (data: {
+    name: string;
+    description: string;
+    command: string;
+    category: string;
+    parameters?: any;
+    output_type?: string;
+    is_async?: boolean;
+    timeout?: number;
+  }) =>
+    apiClient.post('/commands', data).then(res => res.data),
+  
+  // Update command
+  updateCommand: (id: string, data: any) =>
+    apiClient.put(`/commands/${id}`, data).then(res => res.data),
+  
+  // Delete command
+  deleteCommand: (id: string) =>
+    apiClient.delete(`/commands/${id}`).then(res => res.data),
+  
+  // Execute command
+  executeCommand: (data: {
+    command_id: string;
+    parameters?: any;
+  }) =>
+    apiClient.post('/commands/execute', data).then(res => res.data),
+  
+  // Get command suggestions
+  getSuggestions: () =>
+    apiClient.get('/commands/suggestions').then(res => res.data),
+  
+  // Get command statistics
+  getStats: () =>
+    apiClient.get('/commands/stats').then(res => res.data),
+};
+
 export default api;

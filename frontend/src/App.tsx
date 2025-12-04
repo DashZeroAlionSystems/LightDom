@@ -72,6 +72,7 @@ import RealtimeClientDashboard from '@/components/dashboards/RealtimeClientDashb
 import AILayoutDashboard from '@/components/dashboards/AILayoutDashboard';
 import PretrainedModelDashboard from '@/components/dashboards/PretrainedModelDashboard';
 import AnalyticsDashboard from '@/components/dashboards/AnalyticsDashboard';
+import CommandDashboard from '@/components/dashboards/CommandDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -688,6 +689,18 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <AnalyticsDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Command Dashboard */}
+                <Route
+                  path='/dashboard/commands'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CommandDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
