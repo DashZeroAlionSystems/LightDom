@@ -3166,4 +3166,54 @@ export const deepseekDatabaseAPI = {
     apiClient.get('/deepseek-db/examples').then(res => res.data),
 };
 
+/**
+ * MCP Server Management API
+ * AI agent instances with schema linking
+ */
+export const mcpServerAPI = {
+  // Get all MCP servers
+  getServers: (filters?: any) =>
+    apiClient.get('/mcp/servers', { params: filters }).then(res => res.data),
+  
+  // Get specific MCP server
+  getServer: (id: string) =>
+    apiClient.get(`/mcp/servers/${id}`).then(res => res.data),
+  
+  // Create new MCP server
+  createServer: (data: any) =>
+    apiClient.post('/mcp/servers', data).then(res => res.data),
+  
+  // Update MCP server
+  updateServer: (id: string, data: any) =>
+    apiClient.put(`/mcp/servers/${id}`, data).then(res => res.data),
+  
+  // Delete MCP server
+  deleteServer: (id: string) =>
+    apiClient.delete(`/mcp/servers/${id}`).then(res => res.data),
+  
+  // Get available schemas
+  getSchemas: () =>
+    apiClient.get('/mcp/schemas').then(res => res.data),
+  
+  // Link schema to server
+  linkSchema: (serverId: string, schemaId: string) =>
+    apiClient.post(`/mcp/servers/${serverId}/schemas`, { schema_id: schemaId }).then(res => res.data),
+  
+  // Unlink schema from server
+  unlinkSchema: (serverId: string, schemaId: string) =>
+    apiClient.delete(`/mcp/servers/${serverId}/schemas/${schemaId}`).then(res => res.data),
+  
+  // Execute MCP server tool
+  executeServer: (serverId: string, data: any) =>
+    apiClient.post(`/mcp/servers/${serverId}/execute`, data).then(res => res.data),
+  
+  // Get execution history
+  getExecutions: (serverId: string) =>
+    apiClient.get(`/mcp/servers/${serverId}/executions`).then(res => res.data),
+  
+  // Get health status
+  getHealth: () =>
+    apiClient.get('/mcp/health').then(res => res.data),
+};
+
 export default api;
