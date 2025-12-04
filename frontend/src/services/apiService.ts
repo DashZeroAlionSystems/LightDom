@@ -3531,4 +3531,39 @@ export const realtimeClientAPI = {
     }).then(res => res.data),
 };
 
+// =======================
+// AI Layout Generation API
+// =======================
+export const aiLayoutAPI = {
+  // Generate layout using AI
+  generateLayout: (data: {
+    prompt: string;
+    selectedComponents: string[];
+    currentLayout?: any;
+    provider?: string;
+    schema?: string | null;
+  }) =>
+    apiClient.post('/ai/generate-layout', data).then(res => res.data),
+  
+  // Optimize existing layout
+  optimizeLayout: (data: { layout: any; criteria?: string[] }) =>
+    apiClient.post('/ai/optimize-layout', data).then(res => res.data),
+  
+  // Validate layout structure
+  validateLayout: (data: { layout: any }) =>
+    apiClient.post('/ai/validate-layout', data).then(res => res.data),
+  
+  // Get available components
+  getComponents: () =>
+    apiClient.get('/ai/components').then(res => res.data),
+  
+  // Get available schemas
+  getSchemas: () =>
+    apiClient.get('/ai/schemas').then(res => res.data),
+  
+  // Get layout generation history
+  getHistory: (limit?: number) =>
+    apiClient.get(`/ai/history${limit ? `?limit=${limit}` : ''}`).then(res => res.data),
+};
+
 export default api;
