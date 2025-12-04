@@ -3698,4 +3698,67 @@ export const commandAPI = {
     apiClient.get('/commands/stats').then(res => res.data),
 };
 
+// ===============================================
+// Data Streams API
+// ===============================================
+export const dataStreamsAPI = {
+  // Get all data streams with filters
+  getStreams: (filters?: {
+    status?: string;
+    source_type?: string;
+    destination_type?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient.get('/data-streams', { params: filters }).then(res => res.data),
+  
+  // Get single data stream
+  getStream: (id: number) =>
+    apiClient.get(`/data-streams/${id}`).then(res => res.data),
+  
+  // Create new data stream
+  createStream: (data: {
+    name: string;
+    description?: string;
+    source_type: string;
+    source_config: any;
+    destination_type: string;
+    destination_config: any;
+    status: string;
+  }) =>
+    apiClient.post('/data-streams', data).then(res => res.data),
+  
+  // Update data stream
+  updateStream: (id: number, data: {
+    name?: string;
+    description?: string;
+    source_type?: string;
+    source_config?: any;
+    destination_type?: string;
+    destination_config?: any;
+    status?: string;
+  }) =>
+    apiClient.put(`/data-streams/${id}`, data).then(res => res.data),
+  
+  // Delete data stream
+  deleteStream: (id: number) =>
+    apiClient.delete(`/data-streams/${id}`).then(res => res.data),
+  
+  // Get stream attributes
+  getStreamAttributes: (streamId: number) =>
+    apiClient.get(`/data-streams/${streamId}/attributes`).then(res => res.data),
+  
+  // Add attribute to stream
+  addAttribute: (streamId: number, attributeId: number) =>
+    apiClient.post(`/data-streams/${streamId}/attributes/${attributeId}`).then(res => res.data),
+  
+  // Remove attribute from stream
+  removeAttribute: (streamId: number, attributeId: number) =>
+    apiClient.delete(`/data-streams/${streamId}/attributes/${attributeId}`).then(res => res.data),
+  
+  // Get data streams statistics
+  getStats: () =>
+    apiClient.get('/data-streams/stats').then(res => res.data),
+};
+
 export default api;

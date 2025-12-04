@@ -73,6 +73,7 @@ import AILayoutDashboard from '@/components/dashboards/AILayoutDashboard';
 import PretrainedModelDashboard from '@/components/dashboards/PretrainedModelDashboard';
 import AnalyticsDashboard from '@/components/dashboards/AnalyticsDashboard';
 import CommandDashboard from '@/components/dashboards/CommandDashboard';
+import DataStreamsDashboard from '@/components/dashboards/DataStreamsDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -701,6 +702,18 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <CommandDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Data Streams Dashboard */}
+                <Route
+                  path='/dashboard/data-streams'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DataStreamsDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
