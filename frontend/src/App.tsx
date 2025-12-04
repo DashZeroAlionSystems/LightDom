@@ -60,6 +60,7 @@ import BlockchainOptimizationDashboard from '@/components/dashboards/BlockchainO
 import CrawleeDashboard from '@/components/dashboards/CrawleeDashboard';
 import SEOCampaignDashboard from '@/components/dashboards/SEOCampaignDashboard';
 import ClientSiteDashboard from '@/components/dashboards/ClientSiteDashboard';
+import N8NWorkflowDashboard from '@/components/dashboards/N8NWorkflowDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -548,6 +549,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <ClientSiteDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/n8n-workflows'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <N8NWorkflowDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }

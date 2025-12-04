@@ -3088,4 +3088,60 @@ export const clientSiteAPI = {
     apiClient.get(`/client-sites/${id}/injection-status`).then(res => res.data),
 };
 
+/**
+ * N8N Workflow Management API
+ * Manages N8N workflows with database persistence and execution tracking
+ */
+export const n8nWorkflowAPI = {
+  // Health & Status
+  getHealth: () =>
+    apiClient.get('/n8n-workflows/health').then(res => res.data),
+  
+  getServiceStatus: () =>
+    apiClient.get('/n8n-workflows/service-status').then(res => res.data),
+  
+  // Workflows CRUD
+  getWorkflows: () =>
+    apiClient.get('/n8n-workflows').then(res => res.data),
+  
+  getWorkflow: (id: string) =>
+    apiClient.get(`/n8n-workflows/${id}`).then(res => res.data),
+  
+  createWorkflow: (data: { name: string; nodes: any[]; connections: any; settings?: any; tags?: string[] }) =>
+    apiClient.post('/n8n-workflows', data).then(res => res.data),
+  
+  updateWorkflow: (id: string, data: { name?: string; nodes?: any[]; connections?: any; settings?: any; active?: boolean; tags?: string[] }) =>
+    apiClient.put(`/n8n-workflows/${id}`, data).then(res => res.data),
+  
+  deleteWorkflow: (id: string) =>
+    apiClient.delete(`/n8n-workflows/${id}`).then(res => res.data),
+  
+  // Workflow Execution
+  executeWorkflow: (id: string, data?: any) =>
+    apiClient.post(`/n8n-workflows/${id}/execute`, { data }).then(res => res.data),
+  
+  startWorkflow: (id: string) =>
+    apiClient.post(`/n8n-workflows/${id}/start`).then(res => res.data),
+  
+  stopWorkflow: (id: string) =>
+    apiClient.post(`/n8n-workflows/${id}/stop`).then(res => res.data),
+  
+  getExecutions: (id: string) =>
+    apiClient.get(`/n8n-workflows/${id}/executions`).then(res => res.data),
+  
+  // Metrics
+  getSystemMetrics: () =>
+    apiClient.get('/n8n-workflows/metrics/system').then(res => res.data),
+  
+  // Templates
+  getTemplates: () =>
+    apiClient.get('/n8n-workflows/templates').then(res => res.data),
+  
+  getTemplate: (id: string) =>
+    apiClient.get(`/n8n-workflows/templates/${id}`).then(res => res.data),
+  
+  createFromTemplate: (templateId: string, config: any) =>
+    apiClient.post('/n8n-workflows/from-template', { templateId, config }).then(res => res.data),
+};
+
 export default api;
