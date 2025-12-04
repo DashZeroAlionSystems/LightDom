@@ -4,7 +4,7 @@ import { designTokens, getColor, getSpacing, getShadow } from '../../utils/desig
 import { Typography } from '../../components/atoms/Typography/Typography';
 import { Card } from '../../components/atoms/Card/Card';
 import { Divider } from '../../components/atoms/Divider/Divider';
-import { Badge } from '../../components/atoms/Badge';
+import { Badge } from '../../components/atoms/Badge/Badge';
 
 const meta: Meta = {
   title: 'Design System/Design Tokens Reference',

@@ -2,9 +2,9 @@ import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { Typography } from '../../components/atoms/Typography/Typography';
 import { Card } from '../../components/atoms/Card/Card';
-import { Button } from '../../components/atoms/Button';
-import { Input } from '../../components/atoms/Input';
-import { Badge } from '../../components/atoms/Badge';
+import { Button } from '../../components/atoms/Button/Button';
+import { Input } from '../../components/atoms/Input/Input';
+import { Badge } from '../../components/atoms/Badge/Badge';
 import { Divider } from '../../components/atoms/Divider/Divider';
 import {
   getContrastRatio,
