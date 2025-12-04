@@ -66,6 +66,7 @@ import MCPServerDashboard from '@/components/dashboards/MCPServerDashboard';
 import DeepSeekChatDashboard from '@/components/dashboards/DeepSeekChatDashboard';
 import ConversationHistoryDashboard from '@/components/dashboards/ConversationHistoryDashboard';
 import EnhancedRAGDashboard from '@/components/dashboards/EnhancedRAGDashboard';
+import OnboardingDashboard from '@/components/dashboards/OnboardingDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -614,6 +615,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <EnhancedRAGDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/onboarding"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <OnboardingDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }

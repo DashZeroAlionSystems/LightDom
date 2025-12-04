@@ -3408,4 +3408,45 @@ export const categoryManagementAPI = {
     apiClient.get('/category-management/stats').then(res => res.data),
 };
 
+// =======================
+// Onboarding API
+// =======================
+export const onboardingAPI = {
+  // Start onboarding session
+  startSession: (data: { email: string }) =>
+    apiClient.post('/onboarding/start', data).then(res => res.data),
+  
+  // Get current session
+  getSession: (sessionId: string) =>
+    apiClient.get(`/onboarding/session?sessionId=${sessionId}`).then(res => res.data),
+  
+  // Get all onboarding steps
+  getSteps: () =>
+    apiClient.get('/onboarding/steps').then(res => res.data),
+  
+  // Get specific step details
+  getStep: (stepNumber: number) =>
+    apiClient.get(`/onboarding/steps/${stepNumber}`).then(res => res.data),
+  
+  // Submit step data
+  submitStep: (stepNumber: number, data: any, sessionId: string) =>
+    apiClient.post(`/onboarding/steps/${stepNumber}?sessionId=${sessionId}`, data).then(res => res.data),
+  
+  // Move to next step
+  nextStep: (sessionId: string) =>
+    apiClient.post(`/onboarding/next?sessionId=${sessionId}`).then(res => res.data),
+  
+  // Complete onboarding
+  completeOnboarding: (sessionId: string) =>
+    apiClient.post(`/onboarding/complete?sessionId=${sessionId}`).then(res => res.data),
+  
+  // Get available plans
+  getPlans: () =>
+    apiClient.get('/onboarding/plans').then(res => res.data),
+  
+  // Get campaign for client
+  getCampaign: (clientId: string) =>
+    apiClient.get(`/onboarding/campaign/${clientId}`).then(res => res.data),
+};
+
 export default api;
