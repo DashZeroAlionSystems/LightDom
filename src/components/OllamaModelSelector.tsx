@@ -2,10 +2,10 @@
  * Ollama Model Selector Component
  * 
  * UI for selecting, downloading, and managing Ollama models
- * with system benchmark-based recommendations
+ * with system benchmark-based recommendations and smooth anime.js animations
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Card,
   List,
@@ -36,6 +36,14 @@ import {
   PlayCircleOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
+import {
+  modelCardSelectAnimation,
+  modelCardHoverAnimation,
+  modelCardHoverLeaveAnimation,
+  modelDownloadCompleteAnimation,
+  formFieldsEntranceAnimation,
+  buttonPressAnimation,
+} from '../utils/formControlAnimations';
 
 const { Title, Text, Paragraph } = Typography;
 const { Search } = Input;
@@ -50,7 +58,7 @@ interface Model {
   quantization: string;
   useCase: string[];
   minRAM: number;
-  recommended RAM: number;
+  recommendedRAM: number;
   performance: {
     speed: number; // 1-10
     quality: number; // 1-10
@@ -90,6 +98,10 @@ const OllamaModelSelector: React.FC<OllamaModelSelectorProps> = ({
   const [filterSize, setFilterSize] = useState<string>('all');
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  
+  // Refs for animated model cards
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const listContainerRef = useRef<HTMLDivElement>(null);
 
   // Comprehensive model list
   const availableModels: Model[] = [
@@ -420,6 +432,41 @@ const OllamaModelSelector: React.FC<OllamaModelSelectorProps> = ({
     setShowDetails(true);
   };
 
+  // Animation handlers for model cards
+  const handleCardMouseEnter = useCallback((modelName: string) => {
+    const cardEl = cardRefs.current[modelName];
+    if (cardEl) {
+      modelCardHoverAnimation(cardEl, { duration: 200 });
+    }
+  }, []);
+
+  const handleCardMouseLeave = useCallback((modelName: string) => {
+    const cardEl = cardRefs.current[modelName];
+    if (cardEl) {
+      modelCardHoverLeaveAnimation(cardEl, { duration: 200 });
+    }
+  }, []);
+
+  const handleCardSelect = useCallback((model: Model) => {
+    const cardEl = cardRefs.current[model.name];
+    if (cardEl) {
+      modelCardSelectAnimation(cardEl, { duration: 300 });
+    }
+  }, []);
+
+  // Animate list entrance when filtered models change
+  useEffect(() => {
+    if (filteredModels.length > 0 && listContainerRef.current) {
+      const cards = listContainerRef.current.querySelectorAll('.model-card-wrapper');
+      if (cards.length > 0) {
+        formFieldsEntranceAnimation(cards, { 
+          stagger: 60, 
+          duration: 400 
+        });
+      }
+    }
+  }, [filteredModels]);
+
   const renderModelCard = (model: Model) => {
     const score = calculateRecommendationScore(model);
     const { level, color } = getRecommendationLevel(score);
@@ -430,42 +477,52 @@ const OllamaModelSelector: React.FC<OllamaModelSelectorProps> = ({
     const isFavorite = score >= 80;
 
     return (
-      <Badge.Ribbon 
-        text={isFavorite ? '⭐ Top Pick' : isRecommended ? '✓ Recommended' : ''}
-        color={isFavorite ? 'gold' : isRecommended ? 'blue' : 'gray'}
-        style={{ display: score >= 60 ? 'block' : 'none' }}
+      <div 
+        className="model-card-wrapper"
+        ref={(el) => { cardRefs.current[model.name] = el; }}
+        onMouseEnter={() => handleCardMouseEnter(model.name)}
+        onMouseLeave={() => handleCardMouseLeave(model.name)}
+        style={{ opacity: 0, transform: 'translateY(20px)' }}
       >
-        <Card
-          hoverable
-          style={{ 
-            marginBottom: 16,
-            border: isFavorite ? '2px solid #faad14' : undefined,
-            boxShadow: isFavorite ? '0 4px 12px rgba(250, 173, 20, 0.3)' : undefined
-          }}
-          actions={[
-            model.downloaded ? (
+        <Badge.Ribbon 
+          text={isFavorite ? '⭐ Top Pick' : isRecommended ? '✓ Recommended' : ''}
+          color={isFavorite ? 'gold' : isRecommended ? 'blue' : 'gray'}
+          style={{ display: score >= 60 ? 'block' : 'none' }}
+        >
+          <Card
+            style={{ 
+              marginBottom: 16,
+              border: isFavorite ? '2px solid #faad14' : undefined,
+              boxShadow: isFavorite ? '0 4px 12px rgba(250, 173, 20, 0.3)' : undefined,
+              transition: 'none', // Disable CSS transitions, let anime.js handle it
+            }}
+            actions={[
+              model.downloaded ? (
+                <Button
+                  type="primary"
+                  icon={<PlayCircleOutlined />}
+                  onClick={() => {
+                    handleCardSelect(model);
+                    handleSelectModel(model);
+                  }}
+                >
+                  Use Model
+                </Button>
+              ) : (
+                <Button
+                  type="default"
+                  icon={<DownloadOutlined />}
+                  loading={isDownloading}
+                  onClick={() => handleDownload(model)}
+                >
+                  Download
+                </Button>
+              ),
               <Button
-                type="primary"
-                icon={<PlayCircleOutlined />}
-                onClick={() => handleSelectModel(model)}
+                icon={<InfoCircleOutlined />}
+                onClick={() => handleShowDetails(model)}
               >
-                Use Model
-              </Button>
-            ) : (
-              <Button
-                type="default"
-                icon={<DownloadOutlined />}
-                loading={isDownloading}
-                onClick={() => handleDownload(model)}
-              >
-                Download
-              </Button>
-            ),
-            <Button
-              icon={<InfoCircleOutlined />}
-              onClick={() => handleShowDetails(model)}
-            >
-              Details
+                Details
             </Button>
           ]}
         >
@@ -533,6 +590,7 @@ const OllamaModelSelector: React.FC<OllamaModelSelectorProps> = ({
           </Row>
         </Card>
       </Badge.Ribbon>
+      </div>
     );
   };
 
@@ -605,15 +663,17 @@ const OllamaModelSelector: React.FC<OllamaModelSelectorProps> = ({
             </Text>
           </div>
 
-          <List
-            loading={loading}
-            dataSource={filteredModels}
-            renderItem={model => (
-              <List.Item key={model.name} style={{ border: 'none', padding: 0 }}>
-                {renderModelCard(model)}
-              </List.Item>
-            )}
-          />
+          <div ref={listContainerRef}>
+            <List
+              loading={loading}
+              dataSource={filteredModels}
+              renderItem={model => (
+                <List.Item key={model.name} style={{ border: 'none', padding: 0 }}>
+                  {renderModelCard(model)}
+                </List.Item>
+              )}
+            />
+          </div>
         </Space>
       </Card>
 
