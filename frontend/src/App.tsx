@@ -70,6 +70,7 @@ import OnboardingDashboard from '@/components/dashboards/OnboardingDashboard';
 import StripePaymentDashboard from '@/components/dashboards/StripePaymentDashboard';
 import RealtimeClientDashboard from '@/components/dashboards/RealtimeClientDashboard';
 import AILayoutDashboard from '@/components/dashboards/AILayoutDashboard';
+import PretrainedModelDashboard from '@/components/dashboards/PretrainedModelDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -662,6 +663,18 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <AILayoutDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Pretrained Model Training Dashboard */}
+                <Route
+                  path="/dashboard/pretrained-models"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <PretrainedModelDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }

@@ -3566,4 +3566,58 @@ export const aiLayoutAPI = {
     apiClient.get(`/ai/history${limit ? `?limit=${limit}` : ''}`).then(res => res.data),
 };
 
+// ===============================================
+// Pretrained Model Training API
+// ===============================================
+export const pretrainedModelAPI = {
+  // Get all pretrained models
+  getModels: () =>
+    apiClient.get('/pretrained-models').then(res => res.data),
+  
+  // Get specific model details
+  getModel: (modelId: string) =>
+    apiClient.get(`/pretrained-models/${modelId}`).then(res => res.data),
+  
+  // Get all training pipelines
+  getPipelines: () =>
+    apiClient.get('/training-pipelines').then(res => res.data),
+  
+  // Create training pipeline
+  createPipeline: (data: {
+    name: string;
+    model_type: string;
+    description?: string;
+    config?: any;
+  }) =>
+    apiClient.post('/training-pipelines', data).then(res => res.data),
+  
+  // Start training on pipeline
+  startTraining: (pipelineId: string) =>
+    apiClient.post(`/training-pipelines/${pipelineId}/start`).then(res => res.data),
+  
+  // Get training run status
+  getTrainingRun: (runId: string) =>
+    apiClient.get(`/training-runs/${runId}`).then(res => res.data),
+  
+  // Submit training data
+  submitTrainingData: (data: {
+    url: string;
+    extractedData: any;
+    dataType: string;
+    metadata?: any;
+  }) =>
+    apiClient.post('/training-data', data).then(res => res.data),
+  
+  // Get training data quality statistics
+  getTrainingDataQuality: () =>
+    apiClient.get('/training-data/quality').then(res => res.data),
+  
+  // Make inference/predictions
+  predict: (data: {
+    modelId: string;
+    input: any;
+  }) =>
+    apiClient.post('/inference', data).then(res => res.data),
+};
+
 export default api;
