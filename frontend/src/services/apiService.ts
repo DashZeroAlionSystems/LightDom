@@ -3250,4 +3250,48 @@ export const deepseekChatAPI = {
     apiClient.delete(`/deepseek-chat/conversations/${id}`).then(res => res.data),
 };
 
+/**
+ * Conversation History API
+ * DeepSeek conversation tracking with knowledge graph
+ */
+export const conversationHistoryAPI = {
+  // Get all conversations
+  getConversations: () =>
+    apiClient.get('/conversations').then(res => res.data),
+  
+  // Create conversation
+  createConversation: (data: any) =>
+    apiClient.post('/conversations', data).then(res => res.data),
+  
+  // Get specific conversation
+  getConversation: (conversationId: string) =>
+    apiClient.get(`/conversations/${conversationId}`).then(res => res.data),
+  
+  // Add message to conversation
+  addMessage: (conversationId: string, message: any) =>
+    apiClient.post(`/conversations/${conversationId}/messages`, message).then(res => res.data),
+  
+  // Get messages for conversation
+  getMessages: (conversationId: string) =>
+    apiClient.get(`/conversations/${conversationId}/history`).then(res => res.data),
+  
+  // Archive conversation
+  archiveConversation: (conversationId: string) =>
+    apiClient.post(`/conversations/${conversationId}/archive`).then(res => res.data),
+  
+  // Get knowledge graph
+  getKnowledgeGraph: (conversationId?: string) =>
+    conversationId 
+      ? apiClient.get(`/conversations/${conversationId}/knowledge-graph`).then(res => res.data)
+      : apiClient.get('/conversations/knowledge-graph/global').then(res => res.data),
+  
+  // Get learning patterns
+  getLearningPatterns: (limit?: number) =>
+    apiClient.get('/conversations/learning/patterns', { params: { limit } }).then(res => res.data),
+  
+  // Get statistics
+  getStats: () =>
+    apiClient.get('/conversations/stats').then(res => res.data),
+};
+
 export default api;
