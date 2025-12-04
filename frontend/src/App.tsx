@@ -71,6 +71,7 @@ import StripePaymentDashboard from '@/components/dashboards/StripePaymentDashboa
 import RealtimeClientDashboard from '@/components/dashboards/RealtimeClientDashboard';
 import AILayoutDashboard from '@/components/dashboards/AILayoutDashboard';
 import PretrainedModelDashboard from '@/components/dashboards/PretrainedModelDashboard';
+import AnalyticsDashboard from '@/components/dashboards/AnalyticsDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -675,6 +676,18 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <PretrainedModelDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Analytics Dashboard */}
+                <Route
+                  path='/dashboard/analytics'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AnalyticsDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }

@@ -3620,4 +3620,33 @@ export const pretrainedModelAPI = {
     apiClient.post('/inference', data).then(res => res.data),
 };
 
+// ===============================================
+// Analytics API
+// ===============================================
+export const analyticsAPI = {
+  // Get analytics summary
+  getSummary: () =>
+    apiClient.get('/analytics/summary').then(res => res.data),
+  
+  // Get real-time analytics
+  getRealTime: () =>
+    apiClient.get('/analytics/real-time').then(res => res.data),
+  
+  // Get bridge analytics
+  getBridges: () =>
+    apiClient.get('/analytics/bridges').then(res => res.data),
+  
+  // Get bridge comparison
+  getBridgeComparison: (bridgeIds: string[]) =>
+    apiClient.post('/analytics/bridge-comparison', { bridgeIds }).then(res => res.data),
+  
+  // Get space mining analytics
+  getSpaceMining: () =>
+    apiClient.get('/analytics/space-mining').then(res => res.data),
+  
+  // Get user engagement analytics
+  getUserEngagement: () =>
+    apiClient.get('/analytics/user-engagement').then(res => res.data),
+};
+
 export default api;
