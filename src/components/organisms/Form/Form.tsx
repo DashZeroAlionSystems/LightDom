@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../atoms/Button';
+import { Input } from '../../atoms/Input';
+import { Checkbox } from '../../atoms/Checkbox';
 import { FormGroup } from '../../molecules/FormGroup';
 import { AlertBanner } from '../../molecules/AlertBanner';
 
@@ -215,21 +217,17 @@ export const Form: React.FC<FormProps> = ({
                 ))}
               </select>
             ) : field.type === 'checkbox' ? (
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  id={field.name}
-                  name={field.name}
-                  checked={values[field.name]}
-                  onChange={(e) => handleChange(field.name, e.target.checked)}
-                  onBlur={() => handleBlur(field.name)}
-                  disabled={field.disabled || loading}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-                <span className="text-sm text-gray-700">{field.label}</span>
-              </label>
+              <Checkbox
+                id={field.name}
+                name={field.name}
+                checked={values[field.name]}
+                onCheckedChange={(checked) => handleChange(field.name, checked)}
+                onBlur={() => handleBlur(field.name)}
+                disabled={field.disabled || loading}
+                label={field.label}
+              />
             ) : (
-              <input
+              <Input
                 type={field.type}
                 id={field.name}
                 name={field.name}
@@ -239,7 +237,6 @@ export const Form: React.FC<FormProps> = ({
                 placeholder={field.placeholder}
                 disabled={field.disabled || loading}
                 required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               />
             )}
           </FormGroup>

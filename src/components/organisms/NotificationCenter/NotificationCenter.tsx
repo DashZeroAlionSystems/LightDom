@@ -132,7 +132,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               <div
                 key={notification.id}
                 className={`
-                  p-4 hover:bg-gray-50 transition-colors cursor-pointer
+                  group p-4 hover:bg-gray-50 transition-colors cursor-pointer
                   ${!notification.read ? 'bg-blue-50/50' : ''}
                 `}
                 onClick={() => {
@@ -152,11 +152,15 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                     />
                   ) : (
                     <div
-                      className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
-                        notification.type
-                          ? `bg-${notification.type === 'error' ? 'red' : notification.type === 'success' ? 'green' : notification.type === 'warning' ? 'yellow' : 'blue'}-100`
-                          : 'bg-gray-100'
-                      }`}
+                      className={
+                        notification.type === 'error'
+                          ? 'flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-red-100'
+                          : notification.type === 'success'
+                          ? 'flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-green-100'
+                          : notification.type === 'warning'
+                          ? 'flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-yellow-100'
+                          : 'flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-blue-100'
+                      }
                     >
                       <Circle
                         size={8}
