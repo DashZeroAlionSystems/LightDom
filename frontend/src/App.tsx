@@ -63,6 +63,7 @@ import ClientSiteDashboard from '@/components/dashboards/ClientSiteDashboard';
 import N8NWorkflowDashboard from '@/components/dashboards/N8NWorkflowDashboard';
 import DeepSeekDatabaseDashboard from '@/components/dashboards/DeepSeekDatabaseDashboard';
 import MCPServerDashboard from '@/components/dashboards/MCPServerDashboard';
+import DeepSeekChatDashboard from '@/components/dashboards/DeepSeekChatDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -581,6 +582,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <MCPServerDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/deepseek-chat'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DeepSeekChatDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }

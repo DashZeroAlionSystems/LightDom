@@ -3216,4 +3216,38 @@ export const mcpServerAPI = {
     apiClient.get('/mcp/health').then(res => res.data),
 };
 
+/**
+ * DeepSeek Chat API
+ * AI chat conversations with DeepSeek models
+ */
+export const deepseekChatAPI = {
+  // Get service status
+  getStatus: () =>
+    apiClient.get('/deepseek-chat/status').then(res => res.data),
+  
+  // List conversations
+  getConversations: (limit?: number, archived?: boolean) =>
+    apiClient.get('/deepseek-chat/conversations', { params: { limit, archived } }).then(res => res.data),
+  
+  // Create new conversation
+  createConversation: (data: { title?: string; userId?: string; context?: any }) =>
+    apiClient.post('/deepseek-chat/conversations', data).then(res => res.data),
+  
+  // Get conversation
+  getConversation: (id: string) =>
+    apiClient.get(`/deepseek-chat/conversations/${id}`).then(res => res.data),
+  
+  // Send message
+  sendMessage: (id: string, message: string) =>
+    apiClient.post(`/deepseek-chat/conversations/${id}/messages`, { message }).then(res => res.data),
+  
+  // Archive conversation
+  archiveConversation: (id: string) =>
+    apiClient.post(`/deepseek-chat/conversations/${id}/archive`).then(res => res.data),
+  
+  // Delete conversation
+  deleteConversation: (id: string) =>
+    apiClient.delete(`/deepseek-chat/conversations/${id}`).then(res => res.data),
+};
+
 export default api;
