@@ -3761,4 +3761,69 @@ export const dataStreamsAPI = {
     apiClient.get('/data-streams/stats').then(res => res.data),
 };
 
+// ===============================================
+// Attribute Management API
+// ===============================================
+export const attributeManagementAPI = {
+  // Get all attributes with filters
+  getAttributes: (filters?: {
+    entity_type?: string;
+    attribute_type?: string;
+    is_required?: boolean;
+  }) =>
+    apiClient.get('/attributes', { params: filters }).then(res => res.data),
+  
+  // Get single attribute
+  getAttribute: (id: number) =>
+    apiClient.get(`/attributes/${id}`).then(res => res.data),
+  
+  // Create new attribute
+  createAttribute: (data: {
+    app_id?: number;
+    entity_type: string;
+    name: string;
+    type: string;
+    description?: string;
+    is_required?: boolean;
+    default_value?: any;
+    config?: {
+      algorithm?: string;
+      drillDown?: boolean;
+      dataMining?: boolean;
+      training?: boolean;
+    };
+    data_stream_ids?: number[];
+  }) =>
+    apiClient.post('/attributes', data).then(res => res.data),
+  
+  // Update attribute
+  updateAttribute: (id: number, data: {
+    attribute_name?: string;
+    attribute_type?: string;
+    description?: string;
+    is_required?: boolean;
+    default_value?: any;
+    config?: {
+      algorithm?: string;
+      drillDown?: boolean;
+      dataMining?: boolean;
+      training?: boolean;
+    };
+    data_stream_ids?: number[];
+  }) =>
+    apiClient.put(`/attributes/${id}`, data).then(res => res.data),
+  
+  // Delete attribute
+  deleteAttribute: (id: number) =>
+    apiClient.delete(`/attributes/${id}`).then(res => res.data),
+  
+  // Get attribute types
+  getTypes: () =>
+    apiClient.get('/attributes/types').then(res => res.data),
+  
+  // Get attributes by entity type
+  getByEntityType: (entityType: string) =>
+    apiClient.get(`/attributes/entity/${entityType}`).then(res => res.data),
+};
+
 export default api;

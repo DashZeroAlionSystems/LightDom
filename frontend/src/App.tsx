@@ -74,6 +74,7 @@ import PretrainedModelDashboard from '@/components/dashboards/PretrainedModelDas
 import AnalyticsDashboard from '@/components/dashboards/AnalyticsDashboard';
 import CommandDashboard from '@/components/dashboards/CommandDashboard';
 import DataStreamsDashboard from '@/components/dashboards/DataStreamsDashboard';
+import AttributeManagementDashboard from '@/components/dashboards/AttributeManagementDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -714,6 +715,18 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <DataStreamsDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Attribute Management Dashboard */}
+                <Route
+                  path='/dashboard/attribute-management'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AttributeManagementDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
