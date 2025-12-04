@@ -3449,4 +3449,49 @@ export const onboardingAPI = {
     apiClient.get(`/onboarding/campaign/${clientId}`).then(res => res.data),
 };
 
+// =======================
+// Stripe Payment API
+// =======================
+export const stripePaymentAPI = {
+  // Get pricing plans
+  getPlans: () =>
+    apiClient.get('/stripe/plans').then(res => res.data),
+  
+  // Create checkout session
+  createCheckoutSession: (priceId: string, billingInterval: string, successUrl?: string, cancelUrl?: string) =>
+    apiClient.post('/stripe/create-checkout-session', {
+      priceId,
+      billingInterval,
+      successUrl,
+      cancelUrl
+    }).then(res => res.data),
+  
+  // Get customer subscriptions
+  getSubscriptions: (customerId?: string) =>
+    apiClient.get(`/stripe/subscriptions${customerId ? `?customerId=${customerId}` : ''}`).then(res => res.data),
+  
+  // Cancel subscription
+  cancelSubscription: (subscriptionId: string) =>
+    apiClient.post(`/stripe/cancel-subscription/${subscriptionId}`).then(res => res.data),
+  
+  // Update payment method
+  updatePaymentMethod: (subscriptionId: string) =>
+    apiClient.post(`/stripe/update-payment-method/${subscriptionId}`).then(res => res.data),
+  
+  // Get checkout sessions
+  getSessions: (customerId?: string) =>
+    apiClient.get(`/stripe/sessions${customerId ? `?customerId=${customerId}` : ''}`).then(res => res.data),
+  
+  // Get payment statistics
+  getStats: () =>
+    apiClient.get('/stripe/stats').then(res => res.data),
+  
+  // Create customer portal session
+  createPortalSession: (customerId: string, returnUrl?: string) =>
+    apiClient.post('/stripe/create-portal-session', {
+      customerId,
+      returnUrl
+    }).then(res => res.data),
+};
+
 export default api;
