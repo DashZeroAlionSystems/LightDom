@@ -3355,4 +3355,57 @@ export const enhancedRAGAPI = {
     apiClient.get('/enhanced-rag/project/info').then(res => res.data),
 };
 
+// ============================================================
+// Category Management API
+// ============================================================
+export const categoryManagementAPI = {
+  // Get all categories
+  getCategories: (params?: { type?: string, status?: string }) =>
+    apiClient.get('/category-management/categories', { params }).then(res => res.data),
+  
+  // Get category by ID
+  getCategory: (id: string) =>
+    apiClient.get(`/category-management/categories/${id}`).then(res => res.data),
+  
+  // Create category
+  createCategory: (data: any) =>
+    apiClient.post('/category-management/categories', data).then(res => res.data),
+  
+  // Update category
+  updateCategory: (id: string, data: any) =>
+    apiClient.put(`/category-management/categories/${id}`, data).then(res => res.data),
+  
+  // Delete category
+  deleteCategory: (id: string) =>
+    apiClient.delete(`/category-management/categories/${id}`).then(res => res.data),
+  
+  // Get category tree
+  getCategoryTree: () =>
+    apiClient.get('/category-management/categories/tree').then(res => res.data),
+  
+  // Get subcategories
+  getSubcategories: (id: string) =>
+    apiClient.get(`/category-management/categories/${id}/subcategories`).then(res => res.data),
+  
+  // Generate CRUD for category
+  generateCRUD: (id: string) =>
+    apiClient.post(`/category-management/categories/${id}/generate-crud`).then(res => res.data),
+  
+  // Get CRUD generation status
+  getCRUDStatus: (id: string) =>
+    apiClient.get(`/category-management/categories/${id}/crud-status`).then(res => res.data),
+  
+  // Validate schema
+  validateSchema: (id: string) =>
+    apiClient.post(`/category-management/categories/${id}/validate-schema`).then(res => res.data),
+  
+  // Get schema definition
+  getSchemaDefinition: (id: string) =>
+    apiClient.get(`/category-management/categories/${id}/schema`).then(res => res.data),
+  
+  // Get category statistics
+  getCategoryStats: () =>
+    apiClient.get('/category-management/stats').then(res => res.data),
+};
+
 export default api;
