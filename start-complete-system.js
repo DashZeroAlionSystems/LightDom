@@ -52,6 +52,7 @@ class CompleteSystemStarter {
       console.log('\n✅ All services started successfully!');
       console.log('🌐 Frontend: http://localhost:3000');
       console.log('🔌 API Server: http://localhost:3001');
+      console.log('📚 API Docs (Swagger): http://localhost:3001/api-docs');
       console.log('🤖 Headless Server: http://localhost:3002');
       console.log('⛓️  Blockchain: Running in background');
       console.log('🧠 Ollama DeepSeek: http://localhost:11434');

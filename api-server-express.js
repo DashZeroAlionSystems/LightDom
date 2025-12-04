@@ -22,6 +22,8 @@ import { RealWebCrawlerSystem } from './crawler/RealWebCrawlerSystem.js';
 import createAdminNavigationRoutes from './services/admin-navigation-routes.js';
 import { createRagRouter } from './services/rag/rag-router.js';
 import TemplateWatcherService from './services/template-watcher-service.js';
+import { setupSwagger } from './services/swagger-service.js';
+import seoHeaderScriptRoutes from './api/seo-header-script-routes.js';
 import BlockchainMetricsCollector from './utils/BlockchainMetricsCollector.js';
 import CrawlerSupervisor from './utils/CrawlerSupervisor.js';
 import HeadlessBlockchainRunner from './utils/HeadlessBlockchainRunner.js';
@@ -207,6 +209,9 @@ class DOMSpaceHarvesterAPI {
     // Template watcher
     this.templateWatcher = null;
 
+    // Swagger service (initialized in async start method)
+    this.swaggerService = null;
+
     // Setup blockchain runner event handlers
     this.setupBlockchainEventHandlers();
 
@@ -340,6 +345,9 @@ class DOMSpaceHarvesterAPI {
       // Initialize template watcher after core services
       this.initializeTemplateWatcher();
 
+      // Initialize Swagger documentation after routes are set up
+      this.initializeSwagger();
+
       this.serverInitialized = true;
     }
 
@@ -422,6 +430,31 @@ class DOMSpaceHarvesterAPI {
       console.log('✅ Template watcher started');
     } catch (error) {
       console.error('⚠️  Failed to start template watcher:', error.message || error);
+    }
+  }
+
+  async initializeSwagger() {
+    try {
+      console.log('🔧 Setting up Swagger documentation...');
+      // Initialize our comprehensive Swagger service
+      this.swaggerService = await setupSwagger(this.app, {
+        db: this.db,
+        categoryCrudGenerator: this.categoryCrudGenerator
+      });
+      console.log('✅ Swagger documentation initialized with dynamic API support');
+      console.log('📚 Main docs: http://localhost:3001/api-docs');
+      console.log('📚 Client docs: http://localhost:3001/api-docs/client/:clientId');
+    } catch (error) {
+      console.error('⚠️  Failed to setup Swagger documentation:', error.message);
+      console.error('   Stack:', error.stack);
+      // Fallback to old swagger setup if exists
+      try {
+        const setupOldSwagger = (await import('./src/config/swagger.js')).default;
+        setupOldSwagger(this.app, this.categoryCrudGenerator);
+        console.log('✅ Fallback Swagger documentation initialized');
+      } catch (fallbackError) {
+        console.warn('⚠️  Swagger documentation unavailable:', fallbackError.message);
+      }
     }
   }
 
@@ -10352,6 +10385,14 @@ class DOMSpaceHarvesterAPI {
   }
 
   async setupSEOServiceRoutes() {
+    // Setup SEO Header Script routes
+    try {
+      this.app.use('/api/seo/header-script', seoHeaderScriptRoutes);
+      console.log('✅ SEO Header Script routes configured at /api/seo/header-script');
+    } catch (error) {
+      console.error('⚠️ Failed to setup SEO Header Script routes:', error.message);
+    }
+
     // Import SEO service API creator
     try {
       const { createSEOInjectionAPI } = await import('./src/api/seo-injection-api.js');
@@ -10958,15 +10999,6 @@ class DOMSpaceHarvesterAPI {
     // Initialize blockchain if enabled
     if (this.blockchainEnabled) {
       await this.initializeBlockchain();
-    }
-
-    // Setup Swagger documentation with category API integration
-    try {
-      const setupSwagger = (await import('./src/config/swagger.js')).default;
-      setupSwagger(this.app, this.categoryCrudGenerator);
-      console.log('✅ Swagger documentation initialized with auto-generated category APIs');
-    } catch (error) {
-      console.error('⚠️  Failed to setup Swagger documentation:', error.message);
     }
 
     console.log('✅ Server initialization complete');

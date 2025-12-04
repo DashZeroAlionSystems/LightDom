@@ -63,5 +63,7 @@ process.on('SIGTERM', () => {
 
 console.log('✅ API server starting on http://localhost:3001');
 console.log('📡 Health check: http://localhost:3001/api/health');
+console.log('📚 API Documentation (Swagger): http://localhost:3001/api-docs');
+console.log('📄 OpenAPI Spec: http://localhost:3001/api/openapi.json');
 console.log('');
 console.log('Press Ctrl+C to stop the server');
