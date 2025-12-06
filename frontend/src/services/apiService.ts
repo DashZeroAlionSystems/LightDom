@@ -4028,4 +4028,56 @@ export const advancedWorkflowAPI = {
     apiClient.post(`/advanced-workflow/workflow/chains/${chainId}/execute`).then(res => res.data),
 };
 
+// Extended Workflow API
+export const extendedWorkflowAPI = {
+  // Campaign Training Monitoring
+  getCampaigns: () =>
+    apiClient.get('/workflow/monitoring/campaigns').then(res => res.data),
+  
+  getCampaign: (id: string) =>
+    apiClient.get(`/workflow/monitoring/campaigns/${id}`).then(res => res.data),
+  
+  // Client Status Overview
+  getClients: () =>
+    apiClient.get('/workflow/monitoring/clients').then(res => res.data),
+  
+  getClient: (clientId: string) =>
+    apiClient.get(`/workflow/monitoring/clients/${clientId}`).then(res => res.data),
+  
+  // Workflow State Machine
+  initializeStateMachine: (data: { workflowId: string; initialState: string; config?: any }) =>
+    apiClient.post('/workflow/state-machine/initialize', data).then(res => res.data),
+  
+  executeStateMachine: (data: { workflowId: string; action: string; payload?: any }) =>
+    apiClient.post('/workflow/state-machine/execute', data).then(res => res.data),
+  
+  simulateStateMachine: (data: { workflowId: string; actions: string[]; config?: any }) =>
+    apiClient.post('/workflow/state-machine/simulate', data).then(res => res.data),
+  
+  // 3D DOM Mining
+  start3DDOMMining: (data: { url: string; depth?: number; includeRichSnippets?: boolean }) =>
+    apiClient.post('/workflow/mining/3d-dom', data).then(res => res.data),
+  
+  getMiningResults: () =>
+    apiClient.get('/workflow/mining/results').then(res => res.data),
+  
+  getMiningResult: (id: string) =>
+    apiClient.get(`/workflow/mining/results/${id}`).then(res => res.data),
+  
+  // Component Library
+  getComponents: () =>
+    apiClient.get('/workflow/components/library').then(res => res.data),
+  
+  addComponent: (data: { name: string; type: string; category: string; version?: string; config?: any }) =>
+    apiClient.post('/workflow/components/library', data).then(res => res.data),
+  
+  // Training Data Models
+  getTrainingModels: () =>
+    apiClient.get('/workflow/training-models').then(res => res.data),
+  
+  // Schema Links
+  getSchemaLinks: () =>
+    apiClient.get('/workflow/schema-links').then(res => res.data),
+};
+
 export default api;

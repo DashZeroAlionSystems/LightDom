@@ -78,6 +78,7 @@ import AttributeManagementDashboard from '@/components/dashboards/AttributeManag
 import CampaignOrchestrationDashboard from '@/components/dashboards/CampaignOrchestrationDashboard';
 import WorkflowAdminDashboard from '@/components/dashboards/WorkflowAdminDashboard';
 import AdvancedWorkflowDashboard from '@/components/dashboards/AdvancedWorkflowDashboard';
+import ExtendedWorkflowDashboard from '@/components/dashboards/ExtendedWorkflowDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -764,6 +765,17 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <AdvancedWorkflowDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path='/dashboard/extended-workflow'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ExtendedWorkflowDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
