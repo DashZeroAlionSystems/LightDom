@@ -41,6 +41,43 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
 import { WorkflowsPage } from '@/pages/WorkflowsPage';
 
+// Service Dashboards
+import CodebaseIndexingDashboard from '@/components/dashboards/CodebaseIndexingDashboard';
+import AIResearchDashboard from '@/components/dashboards/AIResearchDashboard';
+import DataMiningDashboard from '@/components/dashboards/DataMiningDashboard';
+import LeadGenerationDashboard from '@/components/dashboards/LeadGenerationDashboard';
+import WorkflowGeneratorDashboard from '@/components/dashboards/WorkflowGeneratorDashboard';
+import SchemaLinkingDashboard from '@/components/dashboards/SchemaLinkingDashboard';
+import TrainingDataDashboard from '@/components/dashboards/TrainingDataDashboard';
+import EmbeddingsDashboard from '@/components/dashboards/EmbeddingsDashboard';
+import FeedbackLoopDashboard from '@/components/dashboards/FeedbackLoopDashboard';
+import NeuralNetworkDashboard from '@/components/dashboards/NeuralNetworkDashboard';
+import UnifiedRAGDashboard from '@/components/dashboards/UnifiedRAGDashboard';
+import AgentOrchestrationDashboard from '@/components/dashboards/AgentOrchestrationDashboard';
+import DeepSeekAutomationDashboard from '@/components/dashboards/DeepSeekAutomationDashboard';
+import WorkflowWizardDashboard from '@/components/dashboards/WorkflowWizardDashboard';
+import BlockchainOptimizationDashboard from '@/components/dashboards/BlockchainOptimizationDashboard';
+import CrawleeDashboard from '@/components/dashboards/CrawleeDashboard';
+import SEOCampaignDashboard from '@/components/dashboards/SEOCampaignDashboard';
+import ClientSiteDashboard from '@/components/dashboards/ClientSiteDashboard';
+import N8NWorkflowDashboard from '@/components/dashboards/N8NWorkflowDashboard';
+import DeepSeekDatabaseDashboard from '@/components/dashboards/DeepSeekDatabaseDashboard';
+import MCPServerDashboard from '@/components/dashboards/MCPServerDashboard';
+import DeepSeekChatDashboard from '@/components/dashboards/DeepSeekChatDashboard';
+import ConversationHistoryDashboard from '@/components/dashboards/ConversationHistoryDashboard';
+import EnhancedRAGDashboard from '@/components/dashboards/EnhancedRAGDashboard';
+import OnboardingDashboard from '@/components/dashboards/OnboardingDashboard';
+import StripePaymentDashboard from '@/components/dashboards/StripePaymentDashboard';
+import RealtimeClientDashboard from '@/components/dashboards/RealtimeClientDashboard';
+import AILayoutDashboard from '@/components/dashboards/AILayoutDashboard';
+import PretrainedModelDashboard from '@/components/dashboards/PretrainedModelDashboard';
+import AnalyticsDashboard from '@/components/dashboards/AnalyticsDashboard';
+import CommandDashboard from '@/components/dashboards/CommandDashboard';
+import DataStreamsDashboard from '@/components/dashboards/DataStreamsDashboard';
+import AttributeManagementDashboard from '@/components/dashboards/AttributeManagementDashboard';
+import CampaignOrchestrationDashboard from '@/components/dashboards/CampaignOrchestrationDashboard';
+import WorkflowAdminDashboard from '@/components/dashboards/WorkflowAdminDashboard';
+
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
 
@@ -346,6 +383,375 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <SettingsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Service Dashboards */}
+                <Route
+                  path='/dashboard/codebase-indexing'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CodebaseIndexingDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/ai-research'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AIResearchDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/data-mining'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DataMiningDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/lead-generation'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <LeadGenerationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/workflow-generator'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <WorkflowGeneratorDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/schema-linking'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SchemaLinkingDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/training-data-mining'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <TrainingDataDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/embeddings'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <EmbeddingsDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/feedback-loop'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <FeedbackLoopDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/neural-network'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NeuralNetworkDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/unified-rag'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <UnifiedRAGDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/agent-orchestration'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AgentOrchestrationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/deepseek-automation'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DeepSeekAutomationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/workflow-wizard'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <WorkflowWizardDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/blockchain-optimization'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <BlockchainOptimizationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/crawlee'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CrawleeDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/seo-campaigns'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SEOCampaignDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/client-sites'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ClientSiteDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/n8n-workflows'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <N8NWorkflowDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/deepseek-database'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DeepSeekDatabaseDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/mcp-servers'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <MCPServerDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/deepseek-chat'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DeepSeekChatDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/conversation-history"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ConversationHistoryDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/enhanced-rag"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <EnhancedRAGDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/onboarding"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <OnboardingDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/stripe-payment"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <StripePaymentDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Realtime Client Dashboard */}
+                <Route
+                  path="/dashboard/realtime-client"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <RealtimeClientDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* AI Layout Dashboard */}
+                <Route
+                  path="/dashboard/ai-layout"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AILayoutDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Pretrained Model Training Dashboard */}
+                <Route
+                  path="/dashboard/pretrained-models"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <PretrainedModelDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Analytics Dashboard */}
+                <Route
+                  path='/dashboard/analytics'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AnalyticsDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Command Dashboard */}
+                <Route
+                  path='/dashboard/commands'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CommandDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Data Streams Dashboard */}
+                <Route
+                  path='/dashboard/data-streams'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DataStreamsDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Attribute Management Dashboard */}
+                <Route
+                  path='/dashboard/attribute-management'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AttributeManagementDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Campaign Orchestration Dashboard */}
+                <Route
+                  path='/dashboard/campaign-orchestration'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CampaignOrchestrationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path='/dashboard/workflow-admin'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <WorkflowAdminDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }

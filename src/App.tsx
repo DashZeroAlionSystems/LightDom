@@ -65,6 +65,16 @@ import ChromeLayers3DDashboard from './components/ChromeLayers3DDashboard';
 import NeuralNetworkDashboard from './components/ui/dashboard/NeuralNetworkDashboard';
 import TensorFlowNeuralNetworkDashboard from './components/dashboards/TensorFlowNeuralNetworkDashboard';
 import CampaignTrainingAdminDashboard from './components/dashboards/CampaignTrainingAdminDashboard';
+import AIResearchDashboard from './components/dashboards/AIResearchDashboard';
+import CodebaseIndexingDashboard from './components/dashboards/CodebaseIndexingDashboard';
+import DataMiningDashboard from './components/dashboards/DataMiningDashboard';
+import LeadGenerationDashboard from './components/dashboards/LeadGenerationDashboard';
+import WorkflowGeneratorDashboard from './components/dashboards/WorkflowGeneratorDashboard';
+import EnhancedSchemaLinkingDashboard from './components/dashboards/SchemaLinkingDashboard';
+import TrainingDataDashboard from './components/dashboards/TrainingDataDashboard';
+import EmbeddingsDashboard from './components/dashboards/EmbeddingsDashboard';
+import FeedbackLoopDashboard from './components/dashboards/FeedbackLoopDashboard';
+import NeuralNetworkManagementDashboard from './components/dashboards/NeuralNetworkDashboard';
 
 // Category Dashboards
 import { 
@@ -183,7 +193,7 @@ const AppContent: React.FC = () => {
           <Route path="design-system" element={<DesignSystemGuide />} />
           <Route path="motion-showcase" element={<MotionDesignShowcase />} />
           <Route path="design-tools" element={<DesignToolsNavigation />} />
-          <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
+          <Route path="schema-linking-basic" element={<SchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
           <Route path="chrome-layers" element={<ChromeLayers3DDashboard />} />
           <Route path="styleguide-config" element={<StyleguideConfigManager />} />
@@ -222,6 +232,16 @@ const AppContent: React.FC = () => {
           <Route path="neural-network" element={<NeuralNetworkDashboard />} />
           <Route path="tensorflow-workflow" element={<TensorFlowNeuralNetworkDashboard />} />
           <Route path="campaign-training-admin" element={<CampaignTrainingAdminDashboard />} />
+          <Route path="ai-research" element={<AIResearchDashboard />} />
+          <Route path="codebase-indexing" element={<CodebaseIndexingDashboard />} />
+          <Route path="data-mining" element={<DataMiningDashboard />} />
+          <Route path="lead-generation" element={<LeadGenerationDashboard />} />
+          <Route path="workflow-generator" element={<WorkflowGeneratorDashboard />} />
+          <Route path="schema-linking" element={<EnhancedSchemaLinkingDashboard />} />
+          <Route path="training-data-mining" element={<TrainingDataDashboard />} />
+          <Route path="embeddings" element={<EmbeddingsDashboard />} />
+          <Route path="feedback-loop" element={<FeedbackLoopDashboard />} />
+          <Route path="neural-network" element={<NeuralNetworkManagementDashboard />} />
           <Route path="paint-timeline-viewer" element={<PaintTimelineViewer />} />
           <Route path="blockchain-models" element={<BlockchainModelStorageDashboard />} />
           <Route path="space-optimization" element={<SpaceOptimizationDashboard />} />
@@ -242,7 +262,7 @@ const AppContent: React.FC = () => {
           <Route path="design-system" element={<DesignSystemGuide />} />
           <Route path="motion-showcase" element={<MotionDesignShowcase />} />
           <Route path="design-tools" element={<DesignToolsNavigation />} />
-          <Route path="schema-linking" element={<SchemaLinkingDashboard />} />
+          <Route path="schema-linking" element={<EnhancedSchemaLinkingDashboard />} />
           <Route path="workflow-creation" element={<WorkflowCreationDashboard />} />
           <Route path="component-schema" element={<ComponentSchemaToolDashboard />} />
           <Route path="demos" element={<DemoShowcase />} />

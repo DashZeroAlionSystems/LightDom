@@ -320,6 +320,8 @@ class DOMSpaceHarvesterAPI {
 
     // Setup blockchain optimization API routes
     this.setupBlockchainOptimizationRoutes();
+    this.setupFeedbackLoopRoutes();
+    this.setupAgentOrchestrationRoutes();
 
     // Setup real-time client API
     this.setupRealtimeClientAPI();
@@ -1073,6 +1075,22 @@ class DOMSpaceHarvesterAPI {
       })
       .catch(err => {
         console.error('Failed to load AI research pipeline routes:', err);
+      });
+
+    // Import and register Codebase Indexing API routes (critical for RAG)
+    import('./api/codebase-indexing-routes.js')
+      .then(indexingModule => {
+        const createCodebaseIndexingRoutes =
+          indexingModule.default || indexingModule.createCodebaseIndexingRoutes;
+        if (typeof createCodebaseIndexingRoutes === 'function') {
+          this.app.use('/api/codebase-indexing', createCodebaseIndexingRoutes(this.db));
+        } else {
+          this.app.use('/api/codebase-indexing', createCodebaseIndexingRoutes);
+        }
+        console.log('✅ Codebase Indexing API routes registered at /api/codebase-indexing');
+      })
+      .catch(err => {
+        console.error('Failed to load codebase indexing routes:', err);
       });
 
     // Import and register Advanced Data Mining Orchestration routes
@@ -10402,6 +10420,28 @@ class DOMSpaceHarvesterAPI {
       console.log('✅ Blockchain Algorithm Optimization API routes configured');
     } catch (error) {
       console.error('⚠️ Failed to setup Blockchain Optimization routes:', error.message);
+    }
+  }
+
+  async setupFeedbackLoopRoutes() {
+    try {
+      const { createFeedbackRouter } = await import('./api/feedback-loop-routes.js');
+      this.app.use('/api/feedback-loop', createFeedbackRouter(this.db));
+      console.log('✅ Feedback Loop Service API routes configured');
+    } catch (error) {
+      console.error('⚠️ Failed to setup Feedback Loop routes:', error.message);
+    }
+  }
+
+  async setupAgentOrchestrationRoutes() {
+    try {
+      const { createAgentOrchestrationRoutes } = await import('./api/agent-orchestration-routes.js');
+      // Note: This requires an orchestration service instance
+      // For now, we'll create a placeholder that returns the routes
+      this.app.use('/api/agent-orchestration', createAgentOrchestrationRoutes({}));
+      console.log('✅ Agent Orchestration API routes configured');
+    } catch (error) {
+      console.error('⚠️ Failed to setup Agent Orchestration routes:', error.message);
     }
   }
 

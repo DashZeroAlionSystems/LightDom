@@ -2645,4 +2645,1309 @@ export const api = {
   neuralNetwork: neuralNetworkAPI,
 };
 
+// ============================================================================
+// UNIFIED RAG API
+// ============================================================================
+
+export const unifiedRAGAPI = {
+  // Chat endpoints
+  chat: (message: string, options: any = {}) =>
+    apiClient.post('/unified-rag/chat', { message, ...options }).then(res => res.data),
+  
+  chatStream: (message: string, options: any = {}) =>
+    apiClient.post('/unified-rag/chat/stream', { message, ...options }).then(res => res.data),
+  
+  // Index endpoints
+  indexText: (content: string, metadata: any = {}) =>
+    apiClient.post('/unified-rag/index', { content, metadata }).then(res => res.data),
+  
+  indexFile: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post('/unified-rag/index/file', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(res => res.data);
+  },
+  
+  indexCodebase: (options: { path?: string; patterns?: string[] }) =>
+    apiClient.post('/unified-rag/index/codebase', options).then(res => res.data),
+  
+  indexImage: (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return apiClient.post('/unified-rag/index/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(res => res.data);
+  },
+  
+  // Search endpoints
+  search: (query: string, options: any = {}) =>
+    apiClient.post('/unified-rag/search', { query, ...options }).then(res => res.data),
+  
+  hybridSearch: (query: string, options: any = {}) =>
+    apiClient.post('/unified-rag/search/hybrid', { query, ...options }).then(res => res.data),
+  
+  // Conversation endpoints
+  getConversation: (id: string) =>
+    apiClient.get(`/unified-rag/conversation/${id}`).then(res => res.data),
+  
+  deleteConversation: (id: string) =>
+    apiClient.delete(`/unified-rag/conversation/${id}`).then(res => res.data),
+  
+  // Health & Config
+  getHealth: () =>
+    apiClient.get('/unified-rag/health').then(res => res.data),
+  
+  reinitialize: () =>
+    apiClient.post('/unified-rag/reinitialize').then(res => res.data),
+  
+  getConfig: () =>
+    apiClient.get('/unified-rag/config').then(res => res.data),
+  
+  updateConfig: (config: any) =>
+    apiClient.post('/unified-rag/config', config).then(res => res.data),
+  
+  getModels: () =>
+    apiClient.get('/unified-rag/models').then(res => res.data),
+  
+  // Document versions
+  getDocumentVersions: (id: string) =>
+    apiClient.get(`/unified-rag/document/${id}/versions`).then(res => res.data),
+  
+  // Document conversion
+  convertDocument: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post('/unified-rag/convert', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(res => res.data);
+  },
+  
+  convertUrl: (url: string) =>
+    apiClient.post('/unified-rag/convert/url', { url }).then(res => res.data),
+  
+  getConvertFormats: () =>
+    apiClient.get('/unified-rag/convert/formats').then(res => res.data),
+  
+  // Agent execution
+  executeAgent: (task: string, options: any = {}) =>
+    apiClient.post('/unified-rag/agent/execute', { task, ...options }).then(res => res.data),
+  
+  streamAgent: (task: string, options: any = {}) =>
+    apiClient.post('/unified-rag/agent/stream', { task, ...options }).then(res => res.data),
+  
+  // Features
+  getFeatures: () =>
+    apiClient.get('/unified-rag/features').then(res => res.data),
+};
+
+// ============================================================================
+// AGENT ORCHESTRATION API
+// ============================================================================
+
+export const agentOrchestrationAPI = {
+  // Status & Health
+  getStatus: () =>
+    apiClient.get('/agent-orchestration/status').then(res => res.data),
+  
+  getHealth: () =>
+    apiClient.get('/agent-orchestration/health').then(res => res.data),
+  
+  getServiceStatus: (serviceId: string) =>
+    apiClient.get(`/agent-orchestration/health/${serviceId}`).then(res => res.data),
+  
+  // Investigation
+  investigateError: (errorReportId: string) =>
+    apiClient.post(`/agent-orchestration/investigate/error/${errorReportId}`).then(res => res.data),
+  
+  investigateFeature: (description: string, components: string[] = []) =>
+    apiClient.post('/agent-orchestration/investigate/feature', { description, components }).then(res => res.data),
+  
+  // Agent Task Management
+  queueTask: (type: string, context: any, priority: number = 5) =>
+    apiClient.post('/agent-orchestration/agent/task', { type, context, priority }).then(res => res.data),
+  
+  getTask: (taskId: string) =>
+    apiClient.get(`/agent-orchestration/agent/task/${taskId}`).then(res => res.data),
+  
+  getAgent: (agentId: string) =>
+    apiClient.get(`/agent-orchestration/agent/${agentId}`).then(res => res.data),
+  
+  getActiveAgents: () =>
+    apiClient.get('/agent-orchestration/agents/active').then(res => res.data),
+  
+  getQueueStatus: () =>
+    apiClient.get('/agent-orchestration/queue/status').then(res => res.data),
+  
+  // GitHub Integration
+  createIssueFromError: (errorReportId: string, assignee?: string) =>
+    apiClient.post(`/agent-orchestration/github/issue/error/${errorReportId}`, { assignee }).then(res => res.data),
+};
+
+// ============================================================================
+// DEEPSEEK AUTOMATION API
+// ============================================================================
+
+export const deepseekAutomationAPI = {
+  // System Status & Health
+  getStatus: () =>
+    apiClient.get('/deepseek-automation/status').then(res => res.data),
+  
+  getHealth: () =>
+    apiClient.get('/deepseek-automation/health').then(res => res.data),
+  
+  // Service Management
+  getServices: () =>
+    apiClient.get('/deepseek-automation/services').then(res => res.data),
+  
+  getServiceStatus: (name: string) =>
+    apiClient.get(`/deepseek-automation/services/${name}/status`).then(res => res.data),
+  
+  restartService: (name: string) =>
+    apiClient.post(`/deepseek-automation/services/${name}/restart`).then(res => res.data),
+  
+  // Memory System
+  getMemoryTasks: (pattern?: string, limit: number = 10) =>
+    apiClient.get('/deepseek-automation/memory/tasks', { params: { pattern, limit } }).then(res => res.data),
+  
+  getMemorySolutions: (pattern?: string) =>
+    apiClient.get('/deepseek-automation/memory/solutions', { params: { pattern } }).then(res => res.data),
+  
+  learnFromFeedback: (taskId: string, feedback: any) =>
+    apiClient.post('/deepseek-automation/memory/learn', { taskId, feedback }).then(res => res.data),
+  
+  // Workflow Execution
+  executeWorkflow: (workflow: string, params: any = {}) =>
+    apiClient.post('/deepseek-automation/workflows/execute', { workflow, params }).then(res => res.data),
+  
+  getActiveWorkflows: () =>
+    apiClient.get('/deepseek-automation/workflows/active').then(res => res.data),
+  
+  getWorkflowStatus: (id: string) =>
+    apiClient.get(`/deepseek-automation/workflows/${id}/status`).then(res => res.data),
+  
+  // Error Analysis
+  analyzeError: (error: string) =>
+    apiClient.post('/deepseek-automation/errors/analyze', { error }).then(res => res.data),
+  
+  getRecentErrors: (limit: number = 10) =>
+    apiClient.get('/deepseek-automation/errors/recent', { params: { limit } }).then(res => res.data),
+  
+  // CI/CD Operations
+  deployToDev: (branchName: string) =>
+    apiClient.post('/deepseek-automation/deploy/dev', { branchName }).then(res => res.data),
+  
+  deployToStaging: (branchName: string) =>
+    apiClient.post('/deepseek-automation/deploy/staging', { branchName }).then(res => res.data),
+  
+  deployToProduction: (branchName: string, options: { strategy?: string; rollbackOnError?: boolean } = {}) =>
+    apiClient.post('/deepseek-automation/deploy/production', { branchName, ...options }).then(res => res.data),
+  
+  rollbackDeployment: (deploymentId: string) =>
+    apiClient.post('/deepseek-automation/deploy/rollback', { deploymentId }).then(res => res.data),
+  
+  getDeploymentStatus: () =>
+    apiClient.get('/deepseek-automation/deploy/status').then(res => res.data),
+};
+
+/**
+ * Workflow Wizard API
+ * Interactive workflow template creation and instance management
+ */
+export const workflowWizardAPI = {
+  // Schema Verification
+  verifySchemas: () =>
+    apiClient.get('/workflow-wizard/verify-schemas').then(res => res.data),
+  
+  // Workflow Templates
+  getTemplates: () =>
+    apiClient.get('/workflow-wizard/templates').then(res => res.data),
+  
+  getTemplate: (id: string) =>
+    apiClient.get(`/workflow-wizard/templates/${id}`).then(res => res.data),
+  
+  createTemplate: (template: any) =>
+    apiClient.post('/workflow-wizard/templates', template).then(res => res.data),
+  
+  updateTemplate: (id: string, template: any) =>
+    apiClient.put(`/workflow-wizard/templates/${id}`, template).then(res => res.data),
+  
+  deleteTemplate: (id: string) =>
+    apiClient.delete(`/workflow-wizard/templates/${id}`).then(res => res.data),
+  
+  // Workflow Instances
+  createInstance: (data: { name: string; description?: string; templateId?: string; prompt?: string }) =>
+    apiClient.post('/workflow-wizard/instances', data).then(res => res.data),
+  
+  getInstances: () =>
+    apiClient.get('/workflow-wizard/instances').then(res => res.data),
+  
+  getInstance: (id: string) =>
+    apiClient.get(`/workflow-wizard/instances/${id}`).then(res => res.data),
+  
+  executeInstance: (id: string) =>
+    apiClient.post(`/workflow-wizard/instances/${id}/execute`).then(res => res.data),
+  
+  // AI Generation
+  generateFromPrompt: (prompt: string) =>
+    apiClient.post('/workflow-wizard/generate', { prompt }).then(res => res.data),
+  
+  // Schema Linking
+  linkComponents: () =>
+    apiClient.get('/workflow-wizard/schema-links').then(res => res.data),
+  
+  getWorkflowComponents: (workflowId: string) =>
+    apiClient.get(`/workflow-wizard/workflows/${workflowId}/components`).then(res => res.data),
+};
+
+/**
+ * Blockchain Optimization API
+ * Blockchain algorithm benchmarking and DOM optimization
+ */
+export const blockchainOptimizationAPI = {
+  // Benchmarking
+  runBenchmark: (data: { seoDataset: any[]; options?: any }) =>
+    apiClient.post('/blockchain-optimization/benchmark', data).then(res => res.data),
+  
+  benchmarkAlgorithm: (algorithm: string, data: { seoDataset: any[]; options?: any }) =>
+    apiClient.post(`/blockchain-optimization/benchmark/algorithm/${algorithm}`, data).then(res => res.data),
+  
+  getResults: () =>
+    apiClient.get('/blockchain-optimization/results').then(res => res.data),
+  
+  getBestAlgorithm: (criteria: 'speed' | 'throughput' | 'energy' | 'accuracy') =>
+    apiClient.get(`/blockchain-optimization/best/${criteria}`).then(res => res.data),
+  
+  // DOM Optimization
+  analyzeDom: (domAnalysis: any) =>
+    apiClient.post('/blockchain-optimization/dom/analyze', { domAnalysis }).then(res => res.data),
+  
+  optimizeDom: (data: { domTree: any; config?: any }) =>
+    apiClient.post('/blockchain-optimization/dom/optimize', data).then(res => res.data),
+  
+  getPatterns: (params?: { size?: number; complexity?: number; depth?: number }) =>
+    apiClient.get('/blockchain-optimization/dom/patterns', { params }).then(res => res.data),
+  
+  // Simulation
+  simulate: (data: { simulationParams: any }) =>
+    apiClient.post('/blockchain-optimization/simulate', data).then(res => res.data),
+  
+  getSimulationResults: () =>
+    apiClient.get('/blockchain-optimization/simulate/results').then(res => res.data),
+  
+  // Status
+  getStatus: () =>
+    apiClient.get('/blockchain-optimization/status').then(res => res.data),
+  
+  getAlgorithms: () =>
+    apiClient.get('/blockchain-optimization/algorithms').then(res => res.data),
+};
+
+/**
+ * Crawlee Service API
+ * Web crawler management with Crawlee framework
+ */
+export const crawleeAPI = {
+  // Crawler CRUD
+  createCrawler: (data: any) =>
+    apiClient.post('/crawlee/crawlers', data).then(res => res.data),
+  
+  getCrawlers: (filters?: { status?: string; campaign_id?: string; type?: string; limit?: number }) =>
+    apiClient.get('/crawlee/crawlers', { params: filters }).then(res => res.data),
+  
+  getCrawler: (id: string) =>
+    apiClient.get(`/crawlee/crawlers/${id}`).then(res => res.data),
+  
+  updateCrawler: (id: string, data: any) =>
+    apiClient.put(`/crawlee/crawlers/${id}`, data).then(res => res.data),
+  
+  deleteCrawler: (id: string) =>
+    apiClient.delete(`/crawlee/crawlers/${id}`).then(res => res.data),
+  
+  // Crawler Control
+  startCrawler: (id: string, seedUrls?: string[]) =>
+    apiClient.post(`/crawlee/crawlers/${id}/start`, { seedUrls }).then(res => res.data),
+  
+  pauseCrawler: (id: string) =>
+    apiClient.post(`/crawlee/crawlers/${id}/pause`).then(res => res.data),
+  
+  resumeCrawler: (id: string) =>
+    apiClient.post(`/crawlee/crawlers/${id}/resume`).then(res => res.data),
+  
+  stopCrawler: (id: string) =>
+    apiClient.post(`/crawlee/crawlers/${id}/stop`).then(res => res.data),
+  
+  // Crawler Data
+  getCrawlerStats: (id: string) =>
+    apiClient.get(`/crawlee/crawlers/${id}/stats`).then(res => res.data),
+  
+  addSeeds: (id: string, seeds: string[]) =>
+    apiClient.post(`/crawlee/crawlers/${id}/seeds`, { seeds }).then(res => res.data),
+  
+  getCrawlerResults: (id: string, options?: { limit?: number; offset?: number }) =>
+    apiClient.get(`/crawlee/crawlers/${id}/results`, { params: options }).then(res => res.data),
+  
+  getCrawlerLogs: (id: string, options?: { limit?: number; level?: string }) =>
+    apiClient.get(`/crawlee/crawlers/${id}/logs`, { params: options }).then(res => res.data),
+};
+
+// =============================================================================
+// SEO Campaign Management API
+// =============================================================================
+
+export const seoCampaignAPI = {
+  // Campaign CRUD
+  getCampaigns: (params?: { status?: string; client_id?: number; active_mining?: boolean; page?: number; limit?: number }) =>
+    apiClient.get('/seo/campaigns', { params }).then(res => res.data),
+  
+  getCampaign: (campaignId: string) =>
+    apiClient.get(`/seo/campaigns/${campaignId}`).then(res => res.data),
+  
+  createCampaign: (data: {
+    name: string;
+    description?: string;
+    client_id?: number;
+    target_keywords?: string[];
+    target_urls?: string[];
+    industry?: string;
+    status?: string;
+    priority?: string;
+    start_date?: string;
+    end_date?: string;
+    schedule_cron?: string;
+    neural_network_enabled?: boolean;
+    neural_network_config?: any;
+    active_mining?: boolean;
+    mining_rules?: any;
+    created_by?: string;
+  }) =>
+    apiClient.post('/seo/campaigns', data).then(res => res.data),
+  
+  updateCampaign: (campaignId: string, data: any) =>
+    apiClient.put(`/seo/campaigns/${campaignId}`, data).then(res => res.data),
+  
+  deleteCampaign: (campaignId: string) =>
+    apiClient.delete(`/seo/campaigns/${campaignId}`).then(res => res.data),
+  
+  // Campaign Attributes
+  getCampaignAttributes: (campaignId: string) =>
+    apiClient.get(`/seo/campaigns/${campaignId}/attributes`).then(res => res.data),
+  
+  addCampaignAttributes: (campaignId: string, attributes: any[]) =>
+    apiClient.post(`/seo/campaigns/${campaignId}/attributes`, { attributes }).then(res => res.data),
+  
+  deleteCampaignAttribute: (campaignId: string, attributeKey: string) =>
+    apiClient.delete(`/seo/campaigns/${campaignId}/attributes/${attributeKey}`).then(res => res.data),
+  
+  // Seed URLs
+  getCampaignSeedUrls: (campaignId: string) =>
+    apiClient.get(`/seo/campaigns/${campaignId}/seed-urls`).then(res => res.data),
+  
+  addCampaignSeedUrls: (campaignId: string, urls: string[]) =>
+    apiClient.post(`/seo/campaigns/${campaignId}/seed-urls`, { urls }).then(res => res.data),
+  
+  // Campaign Stats
+  getCampaignStats: (campaignId: string) =>
+    apiClient.get(`/seo/campaigns/${campaignId}/stats`).then(res => res.data),
+};
+
+/**
+ * Client Site Management API
+ * Manages client sites, script injection, and workflow generation
+ */
+export const clientSiteAPI = {
+  // Sites CRUD
+  getSites: () =>
+    apiClient.get('/client-sites').then(res => res.data),
+  
+  getSite: (id: number) =>
+    apiClient.get(`/client-sites/${id}`).then(res => res.data),
+  
+  createSite: (data: { domain: string; userId: string; subscriptionTier: string; config?: any }) =>
+    apiClient.post('/client-sites', data).then(res => res.data),
+  
+  updateSite: (id: number, data: { domain?: string; userId?: string; subscriptionTier?: string; config?: any }) =>
+    apiClient.put(`/client-sites/${id}`, data).then(res => res.data),
+  
+  deleteSite: (id: number) =>
+    apiClient.delete(`/client-sites/${id}`).then(res => res.data),
+  
+  // Script Management
+  generateScript: (id: number) =>
+    apiClient.post(`/client-sites/${id}/generate-script`).then(res => res.data),
+  
+  // Workflow Management
+  createWorkflows: (id: number) =>
+    apiClient.post(`/client-sites/${id}/create-workflows`).then(res => res.data),
+  
+  createWorkflowsDeepseek: (id: number) =>
+    apiClient.post(`/client-sites/${id}/create-workflows/deepseek`).then(res => res.data),
+  
+  // Injection Status
+  getInjectionStatus: (id: number) =>
+    apiClient.get(`/client-sites/${id}/injection-status`).then(res => res.data),
+};
+
+/**
+ * N8N Workflow Management API
+ * Manages N8N workflows with database persistence and execution tracking
+ */
+export const n8nWorkflowAPI = {
+  // Health & Status
+  getHealth: () =>
+    apiClient.get('/n8n-workflows/health').then(res => res.data),
+  
+  getServiceStatus: () =>
+    apiClient.get('/n8n-workflows/service-status').then(res => res.data),
+  
+  // Workflows CRUD
+  getWorkflows: () =>
+    apiClient.get('/n8n-workflows').then(res => res.data),
+  
+  getWorkflow: (id: string) =>
+    apiClient.get(`/n8n-workflows/${id}`).then(res => res.data),
+  
+  createWorkflow: (data: { name: string; nodes: any[]; connections: any; settings?: any; tags?: string[] }) =>
+    apiClient.post('/n8n-workflows', data).then(res => res.data),
+  
+  updateWorkflow: (id: string, data: { name?: string; nodes?: any[]; connections?: any; settings?: any; active?: boolean; tags?: string[] }) =>
+    apiClient.put(`/n8n-workflows/${id}`, data).then(res => res.data),
+  
+  deleteWorkflow: (id: string) =>
+    apiClient.delete(`/n8n-workflows/${id}`).then(res => res.data),
+  
+  // Workflow Execution
+  executeWorkflow: (id: string, data?: any) =>
+    apiClient.post(`/n8n-workflows/${id}/execute`, { data }).then(res => res.data),
+  
+  startWorkflow: (id: string) =>
+    apiClient.post(`/n8n-workflows/${id}/start`).then(res => res.data),
+  
+  stopWorkflow: (id: string) =>
+    apiClient.post(`/n8n-workflows/${id}/stop`).then(res => res.data),
+  
+  getExecutions: (id: string) =>
+    apiClient.get(`/n8n-workflows/${id}/executions`).then(res => res.data),
+  
+  // Metrics
+  getSystemMetrics: () =>
+    apiClient.get('/n8n-workflows/metrics/system').then(res => res.data),
+  
+  // Templates
+  getTemplates: () =>
+    apiClient.get('/n8n-workflows/templates').then(res => res.data),
+  
+  getTemplate: (id: string) =>
+    apiClient.get(`/n8n-workflows/templates/${id}`).then(res => res.data),
+  
+  createFromTemplate: (templateId: string, config: any) =>
+    apiClient.post('/n8n-workflows/from-template', { templateId, config }).then(res => res.data),
+};
+
+/**
+ * DeepSeek Database Integration API
+ * Safe database access with query whitelisting and AI-powered suggestions
+ */
+export const deepseekDatabaseAPI = {
+  // Get database schema
+  getSchema: () =>
+    apiClient.get('/deepseek-db/schema').then(res => res.data),
+  
+  // Execute safe read-only query
+  executeQuery: (query: string, params?: any[]) =>
+    apiClient.post('/deepseek-db/query', { query, params }).then(res => res.data),
+  
+  // Get AI-powered query suggestions
+  suggestQuery: (intent: string, context?: any) =>
+    apiClient.post('/deepseek-db/suggest', { intent, context }).then(res => res.data),
+  
+  // Get example queries
+  getExamples: () =>
+    apiClient.get('/deepseek-db/examples').then(res => res.data),
+};
+
+/**
+ * MCP Server Management API
+ * AI agent instances with schema linking
+ */
+export const mcpServerAPI = {
+  // Get all MCP servers
+  getServers: (filters?: any) =>
+    apiClient.get('/mcp/servers', { params: filters }).then(res => res.data),
+  
+  // Get specific MCP server
+  getServer: (id: string) =>
+    apiClient.get(`/mcp/servers/${id}`).then(res => res.data),
+  
+  // Create new MCP server
+  createServer: (data: any) =>
+    apiClient.post('/mcp/servers', data).then(res => res.data),
+  
+  // Update MCP server
+  updateServer: (id: string, data: any) =>
+    apiClient.put(`/mcp/servers/${id}`, data).then(res => res.data),
+  
+  // Delete MCP server
+  deleteServer: (id: string) =>
+    apiClient.delete(`/mcp/servers/${id}`).then(res => res.data),
+  
+  // Get available schemas
+  getSchemas: () =>
+    apiClient.get('/mcp/schemas').then(res => res.data),
+  
+  // Link schema to server
+  linkSchema: (serverId: string, schemaId: string) =>
+    apiClient.post(`/mcp/servers/${serverId}/schemas`, { schema_id: schemaId }).then(res => res.data),
+  
+  // Unlink schema from server
+  unlinkSchema: (serverId: string, schemaId: string) =>
+    apiClient.delete(`/mcp/servers/${serverId}/schemas/${schemaId}`).then(res => res.data),
+  
+  // Execute MCP server tool
+  executeServer: (serverId: string, data: any) =>
+    apiClient.post(`/mcp/servers/${serverId}/execute`, data).then(res => res.data),
+  
+  // Get execution history
+  getExecutions: (serverId: string) =>
+    apiClient.get(`/mcp/servers/${serverId}/executions`).then(res => res.data),
+  
+  // Get health status
+  getHealth: () =>
+    apiClient.get('/mcp/health').then(res => res.data),
+};
+
+/**
+ * DeepSeek Chat API
+ * AI chat conversations with DeepSeek models
+ */
+export const deepseekChatAPI = {
+  // Get service status
+  getStatus: () =>
+    apiClient.get('/deepseek-chat/status').then(res => res.data),
+  
+  // List conversations
+  getConversations: (limit?: number, archived?: boolean) =>
+    apiClient.get('/deepseek-chat/conversations', { params: { limit, archived } }).then(res => res.data),
+  
+  // Create new conversation
+  createConversation: (data: { title?: string; userId?: string; context?: any }) =>
+    apiClient.post('/deepseek-chat/conversations', data).then(res => res.data),
+  
+  // Get conversation
+  getConversation: (id: string) =>
+    apiClient.get(`/deepseek-chat/conversations/${id}`).then(res => res.data),
+  
+  // Send message
+  sendMessage: (id: string, message: string) =>
+    apiClient.post(`/deepseek-chat/conversations/${id}/messages`, { message }).then(res => res.data),
+  
+  // Archive conversation
+  archiveConversation: (id: string) =>
+    apiClient.post(`/deepseek-chat/conversations/${id}/archive`).then(res => res.data),
+  
+  // Delete conversation
+  deleteConversation: (id: string) =>
+    apiClient.delete(`/deepseek-chat/conversations/${id}`).then(res => res.data),
+};
+
+/**
+ * Conversation History API
+ * DeepSeek conversation tracking with knowledge graph
+ */
+export const conversationHistoryAPI = {
+  // Get all conversations
+  getConversations: () =>
+    apiClient.get('/conversations').then(res => res.data),
+  
+  // Create conversation
+  createConversation: (data: any) =>
+    apiClient.post('/conversations', data).then(res => res.data),
+  
+  // Get specific conversation
+  getConversation: (conversationId: string) =>
+    apiClient.get(`/conversations/${conversationId}`).then(res => res.data),
+  
+  // Add message to conversation
+  addMessage: (conversationId: string, message: any) =>
+    apiClient.post(`/conversations/${conversationId}/messages`, message).then(res => res.data),
+  
+  // Get messages for conversation
+  getMessages: (conversationId: string) =>
+    apiClient.get(`/conversations/${conversationId}/history`).then(res => res.data),
+  
+  // Archive conversation
+  archiveConversation: (conversationId: string) =>
+    apiClient.post(`/conversations/${conversationId}/archive`).then(res => res.data),
+  
+  // Get knowledge graph
+  getKnowledgeGraph: (conversationId?: string) =>
+    conversationId 
+      ? apiClient.get(`/conversations/${conversationId}/knowledge-graph`).then(res => res.data)
+      : apiClient.get('/conversations/knowledge-graph/global').then(res => res.data),
+  
+  // Get learning patterns
+  getLearningPatterns: (limit?: number) =>
+    apiClient.get('/conversations/learning/patterns', { params: { limit } }).then(res => res.data),
+  
+  // Get statistics
+  getStats: () =>
+    apiClient.get('/conversations/stats').then(res => res.data),
+};
+
+/**
+ * Enhanced RAG API - Advanced RAG with DeepSeek Tools and ORC Integration
+ */
+export const enhancedRAGAPI = {
+  // Health check
+  getHealth: () =>
+    apiClient.get('/enhanced-rag/health').then(res => res.data),
+  
+  // Chat with tools (streaming)
+  chatWithTools: (data: { messages: any[], conversationId?: string, mode?: string, enableTools?: boolean, temperature?: number, maxTokens?: number }) =>
+    apiClient.post('/enhanced-rag/chat/tools/stream', data).then(res => res.data),
+  
+  // Execute tool
+  executeTool: (toolName: string, params: any) =>
+    apiClient.post('/enhanced-rag/tool/execute', { toolName, params }).then(res => res.data),
+  
+  // Execute command
+  executeCommand: (command: string) =>
+    apiClient.post('/enhanced-rag/command/execute', { command }).then(res => res.data),
+  
+  // Git operations
+  gitOperation: (operation: string, params: any) =>
+    apiClient.post(`/enhanced-rag/git/${operation}`, params).then(res => res.data),
+  
+  // File operations
+  fileOperation: (operation: string, params: any) =>
+    apiClient.post(`/enhanced-rag/file/${operation}`, params).then(res => res.data),
+  
+  // Project operations
+  projectOperation: (operation: string, params: any) =>
+    apiClient.post(`/enhanced-rag/project/${operation}`, params).then(res => res.data),
+  
+  // Get conversation
+  getConversation: (id: string) =>
+    apiClient.get(`/enhanced-rag/conversation/${id}`).then(res => res.data),
+  
+  // Delete conversation
+  deleteConversation: (id: string) =>
+    apiClient.delete(`/enhanced-rag/conversation/${id}`).then(res => res.data),
+  
+  // Get conversations
+  getConversations: () =>
+    apiClient.get('/enhanced-rag/conversations').then(res => res.data),
+  
+  // Index codebase
+  indexCodebase: (params: any) =>
+    apiClient.post('/enhanced-rag/codebase/index', params).then(res => res.data),
+  
+  // Get available tools
+  getTools: () =>
+    apiClient.get('/enhanced-rag/tools').then(res => res.data),
+  
+  // Get system info
+  getSystemInfo: () =>
+    apiClient.get('/enhanced-rag/system/info').then(res => res.data),
+  
+  // Get project info
+  getProjectInfo: () =>
+    apiClient.get('/enhanced-rag/project/info').then(res => res.data),
+};
+
+// ============================================================
+// Category Management API
+// ============================================================
+export const categoryManagementAPI = {
+  // Get all categories
+  getCategories: (params?: { type?: string, status?: string }) =>
+    apiClient.get('/category-management/categories', { params }).then(res => res.data),
+  
+  // Get category by ID
+  getCategory: (id: string) =>
+    apiClient.get(`/category-management/categories/${id}`).then(res => res.data),
+  
+  // Create category
+  createCategory: (data: any) =>
+    apiClient.post('/category-management/categories', data).then(res => res.data),
+  
+  // Update category
+  updateCategory: (id: string, data: any) =>
+    apiClient.put(`/category-management/categories/${id}`, data).then(res => res.data),
+  
+  // Delete category
+  deleteCategory: (id: string) =>
+    apiClient.delete(`/category-management/categories/${id}`).then(res => res.data),
+  
+  // Get category tree
+  getCategoryTree: () =>
+    apiClient.get('/category-management/categories/tree').then(res => res.data),
+  
+  // Get subcategories
+  getSubcategories: (id: string) =>
+    apiClient.get(`/category-management/categories/${id}/subcategories`).then(res => res.data),
+  
+  // Generate CRUD for category
+  generateCRUD: (id: string) =>
+    apiClient.post(`/category-management/categories/${id}/generate-crud`).then(res => res.data),
+  
+  // Get CRUD generation status
+  getCRUDStatus: (id: string) =>
+    apiClient.get(`/category-management/categories/${id}/crud-status`).then(res => res.data),
+  
+  // Validate schema
+  validateSchema: (id: string) =>
+    apiClient.post(`/category-management/categories/${id}/validate-schema`).then(res => res.data),
+  
+  // Get schema definition
+  getSchemaDefinition: (id: string) =>
+    apiClient.get(`/category-management/categories/${id}/schema`).then(res => res.data),
+  
+  // Get category statistics
+  getCategoryStats: () =>
+    apiClient.get('/category-management/stats').then(res => res.data),
+};
+
+// =======================
+// Onboarding API
+// =======================
+export const onboardingAPI = {
+  // Start onboarding session
+  startSession: (data: { email: string }) =>
+    apiClient.post('/onboarding/start', data).then(res => res.data),
+  
+  // Get current session
+  getSession: (sessionId: string) =>
+    apiClient.get(`/onboarding/session?sessionId=${sessionId}`).then(res => res.data),
+  
+  // Get all onboarding steps
+  getSteps: () =>
+    apiClient.get('/onboarding/steps').then(res => res.data),
+  
+  // Get specific step details
+  getStep: (stepNumber: number) =>
+    apiClient.get(`/onboarding/steps/${stepNumber}`).then(res => res.data),
+  
+  // Submit step data
+  submitStep: (stepNumber: number, data: any, sessionId: string) =>
+    apiClient.post(`/onboarding/steps/${stepNumber}?sessionId=${sessionId}`, data).then(res => res.data),
+  
+  // Move to next step
+  nextStep: (sessionId: string) =>
+    apiClient.post(`/onboarding/next?sessionId=${sessionId}`).then(res => res.data),
+  
+  // Complete onboarding
+  completeOnboarding: (sessionId: string) =>
+    apiClient.post(`/onboarding/complete?sessionId=${sessionId}`).then(res => res.data),
+  
+  // Get available plans
+  getPlans: () =>
+    apiClient.get('/onboarding/plans').then(res => res.data),
+  
+  // Get campaign for client
+  getCampaign: (clientId: string) =>
+    apiClient.get(`/onboarding/campaign/${clientId}`).then(res => res.data),
+};
+
+// =======================
+// Stripe Payment API
+// =======================
+export const stripePaymentAPI = {
+  // Get pricing plans
+  getPlans: () =>
+    apiClient.get('/stripe/plans').then(res => res.data),
+  
+  // Create checkout session
+  createCheckoutSession: (priceId: string, billingInterval: string, successUrl?: string, cancelUrl?: string) =>
+    apiClient.post('/stripe/create-checkout-session', {
+      priceId,
+      billingInterval,
+      successUrl,
+      cancelUrl
+    }).then(res => res.data),
+  
+  // Get customer subscriptions
+  getSubscriptions: (customerId?: string) =>
+    apiClient.get(`/stripe/subscriptions${customerId ? `?customerId=${customerId}` : ''}`).then(res => res.data),
+  
+  // Cancel subscription
+  cancelSubscription: (subscriptionId: string) =>
+    apiClient.post(`/stripe/cancel-subscription/${subscriptionId}`).then(res => res.data),
+  
+  // Update payment method
+  updatePaymentMethod: (subscriptionId: string) =>
+    apiClient.post(`/stripe/update-payment-method/${subscriptionId}`).then(res => res.data),
+  
+  // Get checkout sessions
+  getSessions: (customerId?: string) =>
+    apiClient.get(`/stripe/sessions${customerId ? `?customerId=${customerId}` : ''}`).then(res => res.data),
+  
+  // Get payment statistics
+  getStats: () =>
+    apiClient.get('/stripe/stats').then(res => res.data),
+  
+  // Create customer portal session
+  createPortalSession: (customerId: string, returnUrl?: string) =>
+    apiClient.post('/stripe/create-portal-session', {
+      customerId,
+      returnUrl
+    }).then(res => res.data),
+};
+
+// =======================
+// Real-Time Client API
+// =======================
+export const realtimeClientAPI = {
+  // Get service status
+  getStatus: () =>
+    apiClient.get('/realtime/status').then(res => res.data),
+  
+  // Get all connected clients
+  getClients: (siteId?: string) =>
+    apiClient.get(`/realtime/clients${siteId ? `?siteId=${siteId}` : ''}`).then(res => res.data),
+  
+  // Get all monitored sites
+  getSites: () =>
+    apiClient.get('/realtime/sites').then(res => res.data),
+  
+  // Get specific site monitor
+  getSite: (siteId: string) =>
+    apiClient.get(`/realtime/sites/${siteId}`).then(res => res.data),
+  
+  // Send command to client
+  sendCommand: (clientId: string, command: string, data: any) =>
+    apiClient.post('/realtime/command', {
+      clientId,
+      command,
+      data
+    }).then(res => res.data),
+  
+  // Broadcast to all clients of a site
+  broadcast: (siteId: string, event: string, data: any) =>
+    apiClient.post('/realtime/broadcast', {
+      siteId,
+      event,
+      data
+    }).then(res => res.data),
+};
+
+// =======================
+// AI Layout Generation API
+// =======================
+export const aiLayoutAPI = {
+  // Generate layout using AI
+  generateLayout: (data: {
+    prompt: string;
+    selectedComponents: string[];
+    currentLayout?: any;
+    provider?: string;
+    schema?: string | null;
+  }) =>
+    apiClient.post('/ai/generate-layout', data).then(res => res.data),
+  
+  // Optimize existing layout
+  optimizeLayout: (data: { layout: any; criteria?: string[] }) =>
+    apiClient.post('/ai/optimize-layout', data).then(res => res.data),
+  
+  // Validate layout structure
+  validateLayout: (data: { layout: any }) =>
+    apiClient.post('/ai/validate-layout', data).then(res => res.data),
+  
+  // Get available components
+  getComponents: () =>
+    apiClient.get('/ai/components').then(res => res.data),
+  
+  // Get available schemas
+  getSchemas: () =>
+    apiClient.get('/ai/schemas').then(res => res.data),
+  
+  // Get layout generation history
+  getHistory: (limit?: number) =>
+    apiClient.get(`/ai/history${limit ? `?limit=${limit}` : ''}`).then(res => res.data),
+};
+
+// ===============================================
+// Pretrained Model Training API
+// ===============================================
+export const pretrainedModelAPI = {
+  // Get all pretrained models
+  getModels: () =>
+    apiClient.get('/pretrained-models').then(res => res.data),
+  
+  // Get specific model details
+  getModel: (modelId: string) =>
+    apiClient.get(`/pretrained-models/${modelId}`).then(res => res.data),
+  
+  // Get all training pipelines
+  getPipelines: () =>
+    apiClient.get('/training-pipelines').then(res => res.data),
+  
+  // Create training pipeline
+  createPipeline: (data: {
+    name: string;
+    model_type: string;
+    description?: string;
+    config?: any;
+  }) =>
+    apiClient.post('/training-pipelines', data).then(res => res.data),
+  
+  // Start training on pipeline
+  startTraining: (pipelineId: string) =>
+    apiClient.post(`/training-pipelines/${pipelineId}/start`).then(res => res.data),
+  
+  // Get training run status
+  getTrainingRun: (runId: string) =>
+    apiClient.get(`/training-runs/${runId}`).then(res => res.data),
+  
+  // Submit training data
+  submitTrainingData: (data: {
+    url: string;
+    extractedData: any;
+    dataType: string;
+    metadata?: any;
+  }) =>
+    apiClient.post('/training-data', data).then(res => res.data),
+  
+  // Get training data quality statistics
+  getTrainingDataQuality: () =>
+    apiClient.get('/training-data/quality').then(res => res.data),
+  
+  // Make inference/predictions
+  predict: (data: {
+    modelId: string;
+    input: any;
+  }) =>
+    apiClient.post('/inference', data).then(res => res.data),
+};
+
+// ===============================================
+// Analytics API
+// ===============================================
+export const analyticsAPI = {
+  // Get analytics summary
+  getSummary: () =>
+    apiClient.get('/analytics/summary').then(res => res.data),
+  
+  // Get real-time analytics
+  getRealTime: () =>
+    apiClient.get('/analytics/real-time').then(res => res.data),
+  
+  // Get bridge analytics
+  getBridges: () =>
+    apiClient.get('/analytics/bridges').then(res => res.data),
+  
+  // Get bridge comparison
+  getBridgeComparison: (bridgeIds: string[]) =>
+    apiClient.post('/analytics/bridge-comparison', { bridgeIds }).then(res => res.data),
+  
+  // Get space mining analytics
+  getSpaceMining: () =>
+    apiClient.get('/analytics/space-mining').then(res => res.data),
+  
+  // Get user engagement analytics
+  getUserEngagement: () =>
+    apiClient.get('/analytics/user-engagement').then(res => res.data),
+};
+
+// ===============================================
+// Command API
+// ===============================================
+export const commandAPI = {
+  // Get all commands
+  getCommands: () =>
+    apiClient.get('/commands').then(res => res.data),
+  
+  // Get command by ID
+  getCommand: (id: string) =>
+    apiClient.get(`/commands/${id}`).then(res => res.data),
+  
+  // Create command
+  createCommand: (data: {
+    name: string;
+    description: string;
+    command: string;
+    category: string;
+    parameters?: any;
+    output_type?: string;
+    is_async?: boolean;
+    timeout?: number;
+  }) =>
+    apiClient.post('/commands', data).then(res => res.data),
+  
+  // Update command
+  updateCommand: (id: string, data: any) =>
+    apiClient.put(`/commands/${id}`, data).then(res => res.data),
+  
+  // Delete command
+  deleteCommand: (id: string) =>
+    apiClient.delete(`/commands/${id}`).then(res => res.data),
+  
+  // Execute command
+  executeCommand: (data: {
+    command_id: string;
+    parameters?: any;
+  }) =>
+    apiClient.post('/commands/execute', data).then(res => res.data),
+  
+  // Get command suggestions
+  getSuggestions: () =>
+    apiClient.get('/commands/suggestions').then(res => res.data),
+  
+  // Get command statistics
+  getStats: () =>
+    apiClient.get('/commands/stats').then(res => res.data),
+};
+
+// ===============================================
+// Data Streams API
+// ===============================================
+export const dataStreamsAPI = {
+  // Get all data streams with filters
+  getStreams: (filters?: {
+    status?: string;
+    source_type?: string;
+    destination_type?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient.get('/data-streams', { params: filters }).then(res => res.data),
+  
+  // Get single data stream
+  getStream: (id: number) =>
+    apiClient.get(`/data-streams/${id}`).then(res => res.data),
+  
+  // Create new data stream
+  createStream: (data: {
+    name: string;
+    description?: string;
+    source_type: string;
+    source_config: any;
+    destination_type: string;
+    destination_config: any;
+    status: string;
+  }) =>
+    apiClient.post('/data-streams', data).then(res => res.data),
+  
+  // Update data stream
+  updateStream: (id: number, data: {
+    name?: string;
+    description?: string;
+    source_type?: string;
+    source_config?: any;
+    destination_type?: string;
+    destination_config?: any;
+    status?: string;
+  }) =>
+    apiClient.put(`/data-streams/${id}`, data).then(res => res.data),
+  
+  // Delete data stream
+  deleteStream: (id: number) =>
+    apiClient.delete(`/data-streams/${id}`).then(res => res.data),
+  
+  // Get stream attributes
+  getStreamAttributes: (streamId: number) =>
+    apiClient.get(`/data-streams/${streamId}/attributes`).then(res => res.data),
+  
+  // Add attribute to stream
+  addAttribute: (streamId: number, attributeId: number) =>
+    apiClient.post(`/data-streams/${streamId}/attributes/${attributeId}`).then(res => res.data),
+  
+  // Remove attribute from stream
+  removeAttribute: (streamId: number, attributeId: number) =>
+    apiClient.delete(`/data-streams/${streamId}/attributes/${attributeId}`).then(res => res.data),
+  
+  // Get data streams statistics
+  getStats: () =>
+    apiClient.get('/data-streams/stats').then(res => res.data),
+};
+
+// ===============================================
+// Attribute Management API
+// ===============================================
+export const attributeManagementAPI = {
+  // Get all attributes with filters
+  getAttributes: (filters?: {
+    entity_type?: string;
+    attribute_type?: string;
+    is_required?: boolean;
+  }) =>
+    apiClient.get('/attributes', { params: filters }).then(res => res.data),
+  
+  // Get single attribute
+  getAttribute: (id: number) =>
+    apiClient.get(`/attributes/${id}`).then(res => res.data),
+  
+  // Create new attribute
+  createAttribute: (data: {
+    app_id?: number;
+    entity_type: string;
+    name: string;
+    type: string;
+    description?: string;
+    is_required?: boolean;
+    default_value?: any;
+    config?: {
+      algorithm?: string;
+      drillDown?: boolean;
+      dataMining?: boolean;
+      training?: boolean;
+    };
+    data_stream_ids?: number[];
+  }) =>
+    apiClient.post('/attributes', data).then(res => res.data),
+  
+  // Update attribute
+  updateAttribute: (id: number, data: {
+    attribute_name?: string;
+    attribute_type?: string;
+    description?: string;
+    is_required?: boolean;
+    default_value?: any;
+    config?: {
+      algorithm?: string;
+      drillDown?: boolean;
+      dataMining?: boolean;
+      training?: boolean;
+    };
+    data_stream_ids?: number[];
+  }) =>
+    apiClient.put(`/attributes/${id}`, data).then(res => res.data),
+  
+  // Delete attribute
+  deleteAttribute: (id: number) =>
+    apiClient.delete(`/attributes/${id}`).then(res => res.data),
+  
+  // Get attribute types
+  getTypes: () =>
+    apiClient.get('/attributes/types').then(res => res.data),
+  
+  // Get attributes by entity type
+  getByEntityType: (entityType: string) =>
+    apiClient.get(`/attributes/entity/${entityType}`).then(res => res.data),
+};
+
+// ===============================================
+// Campaign Orchestration API
+// ===============================================
+export const campaignOrchestrationAPI = {
+  // Create campaign from natural language prompt
+  createCampaignFromPrompt: (prompt: string, name?: string, description?: string, options?: any) =>
+    apiClient.post('/campaigns/from-prompt', { prompt, name, description, options }).then(res => res.data),
+  
+  // Get all campaigns
+  getCampaigns: () =>
+    apiClient.get('/campaigns').then(res => res.data),
+  
+  // Get campaign by ID
+  getCampaign: (campaignId: string) =>
+    apiClient.get(`/campaigns/${campaignId}`).then(res => res.data),
+  
+  // Start campaign
+  startCampaign: (campaignId: string) =>
+    apiClient.post(`/campaigns/${campaignId}/start`).then(res => res.data),
+  
+  // Kickoff research
+  kickoffResearch: (campaignId: string, options?: any) =>
+    apiClient.post('/campaigns/research/kickoff', { campaignId, options }).then(res => res.data),
+  
+  // Get research by ID
+  getResearch: (researchId: string) =>
+    apiClient.get(`/campaigns/research/${researchId}`).then(res => res.data),
+  
+  // Get all researches
+  getResearches: () =>
+    apiClient.get('/campaigns/research').then(res => res.data),
+  
+  // Discover attributes from research
+  discoverAttributes: (researchId: string) =>
+    apiClient.post(`/campaigns/attributes/discover/${researchId}`).then(res => res.data),
+  
+  // Get attributes for research
+  getResearchAttributes: (researchId: string) =>
+    apiClient.get(`/campaigns/attributes/research/${researchId}`).then(res => res.data),
+  
+  // Create mining instance with attributes
+  createMiningWithAttributes: (campaignId: string, attributeIds: string[], options?: any) =>
+    apiClient.post('/campaigns/mining/create-with-attributes', { 
+      campaignId, 
+      attributeIds, 
+      options 
+    }).then(res => res.data),
+  
+  // Add attributes to mining instance
+  addMiningAttributes: (miningId: string, attributeIds: string[]) =>
+    apiClient.post(`/campaigns/mining/${miningId}/attributes`, { attributeIds }).then(res => res.data),
+  
+  // Get mining instance
+  getMiningInstance: (miningId: string) =>
+    apiClient.get(`/campaigns/mining/${miningId}`).then(res => res.data),
+  
+  // Queue mining instance
+  queueMining: (miningId: string) =>
+    apiClient.post(`/campaigns/mining/${miningId}/queue`).then(res => res.data),
+  
+  // Start mining instance
+  startMining: (miningId: string) =>
+    apiClient.post(`/campaigns/mining/${miningId}/start`).then(res => res.data),
+  
+  // Get all mining instances
+  getMiningInstances: () =>
+    apiClient.get('/campaigns/mining').then(res => res.data),
+};
+
+// Workflow Admin API
+export const workflowAdminAPI = {
+  // Get workflows summary
+  getWorkflowsSummary: () =>
+    apiClient.get('/workflow-admin/workflows/summary').then(res => res.data),
+  
+  // Create workflow
+  createWorkflow: (data: any) =>
+    apiClient.post('/workflow-admin/workflows', data).then(res => res.data),
+  
+  // Execute workflow
+  executeWorkflow: (workflowId: string, config?: any) =>
+    apiClient.post(`/workflow-admin/workflows/${workflowId}/execute`, config).then(res => res.data),
+  
+  // Delete workflow
+  deleteWorkflow: (workflowId: string) =>
+    apiClient.delete(`/workflow-admin/workflows/${workflowId}`).then(res => res.data),
+  
+  // Get workflow runs
+  getWorkflowRuns: (workflowId: string) =>
+    apiClient.get(`/workflow-admin/workflows/${workflowId}/runs`).then(res => res.data),
+  
+  // Get run status
+  getRunStatus: (runId: string) =>
+    apiClient.get(`/workflow-admin/runs/${runId}/status`).then(res => res.data),
+  
+  // Get templates
+  getTemplates: () =>
+    apiClient.get('/workflow-admin/templates').then(res => res.data),
+  
+  // Get template by ID
+  getTemplate: (templateId: string) =>
+    apiClient.get(`/workflow-admin/templates/${templateId}`).then(res => res.data),
+  
+  // Create workflow from template
+  createFromTemplate: (templateId: string, data: any) =>
+    apiClient.post(`/workflow-admin/templates/${templateId}/create`, data).then(res => res.data),
+  
+  // Generate workflow with AI
+  generateWorkflowAI: (data: { prompt: string; type?: string; options?: any }) =>
+    apiClient.post('/workflow-admin/workflows/generate-ai', data).then(res => res.data),
+  
+  // Get schema suggestions
+  getSchemaSuggestions: (workflowType: string) =>
+    apiClient.get(`/workflow-admin/schemas/suggestions?type=${workflowType}`).then(res => res.data),
+  
+  // Link schema to workflow
+  linkSchema: (workflowId: string, schemaId: string) =>
+    apiClient.post(`/workflow-admin/workflows/${workflowId}/schemas`, { schemaId }).then(res => res.data),
+  
+  // Update workflow automation settings
+  updateAutomation: (workflowId: string, settings: any) =>
+    apiClient.patch(`/workflow-admin/workflows/${workflowId}/automation`, settings).then(res => res.data),
+};
+
 export default api;
