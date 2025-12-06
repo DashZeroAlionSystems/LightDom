@@ -3895,4 +3895,59 @@ export const campaignOrchestrationAPI = {
     apiClient.get('/campaigns/mining').then(res => res.data),
 };
 
+// Workflow Admin API
+export const workflowAdminAPI = {
+  // Get workflows summary
+  getWorkflowsSummary: () =>
+    apiClient.get('/workflow-admin/workflows/summary').then(res => res.data),
+  
+  // Create workflow
+  createWorkflow: (data: any) =>
+    apiClient.post('/workflow-admin/workflows', data).then(res => res.data),
+  
+  // Execute workflow
+  executeWorkflow: (workflowId: string, config?: any) =>
+    apiClient.post(`/workflow-admin/workflows/${workflowId}/execute`, config).then(res => res.data),
+  
+  // Delete workflow
+  deleteWorkflow: (workflowId: string) =>
+    apiClient.delete(`/workflow-admin/workflows/${workflowId}`).then(res => res.data),
+  
+  // Get workflow runs
+  getWorkflowRuns: (workflowId: string) =>
+    apiClient.get(`/workflow-admin/workflows/${workflowId}/runs`).then(res => res.data),
+  
+  // Get run status
+  getRunStatus: (runId: string) =>
+    apiClient.get(`/workflow-admin/runs/${runId}/status`).then(res => res.data),
+  
+  // Get templates
+  getTemplates: () =>
+    apiClient.get('/workflow-admin/templates').then(res => res.data),
+  
+  // Get template by ID
+  getTemplate: (templateId: string) =>
+    apiClient.get(`/workflow-admin/templates/${templateId}`).then(res => res.data),
+  
+  // Create workflow from template
+  createFromTemplate: (templateId: string, data: any) =>
+    apiClient.post(`/workflow-admin/templates/${templateId}/create`, data).then(res => res.data),
+  
+  // Generate workflow with AI
+  generateWorkflowAI: (data: { prompt: string; type?: string; options?: any }) =>
+    apiClient.post('/workflow-admin/workflows/generate-ai', data).then(res => res.data),
+  
+  // Get schema suggestions
+  getSchemaSuggestions: (workflowType: string) =>
+    apiClient.get(`/workflow-admin/schemas/suggestions?type=${workflowType}`).then(res => res.data),
+  
+  // Link schema to workflow
+  linkSchema: (workflowId: string, schemaId: string) =>
+    apiClient.post(`/workflow-admin/workflows/${workflowId}/schemas`, { schemaId }).then(res => res.data),
+  
+  // Update workflow automation settings
+  updateAutomation: (workflowId: string, settings: any) =>
+    apiClient.patch(`/workflow-admin/workflows/${workflowId}/automation`, settings).then(res => res.data),
+};
+
 export default api;
