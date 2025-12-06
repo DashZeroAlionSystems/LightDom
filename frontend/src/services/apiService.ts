@@ -3826,4 +3826,73 @@ export const attributeManagementAPI = {
     apiClient.get(`/attributes/entity/${entityType}`).then(res => res.data),
 };
 
+// ===============================================
+// Campaign Orchestration API
+// ===============================================
+export const campaignOrchestrationAPI = {
+  // Create campaign from natural language prompt
+  createCampaignFromPrompt: (prompt: string, name?: string, description?: string, options?: any) =>
+    apiClient.post('/campaigns/from-prompt', { prompt, name, description, options }).then(res => res.data),
+  
+  // Get all campaigns
+  getCampaigns: () =>
+    apiClient.get('/campaigns').then(res => res.data),
+  
+  // Get campaign by ID
+  getCampaign: (campaignId: string) =>
+    apiClient.get(`/campaigns/${campaignId}`).then(res => res.data),
+  
+  // Start campaign
+  startCampaign: (campaignId: string) =>
+    apiClient.post(`/campaigns/${campaignId}/start`).then(res => res.data),
+  
+  // Kickoff research
+  kickoffResearch: (campaignId: string, options?: any) =>
+    apiClient.post('/campaigns/research/kickoff', { campaignId, options }).then(res => res.data),
+  
+  // Get research by ID
+  getResearch: (researchId: string) =>
+    apiClient.get(`/campaigns/research/${researchId}`).then(res => res.data),
+  
+  // Get all researches
+  getResearches: () =>
+    apiClient.get('/campaigns/research').then(res => res.data),
+  
+  // Discover attributes from research
+  discoverAttributes: (researchId: string) =>
+    apiClient.post(`/campaigns/attributes/discover/${researchId}`).then(res => res.data),
+  
+  // Get attributes for research
+  getResearchAttributes: (researchId: string) =>
+    apiClient.get(`/campaigns/attributes/research/${researchId}`).then(res => res.data),
+  
+  // Create mining instance with attributes
+  createMiningWithAttributes: (campaignId: string, attributeIds: string[], options?: any) =>
+    apiClient.post('/campaigns/mining/create-with-attributes', { 
+      campaignId, 
+      attributeIds, 
+      options 
+    }).then(res => res.data),
+  
+  // Add attributes to mining instance
+  addMiningAttributes: (miningId: string, attributeIds: string[]) =>
+    apiClient.post(`/campaigns/mining/${miningId}/attributes`, { attributeIds }).then(res => res.data),
+  
+  // Get mining instance
+  getMiningInstance: (miningId: string) =>
+    apiClient.get(`/campaigns/mining/${miningId}`).then(res => res.data),
+  
+  // Queue mining instance
+  queueMining: (miningId: string) =>
+    apiClient.post(`/campaigns/mining/${miningId}/queue`).then(res => res.data),
+  
+  // Start mining instance
+  startMining: (miningId: string) =>
+    apiClient.post(`/campaigns/mining/${miningId}/start`).then(res => res.data),
+  
+  // Get all mining instances
+  getMiningInstances: () =>
+    apiClient.get('/campaigns/mining').then(res => res.data),
+};
+
 export default api;

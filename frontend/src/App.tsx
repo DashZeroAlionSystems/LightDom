@@ -75,6 +75,7 @@ import AnalyticsDashboard from '@/components/dashboards/AnalyticsDashboard';
 import CommandDashboard from '@/components/dashboards/CommandDashboard';
 import DataStreamsDashboard from '@/components/dashboards/DataStreamsDashboard';
 import AttributeManagementDashboard from '@/components/dashboards/AttributeManagementDashboard';
+import CampaignOrchestrationDashboard from '@/components/dashboards/CampaignOrchestrationDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -727,6 +728,18 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <AttributeManagementDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Campaign Orchestration Dashboard */}
+                <Route
+                  path='/dashboard/campaign-orchestration'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CampaignOrchestrationDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
