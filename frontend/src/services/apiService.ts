@@ -3950,4 +3950,82 @@ export const workflowAdminAPI = {
     apiClient.patch(`/workflow-admin/workflows/${workflowId}/automation`, settings).then(res => res.data),
 };
 
+// Advanced Workflow API
+export const advancedWorkflowAPI = {
+  // Paint Timeline
+  profilePaintTimeline: (data: { url: string; campaignId: string; modelId?: number }) =>
+    apiClient.post('/advanced-workflow/paint-timeline/profile', data).then(res => res.data),
+  
+  getPaintSnapshot: (id: string) =>
+    apiClient.get(`/advanced-workflow/paint-timeline/snapshots/${id}`).then(res => res.data),
+  
+  getPaintSnapshots: () =>
+    apiClient.get('/advanced-workflow/paint-timeline/snapshots').then(res => res.data),
+  
+  getPaintModels: () =>
+    apiClient.get('/advanced-workflow/paint-timeline/models').then(res => res.data),
+  
+  // MCP Tools
+  getMCPTools: () =>
+    apiClient.get('/advanced-workflow/mcp/tools').then(res => res.data),
+  
+  getMCPToolsByCategory: (category: string) =>
+    apiClient.get(`/advanced-workflow/mcp/tools/category/${category}`).then(res => res.data),
+  
+  executeMCPTool: (toolName: string, parameters: any) =>
+    apiClient.post(`/advanced-workflow/mcp/tools/${toolName}/execute`, { parameters }).then(res => res.data),
+  
+  getMCPSubAgents: () =>
+    apiClient.get('/advanced-workflow/mcp/sub-agents').then(res => res.data),
+  
+  getMCPExecutions: () =>
+    apiClient.get('/advanced-workflow/mcp/executions').then(res => res.data),
+  
+  // Prompt-to-Schema
+  generatePromptSchema: (data: { prompt: string; campaignId?: string }) =>
+    apiClient.post('/advanced-workflow/prompt-to-schema/generate', data).then(res => res.data),
+  
+  getPromptWorkflow: (id: string) =>
+    apiClient.get(`/advanced-workflow/prompt-to-schema/workflows/${id}`).then(res => res.data),
+  
+  getPromptWorkflows: () =>
+    apiClient.get('/advanced-workflow/prompt-to-schema/workflows').then(res => res.data),
+  
+  // GA4 Integration
+  configureGA4: (campaignId: string, config: any) =>
+    apiClient.post(`/advanced-workflow/ga4/configure/${campaignId}`, config).then(res => res.data),
+  
+  collectGA4: (campaignId: string, events: any[]) =>
+    apiClient.post(`/advanced-workflow/ga4/collect/${campaignId}`, { events }).then(res => res.data),
+  
+  getGA4History: (campaignId: string) =>
+    apiClient.get(`/advanced-workflow/ga4/history/${campaignId}`).then(res => res.data),
+  
+  startGA4Monitor: (campaignId: string) =>
+    apiClient.post(`/advanced-workflow/ga4/monitor/${campaignId}/start`).then(res => res.data),
+  
+  getGA4Changes: (campaignId: string) =>
+    apiClient.get(`/advanced-workflow/ga4/changes/${campaignId}`).then(res => res.data),
+  
+  // Enrichment Components
+  getEnrichmentComponents: () =>
+    apiClient.get('/advanced-workflow/enrichment/components').then(res => res.data),
+  
+  getEnrichmentComponent: (id: string) =>
+    apiClient.get(`/advanced-workflow/enrichment/components/${id}`).then(res => res.data),
+  
+  useEnrichmentComponent: (id: string, context: any) =>
+    apiClient.post(`/advanced-workflow/enrichment/components/${id}/use`, context).then(res => res.data),
+  
+  // Workflow Chains
+  getWorkflowChains: () =>
+    apiClient.get('/advanced-workflow/workflow/chains').then(res => res.data),
+  
+  createWorkflowChain: (data: { name: string; workflowIds: string[]; config?: any }) =>
+    apiClient.post('/advanced-workflow/workflow/chains', data).then(res => res.data),
+  
+  executeWorkflowChain: (chainId: string) =>
+    apiClient.post(`/advanced-workflow/workflow/chains/${chainId}/execute`).then(res => res.data),
+};
+
 export default api;
