@@ -4112,4 +4112,46 @@ export const storybookMiningAPI = {
     apiClient.get('/storybook-mining/data-streams').then(res => res.data),
 };
 
+/**
+ * Research Pipeline API
+ * AI-powered research article scraping and analysis
+ */
+export const researchPipelineAPI = {
+  // Status
+  getStatus: () =>
+    apiClient.get('/research/status').then(res => res.data),
+  
+  // Articles
+  getArticles: (params?: { status?: string; topic?: string; limit?: number; offset?: number }) =>
+    apiClient.get('/research/articles', { params }).then(res => res.data),
+  
+  getArticle: (id: string) =>
+    apiClient.get(`/research/articles/${id}`).then(res => res.data),
+  
+  scrapeArticles: (data: { topics: string[]; limit: number }) =>
+    apiClient.post('/research/scrape', data).then(res => res.data),
+  
+  // Papers
+  getPapers: (params?: { limit?: number; offset?: number }) =>
+    apiClient.get('/research/papers', { params }).then(res => res.data),
+  
+  // Features
+  getFeatures: (params?: { status?: string }) =>
+    apiClient.get('/research/features', { params }).then(res => res.data),
+  
+  // Campaigns
+  getCampaigns: () =>
+    apiClient.get('/research/campaigns').then(res => res.data),
+  
+  startCampaign: (id: string) =>
+    apiClient.post(`/research/campaigns/${id}/start`).then(res => res.data),
+  
+  stopCampaign: (id: string) =>
+    apiClient.post(`/research/campaigns/${id}/stop`).then(res => res.data),
+  
+  // Code Examples
+  getCodeExamples: (params?: { language?: string; limit?: number }) =>
+    apiClient.get('/research/code-examples', { params }).then(res => res.data),
+};
+
 export default api;

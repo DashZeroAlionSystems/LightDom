@@ -80,6 +80,7 @@ import WorkflowAdminDashboard from '@/components/dashboards/WorkflowAdminDashboa
 import AdvancedWorkflowDashboard from '@/components/dashboards/AdvancedWorkflowDashboard';
 import ExtendedWorkflowDashboard from '@/components/dashboards/ExtendedWorkflowDashboard';
 import StorybookMiningDashboard from '@/components/dashboards/StorybookMiningDashboard';
+import ResearchPipelineDashboard from '@/components/dashboards/ResearchPipelineDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -788,6 +789,17 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <StorybookMiningDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path='/dashboard/research-pipeline'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ResearchPipelineDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
