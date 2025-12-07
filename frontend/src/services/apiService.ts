@@ -4080,4 +4080,36 @@ export const extendedWorkflowAPI = {
     apiClient.get('/workflow/schema-links').then(res => res.data),
 };
 
+// Storybook Mining API
+export const storybookMiningAPI = {
+  // Service Status
+  getStatus: () =>
+    apiClient.get('/storybook-mining/status').then(res => res.data),
+  
+  // Mine Operations
+  mineWebsite: (url: string) =>
+    apiClient.post('/storybook-mining/mine', { url }).then(res => res.data),
+  
+  mineBatch: (sites: string[]) =>
+    apiClient.post('/storybook-mining/mine/batch', { sites }).then(res => res.data),
+  
+  mineDefaults: () =>
+    apiClient.post('/storybook-mining/mine/defaults').then(res => res.data),
+  
+  // Story Generation
+  generateStory: (componentId: string) =>
+    apiClient.post(`/storybook-mining/stories/generate/${componentId}`).then(res => res.data),
+  
+  // Components
+  getComponents: (params?: { limit?: number; offset?: number; componentType?: string }) =>
+    apiClient.get('/storybook-mining/components', { params }).then(res => res.data),
+  
+  getComponentAttributes: (componentId: string) =>
+    apiClient.get(`/storybook-mining/components/${componentId}/attributes`).then(res => res.data),
+  
+  // Data Streams
+  getDataStreams: () =>
+    apiClient.get('/storybook-mining/data-streams').then(res => res.data),
+};
+
 export default api;

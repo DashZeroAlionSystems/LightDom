@@ -79,6 +79,7 @@ import CampaignOrchestrationDashboard from '@/components/dashboards/CampaignOrch
 import WorkflowAdminDashboard from '@/components/dashboards/WorkflowAdminDashboard';
 import AdvancedWorkflowDashboard from '@/components/dashboards/AdvancedWorkflowDashboard';
 import ExtendedWorkflowDashboard from '@/components/dashboards/ExtendedWorkflowDashboard';
+import StorybookMiningDashboard from '@/components/dashboards/StorybookMiningDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
@@ -776,6 +777,17 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <ExtendedWorkflowDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path='/dashboard/storybook-mining'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <StorybookMiningDashboard />
                       </Layout>
                     </ProtectedRoute>
                   }
