@@ -8,13 +8,17 @@ import { Router } from 'express';
 import { Pool } from 'pg';
 import crypto from 'crypto';
 
-export function createClientAPIRoutes(dbPool: Pool): Router {
+/**
+ * @param {Pool} dbPool
+ * @returns {import('express').Router}
+ */
+export function createClientAPIRoutes(dbPool) {
   const router = Router();
 
   /**
    * Middleware: Verify API key
    */
-  const verifyApiKey = async (req: any, res: any, next: any) => {
+  const verifyApiKey = async (req, res, next) => {
     try {
       const apiKey = req.headers['x-api-key'];
       
@@ -45,7 +49,7 @@ export function createClientAPIRoutes(dbPool: Pool): Router {
    * GET /api/tensorflow/client/verify
    * Verify API key is valid
    */
-  router.get('/verify', verifyApiKey, async (req: any, res: any) => {
+  router.get('/verify', verifyApiKey, async (req, res) => {
     res.json({
       valid: true,
       campaignId: req.campaign.id,
@@ -57,7 +61,7 @@ export function createClientAPIRoutes(dbPool: Pool): Router {
    * GET /api/tensorflow/client/campaign
    * Get campaign details
    */
-  router.get('/campaign', verifyApiKey, async (req: any, res: any) => {
+  router.get('/campaign', verifyApiKey, async (req, res) => {
     try {
       const campaign = req.campaign;
 
@@ -82,7 +86,7 @@ export function createClientAPIRoutes(dbPool: Pool): Router {
    * GET /api/tensorflow/client/reports
    * Get SEO reports for campaign
    */
-  router.get('/reports', verifyApiKey, async (req: any, res: any) => {
+  router.get('/reports', verifyApiKey, async (req, res) => {
     try {
       const { limit = 10 } = req.query;
 
@@ -112,7 +116,7 @@ export function createClientAPIRoutes(dbPool: Pool): Router {
    * GET /api/tensorflow/client/training-metrics
    * Get neural network training metrics
    */
-  router.get('/training-metrics', verifyApiKey, async (req: any, res: any) => {
+  router.get('/training-metrics', verifyApiKey, async (req, res) => {
     try {
       const neuralNetworkId = req.campaign.neural_network_id;
 
@@ -162,7 +166,7 @@ export function createClientAPIRoutes(dbPool: Pool): Router {
    * POST /api/tensorflow/client/campaigns
    * Create a new client SEO campaign (admin only)
    */
-  router.post('/campaigns', async (req: any, res: any) => {
+  router.post('/campaigns', async (req, res) => {
     try {
       const {
         clientId,
@@ -218,7 +222,7 @@ export function createClientAPIRoutes(dbPool: Pool): Router {
    * POST /api/tensorflow/client/reports
    * Generate a new SEO report (triggered by system or admin)
    */
-  router.post('/reports', async (req: any, res: any) => {
+  router.post('/reports', async (req, res) => {
     try {
       const {
         campaignId,
@@ -259,7 +263,7 @@ export function createClientAPIRoutes(dbPool: Pool): Router {
    * GET /api/tensorflow/client/campaigns/:campaignId/embed-code
    * Get embed code for a campaign (admin only)
    */
-  router.get('/campaigns/:campaignId/embed-code', async (req: any, res: any) => {
+  router.get('/campaigns/:campaignId/embed-code', async (req, res) => {
     try {
       const result = await dbPool.query(
         'SELECT api_key FROM client_seo_campaigns WHERE id = $1',

@@ -475,11 +475,13 @@ ehthumbs.db
 # Editor directories and files
 .vscode/
 .idea/
+.venv
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
 
 # =============================================================================
 # LIGHTDOM PROJECT CLEANUP (2025-10-22)
@@ -514,6 +516,13 @@ data/MINING_REPORT.md
 workflows/n8n/credentials/*.json
 !workflows/n8n/credentials/credential-templates.json
 
+# MCP configuration with sensitive API keys
+.mcp-config.json
+!.mcp-config.json.example
+
 # =============================================================================
 # END OF .gitignore
 # =============================================================================
+*storybook.log
+.npm-cache/
+demo-*-results.json

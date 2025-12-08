@@ -1,6 +1,6 @@
-# LightDom Quick Reference Card
+# 🚀 LightDom SEO Pipeline - Quick Reference Card
 
-Quick access to the most commonly used commands.
+Quick access to the most commonly used commands, including the new SEO extraction pipeline and containerized workers.
 
 ## 🚀 Getting Started
 
@@ -13,6 +13,44 @@ npm install
 make setup-env      # Create .env file
 make db-create      # Setup database
 make db-migrate     # Run migrations
+```
+
+## 🔍 SEO Pipeline (NEW)
+
+```bash
+# Test SEO extraction (2 URLs)
+node scripts/test-seo-extraction.js
+
+# Generate training dataset
+node scripts/generate-seo-training-data.js --name my_dataset --limit 100
+
+# Start workers locally (3 separate terminals)
+node workers/seo-extraction-worker.js
+node workers/crawler-worker.js
+node workers/training-data-worker.js
+
+# Test job queue system
+node scripts/test-job-queue.js
+```
+
+## 🐳 Docker Deployment (NEW)
+
+```bash
+# Start full containerized stack
+docker-compose up -d
+
+# View worker logs
+docker-compose logs -f seo-worker
+
+# Scale workers dynamically
+docker-compose up -d --scale seo-worker=4 --scale crawler-worker=3
+
+# Check service health
+docker-compose ps
+curl http://localhost:3001/api/jobs/stats
+
+# Stop all services
+docker-compose down
 ```
 
 ## 💻 Development

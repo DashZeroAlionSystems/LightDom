@@ -1,0 +1,64 @@
+# LightDom SEO Data Mining Workload Container
+# Optimized for running blockchain algorithm optimization and data mining tasks
+
+FROM node:20-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    curl \
+    bash \
+    git \
+    postgresql-client \
+    python3 \
+    py3-pip \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    && rm -rf /var/cache/apk/*
+
+# Tell Puppeteer to skip installing Chrome
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies (including dev dependencies for services)
+RUN npm ci && npm cache clean --force
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data /app/checkpoints /app/outbox
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV WORKLOAD_TYPE=seo-datamining
+ENV HEADLESS_CHROME=true
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:3010/health || exit 1
+
+# Expose ports
+# 3010 - Main service port
+# 3011 - Metrics port
+EXPOSE 3010 3011
+
+# Labels for container metadata
+LABEL maintainer="LightDom Team"
+LABEL description="SEO Data Mining and Blockchain Algorithm Optimization Workload"
+LABEL version="1.0.0"
+LABEL workload.type="seo-datamining"
+LABEL workload.features="blockchain,optimization,crawling,ai"
+
+# Default command (can be overridden)
+CMD ["node", "services/background-mining-service.js"]

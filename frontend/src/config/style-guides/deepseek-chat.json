@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DeepSeekChatStyleGuide",
+  "description": "Default presentation rules for the DeepSeek conversational prompt surface.",
+  "type": "object",
+  "properties": {
+    "theme": {
+      "type": "object",
+      "description": "Material 3 tone mapping for the conversational console.",
+      "properties": {
+        "background": { "type": "string", "default": "#0f172a" },
+        "surface": { "type": "string", "default": "#111c34" },
+        "surfaceOverlay": { "type": "string", "default": "#162544" },
+        "accent": { "type": "string", "default": "#38bdf8" },
+        "accentMuted": { "type": "string", "default": "#0ea5e9" },
+        "textPrimary": { "type": "string", "default": "#f8fafc" },
+        "textSecondary": { "type": "string", "default": "#94a3b8" },
+        "outline": { "type": "string", "default": "rgba(148,163,184,0.24)" },
+        "success": { "type": "string", "default": "#22c55e" }
+      },
+      "required": ["background", "surface", "accent", "textPrimary"],
+      "default": {
+        "background": "#0f172a",
+        "surface": "#111c34",
+        "surfaceOverlay": "#162544",
+        "accent": "#38bdf8",
+        "accentMuted": "#0ea5e9",
+        "textPrimary": "#f8fafc",
+        "textSecondary": "#94a3b8",
+        "outline": "rgba(148,163,184,0.24)",
+        "success": "#22c55e"
+      }
+    },
+    "layout": {
+      "type": "object",
+      "description": "Global layout rules for the console shell.",
+      "properties": {
+        "maxWidth": { "type": "integer", "default": 1180 },
+        "shellRadius": { "type": "integer", "default": 24 },
+        "panelRadius": { "type": "integer", "default": 18 },
+        "shadowColor": { "type": "string", "default": "rgba(8,47,73,0.32)" }
+      }
+    },
+    "prompt": {
+      "type": "object",
+      "properties": {
+        "placeholder": { "type": "string", "default": "Ask DeepSeek anything…" },
+        "defaultTalent": { "type": "string", "default": "ui-ux-researcher" },
+        "temperature": { "type": "number", "default": 0.3 },
+        "maxTokens": { "type": "integer", "default": 1400 },
+        "minHeight": { "type": "integer", "default": 132 },
+        "maxHeight": { "type": "integer", "default": 420 },
+        "textColor": { "type": "string", "default": "#000000" }
+      },
+      "required": ["placeholder", "defaultTalent"],
+      "default": {
+        "placeholder": "Ask DeepSeek anything…",
+        "defaultTalent": "ui-ux-researcher",
+        "temperature": 0.3,
+        "maxTokens": 1400,
+        "minHeight": 132,
+        "maxHeight": 420,
+        "textColor": "#000000"
+      }
+    },
+    "workflowCard": {
+      "type": "object",
+      "description": "Default presentation for generated workflows.",
+      "properties": {
+        "badgeVariant": { "type": "string", "enum": ["create", "read", "update", "delete"], "default": "create" },
+        "elevation": { "type": "string", "default": "0 20px 40px rgba(8,47,73,0.28)" },
+        "transitionMs": { "type": "integer", "default": 280 }
+      }
+    },
+    "animations": {
+      "type": "object",
+      "properties": {
+        "promptLift": { "type": "integer", "default": 320 },
+        "workflowCascade": { "type": "integer", "default": 240 },
+        "sidebarGlow": { "type": "integer", "default": 360 }
+      }
+    }
+  }
+}

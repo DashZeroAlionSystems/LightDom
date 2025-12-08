@@ -15,11 +15,11 @@
  * Usage: npm run start:production
  */
 
-import { Pool } from 'pg';
+import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { Pool } from 'pg';
 import { fileURLToPath } from 'url';
-import { spawn } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -105,7 +105,7 @@ class ProductionStarter {
       this.db = new Pool({
         host: process.env.DB_HOST,
         port: parseInt(process.env.DB_PORT || '5432'),
-        database: process.env.DB_NAME,
+        database: process.env.DB_NAME || 'dom_space_harvester',
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         max: 20,

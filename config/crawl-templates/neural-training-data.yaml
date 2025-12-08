@@ -1,0 +1,103 @@
+# Neural Network Training Data Crawler Configuration
+# Collect high-quality training data for ML models
+name: "Neural Network Training Data Crawler"
+description: "Collect high-quality training data for ML models"
+version: "1.0.0"
+
+# Use intelligent scraper selection
+scraper:
+  mode: "adaptive"            # Let neural network choose
+  collectMetrics: true        # Collect performance data
+  primary: "puppeteer"
+  fallback: "cheerio"
+  
+# Target Configuration
+target:
+  seedUrls: []                # URLs from URL seeding service
+  autoSeedUrls:
+    enabled: true
+    topics:
+      - "web-development"
+      - "ui-design"
+      - "javascript-frameworks"
+    maxSeedsPerTopic: 1000
+  maxPages: 50000             # Large dataset
+  maxDepth: 5
+  respectRobotsTxt: true
+  
+# Feature Extraction for ML
+extraction:
+  features:
+    url:
+      - "domain_authority"
+      - "url_depth"
+      - "url_length"
+      - "tld_type"
+      - "has_ssl"
+      
+    content:
+      - "word_count"
+      - "heading_count"
+      - "image_count"
+      - "link_count"
+      - "code_blocks"
+      - "text_to_html_ratio"
+      
+    performance:
+      - "load_time"
+      - "dom_ready_time"
+      - "ttfb"
+      - "resource_count"
+      - "total_size"
+      
+    seo:
+      - "has_meta_description"
+      - "title_length"
+      - "has_schema_markup"
+      - "heading_structure_valid"
+      
+  labels:
+    quality:
+      method: "heuristic"     # Auto-label based on heuristics
+      factors:
+        - "content_length"
+        - "link_quality"
+        - "domain_reputation"
+        
+# Data Quality
+quality:
+  minWordCount: 100
+  minContentQuality: 0.6      # 0-1 quality score
+  filterDuplicates: true
+  filterLowQuality: true
+  
+# Neural Network Integration
+neuralNetwork:
+  enabled: true
+  feedbackLoop: true          # Use predictions to guide crawling
+  prioritizeHighValue: true   # Focus on valuable content
+  adaptiveStrategy: true      # Learn optimal crawling strategy
+  modelPath: "./models/url-prioritization.h5"
+  
+# Rate Limiting
+rateLimiting:
+  requestsPerSecond: 2
+  concurrent: 5
+  adaptiveRateLimiting: true
+  
+# Output
+output:
+  format: "tfrecord"          # TensorFlow format
+  trainTestSplit: 0.8
+  validationSplit: 0.2
+  destination: "./training-data/dataset-{timestamp}"
+  includeLabels: true
+  includeMetadata: true
+  includeFeatures: true
+  
+# Monitoring
+monitoring:
+  enabled: true
+  logProgress: true
+  progressInterval: 1000
+  trackQuality: true

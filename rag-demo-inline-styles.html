@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Components Demo - Working Styles</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: #0A0E27;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #FFFFFF;
+      min-height: 100vh;
+      padding: 32px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-center;
+      margin-bottom: 48px;
+    }
+    
+    .header h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .header p {
+      font-size: 1.125rem;
+      color: #B9BBBE;
+    }
+    
+    .section {
+      margin-bottom: 32px;
+    }
+    
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    
+    /* BotReplyBox Styles */
+    .bot-reply {
+      background: #151A31;
+      border: 1px solid #2E3349;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+      margin-bottom: 32px;
+    }
+    
+    .reply-header {
+      display: flex;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid #2E3349;
+    }
+    
+    .bot-icon {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(88, 101, 242, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .bot-icon svg {
+      width: 20px;
+      height: 20px;
+      color: #5865F2;
+    }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .status-success {
+      background: rgba(59, 165, 92, 0.1);
+      color: #3BA55C;
+    }
+    
+    .status-error {
+      background: rgba(237, 66, 69, 0.1);
+      color: #ED4245;
+    }
+    
+    .status-warning {
+      background: rgba(250, 166, 26, 0.1);
+      color: #FAA61A;
+    }
+    
+    .location-info {
+      font-size: 0.75rem;
+      color: #B9BBBE;
+      margin-top: 8px;
+    }
+    
+    .location-info div {
+      margin: 2px 0;
+    }
+    
+    .location-info strong {
+      font-weight: 500;
+    }
+    
+    .reply-content {
+      padding: 16px;
+    }
+    
+    .reply-text {
+      color: #FFFFFF;
+      font-size: 0.875rem;
+      margin-bottom: 16px;
+    }
+    
+    .list-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .list-item {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      background: #1E2438;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    
+    .list-item:hover {
+      background: #2E3349;
+    }
+    
+    .list-item svg {
+      width: 20px;
+      height: 20px;
+      color: #B9BBBE;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    
+    .list-item-title {
+      font-weight: 500;
+      font-size: 0.875rem;
+      color: #FFFFFF;
+    }
+    
+    .list-item-desc {
+      font-size: 0.75rem;
+      color: #B9BBBE;
+      margin-top: 2px;
+    }
+    
+    .reply-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-top: 1px solid #2E3349;
+      background: rgba(30, 36, 56, 0.3);
+    }
+    
+    .controls {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .control-btn {
+      padding: 8px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: #B9BBBE;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .control-btn:hover {
+      background: #2E3349;
+      color: #FFFFFF;
+    }
+    
+    .control-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .try-again-btn {
+      padding: 6px 12px;
+      background: #151A31;
+      border: 1px solid #2E3349;
+      border-radius: 8px;
+      color: #FFFFFF;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .try-again-btn:hover {
+      background: #2E3349;
+    }
+    
+    .try-again-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    /* Accordion Styles */
+    .accordion {
+      background: #151A31;
+      border: 1px solid #2E3349;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    }
+    
+    .accordion-button {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      color: #FFFFFF;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .accordion-button:hover {
+      background: #252B45;
+    }
+    
+    .accordion-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .accordion-icon {
+      width: 20px;
+      height: 20px;
+      color: #B9BBBE;
+    }
+    
+    .accordion-badge {
+      padding: 2px 8px;
+      background: rgba(88, 101, 242, 0.1);
+      color: #5865F2;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 999px;
+    }
+    
+    /* Loading Animations */
+    .loading-section {
+      background: #151A31;
+      border: 1px solid #2E3349;
+      border-radius: 12px;
+      padding: 32px;
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+    }
+    
+    .loading-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(88, 101, 242, 0.3);
+      border-top-color: #5865F2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .dots {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .dot {
+      width: 12px;
+      height: 12px;
+      background: #5865F2;
+      border-radius: 50%;
+      animation: bounce 1s infinite;
+    }
+    
+    .dot:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+    
+    .dot:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .loading-text {
+      font-size: 0.875rem;
+      color: #B9BBBE;
+    }
+    
+    /* Action Buttons */
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    
+    .action-btn-primary {
+      background: #5865F2;
+      color: #FFFFFF;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .action-btn-primary:hover {
+      background: #4752C4;
+    }
+    
+    .action-btn-outlined {
+      background: transparent;
+      color: #5865F2;
+      border: 2px solid #5865F2;
+    }
+    
+    .action-btn-outlined:hover {
+      background: rgba(88, 101, 242, 0.1);
+    }
+    
+    .action-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .action-btn-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .action-btn-title {
+      font-weight: 600;
+    }
+    
+    .action-btn-desc {
+      font-size: 0.75rem;
+      opacity: 0.9;
+    }
+    
+    /* Footer */
+    .demo-footer {
+      text-align: center;
+      padding-top: 32px;
+      padding-bottom: 16px;
+      border-top: 1px solid #2E3349;
+    }
+    
+    .footer-text {
+      font-size: 0.875rem;
+      color: #B9BBBE;
+      margin-bottom: 16px;
+    }
+    
+    .footer-checks {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      font-size: 0.75rem;
+      color: #B9BBBE;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>RAG Workflow UI Components</h1>
+      <p>Fully Styled & Functional Demo</p>
+    </div>
+
+    <!-- Success BotReplyBox -->
+    <div class="bot-reply">
+      <div class="reply-header">
+        <div class="bot-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div style="flex: 1;">
+          <div class="status-badge status-success">
+            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Success
+          </div>
+          <div class="location-info">
+            <div><strong>Repo:</strong> DashZeroAlionSystems/LightDom</div>
+            <div><strong>Task:</strong> Create RAG workflow UI components</div>
+            <div><strong>Branch:</strong> feature/rag-ui-components</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reply-content">
+        <div class="reply-text">
+          Successfully implemented the RAG prompt response workflow UI components. All components are now available with full Material Design 3 styling.
+        </div>
+
+        <div class="list-items">
+          <div class="list-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            <div>
+              <div class="list-item-title">BotReplyBox</div>
+              <div class="list-item-desc">Main container with status, location, and interactive controls</div>
+            </div>
+          </div>
+          <div class="list-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+            <div>
+              <div class="list-item-title">Interactive Controls</div>
+              <div class="list-item-desc">Feedback, copy, and retry functionality with animations</div>
+            </div>
+          </div>
+          <div class="list-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+            </svg>
+            <div>
+              <div class="list-item-title">AccordionItem</div>
+              <div class="list-item-desc">Expandable sections with nested accordion support</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reply-footer">
+        <div class="controls">
+          <button class="control-btn" title="Good response">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+            </svg>
+          </button>
+          <button class="control-btn" title="Bad response">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"/>
+            </svg>
+          </button>
+          <button class="control-btn" title="Copy">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <button class="try-again-btn">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Try Again
+        </button>
+      </div>
+    </div>
+
+    <!-- Accordion -->
+    <div class="section">
+      <h2 class="section-title">Nested Accordion Example</h2>
+      <div class="accordion">
+        <button class="accordion-button">
+          <div class="accordion-content">
+            <svg class="accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            Campaign Services
+            <span class="accordion-badge">3 services</span>
+          </div>
+          <svg class="accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="section">
+      <h2 class="section-title">Loading Animations</h2>
+      <div class="loading-section">
+        <div class="loading-item">
+          <div class="spinner"></div>
+          <span class="loading-text">Processing...</span>
+        </div>
+        <div class="loading-item">
+          <div class="dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+          <span class="loading-text">Generating...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="section">
+      <h2 class="section-title">Action Buttons</h2>
+      <div class="button-grid">
+        <button class="action-btn action-btn-primary">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          <div class="action-btn-content">
+            <span class="action-btn-title">Add Service</span>
+            <span class="action-btn-desc">Deploy a new microservice</span>
+          </div>
+        </button>
+        <button class="action-btn action-btn-outlined">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          <div class="action-btn-content">
+            <span class="action-btn-title">Add Campaign</span>
+            <span class="action-btn-desc">Create marketing campaign</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Example -->
+    <div class="bot-reply">
+      <div class="reply-header">
+        <div class="bot-icon" style="background: rgba(237, 66, 69, 0.1);">
+          <svg style="color: #ED4245;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </div>
+        <div style="flex: 1;">
+          <div class="status-badge status-error">
+            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Error
+          </div>
+        </div>
+      </div>
+      <div class="reply-content">
+        <div class="reply-text">
+          Example error state with proper error color (#ED4245) and styling.
+        </div>
+      </div>
+    </div>
+
+    <!-- Warning Example -->
+    <div class="bot-reply">
+      <div class="reply-header">
+        <div class="bot-icon" style="background: rgba(250, 166, 26, 0.1);">
+          <svg style="color: #FAA61A;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <div style="flex: 1;">
+          <div class="status-badge status-warning">
+            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            Warning
+          </div>
+        </div>
+      </div>
+      <div class="reply-content">
+        <div class="reply-text">
+          Example warning state with proper warning color (#FAA61A) and styling.
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="demo-footer">
+      <p class="footer-text">All components are fully styled with Material Design 3 tokens</p>
+      <div class="footer-checks">
+        <div>✅ Colors Applied</div>
+        <div>✅ Borders Working</div>
+        <div>✅ Shadows Active</div>
+        <div>✅ Animations Running</div>
+        <div>✅ Hover States Functional</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "clientId": "demo-client",
+  "topic": "wireless earbuds",
+  "startUrl": "https://example.com/category/headphones",
+  "selectors": ["[itemtype='http://schema.org/Product']", ".product", "article"],
+  "attributes": ["name", "price", "image", "description", "sku"],
+  "crawlDepth": 2,
+  "concurrency": 3,
+  "needs_training_data": true,
+  "frequency": null
+}

@@ -1,0 +1,54 @@
+# Production Profile Configuration
+# Optimized for performance and reliability
+environment: "production"
+
+defaults:
+  scraper:
+    headless: true
+    optimized: true
+    devtools: false
+    
+  rateLimiting:
+    requestsPerSecond: 2
+    concurrent: 5
+    adaptive: true            # Use ML-based rate limiting
+    respectCrawlDelay: true
+    
+  monitoring:
+    enabled: true
+    metrics: true
+    alerts: true
+    healthChecks: true
+    reportInterval: 300000    # 5 minutes
+    
+  errorHandling:
+    maxRetries: 3
+    exponentialBackoff: true
+    circuitBreaker: true
+    continueOnError: true
+    notifyOnCritical: true
+    
+  logging:
+    level: "info"
+    logToFile: true
+    logToDatabase: true
+    logToCloudWatch: false
+    rotation: true
+    maxFiles: 30
+    
+  output:
+    compression: true
+    encryption: false
+    backup: true
+    backupInterval: 86400000  # 24 hours
+    
+  performance:
+    caching: true
+    connectionPooling: true
+    memoryLimit: "2GB"
+    cpuLimit: 2
+    
+  security:
+    validateSSL: true
+    sanitizeData: true
+    encryptAtRest: false

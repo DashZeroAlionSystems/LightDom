@@ -1,19 +1,22 @@
 /**
  * TensorFlow Workflow Orchestration API Routes
- * 
+ *
  * RESTful API for managing workflows, tools, and training data
  */
 
 import { Router } from 'express';
-import { Pool } from 'pg';
 import { NeuralNetworkInstanceManager } from '../../services/NeuralNetworkInstanceManager';
-import TensorFlowWorkflowOrchestrator from '../../services/ai/TensorFlowWorkflowOrchestrator';
 import DeepSeekToolsService from '../../services/ai/DeepSeekToolsService';
+import TensorFlowWorkflowOrchestrator from '../../services/ai/TensorFlowWorkflowOrchestrator';
 import TrainingDataService from '../../services/ai/TrainingDataService';
 
-export function createTensorFlowWorkflowRoutes(dbPool: Pool): Router {
+/**
+ * @param {import('pg').Pool} dbPool
+ * @returns {import('express').Router}
+ */
+export function createTensorFlowWorkflowRoutes(dbPool) {
   const router = Router();
-  
+
   // Initialize services
   const nnManager = new NeuralNetworkInstanceManager(dbPool);
   const orchestrator = new TensorFlowWorkflowOrchestrator(nnManager);
@@ -67,7 +70,7 @@ export function createTensorFlowWorkflowRoutes(dbPool: Pool): Router {
   router.post('/workflows/from-prompt', async (req, res) => {
     try {
       const { prompt, context } = req.body;
-      
+
       if (!prompt) {
         return res.status(400).json({ error: 'Prompt is required' });
       }
@@ -76,9 +79,9 @@ export function createTensorFlowWorkflowRoutes(dbPool: Pool): Router {
       res.status(201).json(workflow);
     } catch (error) {
       console.error('Error creating workflow from prompt:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to create workflow from prompt',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -108,9 +111,9 @@ export function createTensorFlowWorkflowRoutes(dbPool: Pool): Router {
       res.json(execution);
     } catch (error) {
       console.error('Error executing workflow:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to execute workflow',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -206,9 +209,9 @@ export function createTensorFlowWorkflowRoutes(dbPool: Pool): Router {
       res.json({ success: true, result });
     } catch (error) {
       console.error('Error executing tool:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to execute tool',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -256,9 +259,9 @@ export function createTensorFlowWorkflowRoutes(dbPool: Pool): Router {
       res.status(201).json(config);
     } catch (error) {
       console.error('Error creating training data config:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to create training data config',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -273,9 +276,9 @@ export function createTensorFlowWorkflowRoutes(dbPool: Pool): Router {
       res.json(result);
     } catch (error) {
       console.error('Error collecting training data:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to collect training data',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -287,13 +290,16 @@ export function createTensorFlowWorkflowRoutes(dbPool: Pool): Router {
   router.post('/training-data/configs/:id/trigger-from-workflow', async (req, res) => {
     try {
       const { workflowData } = req.body;
-      const result = await trainingDataService.triggerFromWorkflow(req.params.id, workflowData || {});
+      const result = await trainingDataService.triggerFromWorkflow(
+        req.params.id,
+        workflowData || {}
+      );
       res.json(result);
     } catch (error) {
       console.error('Error triggering from workflow:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to trigger from workflow',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
@@ -336,14 +342,14 @@ export function createTensorFlowWorkflowRoutes(dbPool: Pool): Router {
    * Health check endpoint
    */
   router.get('/health', async (req, res) => {
-    res.json({ 
-      status: 'healthy', 
+    res.json({
+      status: 'healthy',
       timestamp: new Date().toISOString(),
       services: {
         orchestrator: 'running',
         deepseekTools: 'running',
         trainingDataService: 'running',
-      }
+      },
     });
   });
 

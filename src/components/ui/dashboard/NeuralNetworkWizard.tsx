@@ -1,9 +1,9 @@
 /**
  * Neural Network Workflow Wizard
- * 
+ *
  * AI-powered wizard for creating neural network instances
  * Uses Ollama DeepSeek to configure settings based on schemas
- * 
+ *
  * Features:
  * - Multi-step wizard interface
  * - AI-powered configuration via Ollama DeepSeek
@@ -11,33 +11,31 @@
  * - Prompt-based customization
  */
 
-import React, { useState } from 'react';
 import {
-  Steps,
-  Button,
-  Input,
-  Form,
-  Space,
-  message,
-  Card,
-  Select,
-  Alert,
-  Spin,
-  Divider,
-  InputNumber,
-  Switch,
-  Typography,
-  Row,
-  Col,
-  Tag
-} from 'antd';
-import {
-  PlusOutlined,
-  RocketOutlined,
   BulbOutlined,
   CheckCircleOutlined,
-  LoadingOutlined
+  LoadingOutlined,
+  PlusOutlined,
+  RocketOutlined,
 } from '@ant-design/icons';
+import {
+  Alert,
+  Button,
+  Card,
+  Col,
+  Divider,
+  Form,
+  Input,
+  Row,
+  Select,
+  Space,
+  Spin,
+  Steps,
+  Tag,
+  Typography,
+  message,
+} from 'antd';
+import React, { useState } from 'react';
 
 const { Step } = Steps;
 const { TextArea } = Input;
@@ -86,18 +84,18 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
     {
       title: 'Describe',
       description: 'What to build',
-      icon: <BulbOutlined />
+      icon: <BulbOutlined />,
     },
     {
       title: 'AI Generate',
       description: 'DeepSeek config',
-      icon: <RocketOutlined />
+      icon: <RocketOutlined />,
     },
     {
       title: 'Review',
       description: 'Confirm settings',
-      icon: <CheckCircleOutlined />
-    }
+      icon: <CheckCircleOutlined />,
+    },
   ];
 
   const modelTypes = [
@@ -110,7 +108,7 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
     { value: 'performance_optimization', label: 'Performance Optimization' },
     { value: 'design_system_extraction', label: 'Design System Extraction' },
     { value: 'content_generation', label: 'Content Generation' },
-    { value: 'sentiment_analysis', label: 'Sentiment Analysis' }
+    { value: 'sentiment_analysis', label: 'Sentiment Analysis' },
   ];
 
   const handleGenerateFromPrompt = async () => {
@@ -121,7 +119,7 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
       // Load neural network schemas
       const [instanceSchemaResponse, workflowSchemaResponse] = await Promise.all([
         fetch('/schemas/neural-networks/neural-network-instance.json'),
-        fetch('/schemas/neural-networks/neural-network-workflow.json')
+        fetch('/schemas/neural-networks/neural-network-workflow.json'),
       ]);
 
       if (!instanceSchemaResponse.ok || !workflowSchemaResponse.ok) {
@@ -137,18 +135,18 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: 'deepseek',
-          model: 'deepseek-chat',
+          model: 'deepseek-reasoner',
           prompt: values.prompt,
           context: {
             name: values.name,
             modelType: values.modelType,
-            clientId: values.clientId
+            clientId: values.clientId,
           },
           schemas: {
             instance: instanceSchema,
-            workflow: workflowSchema
-          }
-        })
+            workflow: workflowSchema,
+          },
+        }),
       });
 
       if (response.ok) {
@@ -165,7 +163,7 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
       console.error('Failed to generate configuration:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       message.error(`Failed to generate configuration: ${errorMessage}. Using default values.`);
-      
+
       // Fallback to default configuration
       const values = form.getFieldsValue();
       setGeneratedConfig({
@@ -176,12 +174,12 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
           validationSplit: 0.2,
           optimizer: 'adam',
           earlyStopping: true,
-          patience: 10
+          patience: 10,
         },
         dataConfig: {
           source: 'database',
           isolation: 'strict',
-          minDataPoints: 1000
+          minDataPoints: 1000,
         },
         architecture: {
           inputShape: [10],
@@ -189,10 +187,10 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
             { type: 'dense', units: 64, activation: 'relu' },
             { type: 'dropout', dropout: 0.3 },
             { type: 'dense', units: 32, activation: 'relu' },
-            { type: 'dense', units: 1, activation: 'sigmoid' }
+            { type: 'dense', units: 1, activation: 'sigmoid' },
           ],
-          outputShape: [1]
-        }
+          outputShape: [1],
+        },
       });
       setAiAnalysis('Using default configuration as AI generation was unavailable.');
       setCurrentStep(2);
@@ -219,7 +217,7 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
   const handleComplete = async () => {
     try {
       const values = await form.validateFields();
-      
+
       // Create instance via API
       const response = await fetch('/api/neural-networks/instances', {
         method: 'POST',
@@ -237,9 +235,9 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
             description: values.prompt,
             tags: values.tags || [],
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-        })
+            updatedAt: new Date().toISOString(),
+          },
+        }),
       });
 
       if (response.ok) {
@@ -266,57 +264,54 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
         return (
           <div style={{ maxWidth: 600, margin: '0 auto' }}>
             <Alert
-              message="Describe Your Neural Network"
-              description="Tell us what you want your neural network to do. Our AI will analyze your requirements and configure everything automatically."
-              type="info"
+              message='Describe Your Neural Network'
+              description='Tell us what you want your neural network to do. Our AI will analyze your requirements and configure everything automatically.'
+              type='info'
               showIcon
               style={{ marginBottom: 24 }}
             />
 
             <Form.Item
-              name="name"
-              label="Instance Name"
+              name='name'
+              label='Instance Name'
               rules={[{ required: true, message: 'Please enter instance name' }]}
             >
-              <Input placeholder="e.g., my-seo-optimizer" />
+              <Input placeholder='e.g., my-seo-optimizer' />
             </Form.Item>
 
             <Form.Item
-              name="clientId"
-              label="Client ID"
+              name='clientId'
+              label='Client ID'
               rules={[{ required: true, message: 'Please enter client ID' }]}
-              tooltip="Unique identifier for data isolation"
+              tooltip='Unique identifier for data isolation'
             >
-              <Input placeholder="e.g., client-001" />
+              <Input placeholder='e.g., client-001' />
             </Form.Item>
 
             <Form.Item
-              name="modelType"
-              label="Model Type"
+              name='modelType'
+              label='Model Type'
               rules={[{ required: true, message: 'Please select model type' }]}
             >
-              <Select placeholder="Select the type of neural network" options={modelTypes} />
+              <Select placeholder='Select the type of neural network' options={modelTypes} />
             </Form.Item>
 
             <Form.Item
-              name="prompt"
-              label="What should this neural network do?"
+              name='prompt'
+              label='What should this neural network do?'
               rules={[{ required: true, message: 'Please describe your requirements' }]}
-              tooltip="Describe in detail what you want this neural network to accomplish. The AI will use this to configure all settings."
+              tooltip='Describe in detail what you want this neural network to accomplish. The AI will use this to configure all settings.'
             >
               <TextArea
                 rows={6}
-                placeholder="Example: Create a neural network that analyzes website content and suggests SEO improvements. It should learn from successful SEO patterns and provide actionable recommendations. Focus on keyword optimization, meta tags, and content structure."
+                placeholder='Example: Create a neural network that analyzes website content and suggests SEO improvements. It should learn from successful SEO patterns and provide actionable recommendations. Focus on keyword optimization, meta tags, and content structure.'
               />
             </Form.Item>
 
-            <Form.Item
-              name="tags"
-              label="Tags (Optional)"
-            >
+            <Form.Item name='tags' label='Tags (Optional)'>
               <Select
-                mode="tags"
-                placeholder="Add tags for organization"
+                mode='tags'
+                placeholder='Add tags for organization'
                 style={{ width: '100%' }}
               />
             </Form.Item>
@@ -329,21 +324,21 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ marginBottom: 32 }}>
               <Title level={3}>Generate Configuration with AI</Title>
-              <Paragraph type="secondary">
-                Our AI (Ollama DeepSeek) will analyze your requirements and generate
-                optimal configuration based on neural network schemas.
+              <Paragraph type='secondary'>
+                Our AI (Ollama DeepSeek) will analyze your requirements and generate optimal
+                configuration based on neural network schemas.
               </Paragraph>
             </div>
 
             <Card style={{ maxWidth: 600, margin: '0 auto 32px', textAlign: 'left' }}>
-              <Space direction="vertical" style={{ width: '100%' }}>
+              <Space direction='vertical' style={{ width: '100%' }}>
                 <div>
                   <Text strong>Instance Name:</Text>
                   <Text style={{ marginLeft: 8 }}>{form.getFieldValue('name')}</Text>
                 </div>
                 <div>
                   <Text strong>Model Type:</Text>
-                  <Tag color="blue" style={{ marginLeft: 8 }}>
+                  <Tag color='blue' style={{ marginLeft: 8 }}>
                     {modelTypes.find(t => t.value === form.getFieldValue('modelType'))?.label}
                   </Tag>
                 </div>
@@ -356,7 +351,7 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
                       padding: 12,
                       background: '#f5f5f5',
                       borderRadius: 4,
-                      fontSize: 13
+                      fontSize: 13,
                     }}
                   >
                     {form.getFieldValue('prompt')}
@@ -366,8 +361,8 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
             </Card>
 
             <Button
-              type="primary"
-              size="large"
+              type='primary'
+              size='large'
               icon={generating ? <LoadingOutlined /> : <RocketOutlined />}
               loading={generating}
               onClick={handleGenerateFromPrompt}
@@ -379,7 +374,7 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
             {generating && (
               <div style={{ marginTop: 24 }}>
                 <Spin />
-                <Paragraph type="secondary" style={{ marginTop: 12 }}>
+                <Paragraph type='secondary' style={{ marginTop: 12 }}>
                   Analyzing requirements and generating optimal configuration...
                 </Paragraph>
               </div>
@@ -392,23 +387,23 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
         return (
           <div style={{ maxWidth: 800, margin: '0 auto' }}>
             <Alert
-              message="Configuration Ready"
-              description="Review the AI-generated configuration below. You can proceed to create the instance or go back to make changes."
-              type="success"
+              message='Configuration Ready'
+              description='Review the AI-generated configuration below. You can proceed to create the instance or go back to make changes.'
+              type='success'
               showIcon
               style={{ marginBottom: 24 }}
             />
 
             {aiAnalysis && (
-              <Card title="AI Analysis" style={{ marginBottom: 16 }}>
+              <Card title='AI Analysis' style={{ marginBottom: 16 }}>
                 <Paragraph>{aiAnalysis}</Paragraph>
               </Card>
             )}
 
             <Row gutter={[16, 16]}>
               <Col span={24}>
-                <Card title="Basic Information" size="small">
-                  <Space direction="vertical" style={{ width: '100%' }}>
+                <Card title='Basic Information' size='small'>
+                  <Space direction='vertical' style={{ width: '100%' }}>
                     <div>
                       <Text strong>Name:</Text>
                       <Text style={{ marginLeft: 8 }}>{form.getFieldValue('name')}</Text>
@@ -419,7 +414,7 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
                     </div>
                     <div>
                       <Text strong>Model Type:</Text>
-                      <Tag color="blue" style={{ marginLeft: 8 }}>
+                      <Tag color='blue' style={{ marginLeft: 8 }}>
                         {modelTypes.find(t => t.value === form.getFieldValue('modelType'))?.label}
                       </Tag>
                     </div>
@@ -428,33 +423,43 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
               </Col>
 
               <Col span={12}>
-                <Card title="Training Configuration" size="small">
-                  <Space direction="vertical" style={{ width: '100%', fontSize: 13 }}>
+                <Card title='Training Configuration' size='small'>
+                  <Space direction='vertical' style={{ width: '100%', fontSize: 13 }}>
                     <div>Epochs: {generatedConfig?.trainingConfig?.epochs || 'N/A'}</div>
                     <div>Batch Size: {generatedConfig?.trainingConfig?.batchSize || 'N/A'}</div>
-                    <div>Learning Rate: {generatedConfig?.trainingConfig?.learningRate || 'N/A'}</div>
+                    <div>
+                      Learning Rate: {generatedConfig?.trainingConfig?.learningRate || 'N/A'}
+                    </div>
                     <div>Optimizer: {generatedConfig?.trainingConfig?.optimizer || 'N/A'}</div>
-                    <div>Validation Split: {generatedConfig?.trainingConfig?.validationSplit || 'N/A'}</div>
+                    <div>
+                      Validation Split: {generatedConfig?.trainingConfig?.validationSplit || 'N/A'}
+                    </div>
                   </Space>
                 </Card>
               </Col>
 
               <Col span={12}>
-                <Card title="Data Configuration" size="small">
-                  <Space direction="vertical" style={{ width: '100%', fontSize: 13 }}>
+                <Card title='Data Configuration' size='small'>
+                  <Space direction='vertical' style={{ width: '100%', fontSize: 13 }}>
                     <div>Source: {generatedConfig?.dataConfig?.source || 'N/A'}</div>
                     <div>Isolation: {generatedConfig?.dataConfig?.isolation || 'N/A'}</div>
-                    <div>Min Data Points: {generatedConfig?.dataConfig?.minDataPoints || 'N/A'}</div>
+                    <div>
+                      Min Data Points: {generatedConfig?.dataConfig?.minDataPoints || 'N/A'}
+                    </div>
                   </Space>
                 </Card>
               </Col>
 
               {generatedConfig?.architecture && (
                 <Col span={24}>
-                  <Card title="Model Architecture" size="small">
-                    <Space direction="vertical" style={{ width: '100%', fontSize: 13 }}>
-                      <div>Input Shape: [{generatedConfig.architecture.inputShape?.join(', ')}]</div>
-                      <div>Output Shape: [{generatedConfig.architecture.outputShape?.join(', ')}]</div>
+                  <Card title='Model Architecture' size='small'>
+                    <Space direction='vertical' style={{ width: '100%', fontSize: 13 }}>
+                      <div>
+                        Input Shape: [{generatedConfig.architecture.inputShape?.join(', ')}]
+                      </div>
+                      <div>
+                        Output Shape: [{generatedConfig.architecture.outputShape?.join(', ')}]
+                      </div>
                       <div>Layers: {generatedConfig.architecture.layers?.length || 0}</div>
                       <div style={{ marginTop: 8 }}>
                         {generatedConfig.architecture.layers?.map((layer: any, idx: number) => (
@@ -489,7 +494,7 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
         ))}
       </Steps>
 
-      <Form form={form} layout="vertical">
+      <Form form={form} layout='vertical'>
         {renderStepContent()}
       </Form>
 
@@ -502,12 +507,12 @@ const NeuralNetworkWizard: React.FC<Props> = ({ onComplete, onCancel }) => {
             <Button onClick={handlePrevious}>Previous</Button>
           )}
           {currentStep === 0 && (
-            <Button type="primary" onClick={handleNext}>
+            <Button type='primary' onClick={handleNext}>
               Next
             </Button>
           )}
           {currentStep === 2 && (
-            <Button type="primary" onClick={handleComplete} icon={<PlusOutlined />}>
+            <Button type='primary' onClick={handleComplete} icon={<PlusOutlined />}>
               Create Instance
             </Button>
           )}

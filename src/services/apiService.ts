@@ -673,6 +673,1954 @@ export const settingsAPI = {
   },
 };
 
+// Research Pipeline API - For AI/ML research scraping and analysis
+export interface ResearchArticle {
+  id: string;
+  title: string;
+  url: string;
+  author: string;
+  tags: string[];
+  content?: string;
+  scrapedAt: string;
+  status: 'pending' | 'analyzed' | 'archived';
+}
+
+export interface ResearchFeature {
+  id: string;
+  name: string;
+  description: string;
+  impactLevel: 'critical' | 'high' | 'medium' | 'low';
+  revenuePotential: 'high' | 'medium' | 'low';
+  status: 'proposed' | 'approved' | 'implemented' | 'rejected';
+  articleId?: string;
+}
+
+export interface ResearchCampaign {
+  id: string;
+  name: string;
+  topics: string[];
+  isActive: boolean;
+  createdAt: string;
+  lastRun?: string;
+}
+
+export interface ResearchDashboardData {
+  stats: {
+    total_articles: number;
+    articles_today: number;
+    total_features: number;
+    pending_features: number;
+    active_campaigns: number;
+    total_papers: number;
+    total_code_examples: number;
+  };
+  topTopics?: any[];
+  topFeatures?: any[];
+  recentArticles?: any[];
+}
+
+export const researchAPI = {
+  // Get dashboard data
+  getDashboard: async (): Promise<ResearchDashboardData> => {
+    try {
+      const response = await apiClient.get('/research/dashboard');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch research dashboard:', error);
+      return {
+        stats: {
+          total_articles: 0,
+          articles_today: 0,
+          total_features: 0,
+          pending_features: 0,
+          active_campaigns: 0,
+          total_papers: 0,
+          total_code_examples: 0,
+        },
+      };
+    }
+  },
+
+  // Get pipeline status
+  getStatus: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/research/status');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch research status:', error);
+      return { status: 'unknown', stats: {} };
+    }
+  },
+
+  // Trigger article scraping
+  scrapeArticles: async (topics: string[] = ['ai', 'ml', 'llm'], limit: number = 50): Promise<any> => {
+    try {
+      const response = await apiClient.post('/research/scrape', { topics, limit });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to scrape articles:', error);
+      throw error;
+    }
+  },
+
+  // Get articles
+  getArticles: async (params: {
+    status?: string;
+    topic?: string;
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<{ articles: ResearchArticle[]; total: number }> => {
+    try {
+      const response = await apiClient.get('/research/articles', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch articles:', error);
+      return { articles: [], total: 0 };
+    }
+  },
+
+  // Get single article
+  getArticle: async (id: string): Promise<ResearchArticle | null> => {
+    try {
+      const response = await apiClient.get(`/research/articles/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch article:', error);
+      return null;
+    }
+  },
+
+  // Analyze article for features
+  analyzeArticle: async (id: string): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/research/articles/${id}/analyze`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to analyze article:', error);
+      throw error;
+    }
+  },
+
+  // Get feature recommendations
+  getFeatures: async (params: {
+    status?: string;
+    impact?: string;
+    revenue?: string;
+    limit?: number;
+  } = {}): Promise<{ features: ResearchFeature[]; total: number }> => {
+    try {
+      const response = await apiClient.get('/research/features', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch features:', error);
+      return { features: [], total: 0 };
+    }
+  },
+
+  // Get campaigns
+  getCampaigns: async (active?: boolean): Promise<ResearchCampaign[]> => {
+    try {
+      const params = active !== undefined ? { active: active.toString() } : {};
+      const response = await apiClient.get('/research/campaigns', { params });
+      return response.data.campaigns || response.data;
+    } catch (error) {
+      console.error('Failed to fetch campaigns:', error);
+      return [];
+    }
+  },
+
+  // Create campaign
+  createCampaign: async (config: Partial<ResearchCampaign>): Promise<ResearchCampaign> => {
+    try {
+      const response = await apiClient.post('/research/campaigns', config);
+      return response.data.campaign;
+    } catch (error) {
+      console.error('Failed to create campaign:', error);
+      throw error;
+    }
+  },
+
+  // Generate research paper
+  generatePaper: async (focusArea: string, limit: number = 50): Promise<any> => {
+    try {
+      const response = await apiClient.post('/research/papers/generate', { focusArea, limit });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to generate paper:', error);
+      throw error;
+    }
+  },
+};
+
+// Codebase Indexing API - For semantic code search and analysis
+export interface CodeEntity {
+  id: string;
+  name: string;
+  type: 'function' | 'class' | 'variable' | 'interface' | 'type';
+  filePath: string;
+  lineStart: number;
+  lineEnd: number;
+  description?: string;
+  signature?: string;
+}
+
+export interface CodeRelationship {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  type: 'calls' | 'imports' | 'extends' | 'implements' | 'uses';
+}
+
+export interface IndexingSession {
+  id: string;
+  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  startTime: string;
+  endTime?: string;
+  stats: {
+    filesProcessed: number;
+    entitiesFound: number;
+    relationshipsFound: number;
+    issuesDetected: number;
+  };
+}
+
+export const codebaseIndexingAPI = {
+  // Get indexing status
+  getStatus: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/status');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch codebase indexing status:', error);
+      return {
+        status: 'idle',
+        lastIndexed: null,
+        totalEntities: 0,
+        totalRelationships: 0,
+      };
+    }
+  },
+
+  // Start full indexing
+  startIndexing: async (options: { incremental?: boolean; targetFiles?: string[] } = {}): Promise<IndexingSession> => {
+    try {
+      const response = await apiClient.post('/codebase-indexing/start', options);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to start indexing:', error);
+      throw error;
+    }
+  },
+
+  // Stop indexing
+  stopIndexing: async (sessionId: string): Promise<void> => {
+    try {
+      await apiClient.post(`/codebase-indexing/stop/${sessionId}`);
+    } catch (error) {
+      console.error('Failed to stop indexing:', error);
+      throw error;
+    }
+  },
+
+  // Get indexing sessions
+  getSessions: async (limit: number = 10): Promise<IndexingSession[]> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/sessions', { params: { limit } });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch indexing sessions:', error);
+      return [];
+    }
+  },
+
+  // Search code entities
+  searchEntities: async (query: string, options: {
+    type?: string;
+    limit?: number;
+  } = {}): Promise<CodeEntity[]> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/search', {
+        params: { query, ...options },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to search entities:', error);
+      return [];
+    }
+  },
+
+  // Get entity details
+  getEntity: async (id: string): Promise<CodeEntity | null> => {
+    try {
+      const response = await apiClient.get(`/codebase-indexing/entities/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch entity:', error);
+      return null;
+    }
+  },
+
+  // Get entity relationships
+  getRelationships: async (entityId: string): Promise<CodeRelationship[]> => {
+    try {
+      const response = await apiClient.get(`/codebase-indexing/entities/${entityId}/relationships`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch relationships:', error);
+      return [];
+    }
+  },
+
+  // Get call graph for entity
+  getCallGraph: async (entityId: string, depth: number = 3): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/codebase-indexing/entities/${entityId}/call-graph`, {
+        params: { depth },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch call graph:', error);
+      return { nodes: [], edges: [] };
+    }
+  },
+
+  // Get dead code analysis
+  getDeadCode: async (): Promise<any[]> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/analysis/dead-code');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch dead code analysis:', error);
+      return [];
+    }
+  },
+
+  // Get dependency analysis
+  getDependencies: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/analysis/dependencies');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch dependency analysis:', error);
+      return { internal: [], external: [] };
+    }
+  },
+
+  // Get AI-powered insights
+  getInsights: async (): Promise<any[]> => {
+    try {
+      const response = await apiClient.get('/codebase-indexing/insights');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch AI insights:', error);
+      return [];
+    }
+  },
+};
+
+// Data Mining API - For advanced data mining workflows and campaigns
+export interface DataMiningTool {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  configSchema?: any;
+}
+
+export interface DataMiningWorkflow {
+  id: string;
+  name: string;
+  description?: string;
+  status: 'idle' | 'running' | 'completed' | 'failed' | 'cancelled';
+  steps: {
+    name: string;
+    tool: string;
+    config: any;
+    status?: string;
+  }[];
+  createdAt: string;
+  lastRun?: string;
+  results?: any;
+}
+
+export interface DataMiningCampaign {
+  id: string;
+  name: string;
+  description?: string;
+  status: 'idle' | 'running' | 'completed' | 'failed';
+  workflows: DataMiningWorkflow[];
+  createdAt: string;
+  lastRun?: string;
+}
+
+export const dataMiningAPI = {
+  // Get available tools
+  getTools: async (): Promise<DataMiningTool[]> => {
+    try {
+      const response = await apiClient.get('/datamining/tools');
+      return response.data.tools || [];
+    } catch (error) {
+      console.error('Failed to fetch data mining tools:', error);
+      return [];
+    }
+  },
+
+  // Get single tool
+  getTool: async (toolId: string): Promise<DataMiningTool | null> => {
+    try {
+      const response = await apiClient.get(`/datamining/tools/${toolId}`);
+      return response.data.tool;
+    } catch (error) {
+      console.error('Failed to fetch tool:', error);
+      return null;
+    }
+  },
+
+  // Create workflow
+  createWorkflow: async (workflow: {
+    name: string;
+    description?: string;
+    steps: { name: string; tool: string; config: any }[];
+  }): Promise<DataMiningWorkflow> => {
+    try {
+      const response = await apiClient.post('/datamining/workflows', workflow);
+      return response.data.workflow;
+    } catch (error) {
+      console.error('Failed to create workflow:', error);
+      throw error;
+    }
+  },
+
+  // Get all workflows
+  getWorkflows: async (): Promise<DataMiningWorkflow[]> => {
+    try {
+      const response = await apiClient.get('/datamining/workflows');
+      return response.data.workflows || [];
+    } catch (error) {
+      console.error('Failed to fetch workflows:', error);
+      return [];
+    }
+  },
+
+  // Get single workflow
+  getWorkflow: async (workflowId: string): Promise<DataMiningWorkflow | null> => {
+    try {
+      const response = await apiClient.get(`/datamining/workflows/${workflowId}`);
+      return response.data.workflow;
+    } catch (error) {
+      console.error('Failed to fetch workflow:', error);
+      return null;
+    }
+  },
+
+  // Update workflow
+  updateWorkflow: async (workflowId: string, updates: Partial<DataMiningWorkflow>): Promise<DataMiningWorkflow> => {
+    try {
+      const response = await apiClient.put(`/datamining/workflows/${workflowId}`, updates);
+      return response.data.workflow;
+    } catch (error) {
+      console.error('Failed to update workflow:', error);
+      throw error;
+    }
+  },
+
+  // Delete workflow
+  deleteWorkflow: async (workflowId: string): Promise<void> => {
+    try {
+      await apiClient.delete(`/datamining/workflows/${workflowId}`);
+    } catch (error) {
+      console.error('Failed to delete workflow:', error);
+      throw error;
+    }
+  },
+
+  // Execute workflow
+  executeWorkflow: async (workflowId: string, options: any = {}): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/datamining/workflows/${workflowId}/execute`, { options });
+      return response.data.result;
+    } catch (error) {
+      console.error('Failed to execute workflow:', error);
+      throw error;
+    }
+  },
+
+  // Create campaign
+  createCampaign: async (campaign: {
+    name: string;
+    description?: string;
+    workflows: { name: string; steps: any[] }[];
+  }): Promise<DataMiningCampaign> => {
+    try {
+      const response = await apiClient.post('/datamining/campaigns', campaign);
+      return response.data.campaign;
+    } catch (error) {
+      console.error('Failed to create campaign:', error);
+      throw error;
+    }
+  },
+
+  // Get all campaigns
+  getCampaigns: async (): Promise<DataMiningCampaign[]> => {
+    try {
+      const response = await apiClient.get('/datamining/campaigns');
+      return response.data.campaigns || [];
+    } catch (error) {
+      console.error('Failed to fetch campaigns:', error);
+      return [];
+    }
+  },
+
+  // Get single campaign
+  getCampaign: async (campaignId: string): Promise<DataMiningCampaign | null> => {
+    try {
+      const response = await apiClient.get(`/datamining/campaigns/${campaignId}`);
+      return response.data.campaign;
+    } catch (error) {
+      console.error('Failed to fetch campaign:', error);
+      return null;
+    }
+  },
+
+  // Update campaign
+  updateCampaign: async (campaignId: string, updates: Partial<DataMiningCampaign>): Promise<DataMiningCampaign> => {
+    try {
+      const response = await apiClient.put(`/datamining/campaigns/${campaignId}`, updates);
+      return response.data.campaign;
+    } catch (error) {
+      console.error('Failed to update campaign:', error);
+      throw error;
+    }
+  },
+
+  // Delete campaign
+  deleteCampaign: async (campaignId: string): Promise<void> => {
+    try {
+      await apiClient.delete(`/datamining/campaigns/${campaignId}`);
+    } catch (error) {
+      console.error('Failed to delete campaign:', error);
+      throw error;
+    }
+  },
+
+  // Execute campaign
+  executeCampaign: async (campaignId: string, options: any = {}): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/datamining/campaigns/${campaignId}/execute`, { options });
+      return response.data.result;
+    } catch (error) {
+      console.error('Failed to execute campaign:', error);
+      throw error;
+    }
+  },
+
+  // Get orchestrator status
+  getStatus: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/datamining/status');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch data mining status:', error);
+      return {
+        status: 'unknown',
+        activeWorkflows: 0,
+        activeCampaigns: 0,
+        completedTasks: 0,
+      };
+    }
+  },
+
+  // Get statistics
+  getStats: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/datamining/stats');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch data mining stats:', error);
+      return {
+        totalWorkflows: 0,
+        totalCampaigns: 0,
+        totalDataMined: 0,
+        successRate: 0,
+      };
+    }
+  },
+};
+
+// Lead Generation API - For managing leads from campaigns and data sources
+export interface Lead {
+  id: number;
+  email: string;
+  name?: string;
+  company?: string;
+  phone?: string;
+  website?: string;
+  jobTitle?: string;
+  sourceType: string;
+  sourceId?: string;
+  sourceUrl?: string;
+  sourceMetadata?: any;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: string;
+  score: number;
+  quality: 'high' | 'medium' | 'low';
+  status: 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
+  assignedTo?: string;
+  tags?: string[];
+  customFields?: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LeadActivity {
+  id: number;
+  leadId: number;
+  activityType: string;
+  description?: string;
+  data?: any;
+  createdAt: string;
+}
+
+export interface LeadStatistics {
+  total: number;
+  byStatus: Record<string, number>;
+  byQuality: Record<string, number>;
+  bySource: Record<string, number>;
+  recentLeads: number;
+  conversionRate: number;
+}
+
+export const leadGenerationAPI = {
+  // Get all leads with filtering and pagination
+  getLeads: async (params: {
+    status?: string;
+    quality?: string;
+    sourceType?: string;
+    sourceId?: string;
+    assignedTo?: string;
+    minScore?: number;
+    search?: string;
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  } = {}): Promise<{ leads: Lead[]; total: number; page: number; pages: number }> => {
+    try {
+      const response = await apiClient.get('/leads', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch leads:', error);
+      return { leads: [], total: 0, page: 1, pages: 0 };
+    }
+  },
+
+  // Get a specific lead by ID
+  getLead: async (id: number): Promise<Lead | null> => {
+    try {
+      const response = await apiClient.get(`/leads/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch lead:', error);
+      return null;
+    }
+  },
+
+  // Create a new lead
+  createLead: async (leadData: Partial<Lead>): Promise<Lead> => {
+    try {
+      const response = await apiClient.post('/leads', leadData);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create lead:', error);
+      throw error;
+    }
+  },
+
+  // Update a lead
+  updateLead: async (id: number, updates: Partial<Lead>): Promise<Lead> => {
+    try {
+      const response = await apiClient.patch(`/leads/${id}`, updates);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update lead:', error);
+      throw error;
+    }
+  },
+
+  // Update lead status
+  updateStatus: async (id: number, status: string): Promise<Lead> => {
+    try {
+      const response = await apiClient.patch(`/leads/${id}/status`, { status });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update lead status:', error);
+      throw error;
+    }
+  },
+
+  // Assign lead to a user
+  assignLead: async (id: number, userId: string): Promise<Lead> => {
+    try {
+      const response = await apiClient.post(`/leads/${id}/assign`, { userId });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to assign lead:', error);
+      throw error;
+    }
+  },
+
+  // Add tags to a lead
+  addTags: async (id: number, tags: string[]): Promise<void> => {
+    try {
+      await apiClient.post(`/leads/${id}/tags`, { tags });
+    } catch (error) {
+      console.error('Failed to add tags:', error);
+      throw error;
+    }
+  },
+
+  // Log an activity for a lead
+  logActivity: async (id: number, activityType: string, description?: string, data?: any): Promise<LeadActivity> => {
+    try {
+      const response = await apiClient.post(`/leads/${id}/activity`, { activityType, description, data });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to log activity:', error);
+      throw error;
+    }
+  },
+
+  // Bulk import leads
+  bulkImport: async (leads: Partial<Lead>[], sourceType: string, sourceId?: string): Promise<{ success: number; failed: number; errors: any[] }> => {
+    try {
+      const response = await apiClient.post('/leads/bulk-import', { leads, sourceType, sourceId });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to bulk import leads:', error);
+      throw error;
+    }
+  },
+
+  // Capture leads from crawler campaign
+  captureFromCrawler: async (campaignId: string, results: any[]): Promise<{ success: boolean; captured: number; leads: Lead[] }> => {
+    try {
+      const response = await apiClient.post('/leads/capture-from-crawler', { campaignId, results });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to capture leads from crawler:', error);
+      throw error;
+    }
+  },
+
+  // Get lead statistics
+  getStatistics: async (): Promise<LeadStatistics> => {
+    try {
+      const response = await apiClient.get('/leads/statistics');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch lead statistics:', error);
+      return {
+        total: 0,
+        byStatus: {},
+        byQuality: {},
+        bySource: {},
+        recentLeads: 0,
+        conversionRate: 0,
+      };
+    }
+  },
+
+  // Get source performance
+  getSourcePerformance: async (): Promise<any[]> => {
+    try {
+      const response = await apiClient.get('/leads/source-performance');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch source performance:', error);
+      return [];
+    }
+  },
+};
+
+// Workflow Generator API - For automated workflow generation and configuration management
+export interface WorkflowSetting {
+  name: string;
+  config: any;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface WorkflowSetup {
+  name: string;
+  atoms?: any[];
+  components?: any[];
+  dashboards?: any[];
+  settings?: any[];
+  tables?: any[];
+  createdAt?: string;
+}
+
+export interface GeneratedWorkflow {
+  id: string;
+  name: string;
+  prompt: string;
+  atoms: any[];
+  components: any[];
+  dashboards: any[];
+  settings: any[];
+  tables: any[];
+  generatedAt: string;
+}
+
+export interface ConfigSummary {
+  totalAtoms: number;
+  totalComponents: number;
+  totalDashboards: number;
+  totalSettings: number;
+  totalSetups: number;
+}
+
+export const workflowGeneratorAPI = {
+  // Get configuration summary
+  getConfigSummary: async (): Promise<ConfigSummary> => {
+    try {
+      const response = await apiClient.get('/workflow-generator/config/summary');
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch config summary:', error);
+      return {
+        totalAtoms: 0,
+        totalComponents: 0,
+        totalDashboards: 0,
+        totalSettings: 0,
+        totalSetups: 0,
+      };
+    }
+  },
+
+  // List all settings
+  getSettings: async (): Promise<WorkflowSetting[]> => {
+    try {
+      const response = await apiClient.get('/workflow-generator/settings');
+      return response.data.data?.settings || [];
+    } catch (error) {
+      console.error('Failed to fetch settings:', error);
+      return [];
+    }
+  },
+
+  // Get a specific setting
+  getSetting: async (name: string): Promise<WorkflowSetting | null> => {
+    try {
+      const response = await apiClient.get(`/workflow-generator/settings/${name}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch setting:', error);
+      return null;
+    }
+  },
+
+  // Save a setting
+  saveSetting: async (name: string, config: any): Promise<WorkflowSetting> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/settings', { name, ...config });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to save setting:', error);
+      throw error;
+    }
+  },
+
+  // List all setups
+  getSetups: async (): Promise<WorkflowSetup[]> => {
+    try {
+      const response = await apiClient.get('/workflow-generator/setups');
+      return response.data.data?.setups || [];
+    } catch (error) {
+      console.error('Failed to fetch setups:', error);
+      return [];
+    }
+  },
+
+  // Get a specific setup
+  getSetup: async (name: string): Promise<WorkflowSetup | null> => {
+    try {
+      const response = await apiClient.get(`/workflow-generator/setups/${name}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch setup:', error);
+      return null;
+    }
+  },
+
+  // Save a setup
+  saveSetup: async (name: string, config: any): Promise<WorkflowSetup> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/setups', { name, ...config });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to save setup:', error);
+      throw error;
+    }
+  },
+
+  // Generate workflow from prompt
+  generateWorkflow: async (prompt: string): Promise<GeneratedWorkflow> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/generate', { prompt });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to generate workflow:', error);
+      throw error;
+    }
+  },
+
+  // Execute a generated workflow
+  executeWorkflow: async (name: string, userInputs?: any): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/workflow-generator/execute/${name}`, userInputs || {});
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to execute workflow:', error);
+      throw error;
+    }
+  },
+
+  // Get workflow configuration
+  getWorkflowConfig: async (name: string): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/workflow-generator/config/${name}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch workflow config:', error);
+      return null;
+    }
+  },
+
+  // Create a self-generating workflow
+  createSelfGeneratingWorkflow: async (prompt: string | { name: string }, options?: any): Promise<any> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/self-generating', { prompt, options });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to create self-generating workflow:', error);
+      throw error;
+    }
+  },
+
+  // Bundle atoms into a component
+  bundleComponent: async (name: string, atoms: string[], config?: any): Promise<any> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/bundle/component', { name, atoms, ...config });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to bundle component:', error);
+      throw error;
+    }
+  },
+
+  // Bundle components into a dashboard
+  bundleDashboard: async (name: string, components: string[], layout?: any): Promise<any> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/bundle/dashboard', { name, components, layout });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to bundle dashboard:', error);
+      throw error;
+    }
+  },
+
+  // Bundle dashboards into a workflow
+  bundleWorkflow: async (name: string, dashboards: string[], triggers?: any, automation?: any): Promise<any> => {
+    try {
+      const response = await apiClient.post('/workflow-generator/bundle/workflow', { name, dashboards, triggers, automation });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to bundle workflow:', error);
+      throw error;
+    }
+  },
+};
+
+// Schema Linking API - For database schema analysis, relationship discovery, and feature mapping
+export interface TableMetadata {
+  name: string;
+  schema: string;
+  columns: {
+    name: string;
+    dataType: string;
+    isNullable: boolean;
+    defaultValue?: any;
+  }[];
+  primaryKey?: string[];
+  foreignKeys?: {
+    column: string;
+    referenceTable: string;
+    referenceColumn: string;
+  }[];
+}
+
+export interface SchemaRelationship {
+  id: string;
+  sourceTable: string;
+  targetTable: string;
+  type: 'foreign_key' | 'semantic' | 'naming_pattern';
+  confidence: number;
+  columns: string[];
+}
+
+export interface FeatureGrouping {
+  name: string;
+  tables: string[];
+  relationships: string[];
+  description?: string;
+}
+
+export interface LinkedSchemaMap {
+  feature: string;
+  tables: TableMetadata[];
+  relationships: SchemaRelationship[];
+  dashboardConfig?: any;
+}
+
+export interface RunnerStatus {
+  isRunning: boolean;
+  lastRun?: string;
+  nextRun?: string;
+  cyclesCompleted: number;
+  errors: number;
+}
+
+export const schemaLinkingAPI = {
+  // Analyze database schema
+  analyzeSchema: async (): Promise<{
+    tables: number;
+    relationships: number;
+    features: number;
+    metadata: any[];
+  }> => {
+    try {
+      const response = await apiClient.get('/schema-linking/analyze');
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to analyze schema:', error);
+      return { tables: 0, relationships: 0, features: 0, metadata: [] };
+    }
+  },
+
+  // Get all tables
+  getTables: async (): Promise<TableMetadata[]> => {
+    try {
+      const response = await apiClient.get('/schema-linking/tables');
+      return response.data.data?.tables || [];
+    } catch (error) {
+      console.error('Failed to fetch tables:', error);
+      return [];
+    }
+  },
+
+  // Get relationships
+  getRelationships: async (type?: string): Promise<SchemaRelationship[]> => {
+    try {
+      const params = type ? { type } : {};
+      const response = await apiClient.get('/schema-linking/relationships', { params });
+      return response.data.data?.relationships || [];
+    } catch (error) {
+      console.error('Failed to fetch relationships:', error);
+      return [];
+    }
+  },
+
+  // Get feature groupings
+  getFeatures: async (): Promise<FeatureGrouping[]> => {
+    try {
+      const response = await apiClient.get('/schema-linking/features');
+      return response.data.data?.features || [];
+    } catch (error) {
+      console.error('Failed to fetch features:', error);
+      return [];
+    }
+  },
+
+  // Get linked schema map for a feature
+  getFeatureSchema: async (featureName: string): Promise<LinkedSchemaMap | null> => {
+    try {
+      const response = await apiClient.get(`/schema-linking/features/${featureName}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch feature schema:', error);
+      return null;
+    }
+  },
+
+  // Export linked schemas
+  exportSchemas: async (outputPath?: string): Promise<{ outputPath: string; metadata: any }> => {
+    try {
+      const response = await apiClient.post('/schema-linking/export', { outputPath });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to export schemas:', error);
+      throw error;
+    }
+  },
+
+  // Get runner status
+  getRunnerStatus: async (): Promise<RunnerStatus> => {
+    try {
+      const response = await apiClient.get('/schema-linking/runner/status');
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch runner status:', error);
+      return {
+        isRunning: false,
+        cyclesCompleted: 0,
+        errors: 0,
+      };
+    }
+  },
+
+  // Start the runner
+  startRunner: async (): Promise<RunnerStatus> => {
+    try {
+      const response = await apiClient.post('/schema-linking/runner/start');
+      return response.data.status;
+    } catch (error) {
+      console.error('Failed to start runner:', error);
+      throw error;
+    }
+  },
+
+  // Stop the runner
+  stopRunner: async (): Promise<RunnerStatus> => {
+    try {
+      const response = await apiClient.post('/schema-linking/runner/stop');
+      return response.data.status;
+    } catch (error) {
+      console.error('Failed to stop runner:', error);
+      throw error;
+    }
+  },
+
+  // Run a single linking cycle
+  runCycle: async (): Promise<any> => {
+    try {
+      const response = await apiClient.post('/schema-linking/runner/run');
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to run linking cycle:', error);
+      throw error;
+    }
+  },
+
+  // Get dashboard configurations for a feature
+  getFeatureDashboard: async (featureName: string): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/schema-linking/dashboards/${featureName}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch feature dashboard:', error);
+      return null;
+    }
+  },
+};
+
+// Training Data API - For training data mining, bundling, and schema linking
+export interface ModelType {
+  id: string;
+  name: string;
+  description: string;
+  attributes: string[];
+}
+
+export interface TrainingBundle {
+  id: string;
+  functionality: string;
+  urls: string[];
+  data: any[];
+  qualityScore: number;
+  createdAt: string;
+}
+
+export interface MiningResult {
+  url: string;
+  success: boolean;
+  attributes?: any;
+  qualityScore?: number;
+  error?: string;
+}
+
+export interface FunctionalityConfig {
+  functionality: string;
+  description: string;
+  requiredAttributes: string[];
+  modelTypes: string[];
+  minQualityScore: number;
+  includeLayersData: boolean;
+  linkSchemas: boolean;
+}
+
+export interface LinkedSchema {
+  id: string;
+  sourceAttribute: string;
+  targetAttribute: string;
+  confidence: number;
+  schemaType: string;
+}
+
+export const trainingDataAPI = {
+  // Get supported model types
+  getModelTypes: async (): Promise<ModelType[]> => {
+    try {
+      const response = await apiClient.get('/training-data/model-types');
+      return response.data.data?.modelTypes || [];
+    } catch (error) {
+      console.error('Failed to fetch model types:', error);
+      return [];
+    }
+  },
+
+  // Mine data for a specific model type from a URL
+  mineData: async (url: string, modelType: string): Promise<MiningResult> => {
+    try {
+      const response = await apiClient.post('/training-data/mine', { url, modelType });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to mine data:', error);
+      throw error;
+    }
+  },
+
+  // Mine data from multiple URLs
+  mineBatch: async (urls: string[], modelType: string): Promise<{
+    results: MiningResult[];
+    total: number;
+    successful: number;
+    failed: number;
+  }> => {
+    try {
+      const response = await apiClient.post('/training-data/mine-batch', { urls, modelType });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to mine batch:', error);
+      throw error;
+    }
+  },
+
+  // Get supported functionalities
+  getFunctionalities: async (): Promise<FunctionalityConfig[]> => {
+    try {
+      const response = await apiClient.get('/training-data/functionalities');
+      return response.data.data?.functionalities || [];
+    } catch (error) {
+      console.error('Failed to fetch functionalities:', error);
+      return [];
+    }
+  },
+
+  // Create a training data bundle
+  createBundle: async (functionality: string, urls: string[]): Promise<TrainingBundle> => {
+    try {
+      const response = await apiClient.post('/training-data/create-bundle', { functionality, urls });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to create bundle:', error);
+      throw error;
+    }
+  },
+
+  // Discover attributes for a functionality
+  discoverAttributes: async (functionality: string, sampleUrls?: string[]): Promise<{
+    functionality: string;
+    description: string;
+    requiredAttributes: string[];
+    modelTypes: string[];
+    sampleData?: any;
+    attributeDetails: any[];
+  }> => {
+    try {
+      const response = await apiClient.post('/training-data/discover-attributes', {
+        functionality,
+        sampleUrls: sampleUrls || [],
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to discover attributes:', error);
+      throw error;
+    }
+  },
+
+  // Link schemas in training data
+  linkSchemas: async (datasets: any[], schemaContext?: any): Promise<{
+    linkedSchemas: LinkedSchema[];
+    total: number;
+    byConfidence: {
+      high: number;
+      medium: number;
+      low: number;
+    };
+  }> => {
+    try {
+      const response = await apiClient.post('/training-data/link-schemas', {
+        datasets,
+        schemaContext: schemaContext || {},
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to link schemas:', error);
+      throw error;
+    }
+  },
+};
+
+// Embeddings/Codebase Index API - For semantic code search with embeddings
+export interface EmbeddingHealth {
+  status: string;
+  model: string;
+  modelInfo: any;
+  dimensions: number;
+  indexStats: any;
+}
+
+export interface SearchResult {
+  query: string;
+  results: Array<{
+    file: string;
+    score: number;
+    content: string;
+    line?: number;
+    context?: string;
+  }>;
+  count: number;
+  avgScore: number;
+}
+
+export interface IndexStats {
+  totalFiles: number;
+  totalChunks: number;
+  totalTokens: number;
+  avgChunksPerFile: number;
+  modelName: string;
+  lastIndexed: string;
+}
+
+export interface EmbeddingModel {
+  name: string;
+  displayName: string;
+  dimensions: number;
+  description: string;
+  size: string;
+  tasks: string[];
+}
+
+export const embeddingsAPI = {
+  // Health check
+  getHealth: async (): Promise<EmbeddingHealth> => {
+    try {
+      const response = await apiClient.get('/codebase-index/health');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch embeddings health:', error);
+      throw error;
+    }
+  },
+
+  // Build or update index
+  buildIndex: async (options?: {
+    incremental?: boolean;
+    patterns?: string[];
+    rootPath?: string;
+  }): Promise<{ success: boolean; stats: IndexStats }> => {
+    try {
+      const response = await apiClient.post('/codebase-index/build', options || {});
+      return response.data;
+    } catch (error) {
+      console.error('Failed to build index:', error);
+      throw error;
+    }
+  },
+
+  // Search codebase
+  search: async (
+    query: string,
+    options?: {
+      topK?: number;
+      threshold?: number;
+      fileTypes?: string[];
+      files?: string[];
+    }
+  ): Promise<SearchResult> => {
+    try {
+      const response = await apiClient.post('/codebase-index/search', {
+        query,
+        ...options,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to search codebase:', error);
+      throw error;
+    }
+  },
+
+  // Get context for AI models
+  getContext: async (
+    query: string,
+    options?: {
+      maxTokens?: number;
+      topK?: number;
+      fileTypes?: string[];
+      files?: string[];
+    }
+  ): Promise<{
+    query: string;
+    context: string;
+    sources: Array<{ file: string; score: number }>;
+    tokenCount: number;
+  }> => {
+    try {
+      const response = await apiClient.post('/codebase-index/context', {
+        query,
+        ...options,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get context:', error);
+      throw error;
+    }
+  },
+
+  // Find similar files
+  getSimilarFiles: async (
+    file: string,
+    options?: {
+      topK?: number;
+      threshold?: number;
+    }
+  ): Promise<SearchResult> => {
+    try {
+      const response = await apiClient.get('/codebase-index/similar', {
+        params: { file, ...options },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to find similar files:', error);
+      throw error;
+    }
+  },
+
+  // Find related code
+  getRelatedCode: async (
+    code: string,
+    options?: {
+      topK?: number;
+      threshold?: number;
+      excludeFile?: string;
+    }
+  ): Promise<SearchResult> => {
+    try {
+      const response = await apiClient.post('/codebase-index/related', {
+        code,
+        ...options,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to find related code:', error);
+      throw error;
+    }
+  },
+
+  // Get statistics
+  getStats: async (): Promise<{
+    index: IndexStats;
+    embedding: any;
+  }> => {
+    try {
+      const response = await apiClient.get('/codebase-index/stats');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+      throw error;
+    }
+  },
+
+  // Get indexed files
+  getIndexedFiles: async (): Promise<string[]> => {
+    try {
+      const response = await apiClient.get('/codebase-index/files');
+      return response.data.files || [];
+    } catch (error) {
+      console.error('Failed to fetch indexed files:', error);
+      return [];
+    }
+  },
+
+  // List available models
+  listModels: async (): Promise<{
+    currentModel: string;
+    models: EmbeddingModel[];
+    defaultModels: Record<string, string>;
+  }> => {
+    try {
+      const response = await apiClient.get('/codebase-index/models');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to list models:', error);
+      throw error;
+    }
+  },
+
+  // Switch embedding model
+  switchModel: async (
+    model: string,
+    options?: {
+      reindex?: boolean;
+      pullIfMissing?: boolean;
+    }
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await apiClient.post('/codebase-index/model', {
+        model,
+        ...options,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to switch model:', error);
+      throw error;
+    }
+  },
+
+  // Export index
+  exportIndex: async (outputPath: string): Promise<{ success: boolean; path: string }> => {
+    try {
+      const response = await apiClient.post('/codebase-index/export', { outputPath });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to export index:', error);
+      throw error;
+    }
+  },
+
+  // Import index
+  importIndex: async (inputPath: string): Promise<{ success: boolean; stats: IndexStats }> => {
+    try {
+      const response = await apiClient.post('/codebase-index/import', { inputPath });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to import index:', error);
+      throw error;
+    }
+  },
+
+  // Clear index
+  clearIndex: async (): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await apiClient.delete('/codebase-index');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to clear index:', error);
+      throw error;
+    }
+  },
+};
+
+// =====================================================
+// Feedback Loop Service API
+// =====================================================
+
+export const feedbackLoopAPI = {
+  // Submit feedback
+  submitFeedback: async (feedback: {
+    sessionId: string;
+    userId?: number;
+    conversationId: string;
+    messageId: string;
+    feedbackType: 'positive' | 'negative' | 'neutral';
+    feedbackStrength?: number;
+    feedbackReason?: string;
+    prompt: string;
+    response: string;
+    modelUsed?: string;
+    templateStyle?: string;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/feedback', feedback);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+      throw error;
+    }
+  },
+
+  // Get feedback summary
+  getFeedbackSummary: async (filters?: {
+    modelUsed?: string;
+    templateStyle?: string;
+    feedbackType?: string;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.get('/feedback-loop/feedback/summary', { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get feedback summary:', error);
+      throw error;
+    }
+  },
+
+  // Get preferences
+  getPreferences: async (sessionId: string, userId?: number, category?: string): Promise<any> => {
+    try {
+      const response = await apiClient.get('/feedback-loop/preferences', {
+        params: { sessionId, userId, category }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get preferences:', error);
+      throw error;
+    }
+  },
+
+  // Set preference
+  setPreference: async (preference: {
+    userId?: number;
+    sessionId: string;
+    category: string;
+    key: string;
+    value: any;
+    source?: string;
+    priority?: number;
+    confidenceScore?: number;
+    expiresAt?: string;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/preferences', preference);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to set preference:', error);
+      throw error;
+    }
+  },
+
+  // Create A/B test campaign
+  createABTestCampaign: async (campaign: {
+    name: string;
+    description: string;
+    variants: any[];
+    targetMetric: string;
+    sampleSize?: number;
+    durationDays?: number;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/ab-test/campaigns', campaign);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create A/B test campaign:', error);
+      throw error;
+    }
+  },
+
+  // Start A/B test campaign
+  startABTestCampaign: async (campaignId: number): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/feedback-loop/ab-test/campaigns/${campaignId}/start`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to start A/B test campaign:', error);
+      throw error;
+    }
+  },
+
+  // Assign variant
+  assignVariant: async (data: {
+    campaignId: number;
+    sessionId: string;
+    userId?: number;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/ab-test/assign', data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to assign variant:', error);
+      throw error;
+    }
+  },
+
+  // Record interaction
+  recordInteraction: async (interaction: {
+    campaignId: number;
+    sessionId: string;
+    variantId: string;
+    interactionType: string;
+    value?: number;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/ab-test/interaction', interaction);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to record interaction:', error);
+      throw error;
+    }
+  },
+
+  // Create test question
+  createTestQuestion: async (question: {
+    campaignId: number;
+    questionText: string;
+    questionType: string;
+    options?: any[];
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/ab-test/questions', question);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create test question:', error);
+      throw error;
+    }
+  },
+
+  // Get campaign questions
+  getCampaignQuestions: async (campaignId: number): Promise<any> => {
+    try {
+      const response = await apiClient.get('/feedback-loop/ab-test/questions', {
+        params: { campaignId }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get campaign questions:', error);
+      throw error;
+    }
+  },
+
+  // Submit question response
+  submitQuestionResponse: async (questionResponse: {
+    questionId: number;
+    sessionId: string;
+    userId?: number;
+    variantId: string;
+    answer: any;
+    responseTime?: number;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/ab-test/responses', questionResponse);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to submit question response:', error);
+      throw error;
+    }
+  },
+
+  // Get campaign performance
+  getCampaignPerformance: async (campaignId: number): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/feedback-loop/ab-test/performance/${campaignId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get campaign performance:', error);
+      throw error;
+    }
+  },
+
+  // Complete campaign
+  completeCampaign: async (campaignId: number, winningVariant?: string): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/feedback-loop/ab-test/campaigns/${campaignId}/complete`, {
+        winningVariant
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to complete campaign:', error);
+      throw error;
+    }
+  },
+
+  // Log communication
+  logCommunication: async (log: {
+    logType: string;
+    serviceName: string;
+    direction: 'inbound' | 'outbound';
+    content: string;
+    sessionId?: string;
+    conversationId?: string;
+    userId?: number;
+    status?: string;
+    workflowStage?: string;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/logs/communication', log);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to log communication:', error);
+      throw error;
+    }
+  },
+
+  // Get communication logs
+  getCommunicationLogs: async (filters?: {
+    sessionId?: string;
+    conversationId?: string;
+    userId?: number;
+    logType?: string;
+    serviceName?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.get('/feedback-loop/logs/communication', { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get communication logs:', error);
+      throw error;
+    }
+  },
+
+  // Update workflow state
+  updateWorkflowState: async (state: {
+    workflowType: string;
+    entityId: string;
+    currentStage: string;
+    status: string;
+    sessionId?: string;
+    userId?: number;
+    stageData?: Record<string, any>;
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/workflow/state', state);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update workflow state:', error);
+      throw error;
+    }
+  },
+
+  // Get workflow state
+  getWorkflowState: async (workflowType: string, entityId: string): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/feedback-loop/workflow/state/${workflowType}/${entityId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get workflow state:', error);
+      throw error;
+    }
+  },
+
+  // Generate session ID
+  generateSessionId: async (): Promise<{ sessionId: string }> => {
+    try {
+      const response = await apiClient.post('/feedback-loop/session/generate');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to generate session ID:', error);
+      throw error;
+    }
+  },
+};
+
+/**
+ * Neural Network API
+ * Per-client neural network instance management for training and predictions
+ */
+export const neuralNetworkAPI = {
+  // Get all instances with optional filters
+  getInstances: async (filters?: {
+    clientId?: string;
+    modelType?: string;
+    status?: string;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.get('/neural-networks/instances', { params: filters });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get neural network instances:', error);
+      throw error;
+    }
+  },
+
+  // Get a specific instance by ID
+  getInstance: async (id: string): Promise<any> => {
+    try {
+      const response = await apiClient.get(`/neural-networks/instances/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get neural network instance:', error);
+      throw error;
+    }
+  },
+
+  // Create a new neural network instance
+  createInstance: async (instance: {
+    clientId: string;
+    modelType: string;
+    configuration?: Record<string, any>;
+    trainingData?: any[];
+    metadata?: Record<string, any>;
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post('/neural-networks/instances', instance);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create neural network instance:', error);
+      throw error;
+    }
+  },
+
+  // Train a neural network instance
+  trainInstance: async (id: string): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/neural-networks/instances/${id}/train`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to train neural network instance:', error);
+      throw error;
+    }
+  },
+
+  // Make predictions using a neural network instance
+  predict: async (id: string, input: any): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/neural-networks/instances/${id}/predict`, { input });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to make prediction:', error);
+      throw error;
+    }
+  },
+
+  // Upload training dataset
+  uploadDataset: async (formData: FormData): Promise<any> => {
+    try {
+      const response = await apiClient.post('/neural-networks/datasets/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to upload dataset:', error);
+      throw error;
+    }
+  },
+
+  // Get available model types
+  getModelTypes: async (): Promise<any> => {
+    try {
+      const response = await apiClient.get('/neural-networks/model-types');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get model types:', error);
+      throw error;
+    }
+  },
+};
+
 // Export all APIs
 export const api = {
   dashboard: dashboardAPI,
@@ -685,6 +2633,16 @@ export const api = {
   metaverse: metaverseAPI,
   admin: adminAPI,
   settings: settingsAPI,
+  research: researchAPI,
+  codebaseIndexing: codebaseIndexingAPI,
+  dataMining: dataMiningAPI,
+  leadGeneration: leadGenerationAPI,
+  workflowGenerator: workflowGeneratorAPI,
+  schemaLinking: schemaLinkingAPI,
+  trainingData: trainingDataAPI,
+  embeddings: embeddingsAPI,
+  feedbackLoop: feedbackLoopAPI,
+  neuralNetwork: neuralNetworkAPI,
 };
 
 export default api;

@@ -1,0 +1,61 @@
+# Static Site Crawler Configuration
+# Optimized for fast crawling of static, server-rendered sites
+name: "Static Site Crawler"
+description: "Optimized for fast crawling of static, server-rendered sites"
+version: "1.0.0"
+
+# Scraper Selection - Use lightweight scraper for speed
+scraper:
+  primary: "cheerio"          # Fast HTML parser
+  fallback: "puppeteer"       # Fallback if JS detected
+  autoDetect: true            # Automatically detect if JS needed
+  headless: true
+
+# Target Configuration
+target:
+  seedUrls:
+    - "https://example.com"
+  maxDepth: 3                 # How deep to crawl
+  maxPages: 1000              # Maximum pages to crawl
+  followExternalLinks: false  # Stay within domain
+  respectRobotsTxt: true
+  
+# Rate Limiting - Be polite
+rateLimiting:
+  requestsPerSecond: 2        # 2 requests per second
+  concurrent: 3               # 3 concurrent requests
+  respectCrawlDelay: true     # Honor robots.txt crawl-delay
+  adaptiveRateLimiting: false
+  
+# Data Extraction
+extraction:
+  selectors:
+    title: "h1, title"
+    description: "meta[name='description']"
+    content: "article, .content, main"
+    links: "a[href]"
+  
+  metadata:
+    captureAll: true
+    includeOpenGraph: true
+    includeTwitterCards: true
+    
+# Output
+output:
+  format: "json"
+  destination: "./output/static-site-{timestamp}.json"
+  includeMetadata: true
+  compression: false
+
+# Monitoring
+monitoring:
+  enabled: true
+  logProgress: true
+  progressInterval: 100       # Log every 100 pages
+
+# Error Handling
+errorHandling:
+  maxRetries: 3
+  retryDelay: 1000
+  continueOnError: true
+  logErrors: true

@@ -1,0 +1,29 @@
+{
+  "id": "ocr-worker",
+  "name": "DeepSeek OCR Worker",
+  "type": "process",
+  "command": "node",
+  "args": [
+    "scripts/run-ocr-worker.js"
+  ],
+  "dependsOn": ["api"],
+  "env": {
+    "OCR_WORKER_IMAGE": "lightdom-ocr-worker:latest",
+    "OCR_WORKER_CONTAINER": "lightdom-ocr-worker",
+    "OCR_WORKER_PORT": "4205",
+    "OCR_WORKER_ENABLE_GPU": "true"
+  },
+  "restartPolicy": {
+    "maxRestarts": 5,
+    "baseDelayMs": 5000,
+    "backoffFactor": 1.8,
+    "maxDelayMs": 60000
+  },
+  "health": {
+    "type": "http",
+    "url": "http://localhost:4205/health",
+    "intervalMs": 15000,
+    "timeoutMs": 5000
+  },
+  "tags": ["rag", "deepseek", "ocr"]
+}

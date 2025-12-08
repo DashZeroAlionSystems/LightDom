@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
-import { promisify } from 'util';
 import { Pool } from 'pg';
-import { test, expect } from 'vitest';
+import { promisify } from 'util';
+import { expect, test } from 'vitest';
 
 const execAsync = promisify(exec);
 

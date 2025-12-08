@@ -63,7 +63,7 @@ export const DEFAULT_DEEPSEEK_CONFIG: DeepSeekSystemConfig = {
   api: {
     apiKey: process.env.DEEPSEEK_API_KEY || '',
     apiUrl: process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1',
-    model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+    model: process.env.DEEPSEEK_MODEL || 'deepseek-reasoner',
     defaultTemperature: 0.7,
     defaultMaxTokens: 4000,
     streamEnabled: false, // Non-streaming for workflow automation
@@ -71,7 +71,7 @@ export const DEFAULT_DEEPSEEK_CONFIG: DeepSeekSystemConfig = {
     retryDelayMs: 1000,
     timeout: 60000, // 60 seconds
   },
-  
+
   memory: {
     contextWindowSize: 8000,
     memoryPersistence: 'database',
@@ -79,14 +79,14 @@ export const DEFAULT_DEEPSEEK_CONFIG: DeepSeekSystemConfig = {
     enableSemanticSearch: true,
     vectorDatabaseUrl: process.env.VECTOR_DB_URL,
   },
-  
+
   reasoning: {
     defaultPattern: 'chain-of-thought',
     enableSelfReflection: true,
     enableCriticalAnalysis: true,
     maxReasoningSteps: 10,
   },
-  
+
   naming: {
     schemaNamePattern: '{domain}_{entity}_schema',
     workflowNamePattern: '{purpose}_{timestamp}_workflow',
@@ -94,7 +94,7 @@ export const DEFAULT_DEEPSEEK_CONFIG: DeepSeekSystemConfig = {
     variableNamingStyle: 'camelCase',
     fileNamingStyle: 'kebab-case',
   },
-  
+
   behavior: {
     autoGenerateSchemas: true,
     validateBeforeExecution: true,

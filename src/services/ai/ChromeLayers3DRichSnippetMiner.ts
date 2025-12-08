@@ -67,7 +67,7 @@ export interface StylingInfo {
   designSystem?: DesignSystem;
   cssVariables: Record<string, string>;
   theme: ThemeExtraction;
-  utility Classes: string[];
+  utilityClasses: string[];
 }
 
 export interface DesignSystem {
@@ -417,8 +417,6 @@ export class ChromeLayers3DRichSnippetMiner {
 
   /**
    * Extract 3D DOM model using Chrome Layers with paint information
-   */
-  private async extract3DModel(page: Page, client: any, paintedView: boolean = false): Promise<DOMElement3D[]> {
    */
   private async extract3DModel(page: Page, client: any): Promise<DOMElement3D[]> {
     // Get DOM tree

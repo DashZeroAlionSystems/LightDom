@@ -5,15 +5,14 @@
  * Demonstrates the component analyzer and schema visualization tools
  */
 
-import ComponentAnalyzerService from './services/component-analyzer-service.js';
 import pg from 'pg';
-import fs from 'fs/promises';
+import ComponentAnalyzerService from './services/component-analyzer-service.js';
 
 const { Pool } = pg;
 
 async function runDemo() {
   console.log('🚀 Component Schema Tool Demo');
-  console.log('=' .repeat(60));
+  console.log('='.repeat(60));
   console.log('');
 
   const service = new ComponentAnalyzerService();
@@ -45,7 +44,7 @@ async function runDemo() {
     
     // Display results
     console.log('📊 Analysis Results:');
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
     console.log(`   Analysis ID: ${result.analysisId}`);
     console.log(`   Screenshot: ${result.screenshotPath}`);
     console.log(`   Total Components: ${result.componentCount}`);
@@ -54,7 +53,7 @@ async function runDemo() {
     
     // Show component breakdown
     console.log('📦 Component Breakdown:');
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
     
     const byClassification = {};
     const byFamily = {};
@@ -81,7 +80,7 @@ async function runDemo() {
     
     // Show top reusable components
     console.log('\n🌟 Top Reusable Components:');
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
     
     const topReusable = result.components
       .sort((a, b) => b.reuseScore - a.reuseScore)
@@ -103,7 +102,7 @@ async function runDemo() {
     );
     
     console.log('🔍 SEO-Related Components:');
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
     console.log(`   Headings: ${seoComponents.filter(c => c.seoProperties.isHeading).length}`);
     console.log(`   Links: ${seoComponents.filter(c => c.seoProperties.isLink).length}`);
     console.log(`   Images: ${seoComponents.filter(c => c.seoProperties.isImage).length}`);
@@ -111,7 +110,7 @@ async function runDemo() {
     
     // Show metadata
     console.log('📄 Page Metadata:');
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
     console.log(`   Title: ${result.metadata.title || 'N/A'}`);
     console.log(`   Description: ${(result.metadata.description || 'N/A').substring(0, 100)}...`);
     console.log(`   Schemas: ${result.metadata.schemas?.length || 0}`);
@@ -124,11 +123,11 @@ async function runDemo() {
     
     // Query database for stats
     console.log('💾 Database Statistics:');
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
     
     const pool = new Pool({
       host: process.env.DB_HOST || 'localhost',
-      port: process.env.DB_PORT || 5434,
+      port: parseInt(process.env.DB_PORT, 10) || 5434,
       database: process.env.DB_NAME || 'lightdom',
       user: process.env.DB_USER || 'lightdom_user',
       password: process.env.DB_PASSWORD || 'lightdom_password',

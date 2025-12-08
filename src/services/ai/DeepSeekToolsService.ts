@@ -218,6 +218,79 @@ export class DeepSeekToolsService {
       },
       execute: async (args) => this.generateDashboardConfig(args.dataSource, args.metrics, args.visualizationType),
     });
+
+    // Tool 7: Automation Stack Explorer
+    this.tools.set('automation_stack_explorer', {
+      name: 'automation_stack_explorer',
+      description: 'Audit existing automation stack (RPA, workflow, browser bots) and propose consolidation plan',
+      parameters: {
+        type: 'object',
+        properties: {
+          inventory: {
+            type: 'array',
+            description: 'List of automations with metadata (tool, owner, schedule, integration surface)',
+          },
+          goals: {
+            type: 'array',
+            description: 'Target outcomes (cost reduction, resiliency, coverage expansion)',
+          },
+        },
+        required: ['inventory'],
+      },
+      execute: async (args) => this.exploreAutomationStack(args.inventory, args.goals),
+    });
+
+    // Tool 8: Synthetic Workflow Simulator
+    this.tools.set('synthetic_workflow_simulator', {
+      name: 'synthetic_workflow_simulator',
+      description: 'Spin up a headless API sandbox that replays orchestration events for load and resilience testing',
+      parameters: {
+        type: 'object',
+        properties: {
+          blueprint: {
+            type: 'object',
+            description: 'Workflow blueprint including triggers, actions, queues, and SLAs',
+          },
+          trafficProfile: {
+            type: 'object',
+            description: 'Synthetic traffic definition (tps, burst windows, failure injection)',
+          },
+          durationSeconds: {
+            type: 'number',
+            description: 'Duration to run the simulation',
+            default: 120,
+          },
+        },
+        required: ['blueprint', 'trafficProfile'],
+      },
+      execute: async (args) => this.runSyntheticWorkflowSimulation(args.blueprint, args.trafficProfile, args.durationSeconds),
+    });
+
+    // Tool 9: Autonomous Browser Agent
+    this.tools.set('autonomous_browser_agent', {
+      name: 'autonomous_browser_agent',
+      description: 'Launch a goal-driven browser agent with adaptive selectors and human-in-the-loop escalation hooks',
+      parameters: {
+        type: 'object',
+        properties: {
+          mission: {
+            type: 'string',
+            description: 'High-level task description (e.g., audit pricing, submit form, reconcile dashboard)',
+          },
+          context: {
+            type: 'object',
+            description: 'Domain-specific context such as target URLs, credentials alias, compliance rules',
+          },
+          timeoutSeconds: {
+            type: 'number',
+            description: 'Maximum runtime for the agent',
+            default: 300,
+          },
+        },
+        required: ['mission', 'context'],
+      },
+      execute: async (args) => this.launchAutonomousBrowserAgent(args.mission, args.context, args.timeoutSeconds),
+    });
   }
 
   /**

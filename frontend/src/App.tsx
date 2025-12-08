@@ -1,44 +1,91 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import React, { useEffect } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Toaster } from 'react-hot-toast';
 import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from 'react-hot-toast';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 // Components
-import { Layout } from '@/components/Layout';
 import { ErrorFallback } from '@/components/ErrorFallback';
+import { Layout } from '@/components/Layout';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
+// Theme configuration
+import { applyCommandPaletteTheme, loadCommandPaletteTheme } from '@/config/command-palette-theme';
+
 // Pages
-import { HomePage } from '@/pages/HomePage';
-import { LoginPage } from '@/pages/LoginPage';
-import { RegisterPage } from '@/pages/RegisterPage';
-import { DashboardPage } from '@/pages/DashboardPage';
-import { CompleteDashboardPage } from '@/pages/CompleteDashboardPage';
-import { AdminDashboardPage } from '@/pages/AdminDashboardPage';
-import { ClientDashboardPage } from '@/pages/ClientDashboardPage';
-import { FilesPage } from '@/pages/FilesPage';
-import { UploadPage } from '@/pages/UploadPage';
-import { HostsPage } from '@/pages/HostsPage';
-import { ContractsPage } from '@/pages/ContractsPage';
-import { GovernancePage } from '@/pages/GovernancePage';
-import { SettingsPage } from '@/pages/SettingsPage';
-import { ProfilePage } from '@/pages/ProfilePage';
-import { AIContentPage } from '@/pages/AIContentPage';
-import { SEOModelTrainingPage } from '@/pages/SEOModelTrainingPage';
-import { WorkflowsPage } from '@/pages/WorkflowsPage';
-import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
+import { PromptConsolePage } from '@/pages/PromptConsolePage';
 import { ComponentSchemaToolPage } from '@/pages/ComponentSchemaToolPage';
+import { SidebarDemoPage } from '@/pages/SidebarDemoPage';
+import AdminNavDemoPage from '@/pages/AdminNavDemoPage';
+import UnifiedDashboardDemoPage from '@/pages/UnifiedDashboardDemoPage';
+import WorkflowWizardDemoPage from '@/pages/WorkflowWizardDemoPage';
+import SecurityAuditReportDemoPage from '@/pages/SecurityAuditReportDemoPage';
+import SelfOrganizingDashboardDemoPage from '@/pages/SelfOrganizingDashboardDemoPage';
+import DevContainerAdminDashboardDemoPage from '@/pages/DevContainerAdminDashboardDemoPage';
+import LightDomSlotsDemoPage from '@/pages/LightDomSlotsDemoPage';
+import ComponentBundlesDemoPage from '@/pages/ComponentBundlesDemoPage';
+import ClientIntegrationDemoPage from '@/pages/ClientIntegrationDemoPage';
+import EnterpriseContainerDemoPage from '@/pages/EnterpriseContainerDemoPage';
+import SpaceMiningDemoPage from '@/pages/SpaceMiningDemoPage';
+import ServiceGraphVisualizerDemoPage from '@/pages/ServiceGraphVisualizerDemoPage';
+import MetaverseNftDemoPage from '@/pages/MetaverseNftDemoPage';
+import DataMiningOperationsDemoPage from '@/pages/DataMiningOperationsDemoPage';
+import CrawleeManager from '@/pages/CrawleeManager';
+import NeuralNetworkManagementPage from '@/pages/NeuralNetworkManagementPage';
+import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
-import { ComprehensiveWorkflowsPage } from '@/pages/ComprehensiveWorkflowsPage';
+import { RegisterPage } from '@/pages/RegisterPage';
+import { SettingsPage } from '@/pages/SettingsPage';
+import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
+import { WorkflowsPage } from '@/pages/WorkflowsPage';
+
+// Service Dashboards
+import CodebaseIndexingDashboard from '@/components/dashboards/CodebaseIndexingDashboard';
+import AIResearchDashboard from '@/components/dashboards/AIResearchDashboard';
+import DataMiningDashboard from '@/components/dashboards/DataMiningDashboard';
+import LeadGenerationDashboard from '@/components/dashboards/LeadGenerationDashboard';
+import WorkflowGeneratorDashboard from '@/components/dashboards/WorkflowGeneratorDashboard';
+import SchemaLinkingDashboard from '@/components/dashboards/SchemaLinkingDashboard';
+import TrainingDataDashboard from '@/components/dashboards/TrainingDataDashboard';
+import EmbeddingsDashboard from '@/components/dashboards/EmbeddingsDashboard';
+import FeedbackLoopDashboard from '@/components/dashboards/FeedbackLoopDashboard';
+import NeuralNetworkDashboard from '@/components/dashboards/NeuralNetworkDashboard';
+import UnifiedRAGDashboard from '@/components/dashboards/UnifiedRAGDashboard';
+import AgentOrchestrationDashboard from '@/components/dashboards/AgentOrchestrationDashboard';
+import DeepSeekAutomationDashboard from '@/components/dashboards/DeepSeekAutomationDashboard';
+import WorkflowWizardDashboard from '@/components/dashboards/WorkflowWizardDashboard';
+import BlockchainOptimizationDashboard from '@/components/dashboards/BlockchainOptimizationDashboard';
+import CrawleeDashboard from '@/components/dashboards/CrawleeDashboard';
+import SEOCampaignDashboard from '@/components/dashboards/SEOCampaignDashboard';
+import ClientSiteDashboard from '@/components/dashboards/ClientSiteDashboard';
+import N8NWorkflowDashboard from '@/components/dashboards/N8NWorkflowDashboard';
+import DeepSeekDatabaseDashboard from '@/components/dashboards/DeepSeekDatabaseDashboard';
+import MCPServerDashboard from '@/components/dashboards/MCPServerDashboard';
+import DeepSeekChatDashboard from '@/components/dashboards/DeepSeekChatDashboard';
+import ConversationHistoryDashboard from '@/components/dashboards/ConversationHistoryDashboard';
+import EnhancedRAGDashboard from '@/components/dashboards/EnhancedRAGDashboard';
+import OnboardingDashboard from '@/components/dashboards/OnboardingDashboard';
+import StripePaymentDashboard from '@/components/dashboards/StripePaymentDashboard';
+import RealtimeClientDashboard from '@/components/dashboards/RealtimeClientDashboard';
+import AILayoutDashboard from '@/components/dashboards/AILayoutDashboard';
+import PretrainedModelDashboard from '@/components/dashboards/PretrainedModelDashboard';
+import AnalyticsDashboard from '@/components/dashboards/AnalyticsDashboard';
+import CommandDashboard from '@/components/dashboards/CommandDashboard';
+import DataStreamsDashboard from '@/components/dashboards/DataStreamsDashboard';
+import AttributeManagementDashboard from '@/components/dashboards/AttributeManagementDashboard';
+import CampaignOrchestrationDashboard from '@/components/dashboards/CampaignOrchestrationDashboard';
+import WorkflowAdminDashboard from '@/components/dashboards/WorkflowAdminDashboard';
+import AdvancedWorkflowDashboard from '@/components/dashboards/AdvancedWorkflowDashboard';
+import ExtendedWorkflowDashboard from '@/components/dashboards/ExtendedWorkflowDashboard';
+import StorybookMiningDashboard from '@/components/dashboards/StorybookMiningDashboard';
+import ResearchPipelineDashboard from '@/components/dashboards/ResearchPipelineDashboard';
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth';
 
 // Services
-import { AuthService } from '@/services/auth';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -60,7 +107,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to='/login' replace />;
   }
 
   return <>{children}</>;
@@ -75,8 +122,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   if (user) {
-    const target = (user as any)?.role === 'admin' ? '/admin-dashboard' : '/dashboard';
-    return <Navigate to={target} replace />;
+    return <Navigate to='/admin-dashboard' replace />;
   }
 
   return <>{children}</>;
@@ -89,24 +135,23 @@ const ErrorFallbackComponent: React.FC<{ error: Error; resetErrorBoundary: () =>
 }) => <ErrorFallback error={error} resetErrorBoundary={resetErrorBoundary} />;
 
 const App: React.FC = () => {
+  // Initialize command palette theme on app load
+  useEffect(() => {
+    const savedTheme = loadCommandPaletteTheme();
+    applyCommandPaletteTheme(savedTheme);
+  }, []);
+
   return (
     <ErrorBoundary FallbackComponent={ErrorFallbackComponent}>
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
           <Router>
-            <div className="min-h-screen bg-background text-foreground">
+            <div className='min-h-screen bg-background text-foreground'>
               <Routes>
                 {/* Public Routes */}
+                <Route path='/' element={<Navigate to='/admin-dashboard' replace />} />
                 <Route
-                  path="/"
-                  element={
-                    <PublicRoute>
-                      <HomePage />
-                    </PublicRoute>
-                  }
-                />
-                <Route
-                  path="/login"
+                  path='/login'
                   element={
                     <PublicRoute>
                       <LoginPage />
@@ -114,7 +159,7 @@ const App: React.FC = () => {
                   }
                 />
                 <Route
-                  path="/register"
+                  path='/register'
                   element={
                     <PublicRoute>
                       <RegisterPage />
@@ -122,139 +167,172 @@ const App: React.FC = () => {
                   }
                 />
 
+                {/* Demo Route - No Auth Required */}
+                <Route path='/sidebar-demo' element={<SidebarDemoPage />} />
+
                 {/* Protected Routes */}
                 <Route
-                  path="/dashboard"
+                  path='/admin-dashboard'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <DashboardPage />
+                        <PromptConsolePage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/complete-dashboard"
+                  path='/admin-navigation'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <CompleteDashboardPage />
+                        <AdminNavDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/admin-dashboard"
+                  path='/unified-dashboard'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <AdminDashboardPage />
+                        <UnifiedDashboardDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/client-dashboard"
+                  path='/workflow-wizard'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <ClientDashboardPage />
+                        <WorkflowWizardDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/files"
+                  path='/security-audit-report'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <FilesPage />
+                        <SecurityAuditReportDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/upload"
+                  path='/self-organizing-dashboard'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <UploadPage />
+                        <SelfOrganizingDashboardDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/hosts"
+                  path='/devcontainer-admin-dashboard'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <HostsPage />
+                        <DevContainerAdminDashboardDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/contracts"
+                  path='/lightdom-slot-demo'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <ContractsPage />
+                        <LightDomSlotsDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/governance"
+                  path='/component-bundles'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <GovernancePage />
+                        <ComponentBundlesDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/settings"
+                  path='/space-mining'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <SettingsPage />
+                        <SpaceMiningDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/profile"
+                  path='/service-graph'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <ProfilePage />
+                        <ServiceGraphVisualizerDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/ai-content"
+                  path='/metaverse-nft'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <AIContentPage />
+                        <MetaverseNftDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/seo-training"
+                  path='/client-integration'
                   element={
                     <ProtectedRoute>
                       <Layout>
-                        <SEOModelTrainingPage />
+                        <ClientIntegrationDemoPage />
                       </Layout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
-                  path="/workflows"
+                  path='/enterprise-container'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <EnterpriseContainerDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/data-mining'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DataMiningOperationsDemoPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/neural-network-management'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NeuralNetworkManagementPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/workflows'
                   element={
                     <ProtectedRoute>
                       <Layout>
@@ -264,7 +342,7 @@ const App: React.FC = () => {
                   }
                 />
                 <Route
-                  path="/workflow-builder"
+                  path='/workflow-builder'
                   element={
                     <ProtectedRoute>
                       <Layout>
@@ -274,7 +352,7 @@ const App: React.FC = () => {
                   }
                 />
                 <Route
-                  path="/component-schema"
+                  path='/component-schema'
                   element={
                     <ProtectedRoute>
                       <Layout>
@@ -283,14 +361,457 @@ const App: React.FC = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path='/crawlee-manager'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CrawleeManager />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/neural-networks'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NeuralNetworkManagementPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/settings'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SettingsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Service Dashboards */}
+                <Route
+                  path='/dashboard/codebase-indexing'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CodebaseIndexingDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/ai-research'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AIResearchDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/data-mining'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DataMiningDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/lead-generation'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <LeadGenerationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/workflow-generator'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <WorkflowGeneratorDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/schema-linking'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SchemaLinkingDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/training-data-mining'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <TrainingDataDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/embeddings'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <EmbeddingsDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/feedback-loop'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <FeedbackLoopDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/neural-network'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <NeuralNetworkDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/unified-rag'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <UnifiedRAGDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/agent-orchestration'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AgentOrchestrationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/deepseek-automation'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DeepSeekAutomationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/workflow-wizard'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <WorkflowWizardDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/blockchain-optimization'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <BlockchainOptimizationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/crawlee'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CrawleeDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/seo-campaigns'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SEOCampaignDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/client-sites'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ClientSiteDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/n8n-workflows'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <N8NWorkflowDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/deepseek-database'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DeepSeekDatabaseDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/mcp-servers'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <MCPServerDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/dashboard/deepseek-chat'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DeepSeekChatDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/conversation-history"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ConversationHistoryDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/enhanced-rag"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <EnhancedRAGDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/onboarding"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <OnboardingDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/stripe-payment"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <StripePaymentDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Realtime Client Dashboard */}
+                <Route
+                  path="/dashboard/realtime-client"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <RealtimeClientDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* AI Layout Dashboard */}
+                <Route
+                  path="/dashboard/ai-layout"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AILayoutDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Pretrained Model Training Dashboard */}
+                <Route
+                  path="/dashboard/pretrained-models"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <PretrainedModelDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Analytics Dashboard */}
+                <Route
+                  path='/dashboard/analytics'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AnalyticsDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Command Dashboard */}
+                <Route
+                  path='/dashboard/commands'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CommandDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Data Streams Dashboard */}
+                <Route
+                  path='/dashboard/data-streams'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DataStreamsDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Attribute Management Dashboard */}
+                <Route
+                  path='/dashboard/attribute-management'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AttributeManagementDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Campaign Orchestration Dashboard */}
+                <Route
+                  path='/dashboard/campaign-orchestration'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <CampaignOrchestrationDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path='/dashboard/workflow-admin'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <WorkflowAdminDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path='/dashboard/advanced-workflow'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AdvancedWorkflowDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path='/dashboard/extended-workflow'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ExtendedWorkflowDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path='/dashboard/storybook-mining'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <StorybookMiningDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path='/dashboard/research-pipeline'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ResearchPipelineDashboard />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* 404 Route */}
-                <Route path="*" element={<NotFoundPage />} />
+                <Route path='*' element={<NotFoundPage />} />
               </Routes>
 
               {/* Toast Notifications */}
               <Toaster
-                position="top-right"
+                position='top-right'
                 toastOptions={{
                   duration: 4000,
                   style: {

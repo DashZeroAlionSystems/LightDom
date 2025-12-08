@@ -1,0 +1,316 @@
+{
+  "$schema": "./caching-strategies.schema.json",
+  "version": "1.0.0",
+  "description": "Caching layer configuration for large-scale data mining operations",
+  
+  "profiles": {
+    "default": {
+      "name": "Balanced Caching",
+      "description": "Balanced performance and storage for general-purpose data mining",
+      "enabled": true,
+      "strategy": "stale-while-revalidate",
+      "caches": {
+        "url": {
+          "enabled": true,
+          "size": 10000,
+          "ttl": 86400000,
+          "strategy": "lru"
+        },
+        "asset": {
+          "enabled": true,
+          "size": 5000,
+          "ttl": 604800000,
+          "strategy": "lru"
+        },
+        "screenshot": {
+          "enabled": true,
+          "size": 1000,
+          "ttl": 2592000000,
+          "strategy": "lru"
+        },
+        "ocr": {
+          "enabled": true,
+          "size": 500,
+          "ttl": 2592000000,
+          "strategy": "lru"
+        }
+      }
+    },
+    
+    "aggressive": {
+      "name": "Aggressive Caching",
+      "description": "Maximum caching for high-frequency repeated crawls",
+      "enabled": false,
+      "strategy": "cache-first",
+      "caches": {
+        "url": {
+          "enabled": true,
+          "size": 50000,
+          "ttl": 604800000,
+          "strategy": "lru"
+        },
+        "asset": {
+          "enabled": true,
+          "size": 20000,
+          "ttl": 2592000000,
+          "strategy": "lru"
+        },
+        "screenshot": {
+          "enabled": true,
+          "size": 5000,
+          "ttl": 7776000000,
+          "strategy": "lru"
+        },
+        "ocr": {
+          "enabled": true,
+          "size": 2000,
+          "ttl": 7776000000,
+          "strategy": "lru"
+        }
+      }
+    },
+    
+    "minimal": {
+      "name": "Minimal Caching",
+      "description": "Minimal caching for fresh data requirements",
+      "enabled": false,
+      "strategy": "network-first",
+      "caches": {
+        "url": {
+          "enabled": true,
+          "size": 1000,
+          "ttl": 3600000,
+          "strategy": "lru"
+        },
+        "asset": {
+          "enabled": true,
+          "size": 500,
+          "ttl": 86400000,
+          "strategy": "lru"
+        },
+        "screenshot": {
+          "enabled": false,
+          "size": 100,
+          "ttl": 3600000,
+          "strategy": "lru"
+        },
+        "ocr": {
+          "enabled": false,
+          "size": 50,
+          "ttl": 3600000,
+          "strategy": "lru"
+        }
+      }
+    },
+    
+    "training-data": {
+      "name": "Training Data Collection",
+      "description": "Optimized for collecting neural network training data with deduplication",
+      "enabled": false,
+      "strategy": "stale-while-revalidate",
+      "caches": {
+        "url": {
+          "enabled": true,
+          "size": 25000,
+          "ttl": 172800000,
+          "strategy": "lru"
+        },
+        "asset": {
+          "enabled": true,
+          "size": 10000,
+          "ttl": 604800000,
+          "strategy": "lru"
+        },
+        "screenshot": {
+          "enabled": true,
+          "size": 3000,
+          "ttl": 2592000000,
+          "strategy": "lru"
+        },
+        "ocr": {
+          "enabled": true,
+          "size": 1500,
+          "ttl": 2592000000,
+          "strategy": "lru"
+        }
+      },
+      "features": {
+        "enableDeduplication": true,
+        "qualityScoring": true,
+        "visualDiff": true,
+        "autoLabeling": true
+      }
+    },
+    
+    "offline-mining": {
+      "name": "Offline PWA Mining",
+      "description": "Specialized for offline site detection and mining",
+      "enabled": false,
+      "strategy": "cache-first",
+      "caches": {
+        "url": {
+          "enabled": true,
+          "size": 5000,
+          "ttl": 86400000,
+          "strategy": "lru"
+        },
+        "asset": {
+          "enabled": true,
+          "size": 10000,
+          "ttl": 2592000000,
+          "strategy": "lru"
+        },
+        "screenshot": {
+          "enabled": true,
+          "size": 2000,
+          "ttl": 2592000000,
+          "strategy": "lru"
+        },
+        "ocr": {
+          "enabled": false,
+          "size": 100,
+          "ttl": 86400000,
+          "strategy": "lru"
+        }
+      },
+      "features": {
+        "offlineMining": true,
+        "serviceWorkerInspection": true,
+        "pwaDetection": true,
+        "cacheEnumeration": true
+      }
+    }
+  },
+  
+  "strategies": {
+    "cache-first": {
+      "description": "Check cache first, fallback to network",
+      "priority": "cache",
+      "fallback": "network",
+      "updateCache": true
+    },
+    "network-first": {
+      "description": "Network first, fallback to cache",
+      "priority": "network",
+      "fallback": "cache",
+      "updateCache": true
+    },
+    "stale-while-revalidate": {
+      "description": "Return cached data immediately, update in background",
+      "priority": "cache",
+      "fallback": "network",
+      "updateCache": true,
+      "backgroundRevalidate": true
+    },
+    "cache-only": {
+      "description": "Only use cache, no network requests",
+      "priority": "cache",
+      "fallback": null,
+      "updateCache": false
+    },
+    "network-only": {
+      "description": "Always fetch from network, no caching",
+      "priority": "network",
+      "fallback": null,
+      "updateCache": false
+    }
+  },
+  
+  "database": {
+    "enabled": true,
+    "provider": "postgresql",
+    "connectionPool": {
+      "min": 2,
+      "max": 20,
+      "idleTimeoutMillis": 30000,
+      "connectionTimeoutMillis": 2000
+    },
+    "tables": {
+      "url_cache": {
+        "enabled": true,
+        "indexes": ["url_hash", "cache_expires_at", "is_stale"]
+      },
+      "asset_cache": {
+        "enabled": true,
+        "indexes": ["asset_hash", "asset_type"]
+      },
+      "screenshot_cache": {
+        "enabled": true,
+        "indexes": ["url_hash", "screenshot_hash"]
+      },
+      "ocr_cache": {
+        "enabled": true,
+        "indexes": ["screenshot_hash"]
+      },
+      "network_activity_log": {
+        "enabled": true,
+        "indexes": ["url", "from_cache"]
+      },
+      "offline_mining_sessions": {
+        "enabled": true,
+        "indexes": ["session_id", "status"]
+      },
+      "training_data_cache": {
+        "enabled": true,
+        "indexes": ["data_hash", "data_type", "used_in_training"]
+      }
+    }
+  },
+  
+  "serviceWorker": {
+    "enabled": true,
+    "version": 3,
+    "cacheNames": {
+      "static": "lightdom-static-v3",
+      "api": "lightdom-api-v3",
+      "dynamic": "lightdom-dynamic-v3",
+      "mining": "lightdom-mining-v3"
+    },
+    "indexedDB": {
+      "enabled": true,
+      "dbName": "LightDomCache",
+      "version": 1,
+      "stores": ["crawlData", "screenshots", "ocrResults", "networkLogs", "trainingData"]
+    }
+  },
+  
+  "features": {
+    "enableOfflineMining": true,
+    "enableVisualDiffTracking": true,
+    "enableNetworkMonitoring": true,
+    "compressionEnabled": true,
+    "enableDeduplication": true,
+    "enableQualityScoring": false,
+    "enableAutoLabeling": false,
+    "enableCDP": true,
+    "enableScreenshots": false,
+    "enableOCR": false
+  },
+  
+  "monitoring": {
+    "enabled": true,
+    "statsInterval": 300000,
+    "cleanupInterval": 3600000,
+    "logLevel": "info"
+  },
+  
+  "customStrategies": {
+    "url-patterns": {
+      "api-endpoints": {
+        "pattern": "^https?://[^/]+/api/",
+        "strategy": "network-first",
+        "ttl": 60000
+      },
+      "static-assets": {
+        "pattern": "\\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf)$",
+        "strategy": "cache-first",
+        "ttl": 2592000000
+      },
+      "html-pages": {
+        "pattern": "^https?://[^/]+(/[^?]*)?$",
+        "strategy": "stale-while-revalidate",
+        "ttl": 86400000
+      }
+    }
+  }
+}

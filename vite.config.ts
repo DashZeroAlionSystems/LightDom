@@ -1,20 +1,30 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
-    }
+      '@': path.resolve(__dirname, './src'),
+      '@/ml': path.resolve(__dirname, './src/ml'),
+      '@/database': path.resolve(__dirname, './src/database'),
+      '@/crawler': path.resolve(__dirname, './src/crawler'),
+      '@/design-system': path.resolve(__dirname, './src/design-system'),
+      '@/neural': path.resolve(__dirname, './src/neural'),
+      '@/rag': path.resolve(__dirname, './src/rag'),
+      '@/components': path.resolve(__dirname, './src/components'),
+      '@/vscode': path.resolve(__dirname, './src/components/vscode'),
+      '@/admin': path.resolve(__dirname, './src/components/admin'),
+      '@/stories': path.resolve(__dirname, './src/stories'),
+    },
   },
   server: {
     port: 3000,
     host: true,
     hmr: {
-      overlay: false
+      overlay: false,
     },
     proxy: {
       '/api': {
@@ -39,13 +49,15 @@ export default defineConfig({
         changeOrigin: true,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
-            console.log('\n[Vite WebSocket Proxy Error] Failed to proxy WebSocket to backend server');
+            console.log(
+              '\n[Vite WebSocket Proxy Error] Failed to proxy WebSocket to backend server'
+            );
             console.log('→ Make sure the API server is running on port 3001');
             console.log('→ Error:', (err as any).code || err.message);
           });
         },
-      }
-    }
+      },
+    },
   },
   build: {
     outDir: 'dist',
@@ -55,12 +67,12 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           ui: ['lucide-react'],
-          utils: ['axios', 'uuid']
-        }
-      }
-    }
+          utils: ['axios', 'uuid'],
+        },
+      },
+    },
   },
   define: {
     global: 'globalThis',
-  }
+  },
 });

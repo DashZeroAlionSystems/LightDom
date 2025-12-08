@@ -1,0 +1,48 @@
+{
+  "name": "lightdom-container",
+  "version": "1.0.0",
+  "description": "Reusable Node.js container for real-time scripting, CRUD operations, and mass data mining",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage"
+  },
+  "dependencies": {
+    "fastify": "^4.24.0",
+    "@fastify/cors": "^8.4.0",
+    "@fastify/websocket": "^8.3.0",
+    "socket.io": "^4.6.0",
+    "prisma": "^5.6.0",
+    "@prisma/client": "^5.6.0",
+    "knex": "^3.0.0",
+    "pg": "^8.11.0",
+    "lodash": "^4.17.21",
+    "ramda": "^0.29.0",
+    "rxjs": "^7.8.1",
+    "bull": "^4.11.0",
+    "agenda": "^5.0.0",
+    "redis": "^4.6.0",
+    "ajv": "^8.12.0",
+    "zod": "^3.22.0",
+    "@rjsf/core": "^5.13.0",
+    "@rjsf/validator-ajv8": "^5.13.0",
+    "langchain": "^0.0.190",
+    "graphology": "^0.25.4",
+    "vm2": "^3.9.19",
+    "axios": "^1.6.0",
+    "pino": "^8.16.0",
+    "pino-pretty": "^10.2.0",
+    "dotenv": "^16.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "vitest": "^0.34.0",
+    "@types/node": "^20.0.0"
+  }
+}

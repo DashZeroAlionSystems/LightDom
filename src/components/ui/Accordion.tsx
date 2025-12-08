@@ -77,6 +77,7 @@ const accordionContentVariants = cva(
 // Context for managing accordion state
 interface AccordionContextValue {
   type: 'single' | 'multiple';
+  collapsible: boolean;
   value: string | string[];
   onValueChange: (value: string | string[]) => void;
   variant: VariantProps<typeof accordionVariants>['variant'];
@@ -84,6 +85,7 @@ interface AccordionContextValue {
 }
 
 const AccordionContext = createContext<AccordionContextValue | null>(null);
+const AccordionItemContext = createContext<string | null>(null);
 
 export interface AccordionProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -105,6 +107,7 @@ const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(
     size,
     className,
     children,
+    collapsible = false,
     ...props
   }, ref) => {
     const [internalValue, setInternalValue] = useState<string | string[]>(
@@ -122,6 +125,7 @@ const Accordion = React.forwardRef<HTMLDivElement, AccordionProps>(
       <AccordionContext.Provider
         value={{
           type,
+          collapsible,
           value: currentValue,
           onValueChange: handleValueChange,
           variant,
@@ -155,13 +159,17 @@ const AccordionItem = React.forwardRef<HTMLDivElement, AccordionItemProps>(
     }
 
     return (
-      <div
-        ref={ref}
-        className={cn(accordionItemVariants({ variant: context.variant }), className)}
-        {...props}
-      >
-        {children}
-      </div>
+      <AccordionItemContext.Provider value={value}>
+        <div
+          ref={ref}
+          className={cn(accordionItemVariants({ variant: context.variant }), className)}
+          data-accordion-item
+          data-value={value}
+          {...props}
+        >
+          {children}
+        </div>
+      </AccordionItemContext.Provider>
     );
   }
 );
@@ -176,33 +184,26 @@ export interface AccordionTriggerProps extends React.HTMLAttributes<HTMLButtonEl
 const AccordionTrigger = React.forwardRef<HTMLButtonElement, AccordionTriggerProps>(
   ({ className, children, asChild, ...props }, ref) => {
     const context = useContext(AccordionContext);
+    const itemValue = useContext(AccordionItemContext);
     if (!context) {
       throw new Error('AccordionTrigger must be used within an AccordionItem');
     }
-
-    // Find the parent AccordionItem to get its value
-    const itemValue = React.useContext(React.createContext<string>(''));
-    const triggerRef = React.useRef<HTMLButtonElement>(null);
+    if (!itemValue) {
+      throw new Error('AccordionTrigger must have an associated item value');
+    }
 
     const handleClick = () => {
-      if (!triggerRef.current) return;
-
-      // Walk up the DOM to find the AccordionItem
-      let element = triggerRef.current.parentElement;
-      while (element && !element.hasAttribute('data-accordion-item')) {
-        element = element.parentElement;
-      }
-
-      if (!element) return;
-
-      const itemValue = element.getAttribute('data-value');
-      if (!itemValue) return;
-
       const { type, value, onValueChange } = context;
 
       if (type === 'single') {
-        const newValue = value === itemValue ? '' : itemValue;
-        onValueChange(newValue);
+        const isCurrentlyOpen = value === itemValue;
+        if (isCurrentlyOpen) {
+          if (context.collapsible) {
+            onValueChange('');
+          }
+        } else {
+          onValueChange(itemValue);
+        }
       } else {
         const currentValues = Array.isArray(value) ? value : [];
         const newValues = currentValues.includes(itemValue)
@@ -221,22 +222,18 @@ const AccordionTrigger = React.forwardRef<HTMLButtonElement, AccordionTriggerPro
         onClick: handleClick,
         'aria-expanded': isOpen,
         'aria-controls': `accordion-content-${itemValue}`,
-        ref: triggerRef,
         ...props
       });
     }
 
     return (
       <button
-        ref={(el) => {
-          if (typeof ref === 'function') ref(el);
-          else if (ref) ref.current = el;
-          triggerRef.current = el;
-        }}
+        ref={ref}
         className={cn(accordionTriggerVariants({ size: context.size }), className)}
         onClick={handleClick}
         aria-expanded={isOpen}
         aria-controls={`accordion-content-${itemValue}`}
+        data-state={isOpen ? 'open' : 'closed'}
         {...props}
       >
         {children}
@@ -259,21 +256,12 @@ export interface AccordionContentProps extends React.HTMLAttributes<HTMLDivEleme
 const AccordionContent = React.forwardRef<HTMLDivElement, AccordionContentProps>(
   ({ className, children, ...props }, ref) => {
     const context = useContext(AccordionContext);
+    const itemValue = useContext(AccordionItemContext);
     if (!context) {
       throw new Error('AccordionContent must be used within an AccordionItem');
     }
-
-    // Find the parent AccordionItem to get its value
-    const contentRef = React.useRef<HTMLDivElement>(null);
-
-    // Walk up the DOM to find the AccordionItem
-    let itemValue = '';
-    if (contentRef.current) {
-      let element = contentRef.current.parentElement;
-      while (element && !element.hasAttribute('data-accordion-item')) {
-        element = element.parentElement;
-      }
-      itemValue = element?.getAttribute('data-value') || '';
+    if (!itemValue) {
+      throw new Error('AccordionContent must have an associated item value');
     }
 
     const isOpen = context.type === 'single'
@@ -282,11 +270,7 @@ const AccordionContent = React.forwardRef<HTMLDivElement, AccordionContentProps>
 
     return (
       <div
-        ref={(el) => {
-          if (typeof ref === 'function') ref(el);
-          else if (ref) ref.current = el;
-          contentRef.current = el;
-        }}
+        ref={ref}
         className={cn(
           accordionContentVariants({ size: context.size }),
           'data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up'
@@ -295,6 +279,7 @@ const AccordionContent = React.forwardRef<HTMLDivElement, AccordionContentProps>
           display: isOpen ? 'block' : 'none'
         }}
         id={`accordion-content-${itemValue}`}
+        data-state={isOpen ? 'open' : 'closed'}
         {...props}
       >
         <div className="pb-4 pt-0">

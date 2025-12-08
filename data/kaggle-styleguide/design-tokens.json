@@ -1,0 +1,150 @@
+{
+  "colors": {
+    "primary": [],
+    "secondary": [],
+    "accent": [],
+    "background": [
+      "#ffffff",
+      "#f8f9fa",
+      "#47494d",
+      "#595b5e",
+      "#e8eaed",
+      "#20beff",
+      "#1ccd76",
+      "#e5cf4a"
+    ],
+    "surface": [],
+    "error": [],
+    "warning": [],
+    "success": [],
+    "info": [],
+    "text": [
+      "#000000",
+      "#202124",
+      "#0000ee",
+      "#5f6368",
+      "#3c4043",
+      "#101010"
+    ],
+    "border": [
+      "#9aa0a6",
+      "#dadce0",
+      "#000000",
+      "#bdc1c6"
+    ]
+  },
+  "typography": {
+    "fontFamilies": [
+      "zeitung, sans-serif"
+    ],
+    "fontSizes": [
+      "44px",
+      "24px",
+      "36px"
+    ],
+    "fontWeights": [
+      "700"
+    ],
+    "lineHeights": [
+      "52px",
+      "32px",
+      "44px"
+    ],
+    "letterSpacings": [],
+    "headings": {
+      "h1": {
+        "fontFamily": "zeitung, sans-serif",
+        "fontSize": "44px",
+        "fontWeight": "700",
+        "lineHeight": "52px",
+        "letterSpacing": "normal",
+        "textTransform": "none",
+        "color": "rgb(32, 33, 36)"
+      },
+      "h2": {
+        "fontFamily": "zeitung, sans-serif",
+        "fontSize": "24px",
+        "fontWeight": "700",
+        "lineHeight": "32px",
+        "letterSpacing": "normal",
+        "textTransform": "none",
+        "color": "rgb(32, 33, 36)"
+      },
+      "h3": {
+        "fontFamily": "zeitung, sans-serif",
+        "fontSize": "24px",
+        "fontWeight": "700",
+        "lineHeight": "32px",
+        "letterSpacing": "normal",
+        "textTransform": "none",
+        "color": "rgb(32, 33, 36)"
+      },
+      "h4": {
+        "fontFamily": "zeitung, sans-serif",
+        "fontSize": "36px",
+        "fontWeight": "700",
+        "lineHeight": "44px",
+        "letterSpacing": "normal",
+        "textTransform": "none",
+        "color": "rgb(32, 33, 36)"
+      }
+    },
+    "body": {
+      "fontFamily": "Inter, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "color": "rgb(32, 33, 36)"
+    }
+  },
+  "spacing": {
+    "margins": [
+      "-16px",
+      "-1px",
+      "-4px",
+      "11px",
+      "12px",
+      "16px",
+      "20px",
+      "24px",
+      "304px",
+      "308px",
+      "311px",
+      "312px",
+      "32px",
+      "40px",
+      "60px",
+      "64px",
+      "6px",
+      "8px",
+      "94px"
+    ],
+    "paddings": [
+      "10px",
+      "12px",
+      "14px",
+      "16.5px",
+      "16px",
+      "20px",
+      "24px",
+      "40px",
+      "48px",
+      "4px",
+      "60px",
+      "6px",
+      "8px"
+    ],
+    "gaps": [
+      "12px",
+      "24px",
+      "40px",
+      "4px",
+      "8px"
+    ]
+  },
+  "shadows": [
+    "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px"
+  ],
+  "customProperties": {}
+}

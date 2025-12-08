@@ -15,6 +15,18 @@ declare module '@modelcontextprotocol/sdk/server/stdio.js' {
 }
 
 declare module '@modelcontextprotocol/sdk/types.js' {
-  const types: any;
-  export = types;
+  export const CallToolRequestSchema: any;
+  export const ListToolsRequestSchema: any;
+  export const CallResourceRequestSchema: any;
+  export const ListResourcesRequestSchema: any;
+  export const ReadResourceRequestSchema: any;
+  export const ListPromptsRequestSchema: any;
+  export const GetPromptRequestSchema: any;
+  export const CreatePromptRequestSchema: any;
+  export const UpdatePromptRequestSchema: any;
+  export const DeletePromptRequestSchema: any;
+  export const CompletionRequestSchema: any;
+  export type Tool = any;
+  export type ToolInvocation = any;
+  export type ToolResult = any;
 }

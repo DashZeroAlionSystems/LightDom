@@ -1,0 +1,78 @@
+import { Meta, Canvas, Story, Description } from '@storybook/blocks';
+import React from 'react';
+
+import DashboardActionsStories from './DashboardActions.stories';
+import PromptSidebarStories from './PromptSidebar.stories';
+
+<Meta title="Dashboard/Docs" />
+
+# Complete Dashboard Surfaces
+
+This documentation covers the new dashboard primitives (prompt surface, sidebar feedback, and service actions) added to support the Complete Dashboard experience. Use these references when composing dashboard layouts or expanding the design system style guide.
+
+> **Story reference:** View the live component states alongside this doc via the stories below. Each story links back to Material Design 3 tokens defined in `frontend/src/config/style-guides/dashboard.json`.
+
+## Conversation Sidebar
+
+<Canvas>
+  <Story id="dashboard-prompt-sidebar--conversation-insights" />
+</Canvas>
+
+<Description>
+Conversation-focused sidebar composed of `PromptSidebarShell`, `PromptSidebarSection`, and `PromptSidebarItem`. The story demonstrates:
+
+- Latest DeepSeek reply with reset action and error state surfaced inline
+- Recent conversation history with MD3 indicator variants (`gitMerge`, `review`)
+- Collapsible dataset section for additional context
+
+Map design tokens via `dashboard.promptSurface` and `dashboard.serviceTabs.cardDefaults` for spacing/typography alignment. When integrating with live data, hydrate `meta` timestamps and `indicator` states from conversation logs.
+</Description>
+
+## Workflow Shortcuts
+
+<Canvas>
+  <Story id="dashboard-prompt-sidebar--workflow-shortcuts" />
+</Canvas>
+
+<Description>
+Highlights a quick-action variant of the sidebar for workflow shortcuts. Use `PromptSidebarItem.action` to attach call-to-action buttons and custom colour indicators (see the `indicatorColor` usage). Reference `dashboard.actionBar.buttonVariants` when matching action semantics.
+</Description>
+
+## Service Action Bar
+
+<Canvas>
+  <Story id="dashboard-service-actions--primary-actions" />
+</Canvas>
+
+<Description>
+Primary crawler operation controls inside `ServiceActionBar`. Buttons use async status feedback from `ServiceActionButton`. This aligns with the dashboard schema:
+
+- Container tokens: `dashboard.actionBar.*`
+- Button semantics: `dashboard.actionBar.buttonVariants`
+
+Recommended integration steps:
+
+1. Wire each `onAction` to real backend endpoints.
+2. Surface status via the built-in success/error states and connect to your monitoring alerts.
+3. Maintain parity with the Complete Dashboard header badges for consistent feedback.
+</Description>
+
+## Mixed Status Controls
+
+<Canvas>
+  <Story id="dashboard-service-actions--mixed-status" />
+</Canvas>
+
+<Description>
+Blends dividers, secondary actions, and error states. Use this pattern when mixing destructive commands (e.g., stress tests) with safe operations. The story simulates an error to illustrate the inline messaging provided by `ServiceActionButton`.
+</Description>
+
+## Style Guide Mapping
+
+| Component | Style Guide Keys | Notes |
+| --- | --- | --- |
+| Conversation Sidebar | `promptSurface`, `serviceTabs.cardDefaults`, `actionBar.buttonVariants` | Keep shell radius/padding synced with prompt surface |
+| Service Action Bar | `actionBar`, `actionBar.buttonVariants` | Buttons accept `primary`, `secondary`, `danger` variants |
+| Service Metrics & Panels | `metricsGrid`, `servicePanel` | Ensure typography matches style guide defaults |
+
+For detailed token values see `dashboard.json`. Update tokens alongside design tweaks to keep Storybook and production surfaces aligned.

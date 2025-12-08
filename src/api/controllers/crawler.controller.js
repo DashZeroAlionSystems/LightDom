@@ -9,6 +9,60 @@ import { ApiError } from '../utils/ApiError.js';
 // This will be implemented with the actual crawler service
 // For now, we create stubs that can be filled in
 
+const crawlerServiceBaseUrl = process.env.CRAWLER_SERVICE_URL || 'http://127.0.0.1:4300';
+const crawlerServiceTimeoutMs = Number(process.env.CRAWLER_SERVICE_TIMEOUT_MS || 10000);
+
+const crawlerServiceEndpoints = {
+  start: { path: '/start', method: 'POST' },
+  stop: { path: '/stop', method: 'POST' },
+  status: { path: '/status', method: 'GET' },
+};
+
+async function forwardCrawlerServiceRequest(action) {
+  const config = crawlerServiceEndpoints[action];
+  if (!config) {
+    throw new ApiError(400, `Unsupported crawler service action: ${action}`);
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), crawlerServiceTimeoutMs);
+
+  try {
+    const response = await fetch(`${crawlerServiceBaseUrl}${config.path}`, {
+      method: config.method,
+      headers: config.method === 'POST' ? { 'Content-Type': 'application/json' } : undefined,
+      signal: controller.signal,
+    });
+
+    const text = await response.text();
+    let data = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { raw: text };
+      }
+    }
+
+    if (!response.ok) {
+      const message = data?.error || data?.message || response.statusText;
+      throw new ApiError(response.status, `Crawler service ${action} failed: ${message}`);
+    }
+
+    return data;
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new ApiError(504, `Crawler service ${action} request timed out`);
+    }
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(502, `Crawler service ${action} request failed: ${error.message}`);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /**
  * Start a new crawling session
  */
@@ -120,6 +174,29 @@ export const getSession = async (req, res) => {
   }, 'Session retrieved');
 };
 
+/**
+ * Control the long-running crawler service (start/stop/status)
+ */
+export const controlCrawlerService = async (req, res) => {
+  const action = (req.body?.action || req.query?.action || 'status').toString().toLowerCase();
+
+  if (!['start', 'stop', 'status'].includes(action)) {
+    throw new ApiError(400, 'Action must be one of: start, stop, status');
+  }
+
+  const response = await forwardCrawlerServiceRequest(action);
+
+  successResponse(
+    res,
+    {
+      action,
+      crawlerServiceBaseUrl,
+      response,
+    },
+    `Crawler service ${action} request completed`
+  );
+};
+
 export default {
   startCrawler,
   stopCrawler,
@@ -127,4 +204,5 @@ export default {
   crawlOnce,
   getSessions,
   getSession,
+  controlCrawlerService,
 };

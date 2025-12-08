@@ -1,0 +1,17 @@
+{
+  "environments": {
+    "production": {
+      "apiUrl": "https://lightdom-prod.example.com/api",
+      "apiKey": "your_production_api_key_here"
+    },
+    "staging": {
+      "apiUrl": "https://lightdom-staging.example.com/api",
+      "apiKey": "your_staging_api_key_here"
+    },
+    "development": {
+      "apiUrl": "http://localhost:3001/api",
+      "apiKey": "dev_api_key"
+    }
+  },
+  "defaultEnv": "development"
+}

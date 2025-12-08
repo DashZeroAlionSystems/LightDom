@@ -96,6 +96,36 @@ export function createSEOInjectionAPI(pgPool: any): Router {
   });
 
   /**
+   * POST /api/v1/seo/crawl
+   * Request a fresh crawl for the current page
+   */
+  router.post('/crawl', async (req: Request, res: Response) => {
+    try {
+      const { apiKey, url, pathname = '/', plan, sessionId } = req.body;
+
+      if (!apiKey || !url) {
+        return res.status(400).json({
+          error: 'Missing required parameters',
+          message: 'API key and url are required'
+        });
+      }
+
+      await injectionService.requestCrawl(apiKey, url, pathname, plan, sessionId);
+
+      res.json({
+        success: true,
+        message: 'Crawl queued'
+      });
+    } catch (error: any) {
+      console.error('Error in POST /api/v1/seo/crawl:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: error.message
+      });
+    }
+  });
+
+  /**
    * POST /api/v1/seo/clients
    * Register a new SEO client
    */

@@ -1,0 +1,167 @@
+{
+  "roles": {
+    "admin": {
+      "name": "admin",
+      "label": "Administrator",
+      "description": "Full system access with user management privileges",
+      "level": 1000,
+      "permissions": {
+        "users": ["create", "read", "update", "delete", "manage"],
+        "settings": ["read", "update"],
+        "billing": ["read", "update", "manage"],
+        "monitoring": ["read", "access"],
+        "security": ["read", "update", "manage"],
+        "content": ["create", "read", "update", "delete"],
+        "analytics": ["read", "export"],
+        "api": ["read", "use", "manage"],
+        "workflows": ["create", "read", "update", "delete"],
+        "automation": ["create", "read", "update", "delete"],
+        "mining": ["create", "read", "update", "delete"],
+        "team": ["create", "read", "update", "delete"],
+        "reports": ["read", "create", "export"]
+      },
+      "features": {
+        "admin_panel": true,
+        "user_management": true,
+        "system_settings": true,
+        "billing_management": true,
+        "security_settings": true,
+        "monitoring_access": true,
+        "audit_logs": true,
+        "api_management": true
+      },
+      "system": true
+    },
+    "deepseek": {
+      "name": "deepseek",
+      "label": "DeepSeek AI User",
+      "description": "Special AI/automation user with API and workflow access",
+      "level": 800,
+      "permissions": {
+        "api": ["read", "use"],
+        "workflows": ["create", "read", "update", "delete"],
+        "automation": ["create", "read", "update", "delete"],
+        "mining": ["create", "read", "update"],
+        "analytics": ["read"],
+        "content": ["create", "read"],
+        "data": ["read", "export"]
+      },
+      "features": {
+        "ai_model_access": true,
+        "workflow_builder": true,
+        "api_access": true,
+        "automation_access": true,
+        "mining_access": true,
+        "deepseek_integration": true,
+        "advanced_analytics": true
+      },
+      "system": true
+    },
+    "enterprise": {
+      "name": "enterprise",
+      "label": "Enterprise User",
+      "description": "Full featured access for enterprise customers",
+      "level": 700,
+      "permissions": {
+        "optimizations": ["create", "read", "update", "delete"],
+        "mining": ["create", "read", "update"],
+        "analytics": ["read", "export"],
+        "team": ["create", "read", "update", "delete"],
+        "automation": ["create", "read", "update", "delete"],
+        "workflows": ["create", "read", "update", "delete"],
+        "api": ["read", "use"],
+        "content": ["create", "read", "update", "delete"],
+        "reports": ["read", "create", "export"],
+        "integrations": ["read", "use"]
+      },
+      "features": {
+        "unlimited_optimizations": true,
+        "unlimited_mining": true,
+        "advanced_analytics": true,
+        "team_management": true,
+        "automation_workflows": true,
+        "api_access": true,
+        "custom_integration": true,
+        "dedicated_support": true,
+        "sso": true,
+        "audit_logs": true
+      },
+      "system": false
+    },
+    "pro": {
+      "name": "pro",
+      "label": "Professional User",
+      "description": "Enhanced features for professional users",
+      "level": 500,
+      "permissions": {
+        "optimizations": ["create", "read", "update"],
+        "mining": ["create", "read", "update"],
+        "analytics": ["read"],
+        "api": ["read", "use"],
+        "workflows": ["create", "read", "update"],
+        "automation": ["create", "read", "update"],
+        "content": ["create", "read", "update"],
+        "reports": ["read", "export"]
+      },
+      "features": {
+        "limited_optimizations": true,
+        "limited_mining": true,
+        "advanced_analytics": true,
+        "api_access": true,
+        "automation_workflows": true,
+        "data_export": true,
+        "priority_email_support": true
+      },
+      "system": false
+    },
+    "free": {
+      "name": "free",
+      "label": "Free User",
+      "description": "Basic access with limited features",
+      "level": 100,
+      "permissions": {
+        "optimizations": ["create", "read"],
+        "mining": ["create", "read"],
+        "dashboard": ["read"],
+        "profile": ["read", "update"],
+        "content": ["create", "read"]
+      },
+      "features": {
+        "basic_dashboard": true,
+        "limited_optimizations": true,
+        "limited_mining": true,
+        "community_support": true
+      },
+      "system": false
+    },
+    "guest": {
+      "name": "guest",
+      "label": "Guest User",
+      "description": "Read-only access for guests",
+      "level": 10,
+      "permissions": {
+        "dashboard": ["read"],
+        "content": ["read"]
+      },
+      "features": {
+        "readonly_access": true
+      },
+      "system": true
+    }
+  },
+  "permission_descriptions": {
+    "create": "Can create new resources",
+    "read": "Can view/read resources",
+    "update": "Can modify existing resources",
+    "delete": "Can remove resources",
+    "manage": "Full management capabilities",
+    "use": "Can use/access the resource",
+    "export": "Can export data",
+    "access": "Can access the feature"
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "last_updated": "2025-11-06",
+    "description": "User role configurations with permissions for LightDom platform"
+  }
+}

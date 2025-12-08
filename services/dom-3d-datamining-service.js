@@ -1,13 +1,13 @@
 /**
  * 3D DOM Data Mining Service
- * 
+ *
  * Advanced data mining service that:
  * 1. Renders 3D models of DOM structures using Chrome Layers
  * 2. Scrapes DOM according to hierarchy (important elements only)
  * 3. Links schemas together for semantic relationships
  * 4. Generates JSON-LD/SEO attributes for rich snippets
  * 5. Creates training data for ML-based SEO optimization
- * 
+ *
  * Use Cases:
  * - Generate 3D visualizations of website structure
  * - Extract semantic hierarchies for schema.org markup
@@ -27,7 +27,7 @@ export class DOM3DDataMiningService {
       timeout: options.timeout || 30000,
       maxDepth: options.maxDepth || 10,
       minImportanceScore: options.minImportanceScore || 0.3,
-      ...options
+      ...options,
     };
 
     this.browserConfig = new AdaptiveBrowserConfig();
@@ -41,11 +41,11 @@ export class DOM3DDataMiningService {
    */
   async initialize() {
     await this.browserConfig.initialize();
-    
+
     // Use visualization preset with GPU if available
     const config = await this.browserConfig.getConfig({
       task: 'visualization',
-      enableGPU: true
+      enableGPU: true,
     });
 
     this.browser = await puppeteer.launch(config.config);
@@ -55,7 +55,7 @@ export class DOM3DDataMiningService {
 
   /**
    * Mine a URL and generate comprehensive 3D DOM structure with schemas
-   * 
+   *
    * @param {string} url - URL to mine
    * @param {Object} options - Mining options
    * @returns {Object} Complete mining result with 3D model, schemas, and SEO data
@@ -76,32 +76,27 @@ export class DOM3DDataMiningService {
         client.send('DOM.enable'),
         client.send('CSS.enable'),
         client.send('Page.enable'),
-        client.send('Runtime.enable')
+        client.send('Runtime.enable'),
       ]);
 
       // Navigate to page
       await page.goto(url, {
         waitUntil: 'networkidle2',
-        timeout: this.options.timeout
+        timeout: this.options.timeout,
       });
 
       // Wait for page to settle
       await page.waitForTimeout(1000);
 
       // Extract all necessary data in parallel
-      const [
-        dom3DModel,
-        domHierarchy,
-        schemaData,
-        seoMetadata,
-        semanticStructure
-      ] = await Promise.all([
-        this.extract3DModel(client, page),
-        this.extractHierarchy(page),
-        this.extractSchemas(page),
-        this.extractSEOMetadata(page),
-        this.extractSemanticStructure(page)
-      ]);
+      const [dom3DModel, domHierarchy, schemaData, seoMetadata, semanticStructure] =
+        await Promise.all([
+          this.extract3DModel(client, page),
+          this.extractHierarchy(page),
+          this.extractSchemas(page),
+          this.extractSEOMetadata(page),
+          this.extractSemanticStructure(page),
+        ]);
 
       // Link schemas together
       const linkedSchemas = await this.linkSchemas(schemaData, semanticStructure, domHierarchy);
@@ -121,7 +116,7 @@ export class DOM3DDataMiningService {
         seo: {
           metadata: seoMetadata,
           richSnippets,
-          recommendations: this.generateSEORecommendations(seoMetadata, linkedSchemas)
+          recommendations: this.generateSEORecommendations(seoMetadata, linkedSchemas),
         },
         trainingData,
         metadata: {
@@ -130,8 +125,8 @@ export class DOM3DDataMiningService {
           importantElements: domHierarchy.importantElements.length,
           layerCount: dom3DModel.layers.length,
           schemaTypes: Object.keys(linkedSchemas.byType).length,
-          seoScore: this.calculateSEOScore(seoMetadata, linkedSchemas)
-        }
+          seoScore: this.calculateSEOScore(seoMetadata, linkedSchemas),
+        },
       };
 
       await page.close();
@@ -140,23 +135,23 @@ export class DOM3DDataMiningService {
       this.miningResults.set(url, result);
 
       console.log(`✅ Mining complete: ${url}`);
-      console.log(`   Elements: ${result.metadata.totalElements} (${result.metadata.importantElements} important)`);
+      console.log(
+        `   Elements: ${result.metadata.totalElements} (${result.metadata.importantElements} important)`
+      );
       console.log(`   Schemas: ${result.metadata.schemaTypes} types`);
       console.log(`   SEO Score: ${result.metadata.seoScore.toFixed(2)}/100`);
 
       return result;
-
     } catch (err) {
       error = true;
       console.error(`❌ Mining failed for ${url}:`, err.message);
       throw err;
-
     } finally {
       // Record performance metrics
       this.perfMonitor.record('dom-3d-mining', {
         responseTime: Date.now() - startTime,
         error,
-        url
+        url,
       });
     }
   }
@@ -170,11 +165,20 @@ export class DOM3DDataMiningService {
     // Get DOM snapshot with layout information
     const domSnapshot = await client.send('DOMSnapshot.captureSnapshot', {
       computedStyles: [
-        'position', 'z-index', 'transform', 'opacity', 'display',
-        'width', 'height', 'top', 'left', 'right', 'bottom'
+        'position',
+        'z-index',
+        'transform',
+        'opacity',
+        'display',
+        'width',
+        'height',
+        'top',
+        'left',
+        'right',
+        'bottom',
       ],
       includePaintOrder: true,
-      includeDOMRects: true
+      includeDOMRects: true,
     });
 
     const layers = [];
@@ -199,7 +203,7 @@ export class DOM3DDataMiningService {
         y: bounds[1],
         z: this.calculateZPosition(styles, paintOrder),
         width: bounds[2],
-        height: bounds[3]
+        height: bounds[3],
       };
 
       // Determine if this is an important layer
@@ -216,11 +220,11 @@ export class DOM3DDataMiningService {
             zIndex: styles['z-index'],
             transform: styles.transform,
             opacity: parseFloat(styles.opacity) || 1,
-            display: styles.display
+            display: styles.display,
           },
           importance,
           paintOrder,
-          isComposited: this.isCompositingLayer(styles)
+          isComposited: this.isCompositingLayer(styles),
         });
       }
     }
@@ -229,9 +233,9 @@ export class DOM3DDataMiningService {
       layers: layers.sort((a, b) => b.importance - a.importance),
       bounds: await page.evaluate(() => ({
         width: document.documentElement.scrollWidth,
-        height: document.documentElement.scrollHeight
+        height: document.documentElement.scrollHeight,
       })),
-      viewport: await page.viewport()
+      viewport: await page.viewport(),
     };
   }
 
@@ -241,89 +245,93 @@ export class DOM3DDataMiningService {
   async extractHierarchy(page) {
     console.log('🌳 Extracting DOM hierarchy...');
 
-    const hierarchy = await page.evaluate((maxDepth, minImportance) => {
-      const importantElements = [];
-      const hierarchyMap = new Map();
+    const hierarchy = await page.evaluate(
+      (maxDepth, minImportance) => {
+        const importantElements = [];
+        const hierarchyMap = new Map();
 
-      function calculateImportance(element) {
-        let score = 0;
+        function calculateImportance(element) {
+          let score = 0;
 
-        // Semantic tags are important
-        const semanticTags = ['header', 'nav', 'main', 'article', 'section', 'aside', 'footer'];
-        if (semanticTags.includes(element.tagName.toLowerCase())) score += 0.3;
+          // Semantic tags are important
+          const semanticTags = ['header', 'nav', 'main', 'article', 'section', 'aside', 'footer'];
+          if (semanticTags.includes(element.tagName.toLowerCase())) score += 0.3;
 
-        // Heading tags
-        if (/^H[1-6]$/.test(element.tagName)) score += 0.4;
+          // Heading tags
+          if (/^H[1-6]$/.test(element.tagName)) score += 0.4;
 
-        // Content importance
-        if (element.tagName === 'P' || element.tagName === 'DIV') {
-          const textLength = element.textContent?.trim().length || 0;
-          if (textLength > 50) score += 0.2;
+          // Content importance
+          if (element.tagName === 'P' || element.tagName === 'DIV') {
+            const textLength = element.textContent?.trim().length || 0;
+            if (textLength > 50) score += 0.2;
+          }
+
+          // ARIA and role attributes
+          if (element.hasAttribute('role')) score += 0.2;
+          if (element.hasAttribute('aria-label')) score += 0.1;
+
+          // Schema.org markup
+          if (element.hasAttribute('itemscope')) score += 0.5;
+          if (element.hasAttribute('itemtype')) score += 0.3;
+
+          // Unique IDs suggest importance
+          if (element.id) score += 0.1;
+
+          // Visibility matters
+          const style = window.getComputedStyle(element);
+          if (style.display === 'none' || style.visibility === 'hidden') score = 0;
+
+          return Math.min(score, 1);
         }
 
-        // ARIA and role attributes
-        if (element.hasAttribute('role')) score += 0.2;
-        if (element.hasAttribute('aria-label')) score += 0.1;
+        function traverseDOM(element, depth = 0, parent = null) {
+          if (depth > maxDepth) return;
 
-        // Schema.org markup
-        if (element.hasAttribute('itemscope')) score += 0.5;
-        if (element.hasAttribute('itemtype')) score += 0.3;
+          const importance = calculateImportance(element);
+          const elementData = {
+            tag: element.tagName,
+            id: element.id || null,
+            classes: Array.from(element.classList),
+            importance,
+            depth,
+            children: [],
+            attributes: {},
+            text: element.textContent?.trim().substring(0, 200) || null,
+          };
 
-        // Unique IDs suggest importance
-        if (element.id) score += 0.1;
+          // Capture important attributes
+          ['role', 'aria-label', 'itemscope', 'itemtype', 'itemprop'].forEach(attr => {
+            if (element.hasAttribute(attr)) {
+              elementData.attributes[attr] = element.getAttribute(attr);
+            }
+          });
 
-        // Visibility matters
-        const style = window.getComputedStyle(element);
-        if (style.display === 'none' || style.visibility === 'hidden') score = 0;
+          if (importance >= minImportance) {
+            importantElements.push(elementData);
+          }
 
-        return Math.min(score, 1);
-      }
+          // Recurse through children
+          Array.from(element.children).forEach(child => {
+            const childData = traverseDOM(child, depth + 1, elementData);
+            if (childData) {
+              elementData.children.push(childData);
+            }
+          });
 
-      function traverseDOM(element, depth = 0, parent = null) {
-        if (depth > maxDepth) return;
+          return elementData;
+        }
 
-        const importance = calculateImportance(element);
-        const elementData = {
-          tag: element.tagName,
-          id: element.id || null,
-          classes: Array.from(element.classList),
-          importance,
-          depth,
-          children: [],
-          attributes: {},
-          text: element.textContent?.trim().substring(0, 200) || null
+        const root = traverseDOM(document.body);
+
+        return {
+          root,
+          importantElements,
+          totalElements: document.querySelectorAll('*').length,
         };
-
-        // Capture important attributes
-        ['role', 'aria-label', 'itemscope', 'itemtype', 'itemprop'].forEach(attr => {
-          if (element.hasAttribute(attr)) {
-            elementData.attributes[attr] = element.getAttribute(attr);
-          }
-        });
-
-        if (importance >= minImportance) {
-          importantElements.push(elementData);
-        }
-
-        // Recurse through children
-        Array.from(element.children).forEach(child => {
-          const childData = traverseDOM(child, depth + 1, elementData);
-          if (childData) {
-            elementData.children.push(childData);
-          }
-        });
-
-        return elementData;
-      }
-
-      const root = traverseDOM(document.body);
-
-      return {
-        root,
-        importantElements,
-        totalElements: document.querySelectorAll('*').length
-      };
-    }, this.options.maxDepth, this.options.minImportanceScore);
+      },
+      this.options.maxDepth,
+      this.options.minImportanceScore
+    );
 
     return hierarchy;
   }
@@ -338,7 +346,7 @@ export class DOM3DDataMiningService {
       const result = {
         jsonLD: [],
         microdata: [],
-        rdfa: []
+        rdfa: [],
       };
 
       // Extract JSON-LD
@@ -357,7 +365,7 @@ export class DOM3DDataMiningService {
       itemScopes.forEach(element => {
         const schema = {
           type: element.getAttribute('itemtype'),
-          properties: {}
+          properties: {},
         };
 
         const props = element.querySelectorAll('[itemprop]');
@@ -376,7 +384,7 @@ export class DOM3DDataMiningService {
         result.rdfa.push({
           type: element.getAttribute('typeof'),
           property: element.getAttribute('property'),
-          content: element.getAttribute('content') || element.textContent?.trim()
+          content: element.getAttribute('content') || element.textContent?.trim(),
         });
       });
 
@@ -400,16 +408,16 @@ export class DOM3DDataMiningService {
         links: {
           internal: 0,
           external: 0,
-          canonical: null
+          canonical: null,
         },
         images: {
           total: 0,
           withAlt: 0,
-          withoutAlt: 0
+          withoutAlt: 0,
         },
         openGraph: {},
         twitter: {},
-        structuredData: false
+        structuredData: false,
       };
 
       // Meta tags
@@ -436,7 +444,9 @@ export class DOM3DDataMiningService {
         const elements = document.querySelectorAll(tag);
         result.headings[tag] = {
           count: elements.length,
-          text: Array.from(elements).map(el => el.textContent?.trim()).filter(Boolean)
+          text: Array.from(elements)
+            .map(el => el.textContent?.trim())
+            .filter(Boolean),
         };
       });
 
@@ -488,7 +498,7 @@ export class DOM3DDataMiningService {
 
       // Find major semantic sections
       const semanticTags = ['header', 'nav', 'main', 'article', 'section', 'aside', 'footer'];
-      
+
       semanticTags.forEach(tag => {
         const elements = document.querySelectorAll(tag);
         elements.forEach((element, index) => {
@@ -500,7 +510,7 @@ export class DOM3DDataMiningService {
             role: element.getAttribute('role') || null,
             hasSchema: element.hasAttribute('itemscope'),
             childCount: element.children.length,
-            textLength: element.textContent?.trim().length || 0
+            textLength: element.textContent?.trim().length || 0,
           });
         });
       });
@@ -512,7 +522,7 @@ export class DOM3DDataMiningService {
         hasMain: sections.some(s => s.type === 'main'),
         hasFooter: sections.some(s => s.type === 'footer'),
         articleCount: sections.filter(s => s.type === 'article').length,
-        sectionCount: sections.filter(s => s.type === 'section').length
+        sectionCount: sections.filter(s => s.type === 'section').length,
       };
     });
 
@@ -529,7 +539,7 @@ export class DOM3DDataMiningService {
       byType: {},
       relationships: [],
       hierarchy: {},
-      recommendations: []
+      recommendations: [],
     };
 
     // Organize schemas by type
@@ -577,10 +587,10 @@ export class DOM3DDataMiningService {
         template: {
           '@context': 'https://schema.org',
           '@type': 'Organization',
-          'name': '[Your Organization]',
-          'url': '[Your URL]',
-          'logo': '[Your Logo URL]'
-        }
+          name: '[Your Organization]',
+          url: '[Your URL]',
+          logo: '[Your Logo URL]',
+        },
       });
     }
 
@@ -593,28 +603,28 @@ export class DOM3DDataMiningService {
         template: {
           '@context': 'https://schema.org',
           '@type': 'Article',
-          'headline': '[Article Title]',
-          'author': {
+          headline: '[Article Title]',
+          author: {
             '@type': 'Person',
-            'name': '[Author Name]'
+            name: '[Author Name]',
           },
-          'datePublished': '[Date]',
-          'image': '[Image URL]'
-        }
+          datePublished: '[Date]',
+          image: '[Image URL]',
+        },
       });
     }
 
     // Recommend BreadcrumbList if nav present
     if (semanticStructure.hasNav) {
       recommendations.push({
-        type': 'BreadcrumbList',
+        type: 'BreadcrumbList',
         reason: 'Site has navigation - consider breadcrumbs',
         priority: 'low',
         template: {
           '@context': 'https://schema.org',
           '@type': 'BreadcrumbList',
-          'itemListElement': []
-        }
+          itemListElement: [],
+        },
       });
     }
 
@@ -630,10 +640,10 @@ export class DOM3DDataMiningService {
 
     // Common parent-child relationships
     const knownRelations = {
-      'Organization': ['Person', 'ContactPoint'],
-      'Article': ['Person', 'Organization'],
-      'WebPage': ['BreadcrumbList', 'Organization'],
-      'Product': ['Offer', 'AggregateRating', 'Review']
+      Organization: ['Person', 'ContactPoint'],
+      Article: ['Person', 'Organization'],
+      WebPage: ['BreadcrumbList', 'Organization'],
+      Product: ['Offer', 'AggregateRating', 'Review'],
     };
 
     types.forEach(parentType => {
@@ -643,7 +653,7 @@ export class DOM3DDataMiningService {
             relationships.push({
               parent: parentType,
               child: childType,
-              type: 'contains'
+              type: 'contains',
             });
           }
         });
@@ -662,8 +672,8 @@ export class DOM3DDataMiningService {
       children: Object.keys(schemasByType).map(type => ({
         type,
         count: schemasByType[type].length,
-        semantic: this.getSemanticMapping(type, semanticStructure)
-      }))
+        semantic: this.getSemanticMapping(type, semanticStructure),
+      })),
     };
   }
 
@@ -679,7 +689,7 @@ export class DOM3DDataMiningService {
         type: 'Article',
         status: 'present',
         recommendation: 'Ensure all required fields are filled',
-        preview: 'Rich article cards in search results'
+        preview: 'Rich article cards in search results',
       });
     }
 
@@ -689,7 +699,7 @@ export class DOM3DDataMiningService {
         type: 'FAQPage',
         status: 'potential',
         recommendation: 'Convert H3 sections to FAQ schema',
-        preview: 'Expandable FAQ in search results'
+        preview: 'Expandable FAQ in search results',
       });
     }
 
@@ -699,7 +709,7 @@ export class DOM3DDataMiningService {
         type: 'Product',
         status: 'present',
         recommendation: 'Add reviews and ratings for stars in search',
-        preview: 'Product cards with pricing and ratings'
+        preview: 'Product cards with pricing and ratings',
       });
     }
 
@@ -717,7 +727,7 @@ export class DOM3DDataMiningService {
       recommendations.push({
         type: 'title',
         severity: 'high',
-        message: 'Title is too short (minimum 30 characters recommended)'
+        message: 'Title is too short (minimum 30 characters recommended)',
       });
     }
 
@@ -726,13 +736,13 @@ export class DOM3DDataMiningService {
       recommendations.push({
         type: 'h1',
         severity: 'high',
-        message: 'Missing H1 tag'
+        message: 'Missing H1 tag',
       });
     } else if (seoMetadata.headings.h1.count > 1) {
       recommendations.push({
         type: 'h1',
         severity: 'medium',
-        message: 'Multiple H1 tags found (only one recommended)'
+        message: 'Multiple H1 tags found (only one recommended)',
       });
     }
 
@@ -741,7 +751,7 @@ export class DOM3DDataMiningService {
       recommendations.push({
         type: 'meta-description',
         severity: 'high',
-        message: 'Missing meta description'
+        message: 'Missing meta description',
       });
     }
 
@@ -750,7 +760,7 @@ export class DOM3DDataMiningService {
       recommendations.push({
         type: 'images',
         severity: 'medium',
-        message: `${seoMetadata.images.withoutAlt} images missing alt text`
+        message: `${seoMetadata.images.withoutAlt} images missing alt text`,
       });
     }
 
@@ -759,7 +769,7 @@ export class DOM3DDataMiningService {
       recommendations.push({
         type: 'structured-data',
         severity: 'high',
-        message: 'No structured data found - add JSON-LD schemas'
+        message: 'No structured data found - add JSON-LD schemas',
       });
     }
 
@@ -769,7 +779,7 @@ export class DOM3DDataMiningService {
         type: 'schema',
         severity: rec.priority,
         message: rec.reason,
-        action: `Add ${rec.type} schema`
+        action: `Add ${rec.type} schema`,
       });
     });
 
@@ -811,9 +821,8 @@ export class DOM3DDataMiningService {
     }
 
     // Images with alt (10 points)
-    const altRatio = seoMetadata.images.total > 0 
-      ? seoMetadata.images.withAlt / seoMetadata.images.total 
-      : 0;
+    const altRatio =
+      seoMetadata.images.total > 0 ? seoMetadata.images.withAlt / seoMetadata.images.total : 0;
     score += Math.floor(altRatio * 10);
 
     // Structured data (20 points)
@@ -857,7 +866,8 @@ export class DOM3DDataMiningService {
         // DOM structure features
         totalLayers: dom3DModel.layers.length,
         compositedLayers: dom3DModel.layers.filter(l => l.isComposited).length,
-        avgLayerImportance: dom3DModel.layers.reduce((sum, l) => sum + l.importance, 0) / dom3DModel.layers.length,
+        avgLayerImportance:
+          dom3DModel.layers.reduce((sum, l) => sum + l.importance, 0) / dom3DModel.layers.length,
         maxZDepth: Math.max(...dom3DModel.layers.map(l => l.position3D.z)),
 
         // Schema features
@@ -871,22 +881,21 @@ export class DOM3DDataMiningService {
         hasMetaDescription: !!seoMetadata.meta.description,
         h1Count: seoMetadata.headings.h1?.count || 0,
         h2Count: seoMetadata.headings.h2?.count || 0,
-        imageAltRatio: seoMetadata.images.total > 0 
-          ? seoMetadata.images.withAlt / seoMetadata.images.total 
-          : 0,
+        imageAltRatio:
+          seoMetadata.images.total > 0 ? seoMetadata.images.withAlt / seoMetadata.images.total : 0,
         internalLinks: seoMetadata.links.internal,
         externalLinks: seoMetadata.links.external,
         hasOpenGraph: Object.keys(seoMetadata.openGraph).length > 0,
-        hasCanonical: !!seoMetadata.links.canonical
+        hasCanonical: !!seoMetadata.links.canonical,
       },
       labels: {
         seoScore: this.calculateSEOScore(seoMetadata, linkedSchemas),
-        hasRichSnippets: linkedSchemas.byType && Object.keys(linkedSchemas.byType).length > 0
+        hasRichSnippets: linkedSchemas.byType && Object.keys(linkedSchemas.byType).length > 0,
       },
       metadata: {
         url: seoMetadata.title,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     };
   }
 
@@ -915,7 +924,7 @@ export class DOM3DDataMiningService {
    */
   calculateZPosition(styles, paintOrder) {
     let z = paintOrder;
-    
+
     const zIndex = this.parseZIndex(styles['z-index']);
     if (zIndex !== null) {
       z += zIndex * 100;
@@ -947,9 +956,19 @@ export class DOM3DDataMiningService {
 
     // Semantic importance
     const semanticTags = {
-      'HEADER': 0.8, 'NAV': 0.7, 'MAIN': 0.9, 'ARTICLE': 0.8,
-      'SECTION': 0.6, 'ASIDE': 0.5, 'FOOTER': 0.7,
-      'H1': 1.0, 'H2': 0.9, 'H3': 0.8, 'H4': 0.7, 'H5': 0.6, 'H6': 0.5
+      HEADER: 0.8,
+      NAV: 0.7,
+      MAIN: 0.9,
+      ARTICLE: 0.8,
+      SECTION: 0.6,
+      ASIDE: 0.5,
+      FOOTER: 0.7,
+      H1: 1.0,
+      H2: 0.9,
+      H3: 0.8,
+      H4: 0.7,
+      H5: 0.6,
+      H6: 0.5,
     };
 
     score = semanticTags[nodeName] || 0.3;
@@ -993,9 +1012,9 @@ export class DOM3DDataMiningService {
    */
   getSemanticMapping(schemaType, semanticStructure) {
     const mappings = {
-      'Organization': semanticStructure.hasHeader ? 'header' : null,
-      'Article': semanticStructure.articleCount > 0 ? 'article' : null,
-      'WebPage': semanticStructure.hasMain ? 'main' : null
+      Organization: semanticStructure.hasHeader ? 'header' : null,
+      Article: semanticStructure.articleCount > 0 ? 'article' : null,
+      WebPage: semanticStructure.hasMain ? 'main' : null,
     };
     return mappings[schemaType] || null;
   }

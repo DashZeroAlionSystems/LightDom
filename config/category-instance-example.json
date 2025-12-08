@@ -1,0 +1,419 @@
+{
+  "description": "Example configuration for creating a complete hierarchy of category instances",
+  "app": {
+    "name": "ecommerce-analytics",
+    "description": "E-commerce SEO and analytics platform",
+    "status": "active",
+    "config": {
+      "environment": "production",
+      "region": "us-east-1"
+    },
+    "_ref": "main_app"
+  },
+  "campaigns": [
+    {
+      "name": "q4-2025-seo-campaign",
+      "description": "Q4 SEO optimization campaign",
+      "campaign_type": "seo_optimization",
+      "app_id_ref": "app.main_app",
+      "config": {
+        "budget": 50000,
+        "duration_days": 90,
+        "target_keywords": ["ecommerce", "online shopping", "product reviews"]
+      },
+      "_ref": "seo_campaign"
+    },
+    {
+      "name": "holiday-content-campaign",
+      "description": "Holiday content generation campaign",
+      "campaign_type": "content_generation",
+      "app_id_ref": "app.main_app",
+      "config": {
+        "content_types": ["blog", "product_description", "landing_page"],
+        "target_holidays": ["black_friday", "cyber_monday", "christmas"]
+      },
+      "_ref": "content_campaign"
+    }
+  ],
+  "services": [
+    {
+      "name": "product-crawler-service",
+      "description": "Crawls competitor product pages",
+      "service_type": "crawler",
+      "app_id_ref": "app.main_app",
+      "campaign_id_ref": "campaign.seo_campaign",
+      "instance_config": {
+        "max_concurrent_crawls": 10,
+        "retry_attempts": 3,
+        "user_agent": "Mozilla/5.0 LightDom Bot"
+      },
+      "api_functions": [
+        {
+          "name": "crawl",
+          "method": "POST",
+          "path": "/crawl",
+          "description": "Start crawling a URL",
+          "params": {
+            "url": "string",
+            "depth": "number",
+            "selectors": "object"
+          }
+        },
+        {
+          "name": "status",
+          "method": "GET",
+          "path": "/status/:jobId",
+          "description": "Get crawl job status"
+        },
+        {
+          "name": "results",
+          "method": "GET",
+          "path": "/results/:jobId",
+          "description": "Get crawl results"
+        }
+      ],
+      "port": 3002,
+      "_ref": "crawler_service"
+    },
+    {
+      "name": "seo-analyzer-service",
+      "description": "Analyzes SEO metrics",
+      "service_type": "analyzer",
+      "app_id_ref": "app.main_app",
+      "campaign_id_ref": "campaign.seo_campaign",
+      "api_functions": [
+        {
+          "name": "analyze",
+          "method": "POST",
+          "path": "/analyze",
+          "description": "Analyze page SEO"
+        },
+        {
+          "name": "report",
+          "method": "GET",
+          "path": "/report/:analysisId"
+        }
+      ],
+      "port": 3003,
+      "_ref": "analyzer_service"
+    }
+  ],
+  "workflows": [
+    {
+      "name": "product-seo-workflow",
+      "description": "Complete product SEO optimization workflow",
+      "workflow_type": "seo_automation",
+      "campaign_id_ref": "campaign.seo_campaign",
+      "service_instance_id_ref": "service.crawler_service",
+      "trigger_config": {
+        "type": "schedule",
+        "schedule": "0 2 * * *",
+        "timezone": "UTC"
+      },
+      "steps": [
+        {
+          "id": 1,
+          "name": "crawl_products",
+          "type": "crawler",
+          "config": {
+            "target": "competitor_sites",
+            "max_pages": 1000
+          }
+        },
+        {
+          "id": 2,
+          "name": "extract_data",
+          "type": "extraction",
+          "config": {
+            "fields": ["title", "description", "price", "rating", "reviews"]
+          }
+        },
+        {
+          "id": 3,
+          "name": "analyze_seo",
+          "type": "analysis",
+          "config": {
+            "metrics": ["keyword_density", "meta_tags", "page_speed"]
+          }
+        },
+        {
+          "id": 4,
+          "name": "generate_report",
+          "type": "reporting",
+          "config": {
+            "format": "json",
+            "include_recommendations": true
+          }
+        }
+      ],
+      "variables": {
+        "target_urls": [],
+        "last_run": null,
+        "total_products_analyzed": 0
+      },
+      "_ref": "seo_workflow"
+    }
+  ],
+  "seeds": [
+    {
+      "seed_type": "url",
+      "seed_value": "https://competitor1.com/products",
+      "description": "Main competitor product catalog",
+      "priority": 10,
+      "app_id_ref": "app.main_app",
+      "campaign_id_ref": "campaign.seo_campaign",
+      "metadata": {
+        "category": "electronics",
+        "competitor_tier": 1
+      }
+    },
+    {
+      "seed_type": "url",
+      "seed_value": "https://competitor2.com/best-sellers",
+      "description": "Competitor best sellers page",
+      "priority": 8,
+      "app_id_ref": "app.main_app",
+      "campaign_id_ref": "campaign.seo_campaign"
+    },
+    {
+      "seed_type": "sitemap",
+      "seed_value": "https://competitor1.com/sitemap.xml",
+      "description": "Competitor sitemap",
+      "priority": 5,
+      "app_id_ref": "app.main_app"
+    }
+  ],
+  "crawlers": [
+    {
+      "name": "product-page-crawler",
+      "description": "Crawls product pages for SEO data",
+      "crawler_type": "puppeteer",
+      "app_id_ref": "app.main_app",
+      "campaign_id_ref": "campaign.seo_campaign",
+      "workflow_instance_id_ref": "workflow.seo_workflow",
+      "target_config": {
+        "urls": [],
+        "selectors": {
+          "title": "h1.product-title",
+          "price": ".product-price",
+          "description": ".product-description",
+          "rating": ".star-rating",
+          "reviews": ".review-count",
+          "images": "img.product-image",
+          "availability": ".stock-status"
+        },
+        "wait_for": ".product-details",
+        "timeout": 30000
+      },
+      "extraction_rules": {
+        "clean_html": true,
+        "extract_schema_org": true,
+        "capture_screenshots": false
+      },
+      "concurrency": 5,
+      "schedule_config": {
+        "enabled": true,
+        "cron": "0 */6 * * *"
+      }
+    }
+  ],
+  "schedulers": [
+    {
+      "name": "daily-seo-crawl",
+      "description": "Daily scheduled SEO crawling",
+      "schedule_type": "cron",
+      "schedule_expression": "0 2 * * *",
+      "app_id_ref": "app.main_app",
+      "target_entity_type": "workflow",
+      "target_entity_id_ref": "workflow.seo_workflow",
+      "payload": {
+        "mode": "full",
+        "notify_on_completion": true
+      },
+      "timezone": "America/New_York"
+    }
+  ],
+  "neural_networks": [
+    {
+      "name": "seo-score-predictor",
+      "description": "Predicts SEO score based on page attributes",
+      "model_type": "sequential",
+      "app_id_ref": "app.main_app",
+      "campaign_id_ref": "campaign.seo_campaign",
+      "architecture": {
+        "input_shape": [100],
+        "layers": [
+          {
+            "type": "dense",
+            "units": 128,
+            "activation": "relu"
+          },
+          {
+            "type": "dropout",
+            "rate": 0.3
+          },
+          {
+            "type": "dense",
+            "units": 64,
+            "activation": "relu"
+          },
+          {
+            "type": "dropout",
+            "rate": 0.2
+          },
+          {
+            "type": "dense",
+            "units": 1,
+            "activation": "sigmoid"
+          }
+        ]
+      },
+      "training_config": {
+        "epochs": 100,
+        "batch_size": 32,
+        "validation_split": 0.2,
+        "optimizer": "adam",
+        "loss": "binary_crossentropy",
+        "metrics": ["accuracy"]
+      }
+    }
+  ],
+  "data_mining": [
+    {
+      "job_name": "competitor-price-mining",
+      "description": "Extract competitor pricing data",
+      "target_type": "web",
+      "app_id_ref": "app.main_app",
+      "campaign_id_ref": "campaign.seo_campaign",
+      "workflow_instance_id_ref": "workflow.seo_workflow",
+      "target_config": {
+        "sources": ["crawler_results", "api_feeds"],
+        "filters": {
+          "category": "electronics",
+          "price_range": [0, 10000]
+        }
+      },
+      "mining_strategy": "competitive_analysis",
+      "extraction_rules": {
+        "fields": [
+          "product_name",
+          "sku",
+          "price",
+          "original_price",
+          "discount_percentage",
+          "availability",
+          "competitor_name",
+          "last_updated"
+        ],
+        "transformations": [
+          {
+            "field": "price",
+            "type": "normalize",
+            "format": "USD"
+          }
+        ]
+      },
+      "priority": 8,
+      "schedule_config": {
+        "enabled": true,
+        "frequency": "daily",
+        "time": "03:00"
+      }
+    }
+  ],
+  "attributes": [
+    {
+      "entity_type": "product",
+      "attribute_name": "title",
+      "attribute_type": "string",
+      "description": "Product title/name",
+      "is_required": true,
+      "app_id_ref": "app.main_app",
+      "validation_rules": {
+        "minLength": 1,
+        "maxLength": 255,
+        "pattern": "^[\\w\\s-]+$"
+      },
+      "display_config": {
+        "label": "Product Title",
+        "placeholder": "Enter product title",
+        "order": 1
+      }
+    },
+    {
+      "entity_type": "product",
+      "attribute_name": "price",
+      "attribute_type": "number",
+      "description": "Product price",
+      "is_required": true,
+      "app_id_ref": "app.main_app",
+      "validation_rules": {
+        "min": 0,
+        "max": 1000000,
+        "precision": 2
+      },
+      "display_config": {
+        "label": "Price",
+        "format": "currency",
+        "currency": "USD"
+      }
+    },
+    {
+      "entity_type": "product",
+      "attribute_name": "seo_score",
+      "attribute_type": "number",
+      "description": "SEO optimization score (0-100)",
+      "is_required": false,
+      "app_id_ref": "app.main_app",
+      "validation_rules": {
+        "min": 0,
+        "max": 100
+      },
+      "display_config": {
+        "label": "SEO Score",
+        "format": "percentage"
+      }
+    }
+  ],
+  "data_streams": [
+    {
+      "name": "product-data-stream",
+      "description": "Stream product data from crawlers to database",
+      "workflow_instance_id_ref": "workflow.seo_workflow",
+      "source_type": "crawler",
+      "source_config": {
+        "crawler_id_ref": "crawler.product_crawler",
+        "output_format": "json",
+        "batch_size": 100
+      },
+      "destination_type": "database",
+      "destination_config": {
+        "table": "products",
+        "upsert_key": "sku",
+        "batch_insert": true
+      },
+      "transformation_rules": [
+        {
+          "type": "map",
+          "source_field": "raw_title",
+          "target_field": "title",
+          "transform": "trim"
+        },
+        {
+          "type": "map",
+          "source_field": "price_text",
+          "target_field": "price",
+          "transform": "parse_currency"
+        },
+        {
+          "type": "calculate",
+          "target_field": "seo_score",
+          "formula": "calculate_seo_score(title, description, meta_tags)"
+        }
+      ],
+      "attribute_ids_ref": ["attribute.title", "attribute.price", "attribute.seo_score"],
+      "data_format": "json",
+      "throughput_limit": 1000
+    }
+  ]
+}

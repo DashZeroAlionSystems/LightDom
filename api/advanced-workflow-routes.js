@@ -18,13 +18,21 @@ import { PromptToSchemaGenerator } from '../src/services/ai/PromptToSchemaGenera
 import { GoogleAnalyticsIntegration } from '../src/services/ai/GoogleAnalyticsIntegration';
 
 const router = express.Router();
-let db: Pool;
-let paintProfiler: PaintProfiler;
-let mcpServer: MCPServer;
-let promptGenerator: PromptToSchemaGenerator;
-let gaIntegration: GoogleAnalyticsIntegration;
+/** @type {Pool | null} */
+let db;
+/** @type {PaintProfiler | null} */
+let paintProfiler;
+/** @type {MCPServer | null} */
+let mcpServer;
+/** @type {PromptToSchemaGenerator | null} */
+let promptGenerator;
+/** @type {GoogleAnalyticsIntegration | null} */
+let gaIntegration;
 
-export function initializeAdvancedWorkflowRoutes(pool: Pool) {
+/**
+ * @param {Pool} pool
+ */
+export function initializeAdvancedWorkflowRoutes(pool) {
   db = pool;
   paintProfiler = new PaintProfiler(db);
   mcpServer = new MCPServer(db);
@@ -44,7 +52,7 @@ router.post('/paint-timeline/profile', async (req, res) => {
     const { url, config } = req.body;
     const snapshot = await paintProfiler.profileURL(url, config);
     res.json(snapshot);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -77,7 +85,7 @@ router.get('/paint-timeline/snapshots/:id', async (req, res) => {
     };
 
     res.json(snapshot);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -88,9 +96,10 @@ router.get('/paint-timeline/snapshots/:id', async (req, res) => {
 router.get('/paint-timeline/snapshots', async (req, res) => {
   try {
     const { url, limit = 10 } = req.query;
-    const snapshots = await paintProfiler.getSnapshots(url as string, Number(limit));
+    const normalizedUrl = typeof url === 'string' ? url : String(url ?? '');
+    const snapshots = await paintProfiler.getSnapshots(normalizedUrl, Number(limit));
     res.json(snapshots);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -110,7 +119,7 @@ router.get('/paint-timeline/models', async (req, res) => {
     }));
 
     res.json(models);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -124,7 +133,7 @@ router.get('/mcp/tools', async (req, res) => {
   try {
     const tools = mcpServer.getTools();
     res.json(tools);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -137,7 +146,7 @@ router.get('/mcp/tools/category/:category', async (req, res) => {
     const { category } = req.params;
     const tools = mcpServer.getToolsByCategory(category);
     res.json(tools);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -152,7 +161,7 @@ router.post('/mcp/tools/:toolName/execute', async (req, res) => {
 
     const result = await mcpServer.executeTool(toolName, args, context);
     res.json(result);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -174,7 +183,7 @@ router.get('/mcp/sub-agents', async (req, res) => {
     }));
 
     res.json(subAgents);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -187,7 +196,7 @@ router.get('/mcp/executions', async (req, res) => {
     const { toolName, limit = 50 } = req.query;
 
     let query = 'SELECT * FROM mcp_tool_executions';
-    const params: any[] = [];
+    const params = [];
 
     if (toolName) {
       query += ' WHERE tool_name = $1';
@@ -199,7 +208,7 @@ router.get('/mcp/executions', async (req, res) => {
 
     const result = await db.query(query, params);
     res.json(result.rows);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -214,7 +223,7 @@ router.post('/prompt-to-schema/generate', async (req, res) => {
     const { prompt, context } = req.body;
     const workflow = await promptGenerator.generateFromPrompt(prompt, context);
     res.json(workflow);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -232,7 +241,7 @@ router.get('/prompt-to-schema/workflows/:id', async (req, res) => {
     }
 
     res.json(workflow);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -249,7 +258,7 @@ router.get('/prompt-to-schema/workflows', async (req, res) => {
     );
 
     res.json(result.rows);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -266,7 +275,7 @@ router.post('/ga4/configure/:campaignId', async (req, res) => {
 
     await gaIntegration.configureCampaign(campaignId, config);
     res.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -279,7 +288,7 @@ router.post('/ga4/collect/:campaignId', async (req, res) => {
     const { campaignId } = req.params;
     const report = await gaIntegration.collectMetrics(campaignId);
     res.json(report);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -297,7 +306,7 @@ router.get('/ga4/history/:campaignId', async (req, res) => {
       Number(days)
     );
     res.json(data);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -312,7 +321,7 @@ router.post('/ga4/monitor/:campaignId/start', async (req, res) => {
 
     await gaIntegration.startMonitoring(campaignId, intervalMinutes);
     res.json({ success: true, message: 'Monitoring started' });
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -334,7 +343,7 @@ router.get('/ga4/changes/:campaignId', async (req, res) => {
     );
 
     res.json(result.rows);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -349,8 +358,8 @@ router.get('/enrichment/components', async (req, res) => {
     const { category, componentType } = req.query;
 
     let query = 'SELECT * FROM enrichment_components';
-    const params: any[] = [];
-    const conditions: string[] = [];
+    const params = [];
+    const conditions = [];
 
     if (category) {
       conditions.push(`category = $${params.length + 1}`);
@@ -370,7 +379,7 @@ router.get('/enrichment/components', async (req, res) => {
 
     const result = await db.query(query, params);
     res.json(result.rows);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -391,7 +400,7 @@ router.get('/enrichment/components/:id', async (req, res) => {
     }
 
     res.json(result.rows[0]);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -408,7 +417,7 @@ router.post('/enrichment/components/:id/use', async (req, res) => {
     );
 
     res.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -430,7 +439,7 @@ router.post('/workflow-chains', async (req, res) => {
     );
 
     res.json({ id, success: true });
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
@@ -443,7 +452,7 @@ router.get('/workflow-chains', async (req, res) => {
     const { status } = req.query;
 
     let query = 'SELECT * FROM workflow_chains';
-    const params: any[] = [];
+    const params = [];
 
     if (status) {
       query += ' WHERE status = $1';
@@ -454,7 +463,7 @@ router.get('/workflow-chains', async (req, res) => {
 
     const result = await db.query(query, params);
     res.json(result.rows);
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });

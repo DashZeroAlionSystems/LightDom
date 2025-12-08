@@ -3,65 +3,58 @@
  * Advanced admin interface for comprehensive user management
  */
 
-import React, { useState } from 'react';
 import {
-  Card,
-  Table,
-  Button,
-  Space,
-  Typography,
-  Tag,
-  Input,
-  Select,
-  Modal,
-  Form,
-  message,
-  Badge,
-  Avatar,
-  Tooltip,
-  Drawer,
-  Row,
-  Col,
-  Statistic,
-  Dropdown,
-  Checkbox,
-  DatePicker,
-  Upload,
-  Tabs,
-  List,
-  Timeline,
-  Descriptions,
-  Progress,
-  Alert
-} from 'antd';
-import {
-  UserOutlined,
-  SearchOutlined,
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  LockOutlined,
-  UnlockOutlined,
-  MailOutlined,
-  PhoneOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  DeleteOutlined,
   DownloadOutlined,
-  UploadOutlined,
-  FilterOutlined,
-  ReloadOutlined,
-  MoreOutlined,
+  EditOutlined,
   EyeOutlined,
-  SafetyOutlined,
-  ClockCircleOutlined,
   GlobalOutlined,
-  TeamOutlined,
+  LockOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SafetyOutlined,
+  SearchOutlined,
   SettingOutlined,
+  TeamOutlined,
+  UnlockOutlined,
+  UserOutlined,
   WarningOutlined,
-  InfoCircleOutlined
 } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
 import type { MenuProps } from 'antd';
+import {
+  Alert,
+  Avatar,
+  Badge,
+  Button,
+  Checkbox,
+  Col,
+  DatePicker,
+  Descriptions,
+  Drawer,
+  Form,
+  Input,
+  List,
+  message,
+  Modal,
+  Progress,
+  Row,
+  Select,
+  Space,
+  Statistic,
+  Table,
+  Tabs,
+  Tag,
+  Timeline,
+  Tooltip,
+  Typography,
+} from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import React, { useState } from 'react';
+import { Card as DSCard } from '../../../utils/AdvancedReusableComponents';
 import './AdminStyles.css';
 
 const { Title, Text } = Typography;
@@ -110,7 +103,7 @@ const EnhancedUserManagement: React.FC = () => {
       stats: { optimizations: 1250, storage: 15.5, apiCalls: 45000 },
       permissions: ['read', 'write', 'delete', 'admin'],
       location: 'New York, USA',
-      verified: true
+      verified: true,
     },
     {
       id: '2',
@@ -126,7 +119,7 @@ const EnhancedUserManagement: React.FC = () => {
       stats: { optimizations: 456, storage: 5.2, apiCalls: 12000 },
       permissions: ['read', 'write'],
       location: 'London, UK',
-      verified: true
+      verified: true,
     },
     {
       id: '3',
@@ -140,8 +133,8 @@ const EnhancedUserManagement: React.FC = () => {
       stats: { optimizations: 89, storage: 1.8, apiCalls: 2500 },
       permissions: ['read', 'moderate'],
       location: 'Toronto, Canada',
-      verified: false
-    }
+      verified: false,
+    },
   ]);
 
   const [searchText, setSearchText] = useState('');
@@ -158,28 +151,40 @@ const EnhancedUserManagement: React.FC = () => {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'red';
-      case 'moderator': return 'orange';
-      case 'user': return 'blue';
-      default: return 'default';
+      case 'admin':
+        return 'red';
+      case 'moderator':
+        return 'orange';
+      case 'user':
+        return 'blue';
+      default:
+        return 'default';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'success';
-      case 'inactive': return 'default';
-      case 'suspended': return 'error';
-      default: return 'default';
+      case 'active':
+        return 'success';
+      case 'inactive':
+        return 'default';
+      case 'suspended':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
   const getPlanColor = (plan: string) => {
     switch (plan) {
-      case 'Enterprise': return 'purple';
-      case 'Pro': return 'blue';
-      case 'Free': return 'default';
-      default: return 'default';
+      case 'Enterprise':
+        return 'purple';
+      case 'Pro':
+        return 'blue';
+      case 'Free':
+        return 'default';
+      default:
+        return 'default';
     }
   };
 
@@ -193,10 +198,14 @@ const EnhancedUserManagement: React.FC = () => {
         role: values.role,
         status: 'active',
         createdAt: new Date(),
-        subscription: { plan: values.plan || 'Free', status: 'active', expiresAt: new Date('2024-12-31') },
+        subscription: {
+          plan: values.plan || 'Free',
+          status: 'active',
+          expiresAt: new Date('2024-12-31'),
+        },
         stats: { optimizations: 0, storage: 0, apiCalls: 0 },
         permissions: values.permissions || ['read'],
-        verified: false
+        verified: false,
       };
       setUsers([...users, newUser]);
       setIsModalVisible(false);
@@ -209,11 +218,7 @@ const EnhancedUserManagement: React.FC = () => {
     if (!selectedUser) return;
 
     editForm.validateFields().then(values => {
-      setUsers(users.map(u =>
-        u.id === selectedUser.id
-          ? { ...u, ...values }
-          : u
-      ));
+      setUsers(users.map(u => (u.id === selectedUser.id ? { ...u, ...values } : u)));
       setIsEditModalVisible(false);
       editForm.resetFields();
       message.success('User updated successfully');
@@ -229,39 +234,32 @@ const EnhancedUserManagement: React.FC = () => {
       onOk: () => {
         setUsers(users.filter(u => u.id !== userId));
         message.success('User deleted successfully');
-      }
+      },
     });
   };
 
   const handleBulkDelete = () => {
     Modal.confirm({
       title: `Delete ${selectedRowKeys.length} users?`,
-      content: 'This action cannot be undone. All selected users and their data will be permanently deleted.',
+      content:
+        'This action cannot be undone. All selected users and their data will be permanently deleted.',
       okText: 'Delete',
       okType: 'danger',
       onOk: () => {
         setUsers(users.filter(u => !selectedRowKeys.includes(u.id)));
         setSelectedRowKeys([]);
         message.success(`${selectedRowKeys.length} users deleted successfully`);
-      }
+      },
     });
   };
 
   const handleSuspendUser = (userId: string) => {
-    setUsers(users.map(u =>
-      u.id === userId
-        ? { ...u, status: 'suspended' as const }
-        : u
-    ));
+    setUsers(users.map(u => (u.id === userId ? { ...u, status: 'suspended' as const } : u)));
     message.success('User suspended successfully');
   };
 
   const handleActivateUser = (userId: string) => {
-    setUsers(users.map(u =>
-      u.id === userId
-        ? { ...u, status: 'active' as const }
-        : u
-    ));
+    setUsers(users.map(u => (u.id === userId ? { ...u, status: 'active' as const } : u)));
     message.success('User activated successfully');
   };
 
@@ -269,15 +267,17 @@ const EnhancedUserManagement: React.FC = () => {
     const headers = ['ID', 'Name', 'Email', 'Role', 'Status', 'Created At', 'Plan'];
     const csvContent = [
       headers.join(','),
-      ...filteredUsers.map(u => [
-        u.id,
-        u.name,
-        u.email,
-        u.role,
-        u.status,
-        u.createdAt.toLocaleDateString(),
-        u.subscription?.plan || 'N/A'
-      ].join(','))
+      ...filteredUsers.map(u =>
+        [
+          u.id,
+          u.name,
+          u.email,
+          u.role,
+          u.status,
+          u.createdAt.toLocaleDateString(),
+          u.subscription?.plan || 'N/A',
+        ].join(',')
+      ),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -307,28 +307,28 @@ const EnhancedUserManagement: React.FC = () => {
     {
       key: 'view',
       label: 'View Details',
-      icon: <EyeOutlined />
+      icon: <EyeOutlined />,
     },
     {
       key: 'edit',
       label: 'Edit User',
-      icon: <EditOutlined />
+      icon: <EditOutlined />,
     },
     {
-      type: 'divider'
+      type: 'divider',
     },
     {
       key: 'suspend',
       label: 'Suspend User',
       icon: <LockOutlined />,
-      danger: true
+      danger: true,
     },
     {
       key: 'delete',
       label: 'Delete User',
       icon: <DeleteOutlined />,
-      danger: true
-    }
+      danger: true,
+    },
   ];
 
   const columns: ColumnsType<User> = [
@@ -339,7 +339,7 @@ const EnhancedUserManagement: React.FC = () => {
       width: 250,
       render: (record: User) => (
         <Space>
-          <Badge dot={record.verified} status="success">
+          <Badge dot={record.verified} status='success'>
             <Avatar
               src={record.avatar}
               icon={<UserOutlined />}
@@ -350,18 +350,18 @@ const EnhancedUserManagement: React.FC = () => {
             <div>
               <Text strong>{record.name}</Text>
               {record.verified && (
-                <Tooltip title="Verified User">
+                <Tooltip title='Verified User'>
                   <CheckCircleOutlined style={{ color: '#52c41a', marginLeft: 4 }} />
                 </Tooltip>
               )}
             </div>
-            <Text type="secondary" style={{ fontSize: '12px' }}>
+            <Text type='secondary' style={{ fontSize: '12px' }}>
               <MailOutlined /> {record.email}
             </Text>
           </div>
         </Space>
       ),
-      sorter: (a, b) => a.name.localeCompare(b.name)
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: 'Role',
@@ -376,9 +376,9 @@ const EnhancedUserManagement: React.FC = () => {
       filters: [
         { text: 'Admin', value: 'admin' },
         { text: 'Moderator', value: 'moderator' },
-        { text: 'User', value: 'user' }
+        { text: 'User', value: 'user' },
       ],
-      onFilter: (value, record) => record.role === value
+      onFilter: (value, record) => record.role === value,
     },
     {
       title: 'Status',
@@ -386,17 +386,14 @@ const EnhancedUserManagement: React.FC = () => {
       key: 'status',
       width: 120,
       render: (status: string) => (
-        <Badge
-          status={getStatusColor(status) as any}
-          text={status.toUpperCase()}
-        />
+        <Badge status={getStatusColor(status) as any} text={status.toUpperCase()} />
       ),
       filters: [
         { text: 'Active', value: 'active' },
         { text: 'Inactive', value: 'inactive' },
-        { text: 'Suspended', value: 'suspended' }
+        { text: 'Suspended', value: 'suspended' },
       ],
-      onFilter: (value, record) => record.status === value
+      onFilter: (value, record) => record.status === value,
     },
     {
       title: 'Plan',
@@ -406,14 +403,14 @@ const EnhancedUserManagement: React.FC = () => {
         <Tag color={getPlanColor(record.subscription?.plan || '')}>
           {record.subscription?.plan || 'N/A'}
         </Tag>
-      )
+      ),
     },
     {
       title: 'Usage Stats',
       key: 'stats',
       width: 150,
       render: (record: User) => (
-        <Space direction="vertical" size="small">
+        <Space direction='vertical' size='small'>
           <Text style={{ fontSize: '12px' }}>
             Optimizations: <Text strong>{record.stats?.optimizations || 0}</Text>
           </Text>
@@ -421,7 +418,7 @@ const EnhancedUserManagement: React.FC = () => {
             Storage: <Text strong>{record.stats?.storage || 0} GB</Text>
           </Text>
         </Space>
-      )
+      ),
     },
     {
       title: 'Created',
@@ -433,7 +430,7 @@ const EnhancedUserManagement: React.FC = () => {
           <Text style={{ fontSize: '12px' }}>{date.toLocaleDateString()}</Text>
         </Tooltip>
       ),
-      sorter: (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+      sorter: (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
     },
     {
       title: 'Last Login',
@@ -442,14 +439,14 @@ const EnhancedUserManagement: React.FC = () => {
       width: 120,
       render: (date?: Date) => (
         <Text style={{ fontSize: '12px' }}>
-          {date ? date.toLocaleDateString() : <Tag color="default">Never</Tag>}
+          {date ? date.toLocaleDateString() : <Tag color='default'>Never</Tag>}
         </Text>
       ),
       sorter: (a, b) => {
         const aTime = a.lastLogin?.getTime() || 0;
         const bTime = b.lastLogin?.getTime() || 0;
         return aTime - bTime;
-      }
+      },
     },
     {
       title: 'Actions',
@@ -458,60 +455,61 @@ const EnhancedUserManagement: React.FC = () => {
       width: 200,
       render: (record: User) => (
         <Space>
-          <Tooltip title="View Details">
+          <Tooltip title='View Details'>
             <Button
-              type="text"
+              type='text'
               icon={<EyeOutlined />}
-              size="small"
+              size='small'
               onClick={() => showUserDetails(record)}
             />
           </Tooltip>
-          <Tooltip title="Edit User">
+          <Tooltip title='Edit User'>
             <Button
-              type="text"
+              type='text'
               icon={<EditOutlined />}
-              size="small"
+              size='small'
               onClick={() => showEditUser(record)}
             />
           </Tooltip>
           {record.status === 'active' ? (
-            <Tooltip title="Suspend User">
+            <Tooltip title='Suspend User'>
               <Button
-                type="text"
+                type='text'
                 danger
                 icon={<LockOutlined />}
-                size="small"
+                size='small'
                 onClick={() => handleSuspendUser(record.id)}
               />
             </Tooltip>
           ) : (
-            <Tooltip title="Activate User">
+            <Tooltip title='Activate User'>
               <Button
-                type="text"
+                type='text'
                 icon={<UnlockOutlined />}
-                size="small"
+                size='small'
                 style={{ color: '#52c41a' }}
                 onClick={() => handleActivateUser(record.id)}
               />
             </Tooltip>
           )}
-          <Tooltip title="Delete User">
+          <Tooltip title='Delete User'>
             <Button
-              type="text"
+              type='text'
               danger
               icon={<DeleteOutlined />}
-              size="small"
+              size='small'
               onClick={() => handleDeleteUser(record.id)}
             />
           </Tooltip>
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchText.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchText.toLowerCase());
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchText.toLowerCase());
     const matchesRole = selectedRole === 'all' || user.role === selectedRole;
     const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
     const matchesPlan = selectedPlan === 'all' || user.subscription?.plan === selectedPlan;
@@ -522,7 +520,7 @@ const EnhancedUserManagement: React.FC = () => {
     selectedRowKeys,
     onChange: (newSelectedRowKeys: React.Key[]) => {
       setSelectedRowKeys(newSelectedRowKeys);
-    }
+    },
   };
 
   return (
@@ -532,177 +530,190 @@ const EnhancedUserManagement: React.FC = () => {
         <Title level={2}>
           <TeamOutlined /> User Management
         </Title>
-        <Text type="secondary">
-          Manage and monitor all users on your platform
-        </Text>
+        <Text type='secondary'>Manage and monitor all users on your platform</Text>
       </div>
 
       {/* Stats Row */}
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Total Users"
-              value={users.length}
-              prefix={<TeamOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
+          <DSCard.Root>
+            <DSCard.Body>
+              <Statistic
+                title='Total Users'
+                value={users.length}
+                prefix={<TeamOutlined />}
+                valueStyle={{ color: '#1890ff' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Active Users"
-              value={users.filter(u => u.status === 'active').length}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
+          <DSCard.Root>
+            <DSCard.Body>
+              <Statistic
+                title='Active Users'
+                value={users.filter(u => u.status === 'active').length}
+                prefix={<CheckCircleOutlined />}
+                valueStyle={{ color: '#52c41a' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Suspended"
-              value={users.filter(u => u.status === 'suspended').length}
-              prefix={<WarningOutlined />}
-              valueStyle={{ color: '#f5222d' }}
-            />
-          </Card>
+          <DSCard.Root>
+            <DSCard.Body>
+              <Statistic
+                title='Suspended'
+                value={users.filter(u => u.status === 'suspended').length}
+                prefix={<WarningOutlined />}
+                valueStyle={{ color: '#f5222d' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Verified Users"
-              value={users.filter(u => u.verified).length}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#13c2c2' }}
-            />
-          </Card>
+          <DSCard.Root>
+            <DSCard.Body>
+              <Statistic
+                title='Verified Users'
+                value={users.filter(u => u.verified).length}
+                prefix={<CheckCircleOutlined />}
+                valueStyle={{ color: '#13c2c2' }}
+              />
+            </DSCard.Body>
+          </DSCard.Root>
         </Col>
       </Row>
 
-      <Card>
+      <DSCard.Root>
         {/* Action Bar */}
-        <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-          <Space wrap>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setIsModalVisible(true)}
-              size="large"
+        <DSCard.Body>
+          <div
+            style={{
+              marginBottom: '16px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '16px',
+            }}
+          >
+            <Space wrap>
+              <Button
+                type='primary'
+                icon={<PlusOutlined />}
+                onClick={() => setIsModalVisible(true)}
+                size='large'
+              >
+                Add User
+              </Button>
+              {selectedRowKeys.length > 0 && (
+                <>
+                  <Button danger icon={<DeleteOutlined />} onClick={handleBulkDelete}>
+                    Delete Selected ({selectedRowKeys.length})
+                  </Button>
+                </>
+              )}
+            </Space>
+            <Space wrap>
+              <Button icon={<DownloadOutlined />} onClick={handleExportCSV}>
+                Export CSV
+              </Button>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => {
+                  setSearchText('');
+                  setSelectedRole('all');
+                  setSelectedStatus('all');
+                  setSelectedPlan('all');
+                  message.success('Filters reset');
+                }}
+              >
+                Reset Filters
+              </Button>
+            </Space>
+          </div>
+
+          {/* Filters */}
+          <Space style={{ marginBottom: '16px', width: '100%', flexWrap: 'wrap' }}>
+            <Search
+              placeholder='Search by name or email...'
+              allowClear
+              style={{ width: 300 }}
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              prefix={<SearchOutlined />}
+            />
+            <Select
+              style={{ width: 150 }}
+              placeholder='Filter by role'
+              value={selectedRole}
+              onChange={setSelectedRole}
             >
-              Add User
-            </Button>
-            {selectedRowKeys.length > 0 && (
-              <>
-                <Button
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={handleBulkDelete}
-                >
-                  Delete Selected ({selectedRowKeys.length})
-                </Button>
-              </>
-            )}
+              <Select.Option value='all'>All Roles</Select.Option>
+              <Select.Option value='admin'>Admin</Select.Option>
+              <Select.Option value='moderator'>Moderator</Select.Option>
+              <Select.Option value='user'>User</Select.Option>
+            </Select>
+            <Select
+              style={{ width: 150 }}
+              placeholder='Filter by status'
+              value={selectedStatus}
+              onChange={setSelectedStatus}
+            >
+              <Select.Option value='all'>All Statuses</Select.Option>
+              <Select.Option value='active'>Active</Select.Option>
+              <Select.Option value='inactive'>Inactive</Select.Option>
+              <Select.Option value='suspended'>Suspended</Select.Option>
+            </Select>
+            <Select
+              style={{ width: 150 }}
+              placeholder='Filter by plan'
+              value={selectedPlan}
+              onChange={setSelectedPlan}
+            >
+              <Select.Option value='all'>All Plans</Select.Option>
+              <Select.Option value='Enterprise'>Enterprise</Select.Option>
+              <Select.Option value='Pro'>Pro</Select.Option>
+              <Select.Option value='Free'>Free</Select.Option>
+            </Select>
           </Space>
-          <Space wrap>
-            <Button
-              icon={<DownloadOutlined />}
-              onClick={handleExportCSV}
-            >
-              Export CSV
-            </Button>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={() => {
-                setSearchText('');
-                setSelectedRole('all');
-                setSelectedStatus('all');
-                setSelectedPlan('all');
-                message.success('Filters reset');
-              }}
-            >
-              Reset Filters
-            </Button>
-          </Space>
-        </div>
 
-        {/* Filters */}
-        <Space style={{ marginBottom: '16px', width: '100%', flexWrap: 'wrap' }}>
-          <Search
-            placeholder="Search by name or email..."
-            allowClear
-            style={{ width: 300 }}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            prefix={<SearchOutlined />}
+          {/* Results Info */}
+          {selectedRowKeys.length > 0 && (
+            <Alert
+              message={`${selectedRowKeys.length} user(s) selected`}
+              type='info'
+              showIcon
+              style={{ marginBottom: '16px' }}
+              closable
+              onClose={() => setSelectedRowKeys([])}
+            />
+          )}
+
+          {/* Table */}
+          <Table
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={filteredUsers}
+            rowKey='id'
+            scroll={{ x: 1300 }}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
+              pageSizeOptions: ['10', '20', '50', '100'],
+            }}
           />
-          <Select
-            style={{ width: 150 }}
-            placeholder="Filter by role"
-            value={selectedRole}
-            onChange={setSelectedRole}
-          >
-            <Select.Option value="all">All Roles</Select.Option>
-            <Select.Option value="admin">Admin</Select.Option>
-            <Select.Option value="moderator">Moderator</Select.Option>
-            <Select.Option value="user">User</Select.Option>
-          </Select>
-          <Select
-            style={{ width: 150 }}
-            placeholder="Filter by status"
-            value={selectedStatus}
-            onChange={setSelectedStatus}
-          >
-            <Select.Option value="all">All Statuses</Select.Option>
-            <Select.Option value="active">Active</Select.Option>
-            <Select.Option value="inactive">Inactive</Select.Option>
-            <Select.Option value="suspended">Suspended</Select.Option>
-          </Select>
-          <Select
-            style={{ width: 150 }}
-            placeholder="Filter by plan"
-            value={selectedPlan}
-            onChange={setSelectedPlan}
-          >
-            <Select.Option value="all">All Plans</Select.Option>
-            <Select.Option value="Enterprise">Enterprise</Select.Option>
-            <Select.Option value="Pro">Pro</Select.Option>
-            <Select.Option value="Free">Free</Select.Option>
-          </Select>
-        </Space>
-
-        {/* Results Info */}
-        {selectedRowKeys.length > 0 && (
-          <Alert
-            message={`${selectedRowKeys.length} user(s) selected`}
-            type="info"
-            showIcon
-            style={{ marginBottom: '16px' }}
-            closable
-            onClose={() => setSelectedRowKeys([])}
-          />
-        )}
-
-        {/* Table */}
-        <Table
-          rowSelection={rowSelection}
-          columns={columns}
-          dataSource={filteredUsers}
-          rowKey="id"
-          scroll={{ x: 1300 }}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
-            pageSizeOptions: ['10', '20', '50', '100']
-          }}
-        />
-      </Card>
+        </DSCard.Body>
+      </DSCard.Root>
 
       {/* Add User Modal */}
       <Modal
-        title={<Space><PlusOutlined /> Add New User</Space>}
+        title={
+          <Space>
+            <PlusOutlined /> Add New User
+          </Space>
+        }
         open={isModalVisible}
         onOk={handleAddUser}
         onCancel={() => {
@@ -711,77 +722,68 @@ const EnhancedUserManagement: React.FC = () => {
         }}
         width={700}
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout='vertical'>
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="name"
-                label="Full Name"
+                name='name'
+                label='Full Name'
                 rules={[{ required: true, message: 'Please enter user name' }]}
               >
-                <Input prefix={<UserOutlined />} placeholder="John Doe" />
+                <Input prefix={<UserOutlined />} placeholder='John Doe' />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
-                name="email"
-                label="Email"
+                name='email'
+                label='Email'
                 rules={[
                   { required: true, message: 'Please enter email' },
-                  { type: 'email', message: 'Please enter valid email' }
+                  { type: 'email', message: 'Please enter valid email' },
                 ]}
               >
-                <Input prefix={<MailOutlined />} placeholder="john@example.com" />
+                <Input prefix={<MailOutlined />} placeholder='john@example.com' />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item
-                name="phone"
-                label="Phone Number"
-              >
-                <Input prefix={<PhoneOutlined />} placeholder="+1234567890" />
+              <Form.Item name='phone' label='Phone Number'>
+                <Input prefix={<PhoneOutlined />} placeholder='+1234567890' />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
-                name="role"
-                label="Role"
+                name='role'
+                label='Role'
                 rules={[{ required: true, message: 'Please select role' }]}
               >
-                <Select placeholder="Select role">
-                  <Select.Option value="user">User</Select.Option>
-                  <Select.Option value="moderator">Moderator</Select.Option>
-                  <Select.Option value="admin">Admin</Select.Option>
+                <Select placeholder='Select role'>
+                  <Select.Option value='user'>User</Select.Option>
+                  <Select.Option value='moderator'>Moderator</Select.Option>
+                  <Select.Option value='admin'>Admin</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item
-                name="plan"
-                label="Subscription Plan"
-              >
-                <Select placeholder="Select plan">
-                  <Select.Option value="Free">Free</Select.Option>
-                  <Select.Option value="Pro">Pro</Select.Option>
-                  <Select.Option value="Enterprise">Enterprise</Select.Option>
+              <Form.Item name='plan' label='Subscription Plan'>
+                <Select placeholder='Select plan'>
+                  <Select.Option value='Free'>Free</Select.Option>
+                  <Select.Option value='Pro'>Pro</Select.Option>
+                  <Select.Option value='Enterprise'>Enterprise</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                name="permissions"
-                label="Permissions"
-              >
-                <Select mode="multiple" placeholder="Select permissions">
-                  <Select.Option value="read">Read</Select.Option>
-                  <Select.Option value="write">Write</Select.Option>
-                  <Select.Option value="delete">Delete</Select.Option>
-                  <Select.Option value="moderate">Moderate</Select.Option>
-                  <Select.Option value="admin">Admin</Select.Option>
+              <Form.Item name='permissions' label='Permissions'>
+                <Select mode='multiple' placeholder='Select permissions'>
+                  <Select.Option value='read'>Read</Select.Option>
+                  <Select.Option value='write'>Write</Select.Option>
+                  <Select.Option value='delete'>Delete</Select.Option>
+                  <Select.Option value='moderate'>Moderate</Select.Option>
+                  <Select.Option value='admin'>Admin</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -791,7 +793,11 @@ const EnhancedUserManagement: React.FC = () => {
 
       {/* Edit User Modal */}
       <Modal
-        title={<Space><EditOutlined /> Edit User</Space>}
+        title={
+          <Space>
+            <EditOutlined /> Edit User
+          </Space>
+        }
         open={isEditModalVisible}
         onOk={handleEditUser}
         onCancel={() => {
@@ -800,12 +806,12 @@ const EnhancedUserManagement: React.FC = () => {
         }}
         width={700}
       >
-        <Form form={editForm} layout="vertical">
+        <Form form={editForm} layout='vertical'>
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="name"
-                label="Full Name"
+                name='name'
+                label='Full Name'
                 rules={[{ required: true, message: 'Please enter user name' }]}
               >
                 <Input prefix={<UserOutlined />} />
@@ -813,11 +819,11 @@ const EnhancedUserManagement: React.FC = () => {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="email"
-                label="Email"
+                name='email'
+                label='Email'
                 rules={[
                   { required: true, message: 'Please enter email' },
-                  { type: 'email', message: 'Please enter valid email' }
+                  { type: 'email', message: 'Please enter valid email' },
                 ]}
               >
                 <Input prefix={<MailOutlined />} />
@@ -826,20 +832,20 @@ const EnhancedUserManagement: React.FC = () => {
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="role" label="Role">
+              <Form.Item name='role' label='Role'>
                 <Select>
-                  <Select.Option value="user">User</Select.Option>
-                  <Select.Option value="moderator">Moderator</Select.Option>
-                  <Select.Option value="admin">Admin</Select.Option>
+                  <Select.Option value='user'>User</Select.Option>
+                  <Select.Option value='moderator'>Moderator</Select.Option>
+                  <Select.Option value='admin'>Admin</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="status" label="Status">
+              <Form.Item name='status' label='Status'>
                 <Select>
-                  <Select.Option value="active">Active</Select.Option>
-                  <Select.Option value="inactive">Inactive</Select.Option>
-                  <Select.Option value="suspended">Suspended</Select.Option>
+                  <Select.Option value='active'>Active</Select.Option>
+                  <Select.Option value='inactive'>Inactive</Select.Option>
+                  <Select.Option value='suspended'>Suspended</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -853,141 +859,156 @@ const EnhancedUserManagement: React.FC = () => {
           <Space>
             <Avatar src={selectedUser?.avatar} icon={<UserOutlined />} />
             <span>{selectedUser?.name}</span>
-            {selectedUser?.verified && (
-              <CheckCircleOutlined style={{ color: '#52c41a' }} />
-            )}
+            {selectedUser?.verified && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
           </Space>
         }
-        placement="right"
+        placement='right'
         onClose={() => setIsDetailDrawerVisible(false)}
         open={isDetailDrawerVisible}
         width={600}
       >
         {selectedUser && (
-          <Tabs defaultActiveKey="1">
-            <TabPane tab="Overview" key="1">
+          <Tabs defaultActiveKey='1'>
+            <TabPane tab='Overview' key='1'>
               <Descriptions column={1} bordered>
-                <Descriptions.Item label="Email">
+                <Descriptions.Item label='Email'>
                   <Space>
                     <MailOutlined />
                     {selectedUser.email}
                   </Space>
                 </Descriptions.Item>
-                <Descriptions.Item label="Phone">
+                <Descriptions.Item label='Phone'>
                   <Space>
                     <PhoneOutlined />
                     {selectedUser.phone || 'N/A'}
                   </Space>
                 </Descriptions.Item>
-                <Descriptions.Item label="Role">
+                <Descriptions.Item label='Role'>
                   <Tag color={getRoleColor(selectedUser.role)}>
                     {selectedUser.role.toUpperCase()}
                   </Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="Status">
-                  <Badge status={getStatusColor(selectedUser.status) as any} text={selectedUser.status.toUpperCase()} />
+                <Descriptions.Item label='Status'>
+                  <Badge
+                    status={getStatusColor(selectedUser.status) as any}
+                    text={selectedUser.status.toUpperCase()}
+                  />
                 </Descriptions.Item>
-                <Descriptions.Item label="Location">
+                <Descriptions.Item label='Location'>
                   <Space>
                     <GlobalOutlined />
                     {selectedUser.location || 'N/A'}
                   </Space>
                 </Descriptions.Item>
-                <Descriptions.Item label="Created">
+                <Descriptions.Item label='Created'>
                   {selectedUser.createdAt.toLocaleDateString()}
                 </Descriptions.Item>
-                <Descriptions.Item label="Last Login">
+                <Descriptions.Item label='Last Login'>
                   {selectedUser.lastLogin?.toLocaleString() || 'Never'}
                 </Descriptions.Item>
-                <Descriptions.Item label="Verified">
+                <Descriptions.Item label='Verified'>
                   {selectedUser.verified ? (
-                    <Tag color="success" icon={<CheckCircleOutlined />}>Verified</Tag>
+                    <Tag color='success' icon={<CheckCircleOutlined />}>
+                      Verified
+                    </Tag>
                   ) : (
-                    <Tag color="warning" icon={<CloseCircleOutlined />}>Not Verified</Tag>
+                    <Tag color='warning' icon={<CloseCircleOutlined />}>
+                      Not Verified
+                    </Tag>
                   )}
                 </Descriptions.Item>
               </Descriptions>
 
-              <Title level={5} style={{ marginTop: '24px' }}>Subscription</Title>
-              <Card size="small">
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Text>Plan:</Text>
-                    <Tag color={getPlanColor(selectedUser.subscription?.plan || '')}>
-                      {selectedUser.subscription?.plan}
-                    </Tag>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Text>Status:</Text>
-                    <Tag color="success">{selectedUser.subscription?.status}</Tag>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Text>Expires:</Text>
-                    <Text>{selectedUser.subscription?.expiresAt.toLocaleDateString()}</Text>
-                  </div>
-                </Space>
-              </Card>
+              <Title level={5} style={{ marginTop: '24px' }}>
+                Subscription
+              </Title>
+              <DSCard.Root>
+                <DSCard.Body>
+                  <Space direction='vertical' style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Text>Plan:</Text>
+                      <Tag color={getPlanColor(selectedUser.subscription?.plan || '')}>
+                        {selectedUser.subscription?.plan}
+                      </Tag>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Text>Status:</Text>
+                      <Tag color='success'>{selectedUser.subscription?.status}</Tag>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Text>Expires:</Text>
+                      <Text>{selectedUser.subscription?.expiresAt.toLocaleDateString()}</Text>
+                    </div>
+                  </Space>
+                </DSCard.Body>
+              </DSCard.Root>
             </TabPane>
 
-            <TabPane tab="Usage Stats" key="2">
-              <Space direction="vertical" style={{ width: '100%' }} size="large">
-                <Card size="small">
-                  <Statistic
-                    title="Total Optimizations"
-                    value={selectedUser.stats?.optimizations || 0}
-                    prefix={<SettingOutlined />}
-                  />
-                </Card>
-                <Card size="small">
-                  <Statistic
-                    title="Storage Used"
-                    value={selectedUser.stats?.storage || 0}
-                    suffix="GB"
-                    prefix={<DatabaseOutlined />}
-                  />
-                  <Progress
-                    percent={((selectedUser.stats?.storage || 0) / 20) * 100}
-                    strokeColor="#1890ff"
-                    style={{ marginTop: '8px' }}
-                  />
-                </Card>
-                <Card size="small">
-                  <Statistic
-                    title="API Calls"
-                    value={selectedUser.stats?.apiCalls || 0}
-                    prefix={<GlobalOutlined />}
-                  />
-                </Card>
+            <TabPane tab='Usage Stats' key='2'>
+              <Space direction='vertical' style={{ width: '100%' }} size='large'>
+                <DSCard.Root>
+                  <DSCard.Body>
+                    <Statistic
+                      title='Total Optimizations'
+                      value={selectedUser.stats?.optimizations || 0}
+                      prefix={<SettingOutlined />}
+                    />
+                  </DSCard.Body>
+                </DSCard.Root>
+                <DSCard.Root>
+                  <DSCard.Body>
+                    <Statistic
+                      title='Storage Used'
+                      value={selectedUser.stats?.storage || 0}
+                      suffix='GB'
+                      prefix={<DatabaseOutlined />}
+                    />
+                    <Progress
+                      percent={((selectedUser.stats?.storage || 0) / 20) * 100}
+                      strokeColor='#1890ff'
+                      style={{ marginTop: '8px' }}
+                    />
+                  </DSCard.Body>
+                </DSCard.Root>
+                <DSCard.Root>
+                  <DSCard.Body>
+                    <Statistic
+                      title='API Calls'
+                      value={selectedUser.stats?.apiCalls || 0}
+                      prefix={<GlobalOutlined />}
+                    />
+                  </DSCard.Body>
+                </DSCard.Root>
               </Space>
             </TabPane>
 
-            <TabPane tab="Permissions" key="3">
+            <TabPane tab='Permissions' key='3'>
               <List
                 dataSource={selectedUser.permissions || []}
-                renderItem={(permission) => (
+                renderItem={permission => (
                   <List.Item>
                     <Checkbox checked disabled>
-                      <Tag color="blue">{permission.toUpperCase()}</Tag>
+                      <Tag color='blue'>{permission.toUpperCase()}</Tag>
                     </Checkbox>
                   </List.Item>
                 )}
               />
             </TabPane>
 
-            <TabPane tab="Activity" key="4">
+            <TabPane tab='Activity' key='4'>
               <Timeline>
-                <Timeline.Item color="green">
+                <Timeline.Item color='green'>
                   <Text>Account created</Text>
                   <br />
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                  <Text type='secondary' style={{ fontSize: '12px' }}>
                     {selectedUser.createdAt.toLocaleString()}
                   </Text>
                 </Timeline.Item>
                 {selectedUser.lastLogin && (
-                  <Timeline.Item color="blue">
+                  <Timeline.Item color='blue'>
                     <Text>Last login</Text>
                     <br />
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                    <Text type='secondary' style={{ fontSize: '12px' }}>
                       {selectedUser.lastLogin.toLocaleString()}
                     </Text>
                   </Timeline.Item>

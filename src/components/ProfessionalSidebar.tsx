@@ -40,6 +40,8 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   ClockCircleOutlined,
+  RobotOutlined,
+  PlusOutlined,
 } from '@ant-design/icons';
 import MaterialDesignSystem, {
   MaterialColors,
@@ -51,6 +53,7 @@ import MaterialDesignSystem, {
   MaterialDarkTheme,
   MaterialTransitions,
 } from '../styles/MaterialDesignSystem';
+import { AddAgentModal } from './agent/AddAgentModal';
 
 const { Sider } = Layout;
 const { Title, Text } = Typography;
@@ -73,6 +76,13 @@ const ProfessionalSidebar: React.FC<SidebarProps> = ({
   onMenuSelect,
 }) => {
   const [notifications] = useState(5);
+  const [addAgentModalVisible, setAddAgentModalVisible] = useState(false);
+
+  const handleAgentCreated = (agent: any) => {
+    console.log('Agent created:', agent);
+    setAddAgentModalVisible(false);
+    // You can add additional logic here, like refreshing agent list
+  };
 
   // Navigation menu items with consistent structure
   const menuItems = [
@@ -81,6 +91,62 @@ const ProfessionalSidebar: React.FC<SidebarProps> = ({
       icon: <DashboardOutlined />,
       label: 'Dashboard',
       description: 'Overview and stats',
+    },
+    {
+      key: 'categories',
+      icon: <DatabaseOutlined />,
+      label: 'Categories',
+      description: 'Category Management',
+      children: [
+        {
+          key: 'categories/neural-network',
+          icon: <ExperimentOutlined />,
+          label: 'Neural Network',
+          description: 'AI/ML models',
+        },
+        {
+          key: 'categories/data-streams',
+          icon: <GlobalOutlined />,
+          label: 'Data Streams',
+          description: 'Real-time pipelines',
+        },
+        {
+          key: 'categories/data-mining',
+          icon: <DatabaseOutlined />,
+          label: 'Data Mining',
+          description: 'Mining jobs',
+        },
+        {
+          key: 'categories/crawling',
+          icon: <SearchOutlined />,
+          label: 'Crawling',
+          description: 'Web scrapers',
+        },
+        {
+          key: 'categories/seeding',
+          icon: <ClusterOutlined />,
+          label: 'Seeding',
+          description: 'Data seeders',
+        },
+        {
+          key: 'categories/attributes',
+          icon: <ApiOutlined />,
+          label: 'Attributes',
+          description: 'Data attributes',
+        },
+        {
+          key: 'categories/data-training',
+          icon: <RocketOutlined />,
+          label: 'Data Training',
+          description: 'Training pipelines',
+        },
+        {
+          key: 'categories/services',
+          icon: <ApiOutlined />,
+          label: 'Services',
+          description: 'Microservices',
+        },
+      ],
     },
     {
       key: 'mining',
@@ -159,6 +225,12 @@ const ProfessionalSidebar: React.FC<SidebarProps> = ({
       icon: <ApiOutlined />,
       label: 'SEO Marketplace',
       description: 'SEO tools marketplace',
+    },
+    {
+      key: 'mcp-servers',
+      icon: <ApiOutlined />,
+      label: 'MCP Servers',
+      description: 'Agent instance management',
     },
     {
       key: 'workflow-simulation',
@@ -415,6 +487,31 @@ const ProfessionalSidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
           </Card>
+
+          {/* Add Agent Button */}
+          <Button
+            type="primary"
+            size="large"
+            icon={<PlusOutlined />}
+            onClick={() => setAddAgentModalVisible(true)}
+            style={{
+              width: '100%',
+              height: MaterialComponentSizes.button.md.height,
+              fontWeight: 500,
+              borderRadius: MaterialBorderRadius.sm,
+              background: `linear-gradient(135deg, ${MaterialColors.primary[60]} 0%, ${MaterialColors.primary[70]} 100%)`,
+              border: 'none',
+              boxShadow: MaterialElevation.level2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: MaterialSpacing.sm,
+              transition: `all ${MaterialTransitions.duration.short} ${MaterialTransitions.easing.standard}`,
+            }}
+          >
+            <RobotOutlined style={{ fontSize: '16px' }} />
+            <span>Add Agent</span>
+          </Button>
         </div>
       )}
 
@@ -569,6 +666,13 @@ const ProfessionalSidebar: React.FC<SidebarProps> = ({
           display: none !important;
         }
       `}</style>
+
+      {/* Add Agent Modal */}
+      <AddAgentModal
+        visible={addAgentModalVisible}
+        onCancel={() => setAddAgentModalVisible(false)}
+        onSuccess={handleAgentCreated}
+      />
     </Sider>
   );
 };

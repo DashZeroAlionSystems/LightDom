@@ -11,9 +11,9 @@
  * @module DatabaseService
  */
 
-import { Pool, PoolClient, QueryResult } from 'pg';
 import fs from 'fs/promises';
 import path from 'path';
+import { Pool, PoolClient, QueryResult } from 'pg';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);

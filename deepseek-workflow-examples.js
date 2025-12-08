@@ -100,7 +100,7 @@ async function example3_SchemaGeneration() {
     options: {
       includeValidation: true,
       generateRelationships: true,
-      schemaType: 'json-schema' as const,
+      schemaType: 'json-schema',
     },
   };
 
@@ -174,7 +174,7 @@ async function example5_WorkflowExecution() {
       },
     ],
     schedule: {
-      type: 'manual' as const,
+      type: 'manual',
       enabled: false,
     },
   };

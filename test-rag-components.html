@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Components Test</title>
+  <script type="module" crossorigin src="/src/main.tsx"></script>
+  <link rel="stylesheet" href="/src/index.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+    import { BotReplyBox } from './src/components/atoms/rag';
+    
+    const App = () => (
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <h1 style={{ marginBottom: '20px' }}>RAG Components Test</h1>
+        <BotReplyBox
+          status="success"
+          content="Successfully created a comprehensive set of RAG workflow UI components."
+          location={{
+            repo: 'DashZeroAlionSystems/LightDom',
+            task: 'Create RAG workflow UI components',
+            branch: 'feature/rag-ui-components',
+          }}
+          listItems={[
+            {
+              id: 'comp-1',
+              label: 'BotReplyBox',
+              description: 'Main container with status, location, and controls',
+            },
+            {
+              id: 'comp-2',
+              label: 'Interactive Controls',
+              description: 'Feedback, copy, and retry functionality',
+            },
+          ]}
+        />
+      </div>
+    );
+    
+    const root = createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Complete Dashboard Style Guide",
+  "description": "Material Design 3 tokens and defaults for Complete Dashboard components",
+  "type": "object",
+  "properties": {
+    "dashboard": {
+      "type": "object",
+      "description": "Root dashboard container defaults",
+      "properties": {
+        "padding": { "type": "string", "default": "1.5rem" },
+        "gap": { "type": "string", "default": "1.5rem" },
+        "backgroundColor": { "type": "string", "default": "hsl(var(--background))" },
+        "borderRadius": { "type": "string", "default": "1rem" }
+      }
+    },
+    "header": {
+      "type": "object",
+      "description": "Dashboard header section",
+      "properties": {
+        "titleSize": { "type": "string", "default": "text-3xl" },
+        "titleWeight": { "type": "string", "default": "font-bold" },
+        "subtitleColor": { "type": "string", "default": "text-muted-foreground" },
+        "statusBadge": {
+          "type": "object",
+          "properties": {
+            "healthy": { "type": "string", "default": "bg-green-500 animate-pulse" },
+            "unhealthy": { "type": "string", "default": "bg-red-500" }
+          }
+        }
+      }
+    },
+    "serviceTabs": {
+      "type": "object",
+      "description": "Service status tab grid",
+      "properties": {
+        "gridCols": { "type": "string", "default": "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6" },
+        "gap": { "type": "string", "default": "gap-3" },
+        "cardDefaults": {
+          "type": "object",
+          "properties": {
+            "padding": { "type": "string", "default": "p-4" },
+            "borderRadius": { "type": "string", "default": "rounded-2xl" },
+            "transition": { "type": "string", "default": "transition hover:border-primary/60 hover:bg-primary/5" },
+            "activeBorder": { "type": "string", "default": "border-primary bg-primary/10" },
+            "inactiveBorder": { "type": "string", "default": "border-border bg-card" }
+          }
+        }
+      }
+    },
+    "actionBar": {
+      "type": "object",
+      "description": "Service action toolbar",
+      "properties": {
+        "backgroundColor": { "type": "string", "default": "bg-card" },
+        "border": { "type": "string", "default": "border border-border" },
+        "borderRadius": { "type": "string", "default": "rounded-2xl" },
+        "padding": { "type": "string", "default": "p-6" },
+        "gridCols": { "type": "string", "default": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" },
+        "gap": { "type": "string", "default": "gap-4" },
+        "buttonVariants": {
+          "type": "object",
+          "properties": {
+            "primary": { "type": "string", "default": "filled" },
+            "secondary": { "type": "string", "default": "outlined" },
+            "danger": { "type": "string", "default": "filled-tonal" }
+          }
+        }
+      }
+    },
+    "metricsGrid": {
+      "type": "object",
+      "description": "Service metrics display grid",
+      "properties": {
+        "gridCols": { "type": "string", "default": "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" },
+        "gap": { "type": "string", "default": "gap-4" },
+        "cardDefaults": {
+          "type": "object",
+          "properties": {
+            "padding": { "type": "string", "default": "p-6" },
+            "backgroundColor": { "type": "string", "default": "bg-card" },
+            "border": { "type": "string", "default": "border border-border" },
+            "borderRadius": { "type": "string", "default": "rounded-2xl" },
+            "titleColor": { "type": "string", "default": "text-muted-foreground" },
+            "valueSize": { "type": "string", "default": "text-3xl" },
+            "valueWeight": { "type": "string", "default": "font-bold" },
+            "subtitleColor": { "type": "string", "default": "text-muted-foreground" }
+          }
+        }
+      }
+    },
+    "servicePanel": {
+      "type": "object",
+      "description": "Detailed service information panel",
+      "properties": {
+        "backgroundColor": { "type": "string", "default": "bg-card" },
+        "border": { "type": "string", "default": "border border-border" },
+        "borderRadius": { "type": "string", "default": "rounded-2xl" },
+        "padding": { "type": "string", "default": "p-6" },
+        "titleSize": { "type": "string", "default": "text-lg" },
+        "titleWeight": { "type": "string", "default": "font-bold" },
+        "dataKeyColor": { "type": "string", "default": "text-muted-foreground" },
+        "dataValueWeight": { "type": "string", "default": "font-semibold" }
+      }
+    },
+    "promptSurface": {
+      "type": "object",
+      "description": "DeepSeek prompt input surface",
+      "properties": {
+        "backgroundColor": { "type": "string", "default": "bg-card" },
+        "border": { "type": "string", "default": "border border-border" },
+        "borderRadius": { "type": "string", "default": "rounded-2xl" },
+        "padding": { "type": "string", "default": "p-6" },
+        "titleSize": { "type": "string", "default": "text-xl" },
+        "titleWeight": { "type": "string", "default": "font-bold" }
+      }
+    },
+    "errorStates": {
+      "type": "object",
+      "description": "Error notification styling",
+      "properties": {
+        "backgroundColor": { "type": "string", "default": "bg-destructive/5" },
+        "borderColor": { "type": "string", "default": "border-destructive/30" },
+        "textColor": { "type": "string", "default": "text-destructive" },
+        "iconColor": { "type": "string", "default": "text-destructive" }
+      }
+    },
+    "animations": {
+      "type": "object",
+      "properties": {
+        "statusPulse": { "type": "integer", "default": 2000 },
+        "tabTransition": { "type": "integer", "default": 200 },
+        "metricFadeIn": { "type": "integer", "default": 300 }
+      }
+    }
+  }
+}

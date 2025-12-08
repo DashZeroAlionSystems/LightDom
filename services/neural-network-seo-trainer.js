@@ -9,8 +9,22 @@
  * - Provide real-time optimization decisions
  */
 
+import * as tf from '@tensorflow/tfjs';
 import { EventEmitter } from 'events';
-import * as tf from '@tensorflow/tfjs-node';
+import { createRequire } from 'module';
+
+const requireTF = createRequire(import.meta.url);
+
+try {
+  requireTF('@tensorflow/tfjs-node');
+  // Attempt to switch to native backend when available for performance
+  if (typeof tf.setBackend === 'function' && typeof tf.findBackend === 'function' && tf.findBackend('tensorflow')) {
+    tf.setBackend('tensorflow').catch(() => {});
+  }
+  console.log('NeuralNetworkSEOTrainer: native TensorFlow backend enabled');
+} catch (err) {
+  console.warn('NeuralNetworkSEOTrainer: using @tensorflow/tfjs fallback (native bindings unavailable)');
+}
 
 class NeuralNetworkSEOTrainer extends EventEmitter {
   constructor(config = {}) {
@@ -18,19 +32,24 @@ class NeuralNetworkSEOTrainer extends EventEmitter {
     
     this.config = {
       modelArchitecture: config.modelArchitecture || 'transformer',
-      inputDimensions: config.inputDimensions || 192, // 192 attributes
+      inputDimensions: config.inputDimensions || 192, // 192 SEO attributes
       hiddenLayers: config.hiddenLayers || [256, 128, 64],
       outputDimensions: config.outputDimensions || 50, // optimization recommendations
       learningRate: config.learningRate || 0.001,
-      batchSize: config.batchSize || 32,
+      batchSize: config.batchSize || 32, // Configurable batch size for training
       epochs: config.epochs || 100,
       validationSplit: config.validationSplit || 0.2,
+      usePretrainedModel: config.usePretrainedModel || false,
+      pretrainedModelId: config.pretrainedModelId || null,
+      enableTransferLearning: config.enableTransferLearning || false,
+      freezeLayers: config.freezeLayers || [],
       ...config
     };
 
     this.model = null;
     this.trainingHistory = [];
     this.isTraining = false;
+    this.pretrainedModelLibrary = null;
   }
 
   /**
@@ -39,12 +58,48 @@ class NeuralNetworkSEOTrainer extends EventEmitter {
   async initialize() {
     console.log('🧠 Initializing Neural Network SEO Trainer...');
     
-    this.model = this.buildModel();
+    // Initialize pretrained model library if enabled
+    if (this.config.usePretrainedModel) {
+      const { getPretrainedModelLibrary } = await import('./pretrained-model-library.ts');
+      this.pretrainedModelLibrary = getPretrainedModelLibrary();
+      
+      if (this.config.pretrainedModelId) {
+        console.log(`📚 Loading pretrained model: ${this.config.pretrainedModelId}`);
+        
+        if (this.config.enableTransferLearning) {
+          // Load for transfer learning
+          this.model = await this.pretrainedModelLibrary.cloneModelForTransferLearning(
+            this.config.pretrainedModelId,
+            {
+              freezeLayers: this.config.freezeLayers,
+              learningRate: this.config.learningRate,
+              fineTuneEpochs: this.config.epochs,
+              fineTuneBatchSize: this.config.batchSize
+            }
+          );
+          console.log('✅ Pretrained model loaded for transfer learning');
+        } else {
+          // Load as-is
+          this.model = await this.pretrainedModelLibrary.loadModel(
+            this.config.pretrainedModelId
+          );
+          console.log('✅ Pretrained model loaded');
+        }
+      } else {
+        // No specific model ID, build new model
+        this.model = this.buildModel();
+      }
+    } else {
+      // Build new model from scratch
+      this.model = this.buildModel();
+    }
     
     console.log('✅ Model initialized');
     console.log(`   Architecture: ${this.config.modelArchitecture}`);
-    console.log(`   Input Dimensions: ${this.config.inputDimensions}`);
+    console.log(`   Input Dimensions: ${this.config.inputDimensions} (All 192 SEO attributes)`);
     console.log(`   Output Dimensions: ${this.config.outputDimensions}`);
+    console.log(`   Batch Size: ${this.config.batchSize}`);
+    console.log(`   Using Pretrained: ${this.config.usePretrainedModel}`);
   }
 
   /**
@@ -173,23 +228,53 @@ class NeuralNetworkSEOTrainer extends EventEmitter {
   }
 
   /**
-   * Extract feature vector from attributes
+   * Extract feature vector from attributes (all 192 attributes)
    */
   extractFeatureVector(attributes) {
     const vector = new Array(this.config.inputDimensions).fill(0);
     
     let index = 0;
     
-    // Map each category of attributes to feature vector
-    Object.values(attributes).forEach(category => {
-      Object.values(category).forEach(value => {
-        if (index < this.config.inputDimensions) {
-          vector[index++] = this.normalizeValue(value);
-        }
-      });
+    // Map each attribute to feature vector in consistent order
+    // This ensures all 192 attributes are properly vectorized
+    const attributeNames = Object.keys(attributes).sort(); // Sort for consistency
+    
+    attributeNames.forEach(attrName => {
+      if (index < this.config.inputDimensions) {
+        const value = attributes[attrName];
+        vector[index++] = this.normalizeValue(value);
+      }
     });
     
+    // Fill remaining slots with zeros if we have fewer attributes than expected
+    while (index < this.config.inputDimensions) {
+      vector[index++] = 0;
+    }
+    
     return vector;
+  }
+
+  /**
+   * Update batch size configuration
+   */
+  updateBatchSize(newBatchSize) {
+    if (newBatchSize < 1 || newBatchSize > 1024) {
+      throw new Error('Batch size must be between 1 and 1024');
+    }
+    
+    this.config.batchSize = newBatchSize;
+    console.log(`📊 Batch size updated to: ${newBatchSize}`);
+  }
+
+  /**
+   * Get optimal batch size recommendation based on dataset size
+   */
+  getRecommendedBatchSize(datasetSize) {
+    if (datasetSize < 100) return 8;
+    if (datasetSize < 1000) return 16;
+    if (datasetSize < 10000) return 32;
+    if (datasetSize < 100000) return 64;
+    return 128;
   }
 
   /**

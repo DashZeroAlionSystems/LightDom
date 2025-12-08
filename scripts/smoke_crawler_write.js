@@ -12,15 +12,21 @@ import SEOCrawlerIntegration from '../crawler/SEOCrawlerIntegration.js';
       pageTitle: 'Sample Page',
       metaDescription: 'This is a sample page for smoke testing the crawler integration',
       performance: { lcp: 1200, fid: 30, cls: 0.02, ttfb: 100, fcp: 400, score: 85 },
-      domStats: { totalElements: 2000, unusedElements: 200, deadCSS: 2, orphanedJS: 1, memoryLeaks: 0 },
+      domStats: {
+        totalElements: 2000,
+        unusedElements: 200,
+        deadCSS: 2,
+        orphanedJS: 1,
+        memoryLeaks: 0,
+      },
       spaceSaved: 512,
-      optimizations: [{ type: 'remove-dead-css', savings: 256 }]
+      optimizations: [{ type: 'remove-dead-css', savings: 256 }],
     },
     schemas: [{ '@type': 'Article' }],
     backlinks: [{ href: 'https://example.com/other' }, { href: 'https://external.com/page' }],
     merkleRoot: null,
     contributorAddress: '0x0000000000000000000000000000000000000000',
-    keyword: 'sample'
+    keyword: 'sample',
   };
 
   try {
@@ -29,16 +35,26 @@ import SEOCrawlerIntegration from '../crawler/SEOCrawlerIntegration.js';
       const fs = await import('fs/promises');
       const path = await import('path');
       const seoServicePath = path.join(process.cwd(), 'database', 'seo_service_schema.sql');
-      const trainingPath = path.join(process.cwd(), 'src', 'seo', 'database', 'training-data-migrations.sql');
+      const trainingPath = path.join(
+        process.cwd(),
+        'src',
+        'seo',
+        'database',
+        'training-data-migrations.sql'
+      );
 
       try {
         const seoSql = await fs.readFile(seoServicePath, 'utf8');
         if (seoSql && seoSql.trim()) {
-          console.log('Applying seo_service schema (best-effort). If privileged statements fail they will be ignored.');
+          console.log(
+            'Applying seo_service schema (best-effort). If privileged statements fail they will be ignored.'
+          );
           try {
             await integration.pool.query(seoSql);
           } catch (applyErr) {
-            console.warn('Applying full seo_service schema failed (this may require superuser privileges). Creating minimal seo_training_data table for smoke test...');
+            console.warn(
+              'Applying full seo_service schema failed (this may require superuser privileges). Creating minimal seo_training_data table for smoke test...'
+            );
             // Create a minimal seo_training_data table sufficient for the crawler's insert
             const minimal = `
               CREATE TABLE IF NOT EXISTS seo_training_data (
@@ -76,6 +92,26 @@ import SEOCrawlerIntegration from '../crawler/SEOCrawlerIntegration.js';
                 ADD COLUMN IF NOT EXISTS blockchain_proof_hash VARCHAR(66),
                 ADD COLUMN IF NOT EXISTS blockchain_tx_hash VARCHAR(66),
                 ADD COLUMN IF NOT EXISTS reward_amount DECIMAL(18,8),
+                ADD COLUMN IF NOT EXISTS feature_vector DOUBLE PRECISION[],
+                ADD COLUMN IF NOT EXISTS feature_names TEXT[],
+                ADD COLUMN IF NOT EXISTS feature_version TEXT,
+                ADD COLUMN IF NOT EXISTS schema_types TEXT[],
+                ADD COLUMN IF NOT EXISTS rich_snippet_targets TEXT[],
+                ADD COLUMN IF NOT EXISTS domain TEXT,
+                ADD COLUMN IF NOT EXISTS page_title TEXT,
+                ADD COLUMN IF NOT EXISTS meta_description TEXT,
+                ADD COLUMN IF NOT EXISTS seo_score DECIMAL(5,2),
+                ADD COLUMN IF NOT EXISTS performance_score DECIMAL(5,2),
+                ADD COLUMN IF NOT EXISTS technical_score DECIMAL(5,2),
+                ADD COLUMN IF NOT EXISTS content_score DECIMAL(5,2),
+                ADD COLUMN IF NOT EXISTS headings JSONB,
+                ADD COLUMN IF NOT EXISTS keywords TEXT,
+                ADD COLUMN IF NOT EXISTS word_count INTEGER,
+                ADD COLUMN IF NOT EXISTS paragraph_count INTEGER,
+                ADD COLUMN IF NOT EXISTS social_media JSONB,
+                ADD COLUMN IF NOT EXISTS structured_data JSONB,
+                ADD COLUMN IF NOT EXISTS dom_info JSONB,
+                ADD COLUMN IF NOT EXISTS crawled_at TIMESTAMP,
                 ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
             `;
             try {
@@ -85,9 +121,19 @@ import SEOCrawlerIntegration from '../crawler/SEOCrawlerIntegration.js';
             }
             // Ensure 'domain' exists (older schemas may include it as NOT NULL)
             try {
-              await integration.pool.query(`ALTER TABLE seo_training_data ADD COLUMN IF NOT EXISTS domain TEXT DEFAULT '';`);
-              try { await integration.pool.query(`ALTER TABLE seo_training_data ALTER COLUMN domain DROP NOT NULL;`); } catch(e) { /* ignore */ }
-            } catch(e) { /* ignore */ }
+              await integration.pool.query(
+                `ALTER TABLE seo_training_data ADD COLUMN IF NOT EXISTS domain TEXT DEFAULT '';`
+              );
+              try {
+                await integration.pool.query(
+                  `ALTER TABLE seo_training_data ALTER COLUMN domain DROP NOT NULL;`
+                );
+              } catch (e) {
+                /* ignore */
+              }
+            } catch (e) {
+              /* ignore */
+            }
           }
         }
       } catch (e) {
@@ -123,11 +169,19 @@ import SEOCrawlerIntegration from '../crawler/SEOCrawlerIntegration.js';
     } catch (err) {
       // If the schema/table doesn't exist, attempt to apply migrations (best-effort)
       if (err && err.code === '42P01') {
-        console.log('Training table not found, attempting to apply migrations from src/seo/database/training-data-migrations.sql');
+        console.log(
+          'Training table not found, attempting to apply migrations from src/seo/database/training-data-migrations.sql'
+        );
         try {
           const fs = await import('fs/promises');
           const path = await import('path');
-          const sqlPath = path.join(process.cwd(), 'src', 'seo', 'database', 'training-data-migrations.sql');
+          const sqlPath = path.join(
+            process.cwd(),
+            'src',
+            'seo',
+            'database',
+            'training-data-migrations.sql'
+          );
           const sql = await fs.readFile(sqlPath, 'utf8');
           await integration.pool.query(sql);
           console.log('Applied training-data migrations, retrying verification...');

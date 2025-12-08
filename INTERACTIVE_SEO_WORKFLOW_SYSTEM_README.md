@@ -7,13 +7,16 @@ A comprehensive, configurable SEO data mining campaign system with AI-powered wo
 ## Key Features
 
 ### 🤖 AI-Powered Workflow Generation
+
 - **Interactive Chat Interface**: Claude/Copilot-style conversational UI
 - **DeepSeek Integration**: Intelligent workflow generation using function calling
 - **N8N Tool Chains**: Automated workflow creation following N8N standards
 - **Session Management**: Track multiple workflow creation sessions
 
 ### 📊 192+ SEO Attributes
+
 Comprehensive data mining across 9 categories:
+
 - **SEO Core** (30 attributes): Title, meta tags, headings, links, structure
 - **Structured Data** (25 attributes): JSON-LD, Open Graph, Twitter Cards, schemas
 - **Performance** (20 attributes): Core Web Vitals, load times, resource metrics
@@ -25,6 +28,7 @@ Comprehensive data mining across 9 categories:
 - **Competitor Metrics** (15 attributes): Rankings, backlinks, traffic estimates
 
 ### 🔄 N8N Workflow Engine
+
 - **Pre-configured Templates**: Ready-to-use workflows for common SEO tasks
 - **Dynamic Generation**: Create custom workflows via AI
 - **Real-time Execution**: Monitor workflow progress in real-time
@@ -32,6 +36,7 @@ Comprehensive data mining across 9 categories:
 - **Webhook Integration**: Trigger workflows via API or schedule
 
 ### 💾 Database Persistence
+
 - **Workflow States**: Track all workflow executions and results
 - **Task Progress**: Monitor individual task completion
 - **Session History**: Complete conversation and decision tracking
@@ -39,6 +44,7 @@ Comprehensive data mining across 9 categories:
 - **Component Schemas**: Store UI component configurations
 
 ### 🎨 Interactive Dashboard
+
 - **Session List**: View and manage all workflow creation sessions
 - **Real-time Chat**: Natural language workflow creation
 - **Progress Tracking**: Visual progress indicators for all tasks
@@ -83,6 +89,7 @@ Comprehensive data mining across 9 categories:
 ## Installation
 
 ### Prerequisites
+
 - Node.js 18+
 - PostgreSQL 14+
 - N8N (optional, for workflow execution)
@@ -91,12 +98,14 @@ Comprehensive data mining across 9 categories:
 ### Setup
 
 1. **Database Migration**
+
 ```bash
 # Run the migration to create required tables
 psql -U postgres -d dom_space_harvester -f database/migrations/create_seo_workflow_tables.sql
 ```
 
 This creates:
+
 - `seo_campaign_workflows` - N8N workflow configurations
 - `seo_attributes_config` - All 192 SEO attributes (pre-populated)
 - `workflow_tasks` - Individual task tracking
@@ -105,11 +114,12 @@ This creates:
 - `n8n_workflow_templates` - Reusable templates
 
 2. **Environment Variables**
+
 ```bash
 # DeepSeek API
 DEEPSEEK_API_KEY=your_api_key
 DEEPSEEK_API_URL=https://api.deepseek.com/v1
-DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_MODEL=deepseek-reasoner
 
 # N8N Integration
 N8N_API_URL=http://localhost:5678/api/v1
@@ -121,11 +131,13 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/dom_space_harvester
 ```
 
 3. **Install Dependencies**
+
 ```bash
 npm install
 ```
 
 4. **Start Services**
+
 ```bash
 # Start API server (includes WebSocket support)
 npm run start:dev
@@ -146,10 +158,11 @@ npm run n8n:start
    - The AI assistant will greet you and ask for initial information
 
 2. **Provide Campaign Details**
+
    ```
    User: I want to analyze my e-commerce website at https://example.com
-   
-   AI: Great! I'll help you set up an SEO analysis campaign. 
+
+   AI: Great! I'll help you set up an SEO analysis campaign.
        A few questions:
        - How often should we collect data? (daily/weekly/monthly)
        - Any specific competitors to track?
@@ -179,6 +192,7 @@ npm run n8n:start
 ### Monitoring Workflow Execution
 
 Real-time updates via WebSocket show:
+
 - Current task being executed
 - Progress percentage
 - Extracted data preview
@@ -188,6 +202,7 @@ Real-time updates via WebSocket show:
 ### API Examples
 
 **Create a Session**
+
 ```bash
 curl -X POST http://localhost:3001/api/seo-workflow/sessions \
   -H "Content-Type: application/json" \
@@ -195,6 +210,7 @@ curl -X POST http://localhost:3001/api/seo-workflow/sessions \
 ```
 
 **Chat with AI**
+
 ```bash
 curl -X POST http://localhost:3001/api/seo-workflow/chat \
   -H "Content-Type: application/json" \
@@ -206,6 +222,7 @@ curl -X POST http://localhost:3001/api/seo-workflow/chat \
 ```
 
 **Execute Workflow**
+
 ```bash
 curl -X POST http://localhost:3001/api/seo-workflow/execute/123 \
   -H "Content-Type: application/json" \
@@ -216,6 +233,7 @@ curl -X POST http://localhost:3001/api/seo-workflow/execute/123 \
 ```
 
 **Get Workflow Status**
+
 ```bash
 curl http://localhost:3001/api/seo-workflow/status/123
 ```
@@ -223,7 +241,9 @@ curl http://localhost:3001/api/seo-workflow/status/123
 ## N8N Workflow Templates
 
 ### Comprehensive SEO Mining
+
 Extracts all 192 attributes:
+
 - Fetches page HTML
 - Parses SEO core metrics (title, meta, headings)
 - Extracts structured data (JSON-LD, Open Graph)
@@ -233,7 +253,9 @@ Extracts all 192 attributes:
 - Sends webhook notification
 
 ### Competitor Analysis
+
 Compares your site with competitors:
+
 - Fetches multiple competitor URLs in parallel
 - Extracts key metrics from each
 - Aggregates results
@@ -241,7 +263,9 @@ Compares your site with competitors:
 - Saves comparison data
 
 ### Scheduled Monitoring
+
 Automated performance tracking:
+
 - Runs on schedule (hourly/daily/weekly)
 - Fetches monitored URLs from database
 - Executes SEO analysis for each
@@ -252,9 +276,11 @@ Automated performance tracking:
 ## Component Architecture
 
 ### EnhancedDeepSeekN8NService
+
 **Location**: `services/enhanced-deepseek-n8n-service.js`
 
 Features:
+
 - DeepSeek API integration with function calling
 - N8N tool chain definitions
 - Algorithm generation and caching
@@ -263,6 +289,7 @@ Features:
 - Interactive conversation management
 
 Key Methods:
+
 ```javascript
 // Generate complete SEO workflow
 await service.generateCompleteSEOWorkflow(targetUrl, options);
@@ -284,9 +311,11 @@ await service.executeN8NWorkflow(workflowId, inputData);
 ```
 
 ### InteractiveSEOWorkflowDashboard
+
 **Location**: `src/components/InteractiveSEOWorkflowDashboard.tsx`
 
 Features:
+
 - Claude/Copilot-style chat interface
 - Session list with status indicators
 - Real-time message streaming
@@ -295,6 +324,7 @@ Features:
 - WebSocket connection for live updates
 
 Components:
+
 - Session sidebar with status badges
 - Chat area with message history
 - Input area with send button
@@ -302,9 +332,11 @@ Components:
 - SEO attributes configuration modal
 
 ### API Routes
+
 **Location**: `api/seo-workflow-routes.js`
 
 Endpoints:
+
 - `GET /sessions` - List all sessions
 - `POST /sessions` - Create new session
 - `GET /attributes` - Get SEO attribute config
@@ -314,6 +346,7 @@ Endpoints:
 - `PUT /attributes/:name` - Update attribute config
 
 WebSocket Events:
+
 - `workflow_created` - New workflow generated
 - `task_progress` - Task status update
 - `workflow_completed` - Workflow finished
@@ -322,7 +355,9 @@ WebSocket Events:
 ## Database Schema
 
 ### seo_campaign_workflows
+
 Stores workflow configurations:
+
 - `id` - Primary key
 - `campaign_id` - Associated campaign
 - `name` - Workflow name
@@ -335,7 +370,9 @@ Stores workflow configurations:
 - `metadata` - Additional data
 
 ### seo_attributes_config
+
 Configuration for 192 attributes (pre-populated):
+
 - `attribute_name` - Unique attribute identifier
 - `category` - Category (seo_core, performance, etc.)
 - `description` - What it measures
@@ -346,7 +383,9 @@ Configuration for 192 attributes (pre-populated):
 - `priority` - Importance level
 
 ### workflow_tasks
+
 Individual task tracking:
+
 - `workflow_id` - Parent workflow
 - `task_name` - Task description
 - `task_type` - Type (attribute_mining, analysis, etc.)
@@ -357,7 +396,9 @@ Individual task tracking:
 - `started_at`, `completed_at` - Timestamps
 
 ### user_sessions
+
 Interactive chat sessions:
+
 - `session_id` - Unique session ID
 - `user_id` - User identifier
 - `session_type` - Type of session
@@ -371,7 +412,9 @@ Interactive chat sessions:
 ## Advanced Features
 
 ### Algorithm Caching
+
 Generated algorithms are cached to avoid redundant API calls:
+
 ```javascript
 const cacheKey = `${attributeName}_${dataType}_${context}`;
 if (cache.has(cacheKey)) {
@@ -380,7 +423,9 @@ if (cache.has(cacheKey)) {
 ```
 
 ### Tool Chain Execution
+
 DeepSeek can call multiple tools in sequence:
+
 1. `search_algorithm` - Find/generate extraction logic
 2. `create_n8n_workflow` - Create N8N workflow
 3. `add_workflow_node` - Add nodes dynamically
@@ -388,18 +433,22 @@ DeepSeek can call multiple tools in sequence:
 5. `execute_n8n_workflow` - Run the workflow
 
 ### Real-time Progress
+
 WebSocket updates for instant feedback:
+
 ```javascript
 workflowNamespace.to(`session:${sessionId}`).emit('task_progress', {
   taskId: task.id,
   status: 'running',
   progress: 45,
-  result: partialData
+  result: partialData,
 });
 ```
 
 ### Error Handling
+
 Comprehensive error recovery:
+
 - Task-level retries with exponential backoff
 - Workflow checkpointing
 - Graceful degradation
@@ -411,32 +460,41 @@ Comprehensive error recovery:
 ### Common Issues
 
 **1. DeepSeek API Errors**
+
 ```
 Error: DeepSeek API key not configured
 ```
+
 Solution: Set `DEEPSEEK_API_KEY` in environment variables
 
 **2. N8N Connection Failed**
+
 ```
 Error: Failed to connect to N8N
 ```
+
 Solution: Ensure N8N is running and `N8N_API_URL` is correct
 
 **3. Database Connection Issues**
+
 ```
 Error: relation "seo_campaign_workflows" does not exist
 ```
+
 Solution: Run the database migration script
 
 **4. WebSocket Disconnections**
+
 ```
 Warning: WebSocket disconnected. Retrying...
 ```
+
 Solution: Check network connectivity, server will auto-reconnect
 
 ### Debug Mode
 
 Enable verbose logging:
+
 ```javascript
 // In enhanced-deepseek-n8n-service.js
 this.config.debug = true;
@@ -448,35 +506,43 @@ console.log('Workflow request:', req.body);
 ## Performance Optimization
 
 ### Database Indexes
+
 All critical queries have indexes:
+
 - `idx_seo_workflows_campaign` on campaign_id
 - `idx_workflow_tasks_workflow` on workflow_id
 - `idx_user_sessions_session` on session_id
 
 ### Caching Strategy
+
 - Algorithm cache (5 min TTL)
 - Attribute config cache
 - Session context cache
 
 ### Rate Limiting
+
 API endpoints are rate-limited:
+
 - 100 requests per 15 minutes per IP
 - Configurable via environment
 
 ## Security
 
 ### Authentication
+
 - API key verification for external calls
 - Session-based auth for dashboard
 - Bearer token for admin endpoints
 
 ### Data Protection
+
 - All sensitive data encrypted at rest
 - HTTPS required in production
 - SQL injection prevention via parameterized queries
 - XSS protection with input sanitization
 
 ### N8N Security
+
 - API key required for all N8N calls
 - Workflow execution sandboxed
 - Resource limits enforced

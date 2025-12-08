@@ -1,0 +1,262 @@
+#!/usr/bin/env node
+
+/**
+ * LightDom CLI - Development Version
+ * A simplified CLI that works without full dependency installation
+ */
+
+import { execSync } from 'child_process';
+import { existsSync, readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Colors for console output
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  cyan: '\x1b[36m'
+};
+
+function log(message, color = 'reset') {
+  console.log(`${colors[color]}${message}${colors.reset}`);
+}
+
+function showHelp() {
+  log('\n🚀 LightDom CLI - Development Tools', 'blue');
+  log('=====================================', 'cyan');
+  
+  log('\nDevelopment Commands:', 'bright');
+  log('  dev                 Start development environment', 'cyan');
+  log('  build               Build the application', 'cyan');
+  log('  test                Run tests', 'cyan');
+  log('  health              Check system health', 'cyan');
+  log('  doctor              Diagnose and fix issues', 'cyan');
+  
+  log('\nAutomation Commands:', 'bright');
+  log('  automation --start  Start automation system', 'cyan');
+  log('  automation --stop   Stop automation system', 'cyan');
+  log('  automation --status Check automation status', 'cyan');
+  
+  log('\nBlockchain Commands:', 'bright');
+  log('  blockchain --deploy Deploy smart contracts', 'cyan');
+  log('  blockchain --test   Test smart contracts', 'cyan');
+  
+  log('\nProject Commands:', 'bright');
+  log('  setup               Setup development environment', 'cyan');
+  log('  setup --fresh       Fresh installation', 'cyan');
+  
+  log('\nDirect NPM Scripts:', 'bright');
+  log('  npm run dev         Start development server', 'reset');
+  log('  npm run build       Build for production', 'reset');
+  log('  npm run test        Run all tests', 'reset');
+  log('  npm run automation  Start blockchain automation', 'reset');
+  
+  log('\nFor full CLI functionality, install dependencies:', 'yellow');
+  log('  npm install --legacy-peer-deps', 'yellow');
+  log('');
+}
+
+function runCommand(command) {
+  try {
+    execSync(command, { stdio: 'inherit' });
+  } catch (error) {
+    log(`Command failed: ${command}`, 'red');
+    process.exit(1);
+  }
+}
+
+function checkHealth() {
+  log('🏥 LightDom System Health Check', 'blue');
+  log('===============================', 'cyan');
+  
+  // Check Node.js version
+  const nodeVersion = process.version;
+  const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
+  if (majorVersion >= 18) {
+    log(`✅ Node.js ${nodeVersion}`, 'green');
+  } else {
+    log(`❌ Node.js ${nodeVersion} (requires 18+)`, 'red');
+  }
+  
+  // Check package.json
+  if (existsSync('package.json')) {
+    log('✅ package.json found', 'green');
+  } else {
+    log('❌ package.json not found', 'red');
+  }
+  
+  // Check dependencies
+  if (existsSync('node_modules')) {
+    log('✅ Dependencies installed', 'green');
+  } else {
+    log('⚠️ Dependencies not installed (run npm install)', 'yellow');
+  }
+  
+  // Check environment
+  if (existsSync('.env')) {
+    log('✅ Environment file configured', 'green');
+  } else {
+    log('⚠️ Environment file missing', 'yellow');
+  }
+  
+  // Check CLI files
+  if (existsSync('src/cli/commands')) {
+    log('✅ CLI commands available', 'green');
+  } else {
+    log('⚠️ CLI commands not fully set up', 'yellow');
+  }
+}
+
+function runDoctor() {
+  log('🩺 LightDom Doctor - Diagnosing Issues', 'blue');
+  log('=====================================', 'cyan');
+  
+  const issues = [];
+  
+  // Check for issues
+  if (!existsSync('node_modules')) {
+    issues.push('Dependencies not installed');
+  }
+  
+  if (!existsSync('.env')) {
+    issues.push('Environment file missing');
+  }
+  
+  if (issues.length === 0) {
+    log('🎉 No issues detected! Your setup looks good.', 'green');
+    return;
+  }
+  
+  log(`Found ${issues.length} issue(s):`, 'yellow');
+  issues.forEach((issue, index) => {
+    log(`${index + 1}. ${issue}`, 'red');
+  });
+  
+  log('\nRecommended fixes:', 'cyan');
+  log('1. Run: npm install --legacy-peer-deps', 'reset');
+  log('2. Run: cp automation.env .env', 'reset');
+  log('3. Run: ./scripts/setup-dev-environment.sh', 'reset');
+}
+
+// Parse command line arguments
+const args = process.argv.slice(2);
+const command = args[0];
+const flags = args.slice(1);
+
+if (!command || command === '--help' || command === '-h') {
+  showHelp();
+  process.exit(0);
+}
+
+switch (command) {
+  case 'dev':
+    log('🚀 Starting development environment...', 'cyan');
+    if (flags.includes('--api-only')) {
+      runCommand('npm run api');
+    } else if (flags.includes('--frontend-only')) {
+      runCommand('npm run dev');
+    } else {
+      runCommand('npm run start:dev');
+    }
+    break;
+    
+  case 'build':
+    log('🏗️ Building application...', 'cyan');
+    runCommand('npm run build');
+    break;
+    
+  case 'test':
+    log('🧪 Running tests...', 'cyan');
+    if (flags.includes('--unit')) {
+      runCommand('npm run test:unit');
+    } else if (flags.includes('--integration')) {
+      runCommand('npm run test:integration');
+    } else if (flags.includes('--e2e')) {
+      runCommand('npm run test:e2e');
+    } else {
+      runCommand('npm run test');
+    }
+    break;
+    
+  case 'automation':
+    if (flags.includes('--start')) {
+      log('🤖 Starting automation system...', 'cyan');
+      runCommand('npm run automation:start');
+    } else if (flags.includes('--stop')) {
+      log('🛑 Stopping automation system...', 'cyan');
+      try {
+        execSync('pkill -f "start-blockchain-automation"', { stdio: 'pipe' });
+        log('✅ Automation system stopped', 'green');
+      } catch (error) {
+        log('⚠️ No automation processes found running', 'yellow');
+      }
+    } else if (flags.includes('--status')) {
+      log('📊 Checking automation status...', 'cyan');
+      try {
+        const processes = execSync('pgrep -f "start-blockchain-automation"', { encoding: 'utf8' });
+        if (processes.trim()) {
+          log('✅ Automation system is running', 'green');
+        } else {
+          log('⚠️ Automation system is not running', 'yellow');
+        }
+      } catch (error) {
+        log('⚠️ Automation system is not running', 'yellow');
+      }
+    } else {
+      log('🤖 Starting automation system...', 'cyan');
+      runCommand('npm run automation');
+    }
+    break;
+    
+  case 'blockchain':
+    if (flags.includes('--deploy')) {
+      log('⛓️ Deploying smart contracts...', 'cyan');
+      runCommand('npm run deploy:local');
+    } else if (flags.includes('--test')) {
+      log('🧪 Testing smart contracts...', 'cyan');
+      runCommand('npm run test:contracts');
+    } else {
+      log('⛓️ Starting blockchain operations...', 'cyan');
+      runCommand('npm run blockchain');
+    }
+    break;
+    
+  case 'setup':
+    if (flags.includes('--fresh')) {
+      log('🧹 Fresh setup - removing existing installation...', 'yellow');
+      if (existsSync('node_modules')) {
+        execSync('rm -rf node_modules', { stdio: 'inherit' });
+      }
+    }
+    log('⚙️ Setting up development environment...', 'cyan');
+    if (existsSync('scripts/setup-dev-environment.sh')) {
+      runCommand('./scripts/setup-dev-environment.sh');
+    } else {
+      runCommand('npm install --legacy-peer-deps');
+      if (!existsSync('.env') && existsSync('automation.env')) {
+        execSync('cp automation.env .env');
+        log('✅ Environment file created', 'green');
+      }
+    }
+    break;
+    
+  case 'health':
+    checkHealth();
+    break;
+    
+  case 'doctor':
+    runDoctor();
+    break;
+    
+  default:
+    log(`Unknown command: ${command}`, 'red');
+    log('Run "lightdom --help" for available commands', 'yellow');
+    process.exit(1);
+}

@@ -175,11 +175,14 @@ async function demoServiceOrchestration() {
   await serviceOrchestrator.startBundle('content-pipeline');
 
   const bundleStatus = serviceOrchestrator.getBundleStatus('content-pipeline');
-  
+  if (!bundleStatus) {
+    throw new Error('Failed to retrieve bundle status for content-pipeline');
+  }
+
   console.log(
     console.formatServiceBundle(
-      bundleStatus!.name,
-      bundleStatus!.services.map(s => ({
+      bundleStatus.name,
+      bundleStatus.services.map(s => ({
         name: s.schema.name,
         status: s.status,
         port: s.port,
@@ -188,7 +191,7 @@ async function demoServiceOrchestration() {
   );
 
   // Execute schema-based call
-  const services = bundleStatus!.services;
+  const services = bundleStatus.services;
   const analyzerResult = await serviceOrchestrator.executeSchemaCall(
     services[0].id,
     '/analyze',
@@ -200,7 +203,7 @@ async function demoServiceOrchestration() {
   );
 }
 
-async function demoRichSnippets(deepseekInstance: any) {
+async function demoRichSnippets(deepseekInstance) {
   console.log(
     console.formatServiceMessage(
       'Demo',
@@ -391,7 +394,7 @@ async function demoHeadlessAPI() {
   return apiManager;
 }
 
-async function demoRealTimeMonitoring(apiManager: any) {
+async function demoRealTimeMonitoring(apiManager) {
   console.log(
     console.formatServiceMessage(
       'Demo',
@@ -423,7 +426,7 @@ async function demoRealTimeMonitoring(apiManager: any) {
     );
   });
 
-  apiManager.on('url:processed', (data: any) => {
+  apiManager.on('url:processed', data => {
     console.log(
       console.formatDataStream('API Event', data, 'api')
     );
@@ -451,7 +454,7 @@ async function demoRealTimeMonitoring(apiManager: any) {
   }
 }
 
-async function cleanupDemo(apiManager: any) {
+async function cleanupDemo(apiManager) {
   console.log(
     console.formatServiceMessage(
       'Demo',
@@ -509,7 +512,7 @@ async function main() {
 
   } catch (error) {
     console.error(
-      console.formatError('Demo', error as Error)
+      console.formatError('Demo', error)
     );
     process.exit(1);
   }
@@ -517,6 +520,6 @@ async function main() {
 
 // Run the demo
 main().catch(error => {
-  console.error(console.formatError('Demo', error as Error));
+  console.error(console.formatError('Demo', error));
   process.exit(1);
 });

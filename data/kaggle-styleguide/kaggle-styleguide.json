@@ -1,0 +1,332 @@
+{
+  "metadata": {
+    "source": "https://www.kaggle.com",
+    "crawledAt": "2025-11-12T17:39:26.779Z",
+    "designSystem": "Material Design"
+  },
+  "colors": {
+    "primary": [],
+    "secondary": [],
+    "accent": [],
+    "background": [
+      "#ffffff",
+      "#f8f9fa",
+      "#47494d",
+      "#595b5e",
+      "#e8eaed",
+      "#20beff",
+      "#1ccd76",
+      "#e5cf4a"
+    ],
+    "surface": [],
+    "error": [],
+    "warning": [],
+    "success": [],
+    "info": [],
+    "text": [
+      "#000000",
+      "#202124",
+      "#0000ee",
+      "#5f6368",
+      "#3c4043",
+      "#101010"
+    ],
+    "border": [
+      "#9aa0a6",
+      "#dadce0",
+      "#000000",
+      "#bdc1c6"
+    ]
+  },
+  "typography": {
+    "fontFamilies": [
+      "zeitung, sans-serif"
+    ],
+    "fontSizes": [
+      "44px",
+      "24px",
+      "36px"
+    ],
+    "fontWeights": [
+      "700"
+    ],
+    "lineHeights": [
+      "52px",
+      "32px",
+      "44px"
+    ],
+    "letterSpacings": [],
+    "headings": {
+      "h1": {
+        "fontFamily": "zeitung, sans-serif",
+        "fontSize": "44px",
+        "fontWeight": "700",
+        "lineHeight": "52px",
+        "letterSpacing": "normal",
+        "textTransform": "none",
+        "color": "rgb(32, 33, 36)"
+      },
+      "h2": {
+        "fontFamily": "zeitung, sans-serif",
+        "fontSize": "24px",
+        "fontWeight": "700",
+        "lineHeight": "32px",
+        "letterSpacing": "normal",
+        "textTransform": "none",
+        "color": "rgb(32, 33, 36)"
+      },
+      "h3": {
+        "fontFamily": "zeitung, sans-serif",
+        "fontSize": "24px",
+        "fontWeight": "700",
+        "lineHeight": "32px",
+        "letterSpacing": "normal",
+        "textTransform": "none",
+        "color": "rgb(32, 33, 36)"
+      },
+      "h4": {
+        "fontFamily": "zeitung, sans-serif",
+        "fontSize": "36px",
+        "fontWeight": "700",
+        "lineHeight": "44px",
+        "letterSpacing": "normal",
+        "textTransform": "none",
+        "color": "rgb(32, 33, 36)"
+      }
+    },
+    "body": {
+      "fontFamily": "Inter, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "color": "rgb(32, 33, 36)"
+    }
+  },
+  "spacing": {
+    "margins": [
+      "-16px",
+      "-1px",
+      "-4px",
+      "11px",
+      "12px",
+      "16px",
+      "20px",
+      "24px",
+      "304px",
+      "308px",
+      "311px",
+      "312px",
+      "32px",
+      "40px",
+      "60px",
+      "64px",
+      "6px",
+      "8px",
+      "94px"
+    ],
+    "paddings": [
+      "10px",
+      "12px",
+      "14px",
+      "16.5px",
+      "16px",
+      "20px",
+      "24px",
+      "40px",
+      "48px",
+      "4px",
+      "60px",
+      "6px",
+      "8px"
+    ],
+    "gaps": [
+      "12px",
+      "24px",
+      "40px",
+      "4px",
+      "8px"
+    ]
+  },
+  "components": [
+    {
+      "type": "button",
+      "selector": "button, .button, [class*=\"button\"], [class*=\"Button\"], .btn",
+      "count": 32,
+      "styles": {
+        "display": "inline-flex",
+        "position": "relative",
+        "padding": "0px",
+        "margin": "0px",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "color": "rgb(32, 33, 36)",
+        "borderRadius": "50%",
+        "border": "0px none rgb(32, 33, 36)",
+        "boxShadow": "none",
+        "fontSize": "24px",
+        "fontWeight": "400",
+        "transition": "0.3s",
+        "cursor": "pointer"
+      },
+      "classes": [
+        "sc-koBvLg",
+        "bYJwBT",
+        "google-symbols",
+        "notranslate"
+      ],
+      "attributes": [
+        {
+          "name": "aria-label",
+          "value": "More to explore on Kaggle"
+        },
+        {
+          "name": "title",
+          "value": "More to explore on Kaggle"
+        },
+        {
+          "name": "class",
+          "value": "sc-koBvLg bYJwBT google-symbols notranslate"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "selector": "[class*=\"list\"], .list, ul[class], ol[class]",
+      "count": 12,
+      "styles": {
+        "display": "block",
+        "position": "relative",
+        "padding": "0px",
+        "margin": "0px",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "color": "rgb(0, 0, 0)",
+        "borderRadius": "0px",
+        "border": "0px none rgb(0, 0, 0)",
+        "boxShadow": "none",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transition": "all",
+        "cursor": "auto"
+      },
+      "classes": [
+        "MuiList-root",
+        "km-list",
+        "css-1uzmcsd"
+      ],
+      "attributes": [
+        {
+          "name": "class",
+          "value": "MuiList-root km-list css-1uzmcsd"
+        },
+        {
+          "name": "role",
+          "value": "list"
+        }
+      ]
+    },
+    {
+      "type": "input",
+      "selector": "input, textarea, [class*=\"input\"], [class*=\"Input\"]",
+      "count": 6,
+      "styles": {
+        "display": "flex",
+        "position": "relative",
+        "padding": "0px 6px 0px 24px",
+        "margin": "0px",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "color": "rgb(32, 33, 36)",
+        "borderRadius": "4px",
+        "border": "0px none rgb(32, 33, 36)",
+        "boxShadow": "none",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transition": "all",
+        "cursor": "text"
+      },
+      "classes": [
+        "MuiInputBase-root",
+        "MuiOutlinedInput-root",
+        "MuiInputBase-colorPrimary",
+        "MuiInputBase-fullWidth",
+        "MuiInputBase-formControl",
+        "MuiInputBase-adornedStart",
+        "css-omz4rr"
+      ],
+      "attributes": [
+        {
+          "name": "class",
+          "value": "MuiInputBase-root MuiOutlinedInput-root MuiInputBase-colorPrimary MuiInputBase-fullWidth MuiInputBase-formControl MuiInputBase-adornedStart css-omz4rr"
+        }
+      ]
+    },
+    {
+      "type": "nav",
+      "selector": "nav, [class*=\"nav\"], [class*=\"Nav\"], [class*=\"menu\"]",
+      "count": 2,
+      "styles": {
+        "display": "flex",
+        "position": "fixed",
+        "padding": "0px 48px",
+        "margin": "0px",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "color": "rgb(0, 0, 0)",
+        "borderRadius": "0px",
+        "border": "0px none rgb(0, 0, 0)",
+        "boxShadow": "none",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transition": "box-shadow 0.07s linear",
+        "cursor": "auto"
+      },
+      "classes": [
+        "sc-fSwKIM",
+        "sc-cAnIvK",
+        "btkNYf",
+        "bRaXSE"
+      ],
+      "attributes": [
+        {
+          "name": "class",
+          "value": "sc-fSwKIM sc-cAnIvK btkNYf bRaXSE"
+        }
+      ]
+    }
+  ],
+  "animations": {
+    "transitions": [
+      "all",
+      "box-shadow 0.07s linear",
+      "0.3s",
+      "width 0.15s cubic-bezier(0, 0, 0.2, 1)",
+      "transform 0.24s cubic-bezier(0, 0, 0.2, 1)",
+      "margin-left 0.1s cubic-bezier(0, 0, 0.2, 1), padding-left 0.1s cubic-bezier(0, 0, 0.2, 1), padding-right 0.1s cubic-bezier(0, 0, 0.2, 1), width 0.1s cubic-bezier(0, 0, 0.2, 1)",
+      "opacity 0.0416667s linear 0.0333333s",
+      "opacity 0.25s ease-in, margin-bottom 0.25s ease-in"
+    ],
+    "animations": [
+      "0.01s ease 0s 1 normal none running mui-auto-fill-cancel"
+    ],
+    "transforms": [
+      "matrix(1, 0, 0, 1, -269.85, 0)",
+      "matrix(-1, 0, 0, -1, 40, 32)",
+      "matrix(1, 0, 0, 1, -19, -19)"
+    ]
+  },
+  "shadows": [
+    "rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px"
+  ],
+  "breakpoints": {
+    "(min-width: 600px)": true,
+    "(min-width: 768px)": true,
+    "(min-width: 1024px)": true,
+    "(min-width: 1280px)": true,
+    "(min-width: 1536px)": true
+  },
+  "customProperties": {},
+  "reactComponents": [
+    {
+      "name": "KaggleButton",
+      "code": "import React from 'react';\nimport { cn } from '@/lib/utils';\n\ninterface KaggleButtonProps {\n  children: React.ReactNode;\n  className?: string;\n  variant?: 'primary' | 'secondary' | 'outlined' | 'text';\n  size?: 'small' | 'medium' | 'large';\n  onClick?: () => void;\n  disabled?: boolean;\n}\n\nexport const KaggleButton: React.FC<KaggleButtonProps> = ({\n  children,\n  className,\n  variant = 'primary',\n  size = 'medium',\n  onClick,\n  disabled = false,\n}) => {\n  return (\n    <button\n      className={cn(\n        'rounded font-medium transition-all duration-200',\n        {\n          'bg-blue-600 text-white hover:bg-blue-700': variant === 'primary',\n          'bg-gray-200 text-gray-900 hover:bg-gray-300': variant === 'secondary',\n          'border border-blue-600 text-blue-600 hover:bg-blue-50': variant === 'outlined',\n          'text-blue-600 hover:bg-blue-50': variant === 'text',\n          'px-3 py-1.5 text-sm': size === 'small',\n          'px-4 py-2 text-base': size === 'medium',\n          'px-6 py-3 text-lg': size === 'large',\n          'opacity-50 cursor-not-allowed': disabled,\n        },\n        className\n      )}\n      onClick={onClick}\n      disabled={disabled}\n      style={{\n        borderRadius: '50%',\n        fontWeight: '400',\n        transition: '0.3s',\n      }}\n    >\n      {children}\n    </button>\n  );\n};"
+    }
+  ]
+}

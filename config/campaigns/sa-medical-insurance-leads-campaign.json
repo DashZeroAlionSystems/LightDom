@@ -1,0 +1,250 @@
+{
+  "campaign_id": "sa-medical-insurance-leads-24-7",
+  "name": "SA Medical Insurance Lead Generation - 24/7",
+  "description": "Continuous lead generation for South African medical insurance and health scheme providers",
+  "status": "active",
+  
+  "configuration": {
+    "target_region": "South Africa",
+    "target_provinces": ["Gauteng", "Western Cape", "KwaZulu-Natal", "Eastern Cape", "Free State", "Limpopo", "Mpumalanga", "North West", "Northern Cape"],
+    
+    "keywords": [
+      "medical insurance South Africa",
+      "medical aid South Africa",
+      "health scheme",
+      "medical cover",
+      "health insurance",
+      "hospital plan",
+      "medical benefits",
+      "healthcare plan"
+    ],
+    
+    "legal_compliance": {
+      "robots_txt_respect": true,
+      "rate_limiting": {
+        "requests_per_second": 1,
+        "requests_per_minute": 50,
+        "requests_per_hour": 2000
+      },
+      "user_agent": "LightDom-LeadBot/1.0 (+https://lightdom.io/bot)",
+      "contact_email": "bot@lightdom.io",
+      "gdpr_compliant": true,
+      "popia_compliant": true,
+      "data_retention_days": 365,
+      "respect_do_not_track": true
+    },
+    
+    "schedule": {
+      "frequency": "continuous",
+      "start_time": "00:00",
+      "end_time": "23:59",
+      "timezone": "Africa/Johannesburg",
+      "max_crawlers": 5,
+      "auto_restart_on_failure": true,
+      "health_check_interval_minutes": 5
+    },
+    
+    "crawler_config": {
+      "max_depth": 3,
+      "max_pages_per_domain": 100,
+      "timeout_seconds": 30,
+      "retry_attempts": 3,
+      "retry_delay_seconds": 5,
+      "javascript_enabled": true,
+      "screenshot_capture": false,
+      "respect_robots_txt": true
+    }
+  },
+  
+  "extraction_config": {
+    "schema": "schema.org/MedicalOrganization",
+    "schema_version": "15.0",
+    
+    "required_fields": [
+      "name",
+      "telephone",
+      "email"
+    ],
+    
+    "optional_fields": [
+      "address",
+      "url",
+      "description",
+      "priceRange",
+      "paymentAccepted",
+      "areaServed"
+    ],
+    
+    "extraction_rules": {
+      "contact_info": {
+        "email": {
+          "selectors": ["a[href^='mailto:']", "input[type='email']", ".contact-email", ".email"],
+          "regex": "([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\.[a-zA-Z0-9_-]+)",
+          "validation": "email"
+        },
+        "phone": {
+          "selectors": ["a[href^='tel:']", ".contact-phone", ".phone", ".tel"],
+          "regex": "(\\+27|0)[0-9]{9,10}",
+          "validation": "south_african_phone"
+        },
+        "address": {
+          "selectors": [".address", ".location", "address", "[itemtype='http://schema.org/PostalAddress']"],
+          "extract_components": true
+        }
+      },
+      
+      "organization_info": {
+        "name": {
+          "selectors": ["h1", ".company-name", "[itemprop='name']", "title"],
+          "priority": ["h1", "title"]
+        },
+        "description": {
+          "selectors": ["meta[name='description']", ".about", ".description", "[itemprop='description']"],
+          "max_length": 500
+        },
+        "services": {
+          "selectors": [".services", ".products", ".coverage", ".plans"],
+          "extract_list": true
+        }
+      },
+      
+      "pricing_info": {
+        "premium_tiers": {
+          "selectors": [".pricing", ".plans", ".packages", "table.pricing"],
+          "extract_table": true
+        },
+        "coverage_limits": {
+          "selectors": [".coverage", ".benefits", ".limits"],
+          "extract_list": true
+        }
+      }
+    },
+    
+    "quality_threshold": 70,
+    "min_data_completeness": 60
+  },
+  
+  "qualification_criteria": {
+    "mandatory_checks": [
+      {
+        "rule": "has_contact_email",
+        "field": "contact_email",
+        "condition": "not_null"
+      },
+      {
+        "rule": "region_match",
+        "field": "country",
+        "condition": "equals",
+        "value": "South Africa"
+      },
+      {
+        "rule": "is_medical_organization",
+        "field": "organization_type",
+        "condition": "in",
+        "values": ["medical_aid", "health_insurance", "medical_scheme"]
+      }
+    ],
+    
+    "scoring_rules": [
+      {
+        "rule": "has_phone",
+        "weight": 15,
+        "field": "contact_phone",
+        "condition": "not_null"
+      },
+      {
+        "rule": "has_address",
+        "weight": 10,
+        "field": "address",
+        "condition": "not_null"
+      },
+      {
+        "rule": "has_website",
+        "weight": 5,
+        "field": "website_url",
+        "condition": "not_null"
+      },
+      {
+        "rule": "has_description",
+        "weight": 10,
+        "field": "description",
+        "condition": "length_greater_than",
+        "value": 50
+      },
+      {
+        "rule": "has_services",
+        "weight": 15,
+        "field": "services_offered",
+        "condition": "array_not_empty"
+      },
+      {
+        "rule": "has_pricing",
+        "weight": 20,
+        "field": "pricing_info",
+        "condition": "object_not_empty"
+      },
+      {
+        "rule": "data_completeness",
+        "weight": 25,
+        "field": "data_completeness",
+        "condition": "greater_than",
+        "value": 70
+      }
+    ],
+    
+    "min_qualification_score": 60
+  },
+  
+  "storage_config": {
+    "store_raw_data": true,
+    "deduplicate": true,
+    "deduplication_fields": ["contact_email", "contact_phone", "company_name"],
+    "archive_after_days": 365,
+    "export_format": ["json", "csv"],
+    "backup_enabled": true
+  },
+  
+  "monitoring": {
+    "alerts_enabled": true,
+    "alert_channels": ["email", "slack"],
+    "alert_conditions": {
+      "low_lead_rate": {
+        "threshold": 10,
+        "period": "hour",
+        "condition": "less_than"
+      },
+      "high_error_rate": {
+        "threshold": 20,
+        "period": "hour",
+        "condition": "greater_than"
+      },
+      "crawler_down": {
+        "threshold": 1,
+        "period": "minute",
+        "condition": "all_down"
+      }
+    },
+    
+    "performance_metrics": [
+      "leads_per_hour",
+      "pages_crawled_per_hour",
+      "average_lead_score",
+      "data_quality_score",
+      "error_rate",
+      "uptime_percentage"
+    ]
+  },
+  
+  "seo_integration": {
+    "enabled": true,
+    "target_keywords": [
+      "best medical insurance South Africa",
+      "affordable medical aid",
+      "top health schemes",
+      "medical cover comparison"
+    ],
+    "competitor_tracking": true,
+    "backlink_analysis": true,
+    "content_optimization": true
+  }
+}

@@ -122,12 +122,8 @@ function formatTime(seconds) {
   return `${hours}h ${minutes}m ${secs}s`;
 }
 
-// Check if running in Node.js
-if (typeof window === 'undefined') {
-  // Node.js environment - use node-fetch
-  const nodeFetch = require('node-fetch');
-  global.fetch = nodeFetch;
-}
+// Note: fetch is available natively in Node.js 18+
+// No need to import node-fetch for modern Node.js versions
 
 // Run the demo
 runDemo().catch(console.error);

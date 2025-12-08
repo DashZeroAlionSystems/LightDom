@@ -1,0 +1,39 @@
+# Dockerfile for API Container
+FROM node:18-alpine
+
+# Create app directory
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY src ./src
+COPY database ./database
+COPY services ./services
+COPY tsconfig.json ./
+COPY api-server-express.js ./
+
+# Build TypeScript
+RUN npm run build || true
+
+# Change ownership
+RUN chown -R nodejs:nodejs /app
+
+# Switch to non-root user
+USER nodejs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+EXPOSE 3001
+
+CMD ["node", "api-server-express.js"]

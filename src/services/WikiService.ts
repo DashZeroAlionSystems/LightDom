@@ -8,7 +8,7 @@
  * @module WikiService
  */
 
-import { getDatabaseService } from '../DatabaseService.js';
+import { getDatabaseService } from './DatabaseService.js';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';

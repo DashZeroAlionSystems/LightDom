@@ -5,11 +5,11 @@
 
 class TensorFlowPipeline {
   constructor() {
-    console.log('TensorFlow pipeline initialized (requires @tensorflow/tfjs-node)');
+    console.log('TensorFlow pipeline initialized (uses @tensorflow/tfjs; install @tensorflow/tfjs-node for native acceleration)');
   }
   
   async train() {
-    console.log('Training started - install @tensorflow/tfjs-node to enable');
+    console.log('Training started - install @tensorflow/tfjs-node for faster native execution');
   }
 }
 

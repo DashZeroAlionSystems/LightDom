@@ -1,0 +1,18 @@
+{
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "db": 5,
+    "prefix": "storyMiner"
+  },
+  "queues": {
+    "discovery": "storyMiner:discovery:default",
+    "crawler": "storyMiner:crawler:default",
+    "classifier": "storyMiner:classifier:default",
+    "enrichment": "storyMiner:enrichment:default"
+  },
+  "telemetry": {
+    "metricsPort": 9615,
+    "healthPort": 9616
+  }
+}

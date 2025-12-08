@@ -4,22 +4,25 @@
     "version": "1.0.0",
     "name": "Complete SEO Data Mining & ML Training Workflow",
     "description": "Automated end-to-end workflow for SEO data collection, analysis, enrichment, and ML model training",
-    
     "metadata": {
       "author": "LightDom AI",
       "createdAt": "2025-11-03T18:00:00Z",
-      "tags": ["seo", "ml", "automation", "data-mining"],
+      "tags": [
+        "seo",
+        "ml",
+        "automation",
+        "data-mining"
+      ],
       "category": "data-mining",
       "estimatedDuration": "7200s"
     },
-    
     "services": [
       {
         "id": "deepseek-service",
         "type": "ai",
         "schema": "@schemas/services/deepseek-service.json",
         "config": {
-          "model": "deepseek-chat",
+          "model": "deepseek-reasoner",
           "temperature": 0.7,
           "streaming": false
         }
@@ -68,7 +71,11 @@
         "type": "schema",
         "schema": "@schemas/services/schema-linking.json",
         "config": {
-          "vocabularies": ["schema.org", "opengraph", "twitter"],
+          "vocabularies": [
+            "schema.org",
+            "opengraph",
+            "twitter"
+          ],
           "validate": true,
           "enrich": true
         }
@@ -106,13 +113,18 @@
             "testSize": 0.2
           },
           "evaluation": {
-            "metrics": ["ndcg@10", "accuracy", "precision", "recall", "f1"],
+            "metrics": [
+              "ndcg@10",
+              "accuracy",
+              "precision",
+              "recall",
+              "f1"
+            ],
             "earlyStoppingRounds": 50
           }
         }
       }
     ],
-    
     "tasks": [
       {
         "id": "workflow-planning",
@@ -176,9 +188,14 @@
         },
         "output": {
           "schema": "@schemas/data/url-list.json",
-          "destination": ["task:page-crawl", "database:discovered_urls"]
+          "destination": [
+            "task:page-crawl",
+            "database:discovered_urls"
+          ]
         },
-        "dependencies": ["workflow-planning"],
+        "dependencies": [
+          "workflow-planning"
+        ],
         "parallel": false,
         "timeout": 600
       },
@@ -207,9 +224,15 @@
         },
         "output": {
           "schema": "@schemas/data/page-data.json",
-          "destination": ["task:seo-analysis", "task:schema-linking", "database:pages"]
+          "destination": [
+            "task:seo-analysis",
+            "task:schema-linking",
+            "database:pages"
+          ]
         },
-        "dependencies": ["url-discovery"],
+        "dependencies": [
+          "url-discovery"
+        ],
         "parallel": true,
         "maxConcurrency": 10,
         "timeout": 3600
@@ -233,9 +256,14 @@
         },
         "output": {
           "schema": "@schemas/data/seo-metrics.json",
-          "destination": ["task:data-enrichment", "database:seo_metrics"]
+          "destination": [
+            "task:data-enrichment",
+            "database:seo_metrics"
+          ]
         },
-        "dependencies": ["page-crawl"],
+        "dependencies": [
+          "page-crawl"
+        ],
         "parallel": false,
         "timeout": 1800
       },
@@ -247,7 +275,12 @@
         "action": "link_schemas",
         "input": {
           "pages": "${task:page-crawl.output}",
-          "vocabularies": ["Product", "Article", "WebPage", "Organization"],
+          "vocabularies": [
+            "Product",
+            "Article",
+            "WebPage",
+            "Organization"
+          ],
           "validation": {
             "strict": false,
             "reportErrors": true
@@ -255,9 +288,14 @@
         },
         "output": {
           "schema": "@schemas/data/linked-data.json",
-          "destination": ["task:data-enrichment", "database:structured_data"]
+          "destination": [
+            "task:data-enrichment",
+            "database:structured_data"
+          ]
         },
-        "dependencies": ["page-crawl"],
+        "dependencies": [
+          "page-crawl"
+        ],
         "parallel": true,
         "timeout": 900
       },
@@ -293,9 +331,15 @@
         },
         "output": {
           "schema": "@schemas/data/training-data.json",
-          "destination": ["task:quality-filtering", "database:enriched_data"]
+          "destination": [
+            "task:quality-filtering",
+            "database:enriched_data"
+          ]
         },
-        "dependencies": ["seo-analysis", "schema-linking"],
+        "dependencies": [
+          "seo-analysis",
+          "schema-linking"
+        ],
         "parallel": false,
         "timeout": 1200
       },
@@ -311,14 +355,24 @@
             "minQualityScore": 70,
             "minWordCount": 300,
             "maxDuplicates": 0.1,
-            "requiredFields": ["url", "title", "content", "seo_score"]
+            "requiredFields": [
+              "url",
+              "title",
+              "content",
+              "seo_score"
+            ]
           }
         },
         "output": {
           "schema": "@schemas/data/filtered-training-data.json",
-          "destination": ["task:ml-training", "database:training_data"]
+          "destination": [
+            "task:ml-training",
+            "database:training_data"
+          ]
         },
-        "dependencies": ["data-enrichment"],
+        "dependencies": [
+          "data-enrichment"
+        ],
         "parallel": false,
         "timeout": 600
       },
@@ -351,9 +405,14 @@
         },
         "output": {
           "schema": "@schemas/models/trained-model.json",
-          "destination": ["task:model-evaluation", "database:ml_models"]
+          "destination": [
+            "task:model-evaluation",
+            "database:ml_models"
+          ]
         },
-        "dependencies": ["quality-filtering"],
+        "dependencies": [
+          "quality-filtering"
+        ],
         "parallel": false,
         "timeout": 7200
       },
@@ -366,14 +425,26 @@
         "input": {
           "model": "${task:ml-training.output}",
           "testData": "${task:quality-filtering.output.testSet}",
-          "metrics": ["ndcg@10", "accuracy", "precision", "recall", "f1", "auc"],
+          "metrics": [
+            "ndcg@10",
+            "accuracy",
+            "precision",
+            "recall",
+            "f1",
+            "auc"
+          ],
           "generateReport": true
         },
         "output": {
           "schema": "@schemas/models/evaluation-result.json",
-          "destination": ["task:workflow-completion", "database:model_metrics"]
+          "destination": [
+            "task:workflow-completion",
+            "database:model_metrics"
+          ]
         },
-        "dependencies": ["ml-training"],
+        "dependencies": [
+          "ml-training"
+        ],
         "parallel": false,
         "timeout": 300
       },
@@ -396,44 +467,59 @@
         },
         "output": {
           "schema": "@schemas/workflow/completion-report.json",
-          "destination": ["database:workflow_reports", "notification:email"]
+          "destination": [
+            "database:workflow_reports",
+            "notification:email"
+          ]
         },
-        "dependencies": ["model-evaluation"],
+        "dependencies": [
+          "model-evaluation"
+        ],
         "parallel": false,
         "timeout": 120
       }
     ],
-    
     "schedule": {
       "type": "cron",
       "expression": "0 2 * * *",
       "timezone": "UTC",
       "enabled": true,
-      "onSuccess": ["notify_admin", "update_dashboard"],
-      "onFailure": ["alert_team", "create_incident"]
+      "onSuccess": [
+        "notify_admin",
+        "update_dashboard"
+      ],
+      "onFailure": [
+        "alert_team",
+        "create_incident"
+      ]
     },
-    
     "state": {
       "persistenceType": "database",
       "checkpointFrequency": "per-task",
       "resumable": true,
       "retentionDays": 30
     },
-    
     "errorHandling": {
       "strategy": "retry-then-skip",
       "maxRetries": 3,
       "retryDelay": 60,
       "notifications": {
-        "onFailure": ["email:admin@example.com", "slack:#alerts"],
-        "onSuccess": ["dashboard:workflow-status"]
+        "onFailure": [
+          "email:admin@example.com",
+          "slack:#alerts"
+        ],
+        "onSuccess": [
+          "dashboard:workflow-status"
+        ]
       },
       "fallback": {
         "enabled": true,
-        "actions": ["save_partial_results", "notify_admin"]
+        "actions": [
+          "save_partial_results",
+          "notify_admin"
+        ]
       }
     },
-    
     "resources": {
       "maxConcurrentTasks": 10,
       "maxMemoryMB": 8192,
@@ -441,7 +527,6 @@
       "timeoutSeconds": 7200,
       "priority": "high"
     },
-    
     "monitoring": {
       "enabled": true,
       "metrics": [
@@ -451,11 +536,23 @@
         "resource_utilization",
         "error_rate"
       ],
-      "dashboards": ["grafana", "lightdom-admin"],
+      "dashboards": [
+        "grafana",
+        "lightdom-admin"
+      ],
       "alerts": {
-        "slowExecution": { "threshold": 9000, "action": "notify" },
-        "highErrorRate": { "threshold": 0.1, "action": "alert" },
-        "lowDataQuality": { "threshold": 60, "action": "review" }
+        "slowExecution": {
+          "threshold": 9000,
+          "action": "notify"
+        },
+        "highErrorRate": {
+          "threshold": 0.1,
+          "action": "alert"
+        },
+        "lowDataQuality": {
+          "threshold": 60,
+          "action": "review"
+        }
       }
     }
   }

@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "0.1.0",
+  "branding": {
+    "logo": {
+      "primary": "design/logo/primary.svg",
+      "mask": "design/logo/mask.svg",
+      "animationToken": "logo-router-animation",
+      "layout": {
+        "desktop": {
+          "alignment": "left",
+          "pageNameOffset": 34
+        },
+        "mobile": {
+          "stack": true,
+          "pageNameOffset": 8
+        }
+      }
+    },
+    "authentication": {
+      "primaryPlacement": "header-right",
+      "secondaryPlacement": "hero-sticky",
+      "railPlacement": "sidebar-avatar"
+    }
+  },
+  "typography": {
+    "font": {
+      "primary": {
+        "family": "Space Grotesk",
+        "fallback": [
+          "Segoe UI",
+          "sans-serif"
+        ],
+        "weights": [
+          400,
+          500,
+          600
+        ]
+      },
+      "secondary": {
+        "family": "IBM Plex Mono",
+        "fallback": [
+          "SFMono-Regular",
+          "monospace"
+        ],
+        "weights": [
+          400,
+          500
+        ]
+      },
+      "body": {
+        "family": "Inter",
+        "fallback": [
+          "Roboto",
+          "sans-serif"
+        ],
+        "weights": [
+          400,
+          500
+        ]
+      }
+    }
+  },
+  "colors": {
+    "primary": "#4B5CFF",
+    "secondary": "#08C6A5",
+    "surface": {
+      "dark": "#0A0E27",
+      "light": "#FFFFFF",
+      "elevated": "#11163A"
+    },
+    "onSurface": {
+      "dark": "#F5F7FF",
+      "light": "#1E2235"
+    },
+    "outline": "#2A3250",
+    "semantic": {
+      "warning": "#FFB347",
+      "critical": "#FF5F6D",
+      "success": "#3ED598"
+    }
+  },
+  "motion": {
+    "chain": {
+      "fast": {
+        "durationMs": 140,
+        "easing": "cubic-bezier(0.2, 0.0, 0.2, 1)"
+      },
+      "emphasis": {
+        "durationMs": 340,
+        "easing": "cubic-bezier(0.25, 0.8, 0.25, 1)"
+      }
+    },
+    "logo": {
+      "durationMs": 600,
+      "easing": "easeOutQuart"
+    }
+  },
+  "themes": {
+    "primary": {
+      "id": "theme.primary",
+      "palette": {
+        "base": "#0A0E27",
+        "accent": "#4B5CFF"
+      },
+      "typography": {
+        "secondary": "IBM Plex Mono"
+      }
+    },
+    "secondary": [
+      {
+        "id": "theme.secondary.campaigns",
+        "logoCompatibilityScore": 0.92,
+        "palette": {
+          "base": "#25122E",
+          "accent": "#21D4FD"
+        },
+        "animeMorphPalette": {
+          "logo": "#4B5CFF",
+          "category": "#21D4FD"
+        },
+        "typography": {
+          "secondary": "IBM Plex Mono"
+        },
+        "serviceMatrix": [
+          "campaigns-dashboard",
+          "campaigns-reports"
+        ],
+        "data": {
+          "directoryPrefix": "campaigns"
+        },
+        "overrides": {
+          "storybook": {
+            "brandTitle": "LightDom Campaigns",
+            "brandUrl": "https://lightdom.app/campaigns"
+          }
+        }
+      }
+    ]
+  },
+  "components": {
+    "taxonomy": [
+      {
+        "name": "Atoms",
+        "naming": "PascalCase",
+        "pathTemplate": "{category}/{component}/{variant}"
+      },
+      {
+        "name": "Molecules",
+        "naming": "PascalCase"
+      },
+      {
+        "name": "Organisms",
+        "naming": "PascalCase"
+      },
+      {
+        "name": "Templates",
+        "naming": "PascalCase"
+      }
+    ],
+    "screenshotPathTemplate": "storyMining/data/processed/screenshots/{batchId}/{category}/{component}/{variant}.png",
+    "sources": [
+      {
+        "name": "Radix UI",
+        "slug": "radix-ui",
+        "topic": "styleguide-component-mining",
+        "campaignId": "styleguide-radix-ui",
+        "docIndexUrl": "https://www.radix-ui.com/primitives/docs/components/overview",
+        "seedCount": 55,
+        "componentCount": 55,
+        "version": "2025.11.29",
+        "lastSeededAt": "2025-11-29T00:00:00.000Z"
+      }
+    ]
+  },
+  "automation": {
+    "events": [
+      "story.captured",
+      "layer.snapshot",
+      "prediction.result"
+    ],
+    "queue": {
+      "provider": "BullMQ",
+      "prefix": "storyMiner",
+      "queues": {
+        "discovery": "storyMiner:discovery:default",
+        "crawler": "storyMiner:crawler:default",
+        "classifier": "storyMiner:classifier:default",
+        "enrichment": "storyMiner:enrichment:default"
+      }
+    },
+    "dataRoot": "storyMining/data",
+    "modelCheckpointDir": "storyMining/data/processed/models/checkpoints"
+  },
+  "governance": {
+    "validationScript": "npm run styleguide:validate",
+    "changeLog": [
+      {
+        "date": "2025-11-25",
+        "summary": "Initial schema established"
+      },
+      {
+        "date": "2025-11-29",
+        "summary": "Seeded Radix UI atoms via styleguide crawler automation"
+      }
+    ]
+  }
+}

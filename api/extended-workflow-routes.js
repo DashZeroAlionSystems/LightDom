@@ -16,7 +16,11 @@ import CampaignTrainingMonitor from '../../src/services/ai/CampaignTrainingMonit
 import WorkflowStateMachine from '../../src/services/ai/WorkflowStateMachine';
 import ChromeLayers3DRichSnippetMiner from '../../src/services/ai/ChromeLayers3DRichSnippetMiner';
 
-export function createExtendedWorkflowRoutes(dbPool: Pool): Router {
+/**
+ * @param {Pool} dbPool
+ * @returns {import('express').Router}
+ */
+export function createExtendedWorkflowRoutes(dbPool) {
   const router = Router();
 
   // Initialize services
@@ -220,7 +224,7 @@ export function createExtendedWorkflowRoutes(dbPool: Pool): Router {
       const { category, type } = req.query;
       
       let query = 'SELECT * FROM component_data_library WHERE 1=1';
-      const params: any[] = [];
+      const params = [];
       
       if (category) {
         params.push(category);
@@ -370,7 +374,7 @@ export function createExtendedWorkflowRoutes(dbPool: Pool): Router {
       const { isTemplate, modelType } = req.query;
       
       let query = 'SELECT * FROM training_data_models WHERE 1=1';
-      const params: any[] = [];
+      const params = [];
       
       if (isTemplate !== undefined) {
         params.push(isTemplate === 'true');
@@ -401,7 +405,7 @@ export function createExtendedWorkflowRoutes(dbPool: Pool): Router {
       const { active } = req.query;
       
       let query = 'SELECT * FROM schema_linking_configs WHERE 1=1';
-      const params: any[] = [];
+      const params = [];
       
       if (active !== undefined) {
         params.push(active === 'true');

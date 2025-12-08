@@ -600,8 +600,18 @@ function startBackendServices() {
 // WORKER POOL (for Puppeteer and intensive tasks)
 // =============================================================================
 
-function initializeWorkerPool(poolSize = 4) {
+/**
+ * Initialize worker pool with support for attribute-specific instances
+ * @param {number} poolSize - Number of general workers
+ * @param {Object} options - Configuration options
+ */
+function initializeWorkerPool(poolSize = 4, options = {}) {
   logger.info(`Initializing worker pool with ${poolSize} workers...`);
+  
+  const useBiDi = options.useBiDi || false;
+  if (useBiDi) {
+    logger.info('WebDriver BiDi mode enabled for workers');
+  }
 
   const workerScript = path.join(__dirname, 'workers', 'puppeteer-worker.js');
 
@@ -612,14 +622,22 @@ function initializeWorkerPool(poolSize = 4) {
         env: {
           ...process.env,
           WORKER_ID: i,
+          USE_BIDI: useBiDi ? 'true' : 'false',
         },
       });
 
       worker.id = i;
       worker.busy = false;
+      worker.attribute = null; // No specific attribute assigned
 
       worker.on('message', (message) => {
         logger.debug(`Worker ${i} message:`, message);
+        
+        // Handle BiDi events
+        if (message.type === 'biDiEvent') {
+          logger.debug(`BiDi event from worker ${i}:`, message.event);
+        }
+        
         state.mainWindow?.webContents.send('worker-message', { workerId: i, ...message });
       });
 
@@ -642,8 +660,73 @@ function initializeWorkerPool(poolSize = 4) {
   logger.success(`Worker pool initialized with ${state.workerPool.length} workers`);
 }
 
-function getAvailableWorker() {
-  return state.workerPool.find(worker => !worker.busy);
+/**
+ * Create attribute-specific worker instance
+ * @param {string} attributeName - Name of attribute this worker will mine
+ * @param {Object} options - Worker configuration
+ */
+function createAttributeWorker(attributeName, options = {}) {
+  logger.info(`Creating attribute-specific worker for: ${attributeName}`);
+  
+  const workerScript = path.join(__dirname, 'workers', 'puppeteer-worker.js');
+  const workerId = `attr-${attributeName}-${Date.now()}`;
+  
+  try {
+    const worker = fork(workerScript, {
+      stdio: 'pipe',
+      env: {
+        ...process.env,
+        WORKER_ID: workerId,
+        USE_BIDI: options.useBiDi ? 'true' : 'false',
+        ATTRIBUTE_TARGET: attributeName,
+      },
+    });
+
+    worker.id = workerId;
+    worker.busy = false;
+    worker.attribute = attributeName;
+
+    worker.on('message', (message) => {
+      logger.debug(`Attribute worker ${attributeName} message:`, message);
+      state.mainWindow?.webContents.send('attribute-worker-message', {
+        workerId,
+        attribute: attributeName,
+        ...message
+      });
+    });
+
+    worker.on('error', (error) => {
+      logger.error(`Attribute worker ${attributeName} error:`, error);
+    });
+
+    worker.on('exit', (code) => {
+      logger.warn(`Attribute worker ${attributeName} exited with code ${code}`);
+      state.workerPool = state.workerPool.filter(w => w.id !== workerId);
+    });
+
+    state.workerPool.push(worker);
+    logger.success(`Attribute worker created for: ${attributeName}`);
+    
+    return workerId;
+  } catch (error) {
+    logger.error(`Failed to create attribute worker for ${attributeName}:`, error);
+    throw error;
+  }
+}
+
+function getAvailableWorker(attributeName = null) {
+  // If attribute specified, try to find a dedicated worker
+  if (attributeName) {
+    const dedicatedWorker = state.workerPool.find(
+      w => w.attribute === attributeName && !w.busy
+    );
+    if (dedicatedWorker) {
+      return dedicatedWorker;
+    }
+  }
+  
+  // Otherwise, find any available general worker
+  return state.workerPool.find(worker => !worker.busy && !worker.attribute);
 }
 
 function assignTaskToWorker(task) {
@@ -753,6 +836,30 @@ function setupIPCHandlers() {
     }
   });
 
+  // Create attribute-specific worker
+  ipcMain.handle('worker:createAttributeWorker', async (event, { attributeName, options }) => {
+    try {
+      const workerId = createAttributeWorker(attributeName, options || {});
+      return { success: true, workerId };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Get worker pool status
+  ipcMain.handle('worker:getStatus', () => {
+    return {
+      total: state.workerPool.length,
+      available: state.workerPool.filter(w => !w.busy).length,
+      busy: state.workerPool.filter(w => w.busy).length,
+      workers: state.workerPool.map(w => ({
+        id: w.id,
+        busy: w.busy,
+        attribute: w.attribute
+      }))
+    };
+  });
+
   // Puppeteer tasks
   ipcMain.handle('puppeteer:crawl', async (event, options) => {
     logger.info('Starting crawl with options:', options);
@@ -762,6 +869,39 @@ function setupIPCHandlers() {
   ipcMain.handle('puppeteer:screenshot', async (event, options) => {
     logger.info('Taking screenshot:', options);
     return await assignTaskToWorker({ type: 'screenshot', options });
+  });
+
+  // Attribute mining
+  ipcMain.handle('puppeteer:mineAttribute', async (event, options) => {
+    logger.info('Mining attribute:', options.attribute?.name);
+    const attributeName = options.attribute?.name;
+    const worker = getAvailableWorker(attributeName);
+    
+    if (!worker) {
+      return { success: false, error: 'No available workers' };
+    }
+    
+    worker.busy = true;
+    worker.send({ type: 'mineAttribute', options });
+    
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        worker.busy = false;
+        reject(new Error('Worker task timeout'));
+      }, 60000);
+
+      worker.once('message', (result) => {
+        clearTimeout(timeout);
+        worker.busy = false;
+        resolve(result);
+      });
+    });
+  });
+
+  // Generate OG image
+  ipcMain.handle('puppeteer:generateOGImage', async (event, options) => {
+    logger.info('Generating OG image');
+    return await assignTaskToWorker({ type: 'generateOGImage', options });
   });
 
   // File operations

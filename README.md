@@ -18,6 +18,55 @@ LightDom is a revolutionary blockchain-based DOM optimization platform that comb
 - **Performance Metrics** - Hash rate, block time, and mining statistics
 - **Reward System** - Earn LightDom tokens for optimization contributions
 
+### 🤖 **Workflow Prompt System** ⭐ NEW
+- **AI Workflow Assistant** - Create complex workflows with natural language prompts
+- **Intelligent Visualization** - Card panels with accordion steps for workflow details
+- **Real-time Updates** - WebSocket connection for live workflow status
+- **DeepSeek Component Generation** - AI-powered component generation from Storybook
+- **Continuous Styleguide Mining** - Automatic design token and pattern discovery
+- **Context-Aware Navigation** - Role-based menus and quick access to recent items
+
+### 🧠 **LangChain + Ollama DeepSeek Integration** ⭐ NEW
+- **AI Chat Assistant** - Context-aware conversations with session management
+- **Code Generation** - Generate code in 7+ languages with AI assistance
+- **Workflow Automation** - Convert natural language to structured workflows
+- **DOM Optimization** - AI-powered performance analysis and recommendations
+- **Multi-Agent Systems** - Coordinate multiple AI agents for complex tasks
+- **Custom Chains** - Flexible prompt engineering with LangChain
+- **REST API** - 15+ endpoints for all AI operations
+- **React Dashboard** - Full-featured UI for AI interactions
+- **Streaming Support** - Real-time token streaming via Server-Sent Events
+
+📖 **[Quick Start Guide](LANGCHAIN_QUICKSTART.md)** | **[Full Documentation](LANGCHAIN_OLLAMA_INTEGRATION_GUIDE.md)** | **[Implementation Summary](LANGCHAIN_INTEGRATION_SUMMARY.md)** | **[Examples](examples/langchain-ollama-examples.js)**
+
+```bash
+# Get started in 3 commands
+ollama pull deepseek-r1:latest        # 1. Install DeepSeek model
+npm run api                            # 2. Start API server
+npm run langchain:test                 # 3. Test integration
+```
+
+### 🔍 **RAG Service (Retrieval-Augmented Generation)** ⭐ NEW
+- **Standalone Service** - Independent RAG service with PM2 process management
+- **Document Ingestion** - Upload and process documents for semantic search
+- **Vector Embeddings** - Generate embeddings using Ollama or OpenAI
+- **Semantic Search** - Find relevant content using vector similarity
+- **AI Chat** - Context-aware conversations with DeepSeek integration
+- **Auto-Restart** - Automatic recovery from failures and crashes
+- **Health Monitoring** - Built-in health checks and metrics endpoints
+- **Comprehensive Logging** - File-based and stdout logging for debugging
+- **Production Ready** - Process management, error handling, graceful shutdown
+
+📖 **[RAG Service Documentation](services/rag/RAG_SERVICE_README.md)** | **[Ecosystem Config](ecosystem.config.cjs)**
+
+```bash
+# Quick start (requires PM2)
+npm install -g pm2                    # 1. Install PM2 globally
+npm run rag:start                     # 2. Start RAG service
+npm run rag:health                    # 3. Check service health
+npm run rag:logs                      # 4. View logs
+```
+
 ### Testing & Quality Assurance
 - **Integration Testing**: Comprehensive test suite for all platform components
 - **Workflow Simulation**: End-to-end user workflow testing
@@ -49,6 +98,24 @@ LightDom is a revolutionary blockchain-based DOM optimization platform that comb
 - **Responsive Design** - Works on all devices
 - **Dark Mode** - Easy on the eyes
 
+### 🔬 **AI Research Pipeline System** ⭐ NEW
+- **Continuous Article Monitoring** - Auto-scrape dev.to, Medium, and other sources for AI/ML/LLM content
+- **Intelligent Feature Extraction** - Analyze articles for actionable product features with impact & revenue scoring
+- **Research Paper Generation** - Automatically generate comprehensive research papers with recommendations
+- **Code Example Library** - Extract and categorize code examples from articles across 7+ languages
+- **SEO Pattern Analysis** - Identify successful content strategies from high-performing articles
+- **Monetization Intelligence** - Generate service package ideas based on market trends
+- **Campaign Automation** - Schedule and execute research campaigns with cron expressions
+
+📖 **[Quick Start](RESEARCH_PIPELINE_QUICKSTART.md)** | **[Full Documentation](AI_RESEARCH_PIPELINE_README.md)** | **[Demo Script](demo-ai-research-pipeline.js)**
+
+```bash
+# Get started in 3 commands
+psql -U postgres -d lightdom -f database/ai-research-pipeline-schema.sql  # 1. Setup database
+npm run research:start                                                      # 2. Start service
+npm run research:demo                                                       # 3. Run demo
+```
+
 ### 🤖 **Background Data Mining System** ⭐ NEW
 - **AI-Powered Configuration** - Generate crawler configs from natural language prompts using Ollama (DeepSeek-R1, Llama3)
 - **Smart URL Deduplication** - Intelligent caching with selective re-mining based on schema versions
@@ -65,6 +132,165 @@ LightDom is a revolutionary blockchain-based DOM optimization platform that comb
 npm run mining:daemon                              # 1. Start service
 npm run mining:generate "mine blog posts about AI" # 2. Generate config with AI
 npm run mining:status                              # 3. Monitor progress
+```
+
+### 💾 **Advanced Caching System for Data Mining** ⭐ NEW
+- **Multi-Tier Caching** - LRU in-memory + PostgreSQL + IndexedDB + Service Worker
+- **Chrome DevTools Protocol** - Cache interception, network monitoring, performance metrics
+- **Offline Mining** - Detect and mine PWAs, inspect service worker caches
+- **Visual Comparison** - Screenshot hashing for change detection with OCR integration
+- **Training Data Deduplication** - Hash-based deduplication for neural network datasets
+- **Smart Caching Strategies** - TTL-based expiration, stale-while-revalidate, asset caching
+- **Network Activity Monitoring** - Track cache hits, service worker usage, resource types
+- **8 Database Tables** - Comprehensive storage for URLs, assets, screenshots, OCR, training data
+
+📖 **[Quick Start Guide](ADVANCED_CACHING_QUICKSTART.md)** | **[Full Documentation](ADVANCED_CACHING_SYSTEM_README.md)** | **[Demo](demo-advanced-caching-system.js)** | **[Integration Tests](test/integration/advanced-caching-system.test.js)**
+
+```bash
+# Get started in 3 commands
+node demo-advanced-caching-system.js  # 1. Run comprehensive demo
+npm run cache:stats                   # 2. View cache statistics
+npm run test:caching                  # 3. Run integration tests
+```
+
+### ⚡ **Blockchain Algorithm Optimization** ⭐ NEW
+- **Algorithm Benchmarking** - Compare PoW, PoS, PoO, DPoS for SEO data mining performance
+- **Real-Time Simulation** - Test algorithms on live pattern detection workloads
+- **AI-Powered DOM Optimization** - DeepSeek generates tree shaking and optimization configs
+- **Two-Way Client Communication** - WebSocket API for live/staging site integration
+- **Self-Generating Content** - Dynamic content streaming to client sites
+- **Pattern Learning** - System improves recommendations over time
+
+📖 **[Algorithm Optimization Guide](BLOCKCHAIN_ALGORITHM_OPTIMIZATION_README.md)** | **[Test Results](test-blockchain-optimization.js)** | **[Demo](demo-blockchain-algorithm-optimization.js)** | **[Client Integration](client-integration-example.html)**
+
+```bash
+# Test blockchain algorithms
+node test-blockchain-optimization.js
+
+# Run full demo
+node demo-blockchain-algorithm-optimization.js
+
+# Start API server
+npm run start:dev
+```
+
+### 🚀 **Enhanced Startup System** ⭐ NEW
+- **Integrated Demo** - Blockchain algorithm demo runs automatically on startup
+- **Self-Generating Workloads** - Dynamic container generation for different workload types
+- **SEO Data Mining Containers** - Scalable containerized workers for data mining
+- **Multi-Environment** - Support for development, staging, and production
+
+📖 **[Enhanced Startup Guide](ENHANCED_STARTUP_SYSTEM_README.md)** | **[Docker Compose](docker-compose.seo-datamining.yml)**
+
+```bash
+# Quick start with demo
+npm run start:enhanced
+
+# Production deployment
+docker-compose -f docker-compose.seo-datamining.yml up -d
+
+# Scale workers
+docker-compose -f docker-compose.seo-datamining.yml up -d --scale seo-worker-1=10
+```
+
+### 📊 **Component Dashboard Generator** ⭐ NEW
+- **Auto-Generated React Components** - Production-ready dashboard components with full CRUD
+- **Storybook Integration** - Components from styleguide with auto-generated stories
+- **AI-Powered Schemas** - DeepSeek generates JSON schemas from natural language
+- **Complete CRUD APIs** - Express.js REST APIs for all entities
+- **7 Generated Dashboards** - Workflows, Services, Templates, Attributes, Campaigns, Mining, Seeding
+
+📖 **[Component Generator Guide](COMPONENT_DASHBOARD_GENERATOR_README.md)** | **[Demo](demo-component-dashboard-generator.js)**
+
+```bash
+# Generate all components
+npm run demo:component-dashboard
+
+# Use in your app
+import { WorkflowManagementDashboard } from './components/generated/blockchain-optimization';
+```
+
+### 🤖 **Agent DeepSeek Management System** ⭐ NEW
+- **AI Agent Configuration** - Create DeepSeek-powered agents with custom modes
+- **Knowledge Graph System** - Semantic knowledge graphs with nodes and relationships
+- **Rules Engine** - Behavioral rules (constraints, requirements, guidelines, preferences)
+- **6 Pre-configured Modes** - Workflow Orchestrator, Code Analyzer, Content Generator, SEO Optimizer, Data Mining, Custom
+- **Learning & Adaptation** - Track learning events and performance metrics
+- **UI Integration** - "Add Agent" button in sidebar with 4-step wizard
+
+📖 **[Agent System Guide](AGENT_DEEPSEEK_SYSTEM_README.md)** | **[Database Schema](database/agent-deepseek-system-schema.sql)**
+
+```bash
+# Create agent via API
+curl -X POST http://localhost:3001/api/agent-deepseek/agents \
+  -d '{"name": "SEO Agent", "mode_id": "seo-optimizer"}'
+
+# Execute with DeepSeek
+curl -X POST http://localhost:3001/api/agent-deepseek/deepseek/execute \
+  -d '{"agent_id": "uuid", "prompt_text": "Analyze SEO..."}'
+```
+
+### 🔄 **Auto-Generated CRUD APIs** ⭐ NEW
+- **Schema-Driven Generation** - Automatically generates REST APIs from database schemas
+- **13 Core Tables** - Workflows, Services, Data Streams, Attributes, Datamining, Seeding, SEO, Users, Tasks, Agents, Schemas, Configs
+- **Use-Case Operations** - Custom endpoints for domain-specific actions (execute, health_check, analyze, etc.)
+- **Complete Integration** - Automatically initialized at startup with full error handling
+
+📖 **[System Integration Guide](COMPREHENSIVE_SYSTEM_INTEGRATION_README.md)** | **[Database Schema](database/comprehensive-system-schema.sql)** | **[API Service](services/api-auto-generator.service.js)**
+
+```bash
+# Start system (auto-generates all APIs)
+npm run start:enhanced
+
+# List all generated APIs
+curl http://localhost:3001/api/auto-generated/routes
+
+# Use generated endpoints
+curl -X POST http://localhost:3001/api/workflows \
+  -d '{"name": "SEO Pipeline", "workflow_type": "seo_automation"}'
+
+curl -X POST http://localhost:3001/api/workflows/{id}/execute
+```
+
+## 🚀 Quick Start
+
+### ⚡ Fastest Start (3 Commands)
+
+```bash
+# 1. Install dependencies
+PUPPETEER_SKIP_DOWNLOAD=true npm install --legacy-peer-deps
+
+# 2. Ensure .env exists
+cp -n .env.example .env
+
+# 3. Start integrated system (API + Frontend)
+npm run start:integrated
+```
+
+**Access Points:**
+- 🌐 Frontend: http://localhost:3000
+- 🔌 API Server: http://localhost:3001
+- ❤️ Health Check: http://localhost:3001/api/health
+
+📖 **See [START_GUIDE.md](START_GUIDE.md) for detailed quick start instructions**
+
+### Prerequisites
+
+### 🎨 **Component Dashboard Generator** ⭐ NEW
+- **Auto-Generated React Components** - Full CRUD dashboard components from Storybook/styleguide
+- **DeepSeek Schema Generation** - AI-powered schema creation for workflows, services, templates
+- **Complete CRUD APIs** - Express routes for workflows, services, component templates, data attributes, campaigns, data mining, seeding
+- **Storybook Integration** - Auto-generated stories with interactive controls
+- **Schema-Driven** - DeepSeek controls customization and validation
+
+📖 **[Component Generator Guide](COMPONENT_DASHBOARD_GENERATOR_README.md)** | **[Demo](demo-component-dashboard-generator.js)**
+
+```bash
+# Generate all dashboard components
+npm run demo:component-dashboard
+
+# Components for: workflows, services, templates, attributes, campaigns, mining, seeding
+# Output: React components + API routes + Storybook stories + JSON schemas
 ```
 
 ## 🚀 Quick Start

@@ -1,0 +1,832 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://lightdom.io/schemas/error-orchestration-config.json",
+    "title": "Error Orchestration Configuration",
+    "description": "Configuration schema for the DeepSeek-powered error reporting and remediation system",
+    "type": "object",
+    "properties": {
+        "analysis": {
+            "type": "object",
+            "description": "Configuration for error analysis behavior",
+            "properties": {
+                "rateLimit": {
+                    "type": "object",
+                    "properties": {
+                        "maxRequestsPerMinute": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 60,
+                            "default": 10,
+                            "description": "Maximum DeepSeek analysis requests per minute"
+                        },
+                        "maxConcurrent": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10,
+                            "default": 3,
+                            "description": "Maximum concurrent analysis operations"
+                        }
+                    },
+                    "required": [
+                        "maxRequestsPerMinute",
+                        "maxConcurrent"
+                    ]
+                },
+                "thresholds": {
+                    "type": "object",
+                    "properties": {
+                        "minOccurrences": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 3,
+                            "description": "Minimum error occurrences before triggering analysis"
+                        },
+                        "minConfidence": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0.7,
+                            "description": "Minimum confidence score to proceed with action"
+                        },
+                        "autoFixConfidence": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0.9,
+                            "description": "Confidence threshold for automatic fixes (requires manual review below this)"
+                        }
+                    },
+                    "required": [
+                        "minOccurrences",
+                        "minConfidence",
+                        "autoFixConfidence"
+                    ]
+                },
+                "scheduling": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Enable scheduled error analysis"
+                        },
+                        "intervalMs": {
+                            "type": "integer",
+                            "minimum": 10000,
+                            "default": 60000,
+                            "description": "Interval between analysis runs in milliseconds"
+                        },
+                        "batchSize": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 50,
+                            "default": 10,
+                            "description": "Number of errors to analyze per batch"
+                        }
+                    },
+                    "required": [
+                        "enabled",
+                        "intervalMs",
+                        "batchSize"
+                    ]
+                }
+            },
+            "required": [
+                "rateLimit",
+                "thresholds",
+                "scheduling"
+            ]
+        },
+        "git": {
+            "type": "object",
+            "description": "Git workflow automation settings",
+            "properties": {
+                "autoCommit": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically commit fixes (requires manual review when false)"
+                },
+                "requireApproval": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Require human approval before applying fixes"
+                },
+                "branchPrefix": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]+/$",
+                    "default": "fix/deepseek-",
+                    "description": "Prefix for automated fix branches"
+                },
+                "commitMessageTemplate": {
+                    "type": "string",
+                    "default": "fix({{component}}): {{summary}}\n\n{{details}}\n\nGenerated-by: DeepSeek Error Orchestration",
+                    "description": "Template for commit messages"
+                },
+                "useGitHubDesktop": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Use GitHub Desktop CLI workflow when available"
+                },
+                "workflowTemplates": {
+                    "type": "array",
+                    "description": "Reusable workflow templates stored alongside configuration",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string"
+                            },
+                            "source": {
+                                "type": "string",
+                                "description": "Path or URL to the workflow template"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "source"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                "configTableKey": {
+                    "type": "string",
+                    "description": "Identifier used when persisting workflow configuration to the database"
+                }
+            },
+            "required": [
+                "autoCommit",
+                "requireApproval",
+                "branchPrefix"
+            ]
+        },
+        "security": {
+            "type": "object",
+            "description": "Security and privacy settings",
+            "properties": {
+                "redaction": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Enable automatic secret redaction"
+                        },
+                        "patterns": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "default": [
+                                "password",
+                                "api_key",
+                                "secret",
+                                "token",
+                                "apiKey",
+                                "apiSecret"
+                            ],
+                            "description": "Patterns to redact from error messages"
+                        },
+                        "customRegex": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "regex"
+                            },
+                            "description": "Custom regex patterns for redaction"
+                        }
+                    },
+                    "required": [
+                        "enabled",
+                        "patterns"
+                    ]
+                },
+                "auditLogging": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Enable audit logging for all DeepSeek interactions"
+                        },
+                        "logLevel": {
+                            "type": "string",
+                            "enum": [
+                                "debug",
+                                "info",
+                                "warn",
+                                "error"
+                            ],
+                            "default": "info"
+                        },
+                        "retentionDays": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 90,
+                            "description": "Number of days to retain audit logs"
+                        }
+                    },
+                    "required": [
+                        "enabled",
+                        "logLevel"
+                    ]
+                },
+                "allowedNetworks": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(/\\d{1,2})?$"
+                    },
+                    "default": [
+                        "127.0.0.1",
+                        "::1"
+                    ],
+                    "description": "CIDR ranges allowed to access DeepSeek endpoints"
+                }
+            },
+            "required": [
+                "redaction",
+                "auditLogging"
+            ]
+        },
+        "ollama": {
+            "type": "object",
+            "description": "Ollama/DeepSeek connection configuration",
+            "properties": {
+                "endpoint": {
+                    "type": "object",
+                    "properties": {
+                        "url": {
+                            "type": "string",
+                            "format": "uri",
+                            "default": "http://127.0.0.1:11434",
+                            "description": "Ollama API endpoint URL"
+                        },
+                        "model": {
+                            "type": "string",
+                            "default": "deepseek-coder",
+                            "description": "Model to use for analysis"
+                        },
+                        "timeoutMs": {
+                            "type": "integer",
+                            "minimum": 1000,
+                            "maximum": 300000,
+                            "default": 30000,
+                            "description": "Request timeout in milliseconds"
+                        },
+                        "authToken": {
+                            "type": "string",
+                            "description": "Optional authentication token for Ollama"
+                        }
+                    },
+                    "required": [
+                        "url",
+                        "model",
+                        "timeoutMs"
+                    ]
+                },
+                "prompts": {
+                    "type": "object",
+                    "properties": {
+                        "errorAnalysis": {
+                            "type": "string",
+                            "description": "System prompt template for error analysis"
+                        },
+                        "fixGeneration": {
+                            "type": "string",
+                            "description": "System prompt template for fix generation"
+                        },
+                        "commitMessage": {
+                            "type": "string",
+                            "description": "System prompt template for commit message generation"
+                        }
+                    }
+                },
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "temperature": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 2,
+                            "default": 0.3,
+                            "description": "Model temperature for analysis (lower = more deterministic)"
+                        },
+                        "maxTokens": {
+                            "type": "integer",
+                            "minimum": 100,
+                            "maximum": 8192,
+                            "default": 2048,
+                            "description": "Maximum tokens for response"
+                        },
+                        "topP": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "default": 0.9,
+                            "description": "Top-p sampling parameter"
+                        }
+                    }
+                }
+            },
+            "required": [
+                "endpoint"
+            ]
+        },
+        "actions": {
+            "type": "object",
+            "description": "Configuration for automated actions",
+            "properties": {
+                "enabledTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "log_only",
+                            "create_ticket",
+                            "generate_pr",
+                            "auto_fix",
+                            "escalate"
+                        ]
+                    },
+                    "default": [
+                        "log_only",
+                        "create_ticket",
+                        "generate_pr"
+                    ],
+                    "description": "Enabled action types"
+                },
+                "ticketing": {
+                    "type": "object",
+                    "properties": {
+                        "system": {
+                            "type": "string",
+                            "enum": [
+                                "github",
+                                "jira",
+                                "linear",
+                                "database"
+                            ],
+                            "default": "database",
+                            "description": "Ticketing system to use"
+                        },
+                        "autoAssign": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Automatically assign tickets based on component ownership"
+                        },
+                        "labels": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "default": [
+                                "bug",
+                                "automated",
+                                "deepseek"
+                            ],
+                            "description": "Default labels for created tickets"
+                        }
+                    }
+                },
+                "prGeneration": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Enable PR generation"
+                        },
+                        "draftMode": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Create PRs as drafts"
+                        },
+                        "reviewers": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Default reviewers for automated PRs"
+                        }
+                    }
+                },
+                "workflow": {
+                    "type": "object",
+                    "description": "Global workflow expectations",
+                    "properties": {
+                        "expectedResolutionMinutes": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 180,
+                            "description": "Expected time to resolve high-severity issues"
+                        },
+                        "maxParallelFixes": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 3,
+                            "description": "Number of fixes the system may work on concurrently"
+                        },
+                        "escalationPolicy": {
+                            "type": "string",
+                            "description": "Reference to escalation procedure documentation"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "required": [
+                "enabledTypes"
+            ]
+        },
+        "notifications": {
+            "type": "object",
+            "description": "Notification settings",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "channels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "console",
+                            "email",
+                            "slack",
+                            "webhook"
+                        ]
+                    },
+                    "default": [
+                        "console"
+                    ]
+                },
+                "severityFilter": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "critical",
+                            "error",
+                            "warning",
+                            "info"
+                        ]
+                    },
+                    "default": [
+                        "critical",
+                        "error"
+                    ]
+                }
+            }
+        },
+        "logging": {
+            "type": "object",
+            "description": "Centralized logging configuration for error orchestration events",
+            "properties": {
+                "policy": {
+                    "type": "string",
+                    "enum": [
+                        "service-attribute-status"
+                    ],
+                    "default": "service-attribute-status",
+                    "description": "Logging policy identifier. Currently only supports the {service}{attribute}{status} - {message} format"
+                },
+                "format": {
+                    "type": "string",
+                    "default": "{service}{attribute}{status} - {message}",
+                    "description": "Template applied to log entries"
+                },
+                "retentionDays": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 180,
+                    "description": "Number of days to retain structured event logs"
+                }
+            },
+            "additionalProperties": false
+        },
+        "dependencies": {
+            "type": "object",
+            "description": "Runtime service dependencies required for automated remediation",
+            "properties": {
+                "ollama": {
+                    "type": "object",
+                    "properties": {
+                        "requiredModels": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 1,
+                            "description": "List of Ollama models that must be present before the service starts"
+                        },
+                        "healthEndpoint": {
+                            "type": "string",
+                            "default": "/api/tags",
+                            "description": "Endpoint used to verify Ollama availability"
+                        },
+                        "ragTools": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Agent tools that must be available when the dependency is healthy"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "activeEnvironment": {
+            "type": "string",
+            "description": "Name of the environment configuration to use by default"
+        },
+        "environments": {
+            "type": "object",
+            "description": "Environment-specific overrides for dev/staging/prod workflows",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Human readable environment name"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "severityGate": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "critical",
+                                "error",
+                                "warning",
+                                "info"
+                            ]
+                        },
+                        "description": "Allowed severities for automated processing in this environment"
+                    },
+                    "analysis": {
+                        "type": "object",
+                        "properties": {
+                            "rateLimit": {
+                                "type": "object",
+                                "properties": {
+                                    "maxRequestsPerMinute": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 60
+                                    },
+                                    "maxConcurrent": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 10
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            "thresholds": {
+                                "type": "object",
+                                "properties": {
+                                    "minOccurrences": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "minConfidence": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                    },
+                                    "autoFixConfidence": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            "scheduling": {
+                                "type": "object",
+                                "properties": {
+                                    "enabled": {
+                                        "type": "boolean"
+                                    },
+                                    "intervalMs": {
+                                        "type": "integer",
+                                        "minimum": 10000
+                                    },
+                                    "batchSize": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 50
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "actions": {
+                        "type": "object",
+                        "properties": {
+                            "enabledTypes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "log_only",
+                                        "create_ticket",
+                                        "generate_pr",
+                                        "auto_fix",
+                                        "escalate"
+                                    ]
+                                }
+                            },
+                            "workflow": {
+                                "type": "object",
+                                "properties": {
+                                    "expectedResolutionMinutes": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "maxParallelFixes": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "escalationPolicy": {
+                                        "type": "string"
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "git": {
+                        "type": "object",
+                        "properties": {
+                            "autoCommit": {
+                                "type": "boolean"
+                            },
+                            "requireApproval": {
+                                "type": "boolean"
+                            },
+                            "branchPrefix": {
+                                "type": "string",
+                                "pattern": "^[a-z0-9-]+/$"
+                            },
+                            "commitMessageTemplate": {
+                                "type": "string"
+                            },
+                            "useGitHubDesktop": {
+                                "type": "boolean"
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "notifications": {
+                        "type": "object",
+                        "properties": {
+                            "enabled": {
+                                "type": "boolean"
+                            },
+                            "channels": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "console",
+                                        "email",
+                                        "slack",
+                                        "webhook"
+                                    ]
+                                }
+                            },
+                            "severityFilter": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "critical",
+                                        "error",
+                                        "warning",
+                                        "info"
+                                    ]
+                                }
+                            }
+                        },
+                        "additionalProperties": false
+                    },
+                    "sla": {
+                        "type": "object",
+                        "properties": {
+                            "expectedResolutionMinutes": {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            "reviewCadenceMinutes": {
+                                "type": "integer",
+                                "minimum": 1
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "mcp": {
+            "type": "object",
+            "description": "Model Context Protocol integration guidance",
+            "properties": {
+                "servers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "endpoint": {
+                                "type": "string",
+                                "format": "uri"
+                            },
+                            "capabilities": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "models": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "description": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ],
+                        "additionalProperties": false
+                    }
+                },
+                "prompts": {
+                    "type": "object",
+                    "properties": {
+                        "errorRemediation": {
+                            "type": "string",
+                            "description": "Prompt template guiding DeepSeek through remediation reasoning"
+                        },
+                        "configSynthesis": {
+                            "type": "string",
+                            "description": "Prompt template for generating configuration updates"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "rag": {
+            "type": "object",
+            "description": "Retrieval-augmented generation coordination settings",
+            "properties": {
+                "promptTemplates": {
+                    "type": "object",
+                    "properties": {
+                        "diagnostic": {
+                            "type": "string"
+                        },
+                        "postAction": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "datasets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "analysis",
+        "git",
+        "security",
+        "ollama",
+        "actions"
+    ],
+    "additionalProperties": false
+}

@@ -1,0 +1,235 @@
+{
+  "plans": {
+    "free": {
+      "name": "free",
+      "label": "Free Plan",
+      "description": "Perfect for getting started with basic features",
+      "pricing": {
+        "monthly": 0,
+        "yearly": 0,
+        "currency": "USD"
+      },
+      "trial": {
+        "enabled": false,
+        "days": 0
+      },
+      "features": [
+        "Basic Dashboard",
+        "Limited Optimizations (10/month)",
+        "Community Support",
+        "3 Sites Monitoring",
+        "100MB Storage"
+      ],
+      "limits": {
+        "optimizations_per_month": 10,
+        "sites_monitored": 3,
+        "api_calls_per_day": 100,
+        "mining_sessions": 1,
+        "storage_mb": 100,
+        "team_members": 0,
+        "custom_domains": 0,
+        "advanced_analytics": false,
+        "priority_support": false,
+        "api_access": false,
+        "automation_workflows": 0,
+        "export_data": false
+      },
+      "public": true,
+      "sort_order": 1
+    },
+    "pro": {
+      "name": "pro",
+      "label": "Professional Plan",
+      "description": "Advanced features for professionals and small teams",
+      "pricing": {
+        "monthly": 29,
+        "yearly": 290,
+        "currency": "USD",
+        "save_percentage": 17
+      },
+      "trial": {
+        "enabled": true,
+        "days": 14
+      },
+      "features": [
+        "Advanced Dashboard",
+        "100 Optimizations/month",
+        "API Access (1000 calls/day)",
+        "Advanced Analytics",
+        "25 Sites Monitoring",
+        "1GB Storage",
+        "3 Team Members",
+        "3 Custom Domains",
+        "10 Automation Workflows",
+        "Data Export",
+        "Priority Email Support"
+      ],
+      "limits": {
+        "optimizations_per_month": 100,
+        "sites_monitored": 25,
+        "api_calls_per_day": 1000,
+        "mining_sessions": 5,
+        "storage_mb": 1000,
+        "team_members": 3,
+        "custom_domains": 3,
+        "advanced_analytics": true,
+        "priority_support": false,
+        "api_access": true,
+        "automation_workflows": 10,
+        "export_data": true
+      },
+      "public": true,
+      "sort_order": 2,
+      "popular": true
+    },
+    "enterprise": {
+      "name": "enterprise",
+      "label": "Enterprise Plan",
+      "description": "Unlimited access for large organizations",
+      "pricing": {
+        "monthly": 99,
+        "yearly": 990,
+        "currency": "USD",
+        "save_percentage": 17,
+        "custom": true
+      },
+      "trial": {
+        "enabled": true,
+        "days": 30
+      },
+      "features": [
+        "Unlimited Everything",
+        "Unlimited Optimizations",
+        "Unlimited API Access",
+        "Advanced Analytics & Reporting",
+        "Unlimited Sites Monitoring",
+        "Unlimited Storage",
+        "Unlimited Team Members",
+        "Unlimited Custom Domains",
+        "Unlimited Automation Workflows",
+        "Full Data Export",
+        "Dedicated Support",
+        "Custom Integration",
+        "SLA Guarantee",
+        "Advanced Security",
+        "SSO/SAML",
+        "Audit Logs"
+      ],
+      "limits": {
+        "optimizations_per_month": -1,
+        "sites_monitored": -1,
+        "api_calls_per_day": -1,
+        "mining_sessions": -1,
+        "storage_mb": -1,
+        "team_members": -1,
+        "custom_domains": -1,
+        "advanced_analytics": true,
+        "priority_support": true,
+        "api_access": true,
+        "automation_workflows": -1,
+        "export_data": true,
+        "dedicated_support": true,
+        "custom_integration": true,
+        "sla_guarantee": true,
+        "sso": true,
+        "audit_logs": true
+      },
+      "public": true,
+      "sort_order": 3
+    },
+    "admin": {
+      "name": "admin",
+      "label": "Admin Plan",
+      "description": "Full system access for administrators",
+      "pricing": {
+        "monthly": 0,
+        "yearly": 0,
+        "currency": "USD"
+      },
+      "trial": {
+        "enabled": false,
+        "days": 0
+      },
+      "features": [
+        "Full System Access",
+        "User Management",
+        "System Settings",
+        "Monitoring Dashboard",
+        "Security Controls",
+        "Billing Management",
+        "All Enterprise Features"
+      ],
+      "limits": {
+        "optimizations_per_month": -1,
+        "sites_monitored": -1,
+        "api_calls_per_day": -1,
+        "mining_sessions": -1,
+        "storage_mb": -1,
+        "team_members": -1,
+        "custom_domains": -1,
+        "advanced_analytics": true,
+        "priority_support": true,
+        "api_access": true,
+        "automation_workflows": -1,
+        "export_data": true,
+        "admin_panel": true,
+        "system_settings": true,
+        "user_management": true,
+        "billing_management": true,
+        "security_settings": true,
+        "monitoring": true
+      },
+      "public": false,
+      "sort_order": 4,
+      "system": true
+    },
+    "deepseek": {
+      "name": "deepseek",
+      "label": "DeepSeek AI Plan",
+      "description": "Special plan for DeepSeek AI automation user",
+      "pricing": {
+        "monthly": 0,
+        "yearly": 0,
+        "currency": "USD"
+      },
+      "trial": {
+        "enabled": false,
+        "days": 0
+      },
+      "features": [
+        "Unlimited API Access",
+        "Workflow Automation",
+        "Advanced Mining",
+        "AI Model Access",
+        "Workflow Builder",
+        "Advanced Analytics",
+        "Data Export"
+      ],
+      "limits": {
+        "optimizations_per_month": -1,
+        "sites_monitored": -1,
+        "api_calls_per_day": -1,
+        "mining_sessions": -1,
+        "storage_mb": -1,
+        "team_members": 0,
+        "custom_domains": 0,
+        "advanced_analytics": true,
+        "priority_support": false,
+        "api_access": true,
+        "automation_workflows": -1,
+        "export_data": true,
+        "ai_model_access": true,
+        "workflow_builder": true,
+        "deepseek_integration": true
+      },
+      "public": false,
+      "sort_order": 5,
+      "system": true
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "last_updated": "2025-11-06",
+    "description": "User subscription plan configurations for LightDom platform"
+  }
+}

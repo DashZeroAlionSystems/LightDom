@@ -7,7 +7,7 @@
  * @module ComponentLibraryService
  */
 
-import { getDatabaseService } from '../DatabaseService.js';
+import { getDatabaseService } from './DatabaseService.js';
 import { LdSchema } from './ValidationService.js';
 import fs from 'fs/promises';
 import path from 'path';
