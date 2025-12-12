@@ -99,6 +99,63 @@ Complete Storybook integration:
 - `ProductOverview.stories.tsx` - 4 stories with different content lengths
 - `ProductDrillDown.stories.tsx` - 5 stories for each feature tab
 - `ThemeConfigurator.stories.tsx` - 2 stories with and without callback
+- `FormControlAnimations.stories.tsx` - Form control animation demos
+
+### 8. Form Control Animation Utilities (`src/utils/formControlAnimations.ts`)
+
+Reusable animation patterns for form controls, buttons, and transitions:
+
+#### Button Animations
+- `buttonPressAnimation()` - Satisfying press effect with scale
+- `buttonRippleAnimation()` - Material Design ripple on click
+- `buttonHoverEnterAnimation()` - Scale and shadow on hover
+- `buttonHoverLeaveAnimation()` - Return to default state
+- `buttonLoadingAnimation()` - Pulsing loading indicator
+- `buttonSuccessAnimation()` - Checkmark bounce on success
+
+#### Input Field Animations
+- `inputFocusAnimation()` - Border highlight and glow on focus
+- `inputBlurAnimation()` - Return to default on blur
+- `labelFloatAnimation()` - Floating label effect
+- `inputErrorShakeAnimation()` - Shake animation for invalid fields
+- `inputValidAnimation()` - Success indicator animation
+
+#### Toggle & Selection Animations
+- `switchToggleAnimation()` - Smooth switch toggle
+- `checkboxCheckAnimation()` - Checkmark appearance
+- `radioSelectAnimation()` - Radio dot animation
+- `dropdownOpenAnimation()` - Dropdown expand with fade
+- `dropdownCloseAnimation()` - Dropdown collapse
+
+#### Card & Panel Animations
+- `modelCardSelectAnimation()` - Selection highlight for model cards
+- `modelCardHoverAnimation()` - Hover lift effect
+- `modelCardHoverLeaveAnimation()` - Return to default
+- `modelDownloadCompleteAnimation()` - Success animation for downloads
+- `sectionExpandAnimation()` - Accordion expand
+- `sectionCollapseAnimation()` - Accordion collapse
+- `formFieldsEntranceAnimation()` - Staggered field entrance
+
+#### Modal & Toast Animations
+- `modalOpenAnimation()` - Overlay fade + modal scale in
+- `modalCloseAnimation()` - Modal scale out + overlay fade
+- `toastEnterAnimation()` - Slide up + fade in
+- `toastExitAnimation()` - Slide out + fade
+
+#### Tab Animations
+- `tabPanelSwitchAnimation()` - Smooth panel transitions
+- `tabIndicatorSlideAnimation()` - Sliding tab indicator
+
+### 9. React Animation Hooks (`src/hooks/useAnimations.ts`)
+
+Custom React hooks for clean animation integration:
+
+- `useAnimatedButton()` - Button with hover, press, ripple animations
+- `useAnimatedInput()` - Input with focus, blur, error animations
+- `useAnimatedCard()` - Card with hover and selection animations
+- `useAnimatedList()` - List with staggered entrance animation
+- `useAnimatedMount()` - Component mount/unmount transitions
+- `useReducedMotion()` - Detect user's reduced motion preference
 
 ## 🚀 Usage Examples
 

@@ -71,7 +71,7 @@ export const NeuralNetworkVisualizer: React.FC<Props> = ({
       .select(svgRef.current)
       .attr('width', width)
       .attr('height', height)
-      .attr('viewBox', \`0 0 \${width} \${height}\`);
+      .attr('viewBox', `0 0 ${width} ${height}`);
 
     // Create gradient definitions
     const defs = svg.append('defs');
@@ -153,7 +153,7 @@ export const NeuralNetworkVisualizer: React.FC<Props> = ({
         .attr('fill', getNodeColor(node.type, activation))
         .attr('stroke', '#333')
         .attr('stroke-width', 2)
-        .attr('class', \`node node-\${node.type}\`)
+        .attr('class', `node node-${node.type}`)
         .style('cursor', 'pointer')
         .on('click', () => {
           setSelectedNode(node);

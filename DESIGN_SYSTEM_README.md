@@ -1,13 +1,34 @@
-# LightDom Design System - Material Design 3
+# LightDom Design System
 
-**Modern, accessible, and scalable component library following Material Design 3 principles with Tailwind CSS.**
+**Complete Atomic Design system with 34+ reusable components, comprehensive animation utilities, design tokens, and WCAG 2.1 AA accessibility compliance.**
 
 ## 🎨 Overview
 
-This design system provides a unified, consistent user experience across the entire LightDom platform. Built with Material Design 3 specifications and atomic design methodology, it ensures accessibility, responsive design, and optimal performance.
+This design system provides a unified, consistent user experience across the entire LightDom platform. Built with Atomic Design principles, anime.js v4 animations, comprehensive design tokens, and accessibility-first approach, it ensures a modern, performant, and inclusive user experience.
+
+### What's New ✨
+
+- **34 Reusable Components** - Complete atomic design hierarchy (Atoms → Molecules → Organisms → Templates)
+- **Animation System** - 30+ animation patterns + 6 React hooks + 3 interactive controllers
+- **Design Tokens** - Centralized token system for colors, spacing, typography, shadows, and more
+- **Accessibility Utilities** - 20+ WCAG 2.1 AA compliance helpers
+- **60+ Storybook Stories** - Interactive documentation across 9 showcase pages
 
 ## 📚 Documentation
 
+### Interactive Storybook (60+ Stories)
+Run `npm run storybook` and explore:
+- **Design System Overview** - Architecture, philosophy, getting started guide
+- **Design Tokens Reference** - Complete token system with 8 stories
+- **Accessibility Guide** - WCAG compliance guide with 7 interactive demos
+- **Atoms Showcase** - All 12 foundation components
+- **Molecules Showcase** - All 13 composed components (2 pages)
+- **Organisms Showcase** - All 6 complex UI patterns
+- **Templates Showcase** - 3 page layouts with 5 interactive demos
+- **Form Control Animations** - 30+ animation patterns
+- **Animation Controllers** - 3 interactive playgrounds with 7 stories
+
+### Written Documentation
 - **[Atomic Design Architecture](./docs/ATOMIC_DESIGN_ARCHITECTURE.md)** - Component hierarchy and organization
 - **[UX Research](./docs/research/DESIGN_SYSTEM_UX_RESEARCH.md)** - IDE-styled design patterns and best practices
 - **[Headless API Research](./HEADLESS_API_RESEARCH.md)** - Building better app structures with Puppeteer
@@ -27,35 +48,126 @@ npm install class-variance-authority clsx tailwind-merge lucide-react
 ### Basic Usage
 
 ```tsx
-import { Button, Card, Input, Badge, Avatar } from '@/components/ui';
+// Using Atoms
+import { Button, Card, Input, Typography, Avatar, Spinner } from '@/components/atoms';
 
 function MyComponent() {
   return (
     <Card variant="elevated">
       <Card.Header>
-        <Card.Title>Welcome</Card.Title>
-        <Card.Description>Get started with LightDom</Card.Description>
+        <Typography variant="h2">Welcome</Typography>
+        <Typography variant="body1">Get started with LightDom</Typography>
       </Card.Header>
       <Card.Content>
         <Input 
           label="Email" 
-          placeholder="you@example.com" 
-          leftIcon={<Mail />}
+          placeholder="you@example.com"
         />
       </Card.Content>
       <Card.Footer>
-        <Button variant="filled" fullWidth>
+        <Button variant="primary" fullWidth>
           Continue
         </Button>
       </Card.Footer>
     </Card>
   );
 }
+
+// Using Molecules
+import { Modal, Tabs, Accordion } from '@/components/molecules';
+
+// Using Organisms
+import { Header, Sidebar, DataTable } from '@/components/organisms';
+
+// Using Templates
+import { DashboardTemplate, LandingTemplate, AuthTemplate } from '@/components/templates';
+
+// Using Animations
+import { animateButton, animateInput } from '@/utils/formControlAnimations';
+import { useAnimatedButton, useReducedMotion } from '@/hooks/useAnimations';
+
+function AnimatedButton() {
+  const { ref, isAnimating } = useAnimatedButton();
+  const prefersReducedMotion = useReducedMotion();
+  
+  return (
+    <button ref={ref} disabled={isAnimating}>
+      Click me for smooth animations!
+    </button>
+  );
+}
+
+// Using Design Tokens
+import { designTokens, getColor, getSpacing } from '@/utils/designTokens';
+
+const primaryColor = getColor('primary', 500);
+const spacing = getSpacing(4); // 16px
+
+// Using Accessibility Utilities
+import { getAriaLabel, checkColorContrast, createFocusTrap } from '@/utils/accessibility';
+
+const label = getAriaLabel('Close dialog');
+const meetsAA = checkColorContrast('#000000', '#FFFFFF', 'AA');
+const trap = createFocusTrap(modalElement);
 ```
 
 ## 🧩 Components
 
-### Core Components
+### Atomic Design Hierarchy
+
+#### Atoms (12 Foundation Components)
+The smallest building blocks of the UI:
+- **Typography** - 14 text variants (h1-h6, body1/2, subtitle, caption, code, lead, overline)
+- **Avatar** - User images with initials fallback, status indicators, groups, shapes
+- **Badge** - Status indicators and labels with multiple variants
+- **Icon** - Lucide icon wrapper with containers, animations, IconButton
+- **Button** - Enhanced button with multiple variants and states
+- **Input** - Enhanced form input with validation support
+- **Checkbox** - Form checkboxes with sizes, labels, descriptions, indeterminate state
+- **Toggle** - On/off switches with variants, label positions, state text
+- **Spinner** - Loading indicators (circular, dots, pulse variants)
+- **Tooltip** - Contextual tooltips with placements, variants, arrows
+- **Card** - Content containers with 5 variants (elevated, outlined, filled, gradient, glass)
+- **Divider** - Visual separators (horizontal/vertical, with labels)
+
+#### Molecules (13 Composed Components)
+Combinations of atoms working together:
+- **SearchInput** - Search input with clear button
+- **FormGroup** - Form field grouping with labels and validation
+- **ButtonGroup** - Button grouping with various layouts
+- **AlertBanner** - Notifications and alert banners
+- **Breadcrumb** - Navigation breadcrumbs
+- **Select** - Enhanced dropdown select
+- **DropdownMenu** - Dropdown menus with custom triggers and placements
+- **Modal** - Dialog overlays with 6 sizes and close behaviors
+- **Tabs** - Tabbed interfaces (3 variants: default, pills, underline)
+- **Accordion** - Collapsible panels (3 variants, single/multiple open modes)
+- **ProgressBar** - Progress indicators with 6 variants
+- **Pagination** - Page navigation with ellipsis and controls
+- **EmptyState** - Empty content placeholders with icons and actions
+
+#### Organisms (6 Complex UI Patterns)
+Complete, functional sections:
+- **Header** - Application header with search, notifications, user dropdown
+- **Sidebar** - Collapsible navigation with sections, active states, badges
+- **DataTable** - Advanced table with sorting, filtering, search, pagination, row selection
+- **Form** - Complete form builder with validation, error handling, 8 field types
+- **UserProfile** - User profile card with avatar, contact info, stats, actions
+- **NotificationCenter** - Notification list with tabs, mark as read, type indicators
+
+#### Templates (3 Page Layouts)
+Complete page structures:
+- **DashboardTemplate** - Full dashboard with collapsible sidebar, header, and content area
+- **LandingTemplate** - Marketing/landing page with hero section and features
+- **AuthTemplate** - Authentication pages with social login and form layouts
+
+### Animation Controllers (3 Interactive Playgrounds)
+Inspired by animejs.com:
+- **AnimationController** - Full animation player with timeline, easing visualizer, property inspector, speed controls
+- **StaggerDemo** - Interactive stagger animation demo with configurable delay and direction
+- **TimelineBuilder** - Multi-element timeline with synchronized animations
+
+### Core Components (Material Design 3 Legacy)
 
 #### Button
 Material Design 3 button with multiple variants and states.

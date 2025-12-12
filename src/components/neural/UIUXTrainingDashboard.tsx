@@ -47,7 +47,7 @@ export const UIUXTrainingDashboard: React.FC<Props> = ({
     nodes: [
       // Input layer (sample of 10 nodes for visualization)
       ...Array.from({ length: 10 }, (_, i) => ({
-        id: \`input-\${i}\`,
+        id: `input-${i}`,
         layer: 0,
         index: i,
         type: 'input' as const,
@@ -55,34 +55,34 @@ export const UIUXTrainingDashboard: React.FC<Props> = ({
       })),
       // Hidden layers
       ...Array.from({ length: 10 }, (_, i) => ({
-        id: 'input-' + i,
+        id: `hidden0-${i}`,
         layer: 1,
         index: i,
         type: 'hidden' as const,
       })),
       ...Array.from({ length: 6 }, (_, i) => ({
-        id: \`hidden2-\${i}\`,
+        id: `hidden1-${i}`,
         layer: 2,
-        id: 'hidden1-' + i,
+        index: i,
         type: 'hidden' as const,
       })),
       ...Array.from({ length: 4 }, (_, i) => ({
-        id: \`hidden3-\${i}\`,
+        id: `hidden2-${i}`,
         layer: 3,
-        id: 'hidden2-' + i,
+        index: i,
         type: 'hidden' as const,
       })),
       // Output layer
       ...Array.from({ length: 5 }, (_, i) => ({
-        id: \`output-\${i}\`,
-        id: 'hidden3-' + i,
+        id: `output-${i}`,
+        layer: 4,
         index: i,
         type: 'output' as const,
         label: ['Accessibility', 'Performance', 'Aesthetics', 'Usability', 'Overall'][i],
       })),
     ],
     links: [],
-        id: 'output-' + i,
+  });
 
   // Generate connections between layers
   useEffect(() => {
@@ -216,7 +216,7 @@ export const UIUXTrainingDashboard: React.FC<Props> = ({
             <Progress
               percent={trainingProgress}
               status={isTraining ? 'active' : 'normal'}
-              format={() => \`Epoch \${currentEpoch}/\${totalEpochs}\`}
+              format={() => `Epoch ${currentEpoch}/${totalEpochs}`}
             />
           </Card>
         </Col>
