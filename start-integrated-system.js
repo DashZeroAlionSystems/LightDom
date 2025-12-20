@@ -163,6 +163,8 @@ class IntegratedSystemStarter {
       console.log('  🌐 Frontend:    http://localhost:3000');
       console.log('  🔌 API Server:  http://localhost:3001');
       console.log('  ❤️  Health:      http://localhost:3001/api/health');
+      console.log('  📚 API Docs:    http://localhost:3001/api-docs');
+      console.log('  📄 OpenAPI:     http://localhost:3001/api/openapi.json');
       console.log();
       console.log('📋 Available Features:');
       console.log('  • Frontend UI with Discord-style theme');
