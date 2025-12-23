@@ -85,6 +85,7 @@ export function normalizeOllamaTrainingConfig(trainingConfig = {}, defaults = {}
     defaults.defaultContextWindow ||
     4096;
 
+  // Accept a few synonymous example fields for backwards compatibility
   const trainingExamples = Array.from(
     new Set([
       ...(trainingConfig.trainingExamples || []),

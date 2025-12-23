@@ -70,6 +70,7 @@ export interface BidiStream {
 }
 
 export class OllamaDeepSeekIntegration extends EventEmitter {
+  private static readonly TOKEN_TO_CHAR_RATIO = 4; // rough heuristic: ~4 chars per token
   private config: OllamaConfig;
   private client: AxiosInstance;
   private tools: Map<string, Tool> = new Map();
@@ -843,7 +844,7 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
    */
   private trimHistoryForContext(messages: Message[]): Message[] {
     const targetTokens = this.config.contextWindowSize || 4096;
-    const targetChars = targetTokens * 4; // rough heuristic
+    const targetChars = targetTokens * OllamaDeepSeekIntegration.TOKEN_TO_CHAR_RATIO;
     let remaining = targetChars;
     const trimmed: Message[] = [];
 
