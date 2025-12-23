@@ -1,0 +1,254 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lightdom.io/schemas/prompt-schema.json",
+  "title": "LightDom Prompt Schema",
+  "description": "JSON Schema for structured prompts in the LightDom platform",
+  "type": "object",
+  "definitions": {
+    "promptTemplate": {
+      "type": "object",
+      "required": ["id", "name", "category", "template", "variables"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the prompt template",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name for the template",
+          "minLength": 3,
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of what the prompt does",
+          "maxLength": 500
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the prompt template",
+          "enum": ["workflow", "schema", "component", "analysis", "optimization", "code-generation", "documentation"]
+        },
+        "template": {
+          "type": "string",
+          "description": "The prompt template with variable placeholders using {{variable}} syntax"
+        },
+        "variables": {
+          "type": "array",
+          "description": "List of variable names used in the template",
+          "items": {
+            "type": "string"
+          }
+        },
+        "outputFormat": {
+          "type": "string",
+          "description": "Expected output format",
+          "enum": ["json", "text", "markdown", "code"],
+          "default": "json"
+        },
+        "outputSchema": {
+          "type": "object",
+          "description": "JSON Schema for expected output structure"
+        },
+        "examples": {
+          "type": "array",
+          "description": "Example inputs and outputs for the template",
+          "items": {
+            "$ref": "#/definitions/promptExample"
+          }
+        },
+        "metadata": {
+          "$ref": "#/definitions/promptMetadata"
+        }
+      }
+    },
+    "promptExample": {
+      "type": "object",
+      "required": ["input", "output"],
+      "properties": {
+        "input": {
+          "type": "object",
+          "description": "Variable values for the example"
+        },
+        "output": {
+          "type": "string",
+          "description": "Expected output for the given input"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of what this example demonstrates"
+        }
+      }
+    },
+    "promptMetadata": {
+      "type": "object",
+      "properties": {
+        "author": {
+          "type": "string",
+          "description": "Author of the template"
+        },
+        "version": {
+          "type": "string",
+          "description": "Version of the template",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "modelRecommendation": {
+          "type": "string",
+          "description": "Recommended AI model for this template",
+          "default": "deepseek-chat"
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Recommended temperature setting"
+        },
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 8000,
+          "description": "Recommended max tokens"
+        }
+      }
+    },
+    "promptExecution": {
+      "type": "object",
+      "required": ["templateId", "variables"],
+      "properties": {
+        "templateId": {
+          "type": "string",
+          "description": "ID of the template to execute"
+        },
+        "variables": {
+          "type": "object",
+          "description": "Variable values to substitute in the template"
+        },
+        "options": {
+          "$ref": "#/definitions/executionOptions"
+        },
+        "context": {
+          "$ref": "#/definitions/promptContext"
+        }
+      }
+    },
+    "executionOptions": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "type": "string",
+          "description": "Model to use for execution"
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 8000
+        },
+        "stream": {
+          "type": "boolean",
+          "default": false
+        },
+        "responseFormat": {
+          "type": "string",
+          "enum": ["json_object", "text"]
+        }
+      }
+    },
+    "promptContext": {
+      "type": "object",
+      "properties": {
+        "systemConfig": {
+          "type": "object",
+          "description": "System configuration to include in context"
+        },
+        "userContext": {
+          "type": "object",
+          "description": "User-specific context"
+        },
+        "previousInteractions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Previous conversation context"
+        },
+        "domainKnowledge": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Relevant domain knowledge to include"
+        }
+      }
+    },
+    "promptResult": {
+      "type": "object",
+      "required": ["templateId", "success"],
+      "properties": {
+        "templateId": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "output": {
+          "description": "The generated output"
+        },
+        "rawResponse": {
+          "type": "string",
+          "description": "Raw response from the AI model"
+        },
+        "validationErrors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Validation errors if output didn't match expected schema"
+        },
+        "executionTime": {
+          "type": "integer",
+          "description": "Execution time in milliseconds"
+        },
+        "tokensUsed": {
+          "type": "integer",
+          "description": "Number of tokens used"
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "model": { "type": "string" },
+            "temperature": { "type": "number" },
+            "timestamp": { "type": "string", "format": "date-time" }
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "templates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/promptTemplate"
+      }
+    }
+  }
+}
