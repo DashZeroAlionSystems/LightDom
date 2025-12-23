@@ -1,4 +1,5 @@
 import { SocialTimelineEvent, TrainingSignal } from './types';
+import { applyTraining } from './trainingUtils';
 
 const defaultSocialTimeline: SocialTimelineEvent[] = [
   {
@@ -66,20 +67,11 @@ export function trainSocialTimeline(
   return events.map(event => {
     if (event.responseCard.id !== responseId) return event;
 
-    const { training } = event.responseCard;
-    const updatedNotes = note ? [...(training.notes || []), note] : training.notes || [];
-
     return {
       ...event,
       responseCard: {
         ...event.responseCard,
-        training: {
-          ...training,
-          positive: signal === 'positive' ? training.positive + 1 : training.positive,
-          negative: signal === 'negative' ? training.negative + 1 : training.negative,
-          lastSignal: signal,
-          notes: updatedNotes,
-        },
+        training: applyTraining(event.responseCard.training, signal, note),
       },
     };
   });

@@ -19,6 +19,9 @@ export interface TimelineResponseCard {
     lastSignal?: TrainingSignal;
     notes?: string[];
   };
+  /**
+   * Quality score in the range 0-100 representing human or automated evaluation.
+   */
   qualityScore?: number;
   channel?: 'chat' | 'social' | 'automation';
 }

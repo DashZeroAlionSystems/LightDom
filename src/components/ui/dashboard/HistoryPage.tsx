@@ -188,13 +188,16 @@ const HistoryPage: React.FC = () => {
     link.click();
   };
 
+  const HISTORY_FEEDBACK_NOTE = 'Feedback captured in history timeline';
+  const SOCIAL_FEEDBACK_NOTE = 'Social feedback recorded';
+
   const handleTrainHistory = (responseId: string, signal: TrainingSignal) => {
-    setHistoryTimeline(prev => trainHistoryTimeline(prev, responseId, signal, 'Feedback captured in history timeline'));
+    setHistoryTimeline(prev => trainHistoryTimeline(prev, responseId, signal, HISTORY_FEEDBACK_NOTE));
     message.success(signal === 'positive' ? 'Marked response as approved for Emma' : 'Queued response for retraining');
   };
 
   const handleTrainSocial = (responseId: string, signal: TrainingSignal) => {
-    setSocialTimeline(prev => trainSocialTimeline(prev, responseId, signal, 'Social feedback recorded'));
+    setSocialTimeline(prev => trainSocialTimeline(prev, responseId, signal, SOCIAL_FEEDBACK_NOTE));
     message.success(signal === 'positive' ? 'Social signal recorded as positive' : 'Flagged social response for improvement');
   };
 

@@ -12,6 +12,13 @@ interface TimelineResponseCardProps {
 }
 
 const TimelineResponseCard: React.FC<TimelineResponseCardProps> = ({ response, onTrain, footer }) => {
+  const totalVotes = response.training.positive + response.training.negative;
+  const approvalPercent = Math.min(
+    100,
+    totalVotes === 0 ? 0 : (response.training.positive / totalVotes) * 100,
+  );
+  const progressFormat = () => `${response.training.positive}/${totalVotes}`;
+
   return (
     <Card size="small" hoverable>
       <Space direction="vertical" style={{ width: '100%' }} size="small">
@@ -74,9 +81,9 @@ const TimelineResponseCard: React.FC<TimelineResponseCardProps> = ({ response, o
             <Progress
               size="small"
               type="circle"
-              percent={Math.min(100, response.training.positive / Math.max(1, response.training.positive + response.training.negative) * 100)}
+              percent={approvalPercent}
               width={44}
-              format={() => `${response.training.positive}/${response.training.positive + response.training.negative}`}
+              format={progressFormat}
             />
             {response.training.lastSignal && <Tag>{response.training.lastSignal}</Tag>}
           </Space>
