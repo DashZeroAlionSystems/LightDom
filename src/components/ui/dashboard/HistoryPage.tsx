@@ -10,7 +10,8 @@ import {
   Select,
   DatePicker,
   Spin,
-  Empty
+  Empty,
+  message
 } from 'antd';
 import {
   ClockCircleOutlined,
@@ -21,6 +22,20 @@ import {
   SearchOutlined,
   DownloadOutlined
 } from '@ant-design/icons';
+import TimelineResponseCard from '@/components/ui/timeline/TimelineResponseCard';
+import {
+  createHistoryTimeline,
+  trainHistoryTimeline
+} from '@/modules/timelines/historyTimelineModule';
+import {
+  createSocialTimeline,
+  trainSocialTimeline
+} from '@/modules/timelines/socialTimelineModule';
+import {
+  HistoryTimelineEvent,
+  SocialTimelineEvent,
+  TrainingSignal
+} from '@/modules/timelines/types';
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -36,12 +51,17 @@ interface HistoryItem {
   metadata?: Record<string, any>;
 }
 
+const HISTORY_FEEDBACK_NOTE = 'Feedback captured in history timeline';
+const SOCIAL_FEEDBACK_NOTE = 'Social feedback recorded';
+
 const HistoryPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [filteredHistory, setFilteredHistory] = useState<HistoryItem[]>([]);
   const [filterType, setFilterType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [historyTimeline, setHistoryTimeline] = useState<HistoryTimelineEvent[]>(createHistoryTimeline());
+  const [socialTimeline, setSocialTimeline] = useState<SocialTimelineEvent[]>(createSocialTimeline());
 
   useEffect(() => {
     fetchHistory();
@@ -171,6 +191,22 @@ const HistoryPage: React.FC = () => {
     link.click();
   };
 
+  const handleTrainHistory = (responseId: string, signal: TrainingSignal) => {
+    setHistoryTimeline(prev => trainHistoryTimeline(prev, responseId, signal, HISTORY_FEEDBACK_NOTE));
+    message.success(signal === 'positive' ? 'Marked response as approved for Emma' : 'Queued response for retraining');
+  };
+
+  const handleTrainSocial = (responseId: string, signal: TrainingSignal) => {
+    setSocialTimeline(prev => trainSocialTimeline(prev, responseId, signal, SOCIAL_FEEDBACK_NOTE));
+    message.success(signal === 'positive' ? 'Social signal recorded as positive' : 'Flagged social response for improvement');
+  };
+
+  const getSentimentColor = (sentiment: 'positive' | 'neutral' | 'negative') => {
+    if (sentiment === 'positive') return 'green';
+    if (sentiment === 'neutral') return 'geekblue';
+    return 'red';
+  };
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '4rem 0' }}>
@@ -245,6 +281,76 @@ const HistoryPage: React.FC = () => {
             ))}
           </Timeline>
         )}
+      </Card>
+
+      <Card title="Conversation History Timeline" style={{ marginBottom: '24px' }}>
+        <Timeline mode="left">
+          {historyTimeline.map(event => (
+            <Timeline.Item
+              key={event.id}
+              dot={<ClockCircleOutlined style={{ color: '#722ed1' }} />}
+              label={new Date(event.timestamp).toLocaleString()}
+            >
+              <Space direction="vertical" style={{ width: '100%' }} size="small">
+                <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+                  <Text strong>{event.thread}</Text>
+                  <Space>
+                    <Tag color="blue">Chat</Tag>
+                    {event.tags.map(tag => (
+                      <Tag key={tag}>{tag}</Tag>
+                    ))}
+                  </Space>
+                </Space>
+                <Text type="secondary">{event.context}</Text>
+                <TimelineResponseCard
+                  response={event.responseCard}
+                  onTrain={(signal) => handleTrainHistory(event.responseCard.id, signal)}
+                />
+              </Space>
+            </Timeline.Item>
+          ))}
+        </Timeline>
+      </Card>
+
+      <Card title="Social Timeline & Training Feedback" style={{ marginBottom: '24px' }}>
+        <Timeline mode="left">
+          {socialTimeline.map(event => (
+            <Timeline.Item
+              key={event.id}
+              dot={<InfoCircleOutlined style={{ color: '#13c2c2' }} />}
+              label={new Date(event.timestamp).toLocaleString()}
+            >
+              <Space direction="vertical" style={{ width: '100%' }} size="small">
+                <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+                  <Text strong>{event.community}</Text>
+                  <Tag color="purple">{event.contentId}</Tag>
+                </Space>
+                <Text type="secondary">{event.summary}</Text>
+                <TimelineResponseCard
+                  response={event.responseCard}
+                  onTrain={(signal) => handleTrainSocial(event.responseCard.id, signal)}
+                  footer={
+                    <div>
+                      <Text strong>Replies & signals</Text>
+                      <div style={{ marginTop: 8 }}>
+                        {event.replies.map(reply => (
+                          <div key={reply.id} style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+                            <Tag color={getSentimentColor(reply.sentiment)}>
+                              {reply.sentiment}
+                            </Tag>
+                            <Text style={{ marginLeft: 8 }}>
+                              <strong>{reply.author}:</strong> {reply.message}
+                            </Text>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  }
+                />
+              </Space>
+            </Timeline.Item>
+          ))}
+        </Timeline>
       </Card>
     </div>
   );
