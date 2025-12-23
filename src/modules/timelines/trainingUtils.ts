@@ -12,7 +12,7 @@ export function applyTraining(
   signal: TrainingSignal,
   note?: string,
 ): TrainingState {
-  const updatedNotes = [...(training.notes ?? []), ...(note ? [note] : [])];
+  const updatedNotes = note ? [...(training.notes ?? []), note] : training.notes ?? [];
   return {
     ...training,
     positive: signal === 'positive' ? training.positive + 1 : training.positive,

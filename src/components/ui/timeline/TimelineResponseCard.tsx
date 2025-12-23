@@ -15,7 +15,7 @@ const TimelineResponseCard: React.FC<TimelineResponseCardProps> = ({ response, o
   const totalVotes = response.training.positive + response.training.negative;
   const approvalPercent = Math.min(
     100,
-    totalVotes === 0 ? 0 : (response.training.positive / totalVotes) * 100,
+    totalVotes === 0 ? 0 : Math.round((response.training.positive / totalVotes) * 100),
   );
   const progressFormat = () => `${response.training.positive}/${totalVotes}`;
 

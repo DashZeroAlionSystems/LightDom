@@ -51,6 +51,9 @@ interface HistoryItem {
   metadata?: Record<string, any>;
 }
 
+const HISTORY_FEEDBACK_NOTE = 'Feedback captured in history timeline';
+const SOCIAL_FEEDBACK_NOTE = 'Social feedback recorded';
+
 const HistoryPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -188,9 +191,6 @@ const HistoryPage: React.FC = () => {
     link.click();
   };
 
-  const HISTORY_FEEDBACK_NOTE = 'Feedback captured in history timeline';
-  const SOCIAL_FEEDBACK_NOTE = 'Social feedback recorded';
-
   const handleTrainHistory = (responseId: string, signal: TrainingSignal) => {
     setHistoryTimeline(prev => trainHistoryTimeline(prev, responseId, signal, HISTORY_FEEDBACK_NOTE));
     message.success(signal === 'positive' ? 'Marked response as approved for Emma' : 'Queued response for retraining');
@@ -199,6 +199,12 @@ const HistoryPage: React.FC = () => {
   const handleTrainSocial = (responseId: string, signal: TrainingSignal) => {
     setSocialTimeline(prev => trainSocialTimeline(prev, responseId, signal, SOCIAL_FEEDBACK_NOTE));
     message.success(signal === 'positive' ? 'Social signal recorded as positive' : 'Flagged social response for improvement');
+  };
+
+  const getSentimentColor = (sentiment: 'positive' | 'neutral' | 'negative') => {
+    if (sentiment === 'positive') return 'green';
+    if (sentiment === 'neutral') return 'geekblue';
+    return 'red';
   };
 
   if (loading) {
@@ -329,7 +335,7 @@ const HistoryPage: React.FC = () => {
                       <div style={{ marginTop: 8 }}>
                         {event.replies.map(reply => (
                           <div key={reply.id} style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-                            <Tag color={reply.sentiment === 'positive' ? 'green' : reply.sentiment === 'neutral' ? 'geekblue' : 'red'}>
+                            <Tag color={getSentimentColor(reply.sentiment)}>
                               {reply.sentiment}
                             </Tag>
                             <Text style={{ marginLeft: 8 }}>
