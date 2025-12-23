@@ -17,6 +17,10 @@
 import { EventEmitter } from 'events';
 import { SEOPreTrainedModelsRegistry } from './seo-pretrained-models-registry.js';
 import { NeuralNetworkSEOTrainer } from './neural-network-seo-trainer.js';
+import {
+  buildModelfileSections,
+  normalizeOllamaTrainingConfig
+} from './pretrained-model-training-helpers.js';
 
 class PretrainedModelTrainingService extends EventEmitter {
   constructor(options = {}) {
@@ -35,6 +39,7 @@ class PretrainedModelTrainingService extends EventEmitter {
       defaultValidationSplit: options.defaultValidationSplit || 0.2,
       qualityThreshold: options.qualityThreshold || 70,
       enableTransferLearning: options.enableTransferLearning !== false,
+      defaultContextWindow: options.defaultContextWindow || 4096,
       ...options.config
     };
     
@@ -184,6 +189,17 @@ class PretrainedModelTrainingService extends EventEmitter {
       patience: trainingConfig.patience || 5,
       ...trainingConfig
     };
+
+    // Attach Ollama/model metadata for downstream training + auditing
+    const ollamaProfile = normalizeOllamaTrainingConfig(trainingConfig, {
+      defaultModel: pretrainedModelId,
+      defaultContextWindow: this.config.defaultContextWindow
+    });
+
+    finalTrainingConfig.ollama = ollamaProfile;
+    finalTrainingConfig.contextWindow = ollamaProfile.contextWindow;
+    finalTrainingConfig.modelfileSections = ollamaProfile.modelfileSections;
+    finalTrainingConfig.trainingExamples = ollamaProfile.trainingExamples;
 
     // Create pipeline in database
     const result = await this.db.query(`
@@ -361,9 +377,15 @@ class PretrainedModelTrainingService extends EventEmitter {
 
     // Get pretrained model
     const pretrainedModel = this.modelsRegistry.getModel(pipeline.pretrained_model_id);
+    const trainingContextWindow =
+      pipeline.training_config?.contextWindow ||
+      pipeline.training_config?.ollama?.contextWindow ||
+      this.config.defaultContextWindow;
 
     console.log(`🎓 Starting training run for pipeline: ${pipeline.name}`);
     console.log(`   - Pretrained model: ${pipeline.pretrained_model_name || 'Custom'}`);
+    console.log(`   - Ollama model: ${pipeline.training_config?.ollama?.model || 'n/a'}`);
+    console.log(`   - Context window: ${trainingContextWindow} tokens`);
     console.log(`   - Available data: ${pipeline.available_training_data} samples`);
 
     // Create training run
