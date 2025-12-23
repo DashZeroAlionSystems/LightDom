@@ -68,12 +68,16 @@ router.post('/chat', async (req: Request, res: Response) => {
   }
 
   try {
-    const response = await ollamaDeepseek.chat(message, conversationId);
+    const { response, conversationId: convId, context } = await ollamaDeepseek.chatWithContext(
+      message,
+      conversationId
+    );
     
     res.json({
       success: true,
       response,
-      conversationId: conversationId || `conv-${Date.now()}`
+      conversationId: convId,
+      context
     });
   } catch (error: any) {
     res.status(500).json({
@@ -166,17 +170,19 @@ router.post('/stream/stop', (req: Request, res: Response) => {
 
 /**
  * GET /api/ollama/conversation/:conversationId
- * Get conversation history
+ * Get conversation history + context snapshot
  */
-router.get('/conversation/:conversationId', (req: Request, res: Response) => {
+router.get('/conversation/:conversationId', async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   
   const history = ollamaDeepseek.getConversationHistory(conversationId);
+  const context = await ollamaDeepseek.getContextSnapshot(conversationId);
 
   res.json({
     success: true,
     conversationId,
-    history
+    history,
+    context
   });
 });
 

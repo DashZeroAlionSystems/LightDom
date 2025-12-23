@@ -8,6 +8,7 @@ import axios, { AxiosInstance } from 'axios';
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import SchemaServiceFactory, { ServiceSchema } from '../services/SchemaServiceFactory';
+import { getDatabaseService } from '../services/DatabaseService.js';
 
 export interface OllamaConfig {
   endpoint: string;
@@ -15,6 +16,8 @@ export interface OllamaConfig {
   temperature: number;
   streamingEnabled: boolean;
   toolsEnabled: boolean;
+  contextWindowSize?: number;
+  timelineDepth?: number;
 }
 
 export interface Tool {
@@ -67,6 +70,7 @@ export interface BidiStream {
 }
 
 export class OllamaDeepSeekIntegration extends EventEmitter {
+  private static readonly TOKEN_TO_CHAR_RATIO = 4; // rough heuristic: ~4 chars per token
   private config: OllamaConfig;
   private client: AxiosInstance;
   private tools: Map<string, Tool> = new Map();
@@ -84,6 +88,11 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
       temperature: config?.temperature ?? 0.7,
       streamingEnabled: config?.streamingEnabled !== false,
       toolsEnabled: config?.toolsEnabled !== false,
+      contextWindowSize:
+        config?.contextWindowSize ||
+        Number(process.env.OLLAMA_CONTEXT_WINDOW || process.env.OLLAMA_NUM_CTX) ||
+        4096,
+      timelineDepth: config?.timelineDepth || 25,
     };
 
     this.client = axios.create({
@@ -827,6 +836,86 @@ export class OllamaDeepSeekIntegration extends EventEmitter {
       componentId: component.id,
       schemaId: componentSchema['@id'],
       message: `${args.componentType} component added to workflow ${args.workflowId}`,
+    };
+  }
+
+  /**
+   * Trim messages to fit within the configured context window (rough token approximation)
+   */
+  private trimHistoryForContext(messages: Message[]): Message[] {
+    const targetTokens = this.config.contextWindowSize || 4096;
+    const targetChars = targetTokens * OllamaDeepSeekIntegration.TOKEN_TO_CHAR_RATIO;
+    let remaining = targetChars;
+    const trimmed: Message[] = [];
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      const cost = (msg.content || '').length;
+      if (remaining - cost < 0 && trimmed.length > 0) {
+        break;
+      }
+      trimmed.push(msg);
+      remaining -= cost;
+    }
+
+    return trimmed.reverse();
+  }
+
+  /**
+   * Pull additional timeline/context rows from the database when available
+   */
+  private async fetchTimeline(conversationId: string) {
+    try {
+      const db = getDatabaseService();
+      const res = await db.query(
+        `SELECT role, prompt AS content, created_at 
+         FROM ai_interactions 
+         WHERE session_id = $1 
+         ORDER BY created_at DESC 
+         LIMIT $2`,
+        [conversationId, this.config.timelineDepth || 25]
+      );
+      return res.rows || [];
+    } catch (error: any) {
+      console.warn('Context timeline fetch skipped:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Build a context snapshot showing what Emma sees for the current turn
+   */
+  async getContextSnapshot(conversationId: string) {
+    const history = this.conversationHistory.get(conversationId) || [];
+    const trimmedHistory = this.trimHistoryForContext(history);
+    const timeline = await this.fetchTimeline(conversationId);
+
+    const approxTokens = Math.ceil(
+      trimmedHistory.reduce((sum, msg) => sum + (msg.content?.length || 0), 0) / 4
+    );
+
+    return {
+      conversationId,
+      model: this.config.model,
+      contextWindow: this.config.contextWindowSize || 4096,
+      approxTokens,
+      history: trimmedHistory,
+      timeline
+    };
+  }
+
+  /**
+   * Chat and also return the context snapshot used for the response
+   */
+  async chatWithContext(message: string, conversationId?: string) {
+    const convId = conversationId || `conv-${Date.now()}`;
+    const response = await this.chat(message, convId);
+    const context = await this.getContextSnapshot(convId);
+
+    return {
+      response,
+      conversationId: convId,
+      context
     };
   }
 
