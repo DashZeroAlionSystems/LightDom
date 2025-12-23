@@ -24,7 +24,7 @@ side navigation experience.
 
 Key capabilities:
 
-- **Configuration first**: sections resolved from \\`adminSidebarConfig.ts\\`
+- **Configuration first**: sections resolved from adminSidebarConfig.ts
 - **Action pipelines**: built-in triggers for page and dashboard creation
 - **Feature toggles**: runtime enable/disable via include/exclude arrays
 - **Lucide icons**: resolved dynamically with graceful fallbacks

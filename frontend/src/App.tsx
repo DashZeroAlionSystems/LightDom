@@ -11,6 +11,9 @@ import { ErrorFallback } from '@/components/ErrorFallback';
 import { Layout } from '@/components/Layout';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
+// Design System Provider - ensures consistent styling across all pages
+import { DesignSystemProvider } from '@/design-system';
+
 // Theme configuration
 import { applyCommandPaletteTheme, loadCommandPaletteTheme } from '@/config/command-palette-theme';
 
@@ -40,6 +43,7 @@ import { RegisterPage } from '@/pages/RegisterPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { WorkflowBuilderPage } from '@/pages/WorkflowBuilderPage';
 import { WorkflowsPage } from '@/pages/WorkflowsPage';
+import { DesignSystemShowcasePage } from '@/pages/DesignSystemShowcasePage';
 
 // Service Dashboards
 import CodebaseIndexingDashboard from '@/components/dashboards/CodebaseIndexingDashboard';
@@ -144,13 +148,14 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallbackComponent}>
       <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <Router>
-            <div className='min-h-screen bg-background text-foreground'>
-              <Routes>
-                {/* Public Routes */}
-                <Route path='/' element={<Navigate to='/admin-dashboard' replace />} />
-                <Route
+        <DesignSystemProvider defaultTheme="dark" defaultMotionPreference="full">
+          <QueryClientProvider client={queryClient}>
+            <Router>
+              <div className='min-h-screen bg-background text-foreground'>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path='/' element={<Navigate to='/admin-dashboard' replace />} />
+                  <Route
                   path='/login'
                   element={
                     <PublicRoute>
@@ -377,6 +382,16 @@ const App: React.FC = () => {
                     <ProtectedRoute>
                       <Layout>
                         <NeuralNetworkManagementPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/design-system'
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DesignSystemShowcasePage />
                       </Layout>
                     </ProtectedRoute>
                   }
@@ -827,6 +842,7 @@ const App: React.FC = () => {
             </div>
           </Router>
         </QueryClientProvider>
+      </DesignSystemProvider>
       </HelmetProvider>
     </ErrorBoundary>
   );
