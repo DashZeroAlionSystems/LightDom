@@ -66,7 +66,11 @@ jobs:
         run: |
           echo "📊 Checking for stale branches (no commits in 30+ days)..."
 
-          STALE_CUTOFF=$(date -d '30 days ago' +%s 2>/dev/null || date -v-30d +%s 2>/dev/null || echo "0")
+          STALE_CUTOFF=$(date -d '30 days ago' +%s 2>/dev/null || date -v-30d +%s 2>/dev/null)
+          if [ -z "$STALE_CUTOFF" ]; then
+            echo "⚠️  Could not determine stale cutoff date, skipping stale branch report"
+            exit 0
+          fi
 
           git branch -r | grep -v -E "(main|develop|HEAD)" | sed 's/origin\///' | while read branch; do
             LAST_COMMIT=$(git log -1 --format=%ct "origin/$branch" 2>/dev/null || echo "0")

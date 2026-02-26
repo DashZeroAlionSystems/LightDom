@@ -5,9 +5,15 @@ on:
     types: [opened, edited, synchronize, reopened]
     branches: [main]
 
+permissions:
+  pull-requests: read
+  contents: read
+
 jobs:
   pr-title:
     name: Validate PR title
+    permissions:
+      pull-requests: read
     runs-on: ubuntu-latest
     steps:
       - name: Check PR title follows Conventional Commits

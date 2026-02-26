@@ -21,7 +21,7 @@
 
 - [ ] Searched `services/`, `src/services/`, `api/` for similar functionality
 - [ ] Searched `src/components/` for similar UI components
-- [ ] Ran `npm run rules:search-first` (if available)
+- [ ] Ran `npm run rules:search-first`
 - **Keywords searched**: <!-- e.g. "wallet", "mining", "crawler" -->
 - **Existing code found**: <!-- list any, or "None" -->
 - **Reason for new code**: <!-- explain if creating new files -->
