@@ -1,0 +1,88 @@
+name: PR Lint
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  pr-title:
+    name: Validate PR title
+    permissions:
+      pull-requests: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title follows Conventional Commits
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            test
+            chore
+            ci
+            build
+            perf
+            revert
+          requireScope: false
+          subjectPattern: ^.+$
+          subjectPatternError: |
+            The PR title "{subject}" is not valid.
+            Use Conventional Commits format: <type>: <description>
+            Example: feat: add wallet dashboard
+
+  branch-name:
+    name: Validate branch name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch naming convention
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          echo "Checking branch name: $BRANCH"
+
+          # Allow standard prefixes and agent prefixes during transition
+          if [[ "$BRANCH" =~ ^(feature|bugfix|hotfix|docs|refactor|test|ci|chore)/ ]]; then
+            echo "✅ Branch '$BRANCH' follows naming convention"
+          elif [[ "$BRANCH" =~ ^(copilot|claude|cursor)/ ]]; then
+            echo "⚠️ Agent branch '$BRANCH' detected — consider using standard prefixes (feature/, bugfix/, etc.)"
+            echo "See .github/BRANCH_STRATEGY.md for naming conventions"
+          else
+            echo "❌ Branch '$BRANCH' does not follow naming convention"
+            echo "Expected: feature/*, bugfix/*, hotfix/*, docs/*, refactor/*, test/*"
+            echo "See .github/BRANCH_STRATEGY.md for details"
+            exit 1
+          fi
+
+  pr-size:
+    name: Check PR size
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check diff size
+        run: |
+          ADDITIONS=$(gh pr view ${{ github.event.number }} --json additions --jq '.additions')
+          DELETIONS=$(gh pr view ${{ github.event.number }} --json deletions --jq '.deletions')
+          TOTAL=$((ADDITIONS + DELETIONS))
+
+          echo "PR size: +$ADDITIONS / -$DELETIONS (total: $TOTAL lines)"
+
+          if [ "$TOTAL" -gt 1000 ]; then
+            echo "⚠️ Large PR detected ($TOTAL lines changed). Consider splitting into smaller PRs."
+          else
+            echo "✅ PR size is manageable ($TOTAL lines)"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

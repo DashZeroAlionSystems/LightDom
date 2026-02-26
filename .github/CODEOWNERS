@@ -1,11 +1,39 @@
-# Code owners - assign review responsibility
-# Lines matching paths will request review from the listed owners
+# Code Owners — assign review responsibility
+# Matched top-down; last match wins.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-# Core TS source
+# Default owner for everything
+* @DashZeroAlionSystems
+
+# Frontend (React, components, pages)
 src/ @DashZeroAlionSystems
+frontend/ @DashZeroAlionSystems
 
-# Infrastructure and workflows
+# Backend / API
+api/ @DashZeroAlionSystems
+backend/ @DashZeroAlionSystems
+services/ @DashZeroAlionSystems
+
+# Blockchain / Smart Contracts
+contracts/ @DashZeroAlionSystems
+blockchain/ @DashZeroAlionSystems
+
+# Database schemas & migrations
+database/ @DashZeroAlionSystems
+
+# Infrastructure (Docker, CI, workflows)
 .github/ @DashZeroAlionSystems
+docker/ @DashZeroAlionSystems
+docker-compose*.yml @DashZeroAlionSystems
+Dockerfile* @DashZeroAlionSystems
+Makefile @DashZeroAlionSystems
 
-# Docs
+# Configuration files
+package.json @DashZeroAlionSystems
+tsconfig.json @DashZeroAlionSystems
+vite.config.ts @DashZeroAlionSystems
+
+# Documentation
+docs/ @DashZeroAlionSystems
 README.md @DashZeroAlionSystems
+CONTRIBUTING.md @DashZeroAlionSystems

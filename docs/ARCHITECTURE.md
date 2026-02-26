@@ -478,3 +478,160 @@ graph LR
 ## Next Steps
 
 This architecture map will guide our systematic integration of all services to the dashboard with real data.
+
+---
+
+## Git Workflow & Project Management
+
+```mermaid
+graph TD
+    subgraph "Branch Strategy"
+        Main["main (protected)"]
+        Feature["feature/* branches"]
+        Bugfix["bugfix/* branches"]
+        Hotfix["hotfix/* branches"]
+        Docs["docs/* branches"]
+    end
+
+    subgraph "CI/CD Pipeline"
+        PRLint["PR Lint (title + branch name)"]
+        CI["CI (lint, type-check, tests)"]
+        CodeReview["Code Review (CODEOWNERS)"]
+        AutoMerge["Auto-Merge (approved + green CI)"]
+        Deploy["Deploy (production)"]
+    end
+
+    subgraph "Automation"
+        BranchCleanup["Branch Cleanup (daily)"]
+        StaleBranchReport["Stale Branch Report"]
+        IssueAutoManage["Issue Auto-Manage"]
+    end
+
+    Feature -->|Open PR| PRLint
+    Bugfix -->|Open PR| PRLint
+    Hotfix -->|Open PR| PRLint
+    Docs -->|Open PR| PRLint
+
+    PRLint -->|Pass| CI
+    CI -->|Pass| CodeReview
+    CodeReview -->|Approved| AutoMerge
+    AutoMerge -->|Merge| Main
+    Main -->|Push| Deploy
+
+    Main -->|Schedule| BranchCleanup
+    BranchCleanup --> StaleBranchReport
+
+    style Main fill:#4CAF50,color:#fff,stroke:#333,stroke-width:3px
+    style Deploy fill:#2196F3,color:#fff,stroke:#333
+    style BranchCleanup fill:#FF9800,color:#fff,stroke:#333
+```
+
+## Full Platform Overview
+
+```mermaid
+graph TB
+    subgraph "👤 Users"
+        WebUser["Web Browser"]
+        DesktopUser["Electron Desktop App"]
+        AdminUser["Admin Dashboard"]
+    end
+
+    subgraph "🖥️ Frontend — React 19 + Vite"
+        Dashboard["Dashboard"]
+        MiningUI["Mining Console"]
+        CrawlerUI["Crawler Manager"]
+        WalletUI["Wallet / Economy"]
+        MetaverseUI["Metaverse Portal"]
+        SEOUI["SEO Analytics"]
+        AdminDash["Admin Panel"]
+        NeuralUI["Neural Network"]
+    end
+
+    subgraph "⚡ API Layer — Express + Socket.IO"
+        REST["REST API :3001"]
+        WS["WebSocket (Socket.IO)"]
+        Auth["Auth Middleware"]
+    end
+
+    subgraph "🧠 Core Services — ServiceHub"
+        MiningService["Mining Service"]
+        CrawlerService["Crawler Service"]
+        BlockchainService["Blockchain Service"]
+        SEOService["SEO Analytics"]
+        OptEngine["Optimization Engine"]
+        WalletService["Wallet Service"]
+        MetaverseService["Metaverse Engine"]
+        AIService["AI / DeepSeek / Ollama"]
+    end
+
+    subgraph "🔗 Blockchain — Hardhat + Solidity"
+        DOMToken["DOMSpaceToken (ERC-20)"]
+        ProofOpt["ProofOfOptimization"]
+        Marketplace["MetaverseMarketplace"]
+        NFTContracts["NFT Contracts"]
+    end
+
+    subgraph "💾 Data Layer"
+        PG["PostgreSQL"]
+        Redis["Redis (Cache + Queue)"]
+        IPFS["IPFS Storage"]
+        Chain["Ethereum Network"]
+    end
+
+    subgraph "🤖 Workers & Automation"
+        BackgroundWorkers["Background Workers"]
+        N8N["N8N Workflow Engine"]
+        TaskManager["Task Manager"]
+        Monitoring["Monitoring System"]
+    end
+
+    WebUser --> Dashboard
+    DesktopUser --> Dashboard
+    AdminUser --> AdminDash
+
+    Dashboard --> REST
+    MiningUI --> REST
+    CrawlerUI --> REST
+    WalletUI --> REST
+    MetaverseUI --> WS
+    SEOUI --> REST
+    NeuralUI --> REST
+    AdminDash --> REST
+
+    REST --> Auth --> MiningService
+    REST --> Auth --> CrawlerService
+    REST --> Auth --> BlockchainService
+    REST --> Auth --> SEOService
+    REST --> Auth --> WalletService
+    WS --> MetaverseService
+
+    MiningService --> OptEngine
+    CrawlerService --> PG
+    BlockchainService --> Chain
+    BlockchainService --> DOMToken
+    BlockchainService --> ProofOpt
+    SEOService --> PG
+    WalletService --> Chain
+    MetaverseService --> Marketplace
+    AIService --> Redis
+
+    OptEngine --> PG
+    OptEngine --> Redis
+    MiningService --> PG
+
+    DOMToken --> Chain
+    ProofOpt --> Chain
+    Marketplace --> Chain
+    NFTContracts --> Chain
+
+    BackgroundWorkers --> Redis
+    N8N --> REST
+    TaskManager --> Redis
+    Monitoring --> PG
+
+    style REST fill:#4CAF50,color:#fff
+    style WS fill:#4CAF50,color:#fff
+    style PG fill:#336791,color:#fff
+    style Redis fill:#DC382D,color:#fff
+    style Chain fill:#627EEA,color:#fff
+```
