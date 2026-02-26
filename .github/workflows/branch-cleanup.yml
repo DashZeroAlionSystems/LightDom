@@ -38,7 +38,8 @@ jobs:
           git fetch --prune
           
           # Get merged branches (excluding main, develop, and protected branches)
-          MERGED_BRANCHES=$(git branch -r --merged main | grep -v -E "(main|develop|HEAD)" | sed 's/origin\///' | grep -E "^(feature|bugfix|hotfix)/" || true)
+          # Includes standard branches AND agent-created branches (copilot/, claude/, cursor/)
+          MERGED_BRANCHES=$(git branch -r --merged main | grep -v -E "(main|develop|HEAD)" | sed 's/origin\///' | grep -E "^(feature|bugfix|hotfix|docs|refactor|test|copilot|claude|cursor)/" || true)
           
           if [ -z "$MERGED_BRANCHES" ]; then
             echo "✅ No merged branches to clean up"
@@ -58,6 +59,24 @@ jobs:
           git remote prune origin
           
           echo "✅ Branch cleanup completed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Report stale branches
+        run: |
+          echo "📊 Checking for stale branches (no commits in 30+ days)..."
+
+          STALE_CUTOFF=$(date -d '30 days ago' +%s 2>/dev/null || date -v-30d +%s 2>/dev/null || echo "0")
+
+          git branch -r | grep -v -E "(main|develop|HEAD)" | sed 's/origin\///' | while read branch; do
+            LAST_COMMIT=$(git log -1 --format=%ct "origin/$branch" 2>/dev/null || echo "0")
+            if [ "$LAST_COMMIT" -lt "$STALE_CUTOFF" ] && [ "$LAST_COMMIT" -gt "0" ]; then
+              LAST_DATE=$(git log -1 --format=%ci "origin/$branch" 2>/dev/null)
+              echo "⚠️  Stale: $branch (last commit: $LAST_DATE)"
+            fi
+          done || true
+
+          echo "✅ Stale branch report completed"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
